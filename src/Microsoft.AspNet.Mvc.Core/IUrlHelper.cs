@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc
@@ -11,7 +12,7 @@ namespace Microsoft.AspNet.Mvc
     public interface IUrlHelper
     {
         /// <summary>
-        /// Generates a fully qualified or absolute URL specified by <see cref="Mvc.UrlActionContext"/> for an action
+        /// Generates a fully qualified or absolute URL specified by <see cref="UrlActionContext"/> for an action
         /// method, which contains action name, controller name, route values, protocol to use, host name, and fragment.
         /// </summary>
         /// <param name="actionContext">The context object for the generated URLs for an action method.</param>
@@ -51,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
         bool IsLocalUrl(string url);
 
         /// <summary>
-        /// Generates a fully qualified or absolute URL specified by <see cref="Mvc.UrlRouteContext"/>, which
+        /// Generates a fully qualified or absolute URL specified by <see cref="UrlRouteContext"/>, which
         /// contains the route name, the route values, protocol to use, host name and fragment.
         /// </summary>
         /// <param name="routeContext">The context object for the generated URLs for a route.</param>

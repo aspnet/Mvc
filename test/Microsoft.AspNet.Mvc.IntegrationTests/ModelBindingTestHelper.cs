@@ -4,6 +4,8 @@
 using System;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Routing;
@@ -39,7 +41,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             return new OperationBindingContext()
             {
-                BodyBindingState = BodyBindingState.NotBodyBased,
                 HttpContext = httpContext,
                 InputFormatters = actionBindingContext.InputFormatters,
                 MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
@@ -59,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         public static IObjectModelValidator GetObjectValidator(MvcOptions options = null)
         {
-            options = options ?? new TestMvcOptions().Options;
+            options = options ?? new TestMvcOptions().Value;
             options.MaxModelValidationErrors = 5;
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             return new DefaultObjectValidator(
@@ -80,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 httpContext.RequestServices.GetRequiredService<IActionContextAccessor>();
             actionContextAccessor.ActionContext = actionContext;
 
-            var options = new TestMvcOptions().Options;
+            var options = new TestMvcOptions().Value;
             if (updateOptions != null)
             {
                 updateOptions(options);
@@ -97,9 +98,9 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 actionContext.HttpContext,
                 actionContext.RouteData.Values);
 
-            var valueProvider = CompositeValueProvider.Create(
+            var valueProvider = CompositeValueProvider.CreateAsync(
                 options.ValueProviderFactories,
-                valueProviderFactoryContext);
+                valueProviderFactoryContext).Result;
 
             return new ActionBindingContext()
             {

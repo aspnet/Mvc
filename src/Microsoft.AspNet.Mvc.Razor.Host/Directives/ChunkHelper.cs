@@ -3,9 +3,7 @@
 
 using System;
 using System.Linq;
-using Microsoft.AspNet.Mvc.Razor.Host;
 using Microsoft.AspNet.Razor.Chunks;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -14,29 +12,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
     /// </summary>
     public static class ChunkHelper
     {
-        private const string TModelToken = "<TModel>";
-
         /// <summary>
-        /// Attempts to cast the passed in <see cref="Chunk"/> to type <typeparamref name="TChunk"/> and throws if the
-        /// cast fails.
+        /// Token that is replaced by the model name in <c>@inherits</c> and <c>@inject</c>
+        /// chunks as part of <see cref="ChunkInheritanceUtility"/>.
         /// </summary>
-        /// <typeparam name="TChunk">The type to cast to.</typeparam>
-        /// <param name="chunk">The chunk to cast.</param>
-        /// <returns>The <paramref name="chunk"/> cast to <typeparamref name="TChunk"/>.</returns>
-        /// <exception cref="ArgumentException"><paramref name="chunk"/> is not an instance of
-        /// <typeparamref name="TChunk"/>.</exception>
-        public static TChunk EnsureChunk<TChunk>([NotNull] Chunk chunk)
-            where TChunk : Chunk
-        {
-            var chunkOfT = chunk as TChunk;
-            if (chunkOfT == null)
-            {
-                var message = Resources.FormatArgumentMustBeOfType(typeof(TChunk).FullName);
-                throw new ArgumentException(message, nameof(chunk));
-            }
-
-            return chunkOfT;
-        }
+        public static readonly string TModelToken = "TModel";
+        private static readonly string TModelReplaceToken = $"<{TModelToken}>";
 
         /// <summary>
         /// Returns the <see cref="ModelChunk"/> used to determine the model name for the page generated
@@ -45,8 +26,13 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="chunkTree">The <see cref="ChunkTree"/> to scan for <see cref="ModelChunk"/>s in.</param>
         /// <returns>The last <see cref="ModelChunk"/> in the <see cref="ChunkTree"/> if found, <c>null</c> otherwise.
         /// </returns>
-        public static ModelChunk GetModelChunk([NotNull] ChunkTree chunkTree)
+        public static ModelChunk GetModelChunk(ChunkTree chunkTree)
         {
+            if (chunkTree == null)
+            {
+                throw new ArgumentNullException(nameof(chunkTree));
+            }
+
             // If there's more than 1 model chunk there will be a Razor error BUT we want intellisense to show up on
             // the current model chunk that the user is typing.
             return chunkTree
@@ -63,9 +49,19 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="defaultModelName">The <see cref="Type"/> name of the default model.</param>
         /// <returns>The model type name for the generated page.</returns>
         public static string GetModelTypeName(
-            [NotNull] ChunkTree chunkTree,
-            [NotNull] string defaultModelName)
+            ChunkTree chunkTree,
+            string defaultModelName)
         {
+            if (chunkTree == null)
+            {
+                throw new ArgumentNullException(nameof(chunkTree));
+            }
+
+            if (defaultModelName == null)
+            {
+                throw new ArgumentNullException(nameof(defaultModelName));
+            }
+
             var modelChunk = GetModelChunk(chunkTree);
             return modelChunk != null ? modelChunk.ModelType : defaultModelName;
         }
@@ -77,10 +73,21 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="value">The string to replace the token in.</param>
         /// <param name="modelName">The model name to replace with.</param>
         /// <returns>A string with the token replaced.</returns>
-        public static string ReplaceTModel([NotNull] string value,
-                                           [NotNull] string modelName)
+        public static string ReplaceTModel(
+            string value,
+            string modelName)
         {
-            return value.Replace(TModelToken, modelName);
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (modelName == null)
+            {
+                throw new ArgumentNullException(nameof(modelName));
+            }
+
+            return value.Replace(TModelReplaceToken, modelName);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace HtmlGenerationWebSite.Controllers
         public ProductsService ProductsService { get; set; }
 
         [HttpGet("/catalog")]
-        public ViewResult Splash(int categoryId, int correlationId, [FromHeader] string locale)
+        public IActionResult Splash(int categoryId, int correlationId, [FromHeader] string locale)
         {
             var category = categoryId == 1 ? "Laptops" : "Phones";
             ViewData["Category"] = category;
@@ -23,21 +23,21 @@ namespace HtmlGenerationWebSite.Controllers
         }
 
         [HttpGet("/catalog/{id:int}")]
-        public ViewResult Details(int id)
+        public IActionResult Details(int id)
         {
             ViewData["ProductId"] = id;
             return View();
         }
 
         [HttpGet("/catalog/cart")]
-        public ViewResult ShoppingCart(int correlationId)
+        public IActionResult ShoppingCart(int correlationId)
         {
             ViewData["CorrelationId"] = correlationId;
             return View();
         }
 
         [HttpGet("/catalog/{region}/confirm-payment")]
-        public ViewResult GuestConfirmPayment(string region, int confirmationId = 0)
+        public IActionResult GuestConfirmPayment(string region, int confirmationId = 0)
         {
             ViewData["Message"] = "Welcome Guest. Your confirmation id is " + confirmationId;
             ViewData["Region"] = region;
@@ -45,7 +45,7 @@ namespace HtmlGenerationWebSite.Controllers
         }
 
         [HttpGet("/catalog/{region}/{section}/confirm-payment")]
-        public ViewResult ConfirmPayment(string region, string section, int confirmationId)
+        public IActionResult ConfirmPayment(string region, string section, int confirmationId)
         {
             var message = "Welcome " + section + " member. Your confirmation id is " + confirmationId;
             ViewData["Message"] = message;
@@ -55,18 +55,18 @@ namespace HtmlGenerationWebSite.Controllers
         }
 
         [HttpGet("/catalog/past-purchases/{id}")]
-        public ViewResult PastPurchases(string id, int correlationId)
+        public IActionResult PastPurchases(string id, int correlationId)
         {
             var identity = new ClaimsIdentity();
             identity.AddClaim(new Claim(ClaimsIdentity.DefaultNameClaimType, id));
 
-            Context.User = new ClaimsPrincipal(identity);
+            HttpContext.User = new ClaimsPrincipal(identity);
             ViewData["CorrelationId"] = correlationId;
             return View();
         }
 
         [HttpGet("/categories/{category}")]
-        public ViewResult ListCategories(string category, int correlationId)
+        public IActionResult ListCategories(string category, int correlationId)
         {
             ViewData["Category"] = category;
             ViewData["CorrelationId"] = correlationId;
@@ -75,10 +75,9 @@ namespace HtmlGenerationWebSite.Controllers
         }
 
         [HttpPost("/categories/update-products")]
-        public IActionResult UpdateCategories()
+        public void UpdateCategories()
         {
             ProductsService.UpdateProducts();
-            return new EmptyResult();
         }
 
         [HttpGet("/catalog/GetDealPercentage/{dealPercentage}")]

@@ -4,7 +4,6 @@
 using System;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Html.Abstractions;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -28,9 +27,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// will always be visible but client-side validation may update the associated CSS class.
         /// </remarks>
         public static IHtmlContent ValidationMessage(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: null, tag: null);
         }
 
@@ -50,10 +54,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             string message)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationMessage(expression, message, htmlAttributes: null, tag: null);
         }
 
@@ -78,10 +87,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// will always be visible but client-side validation may update the associated CSS class.
         /// </remarks>
         public static IHtmlContent ValidationMessage(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationMessage(expression, message: null, htmlAttributes: htmlAttributes, tag: null);
         }
 
@@ -105,11 +119,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             string message,
             string tag)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationMessage(expression, message, htmlAttributes: null, tag: tag);
         }
 
@@ -135,11 +154,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             string message,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationMessage(expression, message, htmlAttributes, tag: null);
         }
 
@@ -160,9 +184,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// will always be visible but client-side validation may update the associated CSS class.
         /// </remarks>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression)
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.ValidationMessageFor(expression, message: null, htmlAttributes: null, tag: null);
         }
 
@@ -184,10 +218,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string message)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes: null, tag: null);
         }
 
@@ -215,11 +259,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string message,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes, tag: null);
         }
 
@@ -245,11 +299,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <paramref name="expression"/> is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string message,
             string tag)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.ValidationMessageFor(expression, message, htmlAttributes: null, tag: tag);
         }
 
@@ -262,8 +326,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
         /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
         /// </returns>
-        public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper)
+        public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors: false,
                 message: null,
@@ -283,8 +352,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
         /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
         /// </returns>
-        public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, bool excludePropertyErrors)
+        public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, bool excludePropertyErrors)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors,
                 message: null,
@@ -304,8 +378,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
         /// is valid and client-side validation is disabled).
         /// </returns>
-        public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, string message)
+        public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, string message)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors: false,
                 message: message,
@@ -328,8 +407,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
         /// validation is disabled).
         /// </returns>
-        public static IHtmlContent ValidationSummary([NotNull] this IHtmlHelper htmlHelper, string message, string tag)
+        public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, string message, string tag)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors: false,
                 message: message,
@@ -353,10 +437,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             bool excludePropertyErrors,
             string message)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors,
                 message,
@@ -382,10 +471,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string message,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors: false,
                 message: message,
@@ -414,11 +508,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string message,
             object htmlAttributes,
             string tag)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors: false,
                 message: message,
@@ -445,11 +544,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             bool excludePropertyErrors,
             string message,
             string tag)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(
                 excludePropertyErrors,
                 message,
@@ -478,11 +582,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// is valid and client-side validation is disabled).
         /// </returns>
         public static IHtmlContent ValidationSummary(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             bool excludePropertyErrors,
             string message,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.ValidationSummary(excludePropertyErrors, message, htmlAttributes, tag: null);
         }
     }

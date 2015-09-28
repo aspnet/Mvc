@@ -3,12 +3,15 @@
 
 using System;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test
+namespace Microsoft.AspNet.Mvc
 {
     public class RedirectResultTest
     {
@@ -43,9 +46,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [Theory]
         [InlineData("", "/Home/About", "/Home/About")]
         [InlineData("/myapproot", "/test", "/test")]
-        public void Execute_ReturnsContentPath_WhenItDoesNotStartWithTilde(string appRoot,
-                                                                           string contentPath,
-                                                                           string expectedPath)
+        public void Execute_ReturnsContentPath_WhenItDoesNotStartWithTilde(
+            string appRoot,
+            string contentPath,
+            string expectedPath)
         {
             // Arrange
             var httpResponse = new Mock<HttpResponse>();
@@ -70,9 +74,10 @@ namespace Microsoft.AspNet.Mvc.Core.Test
         [InlineData("/", "~/", "/")]
         [InlineData("", "~/Home/About", "/Home/About")]
         [InlineData("/myapproot", "~/", "/myapproot/")]
-        public void Execute_ReturnsAppRelativePath_WhenItStartsWithTilde(string appRoot,
-                                                                         string contentPath,
-                                                                         string expectedPath)
+        public void Execute_ReturnsAppRelativePath_WhenItStartsWithTilde(
+            string appRoot,
+            string contentPath,
+            string expectedPath)
         {
             // Arrange
             var httpResponse = new Mock<HttpResponse>();
@@ -108,10 +113,11 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             return serviceCollection.BuildServiceProvider();
         }
 
-        private static HttpContext GetHttpContext(string appRoot,
-                                                     string contentPath,
-                                                     string expectedPath,
-                                                     HttpResponse response)
+        private static HttpContext GetHttpContext(
+            string appRoot,
+            string contentPath,
+            string expectedPath,
+            HttpResponse response)
         {
             var httpContext = new Mock<HttpContext>();
             var actionContext = GetActionContext(httpContext.Object);

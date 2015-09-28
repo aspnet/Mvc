@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.WebUtilities;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
@@ -64,11 +66,11 @@ namespace Microsoft.AspNet.Mvc
         }
 
         private static ActionContext CreateMockActionContext(
-                                                             HttpResponse response = null,
-                                                             string requestAcceptHeader = "application/*",
-                                                             string requestContentType = "application/json",
-                                                             string requestAcceptCharsetHeader = "",
-                                                             bool respectBrowserAcceptHeader = false)
+            HttpResponse response = null,
+            string requestAcceptHeader = "application/*",
+            string requestContentType = "application/json",
+            string requestAcceptCharsetHeader = "",
+            bool respectBrowserAcceptHeader = false)
         {
             var httpContext = new Mock<HttpContext>();
             if (response != null)
@@ -87,15 +89,15 @@ namespace Microsoft.AspNet.Mvc
 
             httpContext.Setup(o => o.Request).Returns(request);
             httpContext.Setup(o => o.RequestServices).Returns(GetServiceProvider());
-            var optionsAccessor = new MockMvcOptionsAccessor();
-            optionsAccessor.Options.OutputFormatters.Add(new StringOutputFormatter());
-            optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
-            optionsAccessor.Options.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
+            optionsAccessor.Value.OutputFormatters.Add(new StringOutputFormatter());
+            optionsAccessor.Value.OutputFormatters.Add(new JsonOutputFormatter());
+            optionsAccessor.Value.RespectBrowserAcceptHeader = respectBrowserAcceptHeader;
             var actionBindingContextAccessor = new ActionBindingContextAccessor()
             {
                 ActionBindingContext = new ActionBindingContext()
                 {
-                    OutputFormatters = optionsAccessor.Options.OutputFormatters
+                    OutputFormatters = optionsAccessor.Value.OutputFormatters
                 }
             };
 
@@ -113,7 +115,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var options = new MvcOptions();
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            optionsAccessor.SetupGet(o => o.Options).Returns(options);
+            optionsAccessor.SetupGet(o => o.Value).Returns(options);
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddInstance(optionsAccessor.Object);

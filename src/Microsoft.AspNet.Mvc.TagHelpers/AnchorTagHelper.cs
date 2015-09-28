@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -12,14 +13,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;a&gt; elements.
     /// </summary>
-    [TargetElement("a", Attributes = ActionAttributeName)]
-    [TargetElement("a", Attributes = ControllerAttributeName)]
-    [TargetElement("a", Attributes = FragmentAttributeName)]
-    [TargetElement("a", Attributes = HostAttributeName)]
-    [TargetElement("a", Attributes = ProtocolAttributeName)]
-    [TargetElement("a", Attributes = RouteAttributeName)]
-    [TargetElement("a", Attributes = RouteValuesDictionaryName)]
-    [TargetElement("a", Attributes = RouteValuesPrefix + "*")]
+    [HtmlTargetElement("a", Attributes = ActionAttributeName)]
+    [HtmlTargetElement("a", Attributes = ControllerAttributeName)]
+    [HtmlTargetElement("a", Attributes = FragmentAttributeName)]
+    [HtmlTargetElement("a", Attributes = HostAttributeName)]
+    [HtmlTargetElement("a", Attributes = ProtocolAttributeName)]
+    [HtmlTargetElement("a", Attributes = RouteAttributeName)]
+    [HtmlTargetElement("a", Attributes = RouteValuesDictionaryName)]
+    [HtmlTargetElement("a", Attributes = RouteValuesPrefix + "*")]
     public class AnchorTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
@@ -39,6 +40,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public AnchorTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         protected IHtmlGenerator Generator { get; }
@@ -137,14 +147,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 TagBuilder tagBuilder;
                 if (Route == null)
                 {
-                    tagBuilder = Generator.GenerateActionLink(linkText: string.Empty,
-                                                              actionName: Action,
-                                                              controllerName: Controller,
-                                                              protocol: Protocol,
-                                                              hostname: Host,
-                                                              fragment: Fragment,
-                                                              routeValues: routeValues,
-                                                              htmlAttributes: null);
+                    tagBuilder = Generator.GenerateActionLink(
+                        linkText: string.Empty,
+                        actionName: Action,
+                        controllerName: Controller,
+                        protocol: Protocol,
+                        hostname: Host,
+                        fragment: Fragment,
+                        routeValues: routeValues,
+                        htmlAttributes: null);
                 }
                 else if (Action != null || Controller != null)
                 {

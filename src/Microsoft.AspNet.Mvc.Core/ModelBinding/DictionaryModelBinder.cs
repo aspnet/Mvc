@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 #endif
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -24,7 +25,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public override async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
             var result = await base.BindModelAsync(bindingContext);
-            if (result == null || !result.IsModelSet)
+            if (!result.IsModelSet)
             {
                 // No match for the prefix at all.
                 return result;
@@ -47,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             // Attempt to bind dictionary from a set of prefix[key]=value entries. Get the short and long keys first.
-            var keys = await enumerableValueProvider.GetKeysFromPrefixAsync(bindingContext.ModelName);
+            var keys = enumerableValueProvider.GetKeysFromPrefix(bindingContext.ModelName);
             if (!keys.Any())
             {
                 // No entries with the expected keys.
@@ -57,28 +58,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // Update the existing successful but empty ModelBindingResult.
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var valueMetadata = metadataProvider.GetMetadataForType(typeof(TValue));
-            var valueBindingContext = ModelBindingContext.GetChildModelBindingContext(
+            var valueBindingContext = ModelBindingContext.CreateChildBindingContext(
                 bindingContext,
-                bindingContext.ModelName,
-                valueMetadata);
+                valueMetadata,
+                fieldName: bindingContext.FieldName,
+                modelName: bindingContext.ModelName,
+                model: null);
 
             var modelBinder = bindingContext.OperationBindingContext.ModelBinder;
-            var validationNode = result.ValidationNode;
 
-            foreach (var key in keys)
+            var keyMappings = new Dictionary<string, TKey>(StringComparer.Ordinal);
+            foreach (var kvp in keys)
             {
-                var dictionaryKey = ConvertFromString(key.Key);
-                valueBindingContext.ModelName = key.Value;
+                // Use InvariantCulture to convert the key since ExpressionHelper.GetExpressionText() would use
+                // that culture when rendering a form.
+                var convertedKey = ModelBindingHelper.ConvertTo<TKey>(kvp.Key, culture: null);
+
+                valueBindingContext.ModelName = kvp.Value;
 
                 var valueResult = await modelBinder.BindModelAsync(valueBindingContext);
 
                 // Always add an entry to the dictionary but validate only if binding was successful.
-                model[dictionaryKey] = ModelBindingHelper.CastOrDefault<TValue>(valueResult?.Model);
-                if (valueResult != null && valueResult.IsModelSet)
-                {
-                    validationNode.ChildNodes.Add(valueResult.ValidationNode);
-                }
+                model[convertedKey] = ModelBindingHelper.CastOrDefault<TValue>(valueResult.Model);
+                keyMappings.Add(kvp.Key, convertedKey);
             }
+
+            bindingContext.ValidationState.Add(model, new ValidationStateEntry()
+            {
+                Strategy = new ShortFormDictionaryValidationStrategy<TKey, TValue>(keyMappings, valueMetadata),
+            });
 
             return result;
         }
@@ -115,15 +123,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             return CreateInstance(targetType);
-        }
-
-        private static TKey ConvertFromString(string keyString)
-        {
-            // Use InvariantCulture to convert string since ExpressionHelper.GetExpressionText() used that culture.
-            var keyResult = new ValueProviderResult(keyString);
-            var keyObject = keyResult.ConvertTo(typeof(TKey));
-
-            return ModelBindingHelper.CastOrDefault<TKey>(keyObject);
         }
     }
 }

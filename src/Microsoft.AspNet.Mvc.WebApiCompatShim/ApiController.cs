@@ -9,6 +9,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
@@ -416,18 +417,14 @@ namespace System.Web.Http
         {
             var modelExplorer = MetadataProvider.GetModelExplorerForType(typeof(TEntity), entity);
 
-            var modelValidationContext = new ModelValidationContext(
-                bindingSource: null,
-                validatorProvider: BindingContext.ValidatorProvider,
-                modelState: ModelState,
-                modelExplorer: modelExplorer);
+            var validatidationState = new ValidationStateDictionary();
 
             ObjectValidator.Validate(
-                modelValidationContext,
-                new ModelValidationNode(keyPrefix, modelExplorer.Metadata, entity)
-                {
-                    ValidateAllProperties = true
-                });
+                BindingContext.ValidatorProvider,
+                ModelState,
+                validatidationState,
+                keyPrefix,
+                entity);
         }
 
         protected virtual void Dispose(bool disposing)

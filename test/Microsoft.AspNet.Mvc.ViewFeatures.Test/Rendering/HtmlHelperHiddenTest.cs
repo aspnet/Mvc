@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Testing;
 using Xunit;
 
@@ -874,7 +875,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         {
             return new ModelState
             {
-                Value = new ValueProviderResult(value, value, CultureInfo.InvariantCulture)
+                RawValue = new string[] { value },
+                AttemptedValue = value,
             };
         }
 

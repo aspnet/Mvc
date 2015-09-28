@@ -14,9 +14,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         [Theory]
         [InlineData("SomeType", "SomeType", "SomeMethod(__model => __model.MyValue)")]
         [InlineData("SomeType", "SomeType2", "MyValue")]
-        public void RenderAttributeValue_RendersModelExpressionsCorrectly(string modelExpressionType,
-                                                                          string propertyType,
-                                                                          string expectedValue)
+        public void RenderAttributeValue_RendersModelExpressionsCorrectly(
+            string modelExpressionType,
+            string propertyType,
+            string expectedValue)
         {
             // Arrange
             var renderer = new MvcTagHelperAttributeValueCodeRenderer(
@@ -25,12 +26,12 @@ namespace Microsoft.AspNet.Mvc.Razor
                     ModelExpressionTypeName = modelExpressionType,
                     CreateModelExpressionMethodName = "SomeMethod"
                 });
-            var attributeDescriptor = new TagHelperAttributeDescriptor(
-                name: "MyAttribute",
-                propertyName: "SomeProperty",
-                typeName: propertyType,
-                isIndexer: false,
-                designTimeDescriptor: null);
+            var attributeDescriptor = new TagHelperAttributeDescriptor
+            {
+                Name = "MyAttribute",
+                PropertyName = "SomeProperty",
+                TypeName = propertyType,
+            };
             var writer = new CSharpCodeWriter();
             var generatorContext = new ChunkGeneratorContext(
                 host: null,

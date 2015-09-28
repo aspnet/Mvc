@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -11,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting any HTML element with an <c>asp-validation-summary</c>
     /// attribute.
     /// </summary>
-    [TargetElement("div", Attributes = ValidationSummaryAttributeName)]
+    [HtmlTargetElement("div", Attributes = ValidationSummaryAttributeName)]
     public class ValidationSummaryTagHelper : TagHelper
     {
         private const string ValidationSummaryAttributeName = "asp-validation-summary";
@@ -24,6 +25,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public ValidationSummaryTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         [HtmlAttributeNotBound]

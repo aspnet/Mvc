@@ -5,20 +5,20 @@ using Microsoft.AspNet.Authentication;
 using Microsoft.AspNet.Builder;
 using Microsoft.Framework.WebEncoders;
 using Microsoft.Framework.Logging;
-using Microsoft.Framework.OptionsModel;
 
 namespace FiltersWebSite
 {
     public class AuthorizeBasicMiddleware : AuthenticationMiddleware<BasicOptions>
     {
         public AuthorizeBasicMiddleware(
-            RequestDelegate next, 
-            IOptions<BasicOptions> options,
+            RequestDelegate next,
             ILoggerFactory loggerFactory,
             IUrlEncoder encoder,
-            string authScheme) : 
-                base(next, options, loggerFactory, encoder,
-                    new ConfigureOptions<BasicOptions>(o => o.AuthenticationScheme = authScheme) { Name = authScheme })
+            string authScheme) :
+                base(next,
+                     new BasicOptions { AuthenticationScheme = authScheme },
+                     loggerFactory,
+                     encoder)
         {
         }
 

@@ -7,8 +7,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.Internal;
 using Microsoft.Framework.WebEncoders;
 using Moq;
 using Xunit;
@@ -410,18 +411,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Arrange
             var expectedHtml = GetExpectedSelectElement(SelectSources.ModelStateEntry, allowMultiple: false);
 
-            var entryResult = new ValueProviderResult(
-                SelectSources.ModelStateEntry,
-                SelectSources.ModelStateEntry.ToString(),
-                culture: null);
-            var entryResultWithPrefix = new ValueProviderResult(
-                SelectSources.ModelStateEntryWithPrefix,
-                SelectSources.ModelStateEntryWithPrefix.ToString(),
-                culture: null);
             var modelState = new ModelStateDictionary
             {
-                ["Property1"] = new ModelState { Value = entryResult },
-                ["Prefix.Property1"] = new ModelState { Value = entryResultWithPrefix },
+                ["Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntry.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntry.ToString()
+                },
+                ["Prefix.Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntryWithPrefix.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntryWithPrefix.ToString()
+                },
             };
 
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -451,18 +452,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 SelectSources.ModelStateEntryWithPrefix,
                 allowMultiple: false);
 
-            var entryResult = new ValueProviderResult(
-                SelectSources.ModelStateEntry,
-                SelectSources.ModelStateEntry.ToString(),
-                culture: null);
-            var entryResultWithPrefix = new ValueProviderResult(
-                SelectSources.ModelStateEntryWithPrefix,
-                SelectSources.ModelStateEntryWithPrefix.ToString(),
-                culture: null);
             var modelState = new ModelStateDictionary
             {
-                ["Property1"] = new ModelState { Value = entryResult },
-                ["Prefix.Property1"] = new ModelState { Value = entryResultWithPrefix },
+                ["Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntry.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntry.ToString()
+                },
+                ["Prefix.Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntryWithPrefix.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntryWithPrefix.ToString()
+                },
             };
 
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -821,18 +822,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
             // Arrange
             var expectedHtml = GetExpectedSelectElement(SelectSources.ModelStateEntry, allowMultiple: true);
 
-            var entryResult = new ValueProviderResult(
-                SelectSources.ModelStateEntry,
-                SelectSources.ModelStateEntry.ToString(),
-                culture: null);
-            var entryResultWithPrefix = new ValueProviderResult(
-                SelectSources.ModelStateEntryWithPrefix,
-                SelectSources.ModelStateEntryWithPrefix.ToString(),
-                culture: null);
             var modelState = new ModelStateDictionary
             {
-                ["Property1"] = new ModelState { Value = entryResult },
-                ["Prefix.Property1"] = new ModelState { Value = entryResultWithPrefix },
+                ["Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntry.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntry.ToString()
+                },
+                ["Prefix.Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntryWithPrefix.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntryWithPrefix.ToString()
+                },
             };
 
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -862,18 +863,18 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 SelectSources.ModelStateEntryWithPrefix,
                 allowMultiple: true);
 
-            var entryResult = new ValueProviderResult(
-                SelectSources.ModelStateEntry,
-                SelectSources.ModelStateEntry.ToString(),
-                culture: null);
-            var entryResultWithPrefix = new ValueProviderResult(
-                SelectSources.ModelStateEntryWithPrefix,
-                SelectSources.ModelStateEntryWithPrefix.ToString(),
-                culture: null);
             var modelState = new ModelStateDictionary
             {
-                ["Property1"] = new ModelState { Value = entryResult },
-                ["Prefix.Property1"] = new ModelState { Value = entryResultWithPrefix },
+                ["Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntry.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntry.ToString()
+                },
+                ["Prefix.Property1"] = new ModelState
+                {
+                    RawValue = new string[] { SelectSources.ModelStateEntryWithPrefix.ToString() },
+                    AttemptedValue = SelectSources.ModelStateEntryWithPrefix.ToString()
+                },
             };
 
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -1561,7 +1562,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
         private class TestHtmlHelper : HtmlHelper
         {
-            public TestHtmlHelper([NotNull] IModelMetadataProvider metadataProvider)
+            public TestHtmlHelper(IModelMetadataProvider metadataProvider)
                 : base(
                       new Mock<IHtmlGenerator>(MockBehavior.Strict).Object,
                       new Mock<ICompositeViewEngine>(MockBehavior.Strict).Object,
@@ -1578,7 +1579,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             public IEnumerable<SelectListItem> CopiedSelectListItems { get; private set; }
 
-            protected override IEnumerable<SelectListItem> GetEnumSelectList([NotNull] ModelMetadata metadata)
+            protected override IEnumerable<SelectListItem> GetEnumSelectList(ModelMetadata metadata)
             {
                 Metadata = metadata;
                 SelectListItems = base.GetEnumSelectList(metadata);

@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Testing;
+using Microsoft.AspNet.Testing.xunit;
 using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var metadata = metadataProvider.GetMetadataForProperty(typeof(PropertyDisplayNameModel), "MyProperty");
 
             var attribute = new CompareAttribute("OtherProperty");
-            var adapter = new CompareAttributeAdapter(attribute);
+            var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
@@ -49,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
             var context = new ClientModelValidationContext(metadata, metadataProvider, requestServices);
-            var adapter = new CompareAttributeAdapter(attribute);
+            var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);
@@ -75,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
             var context = new ClientModelValidationContext(metadata, metadataProvider, requestServices);
-            var adapter = new CompareAttributeAdapter(attribute);
+            var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);
@@ -85,15 +86,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Assert.Equal("Hello 'MyProperty', goodbye 'OtherProperty'.", rule.ErrorMessage);
         }
 
-        [Fact]
+        [ConditionalFact]
+        // ValidationAttribute in Mono does not read non-public resx properties.
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public void ClientRulesWithCompareAttribute_ErrorMessageUsesResourceOverride()
         {
-            if (TestPlatformHelper.IsMono)
-            {
-                // ValidationAttribute in Mono does not read non-public resx properties.
-                return;
-            }
-
             // Arrange
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var metadata = metadataProvider.GetMetadataForProperty(typeof(PropertyNameModel), "MyProperty");
@@ -105,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             var serviceCollection = new ServiceCollection();
             var requestServices = serviceCollection.BuildServiceProvider();
             var context = new ClientModelValidationContext(metadata, metadataProvider, requestServices);
-            var adapter = new CompareAttributeAdapter(attribute);
+            var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
             // Act
             var rules = adapter.GetClientValidationRules(context);

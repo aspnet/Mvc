@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNet.FileProviders;
-using Microsoft.AspNet.Mvc.Razor.Precompilation;
-using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Caching.Memory;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -18,112 +16,151 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
     /// </summary>
     public class CompilerCache : ICompilerCache
     {
-        private static readonly Assembly RazorHostAssembly = typeof(CompilerCache).GetTypeInfo().Assembly;
         private readonly IFileProvider _fileProvider;
         private readonly IMemoryCache _cache;
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="CompilerCache"/> populated with precompiled views
-        /// discovered using <paramref name="provider"/>.
-        /// </summary>
-        /// <param name="razorFileInfoCollections">The sequence of <see cref="RazorFileInfoCollection"/> that provides
-        /// information for precompiled view discovery.</param>
-        /// <param name="loaderContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
-        /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
-        public CompilerCache(
-            IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,
-            IAssemblyLoadContextAccessor loadContextAccessor,
-            IOptions<RazorViewEngineOptions> optionsAccessor)
-            : this(razorFileInfoCollections,
-                  loadContextAccessor.GetLoadContext(RazorHostAssembly),
-                  optionsAccessor.Options.FileProvider)
-        {
-        }
+        private readonly ConcurrentDictionary<string, string> _normalizedPathLookup =
+            new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
 
-        internal CompilerCache(
-            IEnumerable<RazorFileInfoCollection> razorFileInfoCollections,
-            IAssemblyLoadContext loadContext,
-            IFileProvider fileProvider)
+        /// <summary>
+        /// Initializes a new instance of <see cref="CompilerCache"/>.
+        /// </summary>
+        /// <param name="fileProvider"><see cref="IFileProvider"/> used to locate Razor views.</param>
+        public CompilerCache(IFileProvider fileProvider)
         {
+            if (fileProvider == null)
+            {
+                throw new ArgumentNullException(nameof(fileProvider));
+            }
+
             _fileProvider = fileProvider;
             _cache = new MemoryCache(new MemoryCacheOptions { CompactOnMemoryPressure = false });
+        }
 
-            foreach (var viewCollection in razorFileInfoCollections)
+        /// <summary>
+        /// Initializes a new instance of <see cref="CompilerCache"/> populated with precompiled views
+        /// specified by <paramref name="precompiledViews"/>.
+        /// </summary>
+        /// <param name="fileProvider"><see cref="IFileProvider"/> used to locate Razor views.</param>
+        /// <param name="precompiledViews">A mapping of application relative paths of view to the precompiled view
+        /// <see cref="Type"/>s.</param>
+        public CompilerCache(
+            IFileProvider fileProvider,
+            IDictionary<string, Type> precompiledViews)
+            : this(fileProvider)
+        {
+            if (precompiledViews == null)
             {
-                var containingAssembly = viewCollection.LoadAssembly(loadContext);
-                foreach (var fileInfo in viewCollection.FileInfos)
-                {
-                    var viewType = containingAssembly.GetType(fileInfo.FullTypeName);
-                    var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(viewType));
-                    var normalizedPath = NormalizePath(fileInfo.RelativePath);
-                    _cache.Set(normalizedPath, cacheEntry);
-                }
+                throw new ArgumentNullException(nameof(precompiledViews));
+            }
+
+            foreach (var item in precompiledViews)
+            {
+                var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(item.Value));
+                _cache.Set(GetNormalizedPath(item.Key), cacheEntry);
             }
         }
 
         /// <inheritdoc />
         public CompilerCacheResult GetOrAdd(
-            [NotNull] string relativePath,
-            [NotNull] Func<RelativeFileInfo, CompilationResult> compile)
+            string relativePath,
+            Func<RelativeFileInfo, CompilationResult> compile)
         {
-            var normalizedPath = NormalizePath(relativePath);
-            CompilerCacheResult cacheResult;
-            if (!_cache.TryGetValue(normalizedPath, out cacheResult))
+            if (relativePath == null)
             {
-                var fileInfo = _fileProvider.GetFileInfo(relativePath);
-                MemoryCacheEntryOptions cacheEntryOptions;
-                CompilerCacheResult cacheResultToCache;
-                if (!fileInfo.Exists)
-                {
-                    cacheResultToCache = CompilerCacheResult.FileNotFound;
-                    cacheResult = CompilerCacheResult.FileNotFound;
-
-                    cacheEntryOptions = new MemoryCacheEntryOptions();
-                    cacheEntryOptions.AddExpirationTrigger(_fileProvider.Watch(relativePath));
-                }
-                else
-                {
-                    var relativeFileInfo = new RelativeFileInfo(fileInfo, relativePath);
-                    var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
-                    cacheEntryOptions = GetMemoryCacheEntryOptions(relativePath);
-
-                    // By default the CompilationResult returned by IRoslynCompiler is an instance of
-                    // UncachedCompilationResult. This type has the generated code as a string property and do not want
-                    // to cache it. We'll instead cache the unwrapped result.
-                    cacheResultToCache = new CompilerCacheResult(
-                        CompilationResult.Successful(compilationResult.CompiledType));
-                    cacheResult = new CompilerCacheResult(compilationResult);
-                }
-
-                _cache.Set(normalizedPath, cacheResultToCache, cacheEntryOptions);
+                throw new ArgumentNullException(nameof(relativePath));
             }
 
+            if (compile == null)
+            {
+                throw new ArgumentNullException(nameof(compile));
+            }
+
+            CompilerCacheResult cacheResult;
+            // Attempt to lookup the cache entry using the passed in path. This will succeed if the path is already
+            // normalized and a cache entry exists.
+            if (!_cache.TryGetValue(relativePath, out cacheResult))
+            {
+                var normalizedPath = GetNormalizedPath(relativePath);
+                if (!_cache.TryGetValue(normalizedPath, out cacheResult))
+                {
+                    cacheResult = CreateCacheEntry(normalizedPath, compile);
+                }
+            }
+
+            return cacheResult;
+        }
+
+        private CompilerCacheResult CreateCacheEntry(
+            string normalizedPath,
+            Func<RelativeFileInfo, CompilationResult> compile)
+        {
+            CompilerCacheResult cacheResult;
+            var fileInfo = _fileProvider.GetFileInfo(normalizedPath);
+            MemoryCacheEntryOptions cacheEntryOptions;
+            CompilerCacheResult cacheResultToCache;
+            if (!fileInfo.Exists)
+            {
+                cacheResultToCache = CompilerCacheResult.FileNotFound;
+                cacheResult = CompilerCacheResult.FileNotFound;
+
+                cacheEntryOptions = new MemoryCacheEntryOptions();
+                cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(normalizedPath));
+            }
+            else
+            {
+                var relativeFileInfo = new RelativeFileInfo(fileInfo, normalizedPath);
+                var compilationResult = compile(relativeFileInfo).EnsureSuccessful();
+                cacheEntryOptions = GetMemoryCacheEntryOptions(normalizedPath);
+
+                // By default the CompilationResult returned by IRoslynCompiler is an instance of
+                // UncachedCompilationResult. This type has the generated code as a string property and do not want
+                // to cache it. We'll instead cache the unwrapped result.
+                cacheResultToCache = new CompilerCacheResult(
+                    CompilationResult.Successful(compilationResult.CompiledType));
+                cacheResult = new CompilerCacheResult(compilationResult);
+            }
+
+            _cache.Set(normalizedPath, cacheResultToCache, cacheEntryOptions);
             return cacheResult;
         }
 
         private MemoryCacheEntryOptions GetMemoryCacheEntryOptions(string relativePath)
         {
             var options = new MemoryCacheEntryOptions();
-            options.AddExpirationTrigger(_fileProvider.Watch(relativePath));
+            options.AddExpirationToken(_fileProvider.Watch(relativePath));
 
             var viewImportsPaths = ViewHierarchyUtility.GetViewImportsLocations(relativePath);
             foreach (var location in viewImportsPaths)
             {
-                options.AddExpirationTrigger(_fileProvider.Watch(location));
+                options.AddExpirationToken(_fileProvider.Watch(location));
             }
 
             return options;
         }
 
-        private static string NormalizePath(string path)
+        private string GetNormalizedPath(string relativePath)
         {
-            // We need to allow for scenarios where the application was precompiled on a machine with forward slashes
-            // but is being run in one with backslashes (or vice versa). To this effect, we'll normalize paths to
-            // use backslashes for lookups and storage in the dictionary.
-            path = path.Replace('/', '\\');
-            path = path.TrimStart('\\');
+            Debug.Assert(relativePath != null);
+            if (relativePath.Length == 0)
+            {
+                return relativePath;
+            }
 
-            return path;
+            string normalizedPath;
+            if (!_normalizedPathLookup.TryGetValue(relativePath, out normalizedPath))
+            {
+                var builder = new StringBuilder(relativePath);
+                builder.Replace('\\', '/');
+                if (builder[0] != '/')
+                {
+                    builder.Insert(0, '/');
+                }
+                normalizedPath = builder.ToString();
+                _normalizedPathLookup.TryAdd(relativePath, normalizedPath);
+            }
+
+            return normalizedPath;
         }
     }
 }

@@ -8,33 +8,39 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewComponents;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Logging;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.Net.Http.Headers;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
     public class ViewComponentResultTest
     {
+        private readonly ITempDataDictionary _tempDataDictionary =
+            new TempDataDictionary(new HttpContextAccessor(), new SessionStateTempDataProvider());
+
         [Fact]
         public async Task ExecuteResultAsync_Throws_IfNameOrTypeIsNotSet()
         {
             // Arrange
-            var expected = 
+            var expected =
                 "Either the 'ViewComponentName' or 'ViewComponentType' " +
                 "property must be set in order to invoke a view component.";
 
             var actionContext = CreateActionContext();
 
-            var viewComponentResult = new ViewComponentResult();
+            var viewComponentResult = new ViewComponentResult
+            {
+                TempData = _tempDataDictionary,
+            };
 
             // Act and Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -53,6 +59,7 @@ namespace Microsoft.AspNet.Mvc
             var viewComponentResult = new ViewComponentResult
             {
                 ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
             };
 
             // Act and Assert
@@ -75,6 +82,7 @@ namespace Microsoft.AspNet.Mvc
             var viewComponentResult = new ViewComponentResult
             {
                 ViewComponentType = typeof(TextViewComponent),
+                TempData = _tempDataDictionary,
             };
 
             // Act and Assert
@@ -100,6 +108,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -127,6 +136,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentName = "AsyncText",
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -154,6 +164,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -181,6 +192,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentName = "Full.Name.Text",
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -208,6 +220,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentType = typeof(TextViewComponent),
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -236,6 +249,7 @@ namespace Microsoft.AspNet.Mvc
                 Arguments = new object[] { "World!" },
                 ViewComponentType = typeof(TextViewComponent),
                 StatusCode = 404,
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -293,7 +307,8 @@ namespace Microsoft.AspNet.Mvc
             {
                 Arguments = new object[] { "World!" },
                 ViewComponentName = "Text",
-                ContentType = contentType
+                ContentType = contentType,
+                TempData = _tempDataDictionary,
             };
 
             // Act
@@ -307,6 +322,67 @@ namespace Microsoft.AspNet.Mvc
             // check if at least the content is the same.
             var contentTypeAfterViewResultExecution = contentType?.ToString();
             Assert.Equal(contentTypeBeforeViewResultExecution, contentTypeAfterViewResultExecution);
+        }
+
+        [Fact]
+        public async Task ViewComponentResult_SetsContentTypeHeader_OverrideResponseContentType()
+        {
+            // Arrange
+            var descriptor = new ViewComponentDescriptor()
+            {
+                FullName = "Full.Name.Text",
+                ShortName = "Text",
+                Type = typeof(TextViewComponent),
+            };
+
+            var actionContext = CreateActionContext(descriptor);
+
+            var expectedContentType = "text/html; charset=utf-8";
+            actionContext.HttpContext.Response.ContentType = "application/x-will-be-overridden";
+
+            var viewComponentResult = new ViewComponentResult()
+            {
+                Arguments = new object[] { "World!" },
+                ViewComponentName = "Text",
+                ContentType = new MediaTypeHeaderValue("text/html") { Encoding = Encoding.UTF8 },
+                TempData = _tempDataDictionary,
+            };
+
+            // Act
+            await viewComponentResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
+        }
+
+        [Fact]
+        public async Task ViewComponentResult_NoContentTypeSet_PreservesResponseContentType()
+        {
+            // Arrange
+            var descriptor = new ViewComponentDescriptor()
+            {
+                FullName = "Full.Name.Text",
+                ShortName = "Text",
+                Type = typeof(TextViewComponent),
+            };
+
+            var actionContext = CreateActionContext(descriptor);
+
+            var expectedContentType = "application/x-will-not-be-overridden";
+            actionContext.HttpContext.Response.ContentType = expectedContentType;
+
+            var viewComponentResult = new ViewComponentResult()
+            {
+                Arguments = new object[] { "World!" },
+                ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
+            };
+
+            // Act
+            await viewComponentResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
         }
 
         private IServiceCollection CreateServices(params ViewComponentDescriptor[] descriptors)

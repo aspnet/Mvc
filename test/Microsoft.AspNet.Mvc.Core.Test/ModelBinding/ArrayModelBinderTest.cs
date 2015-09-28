@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModelAsync_ValueProviderContainPrefix_Succeeds()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[0]", "42" },
                 { "someName[1]", "84" },
@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
 
             var array = Assert.IsType<int[]>(result.Model);
             Assert.Equal(new[] { 42, 84 }, array);
@@ -37,33 +37,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task ArrayModelBinder_DoesNotCreateCollection_IfIsTopLevelObjectAndIsFirstChanceBinding()
-        {
-            // Arrange
-            var binder = new ArrayModelBinder<string>();
-
-            var context = CreateContext();
-            context.IsFirstChanceBinding = true;
-            context.IsTopLevelObject = true;
-
-            // Explicit prefix and empty model name both ignored.
-            context.BinderModelName = "prefix";
-            context.ModelName = string.Empty;
-
-            var metadataProvider = context.OperationBindingContext.MetadataProvider;
-            context.ModelMetadata = metadataProvider.GetMetadataForType(typeof(string[]));
-
-            context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
-
-            // Act
-            var result = await binder.BindModelAsync(context);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task ArrayModelBinder_CreatesEmptyCollection_IfIsTopLevelObjectAndNotIsFirstChanceBinding()
+        public async Task ArrayModelBinder_CreatesEmptyCollection_IfIsTopLevelObject()
         {
             // Arrange
             var binder = new ArrayModelBinder<string>();
@@ -83,15 +57,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
 
             Assert.Empty(Assert.IsType<string[]>(result.Model));
             Assert.Equal("modelName", result.Key);
             Assert.True(result.IsModelSet);
-
-            Assert.Same(result.ValidationNode.Model, result.Model);
-            Assert.Same(result.ValidationNode.Key, result.Key);
-            Assert.Same(result.ValidationNode.ModelMetadata, context.ModelMetadata);
         }
 
         [Theory]
@@ -116,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         public static TheoryData<int[]> ArrayModelData
@@ -138,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModelAsync_ModelMetadataReadOnly_ReturnsNull(int[] model)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[0]", "42" },
                 { "someName[1]", "84" },
@@ -151,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         // Here "fails silently" means the call does not update the array but also does not throw or set an error.
@@ -161,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var arrayLength = model.Length;
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[0]", "42" },
                 { "someName[1]", "84" },
@@ -176,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Same(model, result.Model);
 
@@ -193,15 +163,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var mockIntBinder = new Mock<IModelBinder>();
             mockIntBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(async (ModelBindingContext mbc) =>
+                .Returns((ModelBindingContext mbc) =>
                 {
-                    var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
+                    var value = mbc.ValueProvider.GetValue(mbc.ModelName);
+                    if (value != ValueProviderResult.None)
                     {
                         var model = value.ConvertTo(mbc.ModelType);
-                        return new ModelBindingResult(model, key: null, isModelSet: true);
+                        return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
                     }
-                    return null;
+                    return ModelBindingResult.NoResultAsync;
                 });
             return mockIntBinder.Object;
         }
@@ -222,11 +192,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = modelMetadata,
                 ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
                 OperationBindingContext = new OperationBindingContext
                 {
                     ModelBinder = CreateIntBinder(),
-                    MetadataProvider = metadataProvider
+                    MetadataProvider = metadataProvider,
                 },
             };
             return bindingContext;

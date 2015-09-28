@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Routing;
 using Microsoft.Net.Http.Headers;
 using Moq;
@@ -27,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 .Returns(true)
                 .Verifiable();
             mockInputFormatter.Setup(o => o.ReadAsync(It.IsAny<InputFormatterContext>()))
-                              .Returns(Task.FromResult<object>(new Person()))
+                              .Returns(InputFormatterResult.SuccessAsync(new Person()))
                               .Verifiable();
             var inputFormatter = mockInputFormatter.Object;
 
@@ -49,13 +50,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             mockInputFormatter.Verify(v => v.ReadAsync(It.IsAny<InputFormatterContext>()), Times.Once);
             Assert.NotNull(binderResult);
             Assert.True(binderResult.IsModelSet);
-            Assert.NotNull(binderResult.ValidationNode);
-            Assert.True(binderResult.ValidationNode.ValidateAllProperties);
-            Assert.False(binderResult.ValidationNode.SuppressValidation);
-            Assert.Empty(binderResult.ValidationNode.ChildNodes);
-            Assert.Equal(binderResult.Key, binderResult.ValidationNode.Key);
-            Assert.Equal(bindingContext.ModelMetadata, binderResult.ValidationNode.ModelMetadata);
-            Assert.Same(binderResult.Model, binderResult.ValidationNode.Model);
         }
 
         [Fact]
@@ -76,9 +70,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Returns non-null because it understands the metadata type.
             Assert.NotNull(binderResult);
-            Assert.True(binderResult.IsFatalError);
             Assert.False(binderResult.IsModelSet);
-            Assert.Null(binderResult.ValidationNode);
             Assert.Null(binderResult.Model);
 
             // Key is empty because this was a top-level binding.
@@ -103,9 +95,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Assert
             Assert.NotNull(binderResult);
-            Assert.True(binderResult.IsFatalError);
             Assert.False(binderResult.IsModelSet);
-            Assert.Null(binderResult.ValidationNode);
         }
 
         [Fact]
@@ -124,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.Equal(ModelBindingResult.NoResult, binderResult);
         }
 
         [Fact]
@@ -143,7 +133,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var binderResult = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(binderResult);
+            Assert.Equal(ModelBindingResult.NoResult, binderResult);
         }
 
         [Fact]
@@ -172,9 +162,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Returns non-null because it understands the metadata type.
             Assert.NotNull(binderResult);
-            Assert.True(binderResult.IsFatalError);
             Assert.False(binderResult.IsModelSet);
-            Assert.Null(binderResult.ValidationNode);
             Assert.Null(binderResult.Model);
 
             // Key is empty because this was a top-level binding.
@@ -209,10 +197,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             // Returns non-null result because it understands the metadata type.
             Assert.NotNull(binderResult);
-            Assert.True(binderResult.IsFatalError);
             Assert.False(binderResult.IsModelSet);
             Assert.Null(binderResult.Model);
-            Assert.Null(binderResult.ValidationNode);
 
             // Key is empty because this was a top-level binding.
             var entry = Assert.Single(bindingContext.ModelState);
@@ -308,7 +294,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return true;
             }
 
-            public override Task<object> ReadRequestBodyAsync(InputFormatterContext context)
+            public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
             {
                 throw new InvalidOperationException("Your input is bad!");
             }
@@ -328,9 +314,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 return _canRead;
             }
 
-            public Task<object> ReadAsync(InputFormatterContext context)
+            public Task<InputFormatterResult> ReadAsync(InputFormatterContext context)
             {
-                return Task.FromResult<object>(this);
+                return InputFormatterResult.SuccessAsync(this);
             }
         }
     }

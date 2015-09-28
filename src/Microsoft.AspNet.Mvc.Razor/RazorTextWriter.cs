@@ -5,15 +5,14 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Razor.Internal;
-using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Html.Abstractions;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// A <see cref="TextWriter"/> that is backed by a unbuffered writer (over the Response stream) and a buffered
+    /// An <see cref="HtmlTextWriter"/> that is backed by a unbuffered writer (over the Response stream) and a buffered
     /// <see cref="StringCollectionTextWriter"/>. When <c>Flush</c> or <c>FlushAsync</c> is invoked, the writer
     /// copies all content from the buffered writer to the unbuffered one and switches to writing to the unbuffered
     /// writer for all further write operations.
@@ -22,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// This type is designed to avoid creating large in-memory strings when buffering and supporting the contract that
     /// <see cref="RazorPage.FlushAsync"/> expects.
     /// </remarks>
-    public class RazorTextWriter : TextWriter, IBufferedTextWriter
+    public class RazorTextWriter : HtmlTextWriter, IBufferedTextWriter
     {
         /// <summary>
         /// Creates a new instance of <see cref="RazorTextWriter"/>.
@@ -30,9 +29,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="unbufferedWriter">The <see cref="TextWriter"/> to write output to when this instance
         /// is no longer buffering.</param>
         /// <param name="encoding">The character <see cref="Encoding"/> in which the output is written.</param>
-        public RazorTextWriter(TextWriter unbufferedWriter, Encoding encoding)
+        /// <param name="encoder">The HTML encoder.</param>
+        public RazorTextWriter(TextWriter unbufferedWriter, Encoding encoding, IHtmlEncoder encoder)
         {
             UnbufferedWriter = unbufferedWriter;
+            HtmlEncoder = encoder;
+
             BufferedWriter = new StringCollectionTextWriter(encoding);
             TargetWriter = BufferedWriter;
         }
@@ -53,8 +55,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private TextWriter TargetWriter { get; set; }
 
-        [RazorInject]
-        private IHtmlEncoder HtmlEncoder { get; set; }
+        private IHtmlEncoder HtmlEncoder { get; }
 
         /// <inheritdoc />
         public override void Write(char value)
@@ -63,21 +64,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public override void Write(object value)
+        public override void Write(char[] buffer, int index, int count)
         {
-            var htmlString = value as HtmlString;
-            if (htmlString != null)
+            if (buffer == null)
             {
-                htmlString.WriteTo(TargetWriter, HtmlEncoder);
-                return;
+                throw new ArgumentNullException(nameof(buffer));
             }
 
-            base.Write(value);
-        }
-
-        /// <inheritdoc />
-        public override void Write([NotNull] char[] buffer, int index, int count)
-        {
             if (index < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
@@ -100,14 +93,33 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
+        public override void Write(IHtmlContent value)
+        {
+            var htmlTextWriter = TargetWriter as HtmlTextWriter;
+            if (htmlTextWriter == null)
+            {
+                value.WriteTo(TargetWriter, HtmlEncoder);
+            }
+            else
+            {
+                htmlTextWriter.Write(value);
+            }
+        }
+
+        /// <inheritdoc />
         public override Task WriteAsync(char value)
         {
             return TargetWriter.WriteAsync(value);
         }
 
         /// <inheritdoc />
-        public override Task WriteAsync([NotNull] char[] buffer, int index, int count)
+        public override Task WriteAsync(char[] buffer, int index, int count)
         {
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
             if (index < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));

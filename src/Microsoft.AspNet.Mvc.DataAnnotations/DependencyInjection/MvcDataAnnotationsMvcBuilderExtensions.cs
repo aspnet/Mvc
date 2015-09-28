@@ -1,26 +1,53 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection.Extensions;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
+using System;
+using Microsoft.AspNet.Mvc.DataAnnotations.Internal;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.Framework.DependencyInjection
 {
+    /// <summary>
+    /// Extension methods for configuring MVC data annotations localization.
+    /// </summary>
     public static class MvcDataAnnotationsMvcBuilderExtensions
     {
-        public static IMvcBuilder AddDataAnnotations([NotNull] this IMvcBuilder builder)
+        /// <summary>
+        /// Adds MVC data annotations localization to the application.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddDataAnnotationsLocalization(this IMvcBuilder builder)
         {
-            AddDataAnnotationsServices(builder.Services);
-            return builder;
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return AddDataAnnotationsLocalization(builder, setupAction: null);
         }
 
-        // Internal for testing.
-        internal static void AddDataAnnotationsServices(IServiceCollection services)
+        /// <summary>
+        /// Adds MVC data annotations localization to the application.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="setupAction">The action to configure <see cref="MvcDataAnnotationsLocalizationOptions"/>.
+        /// </param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddDataAnnotationsLocalization(
+            this IMvcBuilder builder,
+            Action<MvcDataAnnotationsLocalizationOptions> setupAction)
         {
-            services.TryAddEnumerable(
-                ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcDataAnnotationsMvcOptionsSetup>());
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            DataAnnotationsLocalizationServices.AddDataAnnotationsLocalizationServices(
+                builder.Services,
+                setupAction);
+
+            return builder;
         }
     }
 }

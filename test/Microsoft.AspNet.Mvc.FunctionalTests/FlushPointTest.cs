@@ -75,8 +75,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             // Assert - 4
             Assert.Equal(
-                @"After flush inside partial
-<form action=""/FlushPoint/PageWithoutLayout"" method=""post""><input id=""Name1"" name=""Name1"" type=""text"" value="""" />",
+                @"After flush inside partial<form action=""/FlushPoint/PageWithoutLayout"" method=""post"">" +
+                @"<input id=""Name1"" name=""Name1"" type=""text"" value="""" />",
                 GetTrimmedString(stream),
                 ignoreLineEndingDifferences: true);
             waitService.WaitForServer();
@@ -107,7 +107,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert - 1
             Assert.Equal(
                 $@"<title>{ title }</title>
-
 RenderBody content",
                 GetTrimmedString(stream),
                 ignoreLineEndingDifferences: true);
@@ -152,7 +151,6 @@ More content from layout",
             // Assert - 1
             Assert.Equal(
                 @"Inside Nested Layout
-
 <title>Nested Page With Layout</title>",
                 GetTrimmedString(stream),
                 ignoreLineEndingDifferences: true);
@@ -184,7 +182,7 @@ More content from layout",
             Assert.Equal("Initial content", GetTrimmedString(stream));
             waitService.WaitForServer();
 
-            //Assert - 2
+            // Assert - 2
             try
             {
                 GetTrimmedString(stream);

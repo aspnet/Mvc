@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -12,12 +13,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;form&gt; elements.
     /// </summary>
-    [TargetElement("form", Attributes = ActionAttributeName)]
-    [TargetElement("form", Attributes = AntiforgeryAttributeName)]
-    [TargetElement("form", Attributes = ControllerAttributeName)]
-    [TargetElement("form", Attributes = RouteAttributeName)]
-    [TargetElement("form", Attributes = RouteValuesDictionaryName)]
-    [TargetElement("form", Attributes = RouteValuesPrefix + "*")]
+    [HtmlTargetElement("form", Attributes = ActionAttributeName)]
+    [HtmlTargetElement("form", Attributes = AntiforgeryAttributeName)]
+    [HtmlTargetElement("form", Attributes = ControllerAttributeName)]
+    [HtmlTargetElement("form", Attributes = RouteAttributeName)]
+    [HtmlTargetElement("form", Attributes = RouteValuesDictionaryName)]
+    [HtmlTargetElement("form", Attributes = RouteValuesPrefix + "*")]
     public class FormTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
@@ -35,6 +36,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public FormTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         [HtmlAttributeNotBound]

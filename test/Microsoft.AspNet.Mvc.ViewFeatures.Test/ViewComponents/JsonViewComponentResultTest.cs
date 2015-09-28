@@ -6,9 +6,12 @@ using System.IO;
 using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewComponents;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Moq;
@@ -68,7 +71,7 @@ namespace Microsoft.AspNet.Mvc
                 actionContext,
                 view,
                 viewData,
-                null,
+                Mock.Of<ITempDataDictionary>(),
                 TextWriter.Null,
                 new HtmlHelperOptions());
 

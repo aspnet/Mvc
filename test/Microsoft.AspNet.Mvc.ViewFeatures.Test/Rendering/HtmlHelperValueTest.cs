@@ -2,13 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Testing;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
     /// <summary>
     /// Test the <see cref="IHtmlHelper.Value" /> and <see cref="IHtmlHelper{TModel}.ValueFor"/> methods.
@@ -164,17 +163,13 @@ namespace Microsoft.AspNet.Mvc.Core
             viewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
 
             var modelState = new ModelState();
-            modelState.Value = new ValueProviderResult(
-                rawValue: new string[] { "StringPropertyRawValue" },
-                attemptedValue: "StringPropertyAttemptedValue",
-                culture: CultureInfo.InvariantCulture);
+            modelState.AttemptedValue = "StringPropertyAttemptedValue";
+            modelState.RawValue = new string[] { "StringPropertyRawValue" };
             viewData.ModelState["FieldPrefix.StringProperty"] = modelState;
 
             modelState = new ModelState();
-            modelState.Value = new ValueProviderResult(
-                rawValue: new string[] { "ModelRawValue" },
-                attemptedValue: "ModelAttemptedValue",
-                culture: CultureInfo.InvariantCulture);
+            modelState.AttemptedValue = "ModelAttemptedValue";
+            modelState.RawValue = new string[] { "ModelRawValue" };
             viewData.ModelState["FieldPrefix"] = modelState;
 
             // Act & Assert
@@ -225,10 +220,8 @@ namespace Microsoft.AspNet.Mvc.Core
             viewData["StringProperty"] = "ViewDataValue <\"\">";
 
             var modelState = new ModelState();
-            modelState.Value = new ValueProviderResult(
-                rawValue: new string[] { "ObjectPropertyRawValue <\"\">" },
-                attemptedValue: "ObjectPropertyAttemptedValue <\"\">",
-                culture: CultureInfo.InvariantCulture);
+            modelState.AttemptedValue = "ObjectPropertyAttemptedValue <\"\">";
+            modelState.RawValue = new string[] { "ObjectPropertyRawValue <\"\">" };
             viewData.ModelState["ObjectProperty"] = modelState;
 
             // Act & Assert

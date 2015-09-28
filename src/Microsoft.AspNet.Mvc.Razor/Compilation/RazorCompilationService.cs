@@ -10,7 +10,6 @@ using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.CodeGenerators;
 using Microsoft.Dnx.Compilation;
 using Microsoft.Dnx.Runtime;
-using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
@@ -39,12 +38,17 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         {
             _compilationService = compilationService;
             _razorHost = razorHost;
-            _fileProvider = viewEngineOptions.Options.FileProvider;
+            _fileProvider = viewEngineOptions.Value.FileProvider;
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile([NotNull] RelativeFileInfo file)
+        public CompilationResult Compile(RelativeFileInfo file)
         {
+            if (file == null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+
             GeneratorResults results;
             using (var inputStream = file.FileInfo.CreateReadStream())
             {
@@ -102,14 +106,15 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private DiagnosticMessage CreateDiagnosticMessage(RazorError error, string filePath)
         {
             return new DiagnosticMessage(
-                error.Message,
-                $"{error} ({error.Location.LineIndex},{error.Location.CharacterIndex}) {error.Message}",
-                filePath,
-                DiagnosticMessageSeverity.Error,
-                error.Location.LineIndex + 1,
-                error.Location.CharacterIndex,
-                error.Location.LineIndex + 1,
-                error.Location.CharacterIndex + error.Length);
+                errorCode: null,
+                message: error.Message,
+                formattedMessage: $"{error} ({error.Location.LineIndex},{error.Location.CharacterIndex}) {error.Message}",
+                filePath: filePath,
+                severity: DiagnosticMessageSeverity.Error,
+                startLine: error.Location.LineIndex + 1,
+                startColumn: error.Location.CharacterIndex,
+                endLine: error.Location.LineIndex + 1,
+                endColumn: error.Location.CharacterIndex + error.Length);
         }
 
         private string ReadFileContentsSafely(string relativePath)

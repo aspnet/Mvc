@@ -5,8 +5,12 @@ using System;
 using System.IO;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
@@ -24,7 +28,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var services = new ServiceCollection();
-            services.InitializeTagHelper<TestTagHelper>((h, vc) =>
+            var builder = new MvcCoreBuilder(services);
+            builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = name;
                 h.Number = number;
@@ -51,7 +56,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var services = new ServiceCollection();
-            services.InitializeTagHelper<TestTagHelper>((h, _) => h.ViewContext = MakeViewContext(MakeHttpContext()));
+            var builder = new MvcCoreBuilder(services);
+            builder.InitializeTagHelper<TestTagHelper>((h, _) => h.ViewContext = MakeViewContext(MakeHttpContext()));
             var httpContext = MakeHttpContext(services.BuildServiceProvider());
             var viewContext = MakeViewContext(httpContext);
             var activator = new DefaultTagHelperActivator();
@@ -69,12 +75,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var services = new ServiceCollection();
-            services.InitializeTagHelper<TestTagHelper>((h, vc) =>
+            var builder = new MvcCoreBuilder(services);
+            builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = "Test 1";
                 h.Number = 100;
             });
-            services.InitializeTagHelper<TestTagHelper>((h, vc) =>
+            builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name += ", Test 2";
                 h.Number += 100;
@@ -97,12 +104,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var services = new ServiceCollection();
-            services.InitializeTagHelper<TestTagHelper>((h, vc) =>
+            var builder = new MvcCoreBuilder(services);
+            builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = "Test 1";
                 h.Number = 100;
             });
-            services.InitializeTagHelper<AnotherTestTagHelper>((h, vc) =>
+            builder.InitializeTagHelper<AnotherTestTagHelper>((h, vc) =>
             {
                 h.Name = "Test 2";
                 h.Number = 102;

@@ -20,11 +20,11 @@ namespace Microsoft.AspNet.Mvc
         public RazorViewEngineOptionsSetup(IApplicationEnvironment applicationEnvironment)
             : base(options => ConfigureRazor(options, applicationEnvironment))
         {
-            Order = DefaultOrder.DefaultFrameworkSortOrder;
         }
 
-        private static void ConfigureRazor(RazorViewEngineOptions razorOptions,
-                                           IApplicationEnvironment applicationEnvironment)
+        private static void ConfigureRazor(
+            RazorViewEngineOptions razorOptions,
+            IApplicationEnvironment applicationEnvironment)
         {
             razorOptions.FileProvider = new PhysicalFileProvider(applicationEnvironment.ApplicationBasePath);
         }

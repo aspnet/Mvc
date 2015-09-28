@@ -5,9 +5,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.Razor;
+using Microsoft.Dnx.Compilation;
 using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.OptionsModel;
@@ -38,20 +41,18 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             var i = 0;
-            Assert.Equal(13, options.ModelBinders.Count);
+            Assert.Equal(11, options.ModelBinders.Count);
             Assert.IsType(typeof(BinderTypeBasedModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(ServicesModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(BodyModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(HeaderModelBinder), options.ModelBinders[i++]);
-            Assert.IsType(typeof(TypeConverterModelBinder), options.ModelBinders[i++]);
-            Assert.IsType(typeof(TypeMatchModelBinder), options.ModelBinders[i++]);
+            Assert.IsType(typeof(SimpleTypeModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(CancellationTokenModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(ByteArrayModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(FormFileModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(FormCollectionModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(GenericModelBinder), options.ModelBinders[i++]);
             Assert.IsType(typeof(MutableObjectModelBinder), options.ModelBinders[i++]);
-            Assert.IsType(typeof(ComplexModelDtoModelBinder), options.ModelBinders[i++]);
         }
 
         [Fact]
@@ -134,7 +135,11 @@ namespace Microsoft.AspNet.Mvc
         public void Setup_SetsUpExcludeFromValidationDelegates()
         {
             // Arrange & Act
-            var options = GetOptions<MvcOptions>(_ => _.ConfigureMvc(o => o.AddXmlDataContractSerializerFormatter()));
+            var options = GetOptions<MvcOptions>(services =>
+            {
+                var builder = new MvcCoreBuilder(services);
+                builder.AddXmlDataContractSerializerFormatters();
+            });
 
             // Assert
             Assert.Equal(8, options.ValidationExcludeFilters.Count);
@@ -188,8 +193,8 @@ namespace Microsoft.AspNet.Mvc
             var services = GetServiceProvider();
 
             // Act
-            var options = services.GetRequiredService<IOptions<MvcOptions>>().Options;
-            var jsonOptions = services.GetRequiredService<IOptions<MvcJsonOptions>>().Options;
+            var options = services.GetRequiredService<IOptions<MvcOptions>>().Value;
+            var jsonOptions = services.GetRequiredService<IOptions<MvcJsonOptions>>().Value;
 
             // Assert
             var jsonInputFormatters = options.InputFormatters.OfType<JsonInputFormatter>();
@@ -209,7 +214,7 @@ namespace Microsoft.AspNet.Mvc
             where T : class, new()
         {
             var serviceProvider = GetServiceProvider(action);
-            return serviceProvider.GetRequiredService<IOptions<T>>().Options;
+            return serviceProvider.GetRequiredService<IOptions<T>>().Value;
         }
 
         private static IServiceProvider GetServiceProvider(Action<IServiceCollection> action = null)
@@ -229,6 +234,8 @@ namespace Microsoft.AspNet.Mvc
         private static void AddDnxServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddInstance(Mock.Of<ILibraryManager>());
+            serviceCollection.AddInstance(Mock.Of<ILibraryExporter>());
+            serviceCollection.AddInstance(Mock.Of<ICompilerOptionsProvider>());
             serviceCollection.AddInstance(Mock.Of<IAssemblyLoadContextAccessor>());
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
 

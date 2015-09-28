@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
     public class HttpRequestMessageModelBinderTest
     {
         [Fact]
-        public async Task BindModelAsync_ReturnsNotNull_ForHttpRequestMessageType()
+        public async Task BindModelAsync_ReturnsNonEmptyResult_ForHttpRequestMessageType()
         {
             // Arrange
             var binder = new HttpRequestMessageModelBinder();
@@ -24,11 +25,14 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Same(expectedModel, result.Model);
-            Assert.NotNull(result.ValidationNode);
-            Assert.True(result.ValidationNode.SuppressValidation);
+
+            var entry = bindingContext.ValidationState[result.Model];
+            Assert.True(entry.SuppressValidation);
+            Assert.Null(entry.Key);
+            Assert.Null(entry.Metadata);
         }
 
         [Theory]
@@ -45,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         private static ModelBindingContext GetBindingContext(Type modelType)
@@ -59,7 +63,8 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
                 {
                     HttpContext = new DefaultHttpContext(),
                     MetadataProvider = metadataProvider,
-                }
+                },
+                ValidationState = new ValidationStateDictionary(),
             };
 
             bindingContext.OperationBindingContext.HttpContext.Request.Method = "GET";

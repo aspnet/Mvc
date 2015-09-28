@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Razor.Chunks;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -20,27 +20,53 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// Initializes a new instance of <see cref="InjectChunkMerger"/>.
         /// </summary>
         /// <param name="modelType">The model type to be used to replace &lt;TModel&gt; tokens.</param>
-        public InjectChunkMerger([NotNull] string modelType)
+        public InjectChunkMerger(string modelType)
         {
+            if (modelType == null)
+            {
+                throw new ArgumentNullException(nameof(modelType));
+            }
+
             _modelType = "<" + modelType + ">";
         }
 
         /// <inheritdoc />
-        public void VisitChunk([NotNull] Chunk chunk)
+        public void VisitChunk(Chunk chunk)
         {
-            var injectChunk = ChunkHelper.EnsureChunk<InjectChunk>(chunk);
-            injectChunk.TypeName = ChunkHelper.ReplaceTModel(injectChunk.TypeName, _modelType);
-            _addedMemberNames.Add(injectChunk.MemberName);
+            if (chunk == null)
+            {
+                throw new ArgumentNullException(nameof(chunk));
+            }
+
+            var injectChunk = chunk as InjectChunk;
+            if (injectChunk != null)
+            {
+                injectChunk.TypeName = ChunkHelper.ReplaceTModel(injectChunk.TypeName, _modelType);
+                _addedMemberNames.Add(injectChunk.MemberName);
+            }
         }
 
         /// <inheritdoc />
-        public void Merge([NotNull] ChunkTree chunkTree, [NotNull] Chunk chunk)
+        public void MergeInheritedChunks(ChunkTree chunkTree, IReadOnlyList<Chunk> inheritedChunks)
         {
-            var injectChunk = ChunkHelper.EnsureChunk<InjectChunk>(chunk);
-            if (!_addedMemberNames.Contains(injectChunk.MemberName))
+            if (chunkTree == null)
             {
-                _addedMemberNames.Add(injectChunk.MemberName);
-                chunkTree.Chunks.Add(TransformChunk(injectChunk));
+                throw new ArgumentNullException(nameof(chunkTree));
+            }
+
+            if (inheritedChunks == null)
+            {
+                throw new ArgumentNullException(nameof(inheritedChunks));
+            }
+
+            for (var i = inheritedChunks.Count - 1; i >= 0; i--)
+            {
+                var injectChunk = inheritedChunks[i] as InjectChunk;
+                if (injectChunk != null &&
+                    _addedMemberNames.Add(injectChunk.MemberName))
+                {
+                    chunkTree.Chunks.Add(TransformChunk(injectChunk));
+                }
             }
         }
 

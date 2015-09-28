@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -11,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting any HTML element with an <c>asp-validation-for</c>
     /// attribute.
     /// </summary>
-    [TargetElement("span", Attributes = ValidationForAttributeName)]
+    [HtmlTargetElement("span", Attributes = ValidationForAttributeName)]
     public class ValidationMessageTagHelper : TagHelper
     {
         private const string ValidationForAttributeName = "asp-validation-for";
@@ -23,6 +24,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public ValidationMessageTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         [HtmlAttributeNotBound]

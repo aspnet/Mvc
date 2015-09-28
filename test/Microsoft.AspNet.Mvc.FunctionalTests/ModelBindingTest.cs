@@ -9,12 +9,9 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Testing;
 using Microsoft.AspNet.Testing.xunit;
-using Microsoft.Framework.DependencyInjection;
 using ModelBindingWebSite.Models;
 using ModelBindingWebSite.ViewModels;
 using Newtonsoft.Json;
@@ -22,23 +19,22 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class ModelBindingTest
+    public class ModelBindingTest : IClassFixture<MvcTestFixture<ModelBindingWebSite.Startup>>
     {
-        private const string SiteName = nameof(ModelBindingWebSite);
         private static readonly Assembly _assembly = typeof(ModelBindingTest).GetTypeInfo().Assembly;
 
-        private readonly Action<IApplicationBuilder> _app = new ModelBindingWebSite.Startup().Configure;
-        private readonly Action<IServiceCollection> _configureServices = new ModelBindingWebSite.Startup().ConfigureServices;
+        public ModelBindingTest(MvcTestFixture<ModelBindingWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
+
+        public HttpClient Client { get; }
 
         [Fact]
         public async Task DoNotValidate_ParametersOrControllerProperties_IfSourceNotFromRequest()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/Validation/DoNotValidateParameter");
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/Validation/DoNotValidateParameter");
 
             // Assert
             Assert.Equal("true", response);
@@ -47,12 +43,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelValidation_DoesNotValidate_AnAlreadyValidatedObject()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/Validation/AvoidRecursive?Name=selfish");
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/Validation/AvoidRecursive?Name=selfish");
 
             // Assert
             Assert.Equal("true", response);
@@ -65,11 +57,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CompositeModelBinder_Restricts_ValueProviders(string actionName, string expectedValue)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Provide all three values, it should bind based on the attribute on the action method.
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 string.Format("http://localhost/CompositeTest/{0}/valueFromRoute?param=valueFromQuery", actionName));
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -79,7 +69,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -90,21 +80,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task TryUpdateModel_WithAPropertyFromBody()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // the name would be of customer.Department.Name
             // and not for the top level customer object.
             var input = "{\"Name\":\"RandomDepartment\"}";
             var content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await client.PostAsync("http://localhost/Home/GetCustomer?Id=1234", content);
+            var response = await Client.PostAsync("http://localhost/Home/GetCustomer?Id=1234", content);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var customer = JsonConvert.DeserializeObject<Customer>(
-                        await response.Content.ReadAsStringAsync());
+            var customer = JsonConvert.DeserializeObject<Customer>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(customer.Department);
             Assert.Equal("RandomDepartment", customer.Department.Name);
             Assert.Equal(1234, customer.Id);
@@ -115,14 +101,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task CanModelBindServiceToAnArgument()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/FromServices_Calculator/Add?left=1234&right=1");
 
-            // Act
-            var response = await client.GetAsync("http://localhost/FromServices_Calculator/Add?left=1234&right=1");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("1235", await response.Content.ReadAsStringAsync());
         }
@@ -130,14 +112,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task CanModelBindServiceToAProperty()
         {
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync(
+            // Arrange & Act
+            var response = await Client.GetAsync(
                 "http://localhost/FromServices_Calculator/Calculate?Left=10&Right=5&Operator=*");
 
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("50", await response.Content.ReadAsStringAsync());
         }
@@ -145,166 +124,31 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task CanModelBindServiceToAProperty_OnBaseType()
         {
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync(
+            // Arrange & Act
+            var response = await Client.GetAsync(
                "http://localhost/FromServices_Calculator/CalculateWithPrecision?Left=10&Right=5&Operator=*");
 
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("50", await response.Content.ReadAsStringAsync());
         }
 
         [Fact]
-        public async Task MultipleParametersMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParametersThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
         public async Task ControllerPropertyAndAnActionWithoutFromBody_InvokesWithoutErrors()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/GetSiteUser");
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/FromBodyControllerProperty/GetSiteUser");
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [Fact]
-        public async Task ControllerPropertyAndAnActionParameterWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task ControllerPropertyAndAModelPropertyWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromBodyControllerProperty/AddUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleControllerPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/MultiplePropertiesFromBody/GetUser");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWithFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FromBodyParameterAndPropertyThrows");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParametersMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_AsParameters_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task MultipleParameterAndPropertiesMarkedWith_FromFormAndFromBody_Throws()
-        {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/FromAttributes/FormAndBody_Throws");
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-            Assert.Equal(
-                "More than one parameter and/or property is bound to the HTTP request's content.",
-                exception.ExceptionMessage);
-        }
-
-        [Fact]
         public async Task CanBind_MultipleParameters_UsingFromForm()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 "http://localhost/FromAttributes/MultipleFromFormParameters");
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -319,12 +163,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var user = JsonConvert.DeserializeObject<User_FromForm>(
-                      await response.Content.ReadAsStringAsync());
+            var user = JsonConvert.DeserializeObject<User_FromForm>(await response.Content.ReadAsStringAsync());
 
             Assert.Equal("WA_Form_Home", user.HomeAddress.State);
             Assert.Equal(1, user.HomeAddress.Street);
@@ -339,10 +182,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CanBind_MultipleProperties_UsingFromForm()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 "http://localhost/FromAttributes/MultipleFromFormParameterAndProperty");
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -357,12 +198,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var user = JsonConvert.DeserializeObject<User_FromForm>(
-                      await response.Content.ReadAsStringAsync());
+            var user = JsonConvert.DeserializeObject<User_FromForm>(await response.Content.ReadAsStringAsync());
 
             Assert.Equal("WA_Form_Home", user.HomeAddress.State);
             Assert.Equal(1, user.HomeAddress.Street);
@@ -377,11 +217,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CanBind_ComplexData_OnParameters_UsingFromAttributes()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Provide all three values, it should bind based on the attribute on the action method.
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 "http://localhost/FromAttributes/GetUser/5/WA_Route/6" +
                 "?Street=3&State=WA_Query&Zip=4");
             var nameValueCollection = new List<KeyValuePair<string, string>>
@@ -394,12 +232,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var user = JsonConvert.DeserializeObject<User_FromForm>(
-                       await response.Content.ReadAsStringAsync());
+            var user = JsonConvert.DeserializeObject<User_FromForm>(await response.Content.ReadAsStringAsync());
 
             // Assert FromRoute
             Assert.Equal("WA_Route", user.HomeAddress.State);
@@ -421,11 +258,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CanBind_ComplexData_OnProperties_UsingFromAttributes()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Provide all three values, it should bind based on the attribute on the action method.
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 "http://localhost/FromAttributes/GetUser_FromForm/5/WA_Route/6" +
                 "?ShippingAddress.Street=3&ShippingAddress.State=WA_Query&ShippingAddress.Zip=4");
             var nameValueCollection = new List<KeyValuePair<string, string>>
@@ -438,12 +273,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var user = JsonConvert.DeserializeObject<User_FromForm>(
-                       await response.Content.ReadAsStringAsync());
+            var user = JsonConvert.DeserializeObject<User_FromForm>(await response.Content.ReadAsStringAsync());
 
             // Assert FromRoute
             Assert.Equal("WA_Route", user.HomeAddress.State);
@@ -465,11 +299,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CanBind_ComplexData_OnProperties_UsingFromAttributes_WithBody()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Provide all three values, it should bind based on the attribute on the action method.
-            var request = new HttpRequestMessage(HttpMethod.Post,
+            var request = new HttpRequestMessage(
+                HttpMethod.Post,
                 "http://localhost/FromAttributes/GetUser_FromBody/5/WA_Route/6" +
                 "?ShippingAddress.Street=3&ShippingAddress.State=WA_Query&ShippingAddress.Zip=4");
             var input = "{\"State\":\"WA_Body\",\"Street\":1,\"Zip\":2}";
@@ -477,12 +309,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             request.Content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var user = JsonConvert.DeserializeObject<User_FromBody>(
-                       await response.Content.ReadAsStringAsync());
+            var user = JsonConvert.DeserializeObject<User_FromBody>(await response.Content.ReadAsStringAsync());
 
             // Assert FromRoute
             Assert.Equal("WA_Route", user.HomeAddress.State);
@@ -504,15 +335,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task NonExistingModelBinder_ForABinderMetadata_DoesNotRecurseInfinitely()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act & Assert
-            var response = await client.GetStringAsync("http://localhost/WithBinderMetadata/EchoDocument");
-
-            var document = JsonConvert.DeserializeObject<Document>
-                          (response);
+            // Arrange & Act & Assert
+            var response = await Client.GetStringAsync("http://localhost/WithBinderMetadata/EchoDocument");
+            var document = JsonConvert.DeserializeObject<Document>(response);
 
             Assert.NotNull(document);
             Assert.Null(document.Version);
@@ -522,20 +347,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ParametersWithNoValueProviderMetadataUseTheAvailableValueProviders()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/WithBinderMetadata" +
+                "/ParametersWithNoValueProviderMetadataUseTheAvailableValueProviders" +
+                "?Name=somename&Age=12");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/WithBinderMetadata" +
-                     "/ParametersWithNoValueProviderMetadataUseTheAvailableValueProviders" +
-                     "?Name=somename&Age=12");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var emp = JsonConvert.DeserializeObject<Employee>(
-                            await response.Content.ReadAsStringAsync());
+            var emp = JsonConvert.DeserializeObject<Employee>(await response.Content.ReadAsStringAsync());
             Assert.Null(emp.Department);
             Assert.Equal("somename", emp.Name);
             Assert.Equal(12, emp.Age);
@@ -544,20 +363,14 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ParametersAreAlwaysCreated_IfValuesAreProvidedWithoutModelName()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/WithoutBinderMetadata" +
+                "/GetPersonParameter" +
+                "?Name=somename&Age=12");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/WithoutBinderMetadata" +
-                     "/GetPersonParameter" +
-                     "?Name=somename&Age=12");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var person = JsonConvert.DeserializeObject<Person>(
-                            await response.Content.ReadAsStringAsync());
+            var person = JsonConvert.DeserializeObject<Person>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(person);
             Assert.Equal("somename", person.Name);
             Assert.Equal(12, person.Age);
@@ -566,19 +379,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ParametersAreAlwaysCreated_IfValueIsProvidedForModelName()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            // here p is the model name.
+            var response = await Client.GetAsync("http://localhost/WithoutBinderMetadata/GetPersonParameter?p=");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/WithoutBinderMetadata" +
-                     "/GetPersonParameter?p="); // here p is the model name.
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var person = JsonConvert.DeserializeObject<Person>(
-                            await response.Content.ReadAsStringAsync());
+            var person = JsonConvert.DeserializeObject<Person>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(person);
             Assert.Null(person.Name);
             Assert.Equal(0, person.Age);
@@ -587,19 +394,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ParametersAreAlwaysCreated_IfNoValuesAreProvided()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/WithoutBinderMetadata/GetPersonParameter");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/WithoutBinderMetadata" +
-                     "/GetPersonParameter");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var person = JsonConvert.DeserializeObject<Person>(
-                            await response.Content.ReadAsStringAsync());
+            var person = JsonConvert.DeserializeObject<Person>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(person);
             Assert.Null(person.Name);
             Assert.Equal(0, person.Age);
@@ -608,19 +408,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task PropertiesAreBound_IfTheyAreProvidedByValueProviders()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync(
+                "http://localhost/Properties/GetCompany?Employees[0].Name=somename&Age=12");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetCompany?Employees[0].Name=somename&Age=12");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var company = JsonConvert.DeserializeObject<Company>(
-                            await response.Content.ReadAsStringAsync());
+            var company = JsonConvert.DeserializeObject<Company>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(company);
             Assert.NotNull(company.Employees);
             Assert.Equal(1, company.Employees.Count);
@@ -630,19 +424,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task PropertiesAreBound_IfTheyAreMarkedExplicitly()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Properties/GetCompany");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetCompany");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var company = JsonConvert.DeserializeObject<Company>(
-                            await response.Content.ReadAsStringAsync());
+            var company = JsonConvert.DeserializeObject<Company>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(company);
             Assert.NotNull(company.CEO);
             Assert.Null(company.CEO.Name);
@@ -651,19 +438,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task PropertiesAreBound_IfTheyArePocoMetadataMarkedTypes()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Properties/GetCompany");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetCompany");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var company = JsonConvert.DeserializeObject<Company>(
-                            await response.Content.ReadAsStringAsync());
+            var company = JsonConvert.DeserializeObject<Company>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(company);
 
             // Department property is not null because it was a marker poco.
@@ -676,19 +456,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task PropertiesAreNotBound_ByDefault()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Properties/GetCompany");
 
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetCompany");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var company = JsonConvert.DeserializeObject<Company>(
-                            await response.Content.ReadAsStringAsync());
+            var company = JsonConvert.DeserializeObject<Company>(await response.Content.ReadAsStringAsync());
             Assert.NotNull(company);
             Assert.Null(company.Employees);
         }
@@ -696,19 +469,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task PocoGetsCreated_IfTopLevelNoProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetPerson");
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Properties/GetPerson");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var person = JsonConvert.DeserializeObject<PersonWithNoProperties>(
-                            await response.Content.ReadAsStringAsync());
+                await response.Content.ReadAsStringAsync());
             Assert.NotNull(person);
             Assert.Null(person.Name);
         }
@@ -716,19 +483,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ArrayOfPocoGetsCreated_PoCoWithNoProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await
-                     client.GetAsync("http://localhost/Properties" +
-                     "/GetPeople?people[0].Name=asdf");
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Properties/GetPeople?people[0].Name=asdf");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var arrperson = JsonConvert.DeserializeObject<ArrayOfPersonWithNoProperties>(
-                            await response.Content.ReadAsStringAsync());
+                await response.Content.ReadAsStringAsync());
             Assert.NotNull(arrperson);
             Assert.NotNull(arrperson.people);
             Assert.Equal(0, arrperson.people.Length);
@@ -739,15 +500,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [InlineData("http://localhost/Home/ActionWithPersonFromUrlWithoutPrefix/Javier/26")]
         public async Task CanBind_ComplexData_FromRouteData(string url)
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync(url);
 
-            // Act
-            var response = await
-                     client.GetAsync(url);
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var body = await response.Content.ReadAsStringAsync();
@@ -762,14 +518,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelBindCancellationTokenParameteres()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Home/ActionWithCancellationToken");
 
-            // Act
-            var response = await client.GetAsync("http://localhost/Home/ActionWithCancellationToken");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("true", await response.Content.ReadAsStringAsync());
         }
@@ -777,15 +529,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelBindCancellationToken_ForProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync(
+            // Arrange & Act
+            var response = await Client.GetAsync(
                 "http://localhost/Home/ActionWithCancellationTokenModel?wrapper=bogusValue");
 
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("true", await response.Content.ReadAsStringAsync());
         }
@@ -793,14 +541,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelBindingBindsBase64StringsToByteArrays()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Home/Index?byteValues=SGVsbG9Xb3JsZA==");
 
-            // Act
-            var response = await client.GetAsync("http://localhost/Home/Index?byteValues=SGVsbG9Xb3JsZA==");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("HelloWorld", await response.Content.ReadAsStringAsync());
         }
@@ -808,14 +552,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelBindingBindsEmptyStringsToByteArrays()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/Home/Index?byteValues=");
 
-            // Act
-            var response = await client.GetAsync("http://localhost/Home/Index?byteValues=");
-
-            //Assert
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync());
         }
@@ -824,14 +564,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ModelBinding_LimitsErrorsToMaxErrorCount_DoesNotValidateMembersOfMissingProperties()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var queryString = string.Join("=&", Enumerable.Range(0, 10).Select(i => "field" + i));
 
             // Act
-            var response = await client.GetStringAsync("http://localhost/Home/ModelWithTooManyValidationErrors?" + queryString);
+            var response = await Client.GetStringAsync(
+                "http://localhost/Home/ModelWithTooManyValidationErrors?" + queryString);
 
-            //Assert
+            // Assert
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
 
             // 8 is the value of MaxModelValidationErrors for the application being tested.
@@ -850,28 +589,26 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task ModelBinding_FallsBackAndValidatesAllPropertiesInModel()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/Home/ModelWithFewValidationErrors?model=");
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/Home/ModelWithFewValidationErrors?model=");
 
             // Assert
             var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             Assert.Equal(3, json.Count);
+
+            // The model prefix 'model' is used in the modelstate keys because the key 'model' is present in the
+            // query string. This causes modelbinding to commit to using the prefix.
+            //
             // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["Field1"]);
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["Field2"]);
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["Field3"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field1 field is required."), json["model.Field1"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field2 field is required."), json["model.Field2"]);
+            Assert.Equal(PlatformNormalizer.NormalizeContent("The Field3 field is required."), json["model.Field3"]);
         }
 
         [Fact]
         public async Task ModelBinding_FallsBackAndSuccessfullyBindsStructCollection()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var contentDictionary = new Dictionary<string, string>
             {
                 { "[0]", "23" },
@@ -881,7 +618,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var requestContent = new FormUrlEncodedContent(contentDictionary);
 
             // Act
-            var response = await client.PostAsync("http://localhost/integers", requestContent);
+            var response = await Client.PostAsync("http://localhost/integers", requestContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -899,8 +636,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ModelBinding_FallsBackAndSuccessfullyBindsPOCOCollection()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var contentDictionary = new Dictionary<string, string>
             {
                 { "[0].CityCode", "YYZ" },
@@ -911,7 +646,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var requestContent = new FormUrlEncodedContent(contentDictionary);
 
             // Act
-            var response = await client.PostAsync("http://localhost/cities", requestContent);
+            var response = await Client.PostAsync("http://localhost/cities", requestContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -929,12 +664,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_Filters_UsingDefaultPropertyFilterProvider_WithExpressions()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "EchoUser" +
                 "?user.UserName=someValue&user.RegisterationMonth=March&user.Id=123");
 
@@ -952,12 +683,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_Filters_UsingPropertyFilterProvider_UsingServices()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "EchoUserUsingServices" +
                 "?user.UserName=someValue&user.RegisterationMonth=March&user.Id=123");
 
@@ -975,12 +702,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_Filters_UsingDefaultPropertyFilterProvider_WithPredicate()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "UpdateUserId_BlackListingAtEitherLevelDoesNotBind" +
                 "?param1.LastName=someValue&param2.Id=123");
 
@@ -994,12 +717,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_AppliesAtBothParameterAndTypeLevelTogether_BlacklistedAtEitherLevelIsNotBound()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "UpdateUserId_BlackListingAtEitherLevelDoesNotBind" +
                 "?param1.LastName=someValue&param2.Id=123");
 
@@ -1013,12 +732,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_AppliesAtBothParameterAndTypeLevelTogether_IncludedAtBothLevelsIsBound()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "UpdateFirstName_IncludingAtBothLevelBinds" +
                 "?param1.FirstName=someValue&param2.Id=123");
 
@@ -1031,12 +746,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_AppliesAtBothParameterAndTypeLevelTogether_IncludingAtOneLevelIsNotBound()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "UpdateIsAdmin_IncludingAtOnlyOneLevelDoesNotBind" +
                 "?param1.FirstName=someValue&param1.IsAdmin=true");
 
@@ -1050,12 +761,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_BindsUsingParameterPrefix()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "BindParameterUsingParameterPrefix" +
                 "?randomPrefix.Value=someValue");
 
@@ -1066,12 +773,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_FallsBackOnTypePrefixIfNoParameterPrefixIsProvided()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/BindAttribute/" +
                 "TypePrefixIsUsed" +
                 "?TypePrefix.Value=someValue");
 
@@ -1082,12 +785,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task BindAttribute_DoesNotFallBackOnEmptyPrefixIfParameterPrefixIsProvided()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetAsync("http://localhost/BindAttribute/" +
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/BindAttribute/" +
                 "BindParameterUsingParameterPrefix" +
                 "?Value=someValue");
 
@@ -1099,12 +798,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModel_IncludeTopLevelProperty_IncludesAllSubProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_IncludesAllSubProperties" +
                 "?id=123&Key=34&RegistrationMonth=March&Address.Street=123&Address.Country.Name=USA&" +
                 "Address.State=WA&Address.Country.Cities[0].CityName=Seattle&Address.Country.Cities[0].CityCode=SEA");
@@ -1129,17 +824,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task TryUpdateModel_ChainedPropertyExpression_Throws()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             Expression<Func<User, object>> expression = model => model.Address.Country;
-
             var expected = string.Format(
                 "The passed expression of expression node type '{0}' is invalid." +
                 " Only simple member access expressions for model properties are supported.",
                 expression.Body.NodeType);
 
             // Act
-            var response = await client.GetAsync("http://localhost/TryUpdateModel/GetUserAsync_WithChainedProperties?id=123");
+            var response = await Client.GetAsync(
+                "http://localhost/TryUpdateModel/GetUserAsync_WithChainedProperties?id=123");
 
             // Assert
             var exception = response.GetServerException();
@@ -1150,31 +843,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModel_FailsToUpdateProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "TryUpdateModelFails" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
             // Assert
             var result = JsonConvert.DeserializeObject<bool>(response);
-
-            // Act
             Assert.False(result);
         }
 
         [Fact]
         public async Task TryUpdateModel_IncludeExpression_WorksOnlyAtTopLevel()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetPerson" +
                 "?Parent.Name=fatherName&Parent.Parent.Name=grandFatherName");
 
@@ -1192,12 +875,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModel_Validates_ForTopLevelNotIncludedProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "CreateAndUpdateUser" +
                 "?RegistedeburationMonth=March");
 
@@ -1209,12 +888,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModelExcludeSpecific_Properties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_ExcludeSpecificProperties" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
@@ -1232,12 +907,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModelIncludeSpecific_Properties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_IncludeSpecificProperties" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
@@ -1255,12 +926,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModelIncludesAllProperties_ByDefault()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_IncludeAllByDefault" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
@@ -1279,8 +946,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task UpdateVehicle_WithJson_ProducesModelStateErrors()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new
             {
                 Year = 3012,
@@ -1293,7 +958,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             };
 
             // Act
-            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", content);
+            var response = await Client.PutAsJsonAsync("http://localhost/api/vehicles/520", content);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -1303,10 +968,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             Assert.Equal(2, modelStateErrors.Count);
             // OrderBy is used because the order of the results may very depending on the platform / client.
-            Assert.Equal(new[] {
+            Assert.Equal(
+                new[]
+                {
                     "The field Year must be between 1980 and 2034.",
                     "Year is invalid"
-                }, modelStateErrors["Year"].OrderBy(item => item, StringComparer.Ordinal));
+                },
+                modelStateErrors["Year"].OrderBy(item => item, StringComparer.Ordinal));
 
             var vinError = Assert.Single(modelStateErrors["Vin"]);
             // Mono issue - https://github.com/aspnet/External/issues/19
@@ -1317,8 +985,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task UpdateVehicle_WithJson_DoesPropertyValidationPriorToValidationAtType()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new
             {
                 Year = 2007,
@@ -1330,10 +996,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Model = "Epsum",
                 Vin = "Pqrs"
             };
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", "trackingid");
+            var request = new HttpRequestMessage(HttpMethod.Put, "http://localhost/api/vehicles/520");
+            request.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+            request.Headers.TryAddWithoutValidation("X-TrackingId", "trackingid");
 
             // Act
-            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", content);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -1351,8 +1019,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task UpdateVehicle_WithJson_BindsBodyAndServices()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var trackingId = Guid.NewGuid().ToString();
             var postedContent = new
             {
@@ -1366,10 +1032,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Model = "Epsum",
                 Vin = "PQRS"
             };
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", trackingId);
+            var request = new HttpRequestMessage(HttpMethod.Put, "http://localhost/api/vehicles/520");
+            request.Content = new StringContent(
+                JsonConvert.SerializeObject(postedContent),
+                Encoding.UTF8,
+                "application/json");
+            request.Headers.TryAddWithoutValidation("X-TrackingId", trackingId);
 
             // Act
-            var response = await client.PutAsJsonAsync("http://localhost/api/vehicles/520", postedContent);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1384,14 +1055,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         }
 
 #if DNX451
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task UpdateVehicle_WithXml_BindsBodyServicesAndHeaders()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var trackingId = Guid.NewGuid().ToString();
             var postedContent = new VehicleViewModel
             {
@@ -1405,10 +1074,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 Model = "Epsum",
                 Vin = "PQRS"
             };
-            client.DefaultRequestHeaders.TryAddWithoutValidation("X-TrackingId", trackingId);
+            var request = new HttpRequestMessage(HttpMethod.Put, "http://localhost/api/vehicles/520");
+            request.Content = new StringContent(
+                JsonConvert.SerializeObject(postedContent),
+                Encoding.UTF8,
+                "application/json");
+            request.Headers.TryAddWithoutValidation("X-TrackingId", trackingId);
 
             // Act
-            var response = await client.PutAsXmlAsync("http://localhost/api/vehicles/520", postedContent);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1428,8 +1102,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task UpdateDealerVehicle_PopulatesPropertyErrorsInViews()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/UpdateDealerVehicle_PopulatesPropertyErrorsInViews.txt";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var postedContent = new
@@ -1447,7 +1119,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var url = "http://localhost/dealers/32/update-vehicle?dealer.name=TestCarDealer&dealer.location=SE";
 
             // Act
-            var response = await client.PostAsJsonAsync(url, postedContent);
+            var response = await Client.PostAsJsonAsync(url, postedContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1475,8 +1147,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task UpdateDealerVehicle_PopulatesValidationSummary()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/UpdateDealerVehicle_PopulatesValidationSummary.txt";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var postedContent = new
@@ -1494,7 +1164,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=SE";
 
             // Act
-            var response = await client.PostAsJsonAsync(url, postedContent);
+            var response = await Client.PostAsJsonAsync(url, postedContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1511,12 +1181,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #endif
         }
 
+#if DNXCORE50
+        [ConditionalFact]
+        // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Fact]
+#endif
         public async Task UpdateDealerVehicle_UsesDefaultValuesForOptionalProperties()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/UpdateDealerVehicle_UpdateSuccessful.txt";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var postedContent = new
@@ -1534,7 +1208,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var url = "http://localhost/dealers/43/update-vehicle?dealer.name=TestCarDealer&dealer.location=NE";
 
             // Act
-            var response = await client.PostAsJsonAsync(url, postedContent);
+            var response = await Client.PostAsJsonAsync(url, postedContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1551,19 +1225,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormFileModelBinder_CanBind_SingleFile()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FileUpload/UploadSingle";
             var formData = new MultipartFormDataContent("Upload----");
             formData.Add(new StringContent("Test Content"), "file", "test.txt");
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var fileDetails = JsonConvert.DeserializeObject<FileDetails>(
-                                    await response.Content.ReadAsStringAsync());
+            var fileDetails = JsonConvert.DeserializeObject<FileDetails>(await response.Content.ReadAsStringAsync());
             Assert.Equal("test.txt", fileDetails.Filename);
             Assert.Equal("Test Content", fileDetails.Content);
         }
@@ -1572,20 +1243,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormFileModelBinder_CanBind_MultipleFiles()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FileUpload/UploadMultiple";
             var formData = new MultipartFormDataContent("Upload----");
             formData.Add(new StringContent("Test Content 1"), "files", "test1.txt");
             formData.Add(new StringContent("Test Content 2"), "files", "test2.txt");
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var fileDetailsArray = JsonConvert.DeserializeObject<FileDetails[]>(
-                                        await response.Content.ReadAsStringAsync());
+                await response.Content.ReadAsStringAsync());
             Assert.Equal(2, fileDetailsArray.Length);
             Assert.Equal("test1.txt", fileDetailsArray[0].Filename);
             Assert.Equal("Test Content 1", fileDetailsArray[0].Content);
@@ -1597,8 +1266,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormFileModelBinder_CanBind_MultipleListOfFiles()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FileUpload/UploadMultipleList";
             var formData = new MultipartFormDataContent("Upload----");
             formData.Add(new StringContent("Test Content 1"), "filelist1", "test1.txt");
@@ -1607,12 +1274,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             formData.Add(new StringContent("Test Content 4"), "filelist2", "test4.txt");
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var fileDetailsLookup = JsonConvert.DeserializeObject<IDictionary<string, IList<FileDetails>>>(
-                                        await response.Content.ReadAsStringAsync());
+                await response.Content.ReadAsStringAsync());
             Assert.Equal(2, fileDetailsLookup.Count);
             var fileDetailsList1 = fileDetailsLookup["filelist1"];
             var fileDetailsList2 = fileDetailsLookup["filelist2"];
@@ -1632,20 +1299,18 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormFileModelBinder_CanBind_FileInsideModel()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FileUpload/UploadModelWithFile";
             var formData = new MultipartFormDataContent("Upload----");
             formData.Add(new StringContent("Test Book"), "Name");
             formData.Add(new StringContent("Test Content"), "File", "test.txt");
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var book = JsonConvert.DeserializeObject<KeyValuePair<string, FileDetails>>(
-                                    await response.Content.ReadAsStringAsync());
+                await response.Content.ReadAsStringAsync());
             var bookName = book.Key;
             var fileDetails = book.Value;
             Assert.Equal("Test Book", bookName);
@@ -1656,12 +1321,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModel_ReturnDerivedAndBaseProperties()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetEmployeeAsync_BindToBaseDeclaredType" +
                 "?Parent.Name=fatherName&Parent.Parent.Name=grandFatherName&Department=Sales");
 
@@ -1674,18 +1335,22 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("grandFatherName", employee.Parent.Parent.Name);
         }
 
+#if DNXCORE50
+        [ConditionalFact]
+        // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Fact]
+#endif
         public async Task HtmlHelper_DisplayFor_ShowsPropertiesInModelMetadataOrder()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/ModelBindingWebSite.Vehicle.Details.html";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var url = "http://localhost/vehicles/42";
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1698,18 +1363,22 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #endif
         }
 
+#if DNXCORE50
+        [ConditionalFact]
+        // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Fact]
+#endif
         public async Task HtmlHelper_EditorFor_ShowsPropertiesInModelMetadataOrder()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/ModelBindingWebSite.Vehicle.Edit.html";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var url = "http://localhost/vehicles/42/edit";
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1726,12 +1395,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 #endif
         }
 
+#if DNXCORE50
+        [ConditionalFact]
+        // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Fact]
+#endif
         public async Task HtmlHelper_EditorFor_ShowsPropertiesAndErrorsInModelMetadataOrder()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/ModelBindingWebSite.Vehicle.Edit.Invalid.html";
             var expectedContent = await ResourceFile.ReadResourceAsync(_assembly, outputFile, sourceFile: false);
             var url = "http://localhost/vehicles/42/edit";
@@ -1756,7 +1429,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var requestContent = new FormUrlEncodedContent(contentDictionary);
 
             // Act
-            var response = await client.PostAsync(url, requestContent);
+            var response = await Client.PostAsync(url, requestContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1778,8 +1451,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/Home/GetErrorMessage";
 
             var nameValueCollection = new List<KeyValuePair<string, string>>
@@ -1789,7 +1460,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1801,8 +1472,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task OverriddenMetadataProvider_CanChangeAdditionalValues()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/AdditionalValues";
             var expectedDictionary = new Dictionary<string, string>
             {
@@ -1811,7 +1480,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             };
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1824,8 +1493,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task OverriddenMetadataProvider_CanUseAttributesToChangeAdditionalValues()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/GroupNames";
             var expectedDictionary = new Dictionary<string, string>
             {
@@ -1838,7 +1505,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             };
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1850,12 +1517,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModelNonGeneric_IncludesAllProperties_CanBind()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_ModelType_IncludeAll" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
@@ -1874,8 +1537,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormCollectionModelBinder_CanBind_FormValues()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FormCollection/ReturnValuesAsList";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -1885,12 +1546,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var valuesList = JsonConvert.DeserializeObject<IList<string>>(
-                                    await response.Content.ReadAsStringAsync());
+            var valuesList = JsonConvert.DeserializeObject<IList<string>>(await response.Content.ReadAsStringAsync());
             Assert.Equal(new List<string> { "value1", "value2" }, valuesList);
         }
 
@@ -1898,8 +1558,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormCollectionModelBinder_CanBind_FormValuesWithDuplicateKeys()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FormCollection/ReturnValuesAsList";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
@@ -1910,12 +1568,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(nameValueCollection);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var valuesList = JsonConvert.DeserializeObject<IList<string>>(
-                                    await response.Content.ReadAsStringAsync());
+            var valuesList = JsonConvert.DeserializeObject<IList<string>>(await response.Content.ReadAsStringAsync());
             Assert.Equal(new List<string> { "value1,value3", "value2" }, valuesList);
         }
 
@@ -1923,18 +1580,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormCollectionModelBinder_CannotBind_NonFormValues()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FormCollection/ReturnCollectionCount";
             var data = new StringContent("Non form content");
 
             // Act
-            var response = await client.PostAsync(url, data);
+            var response = await Client.PostAsync(url, data);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var collectionCount = JsonConvert.DeserializeObject<int>(
-                                    await response.Content.ReadAsStringAsync());
+            var collectionCount = JsonConvert.DeserializeObject<int>(await response.Content.ReadAsStringAsync());
             Assert.Equal(0, collectionCount);
         }
 
@@ -1942,15 +1596,13 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task FormCollectionModelBinder_CanBind_FormWithFile()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost/FormCollection/ReturnFileContent";
             var expectedContent = "Test Content";
             var formData = new MultipartFormDataContent("Upload----");
             formData.Add(new StringContent(expectedContent), "File", "test.txt");
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1961,12 +1613,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         [Fact]
         public async Task TryUpdateModelNonGenericIncludesAllProperties_ByDefault()
         {
-            // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
-            // Act
-            var response = await client.GetStringAsync("http://localhost/TryUpdateModel/" +
+            // Arrange & Act
+            var response = await Client.GetStringAsync("http://localhost/TryUpdateModel/" +
                 "GetUserAsync_ModelType_IncludeAllByDefault" +
                 "?id=123&RegisterationMonth=March&Key=123&UserName=SomeName");
 
@@ -1985,8 +1633,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task BindModelAsync_WithCollection()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new Dictionary<string, string>
             {
                 { "AddressLines[0].Line", "Street Address 0" },
@@ -1997,7 +1643,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PutAsync(url, formData);
+            var response = await Client.PutAsync(url, formData);
 
             // Assert
             var address = await ReadValue<PersonAddress>(response);
@@ -2011,8 +1657,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task BindModelAsync_WithCollection_SpecifyingIndex()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new[]
             {
                 new KeyValuePair<string, string>("AddressLines.index", "3"),
@@ -2024,7 +1668,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PutAsync(url, formData);
+            var response = await Client.PutAsync(url, formData);
 
             // Assert
             var address = await ReadValue<PersonAddress>(response);
@@ -2037,8 +1681,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task BindModelAsync_WithNestedCollection()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new Dictionary<string, string>
             {
                 { "Addresses[0].AddressLines[0].Line", "Street Address 00" },
@@ -2051,7 +1693,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<UserWithAddress>(response);
@@ -2072,8 +1714,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task BindModelAsync_WithIncorrectlyFormattedNestedCollectionValue_BindsSingleNullEntry()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new Dictionary<string, string>
             {
                 { "Addresses", "Street Address 00" },
@@ -2082,25 +1722,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<UserWithAddress>(response);
-
-            // Though posted content did not contain any valid Addresses, it is bound as a single-element List
-            // containing null. Slightly odd behavior is specific to this unusual error case: CollectionModelBinder
-            // attempted to bind a comma-separated string as a collection and Address lacks a from-string conversion.
-            // MutableObjectModelBinder does not create model when value providers have no data (unless at top level).
-            var address = Assert.Single(result.Addresses);
-            Assert.Null(address);
+            Assert.Empty(result.Addresses);
         }
 
         [Fact]
         public async Task BindModelAsync_WithNestedCollectionContainingRecursiveRelation()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new Dictionary<string, string>
             {
                 { "People[0].Name", "Person 0" },
@@ -2113,7 +1745,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<PeopleModel>(response);
@@ -2138,8 +1770,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             BindModelAsync_WithNestedCollectionContainingRecursiveRelation_WithMalformedValue_BindsSingleNullEntry()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new Dictionary<string, string>
             {
                 { "People", "Person 0" },
@@ -2148,17 +1778,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<PeopleModel>(response);
 
-            // Though posted content did not contain any valid People, it is bound as a single-element List
-            // containing null. Slightly odd behavior is specific to this unusual error case: CollectionModelBinder
-            // attempted to bind a comma-separated string as a collection and Address lacks a from-string conversion.
-            // MutableObjectModelBinder does not create model when value providers have no data (unless at top level).
-            var person = Assert.Single(result.People);
-            Assert.Null(person);
+            Assert.Empty(result.People);
         }
 
         [Theory]
@@ -2169,8 +1794,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                                                                                        bool expectedResult)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string,string>("isValid", firstValue),
@@ -2180,7 +1803,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<bool>(response);
@@ -2191,8 +1814,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task BindModelAsync_CheckBoxesList_BindSuccessful()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var content = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string,string>("userPreferences[0].Id", "1"),
@@ -2204,7 +1825,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var formData = new FormUrlEncodedContent(content);
 
             // Act
-            var response = await client.PostAsync(url, formData);
+            var response = await Client.PostAsync(url, formData);
 
             // Assert
             var result = await ReadValue<List<UserPreference>>(response);
@@ -2216,12 +1837,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task TryUpdateModel_ClearsModelStateEntries()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-            var url = "http://localhost/TryUpdateModel/TryUpdateModel_ClearsModelStateEntries?id=5&price=1";
+            var url = "http://localhost/TryUpdateModel/TryUpdateModel_ClearsModelStateEntries";
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

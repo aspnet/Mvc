@@ -5,16 +5,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("Name={ControllerName}, Type={ControllerType.Name}," +
                      " Routes: {AttributeRoutes.Count}, Filters: {Filters.Count}")]
-    public class ControllerModel
+    public class ControllerModel : ICommonModel, IFilterModel, IApiExplorerModel
     {
-        public ControllerModel([NotNull] TypeInfo controllerType,
-                               [NotNull] IReadOnlyList<object> attributes)
+        public ControllerModel(
+            [NotNull] TypeInfo controllerType,
+            [NotNull] IReadOnlyList<object> attributes)
         {
             ControllerType = controllerType;
 
@@ -75,6 +79,10 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         public IReadOnlyList<object> Attributes { get; }
 
+        MemberInfo ICommonModel.MemberInfo => ControllerType;
+
+        string ICommonModel.Name => ControllerName;
+
         public string ControllerName { get; set; }
 
         public TypeInfo ControllerType { get; private set; }
@@ -87,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         /// <summary>
         /// Gets a set of properties associated with the controller.
-        /// These properties will be copied to <see cref="ActionDescriptor.Properties"/>.
+        /// These properties will be copied to <see cref="Abstractions.ActionDescriptor.Properties"/>.
         /// </summary>
         /// <remarks>
         /// Entries will take precedence over entries with the same key

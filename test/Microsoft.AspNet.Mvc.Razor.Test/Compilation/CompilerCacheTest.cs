@@ -4,10 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Microsoft.AspNet.Mvc.Razor.Precompilation;
-using Microsoft.Dnx.Runtime;
 using Moq;
 using Xunit;
 
@@ -15,9 +11,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
     public class CompilerCacheTest
     {
-        private const string ViewPath = "Views/Home/Index.cshtml";
-        private const string PrecompiledViewsPath = "Views/Home/Precompiled.cshtml";
-        private readonly IAssemblyLoadContext TestLoadContext = Mock.Of<IAssemblyLoadContext>();
+        private const string ViewPath = "/Views/Home/Index.cshtml";
+        private const string PrecompiledViewsPath = "/Views/Home/Precompiled.cshtml";
+        private readonly IDictionary<string, Type> _precompiledViews = new Dictionary<string, Type>
+        {
+            { PrecompiledViewsPath, typeof(PreCompile) }
+        };
 
         public static TheoryData ViewImportsPaths =>
             new TheoryData<string>
@@ -32,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         {
             // Arrange
             var fileProvider = new TestFileProvider();
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
 
             // Act
             var result = cache.GetOrAdd("/some/path", ThrowsIfCalled);
@@ -48,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             // Arrange
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
             var type = typeof(TestView);
             var expected = UncachedCompilationResult.Successful(type, "hello world");
 
@@ -64,13 +63,43 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             Assert.Same(type, actual.CompiledType);
         }
 
+        [Theory]
+        [InlineData("/Areas/Finances/Views/Home/Index.cshtml")]
+        [InlineData(@"Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views/Home\Index.cshtml")]
+        public void GetOrAdd_NormalizesPathSepartorForPaths(string relativePath)
+        {
+            // Arrange
+            var viewPath = "/Areas/Finances/Views/Home/Index.cshtml";
+            var fileProvider = new TestFileProvider();
+            fileProvider.AddFile(viewPath, "some content");
+            var cache = new CompilerCache(fileProvider);
+            var type = typeof(TestView);
+            var expected = UncachedCompilationResult.Successful(type, "hello world");
+
+            // Act - 1
+            var result1 = cache.GetOrAdd(@"Areas\Finances\Views\Home\Index.cshtml", _ => expected);
+
+            // Assert - 1
+            var compilationResult = Assert.IsType<UncachedCompilationResult>(result1.CompilationResult);
+            Assert.Same(expected, compilationResult);
+            Assert.Same(type, compilationResult.CompiledType);
+
+            // Act - 2
+            var result2 = cache.GetOrAdd(relativePath, ThrowsIfCalled);
+
+            // Assert - 2
+            Assert.Same(type, result2.CompilationResult.CompiledType);
+        }
+
         [Fact]
         public void GetOrAdd_ReturnsFileNotFoundIfFileWasDeleted()
         {
             // Arrange
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
             var type = typeof(TestView);
             var expected = UncachedCompilationResult.Successful(type, "hello world");
 
@@ -82,9 +111,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             Assert.Same(expected, result1.CompilationResult);
 
             // Act 2
-            // Delete the file from the file system and set it's expiration trigger.
+            // Delete the file from the file system and set it's expiration token.
             fileProvider.DeleteFile(ViewPath);
-            fileProvider.GetTrigger(ViewPath).IsExpired = true;
+            fileProvider.GetChangeToken(ViewPath).HasChanged = true;
             var result2 = cache.GetOrAdd(ViewPath, ThrowsIfCalled);
 
             // Assert 2
@@ -98,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             // Arrange
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
             var expected1 = UncachedCompilationResult.Successful(typeof(TestView), "hello world");
             var expected2 = UncachedCompilationResult.Successful(typeof(DifferentView), "different content");
 
@@ -118,7 +147,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             Assert.Same(expected1.CompiledType, result2.CompilationResult.CompiledType);
 
             // Act 3
-            fileProvider.GetTrigger(ViewPath).IsExpired = true;
+            fileProvider.GetChangeToken(ViewPath).HasChanged = true;
             var result3 = cache.GetOrAdd(ViewPath, _ => expected2);
 
             // Assert 3
@@ -133,7 +162,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             // Arrange
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
             var expected1 = UncachedCompilationResult.Successful(typeof(TestView), "hello world");
             var expected2 = UncachedCompilationResult.Successful(typeof(DifferentView), "different content");
 
@@ -153,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             Assert.Same(expected1.CompiledType, result2.CompilationResult.CompiledType);
 
             // Act 3
-            fileProvider.GetTrigger(globalImportPath).IsExpired = true;
+            fileProvider.GetChangeToken(globalImportPath).HasChanged = true;
             var result3 = cache.GetOrAdd(ViewPath, _ => expected2);
 
             // Assert 2
@@ -168,7 +197,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             var mockFileProvider = new Mock<TestFileProvider> { CallBase = true };
             var fileProvider = mockFileProvider.Object;
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(Enumerable.Empty<RazorFileInfoCollection>(), TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider);
             var type = typeof(TestView);
             var expected = UncachedCompilationResult.Successful(type, "hello world");
 
@@ -194,7 +223,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         {
             // Arrange
             var fileProvider = new TestFileProvider();
-            var cache = new CompilerCache(new[] { new TestViewCollection() }, TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider, _precompiledViews);
 
             // Act
             var result = cache.GetOrAdd(PrecompiledViewsPath, ThrowsIfCalled);
@@ -209,11 +238,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         {
             // Arrange
             var fileProvider = new TestFileProvider();
-            var cache = new CompilerCache(new[] { new TestViewCollection() }, TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider, _precompiledViews);
 
             // Act
             fileProvider.Watch(PrecompiledViewsPath);
-            fileProvider.GetTrigger(PrecompiledViewsPath).IsExpired = true;
+            fileProvider.GetChangeToken(PrecompiledViewsPath).HasChanged = true;
             var result = cache.GetOrAdd(PrecompiledViewsPath, ThrowsIfCalled);
 
             // Assert
@@ -227,11 +256,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         {
             // Arrange
             var fileProvider = new TestFileProvider();
-            var cache = new CompilerCache(new[] { new TestViewCollection() }, TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider, _precompiledViews);
 
             // Act
             fileProvider.Watch(globalImportPath);
-            fileProvider.GetTrigger(globalImportPath).IsExpired = true;
+            fileProvider.GetChangeToken(globalImportPath).HasChanged = true;
             var result = cache.GetOrAdd(PrecompiledViewsPath, ThrowsIfCalled);
 
             // Assert
@@ -245,7 +274,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             // Arrange
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
-            var cache = new CompilerCache(new[] { new TestViewCollection() }, TestLoadContext, fileProvider);
+            var cache = new CompilerCache(fileProvider, _precompiledViews);
             var expected = CompilationResult.Successful(typeof(TestView));
 
             // Act 1
@@ -269,6 +298,52 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             Assert.Same(typeof(PreCompile), result3.CompilationResult.CompiledType);
         }
 
+        [Theory]
+        [InlineData("/Areas/Finances/Views/Home/Index.cshtml")]
+        [InlineData(@"Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views/Home\Index.cshtml")]
+        public void GetOrAdd_NormalizesPathSepartorForPathsThatArePrecompiled(string relativePath)
+        {
+            // Arrange
+            var expected = typeof(PreCompile);
+            var viewPath = "/Areas/Finances/Views/Home/Index.cshtml";
+            var cache = new CompilerCache(
+                new TestFileProvider(),
+                new Dictionary<string, Type>
+                {
+                    { viewPath, expected }
+                });
+
+            // Act
+            var result = cache.GetOrAdd(relativePath, ThrowsIfCalled);
+
+            // Assert
+            Assert.Same(expected, result.CompilationResult.CompiledType);
+        }
+
+        [Theory]
+        [InlineData(@"Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views\Home\Index.cshtml")]
+        [InlineData(@"\Areas\Finances\Views/Home\Index.cshtml")]
+        public void ConstructorNormalizesPrecompiledViewPath(string viewPath)
+        {
+            // Arrange
+            var expected = typeof(PreCompile);
+            var cache = new CompilerCache(
+                new TestFileProvider(),
+                new Dictionary<string, Type>
+                {
+                    { viewPath, expected }
+                });
+
+            // Act
+            var result = cache.GetOrAdd("/Areas/Finances/Views/Home/Index.cshtml", ThrowsIfCalled);
+
+            // Assert
+            Assert.Same(expected, result.CompilationResult.CompiledType);
+        }
+
         private class TestView
         {
         }
@@ -284,26 +359,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private CompilationResult ThrowsIfCalled(RelativeFileInfo file)
         {
             throw new Exception("Shouldn't be called");
-        }
-
-        private class TestViewCollection : RazorFileInfoCollection
-        {
-            public TestViewCollection()
-            {
-                FileInfos = new List<RazorFileInfo>
-                {
-                    new RazorFileInfo
-                    {
-                        FullTypeName = typeof(PreCompile).FullName,
-                        RelativePath = PrecompiledViewsPath,
-                    }
-                };
-            }
-
-            public override Assembly LoadAssembly(IAssemblyLoadContext loadContext)
-            {
-                return typeof(TestViewCollection).Assembly;
-            }
         }
     }
 }

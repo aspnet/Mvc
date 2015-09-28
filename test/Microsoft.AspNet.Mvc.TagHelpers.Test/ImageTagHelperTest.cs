@@ -10,21 +10,77 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Testing.xunit;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.Framework.Caching;
 using Microsoft.Framework.Caching.Memory;
+using Microsoft.Framework.Primitives;
+using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
-using Microsoft.Framework.WebEncoders.Testing;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class ImageTagHelperTest
     {
+        [Theory]
+        [InlineData(null, "test.jpg", "test.jpg")]
+        [InlineData("abcd.jpg", "test.jpg", "test.jpg")]
+        [InlineData(null, "~/test.jpg", "virtualRoot/test.jpg")]
+        [InlineData("abcd.jpg", "~/test.jpg", "virtualRoot/test.jpg")]
+        public void Process_SrcDefaultsToTagHelperOutputSrcAttributeAddedByOtherTagHelper(
+            string src,
+            string srcOutput,
+            string expectedSrcPrefix)
+        {
+            // Arrange
+            var allAttributes = new TagHelperAttributeList(
+                new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Testing") },
+                    { "asp-append-version", true },
+                });
+            var context = MakeTagHelperContext(allAttributes);
+            var outputAttributes = new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Testing") },
+                    { "src", srcOutput },
+                };
+            var output = new TagHelperOutput("img", outputAttributes);
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var urlHelper = new Mock<IUrlHelper>();
+
+            // Ensure expanded path does not look like an absolute path on Linux, avoiding
+            // https://github.com/aspnet/External/issues/21
+            urlHelper
+                .Setup(urlhelper => urlhelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
+
+            var helper = new ImageTagHelper(
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                urlHelper.Object)
+            {
+                ViewContext = viewContext,
+                AppendVersion = true,
+                Src = src,
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal(
+                expectedSrcPrefix + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                (string)output.Attributes["src"].Value,
+                StringComparer.Ordinal);
+        }
 
         [Fact]
         public void PreservesOrderOfSourceAttributesWhenRun()
@@ -82,9 +138,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void RendersImageTag_AddsFileVersion()
         {
             // Arrange
@@ -156,9 +210,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("/images/test-image.png", srcAttribute.Value);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void RendersImageTag_AddsFileVersion_WithRequestPathBase()
         {
             // Arrange
@@ -251,6 +303,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(emptyDirectoryContents.Object);
             mockFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>()))
                 .Returns(mockFile.Object);
+            mockFileProvider.Setup(fp => fp.Watch(It.IsAny<string>()))
+                .Returns(new TestFileChangeToken());
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(mockFileProvider.Object);
 

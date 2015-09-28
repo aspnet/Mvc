@@ -3,8 +3,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Abstractions;
 
 namespace BasicWebSite
 {
@@ -26,7 +25,7 @@ namespace BasicWebSite
         {
             get
             {
-                return DefaultOrder.DefaultFrameworkSortOrder - 100;
+                return -1000 - 100;
             }
         }
 

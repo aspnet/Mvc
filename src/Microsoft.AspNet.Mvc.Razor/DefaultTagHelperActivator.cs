@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
@@ -27,14 +28,24 @@ namespace Microsoft.AspNet.Mvc.Razor
             _getPropertiesToActivate = type =>
                 PropertyActivator<ViewContext>.GetPropertiesToActivate(
                     type,
-                    typeof(ViewContextAttribute), 
+                    typeof(ViewContextAttribute),
                     CreateActivateInfo);
         }
 
         /// <inheritdoc />
-        public void Activate<TTagHelper>([NotNull] TTagHelper tagHelper, [NotNull] ViewContext context)
+        public void Activate<TTagHelper>(TTagHelper tagHelper, ViewContext context)
             where TTagHelper : ITagHelper
         {
+            if (tagHelper == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelper));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var propertiesToActivate = _injectActions.GetOrAdd(
                 tagHelper.GetType(),
                 _getPropertiesToActivate);

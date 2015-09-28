@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
-using Microsoft.AspNet.Mvc.ViewComponents;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     /// <summary>
     /// A context for View Components.
@@ -35,11 +36,31 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
         /// <param name="writer">The <see cref="TextWriter"/> for writing output.</param>
         public ViewComponentContext(
-            [NotNull] ViewComponentDescriptor viewComponentDescriptor,
-            [NotNull] object[] arguments,
-            [NotNull] ViewContext viewContext,
-            [NotNull] TextWriter writer)
+            ViewComponentDescriptor viewComponentDescriptor,
+            object[] arguments,
+            ViewContext viewContext,
+            TextWriter writer)
         {
+            if (viewComponentDescriptor == null)
+            {
+                throw new ArgumentNullException(nameof(viewComponentDescriptor));
+            }
+
+            if (arguments == null)
+            {
+                throw new ArgumentNullException(nameof(arguments));
+            }
+
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             ViewComponentDescriptor = viewComponentDescriptor;
             Arguments = arguments;
 
@@ -47,7 +68,7 @@ namespace Microsoft.AspNet.Mvc
             // aren't visible in the calling view.
             ViewContext = new ViewContext(
                 viewContext,
-                viewContext.View, 
+                viewContext.View,
                 new ViewDataDictionary(viewContext.ViewData),
                 writer);
         }

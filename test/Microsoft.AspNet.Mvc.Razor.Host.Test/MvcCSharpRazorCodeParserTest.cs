@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   Foo")
-                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -64,8 +64,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         [InlineData("Foo?", "Foo?")]
         [InlineData("Foo[[]][]", "Foo[[]][]")]
         [InlineData("$rootnamespace$.MyModel", "$rootnamespace$.MyModel")]
-        public void ParseModelKeyword_InfersBaseType_FromModelName(string modelName,
-                                                                   string expectedModel)
+        public void ParseModelKeyword_InfersBaseType_FromModelName(
+            string modelName,
+            string expectedModel)
         {
             // Arrange
             var documentContent = "@model " + modelName + Environment.NewLine + "Bar";
@@ -79,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code(modelName + Environment.NewLine)
-                    .As(new ModelChunkGenerator("RazorView", expectedModel))
+                    .As(new ModelChunkGenerator(expectedModel))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
                     .With(new MarkupChunkGenerator())
@@ -111,7 +112,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("  ")
-                    .As(new ModelChunkGenerator("RazorView", string.Empty))
+                    .As(new ModelChunkGenerator(string.Empty))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml(),
             };
@@ -142,7 +143,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo" + Environment.NewLine)
-                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
@@ -150,7 +151,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new ModelChunkGenerator("RazorView", "Bar"))
+                    .As(new ModelChunkGenerator("Bar"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -189,7 +190,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo" + Environment.NewLine)
-                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
@@ -207,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 new RazorError(
                     "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
                     PlatformNormalizer.NormalizedSourceLocation(21, 1, 9),
-                    1)
+                    length: 8)
             };
 
             // Act
@@ -244,15 +245,17 @@ namespace Microsoft.AspNet.Mvc.Razor
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo")
-                    .As(new ModelChunkGenerator("RazorView", "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.",
-                               new SourceLocation(9, 0, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    new SourceLocation(9, 0, 9),
+                    length: 8)
             };
 
             // Act
@@ -268,9 +271,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         [InlineData("  Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>  MyHelper  ",
                     "Microsoft.AspNet.Mvc.IHtmlHelper<MyNullableModel[]?>", "MyHelper")]
         [InlineData("    TestService    @class ", "TestService", "@class")]
-        public void ParseInjectKeyword_InfersTypeAndPropertyName(string injectStatement,
-                                                                 string expectedService,
-                                                                 string expectedPropertyName)
+        public void ParseInjectKeyword_InfersTypeAndPropertyName(
+            string injectStatement,
+            string expectedService,
+            string expectedPropertyName)
         {
             // Arrange
             var documentContent = "@inject " + injectStatement;
@@ -346,9 +350,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         [Theory]
         [InlineData("IMyService              Service                ", "IMyService", "Service")]
         [InlineData("           TestService    @namespace  ", "TestService", "@namespace")]
-        public void ParseInjectKeyword_ParsesUpToNewLine(string injectStatement,
-                                                         string expectedService,
-                                                         string expectedPropertyName)
+        public void ParseInjectKeyword_ParsesUpToNewLine(
+            string injectStatement,
+            string expectedService,
+            string expectedPropertyName)
         {
             // Arrange
             var documentContent = "@inject " + injectStatement + Environment.NewLine + "Bar";
@@ -512,9 +517,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(expectedErrors, errors);
         }
 
-        private static List<Span> ParseDocument(string documentContents,
-                                                List<RazorError> errors = null,
-                                                List<LineMapping> lineMappings = null)
+        private static List<Span> ParseDocument(
+            string documentContents,
+            List<RazorError> errors = null,
+            List<LineMapping> lineMappings = null)
         {
             errors = errors ?? new List<RazorError>();
             var markupParser = new HtmlMarkupParser();
@@ -537,11 +543,6 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private sealed class TestMvcCSharpRazorCodeParser : MvcRazorCodeParser
         {
-            public TestMvcCSharpRazorCodeParser()
-                : base("RazorView")
-            {
-            }
-
             public bool HasDirective(string directive)
             {
                 Action handler;

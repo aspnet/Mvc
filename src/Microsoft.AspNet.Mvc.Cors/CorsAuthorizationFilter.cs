@@ -7,9 +7,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.Primitives;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Cors
 {
     /// <summary>
     /// A filter which applies the given <see cref="CorsPolicy"/> and adds appropriate response headers.
@@ -20,7 +22,7 @@ namespace Microsoft.AspNet.Mvc
         private ICorsPolicyProvider _corsPolicyProvider;
 
         /// <summary>
-        /// Creates a new instace of <see cref="CorsAuthorizationFilter"/>.
+        /// Creates a new instance of <see cref="CorsAuthorizationFilter"/>.
         /// </summary>
         /// <param name="corsService">The <see cref="ICorsService"/>.</param>
         /// <param name="policyProvider">The <see cref="ICorsPolicyProvider"/>.</param>
@@ -40,13 +42,13 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return DefaultOrder.DefaultCorsSortOrder;
+                return int.MaxValue - 100;
             }
         }
 
 
         /// <inheritdoc />
-        public async Task OnAuthorizationAsync([NotNull] AuthorizationContext context)
+        public async Task OnAuthorizationAsync([NotNull] Filters.AuthorizationContext context)
         {
             // If this filter is not closest to the action, it is not applicable.
             if (!IsClosestToAction(context.Filters))
@@ -63,17 +65,16 @@ namespace Microsoft.AspNet.Mvc
                 _corsService.ApplyResult(result, context.HttpContext.Response);
 
                 var accessControlRequestMethod = 
-                        httpContext.Request.Headers.Get(CorsConstants.AccessControlRequestMethod);
+                        httpContext.Request.Headers[CorsConstants.AccessControlRequestMethod];
                 if (string.Equals(
                         request.Method,
                         CorsConstants.PreflightHttpMethod,
                         StringComparison.Ordinal) &&
-                    accessControlRequestMethod != null)
+                    !StringValues.IsNullOrEmpty(accessControlRequestMethod))
                 {
                     // If this was a preflight, there is no need to run anything else.
                     // Also the response is always 200 so that anyone after mvc can handle the pre flight request.
                     context.Result = new HttpStatusCodeResult(StatusCodes.Status200OK);
-                    await Task.FromResult(true);
                 }
 
                 // Continue with other filters and action.

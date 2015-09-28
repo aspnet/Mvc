@@ -3,6 +3,8 @@
 
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Filters;
 using Newtonsoft.Json;
 
 namespace WebApiCompatShimWebSite

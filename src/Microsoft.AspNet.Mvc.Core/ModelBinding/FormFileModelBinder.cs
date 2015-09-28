@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 #if DNXCORE50
 using System.Reflection;
 #endif
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
@@ -20,8 +22,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     public class FormFileModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
+            if (bindingContext.ModelType != typeof(IFormFile) &&
+                !typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
+            {
+                return ModelBindingResult.NoResultAsync;
+            }
+
+            return BindModelCoreAsync(bindingContext);
+        }
+
+        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext)
+        { 
             object value;
             if (bindingContext.ModelType == typeof(IFormFile))
             {
@@ -36,27 +53,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             else
             {
                 // This binder does not support the requested type.
-                return null;
+                Debug.Fail("We shouldn't be called without a matching type.");
+                return ModelBindingResult.NoResult;
             }
-
-            ModelValidationNode validationNode = null;
-            if (value != null)
+            
+            if (value == null)
             {
-                validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, value)
-                    {
-                        SuppressValidation = true,
-                    };
-
-                var valueProviderResult = new ValueProviderResult(rawValue: value);
-                bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+                return ModelBindingResult.Failed(bindingContext.ModelName);
             }
+            else
+            { 
+                bindingContext.ValidationState.Add(value, new ValidationStateEntry() { SuppressValidation = true });
+                bindingContext.ModelState.SetModelValue(
+                    bindingContext.ModelName,
+                    rawValue: null,
+                    attemptedValue: null);
 
-            return new ModelBindingResult(
-                value,
-                bindingContext.ModelName,
-                isModelSet: value != null,
-                validationNode: validationNode);
+                return ModelBindingResult.Success(bindingContext.ModelName, value);
+            }
         }
 
         private async Task<List<IFormFile>> GetFormFilesAsync(ModelBindingContext bindingContext)
@@ -66,6 +80,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (request.HasFormContentType)
             {
                 var form = await request.ReadFormAsync();
+
+                // If we're at the top level, then use the FieldName (paramter or property name).
+                // This handles the fact that there will be nothing in the ValueProviders for this parameter
+                // and so we'll do the right thing even though we 'fell-back' to the empty prefix.
+                var modelName = bindingContext.IsTopLevelObject
+                    ? bindingContext.FieldName
+                    : bindingContext.ModelName;
 
                 foreach (var file in form.Files)
                 {
@@ -80,8 +101,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                         continue;
                     }
 
-                    var modelName = HeaderUtilities.RemoveQuotes(parsedContentDisposition.Name);
-                    if (modelName.Equals(bindingContext.ModelName, StringComparison.OrdinalIgnoreCase))
+                    var fileName = HeaderUtilities.RemoveQuotes(parsedContentDisposition.Name);
+                    if (fileName.Equals(modelName, StringComparison.OrdinalIgnoreCase))
                     {
                         postedFiles.Add(file);
                     }

@@ -7,6 +7,10 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Microsoft.Framework.Logging;
@@ -70,7 +74,7 @@ namespace Microsoft.AspNet.Mvc
             var httpResponse = new Mock<HttpResponse>();
             httpResponse.SetupProperty(o => o.StatusCode);
             httpResponse.Setup(o => o.Headers).Returns(
-                new HeaderDictionary(new Dictionary<string, string[]>()));
+                new HeaderDictionary());
             httpResponse.SetupGet(o => o.Body).Returns(stream);
             return httpResponse.Object;
         }
@@ -94,9 +98,9 @@ namespace Microsoft.AspNet.Mvc
             var services = new Mock<IServiceProvider>();
             httpContext.RequestServices = services.Object;
 
-            var optionsAccessor = new MockMvcOptionsAccessor();
-            optionsAccessor.Options.OutputFormatters.Add(new StringOutputFormatter());
-            optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
+            optionsAccessor.Value.OutputFormatters.Add(new StringOutputFormatter());
+            optionsAccessor.Value.OutputFormatters.Add(new JsonOutputFormatter());
             services.Setup(p => p.GetService(typeof(IOptions<MvcOptions>)))
                 .Returns(optionsAccessor);
             services.Setup(s => s.GetService(typeof(ILogger<ObjectResult>)))
@@ -104,7 +108,7 @@ namespace Microsoft.AspNet.Mvc
 
             var actionBindingContext = new ActionBindingContext
             {
-                OutputFormatters = optionsAccessor.Options.OutputFormatters
+                OutputFormatters = optionsAccessor.Value.OutputFormatters
             };
             services.Setup(o => o.GetService(typeof(IActionBindingContextAccessor)))
                     .Returns(new ActionBindingContextAccessor() { ActionBindingContext = actionBindingContext });

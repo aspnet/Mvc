@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
@@ -93,7 +94,7 @@ namespace Microsoft.AspNet.Mvc
             CacheProfile selectedProfile = null;
             if (CacheProfileName != null)
             {
-                optionsAccessor.Options.CacheProfiles.TryGetValue(CacheProfileName, out selectedProfile);
+                optionsAccessor.Value.CacheProfiles.TryGetValue(CacheProfileName, out selectedProfile);
                 if (selectedProfile == null)
                 {
                     throw new InvalidOperationException(Resources.FormatCacheProfileNotFound(CacheProfileName));

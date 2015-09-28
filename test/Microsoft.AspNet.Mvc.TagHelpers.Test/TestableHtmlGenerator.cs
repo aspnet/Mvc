@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNet.Antiforgery;
-using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Routing;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.WebEncoders.Testing;
@@ -99,7 +102,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             var mockOptions = new Mock<IOptions<MvcViewOptions>>();
             mockOptions
-                .SetupGet(options => options.Options)
+                .SetupGet(options => options.Value)
                 .Returns(new MvcViewOptions());
 
             return mockOptions.Object;

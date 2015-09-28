@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 #endif
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -27,60 +28,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             ModelBindingHelper.ValidateBindingContext(bindingContext);
 
             var model = bindingContext.Model;
-            if (!await bindingContext.ValueProvider.ContainsPrefixAsync(bindingContext.ModelName))
+            if (!bindingContext.ValueProvider.ContainsPrefix(bindingContext.ModelName))
             {
-                // If this is the fallback case and we failed to find data for a top-level model, then generate a
+                // If we failed to find data for a top-level model, then generate a
                 // default 'empty' model (or use existing Model) and return it.
-                if (!bindingContext.IsFirstChanceBinding && bindingContext.IsTopLevelObject)
+                if (bindingContext.IsTopLevelObject)
                 {
                     if (model == null)
                     {
                         model = CreateEmptyCollection(bindingContext.ModelType);
                     }
 
-                    var validationNode = new ModelValidationNode(
-                        bindingContext.ModelName,
-                        bindingContext.ModelMetadata,
-                        model);
-
-                    return new ModelBindingResult(
-                        model,
-                        bindingContext.ModelName,
-                        isModelSet: true,
-                        validationNode: validationNode);
+                    return ModelBindingResult.Success(bindingContext.ModelName, model);
                 }
 
-                return null;
+                return ModelBindingResult.NoResult;
             }
 
-            var valueProviderResult = await bindingContext.ValueProvider.GetValueAsync(bindingContext.ModelName);
+            var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
 
             CollectionResult result;
-            if (valueProviderResult == null)
+            if (valueProviderResult == ValueProviderResult.None)
             {
                 result = await BindComplexCollection(bindingContext);
             }
             else
             {
-                if (valueProviderResult.RawValue == null)
-                {
-                    // Value exists but is null. Handle similarly to fallback case above. This avoids a
-                    // ModelBindingResult with IsModelSet = true but ValidationNode = null.
-                    model = bindingContext.Model ?? CreateEmptyCollection(bindingContext.ModelType);
-                    var validationNode =
-                        new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model);
-
-                    return new ModelBindingResult(
-                        model,
-                        bindingContext.ModelName,
-                        isModelSet: true,
-                        validationNode: validationNode);
-                }
-
-                result = await BindSimpleCollection(
-                    bindingContext,
-                    valueProviderResult.RawValue,
-                    valueProviderResult.Culture);
+                result = await BindSimpleCollection(bindingContext, valueProviderResult);
             }
 
             var boundCollection = result.Model;
@@ -94,11 +68,25 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 CopyToModel(model, boundCollection);
             }
 
-            return new ModelBindingResult(
-                model,
-                bindingContext.ModelName,
-                isModelSet: true,
-                validationNode: result.ValidationNode);
+            Debug.Assert(model != null);
+            if (result.ValidationStrategy != null)
+            {
+                bindingContext.ValidationState.Add(model, new ValidationStateEntry()
+                {
+                    Strategy = result.ValidationStrategy,
+                });
+            }
+
+            if (valueProviderResult != ValueProviderResult.None)
+            {
+                // If we did simple binding, then modelstate should be updated to reflect what we bound for ModelName. 
+                // If we did complex binding, there will already be an entry for each index.
+                bindingContext.ModelState.SetModelValue(
+                    bindingContext.ModelName,
+                    valueProviderResult);
+            }
+
+            return ModelBindingResult.Success(bindingContext.ModelName, model);
         }
 
         /// <inheritdoc />
@@ -147,29 +135,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // Internal for testing.
         internal async Task<CollectionResult> BindSimpleCollection(
             ModelBindingContext bindingContext,
-            object rawValue,
-            CultureInfo culture)
+            ValueProviderResult values)
         {
             var boundCollection = new List<TElement>();
 
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
-            var validationNode = new ModelValidationNode(
-                bindingContext.ModelName,
-                bindingContext.ModelMetadata,
-                boundCollection);
-            var rawValueArray = RawValueToObjectArray(rawValue);
-            foreach (var rawValueElement in rawValueArray)
+            var innerBindingContext = ModelBindingContext.CreateChildBindingContext(
+                bindingContext,
+                elementMetadata,
+                fieldName: bindingContext.FieldName,
+                modelName: bindingContext.ModelName,
+                model: null);
+
+            foreach (var value in values)
             {
-                var innerBindingContext = ModelBindingContext.GetChildModelBindingContext(
-                    bindingContext,
-                    bindingContext.ModelName,
-                    elementMetadata);
                 innerBindingContext.ValueProvider = new CompositeValueProvider
                 {
                     // our temporary provider goes at the front of the list
-                    new ElementalValueProvider(bindingContext.ModelName, rawValueElement, culture),
+                    new ElementalValueProvider(bindingContext.ModelName, value, values.Culture),
                     bindingContext.ValueProvider
                 };
 
@@ -179,29 +164,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 if (result != null && result.IsModelSet)
                 {
                     boundValue = result.Model;
-                    if (result.ValidationNode != null)
-                    {
-                        validationNode.ChildNodes.Add(result.ValidationNode);
-                    }
+                    boundCollection.Add(ModelBindingHelper.CastOrDefault<TElement>(boundValue));
                 }
-                boundCollection.Add(ModelBindingHelper.CastOrDefault<TElement>(boundValue));
             }
 
             return new CollectionResult
             {
-                ValidationNode = validationNode,
                 Model = boundCollection
             };
         }
 
         // Used when the ValueProvider contains the collection to be bound as multiple elements, e.g. foo[0], foo[1].
-        private async Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
+        private Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
-            var valueProviderResultIndex = await bindingContext.ValueProvider.GetValueAsync(indexPropertyName);
+            var valueProviderResultIndex = bindingContext.ValueProvider.GetValue(indexPropertyName);
             var indexNames = GetIndexNamesFromValueProviderResult(valueProviderResultIndex);
 
-            return await BindComplexCollectionFromIndexes(bindingContext, indexNames);
+            return BindComplexCollectionFromIndexes(bindingContext, indexNames);
         }
 
         // Internal for testing.
@@ -225,17 +205,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var elementMetadata = metadataProvider.GetMetadataForType(typeof(TElement));
 
             var boundCollection = new List<TElement>();
-            var validationNode = new ModelValidationNode(
-                bindingContext.ModelName,
-                bindingContext.ModelMetadata,
-                boundCollection);
+
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelNames.CreateIndexModelName(bindingContext.ModelName, indexName);
-                var childBindingContext = ModelBindingContext.GetChildModelBindingContext(
+                var childBindingContext = ModelBindingContext.CreateChildBindingContext(
                     bindingContext,
-                    fullChildName,
-                    elementMetadata);
+                    elementMetadata,
+                    fieldName: indexName,
+                    modelName: fullChildName,
+                    model: null);
+
 
                 var didBind = false;
                 object boundValue = null;
@@ -246,10 +226,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     didBind = true;
                     boundValue = result.Model;
-                    if (result.ValidationNode != null)
-                    {
-                        validationNode.ChildNodes.Add(result.ValidationNode);
-                    }
                 }
 
                 // infinite size collection stops on first bind failure
@@ -263,17 +239,26 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             return new CollectionResult
             {
-                ValidationNode = validationNode,
-                Model = boundCollection
+                Model = boundCollection,
+
+                // If we're working with a fixed set of indexes then this is the format like:
+                //
+                //  ?parameter.index=zero,one,two&parameter[zero]=0&&parameter[one]=1&parameter[two]=2...
+                //
+                // We need to provide this data to the validation system so it can 'replay' the keys.
+                // But we can't just set ValidationState here, because it needs the 'real' model.
+                ValidationStrategy = indexNamesIsFinite ?
+                    new ExplicitIndexCollectionValidationStrategy(indexNames) :
+                    null,
             };
         }
 
         // Internal for testing.
         internal class CollectionResult
         {
-            public ModelValidationNode ValidationNode { get; set; }
-
             public IEnumerable<TElement> Model { get; set; }
+
+            public IValidationStrategy ValidationStrategy { get; set; }
         }
 
         /// <summary>
@@ -364,7 +349,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             IEnumerable<string> indexNames = null;
             if (valueProviderResult != null)
             {
-                var indexes = (string[])valueProviderResult.ConvertTo(typeof(string[]));
+                var indexes = (string[])valueProviderResult;
                 if (indexes != null && indexes.Length > 0)
                 {
                     indexNames = indexes;

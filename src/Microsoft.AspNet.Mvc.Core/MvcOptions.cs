@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ApplicationModels;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
@@ -21,14 +23,14 @@ namespace Microsoft.AspNet.Mvc
         {
             CacheProfiles = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
             Conventions = new List<IApplicationModelConvention>();
-            Filters = new List<IFilterMetadata>();
+            Filters = new FilterCollection();
             FormatterMappings = new FormatterMappings();
             InputFormatters = new List<IInputFormatter>();
             OutputFormatters = new List<IOutputFormatter>();
             ModelBinders = new List<IModelBinder>();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
-            ValidationExcludeFilters = new List<IExcludeTypeValidationFilter>();
+            ValidationExcludeFilters = new ExcludeTypeValidationFilterCollection();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
 
@@ -45,10 +47,10 @@ namespace Microsoft.AspNet.Mvc
         public IList<IApplicationModelConvention> Conventions { get; }
 
         /// <summary>
-        /// Gets a list of <see cref="IFilterMetadata"/> which are used to construct filters that
+        /// Gets a collection of <see cref="IFilterMetadata"/> which are used to construct filters that
         /// apply to all actions.
         /// </summary>
-        public ICollection<IFilterMetadata> Filters { get; }
+        public FilterCollection Filters { get; }
 
         /// <summary>
         /// Used to specify mapping between the URL Format and corresponding
@@ -116,9 +118,9 @@ namespace Microsoft.AspNet.Mvc
         public bool RespectBrowserAcceptHeader { get; set; }
 
         /// <summary>
-        /// Gets a list of <see cref="IExcludeTypeValidationFilter"/>s that are used by this application.
+        /// Gets a collection of <see cref="IExcludeTypeValidationFilter"/>s that are used by this application.
         /// </summary>
-        public IList<IExcludeTypeValidationFilter> ValidationExcludeFilters { get; }
+        public ExcludeTypeValidationFilterCollection ValidationExcludeFilters { get; }
 
         /// <summary>
         /// Gets a list of <see cref="IValueProviderFactory"/> used by this application.

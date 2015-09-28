@@ -6,7 +6,10 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.Razor.TagHelpers;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Logging;
@@ -20,13 +23,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <remarks>
     /// The tag helper won't process for cases with just the 'src' attribute.
     /// </remarks>
-    [TargetElement("script", Attributes = SrcIncludeAttributeName)]
-    [TargetElement("script", Attributes = SrcExcludeAttributeName)]
-    [TargetElement("script", Attributes = FallbackSrcAttributeName)]
-    [TargetElement("script", Attributes = FallbackSrcIncludeAttributeName)]
-    [TargetElement("script", Attributes = FallbackSrcExcludeAttributeName)]
-    [TargetElement("script", Attributes = FallbackTestExpressionAttributeName)]
-    [TargetElement("script", Attributes = AppendVersionAttributeName)]
+    [HtmlTargetElement("script", Attributes = SrcIncludeAttributeName)]
+    [HtmlTargetElement("script", Attributes = SrcExcludeAttributeName)]
+    [HtmlTargetElement("script", Attributes = FallbackSrcAttributeName)]
+    [HtmlTargetElement("script", Attributes = FallbackSrcIncludeAttributeName)]
+    [HtmlTargetElement("script", Attributes = FallbackSrcExcludeAttributeName)]
+    [HtmlTargetElement("script", Attributes = FallbackTestExpressionAttributeName)]
+    [HtmlTargetElement("script", Attributes = AppendVersionAttributeName)]
     public class ScriptTagHelper : UrlResolutionTagHelper
     {
         private const string SrcIncludeAttributeName = "asp-src-include";
@@ -91,6 +94,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             HostingEnvironment = hostingEnvironment;
             Cache = cache;
             JavaScriptEncoder = javaScriptEncoder;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         /// <summary>
@@ -179,14 +191,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (Src != null)
             {
                 output.CopyHtmlAttribute(SrcAttributeName, context);
-
-                if (TryResolveUrl(Src, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
-                {
-                    Src = resolvedUrl;
-                }
-
-                ProcessUrlAttribute(SrcAttributeName, output);
             }
+
+            // If there's no "src" attribute in output.Attributes this will noop.
+            ProcessUrlAttribute(SrcAttributeName, output);
+
+            // Retrieve the TagHelperOutput variation of the "src" attribute in case other TagHelpers in the
+            // pipeline have touched the value. If the value is already encoded this ScriptTagHelper may
+            // not function properly.
+            Src = output.Attributes[SrcAttributeName]?.Value as string;
 
             var modeResult = AttributeMatcher.DetermineMode(context, ModeDetails);
 
@@ -205,11 +218,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 EnsureFileVersionProvider();
 
-                var attributeStringValue = output.Attributes[SrcAttributeName]?.Value as string;
-                if (attributeStringValue != null)
+                if (Src != null)
                 {
-                    output.Attributes[SrcAttributeName].Value =
-                        _fileVersionProvider.AddFileVersionToPath(attributeStringValue);
+                    output.Attributes[SrcAttributeName].Value = _fileVersionProvider.AddFileVersionToPath(Src);
                 }
             }
 
@@ -274,10 +285,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (fallbackSrcs.Any())
             {
                 // Build the <script> tag that checks the test method and if it fails, renders the extra script.
-                builder.Append(Environment.NewLine)
-                       .Append("<script>(")
-                       .Append(FallbackTestExpression)
-                       .Append("||document.write(\"");
+                builder.AppendEncoded(Environment.NewLine)
+                       .AppendEncoded("<script>(")
+                       .AppendEncoded(FallbackTestExpression)
+                       .AppendEncoded("||document.write(\"");
 
                 // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
                 if (!attributes.ContainsName(SrcAttributeName))
@@ -291,7 +302,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     // Fallback "src" values come from bound attributes and globbing. Must always be non-null.
                     Debug.Assert(src != null);
 
-                    builder.Append("<script");
+                    builder.AppendEncoded("<script");
 
                     foreach (var attribute in attributes)
                     {
@@ -319,10 +330,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                         }
                     }
 
-                    builder.Append("><\\/script>");
+                    builder.AppendEncoded("><\\/script>");
                 }
 
-                builder.Append("\"));</script>");
+                builder.AppendEncoded("\"));</script>");
             }
         }
 
@@ -352,7 +363,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             TagHelperAttributeList attributes,
             TagHelperContent builder)
         {
-            builder.Append("<script");
+            builder.AppendEncoded("<script");
 
             foreach (var attribute in attributes)
             {
@@ -373,29 +384,29 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 AppendAttribute(builder, attribute.Name, attributeValue, escapeQuotes: false);
             }
 
-            builder.Append("></script>");
+            builder.AppendEncoded("></script>");
         }
 
         private void AppendAttribute(TagHelperContent content, string key, object value, bool escapeQuotes)
         {
             content
-                .Append(" ")
-                .Append(key);
+                .AppendEncoded(" ")
+                .AppendEncoded(key);
             if (escapeQuotes)
             {
                 // Passed only JavaScript-encoded strings in this case. Do not perform HTML-encoding as well.
                 content
-                    .Append("=\\\"")
-                    .Append((string)value)
-                    .Append("\\\"");
+                    .AppendEncoded("=\\\"")
+                    .AppendEncoded((string)value)
+                    .AppendEncoded("\\\"");
             }
             else
             {
                 // HTML-encoded the given value if necessary.
                 content
-                    .Append("=\"")
+                    .AppendEncoded("=\"")
                     .Append(HtmlEncoder, ViewContext.Writer.Encoding, value)
-                    .Append("\"");
+                    .AppendEncoded("\"");
             }
         }
 

@@ -1,11 +1,11 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Globalization;
+using System;
+using System.IO;
 using Microsoft.AspNet.Mvc.Razor.Directives;
 using Microsoft.AspNet.Razor.CodeGenerators;
 using Microsoft.AspNet.Razor.CodeGenerators.Visitors;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -16,23 +16,66 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly string _injectAttribute;
 
         public MvcCSharpCodeGenerator(
-            [NotNull] CodeGeneratorContext context,
-            [NotNull] string defaultModel,
-            [NotNull] string injectAttribute,
-            [NotNull] GeneratedTagHelperAttributeContext tagHelperAttributeContext)
+            CodeGeneratorContext context,
+            string defaultModel,
+            string injectAttribute,
+            GeneratedTagHelperAttributeContext tagHelperAttributeContext)
             : base(context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (defaultModel == null)
+            {
+                throw new ArgumentNullException(nameof(defaultModel));
+            }
+
+            if (injectAttribute == null)
+            {
+                throw new ArgumentNullException(nameof(injectAttribute));
+            }
+
+            if (tagHelperAttributeContext == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperAttributeContext));
+            }
+
             _tagHelperAttributeContext = tagHelperAttributeContext;
             _defaultModel = defaultModel;
             _injectAttribute = injectAttribute;
         }
 
-        private string Model { get; set; }
+        protected override CSharpCodeWritingScope BuildClassDeclaration(CSharpCodeWriter writer)
+        {
+            if (Context.Host.DesignTimeMode &&
+                string.Equals(
+                    Path.GetFileName(Context.SourceFile),
+                    ViewHierarchyUtility.ViewImportsFileName,
+                    StringComparison.Ordinal))
+            {
+                // Write a using TModel = System.Object; token during design time to make intellisense work
+                writer.WriteLine($"using {ChunkHelper.TModelToken} = {typeof(object).FullName};");
+            }
+
+            return base.BuildClassDeclaration(writer);
+        }
 
         protected override CSharpCodeVisitor CreateCSharpCodeVisitor(
-            [NotNull] CSharpCodeWriter writer,
-            [NotNull] CodeGeneratorContext context)
+            CSharpCodeWriter writer,
+            CodeGeneratorContext context)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var csharpCodeVisitor = base.CreateCSharpCodeVisitor(writer, context);
 
             csharpCodeVisitor.TagHelperRenderer.AttributeValueCodeRenderer =
@@ -41,34 +84,36 @@ namespace Microsoft.AspNet.Mvc.Razor
             return csharpCodeVisitor;
         }
 
-        protected override CSharpCodeWritingScope BuildClassDeclaration(CSharpCodeWriter writer)
+        protected override CSharpDesignTimeCodeVisitor CreateCSharpDesignTimeCodeVisitor(
+            CSharpCodeVisitor csharpCodeVisitor,
+            CSharpCodeWriter writer,
+            CodeGeneratorContext context)
         {
-            // Grab the last model chunk so it gets intellisense.
-            var modelChunk = ChunkHelper.GetModelChunk(Context.ChunkTreeBuilder.ChunkTree);
-
-            Model = modelChunk != null ? modelChunk.ModelType : _defaultModel;
-
-            // If there were any model chunks then we need to modify the class declaration signature.
-            if (modelChunk != null)
+            if (csharpCodeVisitor == null)
             {
-                writer.Write(string.Format(CultureInfo.InvariantCulture, "public class {0} : ", Context.ClassName));
-
-                var modelVisitor = new ModelChunkVisitor(writer, Context);
-                // This generates the base class signature
-                modelVisitor.Accept(modelChunk);
-
-                writer.WriteLine();
-
-                return new CSharpCodeWritingScope(writer);
+                throw new ArgumentNullException(nameof(csharpCodeVisitor));
             }
-            else
+
+            if (writer == null)
             {
-                return base.BuildClassDeclaration(writer);
+                throw new ArgumentNullException(nameof(writer));
             }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            return new MvcCSharpDesignTimeCodeVisitor(csharpCodeVisitor, writer, context);
         }
 
-        protected override void BuildConstructor([NotNull] CSharpCodeWriter writer)
+        protected override void BuildConstructor(CSharpCodeWriter writer)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
             base.BuildConstructor(writer);
 
             writer.WriteLineHiddenDirective();

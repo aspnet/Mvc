@@ -3,12 +3,12 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -26,7 +26,7 @@ namespace Microsoft.AspNet.Mvc
         /// Gets or sets the name of the partial view to render.
         /// </summary>
         /// <remarks>
-        /// When <c>null</c>, defaults to <see cref="ActionDescriptor.Name"/>.
+        /// When <c>null</c>, defaults to <see cref="Abstractions.ActionDescriptor.Name"/>.
         /// </remarks>
         public string ViewName { get; set; }
 
@@ -53,8 +53,13 @@ namespace Microsoft.AspNet.Mvc
         public MediaTypeHeaderValue ContentType { get; set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync([NotNull] ActionContext context)
+        public override async Task ExecuteResultAsync(ActionContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var viewEngine = ViewEngine ??
                              context.HttpContext.RequestServices.GetRequiredService<ICompositeViewEngine>();
 
@@ -88,7 +93,7 @@ namespace Microsoft.AspNet.Mvc
                     context,
                     ViewData,
                     TempData,
-                    options.Options.HtmlHelperOptions,
+                    options.Value.HtmlHelperOptions,
                     ContentType);
             }
         }

@@ -15,7 +15,10 @@ namespace Microsoft.AspNet.Mvc
     /// </summary>
     public class HttpResponseStreamWriter : TextWriter
     {
-        private const int DefaultBufferSize = 1024;
+        /// <summary>
+        /// Default buffer size.
+        /// </summary>
+        public const int DefaultBufferSize = 1024;
         private readonly Stream _stream;
         private Encoder _encoder;
         private byte[] _byteBuffer;
@@ -146,9 +149,9 @@ namespace Microsoft.AspNet.Mvc
             FlushInternal(true, true);
         }
 
-        public override async Task FlushAsync()
+        public override Task FlushAsync()
         {
-            await FlushInternalAsync(true, true);
+            return FlushInternalAsync(flushStream: true, flushEncoder: true);
         }
 
         // Do not flush the stream on Dispose, as this will cause response to be

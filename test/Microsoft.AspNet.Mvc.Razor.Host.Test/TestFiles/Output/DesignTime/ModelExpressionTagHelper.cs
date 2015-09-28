@@ -8,13 +8,7 @@ namespace Asp
     using Microsoft.AspNet.Mvc.Rendering;
     using System.Threading.Tasks;
 
-    public class ASPV_TestFiles_Input_ModelExpressionTagHelper_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
-       DateTime
-
-#line default
-#line hidden
-    >
+    public class ASPV_TestFiles_Input_ModelExpressionTagHelper_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<DateTime>
     {
         private static object @__o;
         private void @__RazorDesignTimeHelpers__()
@@ -28,6 +22,11 @@ namespace Asp
 #line default
 #line hidden
             ;
+#line 1 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
+var __modelHelper = default(DateTime);
+
+#line default
+#line hidden
             #pragma warning restore 219
         }
         #line hidden
@@ -38,13 +37,13 @@ namespace Asp
         }
         #line hidden
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<DateTime> Html { get; private set; }
-        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNet.Mvc.Rendering.IHtmlHelper<DateTime> Html { get; private set; }
 
         #line hidden
 

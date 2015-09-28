@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 using MvcSample.Web.Models;
 
 namespace MvcSample.Web.Filters

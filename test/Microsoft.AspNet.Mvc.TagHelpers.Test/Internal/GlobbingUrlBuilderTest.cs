@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
-using Microsoft.Framework.Caching;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.FileSystemGlobbing;
 using Microsoft.Framework.FileSystemGlobbing.Abstractions;
+using Microsoft.Framework.Primitives;
 using Moq;
 using Xunit;
 
@@ -272,9 +272,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public void CachesMatchResults()
         {
             // Arrange
-            var trigger = new Mock<IExpirationTrigger>();
+            var changeToken = new Mock<IChangeToken>();
             var fileProvider = MakeFileProvider(MakeDirectoryContents("site.css", "blank.css"));
-            Mock.Get(fileProvider).Setup(f => f.Watch(It.IsAny<string>())).Returns(trigger.Object);
+            Mock.Get(fileProvider).Setup(f => f.Watch(It.IsAny<string>())).Returns(changeToken.Object);
             var cache = MakeCache();
             Mock.Get(cache).Setup(c => c.Set(
                 /*key*/ It.IsAny<string>(),
@@ -520,7 +520,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     excludePatterns.Add(pattern);
                     return matcher.Object;
                 });
-            var patternMatchingResult = new PatternMatchingResult(Enumerable.Empty<string>());
+            var patternMatchingResult = new PatternMatchingResult(Enumerable.Empty<FilePatternMatch>());
             matcher.Setup(m => m.Execute(It.IsAny<DirectoryInfoBase>())).Returns(patternMatchingResult);
             return matcher.Object;
         }

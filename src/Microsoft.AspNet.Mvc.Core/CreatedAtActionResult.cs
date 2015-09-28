@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -23,10 +25,11 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="value">The value to format in the entity body.</param>
-        public CreatedAtActionResult(string actionName,
-                                     string controllerName,
-                                     object routeValues,
-                                     object value)
+        public CreatedAtActionResult(
+            string actionName,
+            string controllerName,
+            object routeValues,
+            object value)
             : base(value)
         {
             ActionName = actionName;
@@ -73,7 +76,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
-            context.HttpContext.Response.Headers.Set("Location", url);
+            context.HttpContext.Response.Headers[HeaderNames.Location] = url;
         }
     }
 }

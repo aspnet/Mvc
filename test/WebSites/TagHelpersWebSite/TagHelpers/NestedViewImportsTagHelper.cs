@@ -6,12 +6,12 @@ using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
-    [TargetElement("nested")]
+    [HtmlTargetElement("nested")]
     public class NestedViewImportsTagHelper : TagHelper
     {
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            output.Content.SetContent("nested-content");
+            output.Content.AppendEncoded("nested-content");
         }
     }
 }

@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Test
+namespace Microsoft.AspNet.Mvc.Cors
 {
     public class CorsAuthorizationFilterTest
     {
@@ -186,10 +188,9 @@ namespace Microsoft.AspNet.Mvc.Test
                 .Callback<CorsResult, HttpResponse>((result1, response1) =>
                 {
                     var headers = response1.Headers;
-                    headers.Set(
-                        CorsConstants.AccessControlMaxAge,
-                        result1.PreflightMaxAge.Value.TotalSeconds.ToString());
-                    headers.Add(CorsConstants.AccessControlAllowOrigin, new[] { result1.AllowedOrigin });
+                    headers[CorsConstants.AccessControlMaxAge] =
+                        result1.PreflightMaxAge.Value.TotalSeconds.ToString();
+                    headers[CorsConstants.AccessControlAllowOrigin] = result1.AllowedOrigin;
                     if (result1.SupportsCredentials)
                     {
                         headers.Add(CorsConstants.AccessControlAllowCredentials, new[] { "true" });

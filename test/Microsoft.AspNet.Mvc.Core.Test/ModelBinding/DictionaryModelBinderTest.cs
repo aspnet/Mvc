@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
+using Microsoft.Framework.Primitives;
 using Moq;
 using Xunit;
 
@@ -21,7 +23,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var bindingContext = GetModelBindingContext(isReadOnly);
+            var values = new Dictionary<string, KeyValuePair<int, string>>()
+            {
+                { "someName[0]", new KeyValuePair<int, string>(42, "forty-two") },
+                { "someName[1]", new KeyValuePair<int, string>(84, "eighty-four") },
+            };
+
+            var bindingContext = GetModelBindingContext(isReadOnly, values);
             var modelState = bindingContext.ModelState;
             var binder = new DictionaryModelBinder<int, string>();
 
@@ -29,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             var dictionary = Assert.IsAssignableFrom<IDictionary<int, string>>(result.Model);
             Assert.True(modelState.IsValid);
@@ -38,15 +46,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal(2, dictionary.Count);
             Assert.Equal("forty-two", dictionary[42]);
             Assert.Equal("eighty-four", dictionary[84]);
+
+            // This uses the default IValidationStrategy
+            Assert.DoesNotContain(result.Model, bindingContext.ValidationState.Keys);
         }
 
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task BindModel_BindingContextModelNonNull_Succeeds(bool isReadOnly)
+        public async Task BindModel_WithExistingModel_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var bindingContext = GetModelBindingContext(isReadOnly);
+            var values = new Dictionary<string, KeyValuePair<int, string>>()
+            {
+                { "someName[0]", new KeyValuePair<int, string>(42, "forty-two") },
+                { "someName[1]", new KeyValuePair<int, string>(84, "eighty-four") },
+            };
+
+            var bindingContext = GetModelBindingContext(isReadOnly, values);
             var modelState = bindingContext.ModelState;
             var dictionary = new Dictionary<int, string>();
             bindingContext.Model = dictionary;
@@ -56,7 +73,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Same(dictionary, result.Model);
             Assert.True(modelState.IsValid);
@@ -65,6 +82,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.Equal(2, dictionary.Count);
             Assert.Equal("forty-two", dictionary[42]);
             Assert.Equal("eighty-four", dictionary[84]);
+
+            // This uses the default IValidationStrategy
+            Assert.DoesNotContain(result.Model, bindingContext.ValidationState.Keys);
         }
 
         // modelName, keyFormat, dictionary
@@ -119,11 +139,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsFatalError);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal(modelName, result.Key);
-            Assert.NotNull(result.ValidationNode);
 
             var resultDictionary = Assert.IsAssignableFrom<IDictionary<string, string>>(result.Model);
             Assert.Equal(dictionary, resultDictionary);
@@ -157,11 +175,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsFatalError);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal("prefix", result.Key);
-            Assert.NotNull(result.ValidationNode);
 
             var resultDictionary = Assert.IsAssignableFrom<IDictionary<string, string>>(result.Model);
             Assert.Empty(resultDictionary);
@@ -209,11 +225,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsFatalError);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal("prefix", result.Key);
-            Assert.NotNull(result.ValidationNode);
 
             var resultDictionary = Assert.IsAssignableFrom<IDictionary<long, int>>(result.Model);
             Assert.Equal(dictionary, resultDictionary);
@@ -251,14 +265,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsFatalError);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal("prefix", result.Key);
-            Assert.NotNull(result.ValidationNode);
 
             var resultDictionary = Assert.IsAssignableFrom<IDictionary<int, ModelWithProperties>>(result.Model);
             Assert.Equal(dictionary, resultDictionary);
+
+            // This requires a non-default IValidationStrategy
+            Assert.Contains(result.Model, context.ValidationState.Keys);
+            var entry = context.ValidationState[result.Model];
+            var strategy = Assert.IsType<ShortFormDictionaryValidationStrategy<int, ModelWithProperties>>(entry.Strategy);
+            Assert.Equal(
+                new KeyValuePair<string, int>[]
+                {
+                    new KeyValuePair<string, int>("23", 23),
+                    new KeyValuePair<string, int>("27", 27),
+                }.OrderBy(kvp => kvp.Key),
+                strategy.KeyMappings.OrderBy(kvp => kvp.Key));
         }
 
         [Theory]
@@ -286,44 +310,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.False(result.IsFatalError);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal(modelName, result.Key);
-            Assert.NotNull(result.ValidationNode);
 
             var resultDictionary = Assert.IsAssignableFrom<SortedDictionary<string, string>>(result.Model);
             Assert.Equal(expectedDictionary, resultDictionary);
         }
 
         [Fact]
-        public async Task DictionaryModelBinder_DoesNotCreateCollection_IfIsTopLevelObjectAndIsFirstChanceBinding()
-        {
-            // Arrange
-            var binder = new DictionaryModelBinder<string, string>();
-
-            var context = CreateContext();
-            context.IsTopLevelObject = true;
-            context.IsFirstChanceBinding = true;
-
-            // Explicit prefix and empty model name both ignored.
-            context.BinderModelName = "prefix";
-            context.ModelName = string.Empty;
-
-            var metadataProvider = context.OperationBindingContext.MetadataProvider;
-            context.ModelMetadata = metadataProvider.GetMetadataForType(typeof(Dictionary<string, string>));
-
-            context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
-
-            // Act
-            var result = await binder.BindModelAsync(context);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task DictionaryModelBinder_CreatesEmptyCollection_IfIsTopLevelObjectAndNotIsFirstChanceBinding()
+        public async Task DictionaryModelBinder_CreatesEmptyCollection_IfIsTopLevelObject()
         {
             // Arrange
             var binder = new DictionaryModelBinder<string, string>();
@@ -343,15 +339,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
 
             Assert.Empty(Assert.IsType<Dictionary<string, string>>(result.Model));
             Assert.Equal("modelName", result.Key);
             Assert.True(result.IsModelSet);
-
-            Assert.Same(result.ValidationNode.Model, result.Model);
-            Assert.Same(result.ValidationNode.Key, result.Key);
-            Assert.Same(result.ValidationNode.ModelMetadata, context.ModelMetadata);
         }
 
         [Theory]
@@ -376,7 +368,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         // Model type -> can create instance.
@@ -416,11 +408,13 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             var modelBindingContext = new ModelBindingContext()
             {
+                ModelState = new ModelStateDictionary(),
                 OperationBindingContext = new OperationBindingContext()
                 {
                     HttpContext = new DefaultHttpContext(),
                     MetadataProvider = new TestModelMetadataProvider(),
-                }
+                },
+                ValidationState = new ValidationStateDictionary(),
             };
 
             return modelBindingContext;
@@ -430,10 +424,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             var binders = new IModelBinder[]
             {
-                new TypeConverterModelBinder(),
-                new TypeMatchModelBinder(),
+                new SimpleTypeModelBinder(),
                 new MutableObjectModelBinder(),
-                new ComplexModelDtoModelBinder(),
             };
 
             return new CompositeModelBinder(binders);
@@ -443,10 +435,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             string keyFormat,
             IDictionary<string, string> dictionary)
         {
-            // Convert to an IDictionary<string, string[]> then wrap it up.
+            // Convert to an IDictionary<string, StringValues> then wrap it up.
             var backingStore = dictionary.ToDictionary(
                 kvp => string.Format(keyFormat, kvp.Key),
-                kvp => new[] { kvp.Value });
+                kvp => (StringValues)kvp.Value);
             var stringCollection = new ReadableStringCollection(backingStore);
 
             return new ReadableStringCollectionValueProvider(
@@ -466,47 +458,51 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             return new TestValueProvider(BindingSource.Form, backingStore);
         }
 
-        private static ModelBindingContext GetModelBindingContext(bool isReadOnly)
+        private static ModelBindingContext GetModelBindingContext(
+            bool isReadOnly,
+            IDictionary<string, KeyValuePair<int, string>> values)
         {
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType<IDictionary<int, string>>().BindingDetails(bd => bd.IsReadOnly = isReadOnly);
-            var valueProvider = new SimpleHttpValueProvider
+
+            var binder = new Mock<IModelBinder>();
+            binder
+                .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Returns<ModelBindingContext>(mbc =>
+                {
+                    KeyValuePair<int, string> value;
+                    if (values.TryGetValue(mbc.ModelName, out value))
+                    {
+                        return ModelBindingResult.SuccessAsync(mbc.ModelName, value);
+                    }
+                    else
+                    {
+                        return ModelBindingResult.NoResultAsync;
+                    }
+                });
+
+            var valueProvider = new SimpleValueProvider();
+            foreach (var kvp in values)
             {
-                { "someName[0]", new KeyValuePair<int, string>(42, "forty-two") },
-                { "someName[1]", new KeyValuePair<int, string>(84, "eighty-four") },
-            };
+                valueProvider.Add(kvp.Key, string.Empty);
+            }
 
             var bindingContext = new ModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(typeof(IDictionary<int, string>)),
                 ModelName = "someName",
-                ValueProvider = valueProvider,
+                ModelState = new ModelStateDictionary(),
                 OperationBindingContext = new OperationBindingContext
                 {
-                    ModelBinder = CreateKvpBinder(),
-                    MetadataProvider = metadataProvider
-                }
+                    ModelBinder = binder.Object,
+                    MetadataProvider = metadataProvider,
+                    ValueProvider = valueProvider,
+                },
+                ValueProvider = valueProvider,
+                ValidationState = new ValidationStateDictionary(),
             };
 
             return bindingContext;
-        }
-
-        private static IModelBinder CreateKvpBinder()
-        {
-            Mock<IModelBinder> mockKvpBinder = new Mock<IModelBinder>();
-            mockKvpBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(async (ModelBindingContext mbc) =>
-                {
-                    var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
-                    {
-                        var model = value.ConvertTo(mbc.ModelType);
-                        return new ModelBindingResult(model, key: null, isModelSet: true);
-                    }
-                    return null;
-                });
-            return mockKvpBinder.Object;
         }
 
         private class ModelWithDictionaryProperties

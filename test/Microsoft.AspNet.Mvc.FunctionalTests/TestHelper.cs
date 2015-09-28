@@ -6,10 +6,10 @@ using System.IO;
 using System.Reflection;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Hosting;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.TestHost;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Dnx.Runtime;
-using Microsoft.Dnx.Runtime.Infrastructure;
+using Microsoft.Framework.DependencyInjection;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
@@ -20,18 +20,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
         public static TestServer CreateServer(Action<IApplicationBuilder> builder, string applicationWebSiteName)
         {
-            return CreateServer(builder, applicationWebSiteName, applicationPath: null);
-        }
-
-        public static TestServer CreateServer(
-            Action<IApplicationBuilder> builder,
-            string applicationWebSiteName,
-            string applicationPath)
-        {
             return CreateServer(
                 builder,
                 applicationWebSiteName,
-                applicationPath,
+                applicationPath: null,
                 configureServices: (Action<IServiceCollection>)null);
         }
 
@@ -47,7 +39,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 configureServices: configureServices);
         }
 
-        public static TestServer CreateServer(
+        private static TestServer CreateServer(
             Action<IApplicationBuilder> builder,
             string applicationWebSiteName,
             string applicationPath,
@@ -56,34 +48,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             return TestServer.Create(
                 builder,
                 services => AddTestServices(services, applicationWebSiteName, applicationPath, configureServices));
-        }
-
-        public static TestServer CreateServer(
-            Action<IApplicationBuilder> builder,
-            string applicationWebSiteName,
-            Func<IServiceCollection, IServiceProvider> configureServices)
-        {
-            return CreateServer(
-                builder,
-                applicationWebSiteName,
-                applicationPath: null,
-                configureServices: configureServices);
-        }
-
-        public static TestServer CreateServer(
-            Action<IApplicationBuilder> builder,
-            string applicationWebSiteName,
-            string applicationPath,
-            Func<IServiceCollection, IServiceProvider> configureServices)
-        {
-            return TestServer.Create(
-                CallContextServiceLocator.Locator.ServiceProvider,
-                builder,
-                services =>
-                {
-                    AddTestServices(services, applicationWebSiteName, applicationPath, configureServices: null);
-                    return (configureServices != null) ? configureServices(services) : services.BuildServiceProvider();
-                });
         }
 
         private static void AddTestServices(
@@ -111,8 +75,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 applicationPath);
             var environment = new TestApplicationEnvironment(
                 originalEnvironment,
-                applicationBasePath,
-                applicationWebSiteName);
+                applicationWebSiteName,
+                applicationBasePath);
             services.AddInstance<IApplicationEnvironment>(environment);
             var hostingEnvironment = new HostingEnvironment();
             hostingEnvironment.Initialize(applicationBasePath, environmentName: null);
@@ -144,7 +108,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Creates a service type that will limit MVC to only the controllers in the test site.
             // We only want this to happen when running in-process.
             var assembly = Assembly.Load(new AssemblyName(siteName));
-            var provider = new FixedSetAssemblyProvider
+            var provider = new StaticAssemblyProvider
             {
                 CandidateAssemblies =
                 {

@@ -3,17 +3,16 @@
 
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.DependencyInjection;
 
 namespace ResponseCacheWebSite
 {
     public class Startup
     {
-        // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-            services.ConfigureMvc(options =>
+            services.AddMvc(options =>
             {
                 options.CacheProfiles.Add(
                     "PublicCache30Sec", new CacheProfile
@@ -44,10 +43,7 @@ namespace ResponseCacheWebSite
                         Location = ResponseCacheLocation.Any,
                         VaryByHeader = "Accept"
                     });
-            });
 
-            services.ConfigureMvc(options =>
-            { 
                 options.Filters.Add(new ResponseCacheFilter(new CacheProfile
                 {
                     NoStore = true,

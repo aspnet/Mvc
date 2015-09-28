@@ -24,14 +24,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
+                ValidationState = new ValidationStateDictionary(),
             };
 
             var mockIntBinder = new Mock<IModelBinder>();
@@ -44,9 +42,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                         Assert.Equal("someName", context.ModelName);
                         Assert.Same(bindingContext.ValueProvider, context.ValueProvider);
 
-
-                        return Task.FromResult(
-                            new ModelBindingResult(model: 42, key: "someName", isModelSet: true));
+                        return ModelBindingResult.SuccessAsync("someName", 42);
                     });
             var shimBinder = CreateCompositeBinder(mockIntBinder.Object);
 
@@ -54,9 +50,99 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal(42, result.Model);
+        }
+
+        [Fact]
+        public async Task BindModel_SuccessfulBind_SetsValidationStateAtTopLevel()
+        {
+            // Arrange
+            var bindingContext = new ModelBindingContext
+            {
+                FallbackToEmptyPrefix = true,
+                IsTopLevelObject = true,
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
+                ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
+                {
+                    { "someName", "dummyValue" }
+                },
+                ValidationState = new ValidationStateDictionary(),
+            };
+
+            var mockIntBinder = new Mock<IModelBinder>();
+            mockIntBinder
+                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Returns(
+                    delegate (ModelBindingContext context)
+                    {
+                        Assert.Same(bindingContext.ModelMetadata, context.ModelMetadata);
+                        Assert.Equal("someName", context.ModelName);
+                        Assert.Same(bindingContext.ValueProvider, context.ValueProvider);
+
+                        return ModelBindingResult.SuccessAsync("someName", 42);
+                    });
+            var shimBinder = CreateCompositeBinder(mockIntBinder.Object);
+
+            // Act
+            var result = await shimBinder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.True(result.IsModelSet);
+            Assert.Equal(42, result.Model);
+
+            Assert.Contains(result.Model, bindingContext.ValidationState.Keys);
+            var entry = bindingContext.ValidationState[result.Model];
+            Assert.Equal("someName", entry.Key);
+            Assert.Same(bindingContext.ModelMetadata, entry.Metadata);
+        }
+
+        [Fact]
+        public async Task BindModel_SuccessfulBind_DoesNotSetValidationState_WhenNotTopLevel()
+        {
+            // Arrange
+            var bindingContext = new ModelBindingContext
+            {
+                FallbackToEmptyPrefix = true,
+                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
+                ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
+                {
+                    { "someName", "dummyValue" }
+                },
+                ValidationState = new ValidationStateDictionary(),
+            };
+
+            var mockIntBinder = new Mock<IModelBinder>();
+            mockIntBinder
+                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Returns(
+                    delegate (ModelBindingContext context)
+                    {
+                        Assert.Same(bindingContext.ModelMetadata, context.ModelMetadata);
+                        Assert.Equal("someName", context.ModelName);
+                        Assert.Same(bindingContext.ValueProvider, context.ValueProvider);
+
+                        return ModelBindingResult.SuccessAsync("someName", 42);
+                    });
+            var shimBinder = CreateCompositeBinder(mockIntBinder.Object);
+
+            // Act
+            var result = await shimBinder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.True(result.IsModelSet);
+            Assert.Equal(42, result.Model);
+
+            Assert.Empty(bindingContext.ValidationState);
         }
 
         [Fact]
@@ -68,17 +154,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var bindingContext = new ModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
+                IsTopLevelObject = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
+                ValidationState = new ValidationStateDictionary(),
             };
 
             var mockIntBinder = new Mock<IModelBinder>();
@@ -89,14 +174,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     {
                         if (!string.IsNullOrEmpty(mbc.ModelName))
                         {
-                            return Task.FromResult<ModelBindingResult>(null);
+                            return ModelBindingResult.NoResultAsync;
                         }
 
                         Assert.Same(bindingContext.ModelMetadata, mbc.ModelMetadata);
                         Assert.Equal("", mbc.ModelName);
                         Assert.Same(bindingContext.ValueProvider, mbc.ValueProvider);
 
-                        return Task.FromResult(new ModelBindingResult(expectedModel, string.Empty, true));
+                        return ModelBindingResult.SuccessAsync(string.Empty, expectedModel);
                     });
 
             var shimBinder = CreateCompositeBinder(mockIntBinder.Object);
@@ -105,14 +190,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal(string.Empty, result.Key);
             Assert.Equal(expectedModel, result.Model);
         }
 
         [Fact]
-        public async Task ModelBinder_ReturnsNull_IfBinderMatchesButDoesNotSetModel()
+        public async Task ModelBinder_ReturnsNoResult_IfBinderMatchesButDoesNotSetModel()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -121,20 +206,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
             };
 
             var modelBinder = new Mock<IModelBinder>();
             modelBinder
                 .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult(new ModelBindingResult(model: null, key: "someName", isModelSet: false)));
+                .Returns(ModelBindingResult.FailedAsync("someName"));
 
             var composite = CreateCompositeBinder(modelBinder.Object);
 
@@ -142,53 +224,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await composite.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task ModelBinder_FallsBackToEmpty_IfBinderMatchesButDoesNotSetModel()
-        {
-            // Arrange
-            var bindingContext = new ModelBindingContext
-            {
-                FallbackToEmptyPrefix = true,
-                ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
-                ModelName = "someName",
-                ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
-                {
-                    { "someOtherName", "dummyValue" }
-                },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
-            };
-
-            var count = 0;
-            var modelBinder = new Mock<IModelBinder>();
-            modelBinder
-                .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Callback<ModelBindingContext>(context =>
-                {
-                    // Expect two calls; the second with empty ModelName.
-                    Assert.InRange(count, 0, 1);
-                    count++;
-                    if (count == 1)
-                    {
-                        Assert.Equal("someName", context.ModelName);
-                    }
-                    else
-                    {
-                        Assert.Empty(context.ModelName);
-                    }
-                })
-                .Returns(Task.FromResult(new ModelBindingResult(model: null, key: "someName", isModelSet: false)));
-
-            var composite = CreateCompositeBinder(modelBinder.Object);
-
-            // Act & Assert
-            var result = await composite.BindModelAsync(bindingContext);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         [Fact]
@@ -201,14 +237,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
             };
 
             var modelBinder = new Mock<IModelBinder>();
@@ -218,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 {
                     Assert.Equal("someName", context.ModelName);
                 })
-                .Returns(Task.FromResult(new ModelBindingResult(model: null, key: "someName", isModelSet: false)))
+                .Returns(ModelBindingResult.FailedAsync("someName"))
                 .Verifiable();
 
             var composite = CreateCompositeBinder(modelBinder.Object);
@@ -238,14 +271,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
             };
 
             var modelBinder = new Mock<IModelBinder>();
@@ -256,7 +286,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                     Assert.Equal("someName", context.ModelName);
                     context.ModelState.AddModelError(context.ModelName, "this is an error message");
                 })
-                .Returns(Task.FromResult(new ModelBindingResult(model: null, key: "someName", isModelSet: false)))
+                .Returns(ModelBindingResult.FailedAsync("someName"))
                 .Verifiable();
 
             var composite = CreateCompositeBinder(modelBinder.Object);
@@ -267,7 +297,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task ModelBinder_ReturnsNotNull_SetsNullValue_SetsModelStateKey()
+        public async Task ModelBinder_ReturnsNonEmptyResult_SetsNullValue_SetsModelStateKey()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -276,20 +306,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
                 ModelName = "someName",
                 ModelState = new ModelStateDictionary(),
-                ValueProvider = new SimpleHttpValueProvider
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider
                 {
                     { "someOtherName", "dummyValue" }
                 },
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = GetValidatorProvider()
-                }
             };
 
             var modelBinder = new Mock<IModelBinder>();
             modelBinder
                 .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult(new ModelBindingResult(model: null, key: "someName", isModelSet: true)));
+                .Returns(ModelBindingResult.SuccessAsync("someName", model: null));
 
             var composite = CreateCompositeBinder(modelBinder.Object);
 
@@ -297,19 +324,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await composite.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal("someName", result.Key);
             Assert.Null(result.Model);
         }
 
         [Fact]
-        public async Task BindModel_UnsuccessfulBind_BinderFails_ReturnsNull()
+        public async Task BindModel_UnsuccessfulBind_BinderFails_ReturnsNoResult()
         {
             // Arrange
             var mockListBinder = new Mock<IModelBinder>();
             mockListBinder.Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                          .Returns(Task.FromResult<ModelBindingResult>(null))
+                          .Returns(ModelBindingResult.NoResultAsync)
                           .Verifiable();
 
             var shimBinder = mockListBinder.Object;
@@ -318,19 +345,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 FallbackToEmptyPrefix = false,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
+                ModelState = new ModelStateDictionary(),
             };
 
             // Act
             var result = await shimBinder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
             Assert.True(bindingContext.ModelState.IsValid);
             mockListBinder.Verify();
         }
 
         [Fact]
-        public async Task BindModel_UnsuccessfulBind_SimpleTypeNoFallback_ReturnsNull()
+        public async Task BindModel_UnsuccessfulBind_SimpleTypeNoFallback_ReturnsNoResult()
         {
             // Arrange
             var innerBinder = Mock.Of<IModelBinder>();
@@ -341,14 +369,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
                 ModelState = new ModelStateDictionary(),
-                OperationBindingContext = Mock.Of<OperationBindingContext>(),
+                OperationBindingContext = new OperationBindingContext(),
+                ValueProvider = new SimpleValueProvider(),
             };
 
             // Act
             var result = await shimBinder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         [Fact]
@@ -357,7 +386,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var binder = CreateBinderWithDefaults();
 
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "firstName", "firstName-value"},
                 { "lastName", "lastName-value"}
@@ -368,30 +397,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             var model = Assert.IsType<SimplePropertiesModel>(result.Model);
             Assert.Equal("firstName-value", model.FirstName);
             Assert.Equal("lastName-value", model.LastName);
-
-            Assert.NotNull(result.ValidationNode);
-            Assert.Equal(2, result.ValidationNode.ChildNodes.Count);
-            Assert.Equal("", result.ValidationNode.Key);
-            Assert.Equal(bindingContext.ModelMetadata, result.ValidationNode.ModelMetadata);
-            model = Assert.IsType<SimplePropertiesModel>(result.ValidationNode.Model);
-            Assert.Equal("firstName-value", model.FirstName);
-            Assert.Equal("lastName-value", model.LastName);
-
-            Assert.Equal(2, result.ValidationNode.ChildNodes.Count);
-
-            var validationNode = result.ValidationNode.ChildNodes[0];
-            Assert.Equal("FirstName", validationNode.Key);
-            Assert.Equal("firstName-value", validationNode.Model);
-            Assert.Empty(validationNode.ChildNodes);
-
-            validationNode = result.ValidationNode.ChildNodes[1];
-            Assert.Equal("LastName", validationNode.Key);
-            Assert.Equal("lastName-value", validationNode.Model);
-            Assert.Empty(validationNode.ChildNodes);
         }
 
         [Fact]
@@ -400,7 +409,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             // Arrange
             var binder = CreateBinderWithDefaults();
 
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "firstName", "firstName-value"},
                 { "lastName", "lastName-value"},
@@ -418,7 +427,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             var model = Assert.IsType<Person>(result.Model);
             Assert.Equal("firstName-value", model.FirstName);
             Assert.Equal("lastName-value", model.LastName);
@@ -436,16 +445,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_DoesNotAddAValidationNode_IfModelIsNotSet()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider();
+            var valueProvider = new SimpleValueProvider();
             var mockBinder = new Mock<IModelBinder>();
             mockBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(
-                    delegate (ModelBindingContext context)
-                    {
-                        return Task.FromResult(
-                            new ModelBindingResult(model: 42, key: "someName", isModelSet: false));
-                    });
+                .Returns((ModelBindingContext context) =>
+                {
+                    return ModelBindingResult.FailedAsync("someName");
+                });
+
             var binder = CreateCompositeBinder(mockBinder.Object);
             var bindingContext = CreateBindingContext(binder, valueProvider, typeof(SimplePropertiesModel));
 
@@ -453,45 +461,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         [Fact]
-        public async Task BindModel_DoesNotAddAValidationNode_IfModelBindingResultIsNull()
+        public async Task BindModel_DoesNotAddAValidationNode_IfModelBindingResultIsNoResult()
         {
             // Arrange
             var mockBinder = new Mock<IModelBinder>();
             mockBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(null));
+                .Returns(ModelBindingResult.NoResultAsync);
             var binder = CreateCompositeBinder(mockBinder.Object);
-            var valueProvider = new SimpleHttpValueProvider();
+            var valueProvider = new SimpleValueProvider();
             var bindingContext = CreateBindingContext(binder, valueProvider, typeof(SimplePropertiesModel));
 
             // Act
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         [Fact]
         public async Task BindModel_UsesTheValidationNodeOnModelBindingResult_IfPresent()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider();
-            ModelValidationNode validationNode = null;
+            var valueProvider = new SimpleValueProvider();
 
             var mockBinder = new Mock<IModelBinder>();
             mockBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(
-                    delegate (ModelBindingContext context)
-                    {
-                        validationNode = new ModelValidationNode("someName", context.ModelMetadata, 42);
-                        return Task.FromResult(
-                            new ModelBindingResult(42, "someName", isModelSet: true, validationNode: validationNode));
-                    });
+                .Returns((ModelBindingContext context) =>
+                {
+                    return ModelBindingResult.SuccessAsync("someName", 42);
+                });
+
             var binder = CreateCompositeBinder(mockBinder.Object);
             var bindingContext = CreateBindingContext(binder, valueProvider, typeof(SimplePropertiesModel));
 
@@ -499,30 +504,30 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
-            Assert.Same(validationNode, result.ValidationNode);
         }
 
-        private static ModelBindingContext CreateBindingContext(IModelBinder binder,
-                                                                IValueProvider valueProvider,
-                                                                Type type,
-                                                                IModelValidatorProvider validatorProvider = null)
+        private static ModelBindingContext CreateBindingContext(
+            IModelBinder binder,
+            IValueProvider valueProvider,
+            Type type)
         {
-            validatorProvider = validatorProvider ?? GetValidatorProvider();
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var bindingContext = new ModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
+                IsTopLevelObject = true,
                 ModelMetadata = metadataProvider.GetMetadataForType(type),
+                ModelName = "parameter",
                 ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
                 OperationBindingContext = new OperationBindingContext
                 {
                     MetadataProvider = metadataProvider,
                     ModelBinder = binder,
-                    ValidatorProvider = validatorProvider
-                }
+                },
+                ValidationState = new ValidationStateDictionary(),
             };
             return bindingContext;
         }
@@ -531,11 +536,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             var binders = new IModelBinder[]
             {
-                new TypeMatchModelBinder(),
                 new ByteArrayModelBinder(),
                 new GenericModelBinder(),
-                new ComplexModelDtoModelBinder(),
-                new TypeConverterModelBinder(),
+                new SimpleTypeModelBinder(),
                 new MutableObjectModelBinder()
             };
 
@@ -547,27 +550,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             var shimBinder = new CompositeModelBinder(new[] { mockIntBinder });
             return shimBinder;
-        }
-
-        private static IModelValidatorProvider GetValidatorProvider(params IModelValidator[] validators)
-        {
-            var provider = new Mock<IModelValidatorProvider>();
-            provider
-                .Setup(v => v.GetValidators(It.IsAny<ModelValidatorProviderContext>()))
-                .Callback<ModelValidatorProviderContext>(c =>
-                {
-                    if (validators == null)
-                    {
-                        return;
-                    }
-
-                    foreach (var validator in validators)
-                    {
-                        c.Validators.Add(validator);
-                    }
-                });
-
-            return provider.Object;
         }
 
         private class SimplePropertiesModel

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.Framework.Internal;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
@@ -15,13 +15,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     public abstract class DataAnnotationsClientModelValidator<TAttribute> : IClientModelValidator
         where TAttribute : ValidationAttribute
     {
+        private readonly IStringLocalizer _stringLocalizer;
         /// <summary>
         /// Create a new instance of <see cref="DataAnnotationsClientModelValidator{TAttribute}"/>.
         /// </summary>
         /// <param name="attribute">The <typeparamref name="TAttribute"/> instance to validate.</param>
-        public DataAnnotationsClientModelValidator(TAttribute attribute)
+        /// <param name="stringLocalizer">The <see cref="IStringLocalizer"/>.</param>
+        public DataAnnotationsClientModelValidator(TAttribute attribute, IStringLocalizer stringLocalizer)
         {
             Attribute = attribute;
+            _stringLocalizer = stringLocalizer;
         }
 
         /// <summary>
@@ -42,9 +45,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         /// <param name="modelMetadata">The <see cref="ModelMetadata"/> associated with the model annotated with
         /// <see cref="Attribute"/>.</param>
         /// <returns>Formatted error string.</returns>
-        protected virtual string GetErrorMessage([NotNull] ModelMetadata modelMetadata)
+        protected virtual string GetErrorMessage(ModelMetadata modelMetadata)
         {
-            return Attribute.FormatErrorMessage(modelMetadata.GetDisplayName());
+            if (modelMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(modelMetadata));
+            }
+
+            var displayName = modelMetadata.GetDisplayName();
+            if (_stringLocalizer != null &&
+                    !string.IsNullOrEmpty(Attribute.ErrorMessage) &&
+                    string.IsNullOrEmpty(Attribute.ErrorMessageResourceName) &&
+                    Attribute.ErrorMessageResourceType == null)
+            {
+                return _stringLocalizer[displayName];
+            }
+            
+            return Attribute.FormatErrorMessage(displayName);
         }
     }
 }

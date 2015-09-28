@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Globalization;
 #if DNXCORE50
 using System.Reflection;
 #endif
 using System.Threading.Tasks;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Http;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
@@ -15,28 +14,33 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// An <see cref="IModelBinder"/> which binds models from the request headers when a model
     /// has the binding source <see cref="BindingSource.Header"/>/
     /// </summary>
-    public class HeaderModelBinder : BindingSourceModelBinder
+    public class HeaderModelBinder : IModelBinder
     {
-        /// <summary>
-        /// Creates a new <see cref="HeaderModelBinder"/>.
-        /// </summary>
-        public HeaderModelBinder()
-            : base(BindingSource.Header)
-        {
-        }
-
         /// <inheritdoc />
-        protected override Task<ModelBindingResult> BindModelCoreAsync([NotNull] ModelBindingContext bindingContext)
+        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
         {
+            // This method is optimized to use cached tasks when possible and avoid allocating
+            // using Task.FromResult. If you need to make changes of this nature, profile
+            // allocations afterwards and look for Task<ModelBindingResult>.
+
+            var allowedBindingSource = bindingContext.BindingSource;
+            if (allowedBindingSource == null ||
+                !allowedBindingSource.CanAcceptDataFrom(BindingSource.Header))
+            {
+                // Headers are opt-in. This model either didn't specify [FromHeader] or specified something
+                // incompatible so let other binders run.
+                return ModelBindingResult.NoResultAsync;
+            }
+
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             var modelMetadata = bindingContext.ModelMetadata;
 
             // Property name can be null if the model metadata represents a type (rather than a property or parameter).
-            var headerName = bindingContext.BinderModelName ?? modelMetadata.PropertyName ?? bindingContext.ModelName;
+            var headerName = bindingContext.FieldName;
             object model = null;
             if (bindingContext.ModelType == typeof(string))
             {
-                var value = request.Headers.Get(headerName);
+                string value = request.Headers[headerName];
                 if (value != null)
                 {
                     model = value;
@@ -45,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             else if (typeof(IEnumerable<string>).IsAssignableFrom(bindingContext.ModelType))
             {
                 var values = request.Headers.GetCommaSeparatedValues(headerName);
-                if (values != null)
+                if (values.Length > 0)
                 {
                     model = ModelBindingHelper.ConvertValuesToCollectionType(
                         bindingContext.ModelType,
@@ -53,25 +57,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
-            ModelValidationNode validationNode = null;
-            if (model != null)
+            if (model == null)
             {
-                validationNode = new ModelValidationNode(
-                    bindingContext.ModelName,
-                    bindingContext.ModelMetadata,
-                    model);
-
-                var attemptedValue = (model as string) ?? request.Headers.Get(headerName);
-                var valueProviderResult = new ValueProviderResult(model, attemptedValue, CultureInfo.InvariantCulture);
-                bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+                return ModelBindingResult.FailedAsync(bindingContext.ModelName);
             }
-
-            return Task.FromResult(
-                new ModelBindingResult(
-                    model,
+            else
+            {
+                bindingContext.ModelState.SetModelValue(
                     bindingContext.ModelName,
-                    isModelSet: model != null,
-                    validationNode: validationNode));
+                    request.Headers.GetCommaSeparatedValues(headerName),
+                    request.Headers[headerName]);
+
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
+            }
         }
     }
 }

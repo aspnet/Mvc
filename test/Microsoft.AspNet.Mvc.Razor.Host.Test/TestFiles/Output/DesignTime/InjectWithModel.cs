@@ -2,18 +2,17 @@ namespace Asp
 {
     using System.Threading.Tasks;
 
-    public class ASPV_TestFiles_Input_InjectWithModel_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 "TestFiles/Input/InjectWithModel.cshtml"
-       MyModel
-
-#line default
-#line hidden
-    >
+    public class ASPV_TestFiles_Input_InjectWithModel_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<MyModel>
     {
         private static object @__o;
         private void @__RazorDesignTimeHelpers__()
         {
             #pragma warning disable 219
+#line 1 "TestFiles/Input/InjectWithModel.cshtml"
+var __modelHelper = default(MyModel);
+
+#line default
+#line hidden
             #pragma warning restore 219
         }
         #line hidden
@@ -38,11 +37,11 @@ namespace Asp
 #line hidden
         { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
 
         #line hidden
 

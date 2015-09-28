@@ -5,16 +5,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.ActionConstraints;
+using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ApplicationModels
 {
     [DebuggerDisplay("Name={ActionName}({Methods()}), Type={Controller.ControllerType.Name}," +
                      " Route: {AttributeRouteModel?.Template}, Filters: {Filters.Count}")]
-    public class ActionModel
+    public class ActionModel : ICommonModel, IFilterModel, IApiExplorerModel
     {
-        public ActionModel([NotNull] MethodInfo actionMethod,
-                           [NotNull] IReadOnlyList<object> attributes)
+        public ActionModel(
+            [NotNull] MethodInfo actionMethod,
+            [NotNull] IReadOnlyList<object> attributes)
         {
             ActionMethod = actionMethod;
 
@@ -88,13 +92,17 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         /// <summary>
         /// Gets a set of properties associated with the action.
-        /// These properties will be copied to <see cref="ActionDescriptor.Properties"/>.
+        /// These properties will be copied to <see cref="Abstractions.ActionDescriptor.Properties"/>.
         /// </summary>
         /// <remarks>
         /// Entries will take precedence over entries with the same key in
         /// <see cref="ApplicationModel.Properties"/> and <see cref="ControllerModel.Properties"/>.
         /// </remarks>
         public IDictionary<object, object> Properties { get; }
+
+        MemberInfo ICommonModel.MemberInfo => ActionMethod;
+
+        string ICommonModel.Name => ActionName;
 
         private string Methods()
         {

@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.Framework.DependencyInjection;
-using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
-using Microsoft.Net.Http.Headers;
 using Microsoft.Framework.OptionsModel;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -26,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
         /// Gets or sets the name of the view to render.
         /// </summary>
         /// <remarks>
-        /// When <c>null</c>, defaults to <see cref="ActionDescriptor.Name"/>.
+        /// When <c>null</c>, defaults to <see cref="Abstractions.ActionDescriptor.Name"/>.
         /// </remarks>
         public string ViewName { get; set; }
 
@@ -53,26 +54,51 @@ namespace Microsoft.AspNet.Mvc
         public MediaTypeHeaderValue ContentType { get; set; }
 
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync([NotNull] ActionContext context)
+        public override async Task ExecuteResultAsync(ActionContext context)
         {
-            var viewEngine = ViewEngine ??
-                             context.HttpContext.RequestServices.GetRequiredService<ICompositeViewEngine>();
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<ViewResult>>();
+            var services = context.HttpContext.RequestServices;
+            var viewEngine = ViewEngine ?? services.GetRequiredService<ICompositeViewEngine>();
 
-            var options = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcViewOptions>>();
+            var logger = services.GetRequiredService<ILogger<ViewResult>>();
+            var telemetry = services.GetRequiredService<TelemetrySource>();
+
+            var options = services.GetRequiredService<IOptions<MvcViewOptions>>();
 
             var viewName = ViewName ?? context.ActionDescriptor.Name;
             var viewEngineResult = viewEngine.FindView(context, viewName);
-            if(!viewEngineResult.Success)
+            if (!viewEngineResult.Success)
             {
+                if (telemetry.IsEnabled("Microsoft.AspNet.Mvc.ViewResultViewNotFound"))
+                {
+                    telemetry.WriteTelemetry(
+                        "Microsoft.AspNet.Mvc.ViewResultViewNotFound",
+                        new
+                        {
+                            actionContext = context,
+                            result = this,
+                            viewName = viewName,
+                            searchedLocations = viewEngineResult.SearchedLocations
+                        });
+                }
+
                 logger.LogError(
-                    "The view '{ViewName}' was not found. Searched locations: {SearchedViewLocations}", 
+                    "The view '{ViewName}' was not found. Searched locations: {SearchedViewLocations}",
                     viewName,
                     viewEngineResult.SearchedLocations);
             }
 
             var view = viewEngineResult.EnsureSuccessful().View;
+            if (telemetry.IsEnabled("Microsoft.AspNet.Mvc.ViewResultViewFound"))
+            {
+                telemetry.WriteTelemetry(
+                    "Microsoft.AspNet.Mvc.ViewResultViewFound",
+                    new { actionContext = context, result = this, viewName, view = view });
+            }
 
             logger.LogVerbose("The view '{ViewName}' was found.", viewName);
 
@@ -88,7 +114,7 @@ namespace Microsoft.AspNet.Mvc
                     context,
                     ViewData,
                     TempData,
-                    options.Options.HtmlHelperOptions,
+                    options.Value.HtmlHelperOptions,
                     ContentType);
             }
         }

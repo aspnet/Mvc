@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
-    [TargetElement("*")]
+    [HtmlTargetElement("*")]
     public class PrettyTagHelper : TagHelper
     {
         private static readonly Dictionary<string, string> PrettyTagStyles =

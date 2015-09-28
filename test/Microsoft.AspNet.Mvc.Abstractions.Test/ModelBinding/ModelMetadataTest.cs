@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(typeof(string))]
         [InlineData(typeof(Nullable<int>))]
         [InlineData(typeof(int))]
-        public void IsComplexTypeTestsReturnsFalseForSimpleTypes(Type type)
+        public void IsComplexType_ReturnsFalseForSimpleTypes(Type type)
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(typeof(IDisposable))]
         [InlineData(typeof(IsComplexTypeModel))]
         [InlineData(typeof(Nullable<IsComplexTypeModel>))]
-        public void IsComplexTypeTestsReturnsTrueForComplexTypes(Type type)
+        public void IsComplexType_ReturnsTrueForComplexTypes(Type type)
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -50,12 +50,60 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(modelMetadata.IsComplexType);
         }
 
+        // IsCollectionType / IsEnumerableType
+
+        private class NonCollectionType
+        {
+        }
+
+        private class DerivedList : List<int>
+        {
+        }
+
+        private class JustEnumerable : IEnumerable
+        {
+            public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public static TheoryData<Type> NonCollectionNonEnumerableData
+        {
+            get
+            {
+                return new TheoryData<Type>
+                {
+                    typeof(object),
+                    typeof(int),
+                    typeof(NonCollectionType),
+                    typeof(string),
+                };
+            }
+        }
+
+        public static TheoryData<Type> CollectionAndEnumerableData
+        {
+            get
+            {
+                return new TheoryData<Type>
+                {
+                    typeof(int[]),
+                    typeof(List<string>),
+                    typeof(DerivedList),
+                    typeof(Collection<int>),
+                    typeof(Dictionary<object, object>),
+                    typeof(CollectionImplementation),
+                };
+            }
+        }
+
         [Theory]
-        [InlineData(typeof(object))]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(NonCollectionType))]
-        [InlineData(typeof(string))]
-        public void IsCollectionType_NonCollectionTypes(Type type)
+        [MemberData(nameof(NonCollectionNonEnumerableData))]
+        [InlineData(typeof(IEnumerable))]
+        [InlineData(typeof(IEnumerable<string>))]
+        [InlineData(typeof(JustEnumerable))]
+        public void IsCollectionType_ReturnsFalseForNonCollectionTypes(Type type)
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -68,14 +116,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Theory]
-        [InlineData(typeof(int[]))]
-        [InlineData(typeof(List<string>))]
-        [InlineData(typeof(DerivedList))]
-        [InlineData(typeof(IEnumerable))]
-        [InlineData(typeof(IEnumerable<string>))]
-        [InlineData(typeof(Collection<int>))]
-        [InlineData(typeof(Dictionary<object, object>))]
-        public void IsCollectionType_CollectionTypes(Type type)
+        [MemberData(nameof(CollectionAndEnumerableData))]
+        public void IsCollectionType_ReturnsTrueForCollectionTypes(Type type)
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -87,12 +129,35 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.True(modelMetadata.IsCollectionType);
         }
 
-        private class NonCollectionType
+        [Theory]
+        [MemberData(nameof(NonCollectionNonEnumerableData))]
+        public void IsEnumerableType_ReturnsFalseForNonEnumerableTypes(Type type)
         {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+
+            // Act
+            var modelMetadata = new TestModelMetadata(type);
+
+            // Assert
+            Assert.False(modelMetadata.IsEnumerableType);
         }
 
-        private class DerivedList : List<int>
+        [Theory]
+        [MemberData(nameof(CollectionAndEnumerableData))]
+        [InlineData(typeof(IEnumerable))]
+        [InlineData(typeof(IEnumerable<string>))]
+        [InlineData(typeof(JustEnumerable))]
+        public void IsEnumerableType_ReturnsTrueForEnumerableTypes(Type type)
         {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+
+            // Act
+            var modelMetadata = new TestModelMetadata(type);
+
+            // Assert
+            Assert.True(modelMetadata.IsEnumerableType);
         }
 
         // IsNullableValueType
@@ -102,7 +167,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData(typeof(IDisposable), false)]
         [InlineData(typeof(Nullable<int>), true)]
         [InlineData(typeof(int), false)]
-        public void IsNullableValueTypeTests(Type modelType, bool expected)
+        [InlineData(typeof(DerivedList), false)]
+        [InlineData(typeof(IsComplexTypeModel), false)]
+        [InlineData(typeof(Nullable<IsComplexTypeModel>), true)]
+        public void IsNullableValueType_ReturnsExpectedValue(Type modelType, bool expected)
         {
             // Arrange
             var modelMetadata = new TestModelMetadata(modelType);
@@ -111,18 +179,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(expected, modelMetadata.IsNullableValueType);
         }
 
-        private class Class1
+        // IsReferenceOrNullableType
+
+        [Theory]
+        [InlineData(typeof(string), true)]
+        [InlineData(typeof(IDisposable), true)]
+        [InlineData(typeof(Nullable<int>), true)]
+        [InlineData(typeof(int), false)]
+        [InlineData(typeof(DerivedList), true)]
+        [InlineData(typeof(IsComplexTypeModel), false)]
+        [InlineData(typeof(Nullable<IsComplexTypeModel>), true)]
+        public void IsReferenceOrNullableType_ReturnsExpectedValue(Type modelType, bool expected)
         {
-            public string Prop1 { get; set; }
-            public override string ToString()
-            {
-                return "Class1";
-            }
+            // Arrange
+            var modelMetadata = new TestModelMetadata(modelType);
+
+            // Act & Assert
+            Assert.Equal(expected, modelMetadata.IsReferenceOrNullableType);
         }
 
-        private class Class2
+        // UnderlyingOrModelType
+
+        [Theory]
+        [InlineData(typeof(string), typeof(string))]
+        [InlineData(typeof(IDisposable), typeof(IDisposable))]
+        [InlineData(typeof(Nullable<int>), typeof(int))]
+        [InlineData(typeof(int), typeof(int))]
+        [InlineData(typeof(DerivedList), typeof(DerivedList))]
+        [InlineData(typeof(IsComplexTypeModel), typeof(IsComplexTypeModel))]
+        [InlineData(typeof(Nullable<IsComplexTypeModel>), typeof(IsComplexTypeModel))]
+        public void UnderlyingOrModelType_ReturnsExpectedValue(Type modelType, Type expected)
         {
-            public int Prop2 { get; set; }
+            // Arrange
+            var modelMetadata = new TestModelMetadata(modelType);
+
+            // Act & Assert
+            Assert.Equal(expected, modelMetadata.UnderlyingOrModelType);
         }
 
         // GetDisplayName()
@@ -143,7 +235,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ReturnsPropertyNameWhenSetAndDisplayNameIsNull()
+        public void GetDisplayName_ReturnsPropertyName_WhenSetAndDisplayNameIsNull()
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -157,7 +249,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ReturnsTypeNameWhenPropertyNameAndDisplayNameAreNull()
+        public void GetDisplayName_ReturnsTypeName_WhenPropertyNameAndDisplayNameAreNull()
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
@@ -451,6 +543,60 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     throw new NotImplementedException();
                 }
+            }
+        }
+
+        private class CollectionImplementation : ICollection<string>
+        {
+            public int Count
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsReadOnly
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public void Add(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Clear()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Contains(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CopyTo(string[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<string> GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Remove(string item)
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
             }
         }
     }

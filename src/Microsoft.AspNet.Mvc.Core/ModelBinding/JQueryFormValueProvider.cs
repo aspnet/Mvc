@@ -3,23 +3,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Framework.Internal;
+using Microsoft.Framework.Primitives;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
 {
     /// <summary>
-    /// An <see cref="IValueProvider"/> for form data stored in an <see cref="IDictionary{string, string[]}"/> and
-    /// generally accessed asynchronously.
+    /// An <see cref="IValueProvider"/> for form data stored in an <see cref="IDictionary{string, string[]}"/>.
     /// </summary>
     public class JQueryFormValueProvider : BindingSourceValueProvider, IEnumerableValueProvider
     {
-        private readonly Func<Task<IDictionary<string, string[]>>> _valuesFactory;
-
+        private readonly IDictionary<string, StringValues> _values;
         private PrefixContainer _prefixContainer;
-        private IDictionary<string, string[]> _values;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DictionaryBasedValueProvider"/> class.
@@ -29,18 +26,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
         public JQueryFormValueProvider(
             [NotNull] BindingSource bindingSource,
-            [NotNull] Func<Task<IDictionary<string, string[]>>> valuesFactory,
-            CultureInfo culture)
-            : base(bindingSource)
-        {
-            _valuesFactory = valuesFactory;
-            Culture = culture;
-        }
-
-        // Internal for testing.
-        internal JQueryFormValueProvider(
-            [NotNull] BindingSource bindingSource,
-            [NotNull] IDictionary<string, string[]> values,
+            [NotNull] IDictionary<string, StringValues> values,
             CultureInfo culture)
             : base(bindingSource)
         {
@@ -51,64 +37,41 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         // Internal for testing
         internal CultureInfo Culture { get; }
 
-        /// <inheritdoc />
-        public override async Task<bool> ContainsPrefixAsync(string prefix)
+        protected PrefixContainer PrefixContainer
         {
-            var prefixContainer = await GetPrefixContainerAsync();
-            return prefixContainer.ContainsPrefix(prefix);
-        }
-
-        /// <inheritdoc />
-        public async Task<IDictionary<string, string>> GetKeysFromPrefixAsync(string prefix)
-        {
-            var prefixContainer = await GetPrefixContainerAsync();
-            return prefixContainer.GetKeysFromPrefix(prefix);
-        }
-
-        /// <inheritdoc />
-        public override async Task<ValueProviderResult> GetValueAsync(string key)
-        {
-            var dictionary = await GetDictionary();
-
-            string[] values;
-            if (dictionary.TryGetValue(key, out values) && values != null && values.Length > 0)
+            get
             {
-                // Success.
-                if (values.Length == 1)
+                if (_prefixContainer == null)
                 {
-                    return new ValueProviderResult(values[0], values[0], Culture);
+                    _prefixContainer = new PrefixContainer(_values.Keys);
                 }
 
-                return new ValueProviderResult(values, string.Join(",", values), Culture);
+                return _prefixContainer;
             }
-
-            return null;
         }
 
-        private async Task<IDictionary<string, string[]>> GetDictionary()
+        /// <inheritdoc />
+        public override bool ContainsPrefix(string prefix)
         {
-            if (_values == null)
-            {
-                Debug.Assert(_valuesFactory != null);
-
-                // Initialization race is OK providing data remains read-only.
-                _values = await _valuesFactory();
-            }
-
-            return _values;
+            return PrefixContainer.ContainsPrefix(prefix);
         }
 
-        private async Task<PrefixContainer> GetPrefixContainerAsync()
+        /// <inheritdoc />
+        public IDictionary<string, string> GetKeysFromPrefix(string prefix)
         {
-            if (_prefixContainer == null)
-            {
-                var dictionary = await GetDictionary();
+            return PrefixContainer.GetKeysFromPrefix(prefix);
+        }
 
-                // Initialization race is OK providing data remains read-only and object identity is not significant.
-                _prefixContainer = new PrefixContainer(dictionary.Keys);
+        /// <inheritdoc />
+        public override ValueProviderResult GetValue(string key)
+        {
+            StringValues values;
+            if (_values.TryGetValue(key, out values) && values.Count > 0)
+            {
+                return new ValueProviderResult(values, Culture);
             }
 
-            return _prefixContainer;
+            return ValueProviderResult.None;
         }
     }
 }

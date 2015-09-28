@@ -1,57 +1,59 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Net.Http;
 using System.Reflection;
-using System.Resources;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using LocalizationWebSite;
-using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class LocalizationTest
+    public class LocalizationTest : IClassFixture<MvcTestFixture<LocalizationWebSite.Startup>>
     {
         private const string SiteName = nameof(LocalizationWebSite);
         private static readonly Assembly _assembly = typeof(LocalizationTest).GetTypeInfo().Assembly;
 
-        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
-        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
+        public LocalizationTest(MvcTestFixture<LocalizationWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
+
+        public HttpClient Client { get; }
 
         public static IEnumerable<object[]> LocalizationData
         {
             get
             {
-                var expected1 =
- @"<language-layout>
-en-gb-index
+#if DNXCORE50
+                // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+                if (!TestPlatformHelper.IsLinux)
+#endif
+                {
+                    var expected1 =
+@"<language-layout>en-gb-index
 partial
 mypartial
 </language-layout>";
 
-                yield return new[] { "en-GB", expected1 };
+                    yield return new[] { "en-GB", expected1 };
 
-                var expected2 =
- @"<fr-language-layout>
-fr-index
+                    var expected2 =
+@"<fr-language-layout>fr-index
 fr-partial
 mypartial
 </fr-language-layout>";
-                yield return new[] { "fr", expected2 };
+                    yield return new[] { "fr", expected2 };
+                }
 
                 if (!TestPlatformHelper.IsMono)
                 {
                     // https://github.com/aspnet/Mvc/issues/2759
                     var expected3 =
- @"<language-layout>
-index
+ @"<language-layout>index
 partial
 mypartial
 </language-layout>";
@@ -65,15 +67,15 @@ mypartial
         public async Task Localization_SuffixViewName(string value, string expected)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var cultureCookie = "c=" + value + "|uic=" + value;
-            client.DefaultRequestHeaders.Add(
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/");
+            request.Headers.Add(
                 "Cookie",
                 new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
 
             // Act
-            var body = await client.GetStringAsync("http://localhost/");
+            var response = await Client.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
@@ -83,9 +85,6 @@ mypartial
         {
             get
             {
-                // Dnx does not support reading resources yet. Coreclr return null value while trying to read resources.
-                // https://github.com/aspnet/Mvc/issues/2747
-#if DNX451
                 var expected1 =
 @"Hello there!!
 Learn More
@@ -93,20 +92,15 @@ Hi John      ! You are in 2015 year and today is Thursday";
 
                 yield return new[] {"en-GB", expected1 };
 
-                var expected2 =
+                if (!TestPlatformHelper.IsMono)
+                {
+                    // https://github.com/aspnet/Mvc/issues/3172
+                    var expected2 =
 @"Bonjour!
 apprendre Encore Plus
 Salut John      ! Vous êtes en 2015 an aujourd'hui est Thursday";
-                yield return new[] { "fr", expected2 };
-#else
-                var expectedCoreClr =
-@"Hello there!!
-Learn More
-Hi";
-                yield return new[] {"en-GB", expectedCoreClr };
-                yield return new[] {"fr", expectedCoreClr };
-#endif
-
+                    yield return new[] { "fr", expected2 };
+                }
             }
         }
 
@@ -115,65 +109,45 @@ Hi";
         public async Task Localization_Resources_ReturnExpectedValues(string value, string expected)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var cultureCookie = "c=" + value + "|uic=" + value;
-            client.DefaultRequestHeaders.Add(
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Home/Locpage");
+            request.Headers.Add(
                 "Cookie",
                 new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
 
-            if (!value.StartsWith("en"))
-            {
-                // Manually generating .resources file since we don't autogenerate .resources file yet. 
-                WriteResourceFile("HomeController." + value + ".resx");
-                WriteResourceFile("Views.Shared._LocalizationLayout.cshtml." + value + ".resx");
-            }
-            WriteResourceFile("Views.Home.Locpage.cshtml." + value + ".resx");
-
             // Act
-            var body = await client.GetStringAsync("http://localhost/Home/Locpage");
+            var response = await Client.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(expected, body.Trim());
         }
 
-        private void WriteResourceFile(string resxFileName)
+        [Fact]
+        public async Task Localization_InvalidModel_ValidationAttributes_ReturnsLocalizedErrorMessage()
         {
-            var resxFilePath = Path.Combine("..", "WebSites", SiteName, "Resources");
-            var resxFullFileName = Path.Combine(resxFilePath, resxFileName);
-            if (File.Exists(resxFullFileName))
-            {
-                using (var fs = File.OpenRead(resxFullFileName))
-                {
-                    var document = XDocument.Load(fs);
+            // Arrange
+            var expected =
+@"<span class=""field-validation-error"" data-valmsg-for=""Name"" data-valmsg-replace=""true"">Nom non valide. Longueur minimale de nom est 4</span>
+<span class=""field-validation-error"" data-valmsg-for=""Product.ProductName"" data-valmsg-replace=""true"">Nom du produit est invalide</span>
+<div class=""editor-label""><label for=""Name"">Name</label></div>
+<div class=""editor-field""><input class=""input-validation-error text-box single-line"" data-val=""true"" data-val-minlength=""Nom non valide. Longueur minimale de nom est 4"" data-val-minlength-min=""4"" id=""Name"" name=""Name"" type=""text"" value=""A"" /> <span class=""field-validation-error"" data-valmsg-for=""Name"" data-valmsg-replace=""true"">Nom non valide. Longueur minimale de nom est 4</span></div>
 
-                    var binDirPath = Path.Combine(resxFilePath, "bin");
-                    if (!Directory.Exists(binDirPath))
-                    {
-                        Directory.CreateDirectory(binDirPath);
-                    }
+<div class=""editor-label""><label for=""Product_ProductName"">ProductName</label></div>
+<div class=""editor-field""><input class=""input-validation-error text-box single-line"" data-val=""true"" data-val-required=""Nom du produit est invalide"" id=""Product_ProductName"" name=""Product.ProductName"" type=""text"" value="""" /> <span class=""field-validation-error"" data-valmsg-for=""Product.ProductName"" data-valmsg-replace=""true"">Nom du produit est invalide</span></div>";
 
-                    // Put in "bin" sub-folder of resx file
-                    var targetPath = Path.Combine(
-                        binDirPath,
-                        Path.ChangeExtension(resxFileName, ".resources"));
+            var cultureCookie = "c=fr|uic=fr";
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Home/GetInvalidUser");
+            request.Headers.Add(
+                "Cookie",
+                new CookieHeaderValue("ASPNET_CULTURE", cultureCookie).ToString());
 
-                    using (var targetStream = File.Create(targetPath))
-                    {
-                        var rw = new ResourceWriter(targetStream);
+            // Act
+            var response = await Client.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
 
-                        foreach (var e in document.Root.Elements("data"))
-                        {
-                            var name = e.Attribute("name").Value;
-                            var value = e.Element("value").Value;
-
-                            rw.AddResource(name, value);
-                        }
-
-                        rw.Generate();
-                    }
-                }
-            }
+            // Assert
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
     }
 }

@@ -10,17 +10,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.Testing.xunit;
-using Microsoft.Framework.Caching;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Logging;
-using Microsoft.Dnx.Runtime;
-using Microsoft.Framework.WebEncoders;
+using Microsoft.Framework.Primitives;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -29,6 +30,64 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class ScriptTagHelperTest
     {
+        [Theory]
+        [InlineData(null, "test.js", "test.js")]
+        [InlineData("abcd.js", "test.js", "test.js")]
+        [InlineData(null, "~/test.js", "virtualRoot/test.js")]
+        [InlineData("abcd.js", "~/test.js", "virtualRoot/test.js")]
+        public void Process_SrcDefaultsToTagHelperOutputSrcAttributeAddedByOtherTagHelper(
+            string src,
+            string srcOutput,
+            string expectedSrcPrefix)
+        {
+            // Arrange
+            var allAttributes = new TagHelperAttributeList(
+                new TagHelperAttributeList
+                {
+                    { "type", new HtmlString("text/javascript") },
+                    { "asp-append-version", true },
+                });
+            var context = MakeTagHelperContext(allAttributes);
+            var outputAttributes = new TagHelperAttributeList
+                {
+                    { "type", new HtmlString("text/javascript") },
+                    { "src", srcOutput },
+                };
+            var output = MakeTagHelperOutput("script", outputAttributes);
+            var logger = new Mock<ILogger<ScriptTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var urlHelper = new Mock<IUrlHelper>();
+
+            // Ensure expanded path does not look like an absolute path on Linux, avoiding
+            // https://github.com/aspnet/External/issues/21
+            urlHelper
+                .Setup(urlhelper => urlhelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
+
+            var helper = new ScriptTagHelper(
+                logger.Object,
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                new CommonTestEncoder(),
+                urlHelper.Object)
+            {
+                ViewContext = viewContext,
+                AppendVersion = true,
+                Src = src,
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal(
+                expectedSrcPrefix + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                (string)output.Attributes["src"].Value,
+                StringComparer.Ordinal);
+        }
+
         [Theory]
         [MemberData(nameof(LinkTagHelperTest.MultiAttributeSameNameData), MemberType = typeof(LinkTagHelperTest))]
         public async Task HandlesMultipleAttributesSameNameCorrectly(TagHelperAttributeList outputAttributes)
@@ -589,8 +648,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("data-extra", output.Attributes[0].Name);
-            Assert.Equal("data-more", output.Attributes[1].Name);
-            Assert.Equal("src", output.Attributes[2].Name);
+            Assert.Equal("src", output.Attributes[1].Name);
+            Assert.Equal("data-more", output.Attributes[2].Name);
             Assert.Empty(logger.Logged);
         }
 
@@ -676,9 +735,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("<script src=\"HtmlEncode[[/common.js]]\"></script>", output.PostElement.GetContent());
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task RenderScriptTags_WithFileVersion()
         {
             // Arrange
@@ -715,9 +772,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task RenderScriptTags_WithFileVersion_AndRequestPathBase()
         {
             // Arrange
@@ -754,9 +809,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("/bar/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task RenderScriptTags_FallbackSrc_WithFileVersion()
         {
             // Arrange
@@ -800,9 +853,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 "<\\/script>\"));</script>", output.PostElement.GetContent());
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task RenderScriptTags_GlobbedSrc_WithFileVersion()
         {
             // Arrange
@@ -912,6 +963,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(emptyDirectoryContents.Object);
             mockFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>()))
                 .Returns(mockFile.Object);
+            mockFileProvider.Setup(fp => fp.Watch(It.IsAny<string>()))
+                .Returns(new TestFileChangeToken());
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(mockFileProvider.Object);
 
@@ -933,7 +986,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(result != null);
 
             var cacheEntryOptions = new MemoryCacheEntryOptions();
-            cacheEntryOptions.AddExpirationTrigger(new Mock<IExpirationTrigger>().Object);
+            cacheEntryOptions.AddExpirationToken(Mock.Of<IChangeToken>());
             cache
                 .Setup(
                     c => c.Set(

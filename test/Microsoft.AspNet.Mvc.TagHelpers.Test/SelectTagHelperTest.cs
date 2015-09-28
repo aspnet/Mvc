@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Moq;
 using Xunit;
@@ -293,16 +294,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
+                    tagHelperContent.AppendEncoded("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.SetContent(expectedPreContent);
-            output.Content.SetContent(expectedContent);
-            output.PostContent.SetContent(originalPostContent);
+            output.PreContent.AppendEncoded(expectedPreContent);
+            output.Content.AppendEncoded(expectedContent);
+            output.PostContent.AppendEncoded(originalPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -395,16 +396,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
+                    tagHelperContent.AppendEncoded("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             var output = new TagHelperOutput(expectedTagName, originalAttributes)
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.SetContent(expectedPreContent);
-            output.Content.SetContent(expectedContent);
-            output.PostContent.SetContent(originalPostContent);
+            output.PreContent.AppendEncoded(expectedPreContent);
+            output.Content.AppendEncoded(expectedContent);
+            output.PostContent.AppendEncoded(originalPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {

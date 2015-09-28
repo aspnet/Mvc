@@ -6,7 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
@@ -18,22 +18,47 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         private ViewContext _viewContext;
 
         public DefaultViewComponentHelper(
-            [NotNull] IViewComponentDescriptorCollectionProvider descriptorProvider,
-            [NotNull] IViewComponentSelector selector,
-            [NotNull] IViewComponentInvokerFactory invokerFactory)
+            IViewComponentDescriptorCollectionProvider descriptorProvider,
+            IViewComponentSelector selector,
+            IViewComponentInvokerFactory invokerFactory)
         {
+            if (descriptorProvider == null)
+            {
+                throw new ArgumentNullException(nameof(descriptorProvider));
+            }
+
+            if (selector == null)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+
+            if (invokerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(invokerFactory));
+            }
+
             _descriptorProvider = descriptorProvider;
             _selector = selector;
             _invokerFactory = invokerFactory;
         }
 
-        public void Contextualize([NotNull] ViewContext viewContext)
+        public void Contextualize(ViewContext viewContext)
         {
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
             _viewContext = viewContext;
         }
 
-        public HtmlString Invoke([NotNull] string name, params object[] arguments)
+        public HtmlString Invoke(string name, params object[] arguments)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             var descriptor = SelectComponent(name);
 
             using (var writer = new StringWriter())
@@ -43,8 +68,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
         }
 
-        public HtmlString Invoke([NotNull] Type componentType, params object[] arguments)
+        public HtmlString Invoke(Type componentType, params object[] arguments)
         {
+            if (componentType == null)
+            {
+                throw new ArgumentNullException(nameof(componentType));
+            }
+
             var descriptor = SelectComponent(componentType);
 
             using (var writer = new StringWriter())
@@ -54,20 +84,35 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
         }
 
-        public void RenderInvoke([NotNull] string name, params object[] arguments)
+        public void RenderInvoke(string name, params object[] arguments)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             var descriptor = SelectComponent(name);
             InvokeCore(_viewContext.Writer, descriptor, arguments);
         }
 
-        public void RenderInvoke([NotNull] Type componentType, params object[] arguments)
+        public void RenderInvoke(Type componentType, params object[] arguments)
         {
+            if (componentType == null)
+            {
+                throw new ArgumentNullException(nameof(componentType));
+            }
+
             var descriptor = SelectComponent(componentType);
             InvokeCore(_viewContext.Writer, descriptor, arguments);
         }
 
-        public async Task<HtmlString> InvokeAsync([NotNull] string name, params object[] arguments)
+        public async Task<HtmlString> InvokeAsync(string name, params object[] arguments)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             var descriptor = SelectComponent(name);
 
             using (var writer = new StringWriter())
@@ -77,8 +122,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
         }
 
-        public async Task<HtmlString> InvokeAsync([NotNull] Type componentType, params object[] arguments)
+        public async Task<HtmlString> InvokeAsync(Type componentType, params object[] arguments)
         {
+            if (componentType == null)
+            {
+                throw new ArgumentNullException(nameof(componentType));
+            }
+
             var descriptor = SelectComponent(componentType);
 
             using (var writer = new StringWriter())
@@ -88,16 +138,26 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
         }
 
-        public async Task RenderInvokeAsync([NotNull] string name, params object[] arguments)
+        public Task RenderInvokeAsync(string name, params object[] arguments)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             var descriptor = SelectComponent(name);
-            await InvokeCoreAsync(_viewContext.Writer, descriptor, arguments);
+            return InvokeCoreAsync(_viewContext.Writer, descriptor, arguments);
         }
 
-        public async Task RenderInvokeAsync([NotNull] Type componentType, params object[] arguments)
+        public Task RenderInvokeAsync(Type componentType, params object[] arguments)
         {
+            if (componentType == null)
+            {
+                throw new ArgumentNullException(nameof(componentType));
+            }
+
             var descriptor = SelectComponent(componentType);
-            await InvokeCoreAsync(_viewContext.Writer, descriptor, arguments);
+            return InvokeCoreAsync(_viewContext.Writer, descriptor, arguments);
         }
 
         private ViewComponentDescriptor SelectComponent(string name)
@@ -126,11 +186,21 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 componentType.FullName));
         }
 
-        private async Task InvokeCoreAsync(
-            [NotNull] TextWriter writer,
-            [NotNull] ViewComponentDescriptor descriptor,
+        private Task InvokeCoreAsync(
+            TextWriter writer,
+            ViewComponentDescriptor descriptor,
             object[] arguments)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             var context = new ViewComponentContext(descriptor, arguments, _viewContext, writer);
 
             var invoker = _invokerFactory.CreateInstance(context);
@@ -140,14 +210,24 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_IViewComponentFactory_ReturnedNull(descriptor.Type.FullName));
             }
 
-            await invoker.InvokeAsync(context);
+            return invoker.InvokeAsync(context);
         }
 
         private void InvokeCore(
-            [NotNull] TextWriter writer,
-            [NotNull] ViewComponentDescriptor descriptor,
+            TextWriter writer,
+            ViewComponentDescriptor descriptor,
             object[] arguments)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             var context = new ViewComponentContext(descriptor, arguments, _viewContext, writer);
 
             var invoker = _invokerFactory.CreateInstance(context);

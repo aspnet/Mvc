@@ -16,8 +16,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
 {
     public class MvcRazorCodeParserTest
     {
-        private const string DefaultBaseType = "Microsoft.AspNet.ViewPage";
-
         [Fact]
         public void Constructor_AddsModelKeyword()
         {
@@ -43,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("   Foo")
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -67,7 +65,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo?" + Environment.NewLine)
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo?"))
+                    .As(new ModelChunkGenerator("Foo?"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
                     .With(new MarkupChunkGenerator())
@@ -92,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo[[]][]" + Environment.NewLine)
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo[[]][]"))
+                    .As(new ModelChunkGenerator("Foo[[]][]"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.Markup("Bar")
                     .With(new MarkupChunkGenerator())
@@ -117,7 +115,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("$rootnamespace$.MyModel")
-                    .As(new ModelChunkGenerator(DefaultBaseType, "$rootnamespace$.MyModel"))
+                    .As(new ModelChunkGenerator("$rootnamespace$.MyModel"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -142,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("  ")
-                    .As(new ModelChunkGenerator(DefaultBaseType, string.Empty))
+                    .As(new ModelChunkGenerator(string.Empty))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -174,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo" + Environment.NewLine)
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
@@ -182,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Bar")
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Bar"))
+                    .As(new ModelChunkGenerator("Bar"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
@@ -219,7 +217,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo" + Environment.NewLine)
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml(),
                 factory.CodeTransition(SyntaxConstants.TransitionString)
@@ -237,7 +235,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 new RazorError(
                     "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
                     PlatformNormalizer.NormalizedSourceLocation(21, 1, 9),
-                    1)
+                    length: 8)
             };
             expectedSpans.Zip(spans, (exp, span) => new { expected = exp, span = span }).ToList().ForEach(i => Assert.Equal(i.expected, i.span));
             Assert.Equal(expectedSpans, spans.ToArray());
@@ -272,14 +270,17 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
                 factory.MetaCode("model ")
                     .Accepts(AcceptedCharacters.None),
                 factory.Code("Foo")
-                    .As(new ModelChunkGenerator(DefaultBaseType, "Foo"))
+                    .As(new ModelChunkGenerator("Foo"))
                     .Accepts(AcceptedCharacters.AnyExceptNewline),
                 factory.EmptyHtml()
             };
 
             var expectedErrors = new[]
             {
-                new RazorError("The 'inherits' keyword is not allowed when a 'model' keyword is used.", new SourceLocation(9, 0, 9), 1)
+                new RazorError(
+                    "The 'inherits' keyword is not allowed when a 'model' keyword is used.",
+                    new SourceLocation(9, 0, 9),
+                    length: 8)
             };
             expectedSpans.Zip(spans, (exp, span) => new { expected = exp, span = span }).ToList().ForEach(i => Assert.Equal(i.expected, i.span));
             Assert.Equal(expectedSpans, spans.ToArray());
@@ -311,12 +312,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Host.Test
 
         private sealed class TestMvcCSharpRazorCodeParser : MvcRazorCodeParser
         {
-            public TestMvcCSharpRazorCodeParser(string baseType = DefaultBaseType)
-                : base(baseType)
-            {
-
-            }
-
             public bool HasDirective(string directive)
             {
                 Action handler;

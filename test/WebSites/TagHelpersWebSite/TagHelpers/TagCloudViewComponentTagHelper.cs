@@ -6,12 +6,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewComponents;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace MvcSample.Web.Components
 {
-    [TargetElement("tag-cloud")]
+    [HtmlTargetElement("tag-cloud")]
     [ViewComponent(Name = "Tags")]
     public class TagCloudViewComponentTagHelper : ITagHelper
     {
@@ -50,7 +52,7 @@ namespace MvcSample.Web.Components
                 writer));
 
             output.TagName = null;
-            output.Content.SetContent(writer.ToString());
+            output.Content.AppendEncoded(writer.ToString());
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int count)

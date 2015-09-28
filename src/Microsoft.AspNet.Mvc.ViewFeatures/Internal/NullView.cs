@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ViewEngines;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 {
@@ -13,8 +14,13 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 
         public string Path => string.Empty;
 
-        public Task RenderAsync([NotNull] ViewContext context)
+        public Task RenderAsync(ViewContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             return Task.FromResult(0);
         }
     }

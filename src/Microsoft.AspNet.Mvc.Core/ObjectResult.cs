@@ -7,6 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
@@ -37,7 +40,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         public int? StatusCode { get; set; }
 
-        public override async Task ExecuteResultAsync(ActionContext context)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<ObjectResult>>();
                             
@@ -60,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
                 logger.LogWarning("No output formatter was found to write the response.");
 
                 context.HttpContext.Response.StatusCode = StatusCodes.Status406NotAcceptable;
-                return;
+                return TaskCache.CompletedTask;
             }
 
             logger.LogVerbose(
@@ -75,7 +78,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
             OnFormatting(context);
-            await selectedFormatter.WriteAsync(formatterContext);
+            return selectedFormatter.WriteAsync(formatterContext);
         }
 
         public virtual IOutputFormatter SelectFormatter(
@@ -249,7 +252,7 @@ namespace Microsoft.AspNet.Mvc
                 .HttpContext
                 .RequestServices
                 .GetRequiredService<IOptions<MvcOptions>>()
-                .Options;
+                .Value;
 
             var respectAcceptHeader = true;
             if (options.RespectBrowserAcceptHeader == false
@@ -308,7 +311,7 @@ namespace Microsoft.AspNet.Mvc
                         .HttpContext
                         .RequestServices
                         .GetRequiredService<IOptions<MvcOptions>>()
-                        .Options;
+                        .Value;
                     formatters = options.OutputFormatters;
                 }
                 else

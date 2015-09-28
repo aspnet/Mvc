@@ -7,9 +7,8 @@ using System.Text;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Testing.xunit;
-using Microsoft.Framework.Caching;
 using Microsoft.Framework.Caching.Memory;
+using Microsoft.Framework.Primitives;
 using Moq;
 using Xunit;
 
@@ -17,9 +16,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     public class FileVersionProviderTest
     {
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("/hello/world", "/hello/world?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk")]
         [InlineData("/hello/world?q=test", "/hello/world?q=test&v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk")]
         [InlineData("/hello/world?q=foo&bar", "/hello/world?q=foo&bar&v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk")]
@@ -42,9 +39,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         }
 
         // Verifies if the stream is closed after reading.
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void AddsVersionToFiles_DoesNotLockFileAfterReading()
         {
             // Arrange
@@ -58,6 +53,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var mockFileProvider = new Mock<IFileProvider>();
             mockFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>()))
                 .Returns(mockFile.Object);
+            mockFileProvider.Setup(fp => fp.Watch(It.IsAny<string>()))
+                .Returns(new TestFileChangeToken());
 
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(mockFileProvider.Object);
@@ -75,9 +72,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Throws<ObjectDisposedException>(() => fileVersionProvider.AddFileVersionToPath("/hello/world"));
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("/testApp/hello/world", true, "/testApp")]
         [InlineData("/testApp/foo/bar/hello/world", true, "/testApp/foo/bar")]
         [InlineData("/test/testApp/hello/world", false, "/testApp")]
@@ -100,9 +95,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Equal(filePath + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", result);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void DoesNotAddVersion_IfFileNotFound()
         {
             // Arrange
@@ -120,9 +113,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Equal("http://contoso.com/hello/world", result);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void ReturnsValueFromCache()
         {
             // Arrange
@@ -140,18 +131,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Assert.Equal("FromCache", result);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("/hello/world", "/hello/world", null)]
         [InlineData("/testApp/hello/world", "/hello/world", "/testApp")]
         public void SetsValueInCache(string filePath, string watchPath, string requestPathBase)
         {
             // Arrange
-            var trigger = new Mock<IExpirationTrigger>();
+            var changeToken = new Mock<IChangeToken>();
             var hostingEnvironment = GetMockHostingEnvironment(filePath, requestPathBase != null);
             Mock.Get(hostingEnvironment.WebRootFileProvider)
-                .Setup(f => f.Watch(watchPath)).Returns(trigger.Object);
+                .Setup(f => f.Watch(watchPath)).Returns(changeToken.Object);
 
             object cacheValue = null;
             var cache = new Mock<IMemoryCache>();
@@ -206,6 +195,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 mockFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>()))
                     .Returns(fileDoesNotExist? nonExistingMockFile.Object : existingMockFile.Object);
             }
+
+            mockFileProvider.Setup(fp => fp.Watch(It.IsAny<string>()))
+                .Returns(new TestFileChangeToken());
 
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(mockFileProvider.Object);

@@ -3,7 +3,8 @@
 
 using System;
 using Microsoft.AspNet.Diagnostics;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Http.Features;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -14,14 +15,23 @@ namespace Microsoft.AspNet.Mvc
     public class SkipStatusCodePagesAttribute : Attribute, IResourceFilter
     {
         /// <inheritdoc />
-        public void OnResourceExecuted([NotNull]ResourceExecutedContext context)
+        public void OnResourceExecuted(ResourceExecutedContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
         }
 
         /// <inheritdoc />
-        public void OnResourceExecuting([NotNull]ResourceExecutingContext context)
+        public void OnResourceExecuting(ResourceExecutingContext context)
         {
-            var statusCodeFeature = context.HttpContext.GetFeature<IStatusCodePagesFeature>();
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var statusCodeFeature = context.HttpContext.Features.Get<IStatusCodePagesFeature>();
             if (statusCodeFeature != null)
             {
                 // Turn off the StatusCodePages feature.

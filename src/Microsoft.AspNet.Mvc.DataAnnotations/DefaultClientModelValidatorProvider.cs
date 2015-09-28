@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
     /// <summary>
@@ -15,6 +17,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         /// <inheritdoc />
         public void GetValidators(ClientValidatorProviderContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             foreach (var metadata in context.ValidatorMetadata)
             {
                 var validator = metadata as IClientModelValidator;

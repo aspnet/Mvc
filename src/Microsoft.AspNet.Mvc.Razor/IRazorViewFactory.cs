@@ -1,8 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ViewEngines;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -19,6 +18,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="page">The <see cref="IRazorPage"/> instance to execute.</param>
         /// <param name="isPartial">Determines if the view is to be executed as a partial.</param>
         /// <returns>A <see cref="IView"/> instance that renders the contents of the <paramref name="page"/></returns>
-        IView GetView([NotNull] IRazorViewEngine viewEngine, [NotNull] IRazorPage page, bool isPartial);
+        IView GetView(IRazorViewEngine viewEngine, IRazorPage page, bool isPartial);
     }
 }

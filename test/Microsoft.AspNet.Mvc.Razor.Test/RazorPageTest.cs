@@ -6,11 +6,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
@@ -20,9 +26,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 {
     public class RazorPageTest
     {
-#pragma warning disable 1998
-        private readonly RenderAsyncDelegate _nullRenderAsyncDelegate = async writer => { };
-#pragma warning restore 1998
+        private readonly RenderAsyncDelegate _nullRenderAsyncDelegate = writer => Task.FromResult(0);
+        private readonly Func<TextWriter, Task> NullAsyncWrite = CreateAsyncWriteDelegate(string.Empty);
 
         [Fact]
         public async Task WritingScopesRedirectContentWrittenToViewContextWriter()
@@ -37,7 +42,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 v.Write("Hello from Output");
                 v.ViewContext.Writer.Write("Hello from view context writer");
                 var scopeValue = v.EndTagHelperWritingScope();
-                v.Write("From Scope: " + scopeValue.ToString());
+                v.Write("From Scope: ");
+                v.Write(scopeValue);
             });
 
             // Act
@@ -45,8 +51,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var pageOutput = page.Output.ToString();
 
             // Assert
-            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scope: HtmlEncode[[Hello from Output]]" +
-                "Hello from view context writer]]", pageOutput);
+            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scope: ]]HtmlEncode[[Hello from Output]]" +
+                "Hello from view context writer", pageOutput);
         }
 
         [Fact]
@@ -61,7 +67,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 v.StartTagHelperWritingScope();
                 v.Write("Hello In Scope");
                 var scopeValue = v.EndTagHelperWritingScope();
-                v.Write("From Scope: " + scopeValue.ToString());
+                v.Write("From Scope: ");
+                v.Write(scopeValue);
             });
 
             // Act
@@ -69,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var pageOutput = page.Output.ToString();
 
             // Assert
-            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scope: HtmlEncode[[Hello In Scope]]]]", pageOutput);
+            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scope: ]]HtmlEncode[[Hello In Scope]]", pageOutput);
         }
 
         [Fact]
@@ -91,7 +98,9 @@ namespace Microsoft.AspNet.Mvc.Razor
                 v.Write("Hello In Scope Post Nest");
                 var scopeValue2 = v.EndTagHelperWritingScope();
 
-                v.Write("From Scopes: " + scopeValue2.ToString() + scopeValue1.ToString());
+                v.Write("From Scopes: ");
+                v.Write(scopeValue2);
+                v.Write(scopeValue1);
             });
 
             // Act
@@ -99,8 +108,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var pageOutput = page.Output.ToString();
 
             // Assert
-            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scopes: HtmlEncode[[Hello In Scope Pre Nest]]" +
-                "HtmlEncode[[Hello In Scope Post Nest]]HtmlEncode[[Hello In Nested Scope]]]]", pageOutput);
+            Assert.Equal("HtmlEncode[[Hello Prefix]]HtmlEncode[[From Scopes: ]]HtmlEncode[[Hello In Scope Pre Nest]]" +
+                "HtmlEncode[[Hello In Scope Post Nest]]HtmlEncode[[Hello In Nested Scope]]", pageOutput);
         }
 
         [Fact]
@@ -173,7 +182,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(v =>
             {
                 v.HtmlEncoder = new CommonTestEncoder();
-                v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, Encoding.UTF8));
+                v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, Encoding.UTF8, v.HtmlEncoder));
                 v.Write("Hello ");
                 v.Write("World!");
                 var returnValue = v.EndTagHelperWritingScope();
@@ -301,7 +310,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 { "baz", _nullRenderAsyncDelegate }
             };
-            page.RenderBodyDelegate = CreateBodyAction("body-content");
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("body-content");
 
             // Act
             await page.ExecuteAsync();
@@ -325,7 +334,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 { "baz", _nullRenderAsyncDelegate }
             };
-            page.RenderBodyDelegate = CreateBodyAction("body-content");
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("body-content");
 
             // Act
             await page.ExecuteAsync();
@@ -338,7 +347,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task RenderSection_ThrowsIfSectionIsRenderedMoreThanOnce()
         {
             // Arrange
-            var expected = new HelperResult(action: null);
+            var expected = new HelperResult(NullAsyncWrite);
             var page = CreatePage(v =>
             {
                 v.Path = "/Views/TestPath/Test.cshtml";
@@ -362,7 +371,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task RenderSectionAsync_ThrowsIfSectionIsRenderedMoreThanOnce()
         {
             // Arrange
-            var expected = new HelperResult(action: null);
+            var expected = new HelperResult(NullAsyncWrite);
             var page = CreatePage(async v =>
             {
                 v.Path = "/Views/TestPath/Test.cshtml";
@@ -386,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task RenderSectionAsync_ThrowsIfSectionIsRenderedMoreThanOnce_WithSyncMethod()
         {
             // Arrange
-            var expected = new HelperResult(action: null);
+            var expected = new HelperResult(NullAsyncWrite);
             var page = CreatePage(async v =>
             {
                 v.Path = "/Views/TestPath/Test.cshtml";
@@ -410,7 +419,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task RenderSectionAsync_ThrowsIfNotInvokedFromLayoutPage()
         {
             // Arrange
-            var expected = new HelperResult(action: null);
+            var expected = new HelperResult(NullAsyncWrite);
             var page = CreatePage(async v =>
             {
                 v.Path = "/Views/TestPath/Test.cshtml";
@@ -434,7 +443,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
             });
             page.Path = path;
-            page.RenderBodyDelegate = CreateBodyAction("some content");
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("some content");
 
             // Act
             await page.ExecuteAsync();
@@ -454,7 +463,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
             });
             page.Path = path;
-            page.RenderBodyDelegate = CreateBodyAction("some content");
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("some content");
             page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
             {
                 { sectionName, _nullRenderAsyncDelegate }
@@ -480,7 +489,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 v.RenderSection(sectionA);
                 v.RenderSection(sectionB);
             });
-            page.RenderBodyDelegate = CreateBodyAction("some content");
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("some content");
             page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
             {
                 { sectionA, _nullRenderAsyncDelegate },
@@ -514,7 +523,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 v.Write(v.RenderSection("footer"));
                 v.WriteLiteral("Layout end");
             });
-            page.RenderBodyDelegate = CreateBodyAction("body content" + Environment.NewLine);
+            page.RenderBodyDelegateAsync = CreateAsyncWriteDelegate("body content" + Environment.NewLine);
             page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
             {
                 {
@@ -698,7 +707,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 p.WriteAttribute("href",
                                  new PositionTagged<string>("prefix", 0),
                                  new PositionTagged<string>("suffix", 10),
-                                 new AttributeValue(new PositionTagged<string>("", 6),
+                                 new AttributeValue(new PositionTagged<string>(string.Empty, 6),
                                                     new PositionTagged<object>("true", 6),
                                                     literal: false));
             });
@@ -754,7 +763,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new AttributeValue[] {
                             new AttributeValue(
-                                new PositionTagged<string>("", 9),
+                                new PositionTagged<string>(string.Empty, 9),
                                 new PositionTagged<object>("Hello", 9),
                                 literal: true)
                         },
@@ -776,7 +785,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                                 new PositionTagged<object>(null, 10),
                                 literal: false)
                         },
-                        ""
+                        string.Empty
                     },
                     {
                         new AttributeValue[] {
@@ -804,7 +813,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new AttributeValue[] {
                             new AttributeValue(
-                                new PositionTagged<string>("", 9),
+                                new PositionTagged<string>(string.Empty, 9),
                                 new PositionTagged<object>("prefix", 9),
                                 literal: true),
                             new AttributeValue(
@@ -834,7 +843,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var executionContext = new TagHelperExecutionContext(
                 "p",
                 tagMode: TagMode.StartTagAndEndTag,
-                items: null,
+                items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
                 startTagHelperWritingScope: () => { },
@@ -847,7 +856,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var htmlAttribute = Assert.Single(executionContext.HTMLAttributes);
             Assert.Equal("someattr", htmlAttribute.Name, StringComparer.Ordinal);
             Assert.IsType<HtmlString>(htmlAttribute.Value);
-            Assert.Equal(expectedValue, htmlAttribute.Value.ToString(), StringComparer.Ordinal);
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString((IHtmlContent)htmlAttribute.Value));
             Assert.False(htmlAttribute.Minimized);
             var allAttribute = Assert.Single(executionContext.AllAttributes);
             Assert.Equal("someattr", allAttribute.Name, StringComparer.Ordinal);
@@ -869,7 +878,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var executionContext = new TagHelperExecutionContext(
                 "p",
                 tagMode: TagMode.StartTagAndEndTag,
-                items: null,
+                items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
                 startTagHelperWritingScope: () => { },
@@ -901,7 +910,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var executionContext = new TagHelperExecutionContext(
                 "p",
                 tagMode: TagMode.StartTagAndEndTag,
-                items: null,
+                items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
                 startTagHelperWritingScope: () => { },
@@ -937,7 +946,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new AttributeValue[] {
                             new AttributeValue(
-                                new PositionTagged<string>("", 9),
+                                new PositionTagged<string>(string.Empty, 9),
                                 new PositionTagged<object>(true, 9),
                                 literal: false)
                         },
@@ -946,20 +955,20 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new AttributeValue[] {
                             new AttributeValue(
-                                new PositionTagged<string>("", 9),
+                                new PositionTagged<string>(string.Empty, 9),
                                 new PositionTagged<object>(false, 9),
                                 literal: false)
                         },
-                        ""
+                        string.Empty
                     },
                     {
                         new AttributeValue[] {
                             new AttributeValue(
-                                new PositionTagged<string>("", 9),
+                                new PositionTagged<string>(string.Empty, 9),
                                 new PositionTagged<object>(null, 9),
                                 literal: false)
                         },
-                        ""
+                        string.Empty
                     },
                     {
                         new AttributeValue[] {
@@ -1005,7 +1014,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             page.HtmlEncoder = new CommonTestEncoder();
             var writer = new StringWriter();
             var prefix = new PositionTagged<string>("someattr=", 0);
-            var suffix = new PositionTagged<string>("", 0);
+            var suffix = new PositionTagged<string>(string.Empty, 0);
 
             // Act
             page.WriteAttributeTo(writer, "someattr", prefix, suffix, attributeValues);
@@ -1018,15 +1027,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task Write_WithHtmlString_WritesValueWithoutEncoding()
         {
             // Arrange
-            var writer = new RazorTextWriter(TextWriter.Null, Encoding.UTF8);
-            var stringCollectionWriter = new StringCollectionTextWriter(Encoding.UTF8);
-            stringCollectionWriter.Write("text1");
-            stringCollectionWriter.Write("text2");
+            var writer = new RazorTextWriter(TextWriter.Null, Encoding.UTF8, new CommonTestEncoder());
 
             var page = CreatePage(p =>
             {
                 p.Write(new HtmlString("Hello world"));
-                p.Write(stringCollectionWriter.Content);
             });
             page.ViewContext.Writer = writer;
 
@@ -1034,11 +1039,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            var buffer = writer.BufferedWriter.Content.Entries;
-            Assert.Equal(3, buffer.Count);
-            Assert.Equal("Hello world", buffer[0]);
-            Assert.Equal("text1", buffer[1]);
-            Assert.Equal("text2", buffer[2]);
+            var buffer = writer.BufferedWriter.Entries;
+            Assert.Equal(1, buffer.Count);
+            Assert.Equal("Hello world", HtmlContentUtilities.HtmlContentToString(((IHtmlContent)buffer[0])));
         }
 
         public static TheoryData<TagHelperOutput, string> WriteTagHelper_InputData
@@ -1063,7 +1066,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.StartTagAndEndTag,
                             preElement:  null,
@@ -1362,7 +1365,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.StartTagAndEndTag,
                             preElement:  "Before",
@@ -1374,7 +1377,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList { { "test", "testVal" } },
                             tagMode: TagMode.SelfClosing,
                             preElement:  "Before",
@@ -1410,7 +1413,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList { { "test", "testVal" } },
                             tagMode: TagMode.StartTagOnly,
                             preElement:  "Before",
@@ -1458,7 +1461,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.StartTagAndEndTag,
                             preElement:  null,
@@ -1470,7 +1473,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList { { "test", "testVal" } },
                             tagMode: TagMode.SelfClosing,
                             preElement:  null,
@@ -1506,7 +1509,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList { { "test", "testVal" } },
                             tagMode: TagMode.StartTagOnly,
                             preElement:  null,
@@ -1578,7 +1581,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.SelfClosing,
                             preElement:  "Before",
@@ -1602,7 +1605,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.StartTagOnly,
                             preElement:  "Before",
@@ -1614,7 +1617,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList(),
                             tagMode: TagMode.StartTagAndEndTag,
                             preElement:  "Before",
@@ -1626,7 +1629,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     },
                     {
                         GetTagHelperOutput(
-                            tagName:     null,
+                            tagName:     string.Empty,
                             attributes:  new TagHelperAttributeList { { "test", "testVal" } },
                             tagMode: TagMode.StartTagAndEndTag,
                             preElement:  "Before",
@@ -1666,7 +1669,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal(expected, writer.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(writer.Content));
         }
 
         [Theory]
@@ -1688,7 +1691,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 uniqueId: string.Empty,
                 executeChildContentAsync: () =>
                 {
-                    defaultTagHelperContent.SetContent(input);
+                    defaultTagHelperContent.AppendEncoded(input);
                     return Task.FromResult(result: true);
                 },
                 startTagHelperWritingScope: () => { },
@@ -1708,7 +1711,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal(expected, writer.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(writer.Content));
         }
 
         [Fact]
@@ -1726,17 +1729,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 startTagHelperWritingScope: () => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
             tagHelperExecutionContext.Output = new TagHelperOutput("p", new TagHelperAttributeList());
-            tagHelperExecutionContext.Output.Content.SetContent("Hello World!");
+            tagHelperExecutionContext.Output.Content.AppendEncoded("Hello World!");
 
             // Act
             var page = CreatePage(p =>
             {
+                p.HtmlEncoder = new CommonTestEncoder();
                 p.WriteTagHelperToAsync(writer, tagHelperExecutionContext).Wait();
             }, context);
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal("<p>Hello World!</p>", writer.ToString());
+            Assert.Equal("<p>Hello World!</p>", HtmlContentUtilities.HtmlContentToString(writer.Content));
         }
 
         [Theory]
@@ -1765,7 +1769,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            Assert.Equal(expected, writer.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(writer.Content));
         }
 
         private static TagHelperOutput GetTagHelperOutput(
@@ -1783,17 +1787,18 @@ namespace Microsoft.AspNet.Mvc.Razor
                 TagMode = tagMode
             };
 
-            output.PreElement.SetContent(preElement);
-            output.PreContent.SetContent(preContent);
-            output.Content.SetContent(content);
-            output.PostContent.SetContent(postContent);
-            output.PostElement.SetContent(postElement);
+            output.PreElement.AppendEncoded(preElement);
+            output.PreContent.AppendEncoded(preContent);
+            output.Content.AppendEncoded(content);
+            output.PostContent.AppendEncoded(postContent);
+            output.PostElement.AppendEncoded(postElement);
 
             return output;
         }
 
-        private static TestableRazorPage CreatePage(Action<TestableRazorPage> executeAction,
-                                                    ViewContext context = null)
+        private static TestableRazorPage CreatePage(
+            Action<TestableRazorPage> executeAction,
+            ViewContext context = null)
         {
             return CreatePage(page =>
             {
@@ -1803,8 +1808,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
 
-        private static TestableRazorPage CreatePage(Func<TestableRazorPage, Task> executeAction,
-                                                    ViewContext context = null)
+        private static TestableRazorPage CreatePage(
+            Func<TestableRazorPage, Task> executeAction,
+            ViewContext context = null)
         {
             context = context ?? CreateViewContext();
             var view = new Mock<TestableRazorPage> { CallBase = true };
@@ -1824,23 +1830,31 @@ namespace Microsoft.AspNet.Mvc.Razor
         private static ViewContext CreateViewContext(TextWriter writer = null)
         {
             writer = writer ?? new StringWriter();
-            var actionContext = new ActionContext(new DefaultHttpContext(), routeData: null, actionDescriptor: null);
+            var actionContext = new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                new ActionDescriptor());
             return new ViewContext(
                 actionContext,
                 Mock.Of<IView>(),
-                null,
+                new ViewDataDictionary(new EmptyModelMetadataProvider()),
                 Mock.Of<ITempDataDictionary>(),
                 writer,
                 new HtmlHelperOptions());
         }
 
-        private static Action<TextWriter> CreateBodyAction(string value)
+        private static Func<TextWriter, Task> CreateAsyncWriteDelegate(string value)
         {
-            return (writer) => writer.Write(value);
+            return async (writer) => await writer.WriteAsync(value);
         }
 
         public abstract class TestableRazorPage : RazorPage
         {
+            public TestableRazorPage()
+            {
+                HtmlEncoder = new CommonTestEncoder();
+            }
+
             public string RenderedContent
             {
                 get

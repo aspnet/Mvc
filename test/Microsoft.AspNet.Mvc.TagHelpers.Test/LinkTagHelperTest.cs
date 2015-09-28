@@ -10,16 +10,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.AspNet.Testing.xunit;
-using Microsoft.Framework.Caching;
+using Microsoft.Dnx.Runtime;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.Logging;
-using Microsoft.Dnx.Runtime;
+using Microsoft.Framework.Primitives;
 using Microsoft.Framework.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -28,6 +30,64 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class LinkTagHelperTest
     {
+        [Theory]
+        [InlineData(null, "test.css", "test.css")]
+        [InlineData("abcd.css", "test.css", "test.css")]
+        [InlineData(null, "~/test.css", "virtualRoot/test.css")]
+        [InlineData("abcd.css", "~/test.css", "virtualRoot/test.css")]
+        public void Process_HrefDefaultsToTagHelperOutputHrefAttributeAddedByOtherTagHelper(
+            string href,
+            string hrefOutput,
+            string expectedHrefPrefix)
+        {
+            // Arrange
+            var allAttributes = new TagHelperAttributeList(
+                new TagHelperAttributeList
+                {
+                    { "rel", new HtmlString("stylesheet") },
+                    { "asp-append-version", true },
+                });
+            var context = MakeTagHelperContext(allAttributes);
+            var outputAttributes = new TagHelperAttributeList
+                {
+                    { "rel", new HtmlString("stylesheet") },
+                    { "href", hrefOutput },
+                };
+            var output = MakeTagHelperOutput("link", outputAttributes);
+            var logger = new Mock<ILogger<LinkTagHelper>>();
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+            var urlHelper = new Mock<IUrlHelper>();
+
+            // Ensure expanded path does not look like an absolute path on Linux, avoiding
+            // https://github.com/aspnet/External/issues/21
+            urlHelper
+                .Setup(urlhelper => urlhelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
+
+            var helper = new LinkTagHelper(
+                logger.Object,
+                hostingEnvironment,
+                MakeCache(),
+                new CommonTestEncoder(),
+                new CommonTestEncoder(),
+                urlHelper.Object)
+            {
+                ViewContext = viewContext,
+                AppendVersion = true,
+                Href = href,
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.Equal(
+                expectedHrefPrefix + "?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk",
+                (string)output.Attributes["href"].Value,
+                StringComparer.Ordinal);
+        }
+
         public static TheoryData MultiAttributeSameNameData
         {
             get
@@ -388,8 +448,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             // Assert
             Assert.Equal("rel", output.Attributes[0].Name);
-            Assert.Equal("data-extra", output.Attributes[1].Name);
-            Assert.Equal("href", output.Attributes[2].Name);
+            Assert.Equal("href", output.Attributes[1].Name);
+            Assert.Equal("data-extra", output.Attributes[2].Name);
         }
 
         public static TheoryData DoesNotRunWhenARequiredAttributeIsMissing_Data
@@ -621,9 +681,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 output.PostElement.GetContent());
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void RendersLinkTags_AddsFileVersion()
         {
             // Arrange
@@ -663,9 +721,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("/css/site.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["href"].Value);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void RendersLinkTags_AddsFileVersion_WithRequestPathBase()
         {
             // Arrange
@@ -705,9 +761,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal("/bar/css/site.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["href"].Value);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/21
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void RendersLinkTags_GlobbedHref_AddsFileVersion()
         {
             // Arrange
@@ -816,6 +870,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(emptyDirectoryContents.Object);
             mockFileProvider.Setup(fp => fp.GetFileInfo(It.IsAny<string>()))
                 .Returns(mockFile.Object);
+            mockFileProvider.Setup(fp => fp.Watch(It.IsAny<string>()))
+                .Returns(new TestFileChangeToken());
             var hostingEnvironment = new Mock<IHostingEnvironment>();
             hostingEnvironment.Setup(h => h.WebRootFileProvider).Returns(mockFileProvider.Object);
 

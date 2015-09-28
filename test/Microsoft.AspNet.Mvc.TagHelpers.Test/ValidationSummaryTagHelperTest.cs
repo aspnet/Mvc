@@ -6,13 +6,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.WebEncoders;
 using Moq;
 using Xunit;
 
@@ -130,11 +133,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public async Task ProcessAsync_MergesTagBuilderFromGenerateValidationSummary()
         {
             // Arrange
-            var tagBuilder = new TagBuilder("span2")
-            {
-                InnerHtml = new HtmlString("New HTML")
-            };
-
+            var tagBuilder = new TagBuilder("span2");
+            tagBuilder.InnerHtml.SetContentEncoded("New HTML");
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");
             tagBuilder.Attributes.Add("anything", "something");
@@ -224,10 +224,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public async Task ProcessAsync_GeneratesValidationSummaryWhenNotNone(ValidationSummary validationSummary)
         {
             // Arrange
-            var tagBuilder = new TagBuilder("span2")
-            {
-                InnerHtml = new HtmlString("New HTML")
-            };
+            var tagBuilder = new TagBuilder("span2");
+            tagBuilder.InnerHtml.SetContentEncoded("New HTML");
 
             var generator = new Mock<IHtmlGenerator>();
             generator
@@ -281,10 +279,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var generator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
 
             var validationSummaryTagHelper = new ValidationSummaryTagHelper(generator);
-            var expectedMessage = string.Format(
-                @"The value of argument 'value' ({0}) is invalid for Enum type 'Microsoft.AspNet.Mvc.ValidationSummary'.
-Parameter name: value",
-                validationSummary);
+            var validationTypeName = typeof(ValidationSummary).FullName;
+            var expectedMessage =
+                $@"The value of argument 'value' ({validationSummary}) is invalid for Enum type '{validationTypeName}'.
+Parameter name: value";
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(

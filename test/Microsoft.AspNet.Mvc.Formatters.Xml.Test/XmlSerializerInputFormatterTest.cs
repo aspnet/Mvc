@@ -12,8 +12,8 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Mvc.Formatters.Xml;
 using Microsoft.AspNet.Testing;
+using Microsoft.AspNet.Testing.xunit;
 using Moq;
 using Xunit;
 
@@ -59,7 +59,11 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: requestContentType);
 
-            var formatterContext = new InputFormatterContext(httpContext, modelState, typeof(string));
+            var formatterContext = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(string));
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -148,17 +152,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelOne));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelOne>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelOne>(result.Model);
 
-            var levelOneModel = model as TestLevelOne;
-            Assert.Equal(expectedInt, levelOneModel.SampleInt);
-            Assert.Equal(expectedString, levelOneModel.sampleString);
-            Assert.Equal(XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc),
-                         levelOneModel.SampleDate);
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
+            Assert.Equal(
+                XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc),
+                model.SampleDate);
         }
 
         [Fact]
@@ -181,18 +186,19 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelTwo>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelTwo>(result.Model);
 
-            var levelTwoModel = model as TestLevelTwo;
-            Assert.Equal(expectedLevelTwoString, levelTwoModel.SampleString);
-            Assert.Equal(expectedInt, levelTwoModel.TestOne.SampleInt);
-            Assert.Equal(expectedString, levelTwoModel.TestOne.sampleString);
-            Assert.Equal(XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc),
-                        levelTwoModel.TestOne.SampleDate);
+            Assert.Equal(expectedLevelTwoString, model.SampleString);
+            Assert.Equal(expectedInt, model.TestOne.SampleInt);
+            Assert.Equal(expectedString, model.TestOne.sampleString);
+            Assert.Equal(
+                XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc),
+                model.TestOne.SampleDate);
         }
 
         [Fact]
@@ -208,26 +214,21 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
-
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<DummyClass>(model);
-            var dummyModel = model as DummyClass;
-            Assert.Equal(expectedInt, dummyModel.SampleInt);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<DummyClass>(result.Model);
+            Assert.Equal(expectedInt, model.SampleInt);
         }
 
-        [Fact]
+        [ConditionalFact]
+        // ReaderQuotas are not honored on Mono
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsOnExceededMaxDepth()
         {
-            if (TestPlatformHelper.IsMono)
-            {
-                // ReaderQuotas are not honored on Mono
-                return;
-            }
-
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
@@ -244,15 +245,11 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             await Assert.ThrowsAsync(typeof(InvalidOperationException), () => formatter.ReadAsync(context));
         }
 
-        [Fact]
+        [ConditionalFact]
+        // ReaderQuotas are not honored on Mono
+        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsWhenReaderQuotasAreChanged()
         {
-            if (TestPlatformHelper.IsMono)
-            {
-                // ReaderQuotas are not honored on Mono
-                return;
-            }
-
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
@@ -290,10 +287,12 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            Assert.NotNull(result.Model);
             Assert.True(context.HttpContext.Request.Body.CanRead);
         }
 
@@ -343,7 +342,11 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(inputBytes, contentType: "application/xml; charset=utf-16");
 
-            var context = new InputFormatterContext(httpContext, modelState, typeof(TestLevelOne));
+            var context = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(TestLevelOne));
 
             // Act and Assert
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
@@ -371,14 +374,15 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            var levelTwoModel = model as TestLevelTwo;
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelTwo>(result.Model);
             Buffer.BlockCopy(sampleStringBytes, 0, expectedBytes, 0, sampleStringBytes.Length);
             Buffer.BlockCopy(bom, 0, expectedBytes, sampleStringBytes.Length, bom.Length);
-            Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(levelTwoModel.SampleString));
+            Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(model.SampleString));
         }
 
         [Fact]
@@ -399,25 +403,33 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: "application/xml; charset=utf-16");
-            var context = new InputFormatterContext(httpContext, modelState, typeof(TestLevelOne));
+            var context = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(TestLevelOne));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelOne>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelOne>(result.Model);
 
-            var levelOneModel = model as TestLevelOne;
-            Assert.Equal(expectedInt, levelOneModel.SampleInt);
-            Assert.Equal(expectedString, levelOneModel.sampleString);
-            Assert.Equal(XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc), levelOneModel.SampleDate);
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
+            Assert.Equal(XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc), model.SampleDate);
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
         {
             var httpContext = GetHttpContext(contentBytes);
-            return new InputFormatterContext(httpContext, new ModelStateDictionary(), modelType);
+            return new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: new ModelStateDictionary(),
+                modelType: modelType);
         }
 
         private static HttpContext GetHttpContext(

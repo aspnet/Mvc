@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.Internal;
@@ -29,9 +30,12 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="actionContext">The <see cref="ActionContext"/> to copy.</param>
         public ActionContext([NotNull] ActionContext actionContext)
-            : this(actionContext.HttpContext, actionContext.RouteData, actionContext.ActionDescriptor)
+            : this(
+                actionContext.HttpContext, 
+                actionContext.RouteData, 
+                actionContext.ActionDescriptor, 
+                actionContext.ModelState)
         {
-            ModelState = actionContext.ModelState;
         }
 
         /// <summary>
@@ -39,7 +43,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="httpContext">The <see cref="Http.HttpContext"/> for the current request.</param>
         /// <param name="routeData">The <see cref="AspNet.Routing.RouteData"/> for the current request.</param>
-        /// <param name="actionDescriptor">The <see cref="Mvc.ActionDescriptor"/> for the selected action.</param>
+        /// <param name="actionDescriptor">The <see cref="Abstractions.ActionDescriptor"/> for the selected action.</param>
         public ActionContext(
             [NotNull] HttpContext httpContext,
             [NotNull] RouteData routeData,
@@ -53,7 +57,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="httpContext">The <see cref="Http.HttpContext"/> for the current request.</param>
         /// <param name="routeData">The <see cref="AspNet.Routing.RouteData"/> for the current request.</param>
-        /// <param name="actionDescriptor">The <see cref="Mvc.ActionDescriptor"/> for the selected action.</param>
+        /// <param name="actionDescriptor">The <see cref="Abstractions.ActionDescriptor"/> for the selected action.</param>
         /// <param name="modelState">The <see cref="ModelStateDictionary"/>.</param>
         public ActionContext(
             [NotNull] HttpContext httpContext,
@@ -68,7 +72,7 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="Mvc.ActionDescriptor"/> for the selected action.
+        /// Gets or sets the <see cref="Abstractions.ActionDescriptor"/> for the selected action.
         /// </summary>
         /// <remarks>
         /// The property setter is provided for unit test purposes only.

@@ -9,6 +9,7 @@ using System.Linq;
 #endif
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 #if DNX451
 using Moq;
 #endif
@@ -23,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindComplexCollectionFromIndexes_FiniteIndexes()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[foo]", "42" },
                 { "someName[baz]", "200" }
@@ -32,20 +33,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var boundCollection = await binder.BindComplexCollectionFromIndexes(bindingContext, new[] { "foo", "bar", "baz" });
+            var collectionResult = await binder.BindComplexCollectionFromIndexes(
+                bindingContext,
+                new[] { "foo", "bar", "baz" });
 
             // Assert
-            Assert.Equal(new[] { 42, 0, 200 }, boundCollection.Model.ToArray());
-            Assert.Equal(
-                new[] { "someName[foo]", "someName[baz]" },
-                boundCollection.ValidationNode.ChildNodes.Select(o => o.Key).ToArray());
+            Assert.Equal(new[] { 42, 0, 200 }, collectionResult.Model.ToArray());
+
+            // This requires a non-default IValidationStrategy
+            var strategy = Assert.IsType<ExplicitIndexCollectionValidationStrategy>(collectionResult.ValidationStrategy);
+            Assert.Equal(new[] { "foo", "bar", "baz" }, strategy.ElementKeys);
         }
 
         [Fact]
         public async Task BindComplexCollectionFromIndexes_InfiniteIndexes()
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName[0]", "42" },
                 { "someName[1]", "100" },
@@ -59,9 +63,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 
             // Assert
             Assert.Equal(new[] { 42, 100 }, boundCollection.Model.ToArray());
-            Assert.Equal(
-                new[] { "someName[0]", "someName[1]" },
-                boundCollection.ValidationNode.ChildNodes.Select(o => o.Key).ToArray());
+
+            // This uses the default IValidationStrategy
+            Assert.DoesNotContain(boundCollection, bindingContext.ValidationState.Keys);
         }
 
         [Theory]
@@ -70,7 +74,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_ComplexCollection_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName.index", new[] { "foo", "bar", "baz" } },
                 { "someName[foo]", "42" },
@@ -85,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
 
             var list = Assert.IsAssignableFrom<IList<int>>(result.Model);
@@ -100,7 +104,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_ComplexCollection_BindingContextModelNonNull_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName.index", new[] { "foo", "bar", "baz" } },
                 { "someName[foo]", "42" },
@@ -117,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
 
             Assert.Same(list, result.Model);
@@ -132,7 +136,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_SimpleCollection_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", new[] { "42", "100", "200" } }
             };
@@ -144,13 +148,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
 
             var list = Assert.IsAssignableFrom<IList<int>>(result.Model);
             Assert.Equal(new[] { 42, 100, 200 }, list.ToArray());
-
-            Assert.True(modelState.IsValid);
         }
 
         [Theory]
@@ -159,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         public async Task BindModel_SimpleCollection_BindingContextModelNonNull_Succeeds(bool isReadOnly)
         {
             // Arrange
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", new[] { "42", "100", "200" } }
             };
@@ -173,13 +175,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
 
             Assert.Same(list, result.Model);
             Assert.Equal(new[] { 42, 100, 200 }, list.ToArray());
-
-            Assert.True(modelState.IsValid);
         }
 
         [Fact]
@@ -187,7 +187,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var binder = new CollectionModelBinder<int>();
-            var valueProvider = new SimpleHttpValueProvider
+            var valueProvider = new SimpleValueProvider
             {
                 { "someName", null },
             };
@@ -198,15 +198,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.NotNull(result.Model);
-            Assert.NotNull(result.ValidationNode);
 
             var model = Assert.IsType<List<int>>(result.Model);
             Assert.Empty(model);
-
-            Assert.True(modelState.IsValid);
         }
 #endif
 
@@ -225,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             };
 
             // Act
-            var boundCollection = await binder.BindSimpleCollection(context, rawValue: new object[0], culture: null);
+            var boundCollection = await binder.BindSimpleCollection(context, new ValueProviderResult(new string[0]));
 
             // Assert
             Assert.NotNull(boundCollection.Model);
@@ -233,33 +230,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task CollectionModelBinder_DoesNotCreateCollection_IfIsTopLevelObjectAndIsFirstChanceBinding()
-        {
-            // Arrange
-            var binder = new CollectionModelBinder<string>();
-
-            var context = CreateContext();
-            context.IsTopLevelObject = true;
-            context.IsFirstChanceBinding = true;
-
-            // Explicit prefix and empty model name both ignored.
-            context.BinderModelName = "prefix";
-            context.ModelName = string.Empty;
-
-            var metadataProvider = context.OperationBindingContext.MetadataProvider;
-            context.ModelMetadata = metadataProvider.GetMetadataForType(typeof(List<string>));
-
-            context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
-
-            // Act
-            var result = await binder.BindModelAsync(context);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task CollectionModelBinder_CreatesEmptyCollection_IfIsTopLevelObjectAndNotIsFirstChanceBinding()
+        public async Task CollectionModelBinder_CreatesEmptyCollection_IfIsTopLevelObject()
         {
             // Arrange
             var binder = new CollectionModelBinder<string>();
@@ -279,18 +250,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
 
             Assert.Empty(Assert.IsType<List<string>>(result.Model));
             Assert.Equal("modelName", result.Key);
             Assert.True(result.IsModelSet);
-
-            Assert.Same(result.ValidationNode.Model, result.Model);
-            Assert.Same(result.ValidationNode.Key, result.Key);
-            Assert.Same(result.ValidationNode.ModelMetadata, context.ModelMetadata);
         }
 
-        // Setup like CollectionModelBinder_CreatesEmptyCollection_IfIsTopLevelObjectAndNotIsFirstChanceBinding  except
+        // Setup like CollectionModelBinder_CreatesEmptyCollection_IfIsTopLevelObject  except
         // Model already has a value.
         [Fact]
         public async Task CollectionModelBinder_DoesNotCreateEmptyCollection_IfModelNonNull()
@@ -316,16 +283,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
 
             Assert.Same(list, result.Model);
             Assert.Empty(list);
             Assert.Equal("modelName", result.Key);
             Assert.True(result.IsModelSet);
-
-            Assert.Same(result.ValidationNode.Model, result.Model);
-            Assert.Same(result.ValidationNode.Key, result.Key);
-            Assert.Same(result.ValidationNode.ModelMetadata, context.ModelMetadata);
         }
 
         [Theory]
@@ -350,7 +313,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(context);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         // Model type -> can create instance.
@@ -392,24 +355,24 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var bindingContext = GetModelBindingContext(new SimpleHttpValueProvider());
-            ModelValidationNode childValidationNode = null;
+            var bindingContext = GetModelBindingContext(new SimpleValueProvider());
+
             Mock.Get<IModelBinder>(bindingContext.OperationBindingContext.ModelBinder)
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
                 .Returns((ModelBindingContext mbc) =>
                 {
                     Assert.Equal("someName", mbc.ModelName);
-                    childValidationNode = new ModelValidationNode("someName", mbc.ModelMetadata, mbc.Model);
-                    return Task.FromResult(new ModelBindingResult(42, mbc.ModelName, true, childValidationNode));
+                    return ModelBindingResult.SuccessAsync(mbc.ModelName, 42);
                 });
             var modelBinder = new CollectionModelBinder<int>();
 
             // Act
-            var boundCollection = await modelBinder.BindSimpleCollection(bindingContext, new int[1], culture);
+            var boundCollection = await modelBinder.BindSimpleCollection(
+                bindingContext,
+                new ValueProviderResult(new string[] { "0" }));
 
             // Assert
             Assert.Equal(new[] { 42 }, boundCollection.Model.ToArray());
-            Assert.Equal(new[] { childValidationNode }, boundCollection.ValidationNode.ChildNodes.ToArray());
         }
 
         private static ModelBindingContext GetModelBindingContext(
@@ -423,12 +386,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(typeof(IList<int>)),
                 ModelName = "someName",
+                ModelState = new ModelStateDictionary(),
                 ValueProvider = valueProvider,
                 OperationBindingContext = new OperationBindingContext
                 {
                     ModelBinder = CreateIntBinder(),
                     MetadataProvider = metadataProvider
-                }
+                },
+                ValidationState = new ValidationStateDictionary(),
             };
 
             return bindingContext;
@@ -439,17 +404,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Mock<IModelBinder> mockIntBinder = new Mock<IModelBinder>();
             mockIntBinder
                 .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(async (ModelBindingContext mbc) =>
+                .Returns((ModelBindingContext mbc) =>
                 {
-                    var value = await mbc.ValueProvider.GetValueAsync(mbc.ModelName);
-                    if (value != null)
+                    var value = mbc.ValueProvider.GetValue(mbc.ModelName);
+                    if (value == ValueProviderResult.None)
                     {
-                        var model = value.ConvertTo(mbc.ModelType);
-                        var modelValidationNode = new ModelValidationNode(mbc.ModelName, mbc.ModelMetadata, model);
-                        return new ModelBindingResult(model, mbc.ModelName, true, modelValidationNode);
+                        return ModelBindingResult.NoResultAsync;
                     }
 
-                    return null;
+                    var model = value.ConvertTo(mbc.ModelType);
+                    if (model == null)
+                    {
+                        return ModelBindingResult.FailedAsync(mbc.ModelName);
+                    }
+                    else
+                    {
+                        return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
+                    }
                 });
             return mockIntBinder.Object;
         }

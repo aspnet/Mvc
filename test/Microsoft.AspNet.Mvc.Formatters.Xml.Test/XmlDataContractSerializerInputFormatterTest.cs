@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -75,7 +73,11 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: requestContentType);
-            var formatterContext = new InputFormatterContext(httpContext, modelState, typeof(string));
+            var formatterContext = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(string));
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -84,7 +86,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             Assert.Equal(expectedCanRead, result);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public void XmlDataContractSerializer_CachesSerializerForType()
@@ -130,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             Assert.True(formatter.SupportedEncodings.Any(i => i.WebName == "utf-16"));
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ReadsSimpleTypes()
@@ -148,18 +150,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelOne));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelOne>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelOne>(result.Model);
 
-            var levelOneModel = model as TestLevelOne;
-            Assert.Equal(expectedInt, levelOneModel.SampleInt);
-            Assert.Equal(expectedString, levelOneModel.sampleString);
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ReadsComplexTypes()
@@ -179,19 +181,19 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelTwo>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelTwo>(result.Model);
 
-            var levelTwoModel = model as TestLevelTwo;
-            Assert.Equal(expectedLevelTwoString, levelTwoModel.SampleString);
-            Assert.Equal(expectedInt, levelTwoModel.TestOne.SampleInt);
-            Assert.Equal(expectedString, levelTwoModel.TestOne.sampleString);
+            Assert.Equal(expectedLevelTwoString, model.SampleString);
+            Assert.Equal(expectedInt, model.TestOne.SampleInt);
+            Assert.Equal(expectedString, model.TestOne.sampleString);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ReadsWhenMaxDepthIsModified()
@@ -208,26 +210,20 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
 
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<DummyClass>(model);
-            var dummyModel = model as DummyClass;
-            Assert.Equal(expectedInt, dummyModel.SampleInt);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<DummyClass>(result.Model);
+            Assert.Equal(expectedInt, model.SampleInt);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsOnExceededMaxDepth()
         {
-            if (TestPlatformHelper.IsMono)
-            {
-                // ReaderQuotas are not honored on Mono
-                return;
-            }
-
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
@@ -242,17 +238,11 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsWhenReaderQuotasAreChanged()
         {
-            if (TestPlatformHelper.IsMono)
-            {
-                // ReaderQuotas are not honored on Mono
-                return;
-            }
-
             // Arrange
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                         "<TestLevelTwo><SampleString>test</SampleString>" +
@@ -277,7 +267,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             Assert.Throws(typeof(ArgumentException), () => formatter.MaxDepth = 0);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_VerifyStreamIsOpenAfterRead()
@@ -290,14 +280,16 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            Assert.NotNull(result.Model);
             Assert.True(context.HttpContext.Request.Body.CanRead);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_FallsbackToUTF8_WhenCharSet_NotInContentType()
@@ -326,7 +318,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             Assert.Equal(expectedMessage, ex.Message);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_UsesContentTypeCharSet_ToReadStream()
@@ -345,14 +337,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(inputBytes, contentType: "application/xml; charset=utf-16");
 
-            var context = new InputFormatterContext(httpContext, modelState, typeof(TestLevelOne));
+            var context = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(TestLevelOne));
 
             // Act
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
             Assert.Equal(expectedMessage, ex.Message);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_IgnoresBOMCharacters()
@@ -375,17 +371,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(TestLevelTwo));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            var levelTwoModel = model as TestLevelTwo;
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelTwo>(result.Model);
             Buffer.BlockCopy(sampleStringBytes, 0, expectedBytes, 0, sampleStringBytes.Length);
             Buffer.BlockCopy(bom, 0, expectedBytes, sampleStringBytes.Length, bom.Length);
-            Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(levelTwoModel.SampleString));
+            Assert.Equal(expectedBytes, Encoding.UTF8.GetBytes(model.SampleString));
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_AcceptsUTF16Characters()
@@ -404,21 +401,25 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: "application/xml; charset=utf-16");
 
-            var context = new InputFormatterContext(httpContext, modelState, typeof(TestLevelOne));
+            var context = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                modelType: typeof(TestLevelOne));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            Assert.IsType<TestLevelOne>(model);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<TestLevelOne>(result.Model);
 
-            var levelOneModel = model as TestLevelOne;
-            Assert.Equal(expectedInt, levelOneModel.SampleInt);
-            Assert.Equal(expectedString, levelOneModel.sampleString);
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.sampleString);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsWhenNotConfiguredWithRootName()
@@ -439,7 +440,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ReadsWhenConfiguredWithRootName()
@@ -469,15 +470,16 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            var dummyModel = Assert.IsType<DummyClass>(model);
-            Assert.Equal(expectedInt, dummyModel.SampleInt);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<DummyClass>(result.Model);
+            Assert.Equal(expectedInt, model.SampleInt);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ThrowsWhenNotConfiguredWithKnownTypes()
@@ -499,7 +501,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             await Assert.ThrowsAsync(typeof(SerializationException), async () => await formatter.ReadAsync(context));
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task ReadAsync_ReadsWhenConfiguredWithKnownTypes()
@@ -529,19 +531,24 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var context = GetInputFormatterContext(contentBytes, typeof(DummyClass));
 
             // Act
-            var model = await formatter.ReadAsync(context);
+            var result = await formatter.ReadAsync(context);
 
             // Assert
-            Assert.NotNull(model);
-            var dummyModel = Assert.IsType<SomeDummyClass>(model);
-            Assert.Equal(expectedInt, dummyModel.SampleInt);
-            Assert.Equal(expectedString, dummyModel.SampleString);
+            Assert.NotNull(result);
+            Assert.False(result.HasError);
+            var model = Assert.IsType<SomeDummyClass>(result.Model);
+            Assert.Equal(expectedInt, model.SampleInt);
+            Assert.Equal(expectedString, model.SampleString);
         }
 
         private InputFormatterContext GetInputFormatterContext(byte[] contentBytes, Type modelType)
         {
             var httpContext = GetHttpContext(contentBytes);
-            return new InputFormatterContext(httpContext, new ModelStateDictionary(), modelType);
+            return new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: new ModelStateDictionary(),
+                modelType: modelType);
         }
 
         private static HttpContext GetHttpContext(

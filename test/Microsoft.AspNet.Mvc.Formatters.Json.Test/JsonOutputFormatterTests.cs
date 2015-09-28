@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.Formatters
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class JsonOutputFormatterTests
     {

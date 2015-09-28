@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNet.Http;
 using Microsoft.Framework.Internal;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
@@ -24,6 +25,27 @@ namespace Microsoft.AspNet.Mvc
             : base(value)
         {
             Location = location;
+            StatusCode = StatusCodes.Status201Created;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreatedResult"/> class with the values
+        /// provided.
+        /// </summary>
+        /// <param name="location">The location at which the content has been created.</param>
+        /// <param name="value">The value to format in the entity body.</param>
+        public CreatedResult([NotNull] Uri location, object value)
+            : base(value)
+        {
+            if (location.IsAbsoluteUri)
+            {
+                Location = location.AbsoluteUri;
+            }
+            else
+            {
+                Location = location.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
+            }
+
             StatusCode = StatusCodes.Status201Created;
         }
 
@@ -50,7 +72,7 @@ namespace Microsoft.AspNet.Mvc
         /// <inheritdoc />
         protected override void OnFormatting([NotNull] ActionContext context)
         {
-            context.HttpContext.Response.Headers.Set("Location", Location);
+            context.HttpContext.Response.Headers[HeaderNames.Location] = Location;
         }
     }
 }

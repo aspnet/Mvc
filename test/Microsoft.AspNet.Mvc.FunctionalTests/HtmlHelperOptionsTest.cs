@@ -1,21 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Testing;
-using Microsoft.Framework.DependencyInjection;
-using RazorWebSite;
+#if DNXCORE50
+using Microsoft.AspNet.Testing.xunit;
+#endif
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class HtmlHelperOptionsTest
+    public class HtmlHelperOptionsTest : IClassFixture<MvcTestFixture<RazorWebSite.Startup>>
     {
-        private const string SiteName = nameof(RazorWebSite);
-        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
-        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
+        public HtmlHelperOptionsTest(MvcTestFixture<RazorWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
+
+        public HttpClient Client { get; }
 
         [Fact]
         public async Task AppWideDefaultsInViewAndPartialView()
@@ -40,17 +43,20 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
 False";
 
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Act
-            var body = await client.GetStringAsync("http://localhost/HtmlHelperOptions/HtmlHelperOptionsDefaultsInView");
+            var body = await Client.GetStringAsync("http://localhost/HtmlHelperOptions/HtmlHelperOptionsDefaultsInView");
 
             // Assert
             Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
+#if DNXCORE50
+        [ConditionalFact]
+        // Work around aspnet/External#42. Only the invariant culture works with Core CLR on Linux.
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Fact]
+#endif
         [ReplaceCulture]
         public async Task OverrideAppWideDefaultsInViewAndPartialView()
         {
@@ -65,7 +71,6 @@ False";
 <div class=""editor-field""><input class=""text-box single-line"" data-val=""true"" data-val-required=""The MyDate field is required."" id=""MyDate"" name=""MyDate"" type=""datetime"" value=""02/01/2000 03:04:05 &#x2B;00:00"" /> <ValidationInView class=""field-validation-valid"" data-valmsg-for=""MyDate"" data-valmsg-replace=""true""></ValidationInView></div>
 
 True
-
 <div class=""validation-summary-errors""><ValidationSummaryInPartialView>MySummary</ValidationSummaryInPartialView>
 <ul><li style=""display:none""></li>
 </ul></div>
@@ -76,11 +81,8 @@ True
 
 True";
 
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Act
-            var body = await client.GetStringAsync("http://localhost/HtmlHelperOptions/OverrideAppWideDefaultsInView");
+            var body = await Client.GetStringAsync("http://localhost/HtmlHelperOptions/OverrideAppWideDefaultsInView");
 
             // Assert
             // Mono issue - https://github.com/aspnet/External/issues/19

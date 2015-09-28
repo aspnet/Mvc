@@ -6,11 +6,11 @@ using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc.ApplicationModels;
 using Microsoft.Framework.Internal;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Cors
 {
     public class CorsApplicationModelProvider : IApplicationModelProvider
     {
-        public int Order {  get { return DefaultOrder.DefaultFrameworkSortOrder + 10; } }
+        public int Order {  get { return -1000 + 10; } }
 
         public void OnProvidersExecuted([NotNull]ApplicationModelProviderContext context)
         {

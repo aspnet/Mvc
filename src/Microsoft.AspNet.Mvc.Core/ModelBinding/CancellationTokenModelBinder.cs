@@ -17,20 +17,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (bindingContext.ModelType == typeof(CancellationToken))
             {
                 var model = bindingContext.OperationBindingContext.HttpContext.RequestAborted;
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model)
-                    {
-                        SuppressValidation = true,
-                    };
-
-                return Task.FromResult(new ModelBindingResult(
-                    model,
-                    bindingContext.ModelName,
-                    isModelSet: true,
-                    validationNode: validationNode));
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
             }
 
-            return Task.FromResult<ModelBindingResult>(null);
+            return ModelBindingResult.NoResultAsync;
         }
     }
 }

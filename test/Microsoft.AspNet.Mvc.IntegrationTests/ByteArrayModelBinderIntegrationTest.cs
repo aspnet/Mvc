@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -49,7 +50,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             // Model
@@ -65,8 +65,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(queryStringKey, entry.Key);
             Assert.Empty(entry.Value.Errors);
             Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
-            Assert.Equal(value, entry.Value.Value.AttemptedValue);
-            Assert.Equal(value, entry.Value.Value.RawValue);
+            Assert.Equal(value, entry.Value.AttemptedValue);
+            Assert.Equal(value, entry.Value.RawValue);
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.Null(modelBindingResult);
+            Assert.Equal(ModelBindingResult.NoResult, modelBindingResult);
 
             // ModelState
             Assert.True(modelState.IsValid);
@@ -134,7 +134,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
             var model = Assert.IsType<byte[]>(modelBindingResult.Model);
 
@@ -146,8 +145,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = Assert.Single(modelState);
             Assert.Equal("CustomParameter", entry.Key);
             Assert.Empty(entry.Value.Errors);
-            Assert.Equal(value, entry.Value.Value.AttemptedValue);
-            Assert.Equal(value, entry.Value.Value.RawValue);
+            Assert.Equal(value, entry.Value.AttemptedValue);
+            Assert.Equal(value, entry.Value.RawValue);
         }
     }
 }

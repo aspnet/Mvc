@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNet.Html.Abstractions;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -19,10 +19,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="actionName">The name of the action.</param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -49,11 +59,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName,
             object routeValues)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -85,12 +105,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName,
             object routeValues,
             object htmlAttributes)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -111,11 +141,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="controllerName">The name of the controller.</param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName,
             string controllerName)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -143,12 +183,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName,
             string controllerName,
             object routeValues)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -181,13 +231,23 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent ActionLink(
-            [NotNull] this IHtmlHelper helper,
-            [NotNull] string linkText,
+            this IHtmlHelper helper,
+            string linkText,
             string actionName,
             string controllerName,
             object routeValues,
             object htmlAttributes)
         {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return helper.ActionLink(
                 linkText,
                 actionName,
@@ -213,10 +273,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent RouteLink(
-            [NotNull] this IHtmlHelper htmlHelper,
-            [NotNull] string linkText,
+            this IHtmlHelper htmlHelper,
+            string linkText,
             object routeValues)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return htmlHelper.RouteLink(
                                 linkText,
                                 routeName: null,
@@ -235,10 +305,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="routeName">The name of the route.</param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent RouteLink(
-            [NotNull] this IHtmlHelper htmlHelper,
-            [NotNull] string linkText,
+            this IHtmlHelper htmlHelper,
+            string linkText,
             string routeName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return htmlHelper.RouteLink(
                                 linkText,
                                 routeName,
@@ -264,11 +344,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent RouteLink(
-            [NotNull] this IHtmlHelper htmlHelper,
-            [NotNull] string linkText,
+            this IHtmlHelper htmlHelper,
+            string linkText,
             string routeName,
             object routeValues)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return htmlHelper.RouteLink(
                                 linkText,
                                 routeName,
@@ -298,11 +388,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent RouteLink(
-            [NotNull] this IHtmlHelper htmlHelper,
-            [NotNull] string linkText,
+            this IHtmlHelper htmlHelper,
+            string linkText,
             object routeValues,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return htmlHelper.RouteLink(
                                 linkText,
                                 routeName: null,
@@ -333,12 +433,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the anchor element.</returns>
         public static IHtmlContent RouteLink(
-            [NotNull] this IHtmlHelper htmlHelper,
-            [NotNull] string linkText,
+            this IHtmlHelper htmlHelper,
+            string linkText,
             string routeName,
             object routeValues,
             object htmlAttributes)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
             return htmlHelper.RouteLink(
                                  linkText,
                                  routeName,

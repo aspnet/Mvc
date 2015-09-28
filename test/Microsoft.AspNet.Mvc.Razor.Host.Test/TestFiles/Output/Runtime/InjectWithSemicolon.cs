@@ -8,13 +8,7 @@ namespace Asp
     using Microsoft.AspNet.Mvc.Rendering;
     using System.Threading.Tasks;
 
-    public class ASPV_TestFiles_Input_InjectWithSemicolon_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<
-#line 1 "TestFiles/Input/InjectWithSemicolon.cshtml"
-       MyModel
-
-#line default
-#line hidden
-    >
+    public class ASPV_TestFiles_Input_InjectWithSemicolon_cshtml : Microsoft.AspNet.Mvc.Razor.RazorPage<MyModel>
     {
         #line hidden
         public ASPV_TestFiles_Input_InjectWithSemicolon_cshtml()
@@ -30,11 +24,11 @@ namespace Asp
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public MyService<MyModel> Html2 { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
+        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNet.Mvc.IViewComponentHelper Component { get; private set; }
         [Microsoft.AspNet.Mvc.Razor.Internal.RazorInjectAttribute]
-        public Microsoft.AspNet.Mvc.IUrlHelper Url { get; private set; }
+        public Microsoft.AspNet.Mvc.Rendering.IJsonHelper Json { get; private set; }
 
         #line hidden
 

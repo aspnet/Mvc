@@ -6,13 +6,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Microsoft.Framework.Internal;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core
+namespace Microsoft.AspNet.Mvc
 {
     public class RedirectToRouteResultTest
     {
@@ -26,8 +28,6 @@ namespace Microsoft.AspNet.Mvc.Core
             var httpContext = new Mock<HttpContext>();
             var httpResponse = new Mock<HttpResponse>();
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(ITempDataDictionary)))
-                .Returns(Mock.Of<ITempDataDictionary>());
 
             var actionContext = new ActionContext(httpContext.Object,
                                                   new RouteData(),
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         [Fact]
-        public void RedirectToRoute_Execute_ThrowsOnNullUrl()
+        public async Task RedirectToRoute_Execute_ThrowsOnNullUrl()
         {
             // Arrange
             var httpContext = new Mock<HttpContext>();
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.Mvc.Core
             };
 
             // Act & Assert
-            ExceptionAssert.ThrowsAsync<InvalidOperationException>(
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
                 async () =>
                 {
                     await result.ExecuteResultAsync(actionContext);
@@ -88,8 +88,6 @@ namespace Microsoft.AspNet.Mvc.Core
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(sp => sp.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper.Object);
-            serviceProvider.Setup(sp => sp.GetService(typeof(ITempDataDictionary)))
-                .Returns(new Mock<ITempDataDictionary>().Object);
             var httpContext = new DefaultHttpContext();
             httpContext.RequestServices = serviceProvider.Object;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());

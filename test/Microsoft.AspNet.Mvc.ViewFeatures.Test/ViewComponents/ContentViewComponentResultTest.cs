@@ -3,9 +3,12 @@
 
 using System.IO;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewComponents;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
@@ -57,7 +60,8 @@ namespace Microsoft.AspNet.Mvc
             var viewContext = new ViewContext(
                 actionContext,
                 view,
-                viewData, null,
+                viewData, 
+                new TempDataDictionary(new HttpContextAccessor(), new SessionStateTempDataProvider()),
                 TextWriter.Null,
                 new HtmlHelperOptions());
 

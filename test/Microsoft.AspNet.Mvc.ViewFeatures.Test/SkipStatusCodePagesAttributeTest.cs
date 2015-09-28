@@ -2,7 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Diagnostics;
+using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
 using Xunit;
 
@@ -17,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test
             var skipStatusCodeAttribute = new SkipStatusCodePagesAttribute();
             var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { skipStatusCodeAttribute });
             var statusCodePagesFeature = new TestStatusCodeFeature();
-            resourceExecutingContext.HttpContext.SetFeature<IStatusCodePagesFeature>(statusCodePagesFeature);
+            resourceExecutingContext.HttpContext.Features.Set<IStatusCodePagesFeature>(statusCodePagesFeature);
 
             // Act
             skipStatusCodeAttribute.OnResourceExecuting(resourceExecutingContext);

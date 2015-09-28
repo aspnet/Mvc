@@ -4,6 +4,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNet.Mvc.WebApiCompatShim
 {
@@ -18,20 +19,11 @@ namespace Microsoft.AspNet.Mvc.WebApiCompatShim
             if (bindingContext.ModelType == typeof(HttpRequestMessage))
             {
                 var model = bindingContext.OperationBindingContext.HttpContext.GetHttpRequestMessage();
-                var validationNode =
-                    new ModelValidationNode(bindingContext.ModelName, bindingContext.ModelMetadata, model)
-                    {
-                        SuppressValidation = true,
-                    };
-
-                return Task.FromResult(new ModelBindingResult(
-                    model,
-                    bindingContext.ModelName,
-                    isModelSet: true,
-                    validationNode: validationNode));
+                bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
             }
 
-            return Task.FromResult<ModelBindingResult>(null);
+            return ModelBindingResult.NoResultAsync;
         }
     }
 }

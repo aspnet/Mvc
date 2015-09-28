@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using Microsoft.AspNet.Mvc.Localization.Internal;
 using Microsoft.AspNet.Mvc.Razor;
-using Microsoft.Framework.Internal;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.Framework.DependencyInjection
 {
@@ -12,40 +14,76 @@ namespace Microsoft.Framework.DependencyInjection
     public static class MvcLocalizationMvcBuilderExtensions
     {
         /// <summary>
-        /// Adds MVC localization to the application.
+        /// Adds MVC view localization to the application.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
-        /// <remarks>
-        /// Adding localization also adds support for views via
-        /// <see cref="MvcViewFeaturesMvcBuilderExtensions.AddViews(IMvcBuilder)"/> and the Razor view engine
-        /// via <see cref="MvcRazorMvcBuilderExtensions.AddRazorViewEngine(IMvcBuilder)"/>.
-        /// </remarks>
-        public static IMvcBuilder AddLocalization([NotNull] this IMvcBuilder builder)
+        public static IMvcBuilder AddViewLocalization(this IMvcBuilder builder)
         {
-            return AddLocalization(builder, LanguageViewLocationExpanderFormat.Suffix);
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return AddViewLocalization(builder, LanguageViewLocationExpanderFormat.Suffix);
         }
 
         /// <summary>
-        ///  Adds MVC localization to the application.
+        ///  Adds MVC view localization to the application.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
         /// <param name="format">The view format for localized views.</param>
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
-        /// <remarks>
-        /// Adding localization also adds support for views via
-        /// <see cref="MvcViewFeaturesMvcBuilderExtensions.AddViews(IMvcBuilder)"/> and the Razor view engine
-        /// via <see cref="MvcRazorMvcBuilderExtensions.AddRazorViewEngine(IMvcBuilder)"/>.
-        /// </remarks>
-        public static IMvcBuilder AddLocalization(
-            [NotNull] this IMvcBuilder builder,
+        public static IMvcBuilder AddViewLocalization(
+            this IMvcBuilder builder,
             LanguageViewLocationExpanderFormat format)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
 
-            builder.AddViews();
-            builder.AddRazorViewEngine();
+            AddViewLocalization(builder, format, setupAction: null);
+            return builder;
+        }
 
-            MvcLocalizationServiceCollectionExtensions.AddMvcLocalization(builder.Services, format);
+        /// <summary>
+        ///  Adds MVC view localization to the application.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="setupAction">An action to configure the <see cref="LocalizationOptions"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddViewLocalization(
+            this IMvcBuilder builder,
+            Action<LocalizationOptions> setupAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            AddViewLocalization(builder, LanguageViewLocationExpanderFormat.Suffix, setupAction);
+            return builder;
+        }
+
+        /// <summary>
+        ///  Adds MVC view localization to the application.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="format">The view format for localized views.</param>
+        /// <param name="setupAction">An action to configure the <see cref="LocalizationOptions"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddViewLocalization(
+            this IMvcBuilder builder,
+            LanguageViewLocationExpanderFormat format,
+            Action<LocalizationOptions> setupAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            MvcLocalizationServices.AddLocalizationServices(builder.Services, format, setupAction);
             return builder;
         }
     }

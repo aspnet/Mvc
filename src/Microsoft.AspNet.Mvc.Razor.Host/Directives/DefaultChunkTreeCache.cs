@@ -5,7 +5,6 @@ using System;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.Framework.Caching.Memory;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -32,8 +31,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         }
 
         // Internal for unit testing
-        internal DefaultChunkTreeCache(IFileProvider fileProvider,
-                                      MemoryCacheOptions options)
+        internal DefaultChunkTreeCache(
+            IFileProvider fileProvider,
+            MemoryCacheOptions options)
         {
             _fileProvider = fileProvider;
             _chunkTreeCache = new MemoryCache(options);
@@ -41,23 +41,32 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
         /// <inheritdoc />
         public ChunkTree GetOrAdd(
-            [NotNull] string pagePath,
-            [NotNull] Func<IFileInfo, ChunkTree> getChunkTree)
+            string pagePath,
+            Func<IFileInfo, ChunkTree> getChunkTree)
         {
+            if (pagePath == null)
+            {
+                throw new ArgumentNullException(nameof(pagePath));
+            }
+
+            if (getChunkTree == null)
+            {
+                throw new ArgumentNullException(nameof(getChunkTree));
+            }
+
             ChunkTree chunkTree;
             if (!_chunkTreeCache.TryGetValue(pagePath, out chunkTree))
             {
-                // GetOrAdd is invoked for each _GlobalImport that might potentially exist in the path.
+                // GetOrAdd is invoked for each _ViewImport that might potentially exist in the path.
                 // We can avoid performing file system lookups for files that do not exist by caching
                 // negative results and adding a Watch for that file.
 
                 var options = new MemoryCacheEntryOptions()
-                    .AddExpirationTrigger(_fileProvider.Watch(pagePath))
+                    .AddExpirationToken(_fileProvider.Watch(pagePath))
                     .SetSlidingExpiration(SlidingExpirationDuration);
 
                 var file = _fileProvider.GetFileInfo(pagePath);
                 chunkTree = file.Exists ? getChunkTree(file) : null;
-
 
                 _chunkTreeCache.Set(pagePath, chunkTree, options);
             }

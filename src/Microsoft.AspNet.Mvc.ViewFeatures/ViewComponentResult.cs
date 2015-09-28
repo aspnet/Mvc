@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Framework.DependencyInjection;
@@ -68,7 +69,7 @@ namespace Microsoft.AspNet.Mvc
             var response = context.HttpContext.Response;
             var services = context.HttpContext.RequestServices;
 
-            var htmlHelperOptions = services.GetRequiredService<IOptions<MvcViewOptions>>().Options.HtmlHelperOptions;
+            var htmlHelperOptions = services.GetRequiredService<IOptions<MvcViewOptions>>().Value.HtmlHelperOptions;
             var viewComponentHelper = services.GetRequiredService<IViewComponentHelper>();
 
             var viewData = ViewData;
@@ -78,22 +79,32 @@ namespace Microsoft.AspNet.Mvc
                 viewData = new ViewDataDictionary(modelMetadataProvider, context.ModelState);
             }
 
-            var contentType = ContentType ?? ViewExecutor.DefaultContentType;
-            if (contentType.Encoding == null)
+            var contentType = ContentType;
+            if (contentType != null && contentType.Encoding == null)
             {
                 // Do not modify the user supplied content type, so copy it instead
                 contentType = contentType.Copy();
                 contentType.Encoding = Encoding.UTF8;
             }
 
+            // Priority list for setting content-type/encoding:
+            //      1. this.ContentType (set by the user on the result)
+            //      2. response.ContentType (likely set by the user in controller code)
+            //      3. ViewExecutor.DefaultContentType (sensible default)
+            //
+            //
+            response.ContentType = 
+                contentType?.ToString() ?? 
+                response.ContentType ??
+                ViewExecutor.DefaultContentType.ToString();
+
             if (StatusCode != null)
             {
                 response.StatusCode = StatusCode.Value;
             }
 
-            response.ContentType = contentType.ToString();
-
-            using (var writer = new HttpResponseStreamWriter(response.Body, contentType.Encoding))
+            var encoding = contentType?.Encoding ?? ViewExecutor.DefaultContentType?.Encoding;
+            using (var writer = new HttpResponseStreamWriter(response.Body, encoding))
             {
                 var viewContext = new ViewContext(
                     context,

@@ -5,26 +5,34 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc.Razor.Precompilation;
 using Microsoft.AspNet.Testing.xunit;
-using Microsoft.Framework.DependencyInjection;
 using Microsoft.Dnx.Runtime;
+using Microsoft.Framework.DependencyInjection;
 using PrecompilationWebSite;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class PrecompilationTest
+    public class PrecompilationTest : IClassFixture<MvcTestFixture<PrecompilationWebSite.Startup>>
     {
         private const string SiteName = nameof(PrecompilationWebSite);
         private static readonly TimeSpan _cacheDelayInterval = TimeSpan.FromSeconds(1);
         private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
         private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
 
-        [ConditionalTheory]
+        public PrecompilationTest(MvcTestFixture<PrecompilationWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
+
+        public HttpClient Client { get; }
+
+        [ConditionalFact]
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task PrecompiledView_RendersCorrectly()
         {
@@ -90,18 +98,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 @"Value set inside DNXCORE50 " + assemblyNamePrefix;
 #endif
 
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             // Act
-            var response = await client.GetAsync("http://localhost/Home/PrecompiledViewsCanConsumeCompilationOptions");
+            var response = await Client.GetAsync("http://localhost/Home/PrecompiledViewsCanConsumeCompilationOptions");
             var responseContent = await response.Content.ReadAsStringAsync();
 
             // Assert
             Assert.StartsWith(expected, responseContent.Trim());
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task TagHelpersFromTheApplication_CanBeAdded()
         {
@@ -112,11 +117,9 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 @" data-val-range=""The field Age must be between 10 and 100."" data-val-range-max=""100"" "+
                 @"data-val-range-min=""10"" data-val-required=""The Age field is required."" " +
                 @"id=""Age"" name=""Age"" value="""" /><a href="""">Back to List</a></root>";
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
 
             // Act
-            var response = await client.GetStringAsync("http://localhost/TagHelpers/Add");
+            var response = await Client.GetStringAsync("http://localhost/TagHelpers/Add");
 
             // Assert
             var responseLines = response.Split(new[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);
@@ -124,18 +127,16 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(expected, responseLines[1]);
         }
 
-        [ConditionalTheory]
+        [ConditionalFact]
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
         public async Task TagHelpersFromTheApplication_CanBeRemoved()
         {
             // Arrange
             var assemblyNamePrefix = GetAssemblyNamePrefix();
             var expected = @"<root>root-content</root>";
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
 
             // Act
-            var response = await client.GetStringAsync("http://localhost/TagHelpers/Remove");
+            var response = await Client.GetStringAsync("http://localhost/TagHelpers/Remove");
 
             // Assert
             var responseLines = response.Split(new[] { "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);

@@ -6,13 +6,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.Framework.Primitives;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Test
 {
     public class JQueryFormValueProviderFactoryTest
     {
-        private static readonly IDictionary<string, string[]> _backingStore = new Dictionary<string, string[]>
+        private static readonly IDictionary<string, StringValues> _backingStore = new Dictionary<string, StringValues>
         {
             { "[]", new[] { "found" } },
             { "[]property1", new[] { "found" } },
@@ -37,14 +38,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         };
 
         [Fact]
-        public void GetValueProvider_ReturnsNull_WhenContentTypeIsNotFormUrlEncoded()
+        public async Task GetValueProvider_ReturnsNull_WhenContentTypeIsNotFormUrlEncoded()
         {
             // Arrange
             var context = CreateContext("some-content-type", formValues: null);
             var factory = new JQueryFormValueProviderFactory();
 
             // Act
-            var result = factory.GetValueProvider(context);
+            var result = await factory.GetValueProviderAsync(context);
 
             // Assert
             Assert.Null(result);
@@ -55,14 +56,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         [InlineData("application/x-www-form-urlencoded;charset=utf-8")]
         [InlineData("multipart/form-data; boundary=----WebKitFormBoundarymx2fSWqWSd0OxQqq")]
         [InlineData("multipart/form-data; boundary=----WebKitFormBoundarymx2fSWqWSd0OxQqq; charset=utf-8")]
-        public void GetValueProvider_ReturnsExpectedValueProviderInstanceWithCurrentCulture(string contentType)
+        public async Task GetValueProviderAsync_ReturnsValueProvider_WithCurrentCulture(string contentType)
         {
             // Arrange
             var context = CreateContext(contentType, formValues: null);
             var factory = new JQueryFormValueProviderFactory();
 
             // Act
-            var result = factory.GetValueProvider(context);
+            var result = await factory.GetValueProviderAsync(context);
 
             // Assert
             var valueProvider = Assert.IsType<JQueryFormValueProvider>(result);
@@ -106,25 +107,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var factory = new JQueryFormValueProviderFactory();
 
             // Act
-            var valueProvider = factory.GetValueProvider(context);
-            var result = await valueProvider.GetValueAsync(key);
+            var valueProvider = await factory.GetValueProviderAsync(context);
+            var result = valueProvider.GetValue(key);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.NotNull(result.RawValue);
-            var value = Assert.IsType<string>(result.RawValue);
-            Assert.Equal("found", value);
+            Assert.Equal("found", (string)result);
         }
 
         private static ValueProviderFactoryContext CreateContext(
             string contentType,
-            IDictionary<string, string[]> formValues)
+            IDictionary<string, StringValues> formValues)
         {
             var context = new DefaultHttpContext();
             context.Request.ContentType = contentType;
-            if (formValues != null)
+
+            if (context.Request.HasFormContentType)
             {
-                context.Request.Form = new FormCollection(formValues);
+                context.Request.Form = new FormCollection(formValues ?? new Dictionary<string, StringValues>());
             }
 
             return new ValueProviderFactoryContext(

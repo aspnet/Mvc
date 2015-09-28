@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Newtonsoft.Json;
@@ -501,7 +502,7 @@ namespace Microsoft.AspNet.Mvc
             controller.ActionContext = actionContext;
 
             // Assert
-            Assert.Equal(actionContext.HttpContext, controller.Context);
+            Assert.Equal(actionContext.HttpContext, controller.HttpContext);
             Assert.Equal(actionContext.RouteData, controller.RouteData);
             Assert.Equal(actionContext.ModelState, controller.ModelState);
         }
@@ -527,7 +528,7 @@ namespace Microsoft.AspNet.Mvc
             controller.ActionContext = actionContext;
 
             // Assert
-            Assert.Equal(httpContext.Object, controller.Context);
+            Assert.Equal(httpContext.Object, controller.HttpContext);
             Assert.Equal(routeData.Object, controller.RouteData);
             Assert.Equal(actionContext.ModelState, controller.ModelState);
             Assert.Equal(actionDescriptor.Object, actionContext.ActionDescriptor);

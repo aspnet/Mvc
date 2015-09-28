@@ -11,7 +11,6 @@ using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Parser.SyntaxTree;
 using Microsoft.AspNet.Razor.Parser.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -33,12 +32,32 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="defaultInheritedChunks">The <see cref="IReadOnlyList{Chunk}"/> inherited by
         /// default by all Razor pages in the application.</param>
         public MvcRazorParser(
-            [NotNull] RazorParser parser,
-            [NotNull] IReadOnlyList<ChunkTree> inheritedChunkTrees,
-            [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks,
-            [NotNull] string modelExpressionTypeName)
+            RazorParser parser,
+            IReadOnlyList<ChunkTree> inheritedChunkTrees,
+            IReadOnlyList<Chunk> defaultInheritedChunks,
+            string modelExpressionTypeName)
             : base(parser)
         {
+            if (parser == null)
+            {
+                throw new ArgumentNullException(nameof(parser));
+            }
+
+            if (inheritedChunkTrees == null)
+            {
+                throw new ArgumentNullException(nameof(inheritedChunkTrees));
+            }
+
+            if (defaultInheritedChunks == null)
+            {
+                throw new ArgumentNullException(nameof(defaultInheritedChunks));
+            }
+
+            if (modelExpressionTypeName == null)
+            {
+                throw new ArgumentNullException(nameof(modelExpressionTypeName));
+            }
+
             // Construct tag helper descriptors from @addTagHelper, @removeTagHelper and @tagHelperPrefix chunks
             _viewImportsDirectiveDescriptors = GetTagHelperDirectiveDescriptors(
                 inheritedChunkTrees,
@@ -49,9 +68,19 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         /// <inheritdoc />
         protected override IEnumerable<TagHelperDescriptor> GetTagHelperDescriptors(
-            [NotNull] Block documentRoot,
-            [NotNull] ErrorSink errorSink)
+            Block documentRoot,
+            ErrorSink errorSink)
         {
+            if (documentRoot == null)
+            {
+                throw new ArgumentNullException(nameof(documentRoot));
+            }
+
+            if (errorSink == null)
+            {
+                throw new ArgumentNullException(nameof(errorSink));
+            }
+
             var visitor = new ViewImportsTagHelperDirectiveSpanVisitor(
                 TagHelperDescriptorResolver,
                 _viewImportsDirectiveDescriptors,
@@ -68,10 +97,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                             _modelExpressionTypeName,
                             StringComparison.Ordinal))
                     {
-                        errorSink.OnError(SourceLocation.Undefined, Resources.FormatMvcRazorParser_InvalidPropertyType(
-                            descriptor.TypeName,
-                            attributeDescriptor.Name,
-                            _modelExpressionTypeName));
+                        errorSink.OnError(
+                            SourceLocation.Undefined,
+                            Resources.FormatMvcRazorParser_InvalidPropertyType(
+                                descriptor.TypeName,
+                                attributeDescriptor.Name,
+                                _modelExpressionTypeName),
+                            length: 0);
                     }
                 }
             }
@@ -85,15 +117,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var descriptors = new List<TagHelperDirectiveDescriptor>();
 
-            // For tag helpers, the @removeTagHelper only applies tag helpers that were added prior to it.
-            // Consequently we must visit tag helpers outside-in - furthest _ViewImports first and nearest one last.
-            // This is different from the behavior of chunk merging where we visit the nearest one first and ignore
-            // chunks that were previously visited.
-            var chunksFromViewImports = inheritedChunkTrees
-                .Reverse()
-                .SelectMany(tree => tree.Chunks);
-            var chunksInOrder = defaultInheritedChunks.Concat(chunksFromViewImports);
-            foreach (var chunk in chunksInOrder)
+            var inheritedChunks = defaultInheritedChunks.Concat(inheritedChunkTrees.SelectMany(tree => tree.Chunks));
+            foreach (var chunk in inheritedChunks)
             {
                 // All TagHelperDirectiveDescriptors created here have undefined source locations because the source
                 // that created them is not in the same file.

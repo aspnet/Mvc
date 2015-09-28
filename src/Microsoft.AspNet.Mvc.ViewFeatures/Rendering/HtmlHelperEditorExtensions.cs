@@ -4,7 +4,6 @@
 using System;
 using System.Linq.Expressions;
 using Microsoft.AspNet.Html.Abstractions;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -37,8 +36,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
-        public static IHtmlContent Editor([NotNull] this IHtmlHelper htmlHelper, string expression)
+        public static IHtmlContent Editor(this IHtmlHelper htmlHelper, string expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(expression, templateName: null, htmlFieldName: null, additionalViewData: null);
         }
 
@@ -54,8 +58,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
@@ -73,10 +77,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent Editor(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression,
                 templateName: null,
@@ -110,8 +119,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
-        public static IHtmlContent Editor([NotNull] this IHtmlHelper htmlHelper, string expression, string templateName)
+        public static IHtmlContent Editor(this IHtmlHelper htmlHelper, string expression, string templateName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(expression, templateName, htmlFieldName: null, additionalViewData: null);
         }
 
@@ -128,8 +142,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="templateName">The name of the template used to create the HTML markup.</param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
@@ -147,11 +161,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent Editor(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             string templateName,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression,
                 templateName,
@@ -190,11 +209,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent Editor(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string expression,
             string templateName,
             string htmlFieldName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(expression, templateName, htmlFieldName, additionalViewData: null);
         }
 
@@ -218,9 +242,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression)
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.EditorFor(expression, templateName: null, htmlFieldName: null, additionalViewData: null);
         }
 
@@ -233,8 +267,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="expression">An expression to be evaluated against the current model.</param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
@@ -250,10 +284,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.EditorFor(
                 expression,
                 templateName: null,
@@ -283,10 +327,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string templateName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.EditorFor(expression, templateName, htmlFieldName: null, additionalViewData: null);
         }
 
@@ -300,8 +354,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="templateName">The name of the template that is used to create the HTML markup.</param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
@@ -317,11 +371,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string templateName,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.EditorFor(
                 expression,
                 templateName,
@@ -355,11 +419,21 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression,
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression,
             string templateName,
             string htmlFieldName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.EditorFor(expression, templateName, htmlFieldName, additionalViewData: null);
         }
 
@@ -379,8 +453,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
-        public static IHtmlContent EditorForModel([NotNull] this IHtmlHelper htmlHelper)
+        public static IHtmlContent EditorForModel(this IHtmlHelper htmlHelper)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: null,
@@ -395,8 +474,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="htmlHelper">The <see cref="IHtmlHelper"/> instance this method extends.</param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
@@ -409,8 +488,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
-        public static IHtmlContent EditorForModel([NotNull] this IHtmlHelper htmlHelper, object additionalViewData)
+        public static IHtmlContent EditorForModel(this IHtmlHelper htmlHelper, object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: null,
@@ -435,8 +519,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// case-sensitive file systems.
         /// </para>
         /// </remarks>
-        public static IHtmlContent EditorForModel([NotNull] this IHtmlHelper htmlHelper, string templateName)
+        public static IHtmlContent EditorForModel(this IHtmlHelper htmlHelper, string templateName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: templateName,
@@ -453,8 +542,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <param name="templateName">The name of the template used to create the HTML markup.</param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
@@ -468,10 +557,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorForModel(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string templateName,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: templateName,
@@ -502,10 +596,15 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorForModel(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string templateName,
             string htmlFieldName)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: templateName,
@@ -526,8 +625,8 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </param>
         /// <param name="additionalViewData">
         /// An anonymous <see cref="object"/> or <see cref="System.Collections.Generic.IDictionary{string, object}"/>
-        /// that can contain additional view data that will be merged into the <see cref="ViewDataDictionary{TModel}"/>
-        /// instance created for the template.
+        /// that can contain additional view data that will be merged into the
+        /// <see cref="ViewFeatures.ViewDataDictionary{TModel}"/> instance created for the template.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element(s).</returns>
         /// <remarks>
@@ -541,11 +640,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// </para>
         /// </remarks>
         public static IHtmlContent EditorForModel(
-            [NotNull] this IHtmlHelper htmlHelper,
+            this IHtmlHelper htmlHelper,
             string templateName,
             string htmlFieldName,
             object additionalViewData)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Editor(
                 expression: null,
                 templateName: templateName,

@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -13,11 +14,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     /// </summary>
     public class OperationBindingContext
     {
-        /// <summary>
-        /// Represents if there has been a body bound model found during the current model binding process.
-        /// </summary>
-        public BodyBindingState BodyBindingState { get; set; } = BodyBindingState.NotBodyBased;
-
         /// <summary>
         /// Gets or sets the <see cref="HttpContext"/> for the current request.
         /// </summary>

@@ -5,6 +5,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.DependencyInjection.Extensions;
@@ -73,13 +76,13 @@ namespace Microsoft.AspNet.Mvc
                 typeof(ILogger<ObjectResult>),
                 new Logger<ObjectResult>(NullLoggerFactory.Instance)));
 
-            var optionsAccessor = new MockMvcOptionsAccessor();
-            optionsAccessor.Options.OutputFormatters.Add(new JsonOutputFormatter());
+            var optionsAccessor = new TestOptionsManager<MvcOptions>();
+            optionsAccessor.Value.OutputFormatters.Add(new JsonOutputFormatter());
             services.Add(new ServiceDescriptor(typeof(IOptions<MvcOptions>), optionsAccessor));
 
             var bindingContext = new ActionBindingContext
             {
-                OutputFormatters = optionsAccessor.Options.OutputFormatters,
+                OutputFormatters = optionsAccessor.Value.OutputFormatters,
             };
             var bindingContextAccessor = new ActionBindingContextAccessor
             {

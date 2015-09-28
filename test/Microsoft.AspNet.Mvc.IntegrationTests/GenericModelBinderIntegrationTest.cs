@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -43,7 +43,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<IFormCollection>>(modelBindingResult.Model);
@@ -82,7 +81,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<IFormCollection>>(modelBindingResult.Model);
@@ -122,7 +120,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<IFormCollection>>(modelBindingResult.Model);
@@ -151,19 +148,20 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             }
         }
 
-        private class AddressBinder : BindingSourceModelBinder
+        private class AddressBinder : IModelBinder
         {
-            public AddressBinder()
-                : base(BindAddressAttribute.Source)
+            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
             {
-            }
+                var allowedBindingSource = bindingContext.BindingSource;
+                if (allowedBindingSource == null || 
+                    !allowedBindingSource.CanAcceptDataFrom(BindAddressAttribute.Source))
+                {
+                    // Binding Sources are opt-in. This model either didn't specify one or specified something
+                    // incompatible so let other binders run.
+                    return ModelBindingResult.NoResultAsync;
+                }
 
-            protected override Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext)
-            {
-                return Task.FromResult(new ModelBindingResult(
-                    new Address(),
-                    bindingContext.ModelName,
-                    isModelSet: true));
+                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, new Address());
             }
         }
 
@@ -191,7 +189,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Address[]>(modelBindingResult.Model);
@@ -226,7 +223,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Address[]>(modelBindingResult.Model);
@@ -262,7 +258,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, int>[]>(modelBindingResult.Model);
@@ -276,12 +271,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0][0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter[0][0].Value").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -308,7 +303,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, int>[]>(modelBindingResult.Model);
@@ -322,12 +316,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "[0][0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "[0][0].Value").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -354,7 +348,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, int>[]>(modelBindingResult.Model);
@@ -390,7 +383,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<KeyValuePair<string, int>>>(modelBindingResult.Model);
@@ -403,12 +395,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter[0].Value").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -435,7 +427,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<KeyValuePair<string, int>>>(modelBindingResult.Model);
@@ -448,12 +439,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "[0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "[0].Value").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -480,7 +471,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<KeyValuePair<string, int>>>(modelBindingResult.Model);
@@ -517,7 +507,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, List<int>>>(modelBindingResult.Model);
@@ -530,16 +519,16 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter[0].Value[0]").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter[0].Value[1]").Value;
-            Assert.Equal("11", entry.Value.AttemptedValue);
-            Assert.Equal("11", entry.Value.RawValue);
+            Assert.Equal("11", entry.AttemptedValue);
+            Assert.Equal("11", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -566,7 +555,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, List<int>>>(modelBindingResult.Model);
@@ -579,16 +567,16 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "[0].Key").Value;
-            Assert.Equal("key0", entry.Value.AttemptedValue);
-            Assert.Equal("key0", entry.Value.RawValue);
+            Assert.Equal("key0", entry.AttemptedValue);
+            Assert.Equal("key0", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "[0].Value[0]").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "[0].Value[1]").Value;
-            Assert.Equal("11", entry.Value.AttemptedValue);
-            Assert.Equal("11", entry.Value.RawValue);
+            Assert.Equal("11", entry.AttemptedValue);
+            Assert.Equal("11", entry.RawValue);
         }
 
         // This is part of a random sampling of scenarios where a GenericModelBinder is used
@@ -615,7 +603,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Dictionary<string, List<int>>>(modelBindingResult.Model);

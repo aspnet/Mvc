@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -33,98 +33,47 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         /// <inheritdoc />
         public IReadOnlyList<IModelBinder> ModelBinders { get; }
 
-        public virtual async Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
+        public virtual Task<ModelBindingResult> BindModelAsync([NotNull] ModelBindingContext bindingContext)
         {
-            // Will there be a last chance (fallback) binding attempt?
-            var isFirstChanceBinding = bindingContext.FallbackToEmptyPrefix &&
-                !string.IsNullOrEmpty(bindingContext.ModelName);
-
-            var newBindingContext = CreateNewBindingContext(bindingContext, bindingContext.ModelName);
+            var newBindingContext = CreateNewBindingContext(bindingContext);
             if (newBindingContext == null)
             {
                 // Unable to find a value provider for this binding source. Binding will fail.
-                return null;
+                return ModelBindingResult.NoResultAsync;
             }
 
-            newBindingContext.IsFirstChanceBinding = isFirstChanceBinding;
-            var modelBindingResult = await TryBind(newBindingContext);
-
-            if (modelBindingResult == null && isFirstChanceBinding)
-            {
-                // Fall back to empty prefix.
-                newBindingContext = CreateNewBindingContext(bindingContext, modelName: string.Empty);
-                Debug.Assert(newBindingContext != null, "Should have failed on first attempt.");
-
-                modelBindingResult = await TryBind(newBindingContext);
-            }
-
-            if (modelBindingResult == null)
-            {
-                // Unable to bind or something went wrong.
-                return null;
-            }
-
-            bindingContext.OperationBindingContext.BodyBindingState =
-                newBindingContext.OperationBindingContext.BodyBindingState;
-
-            var bindingKey = bindingContext.ModelName;
-            if (modelBindingResult.IsModelSet)
-            {
-                // Update the model state key if we are bound using an empty prefix and it is a complex type.
-                // This is needed as validation uses the model state key to log errors. The client validation expects
-                // the errors with property names rather than the full name.
-                if (newBindingContext.ModelMetadata.IsComplexType && string.IsNullOrEmpty(modelBindingResult.Key))
-                {
-                    // For non-complex types, if we fell back to the empty prefix, we should still be using the name
-                    // of the parameter/property. Complex types have their own property names which acts as model
-                    // state keys and do not need special treatment.
-                    // For example :
-                    //
-                    // public class Model
-                    // {
-                    //     public int SimpleType { get; set; }
-                    // }
-                    // public void Action(int id, Model model)
-                    // {
-                    // }
-                    //
-                    // In this case, for the model parameter the key would be SimpleType instead of model.SimpleType.
-                    // (i.e here the prefix for the model key is empty).
-                    // For the id parameter the key would be id.
-                    bindingKey = string.Empty;
-                }
-            }
-
-            return new ModelBindingResult(
-                modelBindingResult.Model,
-                bindingKey,
-                modelBindingResult.IsModelSet,
-                modelBindingResult.ValidationNode);
+            return RunModelBinders(newBindingContext);
         }
 
-        private async Task<ModelBindingResult> TryBind(ModelBindingContext bindingContext)
+        private async Task<ModelBindingResult> RunModelBinders(ModelBindingContext bindingContext)
         {
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
             foreach (var binder in ModelBinders)
             {
                 var result = await binder.BindModelAsync(bindingContext);
-                if (result != null)
+                if (result != ModelBindingResult.NoResult)
                 {
-                    // Use returned ModelBindingResult if it indicates the model was set, indicates the binder
-                    // encountered a fatal error, or is related to a ModelState entry.
-                    //
-                    // The second condition is necessary because the BodyModelBinder unconditionally binds during the
-                    // first attempt and does not always create ModelState values using ModelName.
-                    //
-                    // The third condition is necessary because the ModelState entry would never be validated if
+                    // This condition is necessary because the ModelState entry would never be validated if
                     // caller fell back to the empty prefix, leading to an possibly-incorrect !IsValid. In most
                     // (hopefully all) cases, the ModelState entry exists because some binders add errors before
                     // returning a result with !IsModelSet. Those binders often cannot run twice anyhow.
-                    if (result.IsFatalError ||
-                        result.IsModelSet ||
+                    if (result.IsModelSet ||
                         bindingContext.ModelState.ContainsKey(bindingContext.ModelName))
                     {
+                        if (bindingContext.IsTopLevelObject && result.Model != null)
+                        {
+                            ValidationStateEntry entry;
+                            if (!bindingContext.ValidationState.TryGetValue(result.Model, out entry))
+                            {
+                                entry = new ValidationStateEntry();
+                                bindingContext.ValidationState.Add(result.Model, entry);
+                            }
+
+                            entry.Key = entry.Key ?? result.Key;
+                            entry.Metadata = entry.Metadata ?? bindingContext.ModelMetadata;
+                        }
+
                         return result;
                     }
 
@@ -136,30 +85,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             }
 
             // Either we couldn't find a binder, or the binder couldn't bind. Distinction is not important.
-            return null;
+            return ModelBindingResult.NoResult;
         }
 
-        private static ModelBindingContext CreateNewBindingContext(
-            ModelBindingContext oldBindingContext,
-            string modelName)
+        private static ModelBindingContext CreateNewBindingContext(ModelBindingContext oldBindingContext)
         {
-            var newBindingContext = new ModelBindingContext
-            {
-                Model = oldBindingContext.Model,
-                ModelMetadata = oldBindingContext.ModelMetadata,
-                ModelName = modelName,
-                ModelState = oldBindingContext.ModelState,
-                ValueProvider = oldBindingContext.ValueProvider,
-                OperationBindingContext = oldBindingContext.OperationBindingContext,
-                PropertyFilter = oldBindingContext.PropertyFilter,
-                BinderModelName = oldBindingContext.BinderModelName,
-                BindingSource = oldBindingContext.BindingSource,
-                BinderType = oldBindingContext.BinderType,
-                IsTopLevelObject = oldBindingContext.IsTopLevelObject,
-            };
-
-            newBindingContext.OperationBindingContext.BodyBindingState = GetBodyBindingState(oldBindingContext);
-
             // If the property has a specified data binding sources, we need to filter the set of value providers
             // to just those that match. We can skip filtering when IsGreedy == true, because that can't use
             // value providers.
@@ -178,15 +108,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             // public IActionResult UpdatePerson([FromForm] Person person) { }
             //
             // In this example, [FromQuery] overrides the ambient data source (form).
+            IValueProvider valueProvider = oldBindingContext.ValueProvider;
             var bindingSource = oldBindingContext.BindingSource;
             if (bindingSource != null && !bindingSource.IsGreedy)
             {
-                var valueProvider =
-                    oldBindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
-                if (valueProvider != null)
+                var bindingSourceValueProvider = valueProvider as IBindingSourceValueProvider;
+                if (bindingSourceValueProvider != null)
                 {
-                    newBindingContext.ValueProvider = valueProvider.Filter(bindingSource);
-                    if (newBindingContext.ValueProvider == null)
+                    valueProvider = bindingSourceValueProvider.Filter(bindingSource);
+                    if (valueProvider == null)
                     {
                         // Unable to find a value provider for this binding source.
                         return null;
@@ -194,40 +124,38 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 }
             }
 
+            var newBindingContext = new ModelBindingContext
+            {
+                Model = oldBindingContext.Model,
+                ModelMetadata = oldBindingContext.ModelMetadata,
+                FieldName = oldBindingContext.FieldName,
+                ModelState = oldBindingContext.ModelState,
+                ValueProvider = valueProvider,
+                OperationBindingContext = oldBindingContext.OperationBindingContext,
+                PropertyFilter = oldBindingContext.PropertyFilter,
+                BinderModelName = oldBindingContext.BinderModelName,
+                BindingSource = oldBindingContext.BindingSource,
+                BinderType = oldBindingContext.BinderType,
+                IsTopLevelObject = oldBindingContext.IsTopLevelObject,
+                ValidationState = oldBindingContext.ValidationState,
+            };
+
+            if (bindingSource != null && bindingSource.IsGreedy)
+            {
+                newBindingContext.ModelName = oldBindingContext.ModelName;
+            }
+            else if (
+                !oldBindingContext.FallbackToEmptyPrefix ||
+                newBindingContext.ValueProvider.ContainsPrefix(oldBindingContext.ModelName))
+            {
+                newBindingContext.ModelName = oldBindingContext.ModelName;
+            }
+            else
+            {
+                newBindingContext.ModelName = string.Empty;
+            }
+
             return newBindingContext;
-        }
-
-        private static BodyBindingState GetBodyBindingState(ModelBindingContext oldBindingContext)
-        {
-            var bindingSource = oldBindingContext.BindingSource;
-
-            var willReadBodyWithFormatter = bindingSource == BindingSource.Body;
-            var willReadBodyAsFormData = bindingSource == BindingSource.Form;
-
-            var currentModelNeedsToReadBody = willReadBodyWithFormatter || willReadBodyAsFormData;
-            var oldState = oldBindingContext.OperationBindingContext.BodyBindingState;
-
-            // We need to throw if there are multiple models which can cause body to be read multiple times.
-            // Reading form data multiple times is ok since we cache form data. For the models marked to read using
-            // formatters, multiple reads are not allowed.
-            if (oldState == BodyBindingState.FormatterBased && currentModelNeedsToReadBody ||
-                oldState == BodyBindingState.FormBased && willReadBodyWithFormatter)
-            {
-                throw new InvalidOperationException(Resources.MultipleBodyParametersOrPropertiesAreNotAllowed);
-            }
-
-            var state = oldBindingContext.OperationBindingContext.BodyBindingState;
-            if (willReadBodyWithFormatter)
-            {
-                state = BodyBindingState.FormatterBased;
-            }
-            else if (willReadBodyAsFormData && oldState != BodyBindingState.FormatterBased)
-            {
-                // Only update the model binding state if we have not discovered formatter based state already.
-                state = BodyBindingState.FormBased;
-            }
-
-            return state;
         }
     }
 }

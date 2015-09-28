@@ -1,13 +1,15 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace ActivatorWebSite.TagHelpers
 {
-    [TargetElement("body")]
+    [HtmlTargetElement("body")]
     public class TitleTagHelper : TagHelper
     {
         public TitleTagHelper(IHtmlHelper htmlHelper)
@@ -26,8 +28,8 @@ namespace ActivatorWebSite.TagHelpers
             (HtmlHelper as ICanHasViewContext)?.Contextualize(ViewContext);
 
             var builder = new TagBuilder("h2");
-            var title = ViewContext.ViewBag.Title;
-            builder.SetInnerText(title);
+            var title = (string)ViewContext.ViewBag.Title;
+            builder.InnerHtml.SetContent(title);
             output.PreContent.SetContent(builder);
         }
     }

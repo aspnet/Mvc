@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -42,7 +43,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order1>(modelBindingResult.Model);
@@ -53,8 +53,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.CustomerName").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -80,7 +80,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order1>(modelBindingResult.Model);
@@ -91,7 +90,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "CustomerName").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -131,7 +131,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order2>(modelBindingResult.Model);
@@ -143,8 +142,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -170,7 +169,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order2>(modelBindingResult.Model);
@@ -181,7 +179,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "Customer").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -195,7 +194,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         private class Person3
         {
-            public int? Age { get; set; }
+            public int Age { get; set; }
 
             [Required]
             public string Name { get; set; }
@@ -223,7 +222,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order3>(modelBindingResult.Model);
@@ -235,8 +233,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -263,7 +261,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order3>(modelBindingResult.Model);
@@ -276,7 +273,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -316,7 +314,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order4>(modelBindingResult.Model);
@@ -328,8 +325,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "Items[0].ItemId").Value;
-            Assert.Equal("17", entry.Value.AttemptedValue);
-            Assert.Equal("17", entry.Value.RawValue);
+            Assert.Equal("17", entry.AttemptedValue);
+            Assert.Equal("17", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -356,7 +353,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order4>(modelBindingResult.Model);
@@ -367,7 +363,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "Items").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -404,7 +401,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<Order5>>(modelBindingResult.Model);
@@ -415,8 +411,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].ProductId").Value;
-            Assert.Equal("17", entry.Value.AttemptedValue);
-            Assert.Equal("17", entry.Value.RawValue);
+            Assert.Equal("17", entry.AttemptedValue);
+            Assert.Equal("17", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -443,7 +439,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<Order5>>(modelBindingResult.Model);
@@ -456,7 +451,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].ProductId").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -491,7 +487,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order6>(modelBindingResult.Model);
@@ -502,8 +497,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -529,7 +524,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order6>(modelBindingResult.Model);
@@ -540,8 +534,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Name").Value;
-            Assert.Equal("billybob", entry.Value.AttemptedValue);
-            Assert.Equal("billybob", entry.Value.RawValue);
+            Assert.Equal("billybob", entry.AttemptedValue);
+            Assert.Equal("billybob", entry.RawValue);
 
             var error = Assert.Single(entry.Errors);
             Assert.Equal("Too Long.", error.ErrorMessage);
@@ -581,7 +575,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order7>(modelBindingResult.Model);
@@ -592,8 +585,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -619,7 +612,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order7>(modelBindingResult.Model);
@@ -630,8 +622,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("billybob", entry.Value.AttemptedValue);
-            Assert.Equal("billybob", entry.Value.RawValue);
+            Assert.Equal("billybob", entry.AttemptedValue);
+            Assert.Equal("billybob", entry.RawValue);
 
             var error = Assert.Single(entry.Errors);
             Assert.Equal("Too Long.", error.ErrorMessage);
@@ -660,7 +652,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order7>(modelBindingResult.Model);
@@ -719,7 +710,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order8>(modelBindingResult.Model);
@@ -730,8 +720,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -757,7 +747,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order8>(modelBindingResult.Model);
@@ -768,11 +757,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
-            Assert.Equal("billybob", entry.Value.AttemptedValue);
-            Assert.Equal("billybob", entry.Value.RawValue);
+            Assert.Equal("billybob", entry.AttemptedValue);
+            Assert.Equal("billybob", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter.Customer").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
             var error = Assert.Single(entry.Errors);
             Assert.Equal("Invalid Person.", error.ErrorMessage);
@@ -827,7 +817,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order9>(modelBindingResult.Model);
@@ -838,8 +827,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Products[0].Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -865,7 +854,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Order9>(modelBindingResult.Model);
@@ -876,11 +864,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Products[0].Name").Value;
-            Assert.Equal("billybob", entry.Value.AttemptedValue);
-            Assert.Equal("billybob", entry.Value.RawValue);
+            Assert.Equal("billybob", entry.AttemptedValue);
+            Assert.Equal("billybob", entry.RawValue);
 
             entry = Assert.Single(modelState, e => e.Key == "parameter.Products").Value;
-            Assert.Null(entry.Value);
+            Assert.Null(entry.RawValue);
+            Assert.Null(entry.AttemptedValue);
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
 
             var error = Assert.Single(entry.Errors);
@@ -916,7 +905,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<Order10>>(modelBindingResult.Model);
@@ -927,8 +915,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
             Assert.Empty(entry.Errors);
         }
 
@@ -954,7 +942,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<Order10>>(modelBindingResult.Model);
@@ -965,8 +952,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter[0].Name").Value;
-            Assert.Equal("billybob", entry.Value.AttemptedValue);
-            Assert.Equal("billybob", entry.Value.RawValue);
+            Assert.Equal("billybob", entry.AttemptedValue);
+            Assert.Equal("billybob", entry.RawValue);
 
             var error = Assert.Single(entry.Errors);
             Assert.Equal("Too Long.", error.ErrorMessage);
@@ -995,7 +982,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<List<Order10>>(modelBindingResult.Model);
@@ -1018,12 +1004,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
         private class Address
         {
-            public int? Street { get; set; }
+            public int Street { get; set; }
 
             public string State { get; set; }
 
             [Range(10000, 99999)]
-            public int? Zip { get; set; }
+            public int Zip { get; set; }
 
             public Country Country { get; set; }
         }
@@ -1070,23 +1056,23 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "HomeAddress.Country.Name").Value;
-            Assert.Equal("US", entry.Value.AttemptedValue);
-            Assert.Equal("US", entry.Value.RawValue);
+            Assert.Equal("US", entry.AttemptedValue);
+            Assert.Equal("US", entry.RawValue);
             Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
 
             entry = Assert.Single(modelState, e => e.Key == "ShippingAddresses[0].Zip").Value;
-            Assert.Equal("45", entry.Value.AttemptedValue);
-            Assert.Equal("45", entry.Value.RawValue);
+            Assert.Equal("45", entry.AttemptedValue);
+            Assert.Equal("45", entry.RawValue);
             Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
 
             entry = Assert.Single(modelState, e => e.Key == "HomeAddress.Zip").Value;
-            Assert.Equal("46", entry.Value.AttemptedValue);
-            Assert.Equal("46", entry.Value.RawValue);
+            Assert.Equal("46", entry.AttemptedValue);
+            Assert.Equal("46", entry.RawValue);
             Assert.Equal(ModelValidationState.Skipped, entry.ValidationState);
 
             entry = Assert.Single(modelState, e => e.Key == "OfficeAddress").Value;
-            Assert.Null(entry.Value.AttemptedValue);
-            var address = Assert.IsType<Address>(entry.Value.RawValue);
+            Assert.Null(entry.AttemptedValue);
+            var address = Assert.IsType<Address>(entry.RawValue);
             Assert.Equal(47, address.Zip);
 
             // Address itself is not excluded from validation.

@@ -14,11 +14,10 @@ using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.Framework.Internal;
-using Microsoft.Framework.OptionsModel;
-using Microsoft.Dnx.Runtime;
 using Microsoft.Dnx.Compilation;
 using Microsoft.Dnx.Compilation.CSharp;
+using Microsoft.Dnx.Runtime;
+using Microsoft.Framework.OptionsModel;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -51,25 +50,36 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// The <see cref="ICompilerOptionsProvider"/> that provides Roslyn compilation settings.
         /// </param>
         /// <param name="host">The <see cref="IMvcRazorHost"/> that was used to generate the code.</param>
-        public RoslynCompilationService(IApplicationEnvironment environment,
-                                        IAssemblyLoadContextAccessor loaderAccessor,
-                                        ILibraryExporter libraryExporter,
-                                        ICompilerOptionsProvider compilerOptionsProvider,
-                                        IMvcRazorHost host,
-                                        IOptions<RazorViewEngineOptions> optionsAccessor)
+        public RoslynCompilationService(
+            IApplicationEnvironment environment,
+            IAssemblyLoadContextAccessor loaderAccessor,
+            ILibraryExporter libraryExporter,
+            ICompilerOptionsProvider compilerOptionsProvider,
+            IMvcRazorHost host,
+            IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _environment = environment;
             _loader = loaderAccessor.GetLoadContext(typeof(RoslynCompilationService).GetTypeInfo().Assembly);
             _libraryExporter = libraryExporter;
             _applicationReferences = new Lazy<List<MetadataReference>>(GetApplicationReferences);
             _compilerOptionsProvider = compilerOptionsProvider;
-            _fileProvider = optionsAccessor.Options.FileProvider;
+            _fileProvider = optionsAccessor.Value.FileProvider;
             _classPrefix = host.MainClassNamePrefix;
         }
 
         /// <inheritdoc />
-        public CompilationResult Compile([NotNull] RelativeFileInfo fileInfo, [NotNull] string compilationContent)
+        public CompilationResult Compile(RelativeFileInfo fileInfo, string compilationContent)
         {
+            if (fileInfo == null)
+            {
+                throw new ArgumentNullException(nameof(fileInfo));
+            }
+
+            if (compilationContent == null)
+            {
+                throw new ArgumentNullException(nameof(compilationContent));
+            }
+
             var assemblyName = Path.GetRandomFileName();
             var compilationSettings = _compilerOptionsProvider.GetCompilationSettings(_environment);
             var syntaxTree = SyntaxTreeGenerator.Generate(compilationContent,
@@ -157,7 +167,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                     sourceFileContent = ReadFileContentsSafely(_fileProvider, sourceFilePath);
                 }
 
-                var compilationFailure = new CompilationFailure(sourceFilePath, sourceFileContent, compilationContent, group.Select(d => d.ToDiagnosticMessage(_environment.RuntimeFramework)));
+                var compilationFailure = new CompilationFailure(
+                    sourceFilePath,
+                    sourceFileContent,
+                    compilationContent,
+                    group.Select(d => d.ToDiagnosticMessage(_environment.RuntimeFramework)));
 
                 failures.Add(compilationFailure);
             }
@@ -258,7 +272,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 }
             });
 
-            return metadata.GetReference();
+            return metadata.GetReference(filePath: path);
         }
 
         private static bool IsError(Diagnostic diagnostic)

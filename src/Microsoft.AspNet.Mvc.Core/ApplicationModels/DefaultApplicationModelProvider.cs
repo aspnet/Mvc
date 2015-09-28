@@ -5,8 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.ActionConstraints;
 using Microsoft.AspNet.Mvc.ApiExplorer;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.Framework.Internal;
@@ -20,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
 
         public DefaultApplicationModelProvider(IOptions<MvcOptions> mvcOptionsAccessor)
         {
-            _globalFilters = mvcOptionsAccessor.Options.Filters;
+            _globalFilters = mvcOptionsAccessor.Value.Filters;
         }
 
         /// <inheritdoc />
@@ -28,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         {
             get
             {
-                return DefaultOrder.DefaultFrameworkSortOrder;
+                return -1000;
             }
         }
 

@@ -3,10 +3,12 @@
 
 using System;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ActionConstraints;
 using Microsoft.AspNet.Mvc.ApplicationModels;
-using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.Internal;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
@@ -21,38 +23,25 @@ namespace Microsoft.Framework.DependencyInjection
 {
     public static class MvcCoreServiceCollectionExtensions
     {
-        public static IMvcBuilder AddMvcCore([NotNull] this IServiceCollection services)
+        public static IMvcCoreBuilder AddMvcCore([NotNull] this IServiceCollection services)
+        {
+            return AddMvcCore(services, setupAction: null);
+        }
+
+        public static IMvcCoreBuilder AddMvcCore(
+            [NotNull] this IServiceCollection services,
+            Action<MvcOptions> setupAction)
         {
             ConfigureDefaultServices(services);
 
             AddMvcCoreServices(services);
 
-            return new MvcBuilder() { Services = services, };
-        }
+            if (setupAction != null)
+            {
+                services.Configure(setupAction);
+            }
 
-        public static IMvcBuilder AddMvcCore(
-            [NotNull] this IServiceCollection services,
-            [NotNull] Action<MvcOptions> setupAction)
-        {
-            ConfigureDefaultServices(services);
-
-            AddMvcCoreServices(services);
-
-            services.Configure(setupAction);
-
-            return new MvcBuilder() { Services = services, };
-        }
-
-        /// <summary>
-        /// Configures a set of <see cref="MvcOptions"/> for the application.
-        /// </summary>
-        /// <param name="services">The services available in the application.</param>
-        /// <param name="setupAction">The <see cref="MvcOptions"/> which need to be configured.</param>
-        public static void ConfigureMvc(
-            [NotNull] this IServiceCollection services,
-            [NotNull] Action<MvcOptions> setupAction)
-        {
-            services.Configure(setupAction);
+            return new MvcCoreBuilder(services);
         }
 
         // To enable unit testing
@@ -77,7 +66,7 @@ namespace Microsoft.Framework.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IActionDescriptorProvider, ControllerActionDescriptorProvider>());
             services.TryAddSingleton<IActionDescriptorsCollectionProvider, DefaultActionDescriptorsCollectionProvider>();
-            
+
             //
             // Action Selection
             //
@@ -121,12 +110,12 @@ namespace Microsoft.Framework.DependencyInjection
             services.TryAddSingleton<IModelMetadataProvider, DefaultModelMetadataProvider>();
             services.TryAdd(ServiceDescriptor.Transient<ICompositeMetadataDetailsProvider>(serviceProvider =>
             {
-                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Options;
+                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Value;
                 return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             }));
             services.TryAdd(ServiceDescriptor.Singleton<IObjectModelValidator>(serviceProvider =>
             {
-                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Options;
+                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Value;
                 var modelMetadataProvider = serviceProvider.GetRequiredService<IModelMetadataProvider>();
                 return new DefaultObjectValidator(options.ValidationExcludeFilters, modelMetadataProvider);
             }));
@@ -145,12 +134,6 @@ namespace Microsoft.Framework.DependencyInjection
         {
             services.AddOptions();
             services.AddRouting();
-            services.AddNotifier();
-        }
-
-        private class MvcBuilder : IMvcBuilder
-        {
-            public IServiceCollection Services { get; set; }
         }
     }
 }

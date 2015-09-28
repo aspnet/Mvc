@@ -8,35 +8,36 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using ActionResultsWebSite;
-using Microsoft.AspNet.Builder;
-using Microsoft.Framework.DependencyInjection;
+#if DNXCORE50
+using Microsoft.AspNet.Testing.xunit;
+#endif
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class ActionResultTests
+    public class ActionResultTests : IClassFixture<MvcTestFixture<ActionResultsWebSite.Startup>>
     {
-        private const string SiteName = nameof(ActionResultsWebSite);
-        private readonly Action<IApplicationBuilder> _app = new Startup().Configure;
-        private readonly Action<IServiceCollection> _configureServices = new Startup().ConfigureServices;
+        public ActionResultTests(MvcTestFixture<ActionResultsWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
+
+        public HttpClient Client { get; }
 
         [Fact]
         public async Task BadRequestResult_CanBeReturned()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var input = "{\"SampleInt\":10}";
 
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetBadResult");
+                "ActionResultsVerification/GetBadResult");
 
             request.Content = new StringContent(input, Encoding.UTF8, "application/json");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -47,15 +48,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedResult_SetsRelativePathInLocationHeader()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedRelative");
+                "ActionResultsVerification/GetCreatedRelative");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -67,15 +65,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedResult_SetsAbsolutePathInLocationHeader()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedAbsolute");
+                "ActionResultsVerification/GetCreatedAbsolute");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -87,15 +82,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedResult_SetsQualifiedPathInLocationHeader()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedQualified");
+                "ActionResultsVerification/GetCreatedQualified");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -109,15 +101,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedResult_SetsUriInLocationHeader()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedUri");
+                "ActionResultsVerification/GetCreatedUri");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -129,15 +118,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedAtActionResult_GeneratesUri_WithActionAndController()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedAtAction");
+                "ActionResultsVerification/GetCreatedAtAction");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -149,15 +135,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedAtRouteResult_GeneratesUri_WithRouteValues()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedAtRoute");
+                "ActionResultsVerification/GetCreatedAtRoute");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -169,15 +152,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task CreatedAtRouteResult_GeneratesUri_WithRouteName()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetCreatedAtRouteWithRouteName");
+                "ActionResultsVerification/GetCreatedAtRouteWithRouteName");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -189,18 +169,15 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task SerializableError_CanSerializeNormalObjects()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass xmlns=\"http://schemas.datacontract.org/2004/07/ActionResultsWebSite\">" +
                 "<SampleInt>2</SampleInt><SampleString>foo</SampleString></DummyClass>";
-            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/Home/GetCustomErrorObject");
+            var request = new HttpRequestMessage(HttpMethod.Post, "Home/GetCustomErrorObject");
             request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json;charset=utf-8"));
             request.Content = new StringContent(input, Encoding.UTF8, "application/xml");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -212,14 +189,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ContentResult_WritesContent_SetsDefaultContentTypeAndEncoding()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var request = new HttpRequestMessage(
-                            HttpMethod.Post,
-                            "http://localhost/ActionResultsVerification/GetContentResult");
+                HttpMethod.Post,
+                "ActionResultsVerification/GetContentResult");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -232,14 +207,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ContentResult_WritesContent_SetsContentTypeWithDefaultEncoding()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var request = new HttpRequestMessage(
-                            HttpMethod.Post,
-                            "http://localhost/ActionResultsVerification/GetContentResultWithContentType");
+                HttpMethod.Post,
+                "ActionResultsVerification/GetContentResultWithContentType");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -248,18 +221,22 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal("content", await response.Content.ReadAsStringAsync());
         }
 
-        [Fact]
+#if DNXCORE50
+        // Work around aspnet/External#43. Encoding.ASCII is of type System.Text.UTF8Encoding with Core CLR on Linux.
+        [ConditionalTheory]
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
+        [Theory]
+#endif
         public async Task ContentResult_WritesContent_SetsContentTypeAndEncoding()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var request = new HttpRequestMessage(
-                            HttpMethod.Post,
-                            "http://localhost/ActionResultsVerification/GetContentResultWithContentTypeAndEncoding");
+                HttpMethod.Post,
+                "ActionResultsVerification/GetContentResultWithContentTypeAndEncoding");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -272,14 +249,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task ObjectResult_WithStatusCodeAndNoContent_SetsSameStatusCode()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var request = new HttpRequestMessage(
-                            HttpMethod.Get,
-                            "http://localhost/ActionResultsVerification/GetObjectResultWithNoContent");
+                HttpMethod.Get,
+                "ActionResultsVerification/GetObjectResultWithNoContent");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -289,15 +264,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task HttpNotFoundObjectResult_NoResponseContent()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Get,
-                "http://localhost/ActionResultsVerification/GetNotFoundObjectResult");
+                "ActionResultsVerification/GetNotFoundObjectResult");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -308,15 +280,12 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task HttpNotFoundObjectResult_WithResponseContent()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
-
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
-                "http://localhost/ActionResultsVerification/GetNotFoundObjectResultWithContent");
+                "ActionResultsVerification/GetNotFoundObjectResultWithContent");
 
             // Act
-            var response = await client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -327,23 +296,21 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task HttpNotFoundObjectResult_WithDisposableObject()
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("guid", Guid.NewGuid().ToString()),
             };
 
             // Act
-            var response1 = await client.PostAsync(
+            var response1 = await Client.PostAsync(
                 "/ActionResultsVerification/GetDisposeCalled",
                 new FormUrlEncodedContent(nameValueCollection));
 
-            await client.PostAsync(
+            await Client.PostAsync(
                 "/ActionResultsVerification/GetNotFoundObjectResultWithDisposableObject",
                 new FormUrlEncodedContent(nameValueCollection));
 
-            var response2 = await client.PostAsync(
+            var response2 = await Client.PostAsync(
                 "/ActionResultsVerification/GetDisposeCalled",
                 new FormUrlEncodedContent(nameValueCollection));
 

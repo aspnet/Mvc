@@ -3,6 +3,7 @@
 
 using ContentNegotiationWebSite.Models;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace ContentNegotiationWebSite
 {

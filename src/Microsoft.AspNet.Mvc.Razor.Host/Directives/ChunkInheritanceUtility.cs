@@ -9,7 +9,6 @@ using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.AspNet.Razor.Parser;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -30,27 +29,54 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// </param>
         /// <param name="defaultInheritedChunks">Sequence of <see cref="Chunk"/>s inherited by default.</param>
         public ChunkInheritanceUtility(
-            [NotNull] MvcRazorHost razorHost,
-            [NotNull] IChunkTreeCache chunkTreeCache,
-            [NotNull] IReadOnlyList<Chunk> defaultInheritedChunks)
+            MvcRazorHost razorHost,
+            IChunkTreeCache chunkTreeCache,
+            IReadOnlyList<Chunk> defaultInheritedChunks)
         {
+            if (razorHost == null)
+            {
+                throw new ArgumentNullException(nameof(razorHost));
+            }
+
+            if (chunkTreeCache == null)
+            {
+                throw new ArgumentNullException(nameof(chunkTreeCache));
+            }
+
+            if (defaultInheritedChunks == null)
+            {
+                throw new ArgumentNullException(nameof(defaultInheritedChunks));
+            }
+
             _razorHost = razorHost;
             _defaultInheritedChunks = defaultInheritedChunks;
             _chunkTreeCache = chunkTreeCache;
         }
 
         /// <summary>
-        /// Gets an ordered <see cref="IReadOnlyList{T}"/> of parsed <see cref="ChunkTree"/> for each
-        /// <c>_ViewImports</c> that is applicable to the page located at <paramref name="pagePath"/>. The list is
-        /// ordered so that the <see cref="ChunkTree"/> for the <c>_ViewImports</c> closest to the
+        /// Gets an ordered <see cref="IReadOnlyList{ChunkTreeResult}"/> of parsed <see cref="ChunkTree"/>s and
+        /// file paths for each <c>_ViewImports</c> that is applicable to the page located at
+        /// <paramref name="pagePath"/>. The list is ordered so that the <see cref="ChunkTreeResult"/>'s
+        /// <see cref="ChunkTreeResult.ChunkTree"/> for the <c>_ViewImports</c> closest to the
         /// <paramref name="pagePath"/> in the file system appears first.
         /// </summary>
         /// <param name="pagePath">The path of the page to locate inherited chunks for.</param>
-        /// <returns>A <see cref="IReadOnlyList{ChunkTree}"/> of parsed <c>_ViewImports</c>
-        /// <see cref="ChunkTree"/>s.</returns>
-        public virtual IReadOnlyList<ChunkTree> GetInheritedChunkTrees([NotNull] string pagePath)
+        /// <returns>A <see cref="IReadOnlyList{ChunkTreeResult}"/> of parsed <c>_ViewImports</c>
+        /// <see cref="ChunkTree"/>s and their file paths.</returns>
+        /// <remarks>
+        /// The resulting <see cref="IReadOnlyList{ChunkTreeResult}"/> is ordered so that the result
+        /// for a _ViewImport closest to the application root appears first and the _ViewImport
+        /// closest to the page appears last i.e.
+        /// [ /_ViewImport, /Views/_ViewImport, /Views/Home/_ViewImport ]
+        /// </remarks>
+        public virtual IReadOnlyList<ChunkTreeResult> GetInheritedChunkTreeResults(string pagePath)
         {
-            var inheritedChunkTrees = new List<ChunkTree>();
+            if (pagePath == null)
+            {
+                throw new ArgumentNullException(nameof(pagePath));
+            }
+
+            var inheritedChunkTreeResults = new List<ChunkTreeResult>();
             var templateEngine = new RazorTemplateEngine(_razorHost);
             foreach (var viewImportsPath in ViewHierarchyUtility.GetViewImportsLocations(pagePath))
             {
@@ -67,11 +93,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
 
                 if (chunkTree != null)
                 {
-                    inheritedChunkTrees.Add(chunkTree);
+                    var result = new ChunkTreeResult(chunkTree, viewImportsPath);
+                    inheritedChunkTreeResults.Insert(0, result);
                 }
             }
 
-            return inheritedChunkTrees;
+            return inheritedChunkTreeResults;
         }
 
         /// <summary>
@@ -81,50 +108,50 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         /// <param name="chunkTree">The <see cref="ChunkTree"/> to merge in to.</param>
         /// <param name="inheritedChunkTrees"><see cref="IReadOnlyList{ChunkTree}"/> inherited from <c>_ViewImports</c>
         /// files.</param>
-        /// <param name="defaultModel">The list of chunks to merge.</param>
+        /// <param name="defaultModel">The default model <see cref="Type"/> name.</param>
         public void MergeInheritedChunkTrees(
-            [NotNull] ChunkTree chunkTree,
-            [NotNull] IReadOnlyList<ChunkTree> inheritedChunkTrees,
+            ChunkTree chunkTree,
+            IReadOnlyList<ChunkTree> inheritedChunkTrees,
             string defaultModel)
         {
-            var mergerMappings = GetMergerMappings(chunkTree, defaultModel);
-            IChunkMerger merger;
+            if (chunkTree == null)
+            {
+                throw new ArgumentNullException(nameof(chunkTree));
+            }
 
+            if (inheritedChunkTrees == null)
+            {
+                throw new ArgumentNullException(nameof(inheritedChunkTrees));
+            }
+
+            var chunkMergers = GetChunkMergers(chunkTree, defaultModel);
             // We merge chunks into the ChunkTree in two passes. In the first pass, we traverse the ChunkTree visiting
             // a mapped IChunkMerger for types that are registered.
             foreach (var chunk in chunkTree.Chunks)
             {
-                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
+                foreach (var merger in chunkMergers)
                 {
                     merger.VisitChunk(chunk);
                 }
             }
 
-            // In the second phase we invoke IChunkMerger.Merge for each chunk that has a mapped merger.
-            // During this phase, the merger can either add to the ChunkTree or ignore the chunk based on the merging
-            // rules.
-            // Read the chunks outside in - that is chunks from the _ViewImports closest to the page get merged in first
-            // and the furthest one last. This allows the merger to ignore a directive like @model that was previously
-            // seen.
-            var chunksToMerge = inheritedChunkTrees.SelectMany(tree => tree.Chunks)
-                                                  .Concat(_defaultInheritedChunks);
-            foreach (var chunk in chunksToMerge)
+            var inheritedChunks = _defaultInheritedChunks.Concat(
+                inheritedChunkTrees.SelectMany(tree => tree.Chunks)).ToArray();
+
+            foreach (var merger in chunkMergers)
             {
-                if (mergerMappings.TryGetValue(chunk.GetType(), out merger))
-                {
-                    merger.Merge(chunkTree, chunk);
-                }
+                merger.MergeInheritedChunks(chunkTree, inheritedChunks);
             }
         }
 
-        private static Dictionary<Type, IChunkMerger> GetMergerMappings(ChunkTree chunkTree, string defaultModel)
+        private static IChunkMerger[] GetChunkMergers(ChunkTree chunkTree, string defaultModel)
         {
             var modelType = ChunkHelper.GetModelTypeName(chunkTree, defaultModel);
-            return new Dictionary<Type, IChunkMerger>
+            return new IChunkMerger[]
             {
-                { typeof(UsingChunk), new UsingChunkMerger() },
-                { typeof(InjectChunk), new InjectChunkMerger(modelType) },
-                { typeof(SetBaseTypeChunk), new SetBaseTypeChunkMerger(modelType) }
+                new UsingChunkMerger(),
+                new InjectChunkMerger(modelType),
+                new SetBaseTypeChunkMerger(modelType)
             };
         }
 

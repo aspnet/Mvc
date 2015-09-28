@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.WebEncoders;
 
@@ -17,35 +18,35 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
     /// <remarks>Resolves URLs starting with '~/' (relative to the application's 'webroot' setting) that are not
     /// targeted by other <see cref="ITagHelper"/>s. Runs prior to other <see cref="ITagHelper"/>s to ensure
     /// application-relative URLs are resolved.</remarks>
-    [TargetElement("*", Attributes = "itemid")]
-    [TargetElement("a", Attributes = "href")]
-    [TargetElement("applet", Attributes = "archive")]
-    [TargetElement("area", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("audio", Attributes = "src")]
-    [TargetElement("base", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("blockquote", Attributes = "cite")]
-    [TargetElement("button", Attributes = "formaction")]
-    [TargetElement("del", Attributes = "cite")]
-    [TargetElement("embed", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("form", Attributes = "action")]
-    [TargetElement("html", Attributes = "manifest")]
-    [TargetElement("iframe", Attributes = "src")]
-    [TargetElement("img", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("img", Attributes = "srcset", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("input", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("input", Attributes = "formaction", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("ins", Attributes = "cite")]
-    [TargetElement("link", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("menuitem", Attributes = "icon")]
-    [TargetElement("object", Attributes = "archive")]
-    [TargetElement("object", Attributes = "data")]
-    [TargetElement("q", Attributes = "cite")]
-    [TargetElement("script", Attributes = "src")]
-    [TargetElement("source", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("source", Attributes = "srcset", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("track", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
-    [TargetElement("video", Attributes = "src")]
-    [TargetElement("video", Attributes = "poster")]
+    [HtmlTargetElement("*", Attributes = "itemid")]
+    [HtmlTargetElement("a", Attributes = "href")]
+    [HtmlTargetElement("applet", Attributes = "archive")]
+    [HtmlTargetElement("area", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("audio", Attributes = "src")]
+    [HtmlTargetElement("base", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("blockquote", Attributes = "cite")]
+    [HtmlTargetElement("button", Attributes = "formaction")]
+    [HtmlTargetElement("del", Attributes = "cite")]
+    [HtmlTargetElement("embed", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("form", Attributes = "action")]
+    [HtmlTargetElement("html", Attributes = "manifest")]
+    [HtmlTargetElement("iframe", Attributes = "src")]
+    [HtmlTargetElement("img", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("img", Attributes = "srcset", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = "formaction", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("ins", Attributes = "cite")]
+    [HtmlTargetElement("link", Attributes = "href", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("menuitem", Attributes = "icon")]
+    [HtmlTargetElement("object", Attributes = "archive")]
+    [HtmlTargetElement("object", Attributes = "data")]
+    [HtmlTargetElement("q", Attributes = "cite")]
+    [HtmlTargetElement("script", Attributes = "src")]
+    [HtmlTargetElement("source", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("source", Attributes = "srcset", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("track", Attributes = "src", TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("video", Attributes = "src")]
+    [HtmlTargetElement("video", Attributes = "poster")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public class UrlResolutionTagHelper : TagHelper
     {
@@ -96,7 +97,7 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
         {
             get
             {
-                return DefaultOrder.DefaultFrameworkSortOrder - 999;
+                return -1000 - 999;
             }
         }
 

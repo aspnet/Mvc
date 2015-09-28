@@ -8,10 +8,12 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Antiforgery;
-using Microsoft.AspNet.DataProtection;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Routing;
 using Microsoft.Framework.OptionsModel;
 using Microsoft.Framework.WebEncoders;
@@ -217,10 +219,16 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 options.HtmlHelperOptions.IdAttributeDotReplacement = idAttributeDotReplacement;
             }
-            options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider());
+            var localizationOptionsAccesor = new Mock<IOptions<MvcDataAnnotationsLocalizationOptions>>();
+
+            localizationOptionsAccesor.SetupGet(o => o.Value).Returns(new MvcDataAnnotationsLocalizationOptions());
+
+            options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider(
+                localizationOptionsAccesor.Object,
+                stringLocalizerFactory: null));
             var optionsAccessor = new Mock<IOptions<MvcViewOptions>>();
             optionsAccessor
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(options);
 
             var serviceProvider = new Mock<IServiceProvider>();
@@ -230,6 +238,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
             serviceProvider
                 .Setup(s => s.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper);
+            serviceProvider
+                .Setup(s => s.GetService(typeof(IViewComponentHelper)))
+                .Returns(new Mock<IViewComponentHelper>().Object);
             serviceProvider
                 .Setup(s => s.GetService(typeof(IViewComponentHelper)))
                 .Returns(new Mock<IViewComponentHelper>().Object);
@@ -274,7 +285,9 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 actionContext,
                 Mock.Of<IView>(),
                 viewData,
-                null,
+                new TempDataDictionary(
+                    new HttpContextAccessor(),
+                    Mock.Of<ITempDataProvider>()),
                 new StringWriter(),
                 options.HtmlHelperOptions);
 

@@ -7,6 +7,8 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Framework.DependencyInjection;
 using Microsoft.Framework.Internal;
 
@@ -30,8 +32,18 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public void Activate([NotNull] IRazorPage page, [NotNull] ViewContext context)
+        public void Activate(IRazorPage page, ViewContext context)
         {
+            if (page == null)
+            {
+                throw new ArgumentNullException(nameof(page));
+            }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var activationInfo = _activationInfo.GetOrAdd(page.GetType(),
                                                           CreateViewActivationInfo);
 

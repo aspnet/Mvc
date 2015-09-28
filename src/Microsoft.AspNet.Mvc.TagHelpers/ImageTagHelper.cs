@@ -3,7 +3,10 @@
 
 using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.Razor.TagHelpers;
+using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.WebEncoders;
@@ -16,7 +19,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <remarks>
     /// The tag helper won't process for cases with just the 'src' attribute.
     /// </remarks>
-    [TargetElement(
+    [HtmlTargetElement(
         "img",
         Attributes = AppendVersionAttributeName + "," + SrcAttributeName,
         TagStructure = TagStructure.WithoutEndTag)]
@@ -44,6 +47,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             HostingEnvironment = hostingEnvironment;
             Cache = cache;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         /// <summary>
@@ -75,22 +87,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            output.CopyHtmlAttribute(SrcAttributeName, context);
+            ProcessUrlAttribute(SrcAttributeName, output);
+
             if (AppendVersion)
             {
                 EnsureFileVersionProvider();
 
-                string resolvedUrl;
-                if (TryResolveUrl(Src, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
-                {
-                    Src = resolvedUrl;
-                }
+                // Retrieve the TagHelperOutput variation of the "src" attribute in case other TagHelpers in the
+                // pipeline have touched the value. If the value is already encoded this ImageTagHelper may
+                // not function properly.
+                Src = output.Attributes[SrcAttributeName].Value as string;
+
                 output.Attributes[SrcAttributeName] = _fileVersionProvider.AddFileVersionToPath(Src);
-            }
-            else
-            {
-                // Pass through attribute that is also a well-known HTML attribute.
-                output.CopyHtmlAttribute(SrcAttributeName, context);
-                ProcessUrlAttribute(SrcAttributeName, output);
             }
         }
 

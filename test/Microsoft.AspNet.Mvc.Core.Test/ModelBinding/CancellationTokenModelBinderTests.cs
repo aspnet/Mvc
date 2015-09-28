@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
     public class CancellationTokenModelBinderTests
     {
         [Fact]
-        public async Task CancellationTokenModelBinder_ReturnsNotNull_ForCancellationTokenType()
+        public async Task CancellationTokenModelBinder_ReturnsNonEmptyResult_ForCancellationTokenType()
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(CancellationToken));
@@ -22,11 +22,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.True(result.IsModelSet);
             Assert.Equal(bindingContext.OperationBindingContext.HttpContext.RequestAborted, result.Model);
-            Assert.NotNull(result.ValidationNode);
-            Assert.True(result.ValidationNode.SuppressValidation);
         }
 
         [Theory]
@@ -43,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(result);
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         private static ModelBindingContext GetBindingContext(Type modelType)
@@ -53,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",
-                ValueProvider = new SimpleHttpValueProvider(),
+                ValueProvider = new SimpleValueProvider(),
                 OperationBindingContext = new OperationBindingContext
                 {
                     ModelBinder = new CancellationTokenModelBinder(),

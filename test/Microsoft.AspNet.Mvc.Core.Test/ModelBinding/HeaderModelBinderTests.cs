@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
         [InlineData(typeof(int))]
         [InlineData(typeof(int[]))]
         [InlineData(typeof(BindingSource))]
-        public async Task BindModelAsync_ReturnsNotNull_ForAllTypes(Type type)
+        public async Task BindModelAsync_ReturnsNonEmptyResult_ForAllTypes_WithHeaderBindingSource(Type type)
         {
             // Arrange
             var binder = new HeaderModelBinder();
@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var result = await binder.BindModelAsync(modelBindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
         }
 
         [Fact]
@@ -40,14 +40,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binder = new HeaderModelBinder();
             var modelBindingContext = GetBindingContext(type);
 
-            modelBindingContext.ModelName = header;
+            modelBindingContext.FieldName = header;
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
             var result = await binder.BindModelAsync(modelBindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.Equal(headerValue.Split(','), result.Model);
         }
 
@@ -61,15 +61,59 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var binder = new HeaderModelBinder();
             var modelBindingContext = GetBindingContext(type);
 
-            modelBindingContext.ModelName = header;
+            modelBindingContext.FieldName = header;
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
             var result = await binder.BindModelAsync(modelBindingContext);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.NotEqual(ModelBindingResult.NoResult, result);
             Assert.Equal(headerValue, result.Model);
+        }
+
+        [Fact]
+        public async Task HeaderBinder_ReturnsNoResult_ForNullBindingSource()
+        {
+            // Arrange
+            var type = typeof(string);
+            var header = "User-Agent";
+            var headerValue = "UnitTest";
+
+            var binder = new HeaderModelBinder();
+            var modelBindingContext = GetBindingContext(type);
+            modelBindingContext.BindingSource = null;
+
+            modelBindingContext.FieldName = header;
+            modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
+
+            // Act
+            var result = await binder.BindModelAsync(modelBindingContext);
+
+            // Assert
+            Assert.Equal(ModelBindingResult.NoResult, result);
+        }
+
+        [Fact]
+        public async Task HeaderBinder_ReturnsNoResult_ForNonHeaderBindingSource()
+        {
+            // Arrange
+            var type = typeof(string);
+            var header = "User-Agent";
+            var headerValue = "UnitTest";
+
+            var binder = new HeaderModelBinder();
+            var modelBindingContext = GetBindingContext(type);
+            modelBindingContext.BindingSource = BindingSource.Body;
+
+            modelBindingContext.FieldName = header;
+            modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
+
+            // Act
+            var result = await binder.BindModelAsync(modelBindingContext);
+
+            // Assert
+            Assert.Equal(ModelBindingResult.NoResult, result);
         }
 
         private static ModelBindingContext GetBindingContext(Type modelType)
@@ -81,6 +125,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             {
                 ModelMetadata = modelMetadata,
                 ModelName = "modelName",
+                FieldName = "modelName",
+                ModelState = new ModelStateDictionary(),
                 OperationBindingContext = new OperationBindingContext
                 {
                     ModelBinder = new HeaderModelBinder(),

@@ -6,15 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Framework.Caching.Memory;
 using Microsoft.Framework.FileSystemGlobbing;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Utility methods for <see cref="ITagHelper"/>'s that support attributes containing file globbing patterns.
+    /// Utility methods for <see cref="AspNet.Razor.Runtime.TagHelpers.ITagHelper"/>'s that support
+    /// attributes containing file globbing patterns.
     /// </summary>
     public class GlobbingUrlBuilder
     {
@@ -37,8 +36,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="fileProvider">The file provider.</param>
         /// <param name="cache">The cache.</param>
         /// <param name="requestPathBase">The request path base.</param>
-        public GlobbingUrlBuilder([NotNull] IFileProvider fileProvider, IMemoryCache cache, PathString requestPathBase)
+        public GlobbingUrlBuilder(IFileProvider fileProvider, IMemoryCache cache, PathString requestPathBase)
         {
+            if (fileProvider == null)
+            {
+                throw new ArgumentNullException(nameof(fileProvider));
+            }
+
             FileProvider = fileProvider;
             Cache = cache;
             RequestPathBase = requestPathBase;
@@ -111,8 +115,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                     var options = new MemoryCacheEntryOptions();
                     foreach (var pattern in includePatterns)
                     {
-                        var trigger = FileProvider.Watch(pattern);
-                        options.AddExpirationTrigger(trigger);
+                        var changeToken = FileProvider.Watch(pattern);
+                        options.AddExpirationToken(changeToken);
                     }
 
                     files = FindFiles(includePatterns, excludePatterns);
@@ -142,10 +146,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 .OrderBy(path => path, DefaultPathComparer);
         }
 
-        private string ResolveMatchedPath(string matchedPath)
+        private string ResolveMatchedPath(FilePatternMatch matchedPath)
         {
             // Resolve the path to site root
-            var relativePath = new PathString("/" + matchedPath);
+            var relativePath = new PathString("/" + matchedPath.Path);
             return RequestPathBase.Add(relativePath).ToString();
         }
 

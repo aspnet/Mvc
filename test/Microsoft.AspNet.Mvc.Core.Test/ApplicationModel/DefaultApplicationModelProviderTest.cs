@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Cors.Core;
 using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Framework.Internal;
 using Microsoft.Framework.OptionsModel;
@@ -1209,7 +1209,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
         private class TestApplicationModelProvider : DefaultApplicationModelProvider
         {
             public TestApplicationModelProvider()
-                : this(new MockMvcOptionsAccessor())
+                : this(new TestOptionsManager<MvcOptions>())
             {
             }
 
@@ -1217,7 +1217,7 @@ namespace Microsoft.AspNet.Mvc.ApplicationModels
                 IOptions<MvcOptions> options)
                 : base(options)
             {
-                Options = options.Options;
+                Options = options.Value;
             }
 
             public MvcOptions Options { get; }

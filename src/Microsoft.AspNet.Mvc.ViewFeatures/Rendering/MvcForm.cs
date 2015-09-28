@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Framework.Internal;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -11,8 +11,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         private readonly ViewContext _viewContext;
         private bool _disposed;
 
-        public MvcForm([NotNull] ViewContext viewContext)
+        public MvcForm(ViewContext viewContext)
         {
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
             _viewContext = viewContext;
 
             // Push the new FormContext; GenerateEndForm() does the corresponding pop.

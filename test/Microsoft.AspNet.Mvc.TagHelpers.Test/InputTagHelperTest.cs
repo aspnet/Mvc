@@ -9,8 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Mvc.Rendering.Internal;
 using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Moq;
 using Xunit;
@@ -95,7 +96,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.Content.SetContent(originalContent);
+            output.Content.AppendEncoded(originalContent);
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: false, propertyName: nameof(Model.IsACar));
 
@@ -270,9 +271,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.SetContent(expectedPreContent);
-            output.Content.SetContent(originalContent);
-            output.PostContent.SetContent(expectedPostContent);
+            output.PreContent.AppendEncoded(expectedPreContent);
+            output.Content.AppendEncoded(originalContent);
+            output.PostContent.AppendEncoded(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
@@ -536,8 +537,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedAttributes = new TagHelperAttributeList
             {
                 { "class", "form-control radio-control" },
-                { "type", inputTypeName ?? "radio" },       // Generator restores type attribute; adds "radio" if none.
                 { "value", value },
+                { "type", inputTypeName ?? "radio" },       // Generator restores type attribute; adds "radio" if none.
             };
             var expectedPreContent = "original pre-content";
             var expectedContent = "original content";
@@ -722,8 +723,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 return new TheoryData<string, string, string>
                 {
-                    { null, null, "text" },
-                    { "Byte", null, "number" },
                     { null, null, "text" },
                     { "Byte", null, "number" },
                     { "custom-datatype", null, "text" },

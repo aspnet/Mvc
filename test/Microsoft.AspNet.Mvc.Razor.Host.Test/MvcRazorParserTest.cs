@@ -65,8 +65,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new[]
                         {
-                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP1" }),
                             CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP2" }),
+                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP1" }),
                         },
                         new[] { CreateDirectiveDescriptor("THP1", TagHelperDirectiveType.TagHelperPrefix) }
                     },
@@ -88,10 +88,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new[]
                         {
+                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" }),
                             CreateChunkTree(
                                 new LiteralChunk { Text = "Hello world" },
                                 new AddTagHelperChunk { LookupText = "ATH" }),
-                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" })
                         },
                         new[]
                         {
@@ -102,11 +102,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new[]
                         {
-                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP" }),
+                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" }),
                             CreateChunkTree(
                                 new LiteralChunk { Text = "Hello world" },
                                 new AddTagHelperChunk { LookupText = "ATH" }),
-                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" })
+                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP" }),
                         },
                         new[]
                         {
@@ -118,10 +118,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                     {
                         new[]
                         {
-                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP1" }),
-                            CreateChunkTree(new AddTagHelperChunk { LookupText = "ATH" }),
-                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" }),
                             CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP2" }),
+                            CreateChunkTree(new RemoveTagHelperChunk { LookupText = "RTH" }),
+                            CreateChunkTree(new AddTagHelperChunk { LookupText = "ATH" }),
+                            CreateChunkTree(new TagHelperPrefixDirectiveChunk { Prefix = "THP1" }),
                         },
                         new[]
                         {
@@ -233,9 +233,10 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private class TestableMvcRazorParser : MvcRazorParser
         {
-            public TestableMvcRazorParser(RazorParser parser,
-                                          IReadOnlyList<ChunkTree> chunkTrees,
-                                          IReadOnlyList<Chunk> defaultInheritedChunks)
+            public TestableMvcRazorParser(
+                RazorParser parser,
+                IReadOnlyList<ChunkTree> chunkTrees,
+                IReadOnlyList<Chunk> defaultInheritedChunks)
                 : base(parser, chunkTrees, defaultInheritedChunks, typeof(ModelExpression).FullName)
             {
             }

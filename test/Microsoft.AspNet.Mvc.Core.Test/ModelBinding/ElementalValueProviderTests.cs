@@ -14,17 +14,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty")]
         [InlineData("MyProperty.SubProperty", "MyProperty")]
         [InlineData("MyProperty[0]", "MyProperty")]
-        public async Task ContainsPrefixAsync_ReturnsTrue_IfElementNameStartsWithPrefix(string elementName, 
-                                                                                        string prefix)
+        public void ContainsPrefix_ReturnsTrue_IfElementNameStartsWithPrefix(
+            string elementName, 
+            string prefix)
         {
             // Arrange
             var culture = new CultureInfo("en-US");
-            var elementalValueProvider = new ElementalValueProvider(elementName,
-                                                                    new object(),
-                                                                    culture);
+            var elementalValueProvider = new ElementalValueProvider(
+                elementName,
+                "hi",
+                culture);
 
             // Act
-            var containsPrefix = await elementalValueProvider.ContainsPrefixAsync(prefix);
+            var containsPrefix = elementalValueProvider.ContainsPrefix(prefix);
 
             // Assert
             Assert.True(containsPrefix);
@@ -34,56 +36,54 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         [InlineData("MyProperty", "MyProperty1")]
         [InlineData("MyPropertyTest", "MyProperty")]
         [InlineData("Random", "MyProperty")]
-        public async Task ContainsPrefixAsync_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(string elementName, 
-                                                                                                 string prefix)
+        public void ContainsPrefix_ReturnsFalse_IfElementCannotSpecifyValuesForPrefix(
+            string elementName, 
+            string prefix)
         {
             // Arrange
             var culture = new CultureInfo("en-US");
-            var elementalValueProvider = new ElementalValueProvider(elementName,
-                                                                    new object(),
-                                                                    culture);
+            var elementalValueProvider = new ElementalValueProvider(
+                elementName,
+                "hi",
+                culture);
 
             // Act
-            var containsPrefix = await elementalValueProvider.ContainsPrefixAsync(prefix);
+            var containsPrefix = elementalValueProvider.ContainsPrefix(prefix);
 
             // Assert
             Assert.False(containsPrefix);
         }
 
         [Fact]
-        public async Task GetValueAsync_NameDoesNotMatch_ReturnsNull()
+        public void GetValue_NameDoesNotMatch_ReturnsEmptyResult()
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var rawValue = new DateTime(2001, 1, 2);
-            var valueProvider = new ElementalValueProvider("foo", rawValue, culture);
+            var valueProvider = new ElementalValueProvider("foo", "hi", culture);
 
             // Act
-            var vpResult = await valueProvider.GetValueAsync("bar");
+            var result = valueProvider.GetValue("bar");
 
             // Assert
-            Assert.Null(vpResult);
+            Assert.Equal(ValueProviderResult.None, result);
         }
 
         [Theory]
         [InlineData("foo")]
         [InlineData("FOO")]
         [InlineData("FoO")]
-        public async Task GetValueAsync_NameMatches_ReturnsValueProviderResult(string name)
+        public void GetValue_NameMatches_ReturnsValueProviderResult(string name)
         {
             // Arrange
             var culture = new CultureInfo("fr-FR");
-            var rawValue = new DateTime(2001, 1, 2);
-            var valueProvider = new ElementalValueProvider("foo", rawValue, culture);
+            var valueProvider = new ElementalValueProvider("foo", "hi", culture);
 
             // Act
-            var vpResult = await valueProvider.GetValueAsync(name);
+            var result =  valueProvider.GetValue(name);
 
             // Assert
-            Assert.NotNull(vpResult);
-            Assert.Equal(rawValue, vpResult.RawValue);
-            Assert.Equal("02/01/2001 00:00:00", vpResult.AttemptedValue);
-            Assert.Equal(culture, vpResult.Culture);
+            Assert.Equal("hi", (string)result);
+            Assert.Equal(culture, result.Culture);
         }
     }
 }

@@ -8,9 +8,11 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.ActionConstraints;
 using Microsoft.AspNet.Mvc.ApplicationModels;
-using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.Filters;
+using Microsoft.AspNet.Mvc.Controllers;
+using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using Microsoft.Framework.OptionsModel;
@@ -370,7 +372,7 @@ namespace System.Web.Http
 
         private ControllerActionDescriptorProvider CreateProvider()
         {
-            var assemblyProvider = new FixedSetAssemblyProvider();
+            var assemblyProvider = new StaticAssemblyProvider();
             assemblyProvider.CandidateAssemblies.Add(GetType().GetTypeInfo().Assembly);
             var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
 
@@ -381,12 +383,12 @@ namespace System.Web.Http
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(options);
 
             var authorizationOptionsAccessor = new Mock<IOptions<AuthorizationOptions>>();
             authorizationOptionsAccessor
-                .SetupGet(o => o.Options)
+                .SetupGet(o => o.Value)
                 .Returns(new AuthorizationOptions());
 
             var modelProvider = new DefaultApplicationModelProvider(optionsAccessor.Object);

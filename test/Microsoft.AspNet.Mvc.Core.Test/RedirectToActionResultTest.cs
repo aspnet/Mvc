@@ -2,13 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
+namespace Microsoft.AspNet.Mvc
 {
     public class RedirectToActionResultTest
     {
@@ -21,8 +24,6 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             var httpContext = new Mock<HttpContext>();
             var httpResponse = new Mock<HttpResponse>();
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(ITempDataDictionary)))
-                .Returns(Mock.Of<ITempDataDictionary>());
 
             var actionContext = new ActionContext(httpContext.Object,
                                                   new RouteData(),
@@ -44,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
         }
 
         [Fact]
-        public void RedirectToAction_Execute_ThrowsOnNullUrl()
+        public async Task RedirectToAction_Execute_ThrowsOnNullUrl()
         {
             // Arrange
             var httpContext = new Mock<HttpContext>();
@@ -60,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
             };
 
             // Act & Assert
-            ExceptionAssert.ThrowsAsync<InvalidOperationException>(
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
                 async () =>
                 {
                     await result.ExecuteResultAsync(actionContext);

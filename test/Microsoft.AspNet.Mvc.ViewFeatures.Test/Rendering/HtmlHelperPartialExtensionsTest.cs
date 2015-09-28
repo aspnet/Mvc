@@ -5,6 +5,8 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.TestCommon;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Moq;
 using Xunit;
 
@@ -151,7 +153,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var actual = helper.Partial("some-partial");
 
             // Assert
-            Assert.Equal(expected, actual.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(actual));
         }
 
         [Fact]
@@ -166,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var actual = helper.Partial("some-partial", model);
 
             // Assert
-            Assert.Equal(expected, actual.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(actual));
         }
 
         [Fact]
@@ -182,7 +184,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             var actual = helper.Partial("some-partial", viewData);
 
             // Assert
-            Assert.Equal(expected, actual.ToString());
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(actual));
         }
 
         private sealed class TestModel

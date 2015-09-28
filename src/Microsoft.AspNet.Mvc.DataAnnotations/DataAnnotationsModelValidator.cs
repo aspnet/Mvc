@@ -5,18 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.Framework.Internal;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
     public class DataAnnotationsModelValidator : IModelValidator
     {
-        public DataAnnotationsModelValidator([NotNull] ValidationAttribute attribute)
+        private IStringLocalizer _stringLocalizer;
+
+        public DataAnnotationsModelValidator(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
         {
+            if (attribute == null)
+            {
+                throw new ArgumentNullException(nameof(attribute));
+            }
+
             Attribute = attribute;
+            _stringLocalizer = stringLocalizer;
         }
 
-        public ValidationAttribute Attribute { get; private set; }
+        public ValidationAttribute Attribute { get; }
 
         public bool IsRequired
         {
@@ -25,20 +33,17 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
         public IEnumerable<ModelValidationResult> Validate(ModelValidationContext validationContext)
         {
-            var modelExplorer = validationContext.ModelExplorer;
-            var metadata = modelExplorer.Metadata;
-
+            var metadata = validationContext.Metadata;
             var memberName = metadata.PropertyName ?? metadata.ModelType.Name;
-            var containerExplorer = modelExplorer.Container;
+            var container = validationContext.Container;
 
-            var container = containerExplorer?.Model;
-            var context = new ValidationContext(container ?? modelExplorer.Model)
+            var context = new ValidationContext(container ?? validationContext.Model)
             {
                 DisplayName = metadata.GetDisplayName(),
                 MemberName = memberName
             };
 
-            var result = Attribute.GetValidationResult(modelExplorer.Model, context);
+            var result = Attribute.GetValidationResult(validationContext.Model, context);
             if (result != ValidationResult.Success)
             {
                 // ModelValidationResult.MemberName is used by invoking validators (such as ModelValidator) to
@@ -55,7 +60,16 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                     errorMemberName = null;
                 }
 
-                var validationResult = new ModelValidationResult(errorMemberName, result.ErrorMessage);
+                string errorMessage = null;
+                if (_stringLocalizer != null &&
+                    !string.IsNullOrEmpty(Attribute.ErrorMessage) &&
+                    string.IsNullOrEmpty(Attribute.ErrorMessageResourceName) &&
+                    Attribute.ErrorMessageResourceType == null)
+                {
+                    errorMessage = _stringLocalizer[Attribute.ErrorMessage];
+                }
+
+                var validationResult = new ModelValidationResult(errorMemberName, errorMessage ?? result.ErrorMessage);
                 return new ModelValidationResult[] { validationResult };
             }
 

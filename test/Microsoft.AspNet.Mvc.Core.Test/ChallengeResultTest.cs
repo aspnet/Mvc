@@ -4,11 +4,12 @@
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Authentication;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNet.Mvc.Core.Test.ActionResults
+namespace Microsoft.AspNet.Mvc
 {
     public class ChallengeResultTest
     {

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Mvc.DataAnnotations;
-using Microsoft.Framework.Internal;
+using Microsoft.Framework.Localization;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
@@ -15,22 +15,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     /// </summary>
     public class DataTypeAttributeAdapter : DataAnnotationsClientModelValidator<DataTypeAttribute>
     {
-        public DataTypeAttributeAdapter(DataTypeAttribute attribute,
-                                        [NotNull] string ruleName)
-            : base(attribute)
+        public DataTypeAttributeAdapter(DataTypeAttribute attribute, string ruleName, IStringLocalizer stringLocalizer)
+            : base(attribute, stringLocalizer)
         {
             if (string.IsNullOrEmpty(ruleName))
             {
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(ruleName));
             }
+
             RuleName = ruleName;
         }
 
         public string RuleName { get; private set; }
 
         public override IEnumerable<ModelClientValidationRule> GetClientValidationRules(
-            [NotNull] ClientModelValidationContext context)
+            ClientModelValidationContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var errorMessage = GetErrorMessage(context.ModelMetadata);
             return new[] { new ModelClientValidationRule(RuleName, errorMessage) };
         }

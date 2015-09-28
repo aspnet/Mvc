@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Xunit;
 
@@ -33,7 +34,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<int[]>(modelBindingResult.Model);
@@ -44,12 +44,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[0]").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[1]").Value;
-            Assert.Equal("11", entry.Value.AttemptedValue);
-            Assert.Equal("11", entry.Value.RawValue);
+            Assert.Equal("11", entry.AttemptedValue);
+            Assert.Equal("11", entry.RawValue);
         }
 
         [Fact]
@@ -78,7 +78,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<int[]>(modelBindingResult.Model);
@@ -89,12 +88,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "prefix[0]").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "prefix[1]").Value;
-            Assert.Equal("11", entry.Value.AttemptedValue);
-            Assert.Equal("11", entry.Value.RawValue);
+            Assert.Equal("11", entry.AttemptedValue);
+            Assert.Equal("11", entry.RawValue);
         }
 
         [Fact]
@@ -119,7 +118,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<int[]>(modelBindingResult.Model);
@@ -130,12 +128,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "[0]").Value;
-            Assert.Equal("10", entry.Value.AttemptedValue);
-            Assert.Equal("10", entry.Value.RawValue);
+            Assert.Equal("10", entry.AttemptedValue);
+            Assert.Equal("10", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "[1]").Value;
-            Assert.Equal("11", entry.Value.AttemptedValue);
-            Assert.Equal("11", entry.Value.RawValue);
+            Assert.Equal("11", entry.AttemptedValue);
+            Assert.Equal("11", entry.RawValue);
         }
 
         [Fact]
@@ -160,11 +158,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
             Assert.Empty(Assert.IsType<int[]>(modelBindingResult.Model));
 
-            Assert.Equal(0, modelState.Count);
+            Assert.Empty(modelState);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
         }
@@ -196,7 +193,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Person[]>(modelBindingResult.Model);
@@ -208,12 +204,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[0].Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter[1].Name").Value;
-            Assert.Equal("lang", entry.Value.AttemptedValue);
-            Assert.Equal("lang", entry.Value.RawValue);
+            Assert.Equal("lang", entry.AttemptedValue);
+            Assert.Equal("lang", entry.RawValue);
         }
 
         [Fact]
@@ -242,7 +238,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Person[]>(modelBindingResult.Model);
@@ -254,12 +249,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "prefix[0].Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "prefix[1].Name").Value;
-            Assert.Equal("lang", entry.Value.AttemptedValue);
-            Assert.Equal("lang", entry.Value.RawValue);
+            Assert.Equal("lang", entry.AttemptedValue);
+            Assert.Equal("lang", entry.RawValue);
         }
 
         [Fact]
@@ -284,7 +279,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
 
             var model = Assert.IsType<Person[]>(modelBindingResult.Model);
@@ -296,12 +290,12 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, kvp => kvp.Key == "[0].Name").Value;
-            Assert.Equal("bill", entry.Value.AttemptedValue);
-            Assert.Equal("bill", entry.Value.RawValue);
+            Assert.Equal("bill", entry.AttemptedValue);
+            Assert.Equal("bill", entry.RawValue);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "[1].Name").Value;
-            Assert.Equal("lang", entry.Value.AttemptedValue);
-            Assert.Equal("lang", entry.Value.RawValue);
+            Assert.Equal("lang", entry.AttemptedValue);
+            Assert.Equal("lang", entry.RawValue);
         }
 
         [Fact]
@@ -326,11 +320,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, modelState, operationContext);
 
             // Assert
-            Assert.NotNull(modelBindingResult);
             Assert.True(modelBindingResult.IsModelSet);
             Assert.Empty(Assert.IsType<Person[]>(modelBindingResult.Model));
 
-            Assert.Equal(0, modelState.Count);
+            Assert.Empty(modelState);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
         }

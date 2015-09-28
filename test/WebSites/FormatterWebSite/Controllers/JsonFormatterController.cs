@@ -3,6 +3,7 @@
 
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Formatters;
 using Newtonsoft.Json;
 
 namespace FormatterWebSite.Controllers

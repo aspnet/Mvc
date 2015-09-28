@@ -45,7 +45,7 @@ namespace WebApiCompatShimWebSite
         [HttpGet]
         public string[] GetFormatters()
         {
-            return OptionsAccessor.Options.Formatters.Select(f => f.GetType().FullName).ToArray();
+            return OptionsAccessor.Value.Formatters.Select(f => f.GetType().FullName).ToArray();
         }
 
         [HttpGet]

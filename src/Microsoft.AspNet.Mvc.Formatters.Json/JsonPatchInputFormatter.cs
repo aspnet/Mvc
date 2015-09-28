@@ -1,15 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.JsonPatch;
-using Microsoft.Framework.Internal;
-using Microsoft.Net.Http.Headers;
 using Microsoft.AspNet.Mvc.Internal;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class JsonPatchInputFormatter : JsonInputFormatter
     {
@@ -18,7 +17,7 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public JsonPatchInputFormatter([NotNull] JsonSerializerSettings serializerSettings)
+        public JsonPatchInputFormatter(JsonSerializerSettings serializerSettings)
             : base(serializerSettings)
         {
             // Clear all values and only include json-patch+json value.
@@ -28,15 +27,24 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <inheritdoc />
-        public async override Task<object> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
+        public async override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
-            var jsonPatchDocument = (IJsonPatchDocument)(await base.ReadRequestBodyAsync(context));
-            if (jsonPatchDocument != null && SerializerSettings.ContractResolver != null)
+            if (context == null)
             {
-                jsonPatchDocument.ContractResolver = SerializerSettings.ContractResolver;
+                throw new ArgumentNullException(nameof(context));
             }
 
-            return (object)jsonPatchDocument;
+            var result = await base.ReadRequestBodyAsync(context);
+            if (!result.HasError)
+            {
+                var jsonPatchDocument = (IJsonPatchDocument)result.Model;
+                if (jsonPatchDocument != null && SerializerSettings.ContractResolver != null)
+                {
+                    jsonPatchDocument.ContractResolver = SerializerSettings.ContractResolver;
+                }
+            }
+
+            return result;
         }
 
         /// <inheritdoc />

@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -10,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;label&gt; elements with an <c>asp-for</c> attribute.
     /// </summary>
-    [TargetElement("label", Attributes = ForAttributeName)]
+    [HtmlTargetElement("label", Attributes = ForAttributeName)]
     public class LabelTagHelper : TagHelper
     {
         private const string ForAttributeName = "asp-for";
@@ -22,6 +23,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public LabelTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         [HtmlAttributeNotBound]

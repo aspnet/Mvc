@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Formatters.Xml
 {
@@ -26,8 +25,13 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
         /// </summary>
         /// <param name="inner">The original enumerator.</param>
         /// <param name="wrapperProvider">The wrapper provider to wrap individual elements.</param>
-        public DelegatingEnumerator([NotNull] IEnumerator<TDeclared> inner, IWrapperProvider wrapperProvider)
+        public DelegatingEnumerator(IEnumerator<TDeclared> inner, IWrapperProvider wrapperProvider)
         {
+            if (inner == null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+
             _inner = inner;
             _wrapperProvider = wrapperProvider;
         }

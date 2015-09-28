@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.Framework.OptionsModel;
 using Moq;
 using Xunit;
@@ -188,7 +189,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 foreach (var p in cacheProfiles)
                 {
-                    optionsAccessor.Options.CacheProfiles.Add(p.Key, p.Value);
+                    optionsAccessor.Value.CacheProfiles.Add(p.Key, p.Value);
                 }
             }
 

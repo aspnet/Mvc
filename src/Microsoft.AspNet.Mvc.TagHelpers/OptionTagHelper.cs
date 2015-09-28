@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -13,8 +14,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <see cref="ITagHelper"/> implementation targeting &lt;option&gt; elements.
     /// </summary>
     /// <remarks>
-    /// This <see cref="ITagHelper"/> works in conjunction with <see cref="SelectTagHelper"/>. It reads elements 
-    /// content but does not modify that content. The only modification it makes is to add a <c>selected</c> attribute 
+    /// This <see cref="ITagHelper"/> works in conjunction with <see cref="SelectTagHelper"/>. It reads elements
+    /// content but does not modify that content. The only modification it makes is to add a <c>selected</c> attribute
     /// in some cases.
     /// </remarks>
     public class OptionTagHelper : TagHelper
@@ -26,6 +27,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public OptionTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         protected IHtmlGenerator Generator { get; }

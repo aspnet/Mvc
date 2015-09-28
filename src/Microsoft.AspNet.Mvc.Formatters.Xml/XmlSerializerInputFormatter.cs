@@ -9,11 +9,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.AspNet.Mvc.Formatters.Xml;
+using Microsoft.AspNet.Mvc.Formatters.Xml.Internal;
 using Microsoft.AspNet.Mvc.Internal;
-using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Mvc.Formatters.Xml
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     /// <summary>
     /// This class handles deserialization of input XML data
@@ -63,19 +64,16 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             get { return _readerQuotas; }
         }
 
-        /// <summary>
-        /// Reads the input XML.
-        /// </summary>
-        /// <param name="context">The input formatter context which contains the body to be read.</param>
-        /// <returns>Task which reads the input.</returns>
-        public override Task<object> ReadRequestBodyAsync(InputFormatterContext context)
+        /// <inheritdoc />
+        public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
+            var effectiveEncoding = SelectCharacterEncoding(context);
+            if (effectiveEncoding == null)
+            {
+                return InputFormatterResult.FailureAsync();
+            }
+
             var request = context.HttpContext.Request;
-
-            MediaTypeHeaderValue requestContentType;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
-            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
-
             using (var xmlReader = CreateXmlReader(new NonDisposableStream(request.Body), effectiveEncoding))
             {
                 var type = GetSerializableType(context.ModelType);
@@ -94,13 +92,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
                     }
                 }
 
-                return Task.FromResult(deserializedObject);
+                return InputFormatterResult.SuccessAsync(deserializedObject);
             }
         }
 
         /// <inheritdoc />
-        protected override bool CanReadType([NotNull] Type type)
+        protected override bool CanReadType(Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return GetCachedSerializer(GetSerializableType(type)) != null;
         }
 
@@ -109,8 +112,13 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
         /// </summary>
         /// <param name="declaredType">The declared type.</param>
         /// <returns>The type to which the XML will be deserialized.</returns>
-        protected virtual Type GetSerializableType([NotNull] Type declaredType)
+        protected virtual Type GetSerializableType(Type declaredType)
         {
+            if (declaredType == null)
+            {
+                throw new ArgumentNullException(nameof(declaredType));
+            }
+
             var wrapperProvider = WrapperProviderFactories.GetWrapperProvider(
                                                     new WrapperProviderContext(declaredType, isSerialization: false));
 
@@ -123,8 +131,18 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
         /// <param name="readStream">The <see cref="Stream"/> from which to read.</param>
         /// <param name="encoding">The <see cref="Encoding"/> used to read the stream.</param>
         /// <returns>The <see cref="XmlReader"/> used during deserialization.</returns>
-        protected virtual XmlReader CreateXmlReader([NotNull] Stream readStream, [NotNull] Encoding encoding)
+        protected virtual XmlReader CreateXmlReader(Stream readStream, Encoding encoding)
         {
+            if (readStream == null)
+            {
+                throw new ArgumentNullException(nameof(readStream));
+            }
+
+            if (encoding == null)
+            {
+                throw new ArgumentNullException(nameof(encoding));
+            }
+
             return XmlDictionaryReader.CreateTextReader(readStream, encoding, _readerQuotas, onClose: null);
         }
 
@@ -163,7 +181,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
                 }
             }
 
-            return (XmlSerializer) serializer;
+            return (XmlSerializer)serializer;
         }
     }
 }

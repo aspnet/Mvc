@@ -1,42 +1,49 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Builder;
-using Microsoft.Framework.DependencyInjection;
+#if DNXCORE50
+using Microsoft.AspNet.Testing.xunit;
+#endif
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.FunctionalTests
 {
-    public class RemoteAttributeValidationTest
+    public class RemoteAttributeValidationTest : IClassFixture<MvcTestFixture<ValidationWebSite.Startup>>
     {
-        private const string SiteName = nameof(ValidationWebSite);
         private static readonly Assembly _resourcesAssembly =
             typeof(RemoteAttributeValidationTest).GetTypeInfo().Assembly;
 
-        private readonly Action<IApplicationBuilder> _app = new ValidationWebSite.Startup().Configure;
-        private readonly Action<IServiceCollection> _configureServices = new ValidationWebSite.Startup().ConfigureServices;
+        public RemoteAttributeValidationTest(MvcTestFixture<ValidationWebSite.Startup> fixture)
+        {
+            Client = fixture.Client;
+        }
 
+        public HttpClient Client { get; }
+
+#if DNXCORE50
+        // Work around aspnet/External#33. Large resources corrupted with Core CLR on Linux.
+        [ConditionalTheory]
+        [OSSkipCondition(OperatingSystems.Linux)]
+#else
         [Theory]
+#endif
         [InlineData("Aria", "/Aria")]
         [InlineData("Root", "")]
         public async Task RemoteAttribute_LeadsToExpectedValidationAttributes(string areaName, string pathSegment)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var outputFile = "compiler/resources/ValidationWebSite." + areaName + ".RemoteAttribute_Home.Create.html";
             var expectedContent =
                 await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
             var url = "http://localhost" + pathSegment + "/RemoteAttribute_Home/Create";
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -65,13 +72,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             string expectedContent)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost" + pathSegment +
                 "/RemoteAttribute_Verify/IsIdAvailable?UserId1=Joe1&UserId2=Joe2&UserId3=Joe3&UserId4=Joe4";
 
             // Act
-            var response = await client.GetAsync(url);
+            var response = await Client.GetAsync(url);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -89,8 +94,6 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             string expectedContent)
         {
             // Arrange
-            var server = TestHelper.CreateServer(_app, SiteName, _configureServices);
-            var client = server.CreateClient();
             var url = "http://localhost" + pathSegment + "/RemoteAttribute_Verify/IsIdAvailable";
             var contentDictionary = new Dictionary<string, string>
             {
@@ -102,7 +105,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             var content = new FormUrlEncodedContent(contentDictionary);
 
             // Act
-            var response = await client.PostAsync(url, content);
+            var response = await Client.PostAsync(url, content);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

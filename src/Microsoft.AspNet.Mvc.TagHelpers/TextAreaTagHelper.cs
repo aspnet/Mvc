@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -9,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;textarea&gt; elements with an <c>asp-for</c> attribute.
     /// </summary>
-    [TargetElement("textarea", Attributes = ForAttributeName)]
+    [HtmlTargetElement("textarea", Attributes = ForAttributeName)]
     public class TextAreaTagHelper : TagHelper
     {
         private const string ForAttributeName = "asp-for";
@@ -21,6 +22,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public TextAreaTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+        }
+
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
         }
 
         protected IHtmlGenerator Generator { get; }

@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNet.Razor.Chunks;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor.Directives
 {
@@ -16,21 +16,40 @@ namespace Microsoft.AspNet.Mvc.Razor.Directives
         private readonly HashSet<string> _currentUsings = new HashSet<string>(StringComparer.Ordinal);
 
         /// <inheritdoc />
-        public void VisitChunk([NotNull] Chunk chunk)
+        public void VisitChunk(Chunk chunk)
         {
-            var namespaceChunk = ChunkHelper.EnsureChunk<UsingChunk>(chunk);
-            _currentUsings.Add(namespaceChunk.Namespace);
+            if (chunk == null)
+            {
+                throw new ArgumentNullException(nameof(chunk));
+            }
+
+            var namespaceChunk = chunk as UsingChunk;
+            if (namespaceChunk != null)
+            {
+                _currentUsings.Add(namespaceChunk.Namespace);
+            }
         }
 
         /// <inheritdoc />
-        public void Merge([NotNull] ChunkTree chunkTree, [NotNull] Chunk chunk)
+        public void MergeInheritedChunks(ChunkTree chunkTree, IReadOnlyList<Chunk> inheritedChunks)
         {
-            var namespaceChunk = ChunkHelper.EnsureChunk<UsingChunk>(chunk);
-
-            if (!_currentUsings.Contains(namespaceChunk.Namespace))
+            if (chunkTree == null)
             {
-                _currentUsings.Add(namespaceChunk.Namespace);
-                chunkTree.Chunks.Add(namespaceChunk);
+                throw new ArgumentNullException(nameof(chunkTree));
+            }
+
+            if (inheritedChunks == null)
+            {
+                throw new ArgumentNullException(nameof(inheritedChunks));
+            }
+
+            var namespaceChunks = inheritedChunks.OfType<UsingChunk>();
+            foreach (var namespaceChunk in namespaceChunks)
+            {
+                if (_currentUsings.Add(namespaceChunk.Namespace))
+                {
+                    chunkTree.Chunks.Add(namespaceChunk);
+                }
             }
         }
     }

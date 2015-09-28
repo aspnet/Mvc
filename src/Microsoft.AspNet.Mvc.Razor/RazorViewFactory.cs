@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.Framework.Internal;
+using System;
+using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.Framework.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -12,6 +13,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// </summary>
     public class RazorViewFactory : IRazorViewFactory
     {
+        private readonly IHtmlEncoder _htmlEncoder;
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
 
@@ -21,19 +23,39 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="pageActivator">The <see cref="IRazorPageActivator"/> used to activate pages.</param>
         /// <param name="viewStartProvider">The <see cref="IViewStartProvider"/> used for discovery of _ViewStart
         /// pages</param>
-        public RazorViewFactory(IRazorPageActivator pageActivator,
-                                IViewStartProvider viewStartProvider)
+        public RazorViewFactory(
+            IRazorPageActivator pageActivator,
+            IViewStartProvider viewStartProvider,
+            IHtmlEncoder htmlEncoder)
         {
             _pageActivator = pageActivator;
             _viewStartProvider = viewStartProvider;
+            _htmlEncoder = htmlEncoder;
         }
 
         /// <inheritdoc />
-        public IView GetView([NotNull] IRazorViewEngine viewEngine,
-                             [NotNull] IRazorPage page,
-                             bool isPartial)
+        public IView GetView(
+            IRazorViewEngine viewEngine,
+            IRazorPage page,
+            bool isPartial)
         {
-            var razorView = new RazorView(viewEngine, _pageActivator, _viewStartProvider, page, isPartial);
+            if (viewEngine == null)
+            {
+                throw new ArgumentNullException(nameof(viewEngine));
+            }
+
+            if (page == null)
+            {
+                throw new ArgumentNullException(nameof(page));
+            }
+
+            var razorView = new RazorView(
+                viewEngine,
+                _pageActivator,
+                _viewStartProvider,
+                page,
+                _htmlEncoder,
+                isPartial);
             return razorView;
         }
     }

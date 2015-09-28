@@ -6,11 +6,10 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Internal;
-using Microsoft.Framework.Internal;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNet.Mvc
+namespace Microsoft.AspNet.Mvc.Formatters
 {
     public class JsonInputFormatter : InputFormatter
     {
@@ -21,8 +20,13 @@ namespace Microsoft.AspNet.Mvc
         {
         }
 
-        public JsonInputFormatter([NotNull] JsonSerializerSettings serializerSettings)
+        public JsonInputFormatter(JsonSerializerSettings serializerSettings)
         {
+            if (serializerSettings == null)
+            {
+                throw new ArgumentNullException(nameof(serializerSettings));
+            }
+
             _serializerSettings = serializerSettings;
 
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
@@ -41,56 +45,91 @@ namespace Microsoft.AspNet.Mvc
             {
                 return _serializerSettings;
             }
-            [param: NotNull]
             set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
                 _serializerSettings = value;
             }
         }
 
         /// <inheritdoc />
-        public override Task<object> ReadRequestBodyAsync([NotNull] InputFormatterContext context)
+        public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
-            var type = context.ModelType;
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            // Get the character encoding for the content.
+            var effectiveEncoding = SelectCharacterEncoding(context);
+            if (effectiveEncoding == null)
+            {
+                return InputFormatterResult.FailureAsync();
+            }
+
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
-
-            // Get the character encoding for the content
-            // Never non-null since SelectCharacterEncoding() throws in error / not found scenarios
-            var effectiveEncoding = SelectCharacterEncoding(requestContentType);
-
             using (var jsonReader = CreateJsonReader(context, request.Body, effectiveEncoding))
             {
                 jsonReader.CloseInput = false;
 
-                var jsonSerializer = CreateJsonSerializer();
-
-                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = null;
-                errorHandler = (sender, e) =>
+                var successful = true;
+                EventHandler<Newtonsoft.Json.Serialization.ErrorEventArgs> errorHandler = (sender, eventArgs) =>
                 {
-                    var exception = e.ErrorContext.Error;
-                    context.ModelState.TryAddModelError(e.ErrorContext.Path, e.ErrorContext.Error);
+                    successful = false;
+
+                    var exception = eventArgs.ErrorContext.Error;
+
+                    // Handle path combinations such as "" + "Property", "Parent" + "Property", or "Parent" + "[12]".
+                    var key = eventArgs.ErrorContext.Path;
+                    if (!string.IsNullOrEmpty(context.ModelName))
+                    {
+                        if (string.IsNullOrEmpty(eventArgs.ErrorContext.Path))
+                        {
+                            key = context.ModelName;
+                        }
+                        else if (eventArgs.ErrorContext.Path[0] == '[')
+                        {
+                            key = context.ModelName + eventArgs.ErrorContext.Path;
+                        }
+                        else
+                        {
+                            key = context.ModelName + "." + eventArgs.ErrorContext.Path;
+                        }
+                    }
+
+                    context.ModelState.TryAddModelError(key, eventArgs.ErrorContext.Error);
 
                     // Error must always be marked as handled
                     // Failure to do so can cause the exception to be rethrown at every recursive level and
                     // overflow the stack for x64 CLR processes
-                    e.ErrorContext.Handled = true;
+                    eventArgs.ErrorContext.Handled = true;
                 };
+
+                var type = context.ModelType;
+                var jsonSerializer = CreateJsonSerializer();
                 jsonSerializer.Error += errorHandler;
 
+                object model;
                 try
                 {
-                    return Task.FromResult(jsonSerializer.Deserialize(jsonReader, type));
+                    model = jsonSerializer.Deserialize(jsonReader, type);
                 }
                 finally
                 {
                     // Clean up the error handler in case CreateJsonSerializer() reuses a serializer
-                    if (errorHandler != null)
-                    {
-                        jsonSerializer.Error -= errorHandler;
-                    }
+                    jsonSerializer.Error -= errorHandler;
                 }
+
+                if (successful)
+                {
+                    return InputFormatterResult.SuccessAsync(model);
+                }
+
+                return InputFormatterResult.FailureAsync();
             }
         }
 
@@ -102,10 +141,25 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="effectiveEncoding">The <see cref="Encoding"/> to use when reading.</param>
         /// <returns>The <see cref="JsonReader"/> used during deserialization.</returns>
         protected virtual JsonReader CreateJsonReader(
-            [NotNull] InputFormatterContext context,
-            [NotNull] Stream readStream,
-            [NotNull] Encoding effectiveEncoding)
+            InputFormatterContext context,
+            Stream readStream,
+            Encoding effectiveEncoding)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (readStream == null)
+            {
+                throw new ArgumentNullException(nameof(readStream));
+            }
+
+            if (effectiveEncoding == null)
+            {
+                throw new ArgumentNullException(nameof(effectiveEncoding));
+            }
+
             return new JsonTextReader(new StreamReader(readStream, effectiveEncoding));
         }
 

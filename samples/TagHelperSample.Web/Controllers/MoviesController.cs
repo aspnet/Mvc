@@ -15,17 +15,17 @@ namespace TagHelperSample.Web.Controllers
             _moviesService = moviesService;
         }
 
-        // Sample exhibiting the use of nested cache tag helpers with custom user expiration triggers.
+        // Sample exhibiting the use of nested cache tag helpers with custom user expiration tokens.
         // Trigger expirations cascade, expiration of the inner tag helper's content either due to absolute or sliding
-        // expiration or due to a user specified expiration trigger would cause the outer cache tag helper to also expire.
-        public ViewResult Index()
+        // expiration or due to a user specified expiration token would cause the outer cache tag helper to also expire.
+        public IActionResult Index()
         {
             ViewData["Title"] = "Movies";
             return View();
         }
 
         [HttpPost]
-        public ViewResult UpdateMovieRatings()
+        public IActionResult UpdateMovieRatings()
         {
             _moviesService.UpdateMovieRating();
 
@@ -34,7 +34,7 @@ namespace TagHelperSample.Web.Controllers
         }
 
         [HttpPost]
-        public ViewResult UpdateCriticsQuotes()
+        public IActionResult UpdateCriticsQuotes()
         {
             _moviesService.UpdateCriticsQuotes();
 

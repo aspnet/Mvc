@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq.Expressions;
-using Microsoft.Framework.Internal;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
@@ -21,8 +20,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// Converts the expression result to a <see cref="string"/> directly.
         /// </remarks>
-        public static string Value([NotNull] this IHtmlHelper htmlHelper, string expression)
+        public static string Value(this IHtmlHelper htmlHelper, string expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Value(expression, format: null);
         }
 
@@ -38,9 +42,19 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Converts the <paramref name="expression"/> result to a <see cref="string"/> directly.
         /// </remarks>
         public static string ValueFor<TModel, TResult>(
-            [NotNull] this IHtmlHelper<TModel> htmlHelper,
-            [NotNull] Expression<Func<TModel, TResult>> expression)
+            this IHtmlHelper<TModel> htmlHelper,
+            Expression<Func<TModel, TResult>> expression)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             return htmlHelper.ValueFor(expression, format: null);
         }
 
@@ -52,8 +66,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>
         /// Converts the model value to a <see cref="string"/> directly.
         /// </remarks>
-        public static string ValueForModel([NotNull] this IHtmlHelper htmlHelper)
+        public static string ValueForModel(this IHtmlHelper htmlHelper)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Value(expression: null, format: null);
         }
 
@@ -69,8 +88,13 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Converts the model value to a <see cref="string"/> directly if
         /// <paramref name="format"/> is <c>null</c> or empty.
         /// </remarks>
-        public static string ValueForModel([NotNull] this IHtmlHelper htmlHelper, string format)
+        public static string ValueForModel(this IHtmlHelper htmlHelper, string format)
         {
+            if (htmlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(htmlHelper));
+            }
+
             return htmlHelper.Value(expression: null, format: format);
         }
     }

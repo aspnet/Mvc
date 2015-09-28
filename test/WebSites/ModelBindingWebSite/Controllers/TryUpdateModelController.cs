@@ -10,6 +10,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.Framework.Primitives;
 using ModelBindingWebSite.Models;
 
 namespace ModelBindingWebSite.Controllers
@@ -107,7 +108,7 @@ namespace ModelBindingWebSite.Controllers
         public async Task<Employee> GetEmployeeAsync_BindToBaseDeclaredType()
         {
             var backingStore = new ReadableStringCollection(
-            new Dictionary<string, string[]>
+            new Dictionary<string, StringValues>
             {
                 { "Parent.Name", new[] { "fatherName"} },
                 { "Parent.Parent.Name", new[] {"grandFatherName" } },
@@ -131,7 +132,7 @@ namespace ModelBindingWebSite.Controllers
         public async Task<User> GetUserAsync_ModelType_IncludeAll(int id)
         {
             var backingStore = new ReadableStringCollection(
-            new Dictionary<string, string[]>
+            new Dictionary<string, StringValues>
             {
                 { "Key", new[] { "123"} },
                 { "RegisterationMonth", new[] {"March" } },
@@ -211,14 +212,14 @@ namespace ModelBindingWebSite.Controllers
 
         public class CustomValueProvider : IValueProvider
         {
-            public Task<bool> ContainsPrefixAsync(string prefix)
+            public bool ContainsPrefix(string prefix)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
-            public Task<ValueProviderResult> GetValueAsync(string key)
+            public ValueProviderResult GetValue(string key)
             {
-                return Task.FromResult<ValueProviderResult>(null);
+                return ValueProviderResult.None;
             }
         }
     }

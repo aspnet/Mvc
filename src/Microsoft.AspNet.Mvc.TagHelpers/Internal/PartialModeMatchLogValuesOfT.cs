@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.Framework.Internal;
 using Microsoft.Framework.Logging;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
     /// <summary>
-    /// Log values for <see cref="ITagHelper"/> instances that opt out of
+    /// Log values for <see cref="AspNet.Razor.Runtime.TagHelpers.ITagHelper"/> instances that opt out of
     /// processing due to missing attributes for one of several possible modes.
     /// </summary>
     public class PartialModeMatchLogValues<TMode> : ILogValues
@@ -29,8 +27,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         public PartialModeMatchLogValues(
             string uniqueId,
             string viewPath,
-            [NotNull] IEnumerable<ModeMatchAttributes<TMode>> partialMatches)
+            IEnumerable<ModeMatchAttributes<TMode>> partialMatches)
         {
+            if (partialMatches == null)
+            {
+                throw new ArgumentNullException(nameof(partialMatches));
+            }
+
             _uniqueId = uniqueId;
             _viewPath = viewPath;
             _partialMatches = partialMatches;
