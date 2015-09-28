@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
     public class ModelBindingMessages : IModelBindingMessages
     {
         private Func<object, string> _missingBindRequiredValueResource;
-        private Func<object, string> _missingKeyOrValueResource;
+        private Func<string> _missingKeyOrValueResource;
         private Func<object, string> _valueInvalid_MustNotBeNullResource;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
 
             MissingBindRequiredValueResource = originalMessages.MissingBindRequiredValueResource;
             MissingKeyOrValueResource = originalMessages.MissingKeyOrValueResource;
-            ValueInvalid_MustNotBeNullResource = originalMessages.ValueInvalid_MustNotBeNullResource;
+            ValueMustNotBeNullResource = originalMessages.ValueMustNotBeNullResource;
         }
 
         /// <inheritdoc/>
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<object, string> MissingKeyOrValueResource
+        public Func<string> MissingKeyOrValueResource
         {
             get
             {
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<object, string> ValueInvalid_MustNotBeNullResource
+        public Func<object, string> ValueMustNotBeNullResource
         {
             get
             {

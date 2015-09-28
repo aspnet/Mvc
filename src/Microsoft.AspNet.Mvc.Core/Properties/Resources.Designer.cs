@@ -155,7 +155,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A null value is invalid for '{0}'.
+        /// The value '{0}' is invalid.
         /// </summary>
         internal static string ModelBinding_NullValueNotValid
         {
@@ -163,7 +163,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A null value is invalid for '{0}'.
+        /// The value '{0}' is invalid.
         /// </summary>
         internal static string FormatModelBinding_NullValueNotValid(object p0)
         {
@@ -875,7 +875,7 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A value is required for '{0}'.
+        /// A value is required.
         /// </summary>
         internal static string KeyValuePair_BothKeyAndValueMustBePresent
         {
@@ -883,11 +883,11 @@ namespace Microsoft.AspNet.Mvc.Core
         }
 
         /// <summary>
-        /// A value is required for '{0}'.
+        /// A value is required.
         /// </summary>
-        internal static string FormatKeyValuePair_BothKeyAndValueMustBePresent(object p0)
+        internal static string FormatKeyValuePair_BothKeyAndValueMustBePresent()
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("KeyValuePair_BothKeyAndValueMustBePresent"), p0);
+            return GetString("KeyValuePair_BothKeyAndValueMustBePresent");
         }
 
         /// <summary>

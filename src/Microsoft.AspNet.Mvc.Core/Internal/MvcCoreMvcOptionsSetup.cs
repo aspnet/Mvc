@@ -28,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Internal
             var bindingMessages = options.ModelBindingMessages;
             bindingMessages.MissingBindRequiredValueResource = Resources.FormatModelBinding_MissingBindRequiredMember;
             bindingMessages.MissingKeyOrValueResource = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent;
-            bindingMessages.ValueInvalid_MustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid;
+            bindingMessages.ValueMustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid;
 
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());

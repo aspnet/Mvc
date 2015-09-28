@@ -80,9 +80,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         {
             return new ModelBindingMessages
             {
-                MissingBindRequiredValueResource = key => $"A value for the '{ key }' property was not provided.",
-                MissingKeyOrValueResource = key => $"A value is required for '{ key }'.",
-                ValueInvalid_MustNotBeNullResource = key => $"A null value is invalid for '{ key }'.",
+                MissingBindRequiredValueResource = name => $"A value for the '{ name }' property was not provided.",
+                MissingKeyOrValueResource = () => $"A value is required.",
+                ValueMustNotBeNullResource = value => $"The value '{ value }' is invalid.",
             };
         }
 

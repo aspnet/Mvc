@@ -263,7 +263,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             };
             var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
             {
-                request.QueryString = QueryString.Create("Parameter1", string.Empty);
+                request.QueryString = QueryString.Create("Parameter1", "  ");
             });
             var modelState = new ModelStateDictionary();
 
@@ -282,10 +282,10 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
             var key = Assert.Single(modelState.Keys);
             Assert.Equal("Parameter1", key);
-            Assert.Equal(string.Empty, modelState[key].AttemptedValue);
-            Assert.Equal(string.Empty, modelState[key].RawValue);
+            Assert.Equal("  ", modelState[key].AttemptedValue);
+            Assert.Equal("  ", modelState[key].RawValue);
             var error = Assert.Single(modelState[key].Errors);
-            Assert.Equal("A null value is invalid for 'Parameter1'.", error.ErrorMessage, StringComparer.Ordinal);
+            Assert.Equal("The value '  ' is invalid.", error.ErrorMessage, StringComparer.Ordinal);
             Assert.Null(error.Exception);
         }
 
@@ -301,8 +301,8 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 .BindingDetails(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.ValueInvalid_MustNotBeNullResource =
-                        propertyPath => $"Hurts when '{ propertyPath }' of type '{ parameterType.Name }' is null.";
+                    binding.ModelBindingMessages.ValueMustNotBeNullResource =
+                        value => $"Hurts when '{ value }' is provided.";
                 });
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
@@ -337,9 +337,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             Assert.Equal(string.Empty, modelState[key].AttemptedValue);
             Assert.Equal(string.Empty, modelState[key].RawValue);
             var error = Assert.Single(modelState[key].Errors);
-            Assert.Equal(
-                $"Hurts when 'Parameter1' of type '{ parameterType.Name }' is null.",
-                error.ErrorMessage, StringComparer.Ordinal);
+            Assert.Equal("Hurts when '' is provided.", error.ErrorMessage, StringComparer.Ordinal);
             Assert.Null(error.Exception);
         }
 

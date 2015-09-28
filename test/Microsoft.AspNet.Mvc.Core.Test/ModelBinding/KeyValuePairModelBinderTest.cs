@@ -33,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             Assert.False(bindingContext.ModelState.IsValid);
             Assert.Equal("someName", bindingContext.ModelName);
             var error = Assert.Single(bindingContext.ModelState["someName.Key"].Errors);
-            Assert.Equal("A value is required for 'someName.Key'.", error.ErrorMessage);
+            Assert.Equal("A value is required.", error.ErrorMessage);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var state = bindingContext.ModelState["someName.Value"];
             Assert.NotNull(state);
             var error = Assert.Single(state.Errors);
-            Assert.Equal("A value is required for 'someName.Value'.", error.ErrorMessage);
+            Assert.Equal("A value is required.", error.ErrorMessage);
         }
 
         [Fact]

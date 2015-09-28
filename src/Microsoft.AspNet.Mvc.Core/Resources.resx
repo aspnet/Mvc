@@ -145,7 +145,7 @@
     <value>The '{0}' method of type '{1}' cannot return a null value.</value>
   </data>
   <data name="ModelBinding_NullValueNotValid" xml:space="preserve">
-    <value>A null value is invalid for '{0}'.</value>
+    <value>The value '{0}' is invalid.</value>
   </data>
   <data name="Invalid_IncludePropertyExpression" xml:space="preserve">
     <value>The passed expression of expression node type '{0}' is invalid. Only simple member access expressions for model properties are supported.</value>
@@ -289,7 +289,7 @@
     <value>The key '{0}' is invalid JQuery syntax because it is missing a closing bracket.</value>
   </data>
   <data name="KeyValuePair_BothKeyAndValueMustBePresent" xml:space="preserve">
-    <value>A value is required for '{0}'.</value>
+    <value>A value is required.</value>
   </data>
   <data name="ModelBinderUtil_ModelCannotBeNull" xml:space="preserve">
     <value>The binding context has a null Model, but this binder requires a non-null model of type '{0}'.</value>

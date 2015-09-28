@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 {
                     MissingBindRequiredValueResource = Resources.FormatModelBinding_MissingBindRequiredMember,
                     MissingKeyOrValueResource = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent,
-                    ValueInvalid_MustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid,
+                    ValueMustNotBeNullResource = Resources.FormatModelBinding_NullValueNotValid,
                 };
             }
         }

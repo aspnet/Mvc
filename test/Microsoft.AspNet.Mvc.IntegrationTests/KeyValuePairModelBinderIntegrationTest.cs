@@ -83,7 +83,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Key").Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("A value is required for 'parameter.Key'.", error.ErrorMessage);
+            Assert.Equal("A value is required.", error.ErrorMessage);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Value").Value;
             Assert.Empty(entry.Errors);
@@ -101,8 +101,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 .BindingDetails(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.MissingKeyOrValueResource =
-                        propertyPath => $"Hurts when '{ propertyPath }' is not provided.";
+                    binding.ModelBindingMessages.MissingKeyOrValueResource = () => $"Hurts when nothing is provided.";
                 });
 
             var argumentBinder = new DefaultControllerActionArgumentBinder(
@@ -132,7 +131,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Key").Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("Hurts when 'parameter.Key' is not provided.", error.ErrorMessage);
+            Assert.Equal("Hurts when nothing is provided.", error.ErrorMessage);
 
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Value").Value;
             Assert.Empty(entry.Errors);
@@ -174,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Value").Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("A value is required for 'parameter.Value'.", error.ErrorMessage);
+            Assert.Equal("A value is required.", error.ErrorMessage);
         }
 
         [Fact]
@@ -187,8 +186,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 .BindingDetails(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessages.MissingKeyOrValueResource =
-                        propertyPath => $"Hurts when '{ propertyPath }' is not provided.";
+                    binding.ModelBindingMessages.MissingKeyOrValueResource = () => $"Hurts when nothing is provided.";
                 });
             var argumentBinder = new DefaultControllerActionArgumentBinder(
                 metadataProvider,
@@ -223,7 +221,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             entry = Assert.Single(modelState, kvp => kvp.Key == "parameter.Value").Value;
             var error = Assert.Single(entry.Errors);
             Assert.Null(error.Exception);
-            Assert.Equal("Hurts when 'parameter.Value' is not provided.", error.ErrorMessage);
+            Assert.Equal("Hurts when nothing is provided.", error.ErrorMessage);
         }
 
         [Fact]
