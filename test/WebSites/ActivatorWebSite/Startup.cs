@@ -19,6 +19,8 @@ namespace ActivatorWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
+
             app.UseCultureReplacer();
 
             // Used to report exceptions that MVC doesn't handle

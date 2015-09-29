@@ -17,6 +17,8 @@ namespace ValidationWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
+            
             app.UseCultureReplacer();
 
             // Set up file serving for JavaScript files.
