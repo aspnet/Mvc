@@ -1179,7 +1179,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
                 if (!string.IsNullOrEmpty(keyValuePair.Key.Group))
                 {
-                    if(!groupList.ContainsKey(keyValuePair.Key.Group))
+                    if (!groupList.ContainsKey(keyValuePair.Key.Group))
                     {
                         groupList[keyValuePair.Key.Group] = new SelectListGroup() { Name = keyValuePair.Key.Group };
                     }
