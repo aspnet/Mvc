@@ -19,7 +19,6 @@ namespace RequestServicesWebSite
         public void Configure(IApplicationBuilder app)
         {
             app.UseIISPlatformHandler();
-            
             app.UseCultureReplacer();
 
             // Initializes the RequestId service for each request
