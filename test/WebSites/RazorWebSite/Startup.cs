@@ -36,6 +36,8 @@ namespace RazorWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
+            
             app.UseRequestLocalization();
             
             app.UseMvcWithDefaultRoute();

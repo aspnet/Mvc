@@ -74,6 +74,7 @@ namespace MvcSample.Web
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
             app.UseStatusCodePages();
             app.UseFileServer();
 

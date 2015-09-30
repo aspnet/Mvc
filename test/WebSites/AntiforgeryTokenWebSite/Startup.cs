@@ -16,6 +16,8 @@ namespace AntiforgeryTokenWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
+            
             app.UseCultureReplacer();
 
             app.UseErrorReporter();

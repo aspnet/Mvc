@@ -9,6 +9,7 @@ namespace AddServicesWebSite
     {
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
             app.UseCultureReplacer();
 
             // Not calling AddMvc() here.

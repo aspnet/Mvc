@@ -27,6 +27,8 @@ namespace RazorPageExecutionInstrumentationWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseIISPlatformHandler();
+            
             app.UseCultureReplacer();
 
             app.Use(async (HttpContext context, Func<Task> next) =>
