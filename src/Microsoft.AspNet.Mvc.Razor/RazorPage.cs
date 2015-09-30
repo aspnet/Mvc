@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Antiforgery;
 using Microsoft.AspNet.Html.Abstractions;
@@ -700,10 +701,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             int attributeValuesCount)
         {
             _attributeInfo = new AttributeInfo(executionContext, attributeName, attributeValuesCount);
-            if (attributeValuesCount > 0)
-            {
-                _valueBuffer = new StringCollectionTextWriter(Output.Encoding);
-            }
+            _valueBuffer = null;
         }
 
         public void AddHtmlAttributeValue(
@@ -739,6 +737,11 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             if (value != null)
             {
+                if (_valueBuffer == null)
+                {
+                    _valueBuffer = new StringCollectionTextWriter(Output.Encoding);
+                }
+
                 if (!string.IsNullOrEmpty(prefix))
                 {
                     WriteLiteralTo(_valueBuffer, prefix);
@@ -752,13 +755,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (!_attributeInfo.Processed)
             {
-                using (var stringWriter = new StringWriter())
-                {
-                    _valueBuffer.Content.WriteTo(stringWriter, HtmlEncoder);
+                HtmlString htmlString;
 
-                    var htmlString = new HtmlString(stringWriter.ToString());
-                    executionContext.AddHtmlAttribute(_attributeInfo.Name, htmlString);
+                if (_valueBuffer != null)
+                {
+                    using (var stringWriter = new StringWriter())
+                    {
+                        _valueBuffer.Content.WriteTo(stringWriter, HtmlEncoder);
+                        htmlString = new HtmlString(stringWriter.ToString());
+                    }
                 }
+                else
+                {
+                    htmlString = HtmlString.Empty;
+                }
+
+                executionContext.AddHtmlAttribute(_attributeInfo.Name, htmlString);
             }
         }
 
