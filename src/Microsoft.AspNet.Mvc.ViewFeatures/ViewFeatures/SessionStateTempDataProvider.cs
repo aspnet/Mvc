@@ -59,11 +59,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(context));
             }
 
+            // Accessing Session property will throw if the session middleware is not enabled.
             var session = context.Session;
-            if (session == null)
-            {
-                throw new InvalidOperationException("Session cannot be null.");
-            }
 
             var tempDataDictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             byte[] value;

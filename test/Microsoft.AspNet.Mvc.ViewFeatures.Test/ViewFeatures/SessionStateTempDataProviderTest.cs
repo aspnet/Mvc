@@ -22,8 +22,10 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var testProvider = new SessionStateTempDataProvider();
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.LoadTempData(
-                GetHttpContext(session: null, sessionEnabled: false)));
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                testProvider.LoadTempData(GetHttpContext(session: null, sessionEnabled: false));
+            });
         }
 
         [Fact]
@@ -35,21 +37,10 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             values.Add("key1", "value1");
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.SaveTempData(
-                GetHttpContext(session: null, sessionEnabled: false), values));
-        }
-
-        [Fact]
-        public void Load_NullSession_ReturnsEmptyDictionary()
-        {
-            // Arrange
-            var testProvider = new SessionStateTempDataProvider();
-
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => testProvider.LoadTempData(
-                GetHttpContext(session: null, sessionEnabled: true)));
-
-            Assert.Equal("Session cannot be null.", exception.Message);
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                testProvider.SaveTempData(GetHttpContext(session: null, sessionEnabled: false), values);
+            });
         }
 
         [Fact]
@@ -352,7 +343,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         private HttpContext GetHttpContext(ISession session, bool sessionEnabled = true)
         {
             var httpContext = new DefaultHttpContext();
-            if(sessionEnabled)
+            if (sessionEnabled)
             {
                 httpContext.Features.Set<ISessionFeature>(new SessionFeature() { Session = session });
             }

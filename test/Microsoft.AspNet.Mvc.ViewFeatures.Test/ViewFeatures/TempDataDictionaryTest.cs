@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
 using Moq;
 using Xunit;
 
@@ -12,13 +13,16 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
     public class TempDataDictionaryTest
     {
         [Fact]
-        public void ThrowsException_OnSettingValue_AndWhenSessionIsNotEnabled()
+        public void ThrowscdException_OnSettingValue_AndWhenSessionIsNotEnabled()
         {
             // Arrange
             var tempData = new TempDataDictionary(GetHttpContextAccessor(), new SessionStateTempDataProvider());
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => tempData["key1"] = "value1");
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                tempData["key1"] = "value1";
+            });
         }
 
         [Fact]
@@ -235,9 +239,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
         private static IHttpContextAccessor GetHttpContextAccessor()
         {
-            var httpContext = new Mock<HttpContext>();
             var httpContextAccessor = new Mock<IHttpContextAccessor>();
-            httpContextAccessor.Setup(h => h.HttpContext).Returns(httpContext.Object);
+            httpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext());
             return httpContextAccessor.Object;
         }
     }
