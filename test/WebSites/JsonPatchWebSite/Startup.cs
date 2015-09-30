@@ -18,7 +18,6 @@ namespace JsonPatchWebSite
         public void Configure(IApplicationBuilder app)
         {
             app.UseIISPlatformHandler();
-            
             app.UseCultureReplacer();
 
             // Add MVC to the request pipeline
