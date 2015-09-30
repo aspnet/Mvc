@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var testProvider = new SessionStateTempDataProvider();
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 testProvider.LoadTempData(GetHttpContext(session: null, sessionEnabled: false));
             });
@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             values.Add("key1", "value1");
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 testProvider.SaveTempData(GetHttpContext(session: null, sessionEnabled: false), values);
             });

@@ -239,9 +239,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
         private static IHttpContextAccessor GetHttpContextAccessor()
         {
-            var httpContextAccessor = new Mock<IHttpContextAccessor>();
-            httpContextAccessor.Setup(h => h.HttpContext).Returns(new DefaultHttpContext());
-            return httpContextAccessor.Object;
+            return new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
         }
     }
 }

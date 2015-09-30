@@ -108,7 +108,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 return;
             }
 
-            Load();
             _retainedKeys.Clear();
             _retainedKeys.UnionWith(_data.Keys);
         }
