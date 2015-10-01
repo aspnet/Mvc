@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be an absolute path.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public PhysicalFileProviderResult(string fileName, string contentType)
+        public PhysicalFileResult(string fileName, string contentType)
             : this(fileName, new MediaTypeHeaderValue(contentType))
         {
             if (fileName == null)
@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <param name="fileName">The path to the file. The path must be an absolute path.</param>
         /// <param name="contentType">The Content-Type header of the response.</param>
-        public PhysicalFileProviderResult(string fileName, MediaTypeHeaderValue contentType)
+        public PhysicalFileResult(string fileName, MediaTypeHeaderValue contentType)
             : base(contentType)
         {
             if (fileName == null)
