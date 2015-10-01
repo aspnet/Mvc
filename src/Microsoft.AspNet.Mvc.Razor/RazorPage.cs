@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Antiforgery;
 using Microsoft.AspNet.Html.Abstractions;
@@ -37,6 +36,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private ITypeActivatorCache _typeActivatorCache;
         private bool _renderedBody;
         private AttributeInfo _attributeInfo;
+        private TagHelperAttributeInfo _tagHelperAttributeInfo;
         private StringCollectionTextWriter _valueBuffer;
 
         public RazorPage()
@@ -645,14 +645,14 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (IsBoolFalseOrNullValue(prefix, value))
                 {
                     // Value is either null or the bool 'false' with no prefix; don't render the attribute.
-                    _attributeInfo.Processed = true;
+                    _attributeInfo.Suppressed = true;
                     return;
                 }
 
                 // We are not omitting the attribute. Write the prefix.
                 WritePositionTaggedLiteral(writer, _attributeInfo.Prefix, _attributeInfo.PrefixOffset);
 
-                if (UseAttributeNameAsValue(prefix, value))
+                if (IsBoolTrueWithEmptyPrefixValue(prefix, value))
                 {
                     // The value is just the bool 'true', write the attribute name instead of the string 'True'.
                     value = _attributeInfo.Name;
@@ -689,7 +689,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            if (!_attributeInfo.Processed)
+            if (!_attributeInfo.Suppressed)
             {
                 WritePositionTaggedLiteral(writer, _attributeInfo.Suffix, _attributeInfo.SuffixOffset);
             }
@@ -700,7 +700,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             string attributeName,
             int attributeValuesCount)
         {
-            _attributeInfo = new AttributeInfo(executionContext, attributeName, attributeValuesCount);
+            _tagHelperAttributeInfo = new TagHelperAttributeInfo(executionContext, attributeName, attributeValuesCount);
             _valueBuffer = null;
         }
 
@@ -712,25 +712,27 @@ namespace Microsoft.AspNet.Mvc.Razor
             int valueLength,
             bool isLiteral)
         {
-            Debug.Assert(_attributeInfo.ExecutionContext != null);
-            if (_attributeInfo.AttributeValuesCount == 1)
+            Debug.Assert(_tagHelperAttributeInfo.ExecutionContext != null);
+            if (_tagHelperAttributeInfo.AttributeValuesCount == 1)
             {
                 if (IsBoolFalseOrNullValue(prefix, value))
                 {
                     // The first value was 'null' or 'false' indicating that we shouldn't render the attribute. The
                     // attribute is treated as a TagHelper attribute so it's only available in
-                    // TagHelperContext.AllAttributes for TagHelper authors to see (if they want to see why the attribute
-                    // was removed from TagHelperOutput.Attributes).
-                    _attributeInfo.ExecutionContext.AddTagHelperAttribute(
-                        _attributeInfo.Name,
+                    // TagHelperContext.AllAttributes for TagHelper authors to see (if they want to see why the
+                    // attribute was removed from TagHelperOutput.Attributes).
+                    _tagHelperAttributeInfo.ExecutionContext.AddTagHelperAttribute(
+                        _tagHelperAttributeInfo.Name,
                         value?.ToString() ?? string.Empty);
-                    _attributeInfo.Processed = true;
+                    _tagHelperAttributeInfo.Suppressed = true;
                     return;
                 }
-                else if (UseAttributeNameAsValue(prefix, value))
+                else if (IsBoolTrueWithEmptyPrefixValue(prefix, value))
                 {
-                    _attributeInfo.ExecutionContext.AddHtmlAttribute(_attributeInfo.Name, _attributeInfo.Name);
-                    _attributeInfo.Processed = true;
+                    _tagHelperAttributeInfo.ExecutionContext.AddHtmlAttribute(
+                        _tagHelperAttributeInfo.Name,
+                        _tagHelperAttributeInfo.Name);
+                    _tagHelperAttributeInfo.Suppressed = true;
                     return;
                 }
             }
@@ -753,7 +755,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public void EndAddHtmlAttributeValues(TagHelperExecutionContext executionContext)
         {
-            if (!_attributeInfo.Processed)
+            if (!_tagHelperAttributeInfo.Suppressed)
             {
                 HtmlString htmlString;
 
@@ -770,7 +772,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     htmlString = HtmlString.Empty;
                 }
 
-                executionContext.AddHtmlAttribute(_attributeInfo.Name, htmlString);
+                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, htmlString);
             }
         }
 
@@ -1066,23 +1068,16 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private bool IsBoolFalseOrNullValue(string prefix, object value)
         {
-            if (string.IsNullOrEmpty(prefix) &&
-                (value is bool || value == null))
-            {
-                if (value == null || !(bool)value)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return string.IsNullOrEmpty(prefix) &&
+                (value == null ||
+                (value is bool && !(bool)value));
         }
 
-        private bool UseAttributeNameAsValue(string prefix, object value)
+        private bool IsBoolTrueWithEmptyPrefixValue(string prefix, object value)
         {
             // If the value is just the bool 'true', use the attribute name as the value.
             return string.IsNullOrEmpty(prefix) &&
-                ((value is bool) && (bool)value);
+                (value is bool && (bool)value);
         }
 
         private void EnsureMethodCanBeInvoked(string methodName)
@@ -1110,24 +1105,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 SuffixOffset = suffixOffset;
                 AttributeValuesCount = attributeValuesCount;
 
-                Processed = false;
-                ExecutionContext = null;
-            }
-
-            public AttributeInfo(
-                TagHelperExecutionContext tagHelperExecutionContext,
-                string name,
-                int attributeValuesCount)
-            {
-                ExecutionContext = tagHelperExecutionContext;
-                Name = name;
-                AttributeValuesCount = attributeValuesCount;
-
-                Prefix = null;
-                Suffix = null;
-                SuffixOffset = 0;
-                PrefixOffset = 0;
-                Processed = false;
+                Suppressed = false;
             }
 
             public int AttributeValuesCount { get; }
@@ -1142,9 +1120,30 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             public int SuffixOffset { get; }
 
+            public bool Suppressed { get; set; }
+        }
+
+        private struct TagHelperAttributeInfo
+        {
+            public TagHelperAttributeInfo(
+                TagHelperExecutionContext tagHelperExecutionContext,
+                string name,
+                int attributeValuesCount)
+            {
+                ExecutionContext = tagHelperExecutionContext;
+                Name = name;
+                AttributeValuesCount = attributeValuesCount;
+
+                Suppressed = false;
+            }
+
+            public string Name { get; }
+
             public TagHelperExecutionContext ExecutionContext { get; }
 
-            public bool Processed { get; set; }
+            public int AttributeValuesCount { get; }
+
+            public bool Suppressed { get; set; }
         }
     }
 }
