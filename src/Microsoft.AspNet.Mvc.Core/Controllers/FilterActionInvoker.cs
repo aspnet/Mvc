@@ -636,7 +636,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
                         {
                             _telemetry.WriteTelemetry(
                                 "Microsoft.AspNet.Mvc.AfterActionMethod",
-                                new { actionContext = ActionContext, result = result });
+                                new { actionContext = ActionContext, arguments = _actionExecutingContext.ActionArguments, result = result });
                         }
                     }
 
