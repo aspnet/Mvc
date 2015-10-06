@@ -858,6 +858,22 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return string.Format(CultureInfo.CurrentCulture, GetString("Dictionary_DuplicateKey"), p0);
         }
 
+        /// <summary>
+        /// The view component method '{0}' should not return a Task.
+        /// </summary>
+        internal static string ViewComponent_SyncMethod_ShouldNotReturnTask
+        {
+            get { return GetString("ViewComponent_SyncMethod_ShouldNotReturnTask"); }
+        }
+
+        /// <summary>
+        /// The view component method '{0}' should not return a Task.
+        /// </summary>
+        internal static string FormatViewComponent_SyncMethod_ShouldNotReturnTask(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_SyncMethod_ShouldNotReturnTask"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
