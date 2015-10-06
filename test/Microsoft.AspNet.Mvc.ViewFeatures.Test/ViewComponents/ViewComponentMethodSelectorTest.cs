@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
@@ -80,15 +82,31 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             Assert.Equal(expectedMessage, ex.Message);
         }
 
+        public static TheoryData FindAsyncMethod_ReturnsMethodMatchingParametersData
+        {
+            get
+            {
+                var derivedClass = new DerivedClass();
+
+                return new TheoryData<Type, object[], string>
+                {
+                    { typeof(ViewComponentWithAsyncInvoke), new object[] { "", }, "1" },
+                    { typeof(ViewComponentWithAsyncInvoke), new object[] { "", 2 }, "2" },
+                    { typeof(ViewComponentWithAsyncInvoke), new object[] { "", 0, 1 }, "3" },
+                    { typeof(ViewComponentWithAsyncInvoke), new object[] { 1, false, 1 }, "4" },
+                    { typeof(MethodsWithValueConversions), new object[] { 2, (byte)1, (byte)2 }, "2" },
+                    { typeof(MethodsWithValueConversions), new object[] { derivedClass, derivedClass }, "4" },
+                    { typeof(MethodsWithValueConversions), new object[] { CultureInfo.InvariantCulture }, "6" },
+                };
+            }
+        }
+
         [Theory]
-        [InlineData(new object[] { "", }, "1")]
-        [InlineData(new object[] { "", 2 }, "2")]
-        [InlineData(new object[] { "", 0, 1 }, "3")]
-        [InlineData(new object[] { 1, false, 1 }, "4")]
-        public void FindAsyncMethod_ReturnsMethodMatchingParameters(object[] args, string expectedId)
+        [MemberData(nameof(FindAsyncMethod_ReturnsMethodMatchingParametersData))]
+        public void FindAsyncMethod_ReturnsMethodMatchingParameters(Type type, object[] args, string expectedId)
         {
             // Arrange
-            var typeInfo = typeof(ViewComponentWithAsyncInvoke).GetTypeInfo();
+            var typeInfo = type.GetTypeInfo();
 
             // Act
             var method = ViewComponentMethodSelector.FindAsyncMethod(typeInfo, args);
@@ -99,14 +117,30 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             Assert.Equal(expectedId, data.Data);
         }
 
-        [Theory]
-        [InlineData(typeof(ViewComponentWithSyncInvoke), new object[] { }, "1")]
-        [InlineData(typeof(ViewComponentWithSyncInvoke), new object[] { 2, 3 }, "2")]
-        [InlineData(typeof(ViewComponentWithSyncInvoke), new object[] { "", 0, true }, "3")]
-        [InlineData(typeof(DerivedClass), new object[] { }, "Derived1")]
+        public static TheoryData FindSyncMethod_ReturnsMethodMatchingParametersData
+        {
+            get
+            {
+                var derivedClass = new DerivedAgain();
+
+                return new TheoryData<Type, object[], string>
+                {
+                    { typeof(ViewComponentWithSyncInvoke), new object[] { }, "1" },
+                    { typeof(ViewComponentWithSyncInvoke), new object[] { 2, 3 }, "2" },
+                    { typeof(ViewComponentWithSyncInvoke), new object[] { "", 0, true }, "3" },
+                    { typeof(MethodsWithValueConversions), new object[] { 1, (byte)2, 3.0f }, "1" },
+                    { typeof(MethodsWithValueConversions), new object[] { derivedClass, derivedClass }, "3" },
+                    { typeof(MethodsWithValueConversions), new object[] { "Hello world" }, "5" },
+                    { typeof(DerivedClass), new object[] { }, "Derived1" },
 #if !DNXCORE50
-        [InlineData(typeof(DerivedAgain), new object[] { "" }, "Derived2")]
+                    { typeof(DerivedAgain), new object[] { "" }, "Derived2" },
 #endif
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(FindSyncMethod_ReturnsMethodMatchingParametersData))]
         public void FindSyncMethod_ReturnsMethodMatchingParameters(Type type, object[] args, string expectedId)
         {
             // Arrange
@@ -147,8 +181,29 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             [MethodData("4")]
             public Task<string> InvokeAsync(int? a, bool? b, int c) => Task.FromResult(a.ToString() + b + c);
 
-            [MethodData("4")]
+            [MethodData("5")]
             public Task<string> InvokeAsync(object value) => Task.FromResult(value.ToString());
+        }
+
+        public class MethodsWithValueConversions
+        {
+            [MethodData("1")]
+            public int Invoke(long a, char b, double c) => 1;
+
+            [MethodData("2")]
+            public Task<int> InvokeAsync(float a, float b, byte c) => Task.FromResult(1);
+
+            [MethodData("3")]
+            public int Invoke(BaseClass a, DerivedClass b) => 1;
+
+            [MethodData("4")]
+            public Task<int> InvokeAsync(BaseClass a, DerivedClass b) => Task.FromResult(1);
+
+            [MethodData("5")]
+            public int Invoke(IEnumerable<char> value) => 1;
+
+            [MethodData("6")]
+            public Task<int> InvokeAsync(IFormatProvider formatProvider) => Task.FromResult(1);
         }
 
         private class ViewComponentWithNonPublicNonInstanceInvokes
@@ -161,7 +216,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             protected Task<string> InvokeAsync(string a) => Task.FromResult(a);
         }
-        
+
         public class BaseClass
         {
             [MethodData("Base")]
