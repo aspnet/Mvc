@@ -859,19 +859,19 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// The view component method '{0}' should not return a Task.
+        /// The view component method '{0}' cannot return a {1}.
         /// </summary>
-        internal static string ViewComponent_SyncMethod_ShouldNotReturnTask
+        internal static string ViewComponent_SyncMethod_CannotReturnTask
         {
-            get { return GetString("ViewComponent_SyncMethod_ShouldNotReturnTask"); }
+            get { return GetString("ViewComponent_SyncMethod_CannotReturnTask"); }
         }
 
         /// <summary>
-        /// The view component method '{0}' should not return a Task.
+        /// The view component method '{0}' cannot return a {1}.
         /// </summary>
-        internal static string FormatViewComponent_SyncMethod_ShouldNotReturnTask(object p0)
+        internal static string FormatViewComponent_SyncMethod_CannotReturnTask(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_SyncMethod_ShouldNotReturnTask"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_SyncMethod_CannotReturnTask"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

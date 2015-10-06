@@ -68,17 +68,29 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 ex.Message);
         }
 
-        [Theory]
-        [InlineData(new object[] { 4 }, "The view component method 'Invoke' should be declared to return a value.")]
-        [InlineData(new object[] { "" }, "The view component method 'Invoke' should not return a Task.")]
-        public void FindSyncMethod_ThrowsIfInvokeSyncDoesNotHaveCorrectReturnType(object[] args, string expectedMessage)
+        [Fact]
+        public void FindSyncMethod_ThrowsIfInvokeSyncIsAVoidMethod()
         {
             // Arrange
+            var expectedMessage = "The view component method 'Invoke' should be declared to return a value.";
             var typeInfo = typeof(TypeWithInvalidInvokeSync).GetTypeInfo();
 
             // Act and Assert
             var ex = Assert.Throws<InvalidOperationException>(
-                () => ViewComponentMethodSelector.FindSyncMethod(typeInfo, args));
+                () => ViewComponentMethodSelector.FindSyncMethod(typeInfo, new object[] { 4 }));
+            Assert.Equal(expectedMessage, ex.Message);
+        }
+
+        [Fact]
+        public void FindSyncMethod_ThrowsIfInvokeSyncReturnsTask()
+        {
+            // Arrange
+            var expectedMessage = "The view component method 'Invoke' cannot return a Task.";
+            var typeInfo = typeof(TypeWithInvalidInvokeSync).GetTypeInfo();
+
+            // Act and Assert
+            var ex = Assert.Throws<InvalidOperationException>(
+                () => ViewComponentMethodSelector.FindSyncMethod(typeInfo, new object[] { "" }));
             Assert.Equal(expectedMessage, ex.Message);
         }
 

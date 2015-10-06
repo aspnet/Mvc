@@ -58,7 +58,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             else if (method.ReturnType.IsAssignableFrom(typeof(Task)))
             {
                 throw new InvalidOperationException(
-                    Resources.FormatViewComponent_SyncMethod_ShouldNotReturnTask(SyncMethodName));
+                    Resources.FormatViewComponent_SyncMethod_CannotReturnTask(SyncMethodName, nameof(Task)));
             }
 
             return method;
