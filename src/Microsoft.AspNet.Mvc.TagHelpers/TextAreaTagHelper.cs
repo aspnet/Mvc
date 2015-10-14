@@ -50,6 +50,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <remarks>Does nothing if <see cref="For"/> is <c>null</c>.</remarks>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (output == null)
             {
                 throw new ArgumentNullException(nameof(output));
