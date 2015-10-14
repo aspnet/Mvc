@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent(expectedPostContent);
-            
+
             var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
                                                                    htmlGenerator: htmlGenerator,
                                                                    metadataProvider: metadataProvider);
@@ -271,11 +271,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent(expectedPostContent);
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test",
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
+
             var viewContext = CreateViewContext();
             validationMessageTagHelper.ViewContext = viewContext;
 
             // Act
-            await validationMessageTagHelper.ProcessAsync(context: null, output: output);
+            await validationMessageTagHelper.ProcessAsync(context: context, output: output);
 
             // Assert
             Assert.Equal("span", output.TagName);

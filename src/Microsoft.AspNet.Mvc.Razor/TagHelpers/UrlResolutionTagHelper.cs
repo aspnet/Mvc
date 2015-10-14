@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.Extensions.WebEncoders;
 
@@ -108,6 +107,11 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             IEnumerable<string> attributeNames;
             if (ElementAttributeLookups.TryGetValue(output.TagName, out attributeNames))
             {

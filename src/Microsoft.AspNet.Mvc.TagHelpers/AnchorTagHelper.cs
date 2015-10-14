@@ -111,6 +111,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             // If "href" is already set, it means the user is attempting to use a normal anchor.
             if (output.Attributes.ContainsName(Href))
             {

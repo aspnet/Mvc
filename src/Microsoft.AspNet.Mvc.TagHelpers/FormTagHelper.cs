@@ -99,6 +99,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             var antiforgeryDefault = true;
 
             // If "action" is already set, it means the user is attempting to use a normal <form>.

@@ -48,6 +48,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             // Always strip the outer tag name as we never want <environment> to render
             output.TagName = null;
 
@@ -80,7 +85,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Matching environment name found, do nothing
                 return;
             }
-            
+
             // No matching environment name found, suppress all output
             output.SuppressOutput();
         }
