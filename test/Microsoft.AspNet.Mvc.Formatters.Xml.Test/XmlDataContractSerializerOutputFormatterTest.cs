@@ -426,6 +426,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             }
         }
 
+#if !DNXCORE50
         [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
@@ -440,6 +441,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             await Assert.ThrowsAsync(typeof(SerializationException),
                 async () => await formatter.WriteAsync(outputFormatterContext));
         }
+#endif
 
         [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
@@ -548,6 +550,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
+#if !DNXCORE50
         [ConditionalFact]
         // Mono issue - https://github.com/aspnet/External/issues/18
         [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
@@ -593,6 +596,7 @@ namespace Microsoft.AspNet.Mvc.Formatters.Xml
             var content = new StreamReader(body).ReadToEnd();
             XmlAssert.Equal(expectedOutput, content);
         }
+#endif
 
         private OutputFormatterWriteContext GetOutputFormatterContext(
             object outputValue,

@@ -215,15 +215,19 @@ namespace Microsoft.AspNet.Mvc.Formatters
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-8", "utf-8", true },
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-16", "utf-16", true },
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-32", "utf-32", false },
+#if !DNXCORE50
                     { "This is a test 激光這兩個字是甚麼意思 string written using shift_jis", "shift_jis", false },
+#endif
                     { "This is a test æøå string written using iso-8859-1", "iso-8859-1", false },
                 };
 
+#if !DNXCORE50
                 if (!TestPlatformHelper.IsMono)
                 {
                     // Mono issue - https://github.com/aspnet/External/issues/28
                     data.Add("This is a test 레이저 단어 뜻 string written using iso-2022-kr", "iso-2022-kr", false);
                 }
+#endif
 
                 return data;
             }
