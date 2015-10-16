@@ -54,7 +54,14 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var cacheKey = GenerateKey(context, copyViewExpanderValues: true);
-            _cache.TryAdd(cacheKey, value);
+            if (!_cache.TryAdd(cacheKey, value))
+            {
+                ViewLocationCacheResult comparisonValue;
+                if (_cache.TryGetValue(cacheKey, out comparisonValue))
+                {
+                    _cache.TryUpdate(cacheKey, value, comparisonValue);
+                }
+            }
         }
 
         // Internal for unit testing
