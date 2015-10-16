@@ -90,6 +90,50 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [Theory]
+        [MemberData(nameof(CacheEntryData))]
+        public void InvokingGetAfterSecondSet_ReturnsCachedItem(ViewLocationExpanderContext context)
+        {
+            // Arrange
+            var cache = new DefaultViewLocationCache();
+            var value = new ViewLocationCacheResult(
+                Guid.NewGuid().ToString(),
+                new[]
+                {
+                    Guid.NewGuid().ToString(),
+                    Guid.NewGuid().ToString()
+                });
+            var updatedValue = new ViewLocationCacheResult(
+                Guid.NewGuid().ToString(),
+                new[]
+                {
+                    Guid.NewGuid().ToString(),
+                    Guid.NewGuid().ToString()
+                });
+
+            // Act - 1
+            cache.Set(context, value);
+            var result = cache.Get(context);
+
+            // Assert - 1
+            Assert.Equal(value, result);
+
+            // Act - 2
+            result = cache.Get(context);
+
+            // Assert - 2
+            Assert.Equal(value, result);
+
+            // Act - 3
+            cache.Set(context, updatedValue);
+
+            // Act - 4
+            result = cache.Get(context);
+
+            // Assert - 3
+            Assert.Equal(updatedValue, result);
+        }
+
+        [Theory]
         [InlineData("View1", "View2")]
         [InlineData("View1", "view1")]
         public void ViewLocationCacheKeyComparer_EqualsReturnsFalseIfViewNamesAreDifferent(
