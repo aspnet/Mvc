@@ -1,44 +1,53 @@
 {
-  "description": "The Razor view engine for ASP.NET MVC.",
-  "version": "6.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
-  },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-*",
-    "Microsoft.AspNet.Razor.Runtime.Precompilation":  "4.0.0-*",
-    "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces": "1.0.0-*",
-    "Microsoft.Framework.HashCodeCombiner.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.PropertyActivator.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-*",
-    "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-*"
-  },
-  "frameworks": {
-    "dnx451": {
-      "frameworkAssemblies": {
-        "System.Collections": "",
-        "System.IO": "",
-        "System.Runtime": "",
-        "System.Text.Encoding": "",
-        "System.Threading.Tasks": ""
-      }
+    "description": "The Razor view engine for ASP.NET MVC.",
+    "version": "6.0.0-beta8",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
     },
-    "dnxcore50": {
-      "dependencies": {
-        "System.Text.Encoding": "4.0.11-*",
-        "System.Threading.Tasks.Parallel": "4.0.1-beta-*"
-      }
-    }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+    "compilationOptions": {
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-beta8",
+        "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-beta8",
+        "Microsoft.AspNet.Razor.Runtime.Precompilation": "4.0.0-beta8",
+        "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces": "1.0.0-beta8",
+        "Microsoft.Framework.HashCodeCombiner.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyActivator.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-beta8",
+        "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-beta8"
+    },
+    "frameworks": {
+        "dnx451": {
+            "frameworkAssemblies": {
+                "System.Collections": "",
+                "System.IO": "",
+                "System.Runtime": "",
+                "System.Text.Encoding": "",
+                "System.Threading.Tasks": ""
+            }
+        },
+        "dnxcore50": {
+            "dependencies": {
+                "System.Text.Encoding": "4.0.11-beta-23409",
+                "System.Threading.Tasks.Parallel": "4.0.1-beta-23409"
+            }
+        }
+    },
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ]
 }

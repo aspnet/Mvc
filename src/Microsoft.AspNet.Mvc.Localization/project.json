@@ -1,22 +1,22 @@
-﻿{
+{
     "description": "Features that enable globalization & localization of MVC applications.",
-    "version": "6.0.0-*",
+    "version": "6.0.0-beta8",
     "compilationOptions": {
         "warningsAsErrors": true
     },
     "dependencies": {
-        "Microsoft.AspNet.Localization": "1.0.0-*",
-        "Microsoft.AspNet.Mvc.Razor": "6.0.0-*",
-        "Microsoft.Framework.DependencyInjection": "1.0.0-*",
-        "Microsoft.Framework.Localization": "1.0.0-*",
+        "Microsoft.AspNet.Localization": "1.0.0-beta8",
+        "Microsoft.AspNet.Mvc.Razor": "6.0.0-beta8",
+        "Microsoft.Framework.DependencyInjection": "1.0.0-beta8",
+        "Microsoft.Framework.Localization": "1.0.0-beta8",
         "Microsoft.Framework.PropertyHelper.Sources": {
-            "version": "1.0.0-*",
+            "version": "1.0.0-beta8",
             "type": "build"
         }
     },
     "frameworks": {
-        "dnx451": { },
-        "dnxcore50": { }
+        "dnx451": {},
+        "dnxcore50": {}
     },
     "exclude": [
         "wwwroot",

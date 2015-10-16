@@ -4,25 +4,35 @@
         "kestrel": "Microsoft.AspNet.Hosting --server Microsoft.AspNet.Server.Kestrel --server.urls http://localhost:5000"
     },
     "dependencies": {
-        "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-*",
+        "Microsoft.AspNet.Server.Kestrel": "1.0.0-beta8",
+        "Microsoft.AspNet.Mvc": "6.0.0-beta8",
+        "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-beta8",
         "Microsoft.AspNet.Mvc.TestConfiguration": "1.0.0",
         "Microsoft.AspNet.Server.IIS": "1.0.0-*",
-        "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-        "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-        "Microsoft.Framework.NotNullAttribute.Sources": { "type": "build", "version": "1.0.0-*" },
-        "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" }
+        "Microsoft.AspNet.Server.WebListener": "1.0.0-beta8",
+        "Microsoft.AspNet.StaticFiles": "1.0.0-beta8",
+        "Microsoft.Framework.NotNullAttribute.Sources": {
+            "type": "build",
+            "version": "1.0.0-beta8"
+        },
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        }
     },
     "frameworks": {
         "dnx451": {
             "compilationOptions": {
-                "define": [ "CUSTOM_DNX451_DEFINE" ]
+                "define": [
+                    "CUSTOM_DNX451_DEFINE"
+                ]
             }
         },
         "dnxcore50": {
             "compilationOptions": {
-                "define": [ "CUSTOM_DNXCORE50_DEFINE" ]
+                "define": [
+                    "CUSTOM_DNXCORE50_DEFINE"
+                ]
             }
         }
     },

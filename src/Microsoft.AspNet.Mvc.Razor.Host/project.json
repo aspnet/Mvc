@@ -1,39 +1,42 @@
 {
-  "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-  "version": "6.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
-  },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-*",
-    "Microsoft.AspNet.Razor.Runtime": "4.0.0-*",
-    "Microsoft.Framework.Caching.Memory": "1.0.0-*",
-    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" }
-  },
-  "frameworks": {
-    "net45": { },
-    "dnx451": {
-      "dependencies": {
-        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*"
-      }
+    "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
+    "version": "6.0.0-beta8",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
     },
-    "dnxcore50": {
-      "dependencies": {
-        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
-        "System.Collections.Concurrent": "4.0.11-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
-        "System.Reflection.Extensions": "4.0.1-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
-      }
-    }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+    "compilationOptions": {
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Microsoft.AspNet.FileProviders.Physical": "1.0.0-beta8",
+        "Microsoft.AspNet.Razor.Runtime": "4.0.0-beta8",
+        "Microsoft.Framework.Caching.Memory": "1.0.0-beta8",
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        }
+    },
+    "frameworks": {
+        "net45": {},
+        "dnx451": {
+            "dependencies": {
+                "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8"
+            }
+        },
+        "dnxcore50": {
+            "dependencies": {
+                "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8",
+                "System.Collections.Concurrent": "4.0.11-beta-23409",
+                "System.ComponentModel.TypeConverter": "4.0.1-beta-23409",
+                "System.Reflection.Extensions": "4.0.1-beta-23409",
+                "System.Text.Encoding.Extensions": "4.0.11-beta-23409"
+            }
+        }
+    },
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ]
 }

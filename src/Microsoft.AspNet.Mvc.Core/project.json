@@ -1,52 +1,52 @@
 {
-  "description": "The core runtime components of ASP.NET MVC.",
-  "version": "6.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
-  },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.Authorization": "1.0.0-*",
-    "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-*",
-    "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
-    "Microsoft.Framework.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "description": "The core runtime components of ASP.NET MVC.",
+    "version": "6.0.0-beta8",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
     },
-    "Microsoft.Framework.Logging.Abstractions": "1.0.0-*",
-    "Microsoft.Framework.NotNullAttribute.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "compilationOptions": {
+        "warningsAsErrors": true
     },
-    "Microsoft.Framework.PropertyActivator.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "dependencies": {
+        "Microsoft.AspNet.Authorization": "1.0.0-beta8",
+        "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-beta8",
+        "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-beta8",
+        "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-beta8",
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8",
+        "Microsoft.Framework.ClosedGenericMatcher.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.Logging.Abstractions": "1.0.0-beta8",
+        "Microsoft.Framework.NotNullAttribute.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyActivator.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.SecurityHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "System.Diagnostics.Tracing.Telemetry": "4.0.0-beta-23409"
     },
-    "Microsoft.Framework.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
-    },
-    "Microsoft.Framework.SecurityHelper.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
-    },
-    "System.Diagnostics.Tracing.Telemetry": "4.0.0-beta-*"
-  },
-  "frameworks": {
-    "dnx451": {
-      "frameworkAssemblies": {
-        "System.Runtime": ""
-      }
-    },
-    "dnxcore50": {
-        "dependencies": {
-            "System.Text.Encoding": "4.0.11-*"
+    "frameworks": {
+        "dnx451": {
+            "frameworkAssemblies": {
+                "System.Runtime": ""
+            }
+        },
+        "dnxcore50": {
+            "dependencies": {
+                "System.Text.Encoding": "4.0.11-beta-23409"
+            }
         }
     }
-  }
 }

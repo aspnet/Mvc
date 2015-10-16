@@ -1,6 +1,6 @@
 {
     "description": "Abstractions for page instrumentation.",
-    "version": "1.0.0-*",
+    "version": "1.0.0-beta8",
     "repository": {
         "type": "git",
         "url": "git://github.com/aspnet/mvc"
@@ -9,11 +9,11 @@
         "warningsAsErrors": true
     },
     "frameworks": {
-        "dnx451": { },
+        "dnx451": {},
         "dnxcore50": {
             "dependencies": {
-                "System.IO": "4.0.11-beta-*",
-                "System.Resources.ResourceManager": "4.0.1-beta-*"
+                "System.IO": "4.0.11-beta-23409",
+                "System.Resources.ResourceManager": "4.0.1-beta-23409"
             }
         }
     }

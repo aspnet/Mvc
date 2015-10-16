@@ -1,31 +1,37 @@
 {
-  "description": "Contains a default set of Tag Helpers for building ASP.NET MVC applications.",
-  "version": "6.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
-  },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.Mvc.Razor": "6.0.0-*",
-    "Microsoft.Framework.Caching.Memory": "1.0.0-*",
-    "Microsoft.Framework.FileSystemGlobbing": "1.0.0-*",
-    "Microsoft.Framework.Logging.Abstractions": { "version": "1.0.0-*", "type": "build" },
-    "Microsoft.Framework.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" }
-  },
-  "frameworks": {
-    "dnx451": { },
-    "dnxcore50": {
-      "dependencies": {
-        "System.Security.Cryptography.Algorithms": "4.0.0-beta-*"
-      }
-    }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+    "description": "Contains a default set of Tag Helpers for building ASP.NET MVC applications.",
+    "version": "6.0.0-beta8",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
+    },
+    "compilationOptions": {
+        "warningsAsErrors": true
+    },
+    "dependencies": {
+        "Microsoft.AspNet.Mvc.Razor": "6.0.0-beta8",
+        "Microsoft.Framework.Caching.Memory": "1.0.0-beta8",
+        "Microsoft.Framework.FileSystemGlobbing": "1.0.0-beta8",
+        "Microsoft.Framework.Logging.Abstractions": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        }
+    },
+    "frameworks": {
+        "dnx451": {},
+        "dnxcore50": {
+            "dependencies": {
+                "System.Security.Cryptography.Algorithms": "4.0.0-beta-23409"
+            }
+        }
+    },
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ]
 }

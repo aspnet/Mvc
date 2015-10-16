@@ -1,45 +1,45 @@
 {
-  "description": "The core abstractions of ASP.NET MVC.",
-  "version": "6.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
-  },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-    "Microsoft.AspNet.Routing": "1.0.0-*",
-    "Microsoft.Framework.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "description": "The core abstractions of ASP.NET MVC.",
+    "version": "6.0.0-beta8",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/aspnet/mvc"
     },
-    "Microsoft.Framework.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "compilationOptions": {
+        "warningsAsErrors": true
     },
-    "Microsoft.Framework.HashCodeCombiner.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "dependencies": {
+        "Microsoft.AspNet.Routing": "1.0.0-beta8",
+        "Microsoft.Framework.ClosedGenericMatcher.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.CopyOnWriteDictionary.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.HashCodeCombiner.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.NotNullAttribute.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        },
+        "Microsoft.Framework.PropertyHelper.Sources": {
+            "version": "1.0.0-beta8",
+            "type": "build"
+        }
     },
-    "Microsoft.Framework.NotNullAttribute.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
-    },
-    "Microsoft.Framework.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
-      "type": "build"
+    "frameworks": {
+        "dnx451": {},
+        "dnxcore50": {
+            "dependencies": {
+                "Microsoft.CSharp": "4.0.1-beta-23409",
+                "System.ComponentModel.TypeConverter": "4.0.1-beta-23409",
+                "System.Reflection.Extensions": "4.0.1-beta-23409",
+                "System.Text.Encoding.Extensions": "4.0.11-beta-23409"
+            }
+        }
     }
-  },
-  "frameworks": {
-    "dnx451": { },
-    "dnxcore50": {
-      "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
-        "System.Reflection.Extensions": "4.0.1-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
-      }
-    }
-  }
 }
