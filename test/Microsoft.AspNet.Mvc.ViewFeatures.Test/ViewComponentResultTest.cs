@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,32 @@ namespace Microsoft.AspNet.Mvc
     {
         private readonly ITempDataDictionary _tempDataDictionary =
             new TempDataDictionary(new HttpContextAccessor(), new SessionStateTempDataProvider());
+
+        [Fact]
+        public async Task ExecuteAsync_ViewComponentResult_AllowsNullViewDataAndTempData()
+        {
+            // Arrange
+            var descriptor = new ViewComponentDescriptor()
+            {
+                FullName = "Full.Name.Text",
+                ShortName = "Text",
+                Type = typeof(TextViewComponent),
+            };
+
+            var actionContext = CreateActionContext(descriptor);
+            
+            var viewComponentResult = new ViewComponentResult
+            {
+                Arguments = new object[] { "World!" },
+                ViewData = null,
+                TempData = null,
+                ViewComponentName = "Text"
+            };
+
+            // Act
+            await viewComponentResult.ExecuteResultAsync(actionContext);
+            // No assert, just confirm it didn't throw
+        }
 
         [Fact]
         public async Task ExecuteResultAsync_Throws_IfNameOrTypeIsNotSet()
@@ -76,10 +103,10 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expected = $"A view component named '{typeof(TextViewComponent).FullName}' could not be found.";
 
-            var services = CreateServices();
+            var actionContext = CreateActionContext();
+            var services = CreateServices(diagnosticListener: null, context: actionContext.HttpContext);
             services.AddSingleton<IViewComponentSelector>();
 
-            var actionContext = CreateActionContext();
 
             var viewComponentResult = new ViewComponentResult
             {
@@ -147,6 +174,44 @@ namespace Microsoft.AspNet.Mvc
             // Assert
             var body = ReadBody(actionContext.HttpContext.Response);
             Assert.Equal("Hello-Async, World!", body);
+        }
+
+        [Fact]
+        public async Task ExecuteResultAsync_ExecutesViewComponent_AndWritesDiagnosticSource()
+        {
+            // Arrange
+            var descriptor = new ViewComponentDescriptor()
+            {
+                FullName = "Full.Name.Text",
+                ShortName = "Text",
+                Type = typeof(TextViewComponent),
+            };
+
+            var adapter = new TestDiagnosticListener();
+
+            var actionContext = CreateActionContext(adapter, descriptor);
+
+            var viewComponentResult = new ViewComponentResult()
+            {
+                Arguments = new object[] { "World!" },
+                ViewComponentName = "Text",
+                TempData = _tempDataDictionary,
+            };
+
+            // Act
+            await viewComponentResult.ExecuteResultAsync(actionContext);
+
+            // Assert
+            var body = ReadBody(actionContext.HttpContext.Response);
+            Assert.Equal("Hello, World!", body);
+
+            Assert.NotNull(adapter.BeforeViewComponent?.ActionDescriptor);
+            Assert.NotNull(adapter.BeforeViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.BeforeViewComponent?.ViewComponent);
+            Assert.NotNull(adapter.AfterViewComponent?.ActionDescriptor);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponentContext);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponentResult);
+            Assert.NotNull(adapter.AfterViewComponent?.ViewComponent);
         }
 
         [Fact]
@@ -387,9 +452,18 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expectedContentType, actionContext.HttpContext.Response.ContentType);
         }
 
-        private IServiceCollection CreateServices(params ViewComponentDescriptor[] descriptors)
-        {
+        private IServiceCollection CreateServices(object diagnosticListener, HttpContext context, params ViewComponentDescriptor[] descriptors)
+        { 
+            var httpContext = new HttpContextAccessor() { HttpContext = context };
+            var tempDataProvider = new SessionStateTempDataProvider();
+            var diagnosticSource = new DiagnosticListener("Microsoft.AspNet");
+            if (diagnosticListener != null)
+            {
+                diagnosticSource.SubscribeWithAdapter(diagnosticListener);
+            }
+
             var services = new ServiceCollection();
+            services.AddInstance<DiagnosticSource>(diagnosticSource);
             services.AddSingleton<IOptions<MvcViewOptions>, TestOptionsManager<MvcViewOptions>>();
             services.AddTransient<IViewComponentHelper, DefaultViewComponentHelper>();
             services.AddSingleton<IViewComponentSelector, DefaultViewComponentSelector>();
@@ -400,25 +474,33 @@ namespace Microsoft.AspNet.Mvc
             services.AddInstance<IViewComponentDescriptorProvider>(new FixedSetViewComponentDescriptorProvider(descriptors));
             services.AddSingleton<IModelMetadataProvider, EmptyModelMetadataProvider>();
             services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
+            services.AddInstance<ITempDataDictionary>(new TempDataDictionary(httpContext, tempDataProvider));
+            services.AddTransient<IHttpContextAccessor, HttpContextAccessor>();
 
             return services;
         }
 
-        private HttpContext CreateHttpContext(params ViewComponentDescriptor[] descriptors)
+        private HttpContext CreateHttpContext(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
         {
-            var services = CreateServices(descriptors);
-
             var httpContext = new DefaultHttpContext();
+            var services = CreateServices(diagnosticListener, httpContext, descriptors);
+
             httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = services.BuildServiceProvider();
 
             return httpContext;
         }
 
+        private ActionContext CreateActionContext(object diagnosticListener, params ViewComponentDescriptor[] descriptors)
+        {
+            return new ActionContext(CreateHttpContext(diagnosticListener, descriptors), new RouteData(), new ActionDescriptor());
+        }
+
         private ActionContext CreateActionContext(params ViewComponentDescriptor[] descriptors)
         {
-            return new ActionContext(CreateHttpContext(descriptors), new RouteData(), new ActionDescriptor());
+            return CreateActionContext(null, descriptors);
         }
+
 
         private class FixedSetViewComponentDescriptorProvider : IViewComponentDescriptorProvider
         {
