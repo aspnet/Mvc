@@ -89,7 +89,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Equal(value, result);
         }
 
-        [Theory]
+        [Fact]
         [MemberData(nameof(CacheEntryData))]
         public void InvokingGetAfterSecondSet_ReturnsCachedItem(ViewLocationExpanderContext context)
         {
