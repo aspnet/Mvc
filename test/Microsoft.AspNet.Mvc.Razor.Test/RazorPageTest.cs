@@ -1662,7 +1662,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 },
                 startTagHelperWritingScope: () => { },
                 endTagHelperWritingScope: () => defaultTagHelperContent);
-            tagHelperExecutionContext.Output = new TagHelperOutput("p", new TagHelperAttributeList());
+            tagHelperExecutionContext.Output = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             if (childContentRetrieved)
             {
                 await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true);
@@ -1694,7 +1697,10 @@ namespace Microsoft.AspNet.Mvc.Razor
                 executeChildContentAsync: () => { return Task.FromResult(result: true); },
                 startTagHelperWritingScope: () => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
-            tagHelperExecutionContext.Output = new TagHelperOutput("p", new TagHelperAttributeList());
+            tagHelperExecutionContext.Output = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             tagHelperExecutionContext.Output.Content.AppendEncoded("Hello World!");
 
             // Act
@@ -1748,7 +1754,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             string postContent,
             string postElement)
         {
-            var output = new TagHelperOutput(tagName, attributes)
+            var output = new TagHelperOutput(
+                tagName,
+                attributes,
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()))
             {
                 TagMode = tagMode
             };

@@ -203,14 +203,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
@@ -290,14 +292,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.AppendEncoded("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
@@ -392,14 +396,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.AppendEncoded("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
@@ -478,15 +484,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-
-            var output = new TagHelperOutput(expectedTagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
             string model = null;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model);
@@ -557,14 +565,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                tagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(tagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
             var modelExplorer = metadataProvider.GetModelExplorerForType(modelType, model);
             var modelExpression = new ModelExpression(propertyName, modelExplorer);
