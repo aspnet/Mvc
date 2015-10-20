@@ -14,11 +14,19 @@ using Microsoft.Extensions.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Rendering
 {
+    /// <summary>
+    /// Contains methods and properties that are used to create HTML elements. This class is used to write HTML
+    /// helpers and Razor tag helpers.
+    /// </summary>
     [DebuggerDisplay("{DebuggerToString()}")]
     public class TagBuilder : IHtmlContent
     {
         private AttributeDictionary _attributes;
 
+        /// <summary>
+        /// Creates a new HTML tag that has the specified tag name.
+        /// </summary>
+        /// <param name="tagName">An HTML tag name.</param>
         public TagBuilder(string tagName)
         {
             if (string.IsNullOrEmpty(tagName))
@@ -47,8 +55,14 @@ namespace Microsoft.AspNet.Mvc.Rendering
             }
         }
 
+        /// <summary>
+        /// Gets or sets the inner HTML value for the element.
+        /// </summary>
         public IHtmlContentBuilder InnerHtml { get; }
 
+        /// <summary>
+        /// Gets the tag name for this tag.
+        /// </summary>
         public string TagName { get; }
 
         /// <summary>
@@ -57,6 +71,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// <remarks>Defaults to <see cref="TagRenderMode.Normal"/>.</remarks>
         public TagRenderMode TagRenderMode { get; set; } = TagRenderMode.Normal;
 
+        /// <summary>
+        /// Adds a CSS class to the list of CSS classes in the tag.
+        /// If there are already CSS classes on the tag then a space character and the new class will be appended to
+        /// the existing list.
+        /// </summary>
+        /// <param name="value">The CSS class name to add.</param>
         public void AddCssClass(string value)
         {
             string currentValue;
@@ -144,6 +164,11 @@ namespace Microsoft.AspNet.Mvc.Rendering
             return stringBuffer.ToString();
         }
 
+        /// <summary>
+        /// Generates a sanitized ID attribute for the tag by using the specified name.
+        /// </summary>
+        /// <param name="name">The name to use to generate an ID attribute.</param>
+        /// <param name="idAttributeDotReplacement">A string to use in place of any dot characters in the name.</param>
         public void GenerateId(string name, string idAttributeDotReplacement)
         {
             if (idAttributeDotReplacement == null)
