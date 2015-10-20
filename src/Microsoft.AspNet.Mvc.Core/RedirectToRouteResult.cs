@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
@@ -11,24 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class RedirectToRouteResultLoggerExtensions
-    {
-        private static Action<ILogger, string, string, Exception> _resultExecuted;
-
-        static RedirectToRouteResultLoggerExtensions()
-        {
-            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 11,
-                "RedirectToRouteResult for action {ActionName} executed. The destination was {Destination}");
-        }
-
-        public static void RedirectToRouteResultExecuted(this ILogger logger, ActionContext context,
-            string destination, Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resultExecuted(logger, actionName, destination, exception);
-        }
-    }
-
     public class RedirectToRouteResult : ActionResult, IKeepTempDataResult
     {
         public RedirectToRouteResult(object routeValues)

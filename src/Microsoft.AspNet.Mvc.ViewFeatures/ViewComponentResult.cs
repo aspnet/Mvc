@@ -4,6 +4,7 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Core.Logging;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
@@ -16,24 +17,6 @@ using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class ViewComponentResultLoggerExtensions
-    {
-        private static Action<ILogger, string, string, Exception> _resultExecuted;
-
-        static ViewComponentResultLoggerExtensions()
-        {
-            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 7,
-                "ViewComponentResult for action {ActionName} executed, resulting in ViewComponent with the name {ViewComponentName}");
-        }
-
-        public static void ViewComponentResultExecuted(this ILogger logger, ActionContext context,
-            string viewComponentName, Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resultExecuted(logger, actionName, viewComponentName, exception);
-        }
-    }
-
     /// <summary>
     /// An <see cref="IActionResult"/> which renders a view component to the response.
     /// </summary>

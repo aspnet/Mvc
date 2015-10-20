@@ -9,7 +9,10 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.ViewComponents;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -94,7 +97,7 @@ namespace Microsoft.AspNet.Mvc
                     Encoding = Encoding.ASCII
                 }
             };
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             httpContext.Features.Set<IHttpBufferingFeature>(new TestBufferingFeature());
             var memoryStream = new MemoryStream();
             httpContext.Response.Body = memoryStream;
@@ -215,9 +218,23 @@ namespace Microsoft.AspNet.Mvc
                                     new ActionDescriptor());
         }
 
+        private static IServiceCollection CreateServices(params ViewComponentDescriptor[] descriptors)
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            
+            return services;
+        }
+
         private static HttpContext GetHttpContext()
         {
-            return new DefaultHttpContext();
+            var services = CreateServices();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services.BuildServiceProvider();
+
+            return httpContext;
         }
     }
 }

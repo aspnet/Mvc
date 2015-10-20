@@ -7,6 +7,8 @@ using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.Logging;
+using Microsoft.Framework.DependencyInjection;
 using Xunit;
 
 namespace System.Web.Http
@@ -17,7 +19,7 @@ namespace System.Web.Http
         public async Task ConflictResult_SetsStatusCode()
         {
             // Arrange
-            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+            var context = new ActionContext(GetHttpContext(), new RouteData(), new ActionDescriptor());
             var result = new ConflictResult();
 
             // Act
@@ -25,6 +27,25 @@ namespace System.Web.Http
 
             // Assert
             Assert.Equal(StatusCodes.Status409Conflict, context.HttpContext.Response.StatusCode);
+        }
+        
+        private static IServiceCollection CreateServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+
+            return services;
+        }
+
+        private static HttpContext GetHttpContext()
+        {
+            var services = CreateServices();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services.BuildServiceProvider();
+
+            return httpContext;
         }
     }
 }

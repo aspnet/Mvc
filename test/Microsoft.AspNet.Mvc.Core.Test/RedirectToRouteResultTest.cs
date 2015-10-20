@@ -10,7 +10,9 @@ using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -88,7 +90,7 @@ namespace Microsoft.AspNet.Mvc
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(sp => sp.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper.Object);
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             httpContext.RequestServices = serviceProvider.Object;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
             var result = new RedirectToRouteResult(routeName, new { id = 10 });
@@ -101,6 +103,25 @@ namespace Microsoft.AspNet.Mvc
                 It.Is<UrlRouteContext>(routeContext => string.Equals(routeName, routeContext.RouteName))));
             Assert.True(httpContext.Response.Headers.ContainsKey("Location"), "Location header not found");
             Assert.Equal(locationUrl, httpContext.Response.Headers["Location"]);
+        }
+
+        private static IServiceCollection CreateServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+
+            return services;
+        }
+
+        private static HttpContext GetHttpContext()
+        {
+            var services = CreateServices();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services.BuildServiceProvider();
+
+            return httpContext;
         }
 
         public static IEnumerable<object[]> RedirectToRouteData

@@ -4,30 +4,13 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class FileResultLoggerExtensions
-    {
-        private static Action<ILogger, string, string, Exception> _resultExecuted;
-
-        static FileResultLoggerExtensions()
-        {
-            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 6,
-                "FileResult for action {ActionName} executed. File written was named {FileName}");
-        }
-
-        public static void FileResultExecuted(this ILogger logger, ActionContext context,
-            string fileName, Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resultExecuted(logger, actionName, fileName, exception);
-        }
-    }
-
     /// <summary>
     /// Represents an <see cref="ActionResult"/> that when executed will
     /// write a file as the response.
@@ -102,9 +85,11 @@ namespace Microsoft.AspNet.Mvc
                 context.HttpContext.Response.Headers[HeaderNames.ContentDisposition] = cd.ToString();
             }
 
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<FileResult>();
-            logger.FileResultExecuted(context, FileDownloadName);
+            using (var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>())
+            {
+                var logger = logFactory?.CreateLogger<FileResult>();
+                logger?.FileResultExecuted(context, FileDownloadName);
+            }
 
             return WriteFileAsync(response);
         }

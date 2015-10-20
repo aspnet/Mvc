@@ -9,25 +9,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Microsoft.AspNet.Mvc.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class JsonResultLoggerExtensions
-    {
-        private static Action<ILogger, string, Exception> _resultExecuted;
-
-        static JsonResultLoggerExtensions()
-        {
-            _resultExecuted = LoggerMessage.Define<string>(LogLevel.Information, 4, "JsonResult for action {ActionName} executed.");
-        }
-
-        public static void JsonResultExecuted(this ILogger logger, ActionContext context, Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resultExecuted(logger, actionName, exception);
-        }
-    }
-
     /// <summary>
     /// An action result which formats the given object as JSON.
     /// </summary>

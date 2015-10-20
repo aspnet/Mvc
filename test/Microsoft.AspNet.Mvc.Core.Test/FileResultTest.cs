@@ -8,6 +8,8 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -32,7 +34,7 @@ namespace Microsoft.AspNet.Mvc
             // See comment in FileResult.cs detailing how the FileDownloadName should be encoded.
 
             // Arrange
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var actionContext = CreateActionContext(httpContext);
 
             var result = new EmptyFileResult("application/my-type")
@@ -54,7 +56,7 @@ namespace Microsoft.AspNet.Mvc
         public async Task ContentDispositionHeader_IsEncodedCorrectly_ForUnicodeCharacters()
         {
             // Arrange
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var actionContext = CreateActionContext(httpContext);
 
             var result = new EmptyFileResult("application/my-type")
@@ -96,7 +98,7 @@ namespace Microsoft.AspNet.Mvc
         public async Task ExecuteResultAsync_SetsContentDisposition_IfSpecified()
         {
             // Arrange
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var actionContext = CreateActionContext(httpContext);
 
             var result = new EmptyFileResult("application/my-type")
@@ -205,6 +207,25 @@ namespace Microsoft.AspNet.Mvc
 
             // Assert
             Assert.Equal(expectedOutput, actual);
+        }
+
+        private static IServiceCollection CreateServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+
+            return services;
+        }
+
+        private static HttpContext GetHttpContext()
+        {
+            var services = CreateServices();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services.BuildServiceProvider();
+
+            return httpContext;
         }
 
         private static ActionContext CreateActionContext(HttpContext context)

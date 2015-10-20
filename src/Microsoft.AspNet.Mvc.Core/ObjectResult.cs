@@ -7,28 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class ObjectResultLoggerExtensions
-    {
-        private static Action<ILogger, string, Exception> _resultExecuted;
-
-        static ObjectResultLoggerExtensions()
-        {
-            _resultExecuted = LoggerMessage.Define<string>(LogLevel.Information, 5,
-                "ObjectResult for action {ActionName} executed.");
-        }
-
-        public static void ObjectResultExecuted(this ILogger logger, ActionContext context, Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resultExecuted(logger, actionName, exception);
-        }
-    }
-
     public class ObjectResult : ActionResult
     {
         public ObjectResult(object value)
@@ -55,11 +37,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var executor = context.HttpContext.RequestServices.GetRequiredService<ObjectResultExecutor>();
             var result =  executor.ExecuteAsync(context, this);
-
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<ObjectResult>();
-            logger.ObjectResultExecuted(context);
-
+            
             return result;
         }
 

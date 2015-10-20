@@ -6,10 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -52,7 +55,7 @@ namespace Microsoft.AspNet.Mvc
 
             var result = new FileStreamResult(mockReadStream.Object, "text/plain");
 
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             httpContext.Response.Body = mockBodyStream.Object;
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
@@ -76,7 +79,7 @@ namespace Microsoft.AspNet.Mvc
 
             var originalStream = new MemoryStream(originalBytes);
 
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var outStream = new MemoryStream();
             httpContext.Response.Body = outStream;
 
@@ -104,7 +107,7 @@ namespace Microsoft.AspNet.Mvc
 
             var originalStream = new MemoryStream(originalBytes);
 
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var outStream = new MemoryStream();
             httpContext.Response.Body = outStream;
 
@@ -130,7 +133,7 @@ namespace Microsoft.AspNet.Mvc
 
             var originalStream = new MemoryStream(expected);
 
-            var httpContext = new DefaultHttpContext();
+            var httpContext = GetHttpContext();
             var bufferingFeature = new TestBufferingFeature();
             httpContext.Features.Set<IHttpBufferingFeature>(bufferingFeature);
             var outStream = new MemoryStream();
@@ -147,6 +150,25 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(expected, outBytes);
             Assert.Equal(expectedContentType, httpContext.Response.ContentType);
             Assert.True(bufferingFeature.DisableResponseBufferingInvoked);
+        }
+
+        private static IServiceCollection CreateServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+
+            return services;
+        }
+
+        private static HttpContext GetHttpContext()
+        {
+            var services = CreateServices();
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = services.BuildServiceProvider();
+
+            return httpContext;
         }
     }
 }

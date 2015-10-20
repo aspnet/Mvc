@@ -11,6 +11,7 @@ using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Xunit;
@@ -130,6 +131,7 @@ namespace Microsoft.AspNet.Mvc
             httpContext.Response.Body = new MemoryStream();
             var services = new ServiceCollection();
             services.AddOptions();
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
             httpContext.RequestServices = services.BuildServiceProvider();
 
             return httpContext;

@@ -7,27 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNet.Mvc.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
-    internal static class ChallengeResultLoggerExtenstions
-    {
-        private static Action<ILogger, string, Exception> _resulExecuted;
-
-        static ChallengeResultLoggerExtenstions()
-        {
-            _resulExecuted = LoggerMessage.Define<string>(LogLevel.Information, 122,
-                "ChallengeResult for action {ActionName} executed.");
-        }
-
-        public static void ChallengeResultExecuted(this ILogger logger, ActionContext context,
-            Exception exception = null)
-        {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _resulExecuted(logger, actionName, exception);
-        }
-    }
-
     public class ChallengeResult : ActionResult
     {
         public ChallengeResult()
@@ -86,8 +69,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 await auth.ChallengeAsync(Properties);
             }
-
-
+            
             logger.ChallengeResultExecuted(context);
         }
     }
