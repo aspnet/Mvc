@@ -546,7 +546,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
 
             // If there are any errors for a named field, we add the css attribute.
-            ModelState modelState;
+            ModelStateEntry modelState;
             if (viewContext.ViewData.ModelState.TryGetValue(fullName, out modelState))
             {
                 if (modelState.Errors.Count > 0)
@@ -599,7 +599,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                     nameof(expression));
             }
 
-            ModelState modelState;
+            ModelStateEntry modelState;
             viewContext.ViewData.ModelState.TryGetValue(fullName, out modelState);
 
             var value = string.Empty;
@@ -703,7 +703,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 return null;
             }
 
-            ModelState modelState;
+            ModelStateEntry modelState;
             var tryGetModelStateResult = viewContext.ViewData.ModelState.TryGetValue(fullName, out modelState);
             var modelErrors = tryGetModelStateResult ? modelState.Errors : null;
 
@@ -1056,7 +1056,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
         internal static object GetModelStateValue(ViewContext viewContext, string key, Type destinationType)
         {
-            ModelState modelState;
+            ModelStateEntry modelState;
             if (viewContext.ViewData.ModelState.TryGetValue(key, out modelState) && modelState.RawValue != null)
             {
                 return ModelBindingHelper.ConvertTo(modelState.RawValue, destinationType, culture: null);
@@ -1228,7 +1228,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
 
             // If there are any errors for a named field, we add the CSS attribute.
-            ModelState modelState;
+            ModelStateEntry modelState;
             if (viewContext.ViewData.ModelState.TryGetValue(fullName, out modelState) && modelState.Errors.Count > 0)
             {
                 tagBuilder.AddCssClass(HtmlHelper.ValidationInputCssClassName);

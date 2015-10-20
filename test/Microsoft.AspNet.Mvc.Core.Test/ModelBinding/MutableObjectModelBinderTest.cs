@@ -809,7 +809,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Single(modelStateDictionary);
 
             // Check Age error.
-            ModelState modelState;
+            ModelStateEntry modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
             var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
@@ -859,7 +859,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Single(modelStateDictionary);
 
             // Check Age error.
-            ModelState modelState;
+            ModelStateEntry modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
             var modelError = Assert.Single(modelState.Errors);
             Assert.Null(modelError.Exception);
@@ -914,7 +914,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             Assert.Equal(1, modelStateDictionary.Count);
 
             // Check Age error.
-            ModelState modelState;
+            ModelStateEntry modelState;
             Assert.True(modelStateDictionary.TryGetValue("theModel.Age", out modelState));
             Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
 

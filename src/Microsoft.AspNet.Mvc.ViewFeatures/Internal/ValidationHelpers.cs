@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 {
     internal static class ValidationHelpers
     {
-        public static string GetUserErrorMessageOrDefault(ModelError modelError, ModelState modelState)
+        public static string GetUserErrorMessageOrDefault(ModelError modelError, ModelStateEntry modelState)
         {
             if (!string.IsNullOrEmpty(modelError.ErrorMessage))
             {
@@ -27,13 +27,13 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
         }
 
         // Returns non-null list of model states, which caller will render in order provided.
-        public static IEnumerable<ModelState> GetModelStateList(
+        public static IEnumerable<ModelStateEntry> GetModelStateList(
             ViewDataDictionary viewData,
             bool excludePropertyErrors)
         {
             if (excludePropertyErrors)
             {
-                ModelState ms;
+                ModelStateEntry ms;
                 viewData.ModelState.TryGetValue(viewData.TemplateInfo.HtmlFieldPrefix, out ms);
 
                 if (ms != null)
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
                     return new[] { ms };
                 }
 
-                return Enumerable.Empty<ModelState>();
+                return Enumerable.Empty<ModelStateEntry>();
             }
             else
             {
