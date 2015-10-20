@@ -18,6 +18,7 @@
         "Microsoft.Extensions.BufferedHtmlContent.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Extensions.ClosedGenericMatcher.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Extensions.CopyOnWriteDictionary.Sources": { "version": "1.0.0-*", "type": "build" },
+        "Microsoft.Extensions.Logging": "1.0.0-*",
         "Microsoft.Extensions.PropertyActivator.Sources": { "version": "1.0.0-*", "type": "build" },
         "Microsoft.Extensions.PropertyHelper.Sources": { "version": "1.0.0-*", "type": "build" }
     },

@@ -153,6 +153,14 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
         protected object Instance { get; private set; }
 
+        protected ILogger Logger
+        {
+            get
+            {
+                return _logger;
+            }
+        }
+
         /// <summary>
         /// Called to create an instance of an object which will act as the reciever of the action invocation.
         /// </summary>

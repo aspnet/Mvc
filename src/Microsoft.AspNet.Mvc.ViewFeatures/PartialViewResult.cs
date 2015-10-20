@@ -6,10 +6,29 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
+    internal static class PartialViewResultLoggerExtensions
+    {
+        private static Action<ILogger, string, string, Exception> _resultExecuted;
+
+        static PartialViewResultLoggerExtensions()
+        {
+            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 10,
+                "PartialViewResult for action {ActionName} executed. ViewName was {ViewName}.");
+        }
+
+        public static void PartialViewResultExecuted(this ILogger logger, ActionContext context, 
+            string viewName, Exception exception = null)
+        {
+            var actionName = context.ActionDescriptor.DisplayName;
+            _resultExecuted(logger, actionName, viewName, exception);
+        }
+    }
+
     /// <summary>
     /// Represents an <see cref="ActionResult"/> that renders a partial view to the response.
     /// </summary>
@@ -60,6 +79,8 @@ namespace Microsoft.AspNet.Mvc
 
             var services = context.HttpContext.RequestServices;
             var executor = services.GetRequiredService<PartialViewResultExecutor>();
+            var logFactory = services.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<PartialViewResult>();
 
             var result = executor.FindView(context, this);
             result.EnsureSuccessful();
@@ -69,6 +90,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 await executor.ExecuteAsync(context, view, this);
             }
+            logger.PartialViewResultExecuted(context, ViewName);
         }
     }
 }

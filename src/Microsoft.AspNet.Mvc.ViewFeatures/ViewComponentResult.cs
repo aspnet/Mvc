@@ -10,11 +10,30 @@ using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
 {
+    internal static class ViewComponentResultLoggerExtensions
+    {
+        private static Action<ILogger, string, string, Exception> _resultExecuted;
+
+        static ViewComponentResultLoggerExtensions()
+        {
+            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 7,
+                "ViewComponentResult for action {ActionName} executed, resulting in ViewComponent with the name {ViewComponentName}");
+        }
+
+        public static void ViewComponentResultExecuted(this ILogger logger, ActionContext context,
+            string viewComponentName, Exception exception = null)
+        {
+            var actionName = context.ActionDescriptor.DisplayName;
+            _resultExecuted(logger, actionName, viewComponentName, exception);
+        }
+    }
+
     /// <summary>
     /// An <see cref="IActionResult"/> which renders a view component to the response.
     /// </summary>
@@ -71,6 +90,10 @@ namespace Microsoft.AspNet.Mvc
 
             var htmlHelperOptions = services.GetRequiredService<IOptions<MvcViewOptions>>().Value.HtmlHelperOptions;
             var viewComponentHelper = services.GetRequiredService<IViewComponentHelper>();
+            var logFactory = services.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<ViewComponentResult>();
+
+            logger.ViewComponentResultExecuted(context, ViewComponentName);
 
             var viewData = ViewData;
             if (viewData == null)

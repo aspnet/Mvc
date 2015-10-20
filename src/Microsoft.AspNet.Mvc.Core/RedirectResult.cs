@@ -5,9 +5,28 @@ using System;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc
 {
+    internal static class RedirectResultLoggerExtensions
+    {
+        private static Action<ILogger, string, string, Exception> _resultExecuted;
+
+        static RedirectResultLoggerExtensions()
+        {
+            _resultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 12,
+                "RedirectResult for action {ActionName} executed. The destination was {Destination}");
+        }
+
+        public static void RedirectResultExecuted(this ILogger logger, ActionContext context,
+            string destination, Exception exception = null)
+        {
+            var actionName = context.ActionDescriptor.DisplayName;
+            _resultExecuted(logger, actionName, destination, exception);
+        }
+    }
+
     public class RedirectResult : ActionResult, IKeepTempDataResult
     {
         private string _url;
@@ -75,6 +94,11 @@ namespace Microsoft.AspNet.Mvc
             }
 
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
+
+            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = logFactory.CreateLogger<RedirectResult>();
+
+            logger.RedirectResultExecuted(context, destinationUrl);
         }
 
         private IUrlHelper GetUrlHelper(ActionContext context)
