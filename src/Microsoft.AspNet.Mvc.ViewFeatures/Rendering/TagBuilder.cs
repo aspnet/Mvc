@@ -15,8 +15,8 @@ using Microsoft.Extensions.WebEncoders;
 namespace Microsoft.AspNet.Mvc.Rendering
 {
     /// <summary>
-    /// Contains methods and properties that are used to create HTML elements. This class is used to write HTML
-    /// helpers and Razor tag helpers.
+    /// Contains methods and properties that are used to create HTML elements. This class is often used to write HTML
+    /// helpers and tag helpers.
     /// </summary>
     [DebuggerDisplay("{DebuggerToString()}")]
     public class TagBuilder : IHtmlContent
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
         }
 
         /// <summary>
-        /// Gets or sets the inner HTML value for the element.
+        /// Gets the inner HTML content of the element.
         /// </summary>
         public IHtmlContentBuilder InnerHtml { get; }
 
