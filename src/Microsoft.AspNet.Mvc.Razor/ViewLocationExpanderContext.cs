@@ -20,6 +20,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         public ViewLocationExpanderContext(
             ActionContext actionContext,
             string viewName,
+            string controllerName,
+            string areaName,
             bool isPartial)
         {
             if (actionContext == null)
@@ -34,6 +36,8 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             ActionContext = actionContext;
             ViewName = viewName;
+            ControllerName = controllerName;
+            AreaName = areaName;
             IsPartial = isPartial;
         }
 
@@ -46,6 +50,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets the view name.
         /// </summary>
         public string ViewName { get; }
+
+        public string ControllerName { get; }
+
+        public string AreaName { get; }
 
         /// <summary>
         /// Gets a value that determines if a partial view is being discovered.

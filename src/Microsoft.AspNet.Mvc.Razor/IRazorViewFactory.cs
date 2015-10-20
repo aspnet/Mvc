@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.ViewEngines;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -18,6 +19,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="page">The <see cref="IRazorPage"/> instance to execute.</param>
         /// <param name="isPartial">Determines if the view is to be executed as a partial.</param>
         /// <returns>A <see cref="IView"/> instance that renders the contents of the <paramref name="page"/></returns>
-        IView GetView(IRazorViewEngine viewEngine, IRazorPage page, bool isPartial);
+        IView GetView(IRazorViewEngine viewEngine, IRazorPage page, IReadOnlyList<IRazorPage> viewStarts, bool isPartial);
     }
 }

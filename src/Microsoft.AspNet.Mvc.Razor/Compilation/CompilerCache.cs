@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -54,9 +55,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(precompiledViews));
             }
 
+            var expirationTokens = new IChangeToken[0];
             foreach (var item in precompiledViews)
             {
-                var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(item.Value));
+                var cacheEntry = new CompilerCacheResult(CompilationResult.Successful(item.Value), expirationTokens);
                 _cache.Set(GetNormalizedPath(item.Key), cacheEntry);
             }
         }
@@ -95,17 +97,18 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             string normalizedPath,
             Func<RelativeFileInfo, CompilationResult> compile)
         {
-            CompilerCacheResult cacheResult;
             var fileInfo = _fileProvider.GetFileInfo(normalizedPath);
             MemoryCacheEntryOptions cacheEntryOptions;
+            CompilerCacheResult cacheResult;
             CompilerCacheResult cacheResultToCache;
             if (!fileInfo.Exists)
             {
-                cacheResultToCache = CompilerCacheResult.FileNotFound;
-                cacheResult = CompilerCacheResult.FileNotFound;
+                var expirationToken = _fileProvider.Watch(normalizedPath);
+                cacheResult = new CompilerCacheResult(new[] { expirationToken });
+                cacheResultToCache = cacheResult;
 
                 cacheEntryOptions = new MemoryCacheEntryOptions();
-                cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(normalizedPath));
+                cacheEntryOptions.AddExpirationToken(expirationToken);
             }
             else
             {
@@ -117,8 +120,11 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
                 // UncachedCompilationResult. This type has the generated code as a string property and do not want
                 // to cache it. We'll instead cache the unwrapped result.
                 cacheResultToCache = new CompilerCacheResult(
-                    CompilationResult.Successful(compilationResult.CompiledType));
-                cacheResult = new CompilerCacheResult(compilationResult);
+                    CompilationResult.Successful(compilationResult.CompiledType),
+                    cacheEntryOptions.ExpirationTokens);
+                cacheResult = new CompilerCacheResult(
+                    compilationResult,
+                    cacheEntryOptions.ExpirationTokens);
             }
 
             _cache.Set(normalizedPath, cacheResultToCache, cacheEntryOptions);

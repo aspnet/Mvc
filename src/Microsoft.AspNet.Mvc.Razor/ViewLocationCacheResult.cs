@@ -3,15 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
     /// Result of <see cref="IViewLocationCache"/> lookups.
     /// </summary>
-    public struct ViewLocationCacheResult : IEquatable<ViewLocationCacheResult>
+    public class ViewLocationCacheResult
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ViewLocationCacheResult"/>
@@ -21,17 +19,16 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <param name="searchedLocations">Locations that were searched
         /// in addition to <paramref name="foundLocation"/>.</param>
         public ViewLocationCacheResult(
-            string foundLocation,
-            IEnumerable<string> searchedLocations)
-            : this(searchedLocations)
+            ViewLocationCacheItem view,
+            IReadOnlyList<ViewLocationCacheItem> viewStarts)
         {
-            if (foundLocation == null)
+            if (viewStarts == null)
             {
-                throw new ArgumentNullException(nameof(foundLocation));
+                throw new ArgumentNullException(nameof(viewStarts));
             }
 
-            ViewLocation = foundLocation;
-            SearchedLocations = searchedLocations;
+            ViewEntry = view;
+            ViewStartEntries = viewStarts;
             IsFoundResult = true;
         }
 
@@ -48,20 +45,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             SearchedLocations = searchedLocations;
-            ViewLocation = null;
-            IsFoundResult = false;
         }
 
-        /// <summary>
-        /// A <see cref="ViewLocationCacheResult"/> that represents a cache miss.
-        /// </summary>
-        public static readonly ViewLocationCacheResult None = new ViewLocationCacheResult(Enumerable.Empty<string>());
+        public ViewLocationCacheItem ViewEntry { get; }
 
-        /// <summary>
-        /// The location the view was found.
-        /// </summary>
-        /// <remarks>This is available if <see cref="IsFoundResult"/> is <c>true</c>.</remarks>
-        public string ViewLocation { get; }
+        public IReadOnlyList<ViewLocationCacheItem> ViewStartEntries { get; }
 
         /// <summary>
         /// The sequence of locations that were searched.
@@ -77,54 +65,5 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets a value that indicates whether the view was successfully found.
         /// </summary>
         public bool IsFoundResult { get; }
-
-        /// <inheritdoc />
-        public bool Equals(ViewLocationCacheResult other)
-        {
-            if (IsFoundResult != other.IsFoundResult)
-            {
-                return false;
-            }
-
-            if (IsFoundResult)
-            {
-                return string.Equals(ViewLocation, other.ViewLocation, StringComparison.Ordinal);
-            }
-            else
-            {
-                if (SearchedLocations == other.SearchedLocations)
-                {
-                    return true;
-                }
-
-                if (SearchedLocations == null || other.SearchedLocations == null)
-                {
-                    return false;
-                }
-
-                return Enumerable.SequenceEqual(SearchedLocations, other.SearchedLocations, StringComparer.Ordinal);
-            }
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            var hashCodeCombiner = HashCodeCombiner.Start();
-            hashCodeCombiner.Add(IsFoundResult);
-
-            if (IsFoundResult)
-            {
-                hashCodeCombiner.Add(ViewLocation, StringComparer.Ordinal);
-            }
-            else if (SearchedLocations != null)
-            {
-                foreach (var location in SearchedLocations)
-                {
-                    hashCodeCombiner.Add(location, StringComparer.Ordinal);
-                }
-            }
-
-            return hashCodeCombiner;
-        }
     }
 }

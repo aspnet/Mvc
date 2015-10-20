@@ -10,7 +10,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// Represents a <see cref="IRazorPageFactory"/> that creates <see cref="RazorPage"/> instances
     /// from razor files in the file system.
     /// </summary>
-    public class VirtualPathRazorPageFactory : IRazorPageFactory
+    public class DefaultRazorPageFactory : IRazorPageFactory
     {
         /// <remarks>
         /// This delegate holds on to an instance of <see cref="IRazorCompilationService"/>.
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="razorCompilationService">The <see cref="IRazorCompilationService"/>.</param>
         /// <param name="compilerCacheProvider">The <see cref="ICompilerCacheProvider"/>.</param>
-        public VirtualPathRazorPageFactory(
+        public DefaultRazorPageFactory(
             IRazorCompilationService razorCompilationService,
             ICompilerCacheProvider compilerCacheProvider)
         {
@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <inheritdoc />
-        public IRazorPage CreateInstance(string relativePath)
+        public RazorPageFactoryResult CreateFactory(string relativePath)
         {
             if (relativePath == null)
             {
@@ -58,18 +58,20 @@ namespace Microsoft.AspNet.Mvc.Razor
                 // For tilde slash paths, drop the leading ~ to make it work with the underlying IFileProvider.
                 relativePath = relativePath.Substring(1);
             }
-
             var result = CompilerCache.GetOrAdd(relativePath, _compileDelegate);
-
-            if (result == CompilerCacheResult.FileNotFound)
+            if (result.IsFoundResult)
             {
-                return null;
+                return new RazorPageFactoryResult(() =>
+                {
+                    var page = (IRazorPage)Activator.CreateInstance(result.CompilationResult.CompiledType);
+                    page.Path = relativePath;
+                    return page;
+                }, result.ExpirationTokens);
             }
-
-            var page = (IRazorPage)Activator.CreateInstance(result.CompilationResult.CompiledType);
-            page.Path = relativePath;
-
-            return page;
+            else
+            {
+                return new RazorPageFactoryResult(result.ExpirationTokens);
+            }
         }
     }
 }

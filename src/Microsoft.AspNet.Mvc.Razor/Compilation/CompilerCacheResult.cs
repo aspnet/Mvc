@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -11,31 +13,35 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
     public class CompilerCacheResult
     {
         /// <summary>
-        /// Result of <see cref="ICompilerCache"/> when the specified file does not exist in the
-        /// file system.
-        /// </summary>
-        public static CompilerCacheResult FileNotFound { get; } = new CompilerCacheResult();
-
-        /// <summary>
         /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
         /// <see cref="CompilationResult"/>.
         /// </summary>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/> </param>
-        public CompilerCacheResult(CompilationResult compilationResult)
+        public CompilerCacheResult(CompilationResult compilationResult, IList<IChangeToken> expirationTokens)
         {
             if (compilationResult == null)
             {
                 throw new ArgumentNullException(nameof(compilationResult));
             }
 
+            if (expirationTokens == null)
+            {
+                throw new ArgumentNullException(nameof(expirationTokens));
+            }
+
             CompilationResult = compilationResult;
+            ExpirationTokens = expirationTokens;
         }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="CompilerCacheResult"/> for a failed file lookup.
-        /// </summary>
-        protected CompilerCacheResult()
+        public CompilerCacheResult(IList<IChangeToken> expirationTokens)
         {
+            if (expirationTokens == null)
+            {
+                throw new ArgumentNullException(nameof(expirationTokens));
+            }
+
+            CompilationResult = null;
+            ExpirationTokens = expirationTokens;
         }
 
         /// <summary>
@@ -43,5 +49,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// </summary>
         /// <remarks>This property is null when file lookup failed.</remarks>
         public CompilationResult CompilationResult { get; }
+
+        public IList<IChangeToken> ExpirationTokens { get; }
+
+        public bool IsFoundResult => CompilationResult != null;
     }
 }

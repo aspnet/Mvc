@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly IRazorViewEngine _viewEngine;
         private readonly IRazorPageActivator _pageActivator;
-        private readonly IViewStartProvider _viewStartProvider;
+        private readonly IReadOnlyList<IRazorPage> _viewStartPages;
         private readonly HtmlEncoder _htmlEncoder;
         private IPageExecutionListenerFeature _pageExecutionFeature;
 
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="viewEngine">The <see cref="IRazorViewEngine"/> used to locate Layout pages.</param>
         /// <param name="pageActivator">The <see cref="IRazorPageActivator"/> used to activate pages.</param>
-        /// <param name="viewStartProvider">The <see cref="IViewStartProvider"/> used for discovery of _ViewStart
+        /// <param name="viewStartPages">The <see cref="IViewStartProvider"/> used for discovery of _ViewStart
         /// <param name="razorPage">The <see cref="IRazorPage"/> instance to execute.</param>
         /// <param name="htmlEncoder">The HTML encoder.</param>
         /// <param name="isPartial">Determines if the view is to be executed as a partial.</param>
@@ -39,14 +39,14 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorView(
             IRazorViewEngine viewEngine,
             IRazorPageActivator pageActivator,
-            IViewStartProvider viewStartProvider,
+            IReadOnlyList<IRazorPage> viewStartPages,
             IRazorPage razorPage,
             HtmlEncoder htmlEncoder,
             bool isPartial)
         {
             _viewEngine = viewEngine;
             _pageActivator = pageActivator;
-            _viewStartProvider = viewStartProvider;
+            _viewStartPages = viewStartPages;
             RazorPage = razorPage;
             _htmlEncoder = htmlEncoder;
             IsPartial = isPartial;
@@ -153,14 +153,13 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private async Task RenderViewStartAsync(ViewContext context)
         {
-            var viewStarts = _viewStartProvider.GetViewStartPages(RazorPage.Path);
-
             string layout = null;
             var oldFilePath = context.ExecutingFilePath;
             try
             {
-                foreach (var viewStart in viewStarts)
+                for (var i = 0; i < _viewStartPages.Count; i++)
                 {
+                    var viewStart = _viewStartPages[i];
                     context.ExecutingFilePath = viewStart.Path;
                     // Copy the layout value from the previous view start (if any) to the current.
                     viewStart.Layout = layout;
