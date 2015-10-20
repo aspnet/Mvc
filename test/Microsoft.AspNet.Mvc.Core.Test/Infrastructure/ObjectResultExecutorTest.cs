@@ -31,7 +31,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestJsonOutputFormatter(), // This will be chosen based on the accept header
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null);
+
             context.HttpContext.Request.Headers[HeaderNames.Accept] = "application/json";
 
             // Act
@@ -57,7 +62,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestJsonOutputFormatter(), // This will be chosen based on the content type
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null);
+
             context.HttpContext.Request.Headers[HeaderNames.Accept] = "application/xml"; // This will not be used
 
             // Act
@@ -82,7 +92,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestXmlOutputFormatter(),
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null);
+
             context.HttpContext.Request.Headers[HeaderNames.Accept] = "application/xml"; // This will not be used
 
             // Act
@@ -149,7 +164,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestJsonOutputFormatter(),
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null);
+
             context.HttpContext.Request.Headers[HeaderNames.Accept] = acceptHeader;
 
             // Act
@@ -176,7 +196,11 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestXmlOutputFormatter(),
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null);
 
             // Act
             var formatter = executor.SelectFormatter(
@@ -202,7 +226,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 new TestJsonOutputFormatter(),
             };
 
-            var context = new OutputFormatterWriteContext(new DefaultHttpContext(), objectType: null, @object: null);
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter, 
+                objectType: null,
+                @object: null);
+
             context.HttpContext.Request.Headers[HeaderNames.Accept] = "text/custom, application/custom";
 
             // Act
@@ -414,6 +443,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             return new TestObjectResultExecutor(
                 options ?? new TestOptionsManager<MvcOptions>(),
                 bindingContextAccessor,
+                new TestHttpResponseStreamWriterFactory(),
                 NullLoggerFactory.Instance);
         }
 
@@ -466,9 +496,10 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         {
             public TestObjectResultExecutor(
                 IOptions<MvcOptions> options, 
-                IActionBindingContextAccessor bindingContextAccessor, 
+                IActionBindingContextAccessor bindingContextAccessor,
+                IHttpResponseStreamWriterFactory writerFactory,
                 ILoggerFactory loggerFactory) 
-                : base(options, bindingContextAccessor, loggerFactory)
+                : base(options, bindingContextAccessor, writerFactory, loggerFactory)
             {
             }
 

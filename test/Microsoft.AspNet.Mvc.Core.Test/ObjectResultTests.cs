@@ -67,6 +67,7 @@ namespace Microsoft.AspNet.Mvc
             services.AddInstance(new ObjectResultExecutor(
                 new TestOptionsManager<MvcOptions>(),
                 new ActionBindingContextAccessor(),
+                new TestHttpResponseStreamWriterFactory(),
                 NullLoggerFactory.Instance));
 
             return services.BuildServiceProvider();
