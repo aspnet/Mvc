@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Core;
@@ -31,6 +33,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         public ObjectResultExecutor(
             IOptions<MvcOptions> options,
             IActionBindingContextAccessor bindingContextAccessor,
+            IHttpResponseStreamWriterFactory writerFactory,
             ILoggerFactory loggerFactory)
         {
             if (options == null)
@@ -53,6 +56,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             OptionsFormatters = options.Value.OutputFormatters;
             RespectBrowserAcceptHeader = options.Value.RespectBrowserAcceptHeader;
             Logger = loggerFactory.CreateLogger<ObjectResultExecutor>();
+            WriterFactory = writerFactory.CreateWriter;
         }
 
         /// <summary>
@@ -74,6 +78,11 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         /// Gets the value of <see cref="MvcOptions.RespectBrowserAcceptHeader"/>.
         /// </summary>
         protected bool RespectBrowserAcceptHeader { get; }
+
+        /// <summary>
+        /// Gets the writer factory delegate.
+        /// </summary>
+        protected Func<Stream, Encoding, TextWriter> WriterFactory { get; }
 
         /// <summary>
         /// Executes the <see cref="ObjectResult"/>.
@@ -109,7 +118,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 objectType = result.Value?.GetType();
             };
 
-            var formatterContext = new OutputFormatterWriteContext(context.HttpContext, objectType, result.Value);
+            var formatterContext = new OutputFormatterWriteContext(
+                context.HttpContext,
+                WriterFactory,
+                objectType,
+                result.Value);
+            
             var selectedFormatter = SelectFormatter(formatterContext, result.ContentTypes, formatters);
             if (selectedFormatter == null)
             {
