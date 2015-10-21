@@ -74,6 +74,9 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<JsonResult>();
+
             var response = context.HttpContext.Response;
 
             var contentTypeHeader = ContentType;
@@ -109,6 +112,8 @@ namespace Microsoft.AspNet.Mvc
                     .SerializerSettings;
             }
 
+            logger.JsonResultExecuting(Value);
+
             using (var writer = new HttpResponseStreamWriter(response.Body, contentTypeHeader.Encoding))
             {
                 using (var jsonWriter = new JsonTextWriter(writer))
@@ -118,10 +123,6 @@ namespace Microsoft.AspNet.Mvc
                     jsonSerializer.Serialize(jsonWriter, Value);
                 }
             }
-
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<JsonResult>();
-            logger.JsonResultExecuted(context);
 
             return Task.FromResult(true);
         }

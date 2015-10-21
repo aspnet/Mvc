@@ -67,6 +67,9 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<RedirectResult>();
+
             var urlHelper = GetUrlHelper(context);
 
             // IsLocalUrl is called to handle  Urls starting with '~/'.
@@ -76,12 +79,8 @@ namespace Microsoft.AspNet.Mvc
                 destinationUrl = urlHelper.Content(Url);
             }
 
+            logger.RedirectResultExecuting(destinationUrl);
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
-
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<RedirectResult>();
-
-            logger.RedirectResultExecuted(context, destinationUrl);
         }
 
         private IUrlHelper GetUrlHelper(ActionContext context)

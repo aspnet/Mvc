@@ -1,24 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
     public static class JsonResultLoggerExtensions
     {
-        private static Action<ILogger, string, Exception> _jsonResultExecuted;
+        private static Action<ILogger, string, Exception> _jsonResultExecuting;
 
         static JsonResultLoggerExtensions()
         {
-            _jsonResultExecuted = LoggerMessage.Define<string>(LogLevel.Information, 1, "JsonResult for action {ActionName} executed.");
+            _jsonResultExecuting = LoggerMessage.Define<string>(
+                LogLevel.Information,
+                1,
+                "Executing JsonResult, writing value {Value}.");
         }
 
-        public static void JsonResultExecuted(this ILogger logger, ActionContext context)
+        public static void JsonResultExecuting(this ILogger logger, object value)
         {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _jsonResultExecuted(logger, actionName, null);
+            _jsonResultExecuting(logger, Convert.ToString(value), null);
         }
     }
 }

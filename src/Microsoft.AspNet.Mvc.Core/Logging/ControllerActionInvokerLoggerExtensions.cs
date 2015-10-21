@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -15,8 +15,15 @@ namespace Microsoft.AspNet.Mvc.Core.Logging
 
         static ControllerActionInvokerLoggerExtensions()
         {
-            _actionStarting = LoggerMessage.Define<string, ModelValidationState?>(LogLevel.Information, 1, "Starting Action {ActionName}. Model state is {ModelValidationState}'");
-            _actionFinishing = LoggerMessage.Define<string>(LogLevel.Information, 2, "Stopping Action {ActionName}'");
+            _actionStarting = LoggerMessage.Define<string, ModelValidationState?>(
+                LogLevel.Information,
+                1,
+                "Starting Action {ActionName}. Model state is {ModelValidationState}'");
+
+            _actionFinishing = LoggerMessage.Define<string>(
+                LogLevel.Information,
+                2,
+                "Stopping Action {ActionName}'");
         }
 
         public static void ActionStarting(this ILogger logger, ActionExecutingContext actionContext)

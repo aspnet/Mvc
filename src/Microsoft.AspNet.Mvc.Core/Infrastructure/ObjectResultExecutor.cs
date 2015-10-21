@@ -126,9 +126,8 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 "'{ContentType}' to write the response.",
                 selectedFormatter.GetType().FullName,
                 formatterContext.ContentType);
-                formatterContext.SelectedContentType);
             
-            Logger.ObjectResultExecuted(context);
+            Logger.ObjectResultExecuting(context);
             
             result.OnFormatting(context);
             return selectedFormatter.WriteAsync(formatterContext);

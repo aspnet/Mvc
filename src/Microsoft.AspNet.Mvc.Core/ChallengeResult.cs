@@ -55,22 +55,23 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<ChallengeResult>();
-            var auth = context.HttpContext.Authentication;
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<ChallengeResult>();
+
+            var authentication = context.HttpContext.Authentication;
             if (AuthenticationSchemes.Count > 0)
             {
                 foreach (var scheme in AuthenticationSchemes)
                 {
-                    await auth.ChallengeAsync(scheme, Properties);
+                    await authentication.ChallengeAsync(scheme, Properties);
                 }
             }
             else
             {
-                await auth.ChallengeAsync(Properties);
+                await authentication.ChallengeAsync(Properties);
             }
             
-            logger.ChallengeResultExecuted(context);
+            logger.ChallengeResultExecuting(AuthenticationSchemes);
         }
     }
 }

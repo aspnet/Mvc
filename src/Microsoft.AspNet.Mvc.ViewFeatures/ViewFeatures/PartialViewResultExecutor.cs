@@ -135,7 +135,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewResult));
             }
 
-            Logger.PartialViewResultExecuted(actionContext, viewResult.ViewName);
+            Logger.PartialViewResultExecuting(view);
+
             return ExecuteAsync(
                 actionContext,
                 view,

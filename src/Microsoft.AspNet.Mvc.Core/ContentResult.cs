@@ -42,8 +42,10 @@ namespace Microsoft.AspNet.Mvc
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<ContentResult>();
+
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<ContentResult>();
+
             var response = context.HttpContext.Response;
             var contentTypeHeader = ContentType;
 
@@ -63,7 +65,7 @@ namespace Microsoft.AspNet.Mvc
                 response.StatusCode = StatusCode.Value;
             }
 
-            logger.ContentResultExecuted(context, contentTypeHeader);
+            logger.ContentResultExecuting(contentTypeHeader);
 
             if (Content != null)
             {

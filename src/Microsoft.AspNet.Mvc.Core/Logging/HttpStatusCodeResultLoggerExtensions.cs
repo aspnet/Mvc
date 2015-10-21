@@ -1,24 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
     public static class HttpStatusCodeLoggerExtensions
     {
-        private static Action<ILogger, string, int, Exception> _resultCreated;
+        private static Action<ILogger, int, Exception> _httpStatusCodeResultExecuting;
 
         static HttpStatusCodeLoggerExtensions()
         {
-            _resultCreated = LoggerMessage.Define<string, int>(LogLevel.Information, 1, "HttpStatusCodeResult executed for action {ActionName} and status {StatusCode}");
+            _httpStatusCodeResultExecuting = LoggerMessage.Define<int>(
+                LogLevel.Information,
+                1,
+                "Executing HttpStatusCodeResult, setting HTTP status code {StatusCode}");
         }
 
-        public static void HttpStatusCodeResultExecuted(this ILogger logger, ActionContext actionContext, int statusCode)
+        public static void HttpStatusCodeResultExecuting(this ILogger logger, int statusCode)
         {
-            var actionName = actionContext.ActionDescriptor.DisplayName;
-            _resultCreated(logger, actionName, statusCode, null);
+            _httpStatusCodeResultExecuting(logger, statusCode, null);
         }
     }
 }

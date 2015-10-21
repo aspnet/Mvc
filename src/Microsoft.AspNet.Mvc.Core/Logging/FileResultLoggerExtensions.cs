@@ -1,25 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
     public static class FileResultLoggerExtensions
     {
-        private static Action<ILogger, string, string, Exception> _fileResultExecuted;
+        private static Action<ILogger, string, Exception> _fileResultExecuting;
 
         static FileResultLoggerExtensions()
         {
-            _fileResultExecuted = LoggerMessage.Define<string, string>(LogLevel.Information, 1, "FileResult for action {ActionName} executed. File written was named {FileName}");
+            _fileResultExecuting = LoggerMessage.Define<string>(
+                LogLevel.Information,
+                1,
+                "Executing FileResult, sending file as {FileDownloadName}");
         }
 
-        public static void FileResultExecuted(this ILogger logger, ActionContext context,
-            string fileName)
+        public static void FileResultExecuting(this ILogger logger, string fileDownloadName)
         {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _fileResultExecuted(logger, actionName, fileName, null);
+            _fileResultExecuting(logger, fileDownloadName, null);
         }
     }
 }

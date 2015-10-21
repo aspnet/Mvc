@@ -51,6 +51,9 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<RedirectToRouteResult>();
+
             var urlHelper = GetUrlHelper(context);
 
             var destinationUrl = urlHelper.RouteUrl(RouteName, RouteValues);
@@ -59,12 +62,8 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
+            logger.RedirectToRouteResultExecuting(context, destinationUrl);
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
-
-            var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
-            var logger = logFactory.CreateLogger<RedirectToRouteResult>();
-
-            logger.RedirectToRouteResultExecuted(context, destinationUrl);
         }
 
         private IUrlHelper GetUrlHelper(ActionContext context)

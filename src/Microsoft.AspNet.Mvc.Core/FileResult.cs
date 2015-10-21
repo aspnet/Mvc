@@ -70,6 +70,9 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory?.CreateLogger<FileResult>();
+
             var response = context.HttpContext.Response;
             response.ContentType = ContentType.ToString();
 
@@ -80,17 +83,12 @@ namespace Microsoft.AspNet.Mvc
                 // detached and stored in a separate file. If the receiving MUA writes
                 // the entity to a file, the suggested filename should be used as a
                 // basis for the actual filename, where possible.
-                var cd = new ContentDispositionHeaderValue("attachment");
-                cd.SetHttpFileName(FileDownloadName);
-                context.HttpContext.Response.Headers[HeaderNames.ContentDisposition] = cd.ToString();
+                var contentDisposition = new ContentDispositionHeaderValue("attachment");
+                contentDisposition.SetHttpFileName(FileDownloadName);
+                context.HttpContext.Response.Headers[HeaderNames.ContentDisposition] = contentDisposition.ToString();
             }
-
-            using (var logFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>())
-            {
-                var logger = logFactory?.CreateLogger<FileResult>();
-                logger?.FileResultExecuted(context, FileDownloadName);
-            }
-
+            
+            logger.FileResultExecuting(FileDownloadName);
             return WriteFileAsync(response);
         }
 
