@@ -170,10 +170,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.AppendEncoded(childContent);
+                    tagHelperContent.AppendHtml(childContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            output.Content.AppendEncoded(outputContent);
+            output.Content.AppendHtml(outputContent);
 
             var context = new TagHelperContext(
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
