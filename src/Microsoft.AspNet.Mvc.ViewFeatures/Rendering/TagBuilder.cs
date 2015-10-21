@@ -168,17 +168,20 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Generates a sanitized ID attribute for the tag by using the specified name.
         /// </summary>
         /// <param name="name">The name to use to generate an ID attribute.</param>
-        /// <param name="idAttributeDotReplacement">A string to use in place of any dot characters in the name.</param>
-        public void GenerateId(string name, string idAttributeDotReplacement)
+        /// <param name="invalidCharReplacement">
+        /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
+        /// <paramref name="name"/>.
+        /// </param>
+        public void GenerateId(string name, string invalidCharReplacement)
         {
-            if (idAttributeDotReplacement == null)
+            if (invalidCharReplacement == null)
             {
-                throw new ArgumentNullException(nameof(idAttributeDotReplacement));
+                throw new ArgumentNullException(nameof(invalidCharReplacement));
             }
 
             if (!Attributes.ContainsKey("id"))
             {
-                var sanitizedId = CreateSanitizedId(name, idAttributeDotReplacement);
+                var sanitizedId = CreateSanitizedId(name, invalidCharReplacement);
                 if (!string.IsNullOrEmpty(sanitizedId))
                 {
                     Attributes["id"] = sanitizedId;
