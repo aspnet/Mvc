@@ -406,7 +406,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;
         }

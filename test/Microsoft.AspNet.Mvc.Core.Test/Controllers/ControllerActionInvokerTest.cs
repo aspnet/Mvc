@@ -1985,8 +1985,9 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
             httpContext.SetupGet(c => c.Request).Returns(httpRequest);
             httpContext.SetupGet(c => c.Response).Returns(httpResponse);
-            httpContext.Setup(o => o.RequestServices.GetService(typeof(ILogger<ObjectResult>)))
-                       .Returns(new Mock<ILogger<ObjectResult>>().Object);
+            httpContext
+                .Setup(o => o.RequestServices.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
 
             httpResponse.Body = new MemoryStream();
 
@@ -2144,7 +2145,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;
         }

@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -106,7 +107,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var services = new ServiceCollection();
 
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;
         }

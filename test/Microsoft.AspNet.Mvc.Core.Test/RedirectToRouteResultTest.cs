@@ -13,6 +13,7 @@ using Microsoft.AspNet.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Xunit;
 
@@ -27,7 +28,10 @@ namespace Microsoft.AspNet.Mvc
             // Arrange
             var expectedUrl = "SampleAction";
             var expectedPermanentFlag = false;
+
             var httpContext = new Mock<HttpContext>();
+            httpContext.SetupGet(o => o.RequestServices).Returns(CreateServices().BuildServiceProvider());
+
             var httpResponse = new Mock<HttpResponse>();
             httpContext.Setup(o => o.Response).Returns(httpResponse.Object);
 
@@ -56,10 +60,14 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var httpContext = new Mock<HttpContext>();
-            httpContext.Setup(o => o.Response).Returns(new Mock<HttpResponse>().Object);
-            var actionContext = new ActionContext(httpContext.Object,
-                                                  new RouteData(),
-                                                  new ActionDescriptor());
+            httpContext
+                .Setup(o => o.Response)
+                .Returns(new Mock<HttpResponse>().Object);
+            httpContext
+                .SetupGet(o => o.RequestServices)
+                .Returns(CreateServices().BuildServiceProvider());
+
+            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
 
             var urlHelper = GetMockUrlHelper(returnValue: null);
             var result = new RedirectToRouteResult(null, new Dictionary<string, object>())
@@ -88,10 +96,16 @@ namespace Microsoft.AspNet.Mvc
                 .Verifiable();
 
             var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(sp => sp.GetService(typeof(IUrlHelper)))
+            serviceProvider
+                .Setup(sp => sp.GetService(typeof(IUrlHelper)))
                 .Returns(urlHelper.Object);
+            serviceProvider
+                .Setup(sp => sp.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
+
             var httpContext = GetHttpContext();
             httpContext.RequestServices = serviceProvider.Object;
+
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
             var result = new RedirectToRouteResult(routeName, new { id = 10 });
 
@@ -105,15 +119,6 @@ namespace Microsoft.AspNet.Mvc
             Assert.Equal(locationUrl, httpContext.Response.Headers["Location"]);
         }
 
-        private static IServiceCollection CreateServices()
-        {
-            var services = new ServiceCollection();
-
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
-
-            return services;
-        }
-
         private static HttpContext GetHttpContext()
         {
             var services = CreateServices();
@@ -122,6 +127,13 @@ namespace Microsoft.AspNet.Mvc
             httpContext.RequestServices = services.BuildServiceProvider();
 
             return httpContext;
+        }
+
+        private static IServiceCollection CreateServices()
+        {
+            var services = new ServiceCollection();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
+            return services;
         }
 
         public static IEnumerable<object[]> RedirectToRouteData

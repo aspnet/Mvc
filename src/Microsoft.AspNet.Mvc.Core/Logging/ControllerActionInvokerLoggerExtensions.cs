@@ -6,36 +6,56 @@ using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNet.Mvc.Core.Logging
+namespace Microsoft.AspNet.Mvc.Logging
 {
     public static class ControllerActionInvokerLoggerExtensions
     {
-        private static Action<ILogger, string, ModelValidationState?, Exception> _actionStarting;
-        private static Action<ILogger, string, Exception> _actionFinishing;
+        private static Action<ILogger, string, string[], ModelValidationState, Exception> _actionMethodExecuting;
+        private static Action<ILogger, string, string, Exception> _actionMethodExecuted;
 
         static ControllerActionInvokerLoggerExtensions()
         {
-            _actionStarting = LoggerMessage.Define<string, ModelValidationState?>(
+            _actionMethodExecuting = LoggerMessage.Define<string, string[], ModelValidationState>(
                 LogLevel.Information,
                 1,
-                "Starting Action {ActionName}. Model state is {ModelValidationState}'");
+                "Executing action method {ActionName} with arguments ({Arguments}) - ModelState is {ValidationState}'");
 
-            _actionFinishing = LoggerMessage.Define<string>(
+            _actionMethodExecuted = LoggerMessage.Define<string, string>(
                 LogLevel.Information,
                 2,
-                "Stopping Action {ActionName}'");
+                "Executed action method {ActionName}, returned result {ActionResult}.'");
         }
 
-        public static void ActionStarting(this ILogger logger, ActionExecutingContext actionContext)
+        public static void ActionMethodExecuting(this ILogger logger, ActionExecutingContext context, object[] arguments)
         {
-            var actionName = actionContext.ActionDescriptor.DisplayName;
-            var modelValidationState = actionContext.ModelState?.ValidationState;
-            _actionStarting(logger, actionName, modelValidationState, null);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                var actionName = context.ActionDescriptor.DisplayName;
+
+                string[] convertedArguments;
+                if (arguments == null)
+                {
+                    convertedArguments = null;
+                }
+                else
+                {
+                    convertedArguments = new string[arguments.Length];
+                    for (var i = 0; i < arguments.Length; i++)
+                    {
+                        convertedArguments[i] = Convert.ToString(arguments[i]);
+                    }
+                }
+
+                var validationState = context.ModelState.ValidationState;
+
+                _actionMethodExecuting(logger, actionName, convertedArguments, validationState, null);
+            }
         }
 
-        public static void ActionFinishing(this ILogger logger, ActionExecutingContext actionContext)
+        public static void ActionMethodExecuted(this ILogger logger, ActionExecutingContext context, IActionResult result)
         {
-            _actionFinishing(logger, actionContext.ActionDescriptor.DisplayName, null);
+            var actionName = context.ActionDescriptor.DisplayName;
+            _actionMethodExecuted(logger, actionName, Convert.ToString(result), null);
         }
     }
 }

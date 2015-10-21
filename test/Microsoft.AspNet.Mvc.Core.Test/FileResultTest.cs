@@ -10,6 +10,7 @@ using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -79,8 +80,12 @@ namespace Microsoft.AspNet.Mvc
         {
             // Arrange
             var httpContext = new Mock<HttpContext>(MockBehavior.Strict);
+
             httpContext.SetupSet(c => c.Response.ContentType = "application/my-type").Verifiable();
             httpContext.Setup(c => c.Response.Body).Returns(Stream.Null);
+            httpContext
+                .Setup(c => c.RequestServices.GetService(typeof(ILoggerFactory)))
+                .Returns(NullLoggerFactory.Instance);
 
             var actionContext = CreateActionContext(httpContext.Object);
 
@@ -212,9 +217,7 @@ namespace Microsoft.AspNet.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
-
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
-
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }
 

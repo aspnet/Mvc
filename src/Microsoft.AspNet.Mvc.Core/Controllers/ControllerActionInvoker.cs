@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
-using Microsoft.AspNet.Mvc.Core.Logging;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.Infrastructure;
@@ -144,20 +144,24 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
         protected override async Task<IActionResult> InvokeActionAsync(ActionExecutingContext actionExecutingContext)
         {
-            Logger.ActionStarting(actionExecutingContext);
-
             var actionMethodInfo = _descriptor.MethodInfo;
+            var arguments = ControllerActionExecutor.PrepareArguments(
+                actionExecutingContext.ActionArguments,
+                actionMethodInfo.GetParameters());
+
+            Logger.ActionMethodExecuting(actionExecutingContext, arguments);
+
             var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
                 actionMethodInfo,
                 actionExecutingContext.Controller,
-                actionExecutingContext.ActionArguments);
-
+                arguments);
 
             var actionResult = CreateActionResult(
                 actionMethodInfo.ReturnType,
                 actionReturnValue);
 
-            Logger.ActionFinishing(actionExecutingContext);
+            Logger.ActionMethodExecuted(actionExecutingContext, actionResult);
+
             return actionResult;
         }
 

@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc
                 throw new InvalidOperationException(Resources.NoRoutesMatched);
             }
 
-            logger.RedirectToRouteResultExecuting(context, destinationUrl);
+            logger.RedirectToRouteResultExecuting(destinationUrl, RouteName);
             context.HttpContext.Response.Redirect(destinationUrl, Permanent);
         }
 

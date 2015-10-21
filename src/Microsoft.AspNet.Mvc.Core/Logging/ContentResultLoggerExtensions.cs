@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Logging
 
         public static void ContentResultExecuting(this ILogger logger, MediaTypeHeaderValue contentType)
         {
-            _contentResultExecuting(logger, contentType.MediaType, null);
+            _contentResultExecuting(logger, contentType?.MediaType, null);
         }
     }
 }

@@ -37,12 +37,12 @@ namespace Microsoft.AspNet.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
-            context.HttpContext.Response.StatusCode = StatusCode;
-
             var factory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             var logger = factory.CreateLogger<HttpStatusCodeResult>();
 
-            logger.HttpStatusCodeResultExecuted(context, StatusCode);
+            logger.HttpStatusCodeResultExecuting(StatusCode);
+
+            context.HttpContext.Response.StatusCode = StatusCode;
         }
     }
 }

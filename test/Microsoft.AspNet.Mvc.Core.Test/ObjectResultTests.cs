@@ -69,7 +69,7 @@ namespace Microsoft.AspNet.Mvc
                 new TestOptionsManager<MvcOptions>(),
                 new ActionBindingContextAccessor(),
                 NullLoggerFactory.Instance));
-            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services.BuildServiceProvider();
         }
