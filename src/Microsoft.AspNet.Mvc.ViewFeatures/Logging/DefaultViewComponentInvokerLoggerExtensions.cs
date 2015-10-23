@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Logging
             _viewComponentExecuted = LoggerMessage.Define<string, double, string>(
                 LogLevel.Verbose,
                 2,
-                "Executing view component {ViewComponentName} {ElapsedMilliseconds}ms elapsed returned " +
+                "Executed view component {ViewComponentName} in {ElapsedMilliseconds}ms and returned " +
                 "{ViewComponentResult}");
         }
 
@@ -63,12 +63,16 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Logging
 
             public IEnumerable<KeyValuePair<string, object>> GetValues()
             {
-                throw new NotImplementedException();
+                return new KeyValuePair<string, object>[]
+                {
+                    new KeyValuePair<string, object>("ViewComponentName", _descriptor.DisplayName),
+                    new KeyValuePair<string, object>("ViewComponentId", _descriptor.Id),
+                };
             }
 
             public override string ToString()
             {
-                return base.ToString();
+                return _descriptor.DisplayName;
             }
         }
     }
