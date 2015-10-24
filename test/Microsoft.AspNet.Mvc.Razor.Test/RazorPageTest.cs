@@ -16,6 +16,7 @@ using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Microsoft.Extensions.WebEncoders.Testing;
@@ -1657,12 +1658,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 uniqueId: string.Empty,
                 executeChildContentAsync: () =>
                 {
-                    defaultTagHelperContent.AppendEncoded(input);
+                    defaultTagHelperContent.AppendHtml(input);
                     return Task.FromResult(result: true);
                 },
                 startTagHelperWritingScope: () => { },
                 endTagHelperWritingScope: () => defaultTagHelperContent);
-            tagHelperExecutionContext.Output = new TagHelperOutput("p", new TagHelperAttributeList());
+            tagHelperExecutionContext.Output = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             if (childContentRetrieved)
             {
                 await tagHelperExecutionContext.GetChildContentAsync(useCachedResult: true);
@@ -1694,8 +1698,11 @@ namespace Microsoft.AspNet.Mvc.Razor
                 executeChildContentAsync: () => { return Task.FromResult(result: true); },
                 startTagHelperWritingScope: () => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
-            tagHelperExecutionContext.Output = new TagHelperOutput("p", new TagHelperAttributeList());
-            tagHelperExecutionContext.Output.Content.AppendEncoded("Hello World!");
+            tagHelperExecutionContext.Output = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+            tagHelperExecutionContext.Output.Content.AppendHtml("Hello World!");
 
             // Act
             var page = CreatePage(p =>
@@ -1748,16 +1755,19 @@ namespace Microsoft.AspNet.Mvc.Razor
             string postContent,
             string postElement)
         {
-            var output = new TagHelperOutput(tagName, attributes)
+            var output = new TagHelperOutput(
+                tagName,
+                attributes,
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()))
             {
                 TagMode = tagMode
             };
 
-            output.PreElement.AppendEncoded(preElement);
-            output.PreContent.AppendEncoded(preContent);
-            output.Content.AppendEncoded(content);
-            output.PostContent.AppendEncoded(postContent);
-            output.PostElement.AppendEncoded(postElement);
+            output.PreElement.AppendHtml(preElement);
+            output.PreContent.AppendHtml(preContent);
+            output.Content.AppendHtml(content);
+            output.PostContent.AppendHtml(postContent);
+            output.PostElement.AppendHtml(postElement);
 
             return output;
         }

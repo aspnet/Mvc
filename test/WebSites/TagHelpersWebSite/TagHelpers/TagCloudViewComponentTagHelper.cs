@@ -9,7 +9,7 @@ using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewComponents;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace MvcSample.Web.Components
 {
@@ -33,6 +33,10 @@ namespace MvcSample.Web.Components
 
         public int Order { get; } = 0;
 
+        public void Init(TagHelperContext context)
+        {
+        }
+
         public async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             var result = await InvokeAsync(Count);
@@ -52,7 +56,7 @@ namespace MvcSample.Web.Components
                 writer));
 
             output.TagName = null;
-            output.Content.AppendEncoded(writer.ToString());
+            output.Content.AppendHtml(writer.ToString());
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int count)

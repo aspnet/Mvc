@@ -13,7 +13,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Moq;
@@ -42,18 +42,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
+                uniqueId: "test");
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new TagHelperAttributeList
                 {
                     { "class", "form-control" }
+                },
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
@@ -109,17 +109,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedContent = "original content";
             var expectedPostContent = "original post-content";
             var output = new TagHelperOutput(
-                "div",
-                attributes: new TagHelperAttributeList());
+                tagName: "div",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent(expectedPostContent);
 
-            
             validationSummaryTagHelper.ViewContext = expectedViewContext;
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act & Assert
-            await validationSummaryTagHelper.ProcessAsync(context: null, output: output);
+            await validationSummaryTagHelper.ProcessAsync(context, output);
 
             generator.Verify();
             Assert.Equal("div", output.TagName);
@@ -134,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             // Arrange
             var tagBuilder = new TagBuilder("span2");
-            tagBuilder.InnerHtml.SetContentEncoded("New HTML");
+            tagBuilder.InnerHtml.SetHtmlContent("New HTML");
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");
             tagBuilder.Attributes.Add("anything", "something");
@@ -157,8 +163,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPreContent = "original pre-content";
             var expectedContent = "original content";
             var output = new TagHelperOutput(
-                "div",
-                attributes: new TagHelperAttributeList());
+                tagName: "div",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent("Content of validation summary");
@@ -166,8 +173,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = CreateViewContext();
             validationSummaryTagHelper.ViewContext = viewContext;
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act
-            await validationSummaryTagHelper.ProcessAsync(context: null, output: output);
+            await validationSummaryTagHelper.ProcessAsync(context, output);
 
             // Assert
             Assert.Equal("div", output.TagName);
@@ -198,8 +211,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedContent = "original content";
             var expectedPostContent = "original post-content";
             var output = new TagHelperOutput(
-                "div",
-                attributes: new TagHelperAttributeList());
+                tagName: "div",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent(expectedPostContent);
@@ -207,8 +221,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = CreateViewContext();
             validationSummaryTagHelper.ViewContext = viewContext;
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act
-            await validationSummaryTagHelper.ProcessAsync(context: null, output: output);
+            await validationSummaryTagHelper.ProcessAsync(context, output);
 
             // Assert
             Assert.Equal("div", output.TagName);
@@ -225,7 +245,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         {
             // Arrange
             var tagBuilder = new TagBuilder("span2");
-            tagBuilder.InnerHtml.SetContentEncoded("New HTML");
+            tagBuilder.InnerHtml.SetHtmlContent("New HTML");
 
             var generator = new Mock<IHtmlGenerator>();
             generator
@@ -246,8 +266,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var expectedPreContent = "original pre-content";
             var expectedContent = "original content";
             var output = new TagHelperOutput(
-                "div",
-                attributes: new TagHelperAttributeList());
+                tagName: "div",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             output.PreContent.SetContent(expectedPreContent);
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent("Content of validation message");
@@ -255,8 +276,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var viewContext = CreateViewContext();
             validationSummaryTagHelper.ViewContext = viewContext;
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act
-            await validationSummaryTagHelper.ProcessAsync(context: null, output: output);
+            await validationSummaryTagHelper.ProcessAsync(context, output);
 
             // Assert
             Assert.Equal("div", output.TagName);

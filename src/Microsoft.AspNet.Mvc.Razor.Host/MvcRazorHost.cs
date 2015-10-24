@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-#if NET45
+#if NET451
 using Microsoft.AspNet.FileProviders;
 #endif
 using Microsoft.AspNet.Mvc.Razor.Directives;
@@ -13,6 +13,7 @@ using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Razor;
 using Microsoft.AspNet.Razor.Chunks;
 using Microsoft.AspNet.Razor.CodeGenerators;
+using Microsoft.AspNet.Razor.Compilation.TagHelpers;
 using Microsoft.AspNet.Razor.Parser;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
@@ -124,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
-#if NET45
+#if NET451
         /// <summary>
         /// Initializes a new instance of <see cref="MvcRazorHost"/> with the specified  <paramref name="root"/>.
         /// </summary>

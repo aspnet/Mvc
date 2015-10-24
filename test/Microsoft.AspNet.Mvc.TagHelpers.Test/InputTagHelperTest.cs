@@ -12,7 +12,7 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Moq;
 using Xunit;
 
@@ -90,13 +90,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(result: null));
-            var output = new TagHelperOutput(originalTagName, outputAttributes)
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                originalTagName,
+                outputAttributes,
+                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(result: null))
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.Content.AppendEncoded(originalContent);
+            output.Content.AppendHtml(originalContent);
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: false, propertyName: nameof(Model.IsACar));
 
@@ -194,18 +196,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagOnly,
             };
@@ -256,24 +260,26 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                originalTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(originalTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.AppendEncoded(expectedPreContent);
-            output.Content.AppendEncoded(originalContent);
-            output.PostContent.AppendEncoded(expectedPostContent);
+            output.PreContent.AppendHtml(expectedPreContent);
+            output.Content.AppendHtml(originalContent);
+            output.PostContent.AppendHtml(expectedPostContent);
 
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
@@ -353,18 +359,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = new TagHelperContext(
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagOnly,
             };
@@ -452,18 +460,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = new TagHelperContext(
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagOnly,
             };
@@ -548,18 +558,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = new TagHelperContext(
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagOnly,
             };
@@ -655,18 +667,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var context = new TagHelperContext(
                 allAttributes: contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var originalAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var originalAttributes = new TagHelperAttributeList
-            {
-                { "class", "form-control" },
-            };
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagOnly,
             };
@@ -773,10 +787,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+                uniqueId: "test");
 
-            var output = new TagHelperOutput(expectedTagName, attributes: new TagHelperAttributeList())
+            var output = new TagHelperOutput(
+                expectedTagName,
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()))
             {
                 TagMode = TagMode.SelfClosing,
             };
@@ -854,10 +870,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+                uniqueId: "test");
 
-            var output = new TagHelperOutput(expectedTagName, attributes: new TagHelperAttributeList())
+            var output = new TagHelperOutput(
+                expectedTagName,
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()))
             {
                 TagMode = TagMode.SelfClosing,
             };

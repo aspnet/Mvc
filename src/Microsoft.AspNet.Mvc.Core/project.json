@@ -13,7 +13,7 @@
     "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-*",
     "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
     "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-*",
-    "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-*",
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
       "version": "1.0.0-*",
       "type": "build"
@@ -32,18 +32,18 @@
       "version": "1.0.0-*",
       "type": "build"
     },
-    "System.Diagnostics.Tracing.Telemetry": "4.0.0-beta-*"
+    "System.Diagnostics.DiagnosticSource": "4.0.0-beta-*"
   },
   "frameworks": {
-    "dnx451": {
+    "net451": {
       "frameworkAssemblies": {
         "System.Runtime": ""
       }
     },
-    "dnxcore50": {
-        "dependencies": {
-            "System.Text.Encoding": "4.0.11-*"
-        }
+    "dotnet5.4": {
+      "dependencies": {
+        "System.Text.Encoding": "4.0.11-*"
+      }
     }
   }
 }

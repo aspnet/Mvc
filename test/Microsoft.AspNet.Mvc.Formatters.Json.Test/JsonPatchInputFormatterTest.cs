@@ -25,11 +25,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes);
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(JsonPatchDocument<Customer>));
             var context = new InputFormatterContext(
                 httpContext,
                 modelName: string.Empty,
                 modelState: modelState,
-                modelType: typeof(JsonPatchDocument<Customer>));
+                metadata: metadata);
 
             // Act
             var result = await formatter.ReadAsync(context);
@@ -53,11 +55,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes);
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(JsonPatchDocument<Customer>));
             var context = new InputFormatterContext(
                 httpContext,
                 modelName: string.Empty,
                 modelState: modelState,
-                modelType: typeof(JsonPatchDocument<Customer>));
+                metadata: metadata);
 
             // Act
             var result = await formatter.ReadAsync(context);
@@ -75,8 +79,8 @@ namespace Microsoft.AspNet.Mvc.Formatters
         [Theory]
         [InlineData("application/json-patch+json", true)]
         [InlineData("application/json", false)]
-        [InlineData("application/*", true)]
-        [InlineData("*/*", true)]
+        [InlineData("application/*", false)]
+        [InlineData("*/*", false)]
         public void CanRead_ReturnsTrueOnlyForJsonPatchContentType(string requestContentType, bool expectedCanRead)
         {
             // Arrange
@@ -86,11 +90,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: requestContentType);
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(JsonPatchDocument<Customer>));
             var formatterContext = new InputFormatterContext(
                 httpContext,
                 modelName: string.Empty,
                 modelState: modelState,
-                modelType: typeof(JsonPatchDocument<Customer>));
+                metadata: metadata);
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -111,11 +117,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: "application/json-patch+json");
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(modelType);
             var formatterContext = new InputFormatterContext(
                 httpContext,
                 modelName: string.Empty,
                 modelState: modelState,
-                modelType: modelType);
+                metadata: metadata);
 
             // Act
             var result = formatter.CanRead(formatterContext);
@@ -137,11 +145,13 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var modelState = new ModelStateDictionary();
             var httpContext = GetHttpContext(contentBytes, contentType: "application/json-patch+json");
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(Customer));
             var context = new InputFormatterContext(
                 httpContext,
                 modelName: string.Empty,
                 modelState: modelState,
-                modelType: typeof(Customer));
+                metadata: metadata);
 
             // Act
             var result = await formatter.ReadAsync(context);

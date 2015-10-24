@@ -14,7 +14,7 @@ using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
@@ -41,18 +41,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-antiforgery", true }
                 },
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something Else");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
+                uniqueId: "test");
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new TagHelperAttributeList
                 {
                     { "id", "myform" },
+                },
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something Else");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             output.PostContent.SetContent("Something");
             var urlHelper = new Mock<IUrlHelper>();
@@ -110,16 +110,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(
-                "form",
-                attributes: new TagHelperAttributeList());
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
@@ -161,17 +161,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var expectedAttribute = new TagHelperAttribute("asp-ROUTEE-NotRoute", "something");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var expectedAttribute = new TagHelperAttribute("asp-ROUTEE-NotRoute", "something");
-            var output = new TagHelperOutput(
-                "form",
-                attributes: new TagHelperAttributeList());
             output.Attributes.Add(expectedAttribute);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
@@ -233,16 +233,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(
-                "form",
-                attributes: new TagHelperAttributeList());
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
@@ -284,16 +284,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(
-                "form",
-                attributes: new TagHelperAttributeList());
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateRouteForm(
@@ -349,22 +349,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 ViewContext = viewContext,
             };
 
-            var output = new TagHelperOutput("form",
-                                             attributes: new TagHelperAttributeList
-                                             {
-                                                 { "aCTiON", "my-action" },
-                                             });
-            var context = new TagHelperContext(
-                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
-                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
-                items: new Dictionary<object, object>(),
-                uniqueId: "test",
+            var output = new TagHelperOutput(
+                tagName: "form",
+                attributes: new TagHelperAttributeList
+                {
+                    { "aCTiON", "my-action" },
+                },
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
 
 
             // Act
@@ -393,7 +394,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "action", "my-action" },
-                });
+                },
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
             if (propertyName == "asp-route-")
             {
                 formTagHelper.RouteValues.Add("name", "value");
@@ -407,9 +409,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                        "'action' must not have attributes starting with 'asp-route-' or an " +
                                        "'asp-action' or 'asp-controller' or 'asp-route' attribute.";
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => formTagHelper.ProcessAsync(context: null, output: tagHelperOutput));
+                () => formTagHelper.ProcessAsync(context, tagHelperOutput));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
@@ -427,13 +435,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             typeof(FormTagHelper).GetProperty(propertyName).SetValue(formTagHelper, "Home");
             var output = new TagHelperOutput(
                 "form",
-                attributes: new TagHelperAttributeList());
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
             var expectedErrorMessage = "Cannot determine an 'action' attribute for <form>. A <form> with a specified " +
                 "'asp-route' must not have an 'asp-action' or 'asp-controller' attribute.";
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => formTagHelper.ProcessAsync(context: null, output: output));
+                () => formTagHelper.ProcessAsync(context, output));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }

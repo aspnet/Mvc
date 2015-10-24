@@ -5,12 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Cors.Core;
+using Microsoft.AspNet.Cors.Infrastructure;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Xunit;
 
@@ -93,7 +96,7 @@ namespace Microsoft.AspNet.Mvc.Cors
 
         [Fact]
         public async Task CorsRequest_FailedMatch_Writes200()
-        {   
+        {
             // Arrange
             var mockEngine = GetFailingEngine();
             var filter = GetFilter(mockEngine);
@@ -129,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.Cors
             RequestHeaders headers = null,
             bool isPreflight = false)
         {
-            
+
             // HttpContext
             var httpContext = new DefaultHttpContext();
             if (headers != null)
@@ -139,6 +142,10 @@ namespace Microsoft.AspNet.Mvc.Cors
                 httpContext.Request.Headers.Add(CorsConstants.AccessControlExposeHeaders, headers.ExposedHeaders.Split(','));
                 httpContext.Request.Headers.Add(CorsConstants.Origin, new[] { headers.Origin });
             }
+
+            var services = new ServiceCollection();
+            services.AddInstance<ILoggerFactory>(NullLoggerFactory.Instance);
+            httpContext.RequestServices = services.BuildServiceProvider();
 
             var method = isPreflight ? CorsConstants.PreflightHttpMethod : "GET";
             httpContext.Request.Method = method;

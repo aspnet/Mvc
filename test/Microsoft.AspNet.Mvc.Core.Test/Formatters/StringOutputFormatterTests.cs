@@ -6,6 +6,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
+using Microsoft.AspNet.Http.Internal;
+using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
 
@@ -19,7 +21,6 @@ namespace Microsoft.AspNet.Mvc.Formatters
             {
                 // object value, bool useDeclaredTypeAsString, bool expectedCanWriteResult
                 yield return new object[] { "valid value", true, true };
-                yield return new object[] { "valid value", false, true };
                 yield return new object[] { null, true, true };
                 yield return new object[] { null, false, false };
                 yield return new object[] { new object(), false, false };
@@ -28,22 +29,32 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
         [Theory]
         [MemberData(nameof(OutputFormatterContextValues))]
-        public void CanWriteResult_ReturnsTrueForStringTypes(object value, bool useDeclaredTypeAsString, bool expectedCanWriteResult)
+        public void CanWriteResult_ReturnsTrueForStringTypes(
+            object value,
+            bool useDeclaredTypeAsString,
+            bool expectedCanWriteResult)
         {
             // Arrange
+            var expectedContentType = expectedCanWriteResult ? 
+                MediaTypeHeaderValue.Parse("text/plain") :
+                MediaTypeHeaderValue.Parse("application/json");
+
             var formatter = new StringOutputFormatter();
-            var typeToUse = useDeclaredTypeAsString ? typeof(string) : typeof(object);
-            var formatterContext = new OutputFormatterContext()
-            {
-                Object = value,
-                DeclaredType = typeToUse
-            };
+            var type = useDeclaredTypeAsString ? typeof(string) : typeof(object);
+
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                type,
+                value);
+            context.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
             // Act
-            var result = formatter.CanWriteResult(formatterContext, null);
+            var result = formatter.CanWriteResult(context);
 
             // Assert
             Assert.Equal(expectedCanWriteResult, result);
+            Assert.Equal(expectedContentType, context.ContentType);
         }
 
         [Fact]
@@ -55,20 +66,18 @@ namespace Microsoft.AspNet.Mvc.Formatters
             var response = new Mock<HttpResponse>();
             response.SetupProperty<long?>(o => o.ContentLength);
             response.SetupGet(r => r.Body).Returns(memoryStream);
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(o => o.Response).Returns(response.Object);
+            var httpContext = new Mock<HttpContext>();
+            httpContext.Setup(o => o.Response).Returns(response.Object);
 
             var formatter = new StringOutputFormatter();
-            var formatterContext = new OutputFormatterContext()
-            {
-                Object = null,
-                DeclaredType = typeof(string),
-                HttpContext = mockHttpContext.Object,
-                SelectedEncoding = encoding
-            };
+            var context = new OutputFormatterWriteContext(
+                httpContext.Object,
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                typeof(string),
+                @object: null);
 
             // Act
-            await formatter.WriteResponseBodyAsync(formatterContext);
+            await formatter.WriteResponseBodyAsync(context);
 
             // Assert
             Assert.Equal(0, memoryStream.Length);

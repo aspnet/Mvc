@@ -9,7 +9,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -133,6 +133,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             // Pass through attributes that are also well-known HTML attributes. Must be done prior to any copying
             // from a TagBuilder.
             if (InputTypeName != null)
@@ -268,7 +278,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (hiddenForCheckboxTag != null)
                 {
                     hiddenForCheckboxTag.TagRenderMode = renderingMode;
-                    output.Content.Append(hiddenForCheckboxTag);
+
+                    if (ViewContext.FormContext.CanRenderAtEndOfForm)
+                    {
+                        ViewContext.FormContext.EndOfFormContent.Add(hiddenForCheckboxTag);
+                    }
+                    else
+                    {
+                        output.Content.Append(hiddenForCheckboxTag);
+                    }
                 }
             }
         }

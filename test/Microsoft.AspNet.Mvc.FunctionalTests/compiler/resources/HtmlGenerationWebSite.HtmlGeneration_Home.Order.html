@@ -33,13 +33,16 @@
         </div>
         <div>
             <label class="order" for="NeedSpecialHandle">NeedSpecialHandle</label>
-            <input checked="checked" data-val="true" data-val-required="The NeedSpecialHandle field is required." id="NeedSpecialHandle" name="NeedSpecialHandle" type="checkbox" value="true" /><input name="NeedSpecialHandle" type="hidden" value="false" />
+            <input checked="checked" data-val="true" data-val-required="The NeedSpecialHandle field is required." id="NeedSpecialHandle" name="NeedSpecialHandle" type="checkbox" value="true" />
         </div>
         <div>
             <label class="order" for="PaymentMethod">PaymentMethod</label>
             <select id="PaymentMethod" multiple="multiple" name="PaymentMethod">
                 <option value="Credit">Credit</option>
                 <option value="Check" selected="selected">Check</option>
+            </select>
+            <select>
+                <option value="Check">Check</option>
             </select>
         </div>
         <div>
@@ -75,6 +78,6 @@
 </ul></div>
         <input type="hidden" id="Customer_Key" name="Customer.Key" value="KeyA" />
         <input type="submit" />
-    <input name="__RequestVerificationToken" type="hidden" value="{0}" /></form>
+    <input name="__RequestVerificationToken" type="hidden" value="{0}" /><input name="NeedSpecialHandle" type="hidden" value="false" /></form>
 </body>
 </html>

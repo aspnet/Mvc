@@ -20,16 +20,16 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
         /// Gets a filtered list of content types which are supported by the <see cref="Formatters.IOutputFormatter"/>
         /// for the <paramref name="declaredType"/> and <paramref name="contentType"/>.
         /// </summary>
-        /// <param name="declaredType">The declared type for which the supported content types are desired.</param>
-        /// <param name="runtimeType">The runtime type for which the supported content types are desired.</param>
         /// <param name="contentType">
         /// The content type for which the supported content types are desired, or <c>null</c> if any content
         /// type can be used.
         /// </param>
+        /// <param name="objectType">
+        /// The <see cref="Type"/> for which the supported content types are desired.
+        /// </param>
         /// <returns>Content types which are supported by the <see cref="Formatters.IOutputFormatter"/>.</returns>
         IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
-            Type declaredType,
-            Type runtimeType,
-            MediaTypeHeaderValue contentType);
+            MediaTypeHeaderValue contentType,
+            Type objectType);
     }
 }

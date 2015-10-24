@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace ActivatorWebSite.TagHelpers
 {
@@ -31,7 +31,7 @@ namespace ActivatorWebSite.TagHelpers
         {
             (HtmlHelper as ICanHasViewContext)?.Contextualize(ViewContext);
 
-            var content = await context.GetChildContentAsync();
+            var content = await output.GetChildContentAsync();
             var repeatContent = HtmlHelper.Encode(Expression.Model.ToString());
 
             if (string.IsNullOrEmpty(repeatContent))

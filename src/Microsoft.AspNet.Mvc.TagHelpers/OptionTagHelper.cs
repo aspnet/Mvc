@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -54,13 +54,23 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
         /// <inheritdoc />
         /// <remarks>
-        /// Does nothing unless <see cref="FormContext.FormData"/> contains a
-        /// <see cref="SelectTagHelper.SelectedValuesFormDataKey"/> entry and that entry is a non-empty
+        /// Does nothing unless <see cref="TagHelperContext.Items"/> contains a
+        /// <see cref="SelectTagHelper"/> <see cref="Type"/> entry and that entry is a non-empty
         /// <see cref="ICollection{string}"/> instance. Also does nothing if the associated &lt;option&gt; is already
         /// selected.
         /// </remarks>
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             // Pass through attributes that are also well-known HTML attributes.
             if (Value != null)
             {
@@ -72,9 +82,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             {
                 // Is this <option/> element a child of a <select/> element the SelectTagHelper targeted?
                 object formDataEntry;
-                ViewContext.FormContext.FormData.TryGetValue(
-                    SelectTagHelper.SelectedValuesFormDataKey,
-                    out formDataEntry);
+                context.Items.TryGetValue(typeof(SelectTagHelper), out formDataEntry);
 
                 // ... And did the SelectTagHelper determine any selected values?
                 var selectedValues = formDataEntry as ICollection<string>;
@@ -101,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     }
                     else
                     {
-                        var childContent = await context.GetChildContentAsync();
+                        var childContent = await output.GetChildContentAsync();
                         selected = encodedValues.Contains(childContent.GetContent());
                     }
 

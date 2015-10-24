@@ -9,8 +9,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
-using Microsoft.Extensions.WebEncoders.Testing;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Moq;
 using Xunit;
 
@@ -37,18 +36,18 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     { "asp-protocol", "http" }
                 },
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something Else");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
+                uniqueId: "test");
             var output = new TagHelperOutput(
                 expectedTagName,
                 attributes: new TagHelperAttributeList
                 {
                     { "id", "myanchor" },
+                },
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something Else");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
             output.Content.SetContent("Something");
 
@@ -94,16 +93,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "a",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(
-                "a",
-                attributes: new TagHelperAttributeList());
             output.Content.SetContent(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
@@ -142,16 +141,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "a",
+                attributes: new TagHelperAttributeList(),
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(
-                "a",
-                attributes: new TagHelperAttributeList());
             output.Content.SetContent(string.Empty);
 
             var generator = new Mock<IHtmlGenerator>();
@@ -205,7 +204,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "href", "http://www.contoso.com" }
-                });
+                },
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
             if (propertyName == "asp-route-")
             {
                 anchorTagHelper.RouteValues.Add("name", "value");
@@ -220,9 +220,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                                        "'asp-action', 'asp-controller', 'asp-route', 'asp-protocol', 'asp-host', or " +
                                        "'asp-fragment' attribute.";
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => anchorTagHelper.ProcessAsync(context: null, output: output));
+                () => anchorTagHelper.ProcessAsync(context, output));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
@@ -244,13 +250,20 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             typeof(AnchorTagHelper).GetProperty(propertyName).SetValue(anchorTagHelper, "Home");
             var output = new TagHelperOutput(
                 "a",
-                attributes: new TagHelperAttributeList());
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
             var expectedErrorMessage = "Cannot determine an 'href' attribute for <a>. An <a> with a specified " +
                 "'asp-route' must not have an 'asp-action' or 'asp-controller' attribute.";
 
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => anchorTagHelper.ProcessAsync(context: null, output: output));
+                () => anchorTagHelper.ProcessAsync(context, output));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }

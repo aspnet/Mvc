@@ -33,7 +33,12 @@ namespace System.Web.Http.Dispatcher
                 yield return new[] { new HttpError() };
                 yield return new[] { new HttpError("error") };
                 yield return new[] { new HttpError(new NotImplementedException(), true) };
-                yield return new[] { new HttpError(new ModelStateDictionary() { { "key", new ModelState() { Errors = { new ModelError("error") } } } }, true) };
+                yield return new[] { new HttpError(
+                    new ModelStateDictionary()
+                    {
+                        { "key", new ModelStateEntry { Errors = { new ModelError("error") } } }
+                    },
+                    true) };
             }
         }
 
@@ -61,13 +66,19 @@ namespace System.Web.Http.Dispatcher
         [Fact]
         public void ModelStateConstructorWithDetail_AddsCorrectDictionaryItems()
         {
+            // Arrange
             ModelStateDictionary modelState = new ModelStateDictionary();
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
             modelState.AddModelError("[0].Name", "error1");
             modelState.AddModelError("[0].Name", "error2");
             modelState.AddModelError("[0].Address", "error");
-            modelState.AddModelError("[2].Name", new Exception("OH NO"));
+            modelState.AddModelError("[2].Name", new Exception("OH NO"), metadata);
 
+            // Act
             HttpError error = new HttpError(modelState, true);
+
+            // Assert
             HttpError modelStateError = error["ModelState"] as HttpError;
 
             Assert.Contains(new KeyValuePair<string, object>("Message", "The request is invalid."), error);
@@ -93,13 +104,19 @@ namespace System.Web.Http.Dispatcher
         [Fact]
         public void ModelStateConstructorWithoutDetail_AddsCorrectDictionaryItems()
         {
+            // Arrange
             ModelStateDictionary modelState = new ModelStateDictionary();
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
             modelState.AddModelError("[0].Name", "error1");
             modelState.AddModelError("[0].Name", "error2");
             modelState.AddModelError("[0].Address", "error");
-            modelState.AddModelError("[2].Name", new Exception("OH NO"));
+            modelState.AddModelError("[2].Name", new Exception("OH NO"), metadata);
 
+            // Act
             HttpError error = new HttpError(modelState, false);
+
+            // Assert
             HttpError modelStateError = error["ModelState"] as HttpError;
 
             Assert.Contains(new KeyValuePair<string, object>("Message", "The request is invalid."), error);

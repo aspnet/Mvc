@@ -2,9 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
@@ -16,22 +17,21 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
     /// </summary>
     public class ViewResultExecutor : ViewExecutor
     {
-#pragma warning disable 0618
         /// <summary>
         /// Creates a new <see cref="ViewResultExecutor"/>.
         /// </summary>
         /// <param name="viewOptions">The <see cref="IOptions{MvcViewOptions}"/>.</param>
         /// <param name="writerFactory">The <see cref="IHttpResponseStreamWriterFactory"/>.</param>
         /// <param name="viewEngine">The <see cref="ICompositeViewEngine"/>.</param>
-        /// <param name="telemetry">The <see cref="TelemetrySource"/>.</param>
+        /// <param name="diagnosticSource">The <see cref="DiagnosticSource"/>.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
         public ViewResultExecutor(
             IOptions<MvcViewOptions> viewOptions,
             IHttpResponseStreamWriterFactory writerFactory,
             ICompositeViewEngine viewEngine,
-            TelemetrySource telemetry,
+            DiagnosticSource diagnosticSource,
             ILoggerFactory loggerFactory)
-            : base(viewOptions, writerFactory, viewEngine, telemetry)
+            : base(viewOptions, writerFactory, viewEngine, diagnosticSource)
         {
             if (loggerFactory == null)
             {
@@ -40,7 +40,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             Logger = loggerFactory.CreateLogger<ViewResultExecutor>();
         }
-#pragma warning restore 0618
 
         /// <summary>
         /// Gets the <see cref="ILogger"/>.
@@ -71,10 +70,9 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var result = viewEngine.FindView(actionContext, viewName);
             if (result.Success)
             {
-#pragma warning disable 0618
-                if (Telemetry.IsEnabled("Microsoft.AspNet.Mvc.ViewFound"))
+                if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewFound"))
                 {
-                    Telemetry.WriteTelemetry(
+                    DiagnosticSource.Write(
                         "Microsoft.AspNet.Mvc.ViewFound",
                         new
                         {
@@ -85,16 +83,14 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                             view = result.View,
                         });
                 }
-#pragma warning restore 0618
 
                 Logger.LogVerbose("The view '{ViewName}' was found.", viewName);
             }
             else
             {
-#pragma warning disable 0618
-                if (Telemetry.IsEnabled("Microsoft.AspNet.Mvc.ViewNotFound"))
+                if (DiagnosticSource.IsEnabled("Microsoft.AspNet.Mvc.ViewNotFound"))
                 {
-                    Telemetry.WriteTelemetry(
+                    DiagnosticSource.Write(
                         "Microsoft.AspNet.Mvc.ViewNotFound",
                         new
                         {
@@ -105,7 +101,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                             searchedLocations = result.SearchedLocations
                         });
                 }
-#pragma warning restore 0618
 
                 Logger.LogError(
                     "The view '{ViewName}' was not found. Searched locations: {SearchedViewLocations}",
@@ -139,6 +134,9 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             {
                 throw new ArgumentNullException(nameof(viewResult));
             }
+
+
+            Logger.ViewResultExecuting(view);
 
             return ExecuteAsync(
                 actionContext,

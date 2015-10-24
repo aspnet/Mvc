@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
@@ -19,8 +19,8 @@ namespace TagHelpersWebSite.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.Attributes.RemoveAll("bold");
-            output.PreContent.AppendEncoded("<b>");
-            output.PostContent.AppendEncoded("</b>");
+            output.PreContent.AppendHtml("<b>");
+            output.PostContent.AppendHtml("</b>");
         }
     }
 }

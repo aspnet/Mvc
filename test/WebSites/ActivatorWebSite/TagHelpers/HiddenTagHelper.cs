@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.WebEncoders;
 
 namespace ActivatorWebSite.TagHelpers
@@ -33,7 +33,7 @@ namespace ActivatorWebSite.TagHelpers
         {
             (HtmlHelper as ICanHasViewContext)?.Contextualize(ViewContext);
 
-            var content = await context.GetChildContentAsync();
+            var content = await output.GetChildContentAsync();
             output.Content.SetContent(HtmlHelper.Hidden(Name, content.GetContent(HtmlEncoder)));
         }
     }

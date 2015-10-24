@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
     public class OptionTagHelperTest
     {
-        // Original content, selected attribute, value attribute, selected values (to place in FormContext.FormData)
+        // Original content, selected attribute, value attribute, selected values (to place in TagHelperContext.Items)
         // and expected tag helper output.
         public static TheoryData<string, string, string, IEnumerable<string>, TagHelperOutput> GeneratesExpectedDataSet
         {
@@ -346,7 +346,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        // Original content, selected attribute, value attribute, selected values (to place in FormContext.FormData)
+        // Original content, selected attribute, value attribute, selected values (to place in TagHelperContext.Items)
         // and expected output (concatenation of TagHelperOutput generations). Excludes non-null selected attribute,
         // null selected values, and empty selected values cases.
         public static IEnumerable<object[]> DoesNotUseGeneratorDataSet
@@ -358,7 +358,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
         }
 
-        // Original content, selected attribute, value attribute, selected values (to place in FormContext.FormData)
+        // Original content, selected attribute, value attribute, selected values (to place in TagHelperContext.Items)
         // and expected output (concatenation of TagHelperOutput generations). Excludes non-null selected attribute
         // cases.
         public static IEnumerable<object[]> DoesNotUseViewContextDataSet
@@ -397,15 +397,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                expectedTagHelperOutput.TagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     // GetChildContentAsync should not be invoked since we are setting the content below.
                     Assert.True(false);
                     return Task.FromResult<TagHelperContent>(null);
-                });
-
-            var output = new TagHelperOutput(expectedTagHelperOutput.TagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagAndEndTag
             };
@@ -418,7 +420,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 model: null,
                 htmlGenerator: htmlGenerator,
                 metadataProvider: metadataProvider);
-            viewContext.FormContext.FormData[SelectTagHelper.SelectedValuesFormDataKey] = selectedValues;
+            tagHelperContext.Items[typeof(SelectTagHelper)] = selectedValues;
             var tagHelper = new OptionTagHelper(htmlGenerator)
             {
                 Value = value,
@@ -466,14 +468,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                originalTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(originalTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagAndEndTag,
             };
@@ -487,7 +491,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 model: null,
                 htmlGenerator: htmlGenerator,
                 metadataProvider: metadataProvider);
-            viewContext.FormContext.FormData[SelectTagHelper.SelectedValuesFormDataKey] = selectedValues;
+            tagHelperContext.Items[typeof(SelectTagHelper)] = selectedValues;
             var tagHelper = new OptionTagHelper(htmlGenerator)
             {
                 Value = value,
@@ -527,15 +531,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                originalTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent(originalContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-
-            var output = new TagHelperOutput(originalTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.StartTagAndEndTag,
             };
@@ -559,7 +565,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         private static TagHelperOutput GetTagHelperOutput(
             string tagName, TagHelperAttributeList attributes, string content)
         {
-            var tagHelperOutput = new TagHelperOutput(tagName, attributes);
+            var tagHelperOutput = new TagHelperOutput(
+                tagName,
+                attributes,
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
             tagHelperOutput.Content.SetContent(content);
 
             return tagHelperOutput;

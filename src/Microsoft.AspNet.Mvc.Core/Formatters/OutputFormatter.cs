@@ -49,21 +49,19 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// <summary>
         /// Returns a value indicating whether or not the given type can be written by this serializer.
         /// </summary>
-        /// <param name="declaredType">The declared type.</param>
-        /// <param name="runtimeType">The runtime type.</param>
+        /// <param name="type">The object type.</param>
         /// <returns><c>true</c> if the type can be written, otherwise <c>false</c>.</returns>
-        protected virtual bool CanWriteType(Type declaredType, Type runtimeType)
+        protected virtual bool CanWriteType(Type type)
         {
             return true;
         }
 
         /// <inheritdoc />
         public virtual IReadOnlyList<MediaTypeHeaderValue> GetSupportedContentTypes(
-            Type declaredType,
-            Type runtimeType,
-            MediaTypeHeaderValue contentType)
+            MediaTypeHeaderValue contentType,
+            Type objectType)
         {
-            if (!CanWriteType(declaredType, runtimeType))
+            if (!CanWriteType(objectType))
             {
                 return null;
             }
@@ -77,6 +75,8 @@ namespace Microsoft.AspNet.Mvc.Formatters
             {
                 List<MediaTypeHeaderValue> mediaTypes = null;
 
+                // Confirm this formatter supports a more specific media type than requested e.g. OK if "text/*"
+                // requested and formatter supports "text/plain". Treat contentType like it came from an Accept header.
                 foreach (var mediaType in _supportedMediaTypes)
                 {
                     if (mediaType.IsSubsetOf(contentType))
@@ -101,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// <param name="context">The formatter context associated with the call.
         /// </param>
         /// <returns>The <see cref="Encoding"/> to use when reading the request or writing the response.</returns>
-        public virtual Encoding SelectCharacterEncoding(OutputFormatterContext context)
+        public virtual Encoding SelectCharacterEncoding(OutputFormatterWriteContext context)
         {
             if (context == null)
             {
@@ -110,69 +110,116 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var request = context.HttpContext.Request;
             var encoding = MatchAcceptCharacterEncoding(request.GetTypedHeaders().AcceptCharset);
-            if (encoding == null)
+            if (encoding != null)
             {
-                // Match based on request acceptHeader.
-                MediaTypeHeaderValue requestContentType = null;
-                if (MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType) &&
-                    !string.IsNullOrEmpty(requestContentType.Charset))
+                return encoding;
+            }
+
+            var charset = context.ContentType?.Charset;
+            if (charset != null)
+            {
+                for (var i = 0; i < SupportedEncodings.Count; i++)
                 {
-                    var requestCharset = requestContentType.Charset;
-                    encoding = SupportedEncodings.FirstOrDefault(
-                                                            supportedEncoding =>
-                                                                requestCharset.Equals(supportedEncoding.WebName));
+                    if (string.Equals(charset, SupportedEncodings[i].WebName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // This is supported.
+                        return context.ContentType.Encoding;
+                    }
                 }
             }
 
-            encoding = encoding ?? SupportedEncodings.FirstOrDefault();
-            return encoding;
+            // A formatter for a non-text media-type won't have any supported encodings.
+            return SupportedEncodings.Count > 0 ? SupportedEncodings[0] : null;
         }
 
         /// <inheritdoc />
-        public virtual bool CanWriteResult(OutputFormatterContext context, MediaTypeHeaderValue contentType)
+        public virtual bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
-
-            var runtimeType = context.Object == null ? null : context.Object.GetType();
-            if (!CanWriteType(context.DeclaredType, runtimeType))
+            
+            if (!CanWriteType(context.ObjectType))
             {
                 return false;
             }
-
-            MediaTypeHeaderValue mediaType = null;
-            if (contentType == null)
+            
+            if (context.ContentType == null)
             {
-                // If the desired content type is set to null, the current formatter is free to choose the
-                // response media type.
-                mediaType = SupportedMediaTypes.FirstOrDefault();
+                // If the desired content type is set to null, then the current formatter can write anything
+                // it wants.
+                if (SupportedMediaTypes.Count > 0)
+                {
+                    context.ContentType = SupportedMediaTypes[0];
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
-                // Since supportedMedia Type is going to be more specific check if supportedMediaType is a subset
-                // of the content type which is typically what we get on acceptHeader.
-                mediaType = SupportedMediaTypes
-                                  .FirstOrDefault(supportedMediaType => supportedMediaType.IsSubsetOf(contentType));
-            }
-
-            if (mediaType != null)
-            {
-                context.SelectedContentType = mediaType;
-                return true;
+                // Confirm this formatter supports a more specific media type than requested e.g. OK if "text/*"
+                // requested and formatter supports "text/plain". contentType is typically what we got in an Accept
+                // header.
+                for (var i = 0; i < SupportedMediaTypes.Count; i++)
+                {
+                    var mediaType = SupportedMediaTypes[i];
+                    if (mediaType.IsSubsetOf(context.ContentType))
+                    {
+                        context.ContentType = mediaType;
+                        return true;
+                    }
+                }
             }
 
             return false;
         }
 
         /// <inheritdoc />
-        public Task WriteAsync(OutputFormatterContext context)
+        public Task WriteAsync(OutputFormatterWriteContext context)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
+
+            var selectedMediaType = context.ContentType;
+            if (selectedMediaType == null)
+            {
+                // If content type is not set then set it based on supported media types.
+                if (SupportedEncodings.Count > 0)
+                {
+                    selectedMediaType = SupportedMediaTypes[0];
+                }
+                else
+                {
+                    throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
+                }
+            }
+
+            // Copy the media type as it may be a 'frozen' instance.
+            selectedMediaType = selectedMediaType.Copy();
+
+            // Note: Text-based media types will use an encoding/charset - binary formats just ignore it. We want to
+            // make this class work with media types that use encodings, and those that don't.
+            //
+            // The default implementation of SelectCharacterEncoding will read from the list of SupportedEncodings
+            // and will always choose a default encoding if any are supported. So, the only cases where the
+            // selectedEncoding can be null are:
+            //
+            // 1). No supported encodings - we assume this is a non-text format
+            // 2). Custom implementation of SelectCharacterEncoding - trust the user and give them what they want.
+            var selectedEncoding = SelectCharacterEncoding(context);
+            if (selectedEncoding != null)
+            {
+                // Override the content type value even if one already existed.
+                selectedMediaType.Encoding = selectedEncoding;
+            }
+
+            context.ContentType = selectedMediaType;
 
             WriteResponseHeaders(context);
             return WriteResponseBodyAsync(context);
@@ -182,47 +229,15 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// Sets the headers on <see cref="Microsoft.AspNet.Http.HttpResponse"/> object.
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
-        public virtual void WriteResponseHeaders(OutputFormatterContext context)
+        public virtual void WriteResponseHeaders(OutputFormatterWriteContext context)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var selectedMediaType = context.SelectedContentType;
-
-            // If content type is not set then set it based on supported media types.
-            selectedMediaType = selectedMediaType ?? SupportedMediaTypes.FirstOrDefault();
-            if (selectedMediaType == null)
-            {
-                throw new InvalidOperationException(Resources.FormatOutputFormatterNoMediaType(GetType().FullName));
-            }
-
-            // Copy the media type as we don't want it to affect the next request
-            selectedMediaType = selectedMediaType.Copy();
-
-            // Not text-based media types will use an encoding/charset - binary formats just ignore it. We want to
-            // make this class work with media types that use encodings, and those that don't.
-            //
-            // The default implementation of SelectCharacterEncoding will read from the list of SupportedEncodings
-            // and will always choose a default encoding if any are supported. So, the only cases where the 
-            // selectedEncoding can be null are:
-            //
-            // 1). No supported encodings - we assume this is a non-text format
-            // 2). Custom implementation of SelectCharacterEncoding - trust the user and give them what they want.
-            var selectedEncoding = SelectCharacterEncoding(context);
-            if (selectedEncoding != null)
-            {
-                context.SelectedEncoding = selectedEncoding;
-
-                // Override the content type value even if one already existed.
-                selectedMediaType.Charset = selectedEncoding.WebName;
-            }
-
-            context.SelectedContentType = context.SelectedContentType ?? selectedMediaType;
-
             var response = context.HttpContext.Response;
-            response.ContentType = selectedMediaType.ToString();
+            response.ContentType = context.ContentType?.ToString();
         }
 
         /// <summary>
@@ -230,28 +245,24 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// </summary>
         /// <param name="context">The formatter context associated with the call.</param>
         /// <returns>A task which can write the response body.</returns>
-        public abstract Task WriteResponseBodyAsync(OutputFormatterContext context);
+        public abstract Task WriteResponseBodyAsync(OutputFormatterWriteContext context);
 
         private Encoding MatchAcceptCharacterEncoding(IList<StringWithQualityHeaderValue> acceptCharsetHeaders)
         {
             if (acceptCharsetHeaders != null && acceptCharsetHeaders.Count > 0)
             {
                 var sortedAcceptCharsetHeaders = acceptCharsetHeaders
-                                                    .Where(acceptCharset =>
-                                                                acceptCharset.Quality != HeaderQuality.NoMatch)
-                                                    .OrderByDescending(
-                                                        m => m, StringWithQualityHeaderValueComparer.QualityComparer);
+                    .Where(acceptCharset => acceptCharset.Quality != HeaderQuality.NoMatch)
+                    .OrderByDescending(m => m, StringWithQualityHeaderValueComparer.QualityComparer);
 
                 foreach (var acceptCharset in sortedAcceptCharsetHeaders)
                 {
                     var charset = acceptCharset.Value;
                     if (!string.IsNullOrWhiteSpace(charset))
                     {
-                        var encoding = SupportedEncodings.FirstOrDefault(
-                                                        supportedEncoding =>
-                                                            charset.Equals(supportedEncoding.WebName,
-                                                                           StringComparison.OrdinalIgnoreCase) ||
-                                                            charset.Equals("*", StringComparison.Ordinal));
+                        var encoding = SupportedEncodings.FirstOrDefault(supportedEncoding =>
+                            charset.Equals(supportedEncoding.WebName, StringComparison.OrdinalIgnoreCase) ||
+                            charset.Equals("*", StringComparison.Ordinal));
                         if (encoding != null)
                         {
                             return encoding;

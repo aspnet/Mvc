@@ -11,6 +11,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNet.Mvc.Formatters.Xml;
 using Microsoft.AspNet.Mvc.Formatters.Xml.Internal;
+using Microsoft.AspNet.Mvc.Internal;
 
 namespace Microsoft.AspNet.Mvc.Formatters
 {
@@ -67,41 +68,27 @@ namespace Microsoft.AspNet.Mvc.Formatters
         public XmlWriterSettings WriterSettings { get; }
 
         /// <summary>
-        /// Gets the type of the object to be serialized.
-        /// </summary>
-        /// <param name="declaredType">The declared type of the object.</param>
-        /// <param name="runtimeType">The runtime type of the object</param>
-        /// <returns>A type that needs to be serialized.</returns>
-        protected virtual Type ResolveType(Type declaredType, Type runtimeType)
-        {
-            if (declaredType == null || declaredType == typeof(object))
-            {
-                if (runtimeType != null)
-                {
-                    return runtimeType;
-                }
-            }
-
-            return declaredType;
-        }
-
-        /// <summary>
         /// Gets the type to be serialized.
         /// </summary>
         /// <param name="type">The original type to be serialized</param>
         /// <returns>The original or wrapped type provided by any <see cref="IWrapperProvider"/>.</returns>
         protected virtual Type GetSerializableType(Type type)
         {
-            var wrapperProvider = WrapperProviderFactories.GetWrapperProvider(
-                                                        new WrapperProviderContext(type, isSerialization: true));
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var wrapperProvider = WrapperProviderFactories.GetWrapperProvider(new WrapperProviderContext(
+                type,
+                isSerialization: true));
 
             return wrapperProvider?.WrappingType ?? type;
         }
 
         /// <inheritdoc />
-        protected override bool CanWriteType(Type declaredType, Type runtimeType)
+        protected override bool CanWriteType(Type type)
         {
-            var type = ResolveType(declaredType, runtimeType);
             if (type == null)
             {
                 return false;
@@ -136,17 +123,23 @@ namespace Microsoft.AspNet.Mvc.Formatters
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="XmlWriter"/> using the given stream and the <see cref="WriterSettings"/>.
+        /// Creates a new instance of <see cref="XmlWriter"/> using the given <see cref="TextWriter"/> and
+        /// <see cref="XmlWriterSettings"/>.
         /// </summary>
-        /// <param name="writeStream">The stream on which the XmlWriter should operate on.</param>
+        /// <param name="writer">
+        /// The underlying <see cref="TextWriter"/> which the <see cref="XmlWriter"/> should write to.
+        /// </param>
+        /// <param name="xmlWriterSettings">
+        /// The <see cref="XmlWriterSettings"/>.
+        /// </param>
         /// <returns>A new instance of <see cref="XmlWriter"/></returns>
         public virtual XmlWriter CreateXmlWriter(
-            Stream writeStream,
+            TextWriter writer,
             XmlWriterSettings xmlWriterSettings)
         {
-            if (writeStream == null)
+            if (writer == null)
             {
-                throw new ArgumentNullException(nameof(writeStream));
+                throw new ArgumentNullException(nameof(writer));
             }
 
             if (xmlWriterSettings == null)
@@ -154,13 +147,14 @@ namespace Microsoft.AspNet.Mvc.Formatters
                 throw new ArgumentNullException(nameof(xmlWriterSettings));
             }
 
-            return XmlWriter.Create(
-                new HttpResponseStreamWriter(writeStream, xmlWriterSettings.Encoding),
-                xmlWriterSettings);
+            // We always close the TextWriter, so the XmlWriter shouldn't.
+            xmlWriterSettings.CloseOutput = false;
+
+            return XmlWriter.Create(writer, xmlWriterSettings);
         }
 
         /// <inheritdoc />
-        public override Task WriteResponseBodyAsync(OutputFormatterContext context)
+        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
         {
             if (context == null)
             {
@@ -169,34 +163,32 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             var response = context.HttpContext.Response;
 
-            var tempWriterSettings = WriterSettings.Clone();
-            tempWriterSettings.Encoding = context.SelectedEncoding;
+            var writerSettings = WriterSettings.Clone();
+            writerSettings.Encoding = context.ContentType.Encoding ?? Encoding.UTF8;
 
-            using (var xmlWriter = CreateXmlWriter(context.HttpContext.Response.Body, tempWriterSettings))
+            // Wrap the object only if there is a wrapping type.
+            var value = context.Object;
+            var wrappingType = GetSerializableType(context.ObjectType);
+            if (wrappingType != null && wrappingType != context.ObjectType)
             {
-                var obj = context.Object;
-                var runtimeType = obj?.GetType();
+                var wrapperProvider = WrapperProviderFactories.GetWrapperProvider(new WrapperProviderContext(
+                    declaredType: context.ObjectType,
+                    isSerialization: true));
 
-                var resolvedType = ResolveType(context.DeclaredType, runtimeType);
-
-                var wrappingType = GetSerializableType(resolvedType);
-
-                // Wrap the object only if there is a wrapping type.
-                if (wrappingType != null && wrappingType != resolvedType)
-                {
-                    var wrapperProvider = WrapperProviderFactories.GetWrapperProvider(
-                                                            new WrapperProviderContext(
-                                                                                declaredType: resolvedType,
-                                                                                isSerialization: true));
-
-                    obj = wrapperProvider.Wrap(obj);
-                }
-
-                var xmlSerializer = GetCachedSerializer(wrappingType);
-                xmlSerializer.Serialize(xmlWriter, obj);
+                value = wrapperProvider.Wrap(value);
             }
 
-            return Task.FromResult(true);
+            var xmlSerializer = GetCachedSerializer(wrappingType);
+
+            using (var textWriter = context.WriterFactory(context.HttpContext.Response.Body, writerSettings.Encoding))
+            {
+                using (var xmlWriter = CreateXmlWriter(textWriter, writerSettings))
+                {
+                    xmlSerializer.Serialize(xmlWriter, value);
+                }
+            }
+
+            return TaskCache.CompletedTask;
         }
 
         /// <summary>

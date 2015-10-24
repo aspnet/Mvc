@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Diagnostics;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.Infrastructure;
@@ -30,10 +30,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
         private readonly IReadOnlyList<IModelValidatorProvider> _modelValidatorProviders;
         private readonly IReadOnlyList<IValueProviderFactory> _valueProviderFactories;
         private readonly IActionBindingContextAccessor _actionBindingContextAccessor;
-        private readonly ILogger _logger;
-#pragma warning disable 0618
-        private readonly TelemetrySource _telemetry;
-#pragma warning restore 0618
+        private readonly DiagnosticSource _diagnosticSource;
         private readonly int _maxModelValidationErrors;
 
         private IFilterMetadata[] _filters;
@@ -62,8 +59,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             "Request was short circuited at exception filter '{ExceptionFilter}'.";
         private const string ResultFilterShortCircuitLogMessage =
             "Request was short circuited at result filter '{ResultFilter}'.";
-
-#pragma warning disable 0618
+        
         public FilterActionInvoker(
             ActionContext actionContext,
             IReadOnlyList<IFilterProvider> filterProviders,
@@ -74,7 +70,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             IReadOnlyList<IValueProviderFactory> valueProviderFactories,
             IActionBindingContextAccessor actionBindingContextAccessor,
             ILogger logger,
-            TelemetrySource telemetry,
+            DiagnosticSource diagnosticSource,
             int maxModelValidationErrors)
         {
             if (actionContext == null)
@@ -122,9 +118,9 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if (telemetry == null)
+            if (diagnosticSource == null)
             {
-                throw new ArgumentNullException(nameof(telemetry));
+                throw new ArgumentNullException(nameof(diagnosticSource));
             }
 
             ActionContext = actionContext;
@@ -136,11 +132,10 @@ namespace Microsoft.AspNet.Mvc.Controllers
             _modelValidatorProviders = modelValidatorProviders;
             _valueProviderFactories = valueProviderFactories;
             _actionBindingContextAccessor = actionBindingContextAccessor;
-            _logger = logger;
-            _telemetry = telemetry;
+            Logger = logger;
+            _diagnosticSource = diagnosticSource;
             _maxModelValidationErrors = maxModelValidationErrors;
         }
-#pragma warning restore 0618
 
         protected ActionContext ActionContext { get; private set; }
 
@@ -157,6 +152,8 @@ namespace Microsoft.AspNet.Mvc.Controllers
         }
 
         protected object Instance { get; private set; }
+
+        protected ILogger Logger { get; }
 
         /// <summary>
         /// Called to create an instance of an object which will act as the reciever of the action invocation.
@@ -183,7 +180,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             _cursor = new FilterCursor(_filters);
 
             ActionContext.ModelState.MaxAllowedErrors = _maxModelValidationErrors;
-            
+
             await InvokeAllAuthorizationFiltersAsync();
 
             // If Authorization Filters return a result, it's a short circuit because
@@ -292,7 +289,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             var current = _cursor.GetNextFilter<IAuthorizationFilter, IAsyncAuthorizationFilter>();
             if (current.FilterAsync != null)
             {
+                _diagnosticSource.BeforeOnAuthorizationAsync(
+                    _authorizationContext,
+                    current.FilterAsync);
+
                 await current.FilterAsync.OnAuthorizationAsync(_authorizationContext);
+
+                _diagnosticSource.AfterOnAuthorizationAsync(
+                    _authorizationContext,
+                    current.FilterAsync);
 
                 if (_authorizationContext.Result == null)
                 {
@@ -301,12 +306,20 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning(AuthorizationFailureLogMessage, current.FilterAsync.GetType().FullName);
+                    Logger.LogWarning(AuthorizationFailureLogMessage, current.FilterAsync.GetType().FullName);
                 }
             }
             else if (current.Filter != null)
             {
+                _diagnosticSource.BeforeOnAuthorization(
+                    _authorizationContext,
+                    current.Filter);
+
                 current.Filter.OnAuthorization(_authorizationContext);
+
+                _diagnosticSource.AfterOnAuthorization(
+                    _authorizationContext,
+                    current.Filter);
 
                 if (_authorizationContext.Result == null)
                 {
@@ -315,7 +328,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning(AuthorizationFailureLogMessage, current.Filter.GetType().FullName);
+                    Logger.LogWarning(AuthorizationFailureLogMessage, current.Filter.GetType().FullName);
                 }
             }
             else
@@ -362,16 +375,25 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 if (item.FilterAsync != null)
                 {
+                    _diagnosticSource.BeforeOnResourceExecution(
+                        _resourceExecutingContext,
+                        item.FilterAsync);
+
                     await item.FilterAsync.OnResourceExecutionAsync(
                         _resourceExecutingContext,
                         InvokeResourceFilterAsync);
+
+                    _diagnosticSource.AfterOnResourceExecution(
+                        _resourceExecutingContext.ActionDescriptor,
+                        _resourceExecutedContext,
+                        item.FilterAsync);
 
                     if (_resourceExecutedContext == null)
                     {
                         // If we get here then the filter didn't call 'next' indicating a short circuit
                         if (_resourceExecutingContext.Result != null)
                         {
-                            _logger.LogVerbose(
+                            Logger.LogVerbose(
                                 ResourceFilterShortCircuitLogMessage,
                                 item.FilterAsync.GetType().FullName);
 
@@ -387,13 +409,20 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 }
                 else if (item.Filter != null)
                 {
+                    _diagnosticSource.BeforeOnResourceExecuting(
+                        _resourceExecutingContext,
+                        item.Filter);
+
                     item.Filter.OnResourceExecuting(_resourceExecutingContext);
+
+                    _diagnosticSource.AfterOnResourceExecuting(
+                        _resourceExecutingContext,
+                        item.Filter);
 
                     if (_resourceExecutingContext.Result != null)
                     {
                         // Short-circuited by setting a result.
-
-                        _logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
+                        Logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
 
                         await InvokeResultAsync(_resourceExecutingContext.Result);
 
@@ -405,7 +434,17 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     }
                     else
                     {
+                        _diagnosticSource.BeforeOnResourceExecuted(
+                            _resourceExecutingContext.ActionDescriptor,
+                            _resourceExecutedContext,
+                            item.Filter);
+
                         item.Filter.OnResourceExecuted(await InvokeResourceFilterAsync());
+
+                        _diagnosticSource.AfterOnResourceExecuted(
+                            _resourceExecutingContext.ActionDescriptor,
+                            _resourceExecutedContext,
+                            item.Filter);
                     }
                 }
                 else
@@ -505,13 +544,21 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 Debug.Assert(_exceptionContext != null);
                 if (_exceptionContext.Exception != null)
                 {
+                    _diagnosticSource.BeforeOnExceptionAsync(
+                        _exceptionContext,
+                        current.FilterAsync);
+
                     // Exception filters only run when there's an exception - unsetting it will short-circuit
                     // other exception filters.
                     await current.FilterAsync.OnExceptionAsync(_exceptionContext);
 
+                    _diagnosticSource.AfterOnExceptionAsync(
+                        _exceptionContext,
+                        current.FilterAsync);
+
                     if (_exceptionContext.Exception == null)
                     {
-                        _logger.LogVerbose(
+                        Logger.LogVerbose(
                             ExceptionFilterShortCircuitLogMessage,
                             current.FilterAsync.GetType().FullName);
                     }
@@ -526,13 +573,21 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 Debug.Assert(_exceptionContext != null);
                 if (_exceptionContext.Exception != null)
                 {
+                    _diagnosticSource.BeforeOnException(
+                        _exceptionContext,
+                        current.Filter);
+
                     // Exception filters only run when there's an exception - unsetting it will short-circuit
                     // other exception filters.
                     current.Filter.OnException(_exceptionContext);
 
+                    _diagnosticSource.AfterOnException(
+                        _exceptionContext,
+                        current.Filter);
+
                     if (_exceptionContext.Exception == null)
                     {
-                        _logger.LogVerbose(
+                        Logger.LogVerbose(
                             ExceptionFilterShortCircuitLogMessage,
                             current.Filter.GetType().FullName);
                     }
@@ -607,13 +662,22 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 if (item.FilterAsync != null)
                 {
+                    _diagnosticSource.BeforeOnActionExecution(
+                        _actionExecutingContext,
+                        item.FilterAsync);
+
                     await item.FilterAsync.OnActionExecutionAsync(_actionExecutingContext, InvokeActionFilterAsync);
+
+                    _diagnosticSource.AfterOnActionExecution(
+                        _actionExecutingContext.ActionDescriptor,
+                        _actionExecutedContext,
+                        item.FilterAsync);
 
                     if (_actionExecutedContext == null)
                     {
                         // If we get here then the filter didn't call 'next' indicating a short circuit
 
-                        _logger.LogVerbose(ActionFilterShortCircuitLogMessage, item.FilterAsync.GetType().FullName);
+                        Logger.LogVerbose(ActionFilterShortCircuitLogMessage, item.FilterAsync.GetType().FullName);
 
                         _actionExecutedContext = new ActionExecutedContext(
                             _actionExecutingContext,
@@ -627,13 +691,21 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 }
                 else if (item.Filter != null)
                 {
+                    _diagnosticSource.BeforeOnActionExecuting(
+                        _actionExecutingContext,
+                        item.Filter);
+
                     item.Filter.OnActionExecuting(_actionExecutingContext);
+
+                    _diagnosticSource.AfterOnActionExecuting(
+                        _actionExecutingContext,
+                        item.Filter);
 
                     if (_actionExecutingContext.Result != null)
                     {
                         // Short-circuited by setting a result.
 
-                        _logger.LogVerbose(ActionFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
+                        Logger.LogVerbose(ActionFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
 
                         _actionExecutedContext = new ActionExecutedContext(
                             _actionExecutingContext,
@@ -646,7 +718,17 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     }
                     else
                     {
+                        _diagnosticSource.BeforeOnActionExecuted(
+                            _actionExecutingContext.ActionDescriptor,
+                            _actionExecutedContext,
+                            item.Filter);
+
                         item.Filter.OnActionExecuted(await InvokeActionFilterAsync());
+
+                        _diagnosticSource.BeforeOnActionExecuted(
+                            _actionExecutingContext.ActionDescriptor,
+                            _actionExecutedContext,
+                            item.Filter);
                     }
                 }
                 else
@@ -656,38 +738,20 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
                     try
                     {
-#pragma warning disable 0618
-                        if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.BeforeActionMethod"))
-                        {
-                            _telemetry.WriteTelemetry(
-                                "Microsoft.AspNet.Mvc.BeforeActionMethod",
-                                new
-                                {
-                                    actionContext = ActionContext, 
-                                    arguments = _actionExecutingContext.ActionArguments,
-                                    controller = _actionExecutingContext.Controller
-                                });
-                        }
-#pragma warning restore 0618
+                        _diagnosticSource.BeforeActionMethod(
+                            ActionContext,
+                            _actionExecutingContext.ActionArguments,
+                            _actionExecutingContext.Controller);
 
                         result = await InvokeActionAsync(_actionExecutingContext);
                     }
                     finally
                     {
-#pragma warning disable 0618
-                        if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.AfterActionMethod"))
-                        {
-                            _telemetry.WriteTelemetry(
-                                "Microsoft.AspNet.Mvc.AfterActionMethod",
-                                new
-                                {
-                                    actionContext = ActionContext,
-                                    arguments = _actionExecutingContext.ActionArguments,
-                                    controller = _actionExecutingContext.Controller,
-                                    result = result
-                                });
-                        }
-#pragma warning restore 0618
+                        _diagnosticSource.AfterActionMethod(
+                            ActionContext,
+                            _actionExecutingContext.ActionArguments,
+                            _actionExecutingContext.Controller,
+                            result);
                     }
 
                     _actionExecutedContext = new ActionExecutedContext(
@@ -756,13 +820,21 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 var item = _cursor.GetNextFilter<IResultFilter, IAsyncResultFilter>();
                 if (item.FilterAsync != null)
                 {
+                    _diagnosticSource.BeforeOnResultExecution(
+                        _resultExecutingContext,
+                        item.FilterAsync);
+
                     await item.FilterAsync.OnResultExecutionAsync(_resultExecutingContext, InvokeResultFilterAsync);
+
+                    _diagnosticSource.AfterOnResultExecution(
+                        _resultExecutingContext.ActionDescriptor,
+                        _resultExecutedContext,
+                        item.FilterAsync);
 
                     if (_resultExecutedContext == null || _resultExecutingContext.Cancel == true)
                     {
                         // Short-circuited by not calling next || Short-circuited by setting Cancel == true
-
-                        _logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.FilterAsync.GetType().FullName);
+                        Logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.FilterAsync.GetType().FullName);
 
                         _resultExecutedContext = new ResultExecutedContext(
                             _resultExecutingContext,
@@ -776,13 +848,20 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 }
                 else if (item.Filter != null)
                 {
+                    _diagnosticSource.BeforeOnResultExecuting(
+                        _resultExecutingContext,
+                        item.Filter);
+
                     item.Filter.OnResultExecuting(_resultExecutingContext);
+
+                    _diagnosticSource.AfterOnResultExecuting(
+                        _resultExecutingContext,
+                        item.Filter);
 
                     if (_resultExecutingContext.Cancel == true)
                     {
                         // Short-circuited by setting Cancel == true
-
-                        _logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
+                        Logger.LogVerbose(ResourceFilterShortCircuitLogMessage, item.Filter.GetType().FullName);
 
                         _resultExecutedContext = new ResultExecutedContext(
                             _resultExecutingContext,
@@ -795,7 +874,17 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     }
                     else
                     {
+                        _diagnosticSource.BeforeOnResultExecuted(
+                            _resultExecutingContext.ActionDescriptor,
+                            _resultExecutedContext,
+                            item.Filter);
+
                         item.Filter.OnResultExecuted(await InvokeResultFilterAsync());
+
+                        _diagnosticSource.AfterOnResultExecuted(
+                            _resultExecutingContext.ActionDescriptor,
+                            _resultExecutedContext,
+                            item.Filter);
                     }
                 }
                 else
@@ -835,14 +924,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
         private async Task InvokeResultAsync(IActionResult result)
         {
-#pragma warning disable 0618
-            if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.BeforeActionResult"))
-            {
-                _telemetry.WriteTelemetry(
-                    "Microsoft.AspNet.Mvc.BeforeActionResult",
-                    new { actionContext = ActionContext, result = result });
-            }
-#pragma warning restore 0618
+            _diagnosticSource.BeforeActionResult(ActionContext, result);
 
             try
             {
@@ -850,14 +932,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             }
             finally
             {
-#pragma warning disable 0618
-                if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.AfterActionResult"))
-                {
-                    _telemetry.WriteTelemetry(
-                        "Microsoft.AspNet.Mvc.AfterActionResult",
-                        new { actionContext = ActionContext, result = result });
-                }
-#pragma warning restore 0618
+                _diagnosticSource.AfterActionResult(ActionContext, result);
             }
         }
 

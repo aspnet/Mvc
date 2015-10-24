@@ -3,7 +3,7 @@
 
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
@@ -12,10 +12,10 @@ namespace TagHelpersWebSite.TagHelpers
     {
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            var childContent = await context.GetChildContentAsync();
+            var childContent = await output.GetChildContentAsync();
 
             // Find Urls in the content and replace them with their anchor tag equivalent.
-            output.Content.AppendEncoded(Regex.Replace(
+            output.Content.AppendHtml(Regex.Replace(
                 childContent.GetContent(),
                 @"\b(?:https?://|www\.)(\S+)\b",
                 "<strong><a target=\"_blank\" href=\"http://$0\">$0</a></strong>"));

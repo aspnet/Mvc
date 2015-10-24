@@ -16,9 +16,9 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
-using Microsoft.Dnx.Runtime;
+using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
@@ -830,29 +830,24 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             return viewContext;
         }
 
-        private static TagHelperContext MakeTagHelperContext(
-            TagHelperAttributeList attributes = null,
-            string content = null)
+        private static TagHelperContext MakeTagHelperContext(TagHelperAttributeList attributes = null)
         {
             attributes = attributes ?? new TagHelperAttributeList();
 
             return new TagHelperContext(
                 attributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent(content);
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
+                uniqueId: Guid.NewGuid().ToString("N"));
         }
 
         private static TagHelperOutput MakeTagHelperOutput(string tagName, TagHelperAttributeList attributes = null)
         {
             attributes = attributes ?? new TagHelperAttributeList();
 
-            return new TagHelperOutput(tagName, attributes);
+            return new TagHelperOutput(
+                tagName,
+                attributes,
+                getChildContentAsync: (_) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
         }
 
         private static IHostingEnvironment MakeHostingEnvironment()

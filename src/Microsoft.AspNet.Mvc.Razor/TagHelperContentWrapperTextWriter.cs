@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -54,13 +54,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override void Write(string value)
         {
-            Content.AppendEncoded(value);
+            Content.AppendHtml(value);
         }
 
         /// <inheritdoc />
         public override void Write(char value)
         {
-            Content.AppendEncoded(value.ToString());
+            Content.AppendHtml(value.ToString());
         }
 
         /// <inheritdoc />

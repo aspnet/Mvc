@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
@@ -128,13 +126,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             return new TagHelperContext(
                 attributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: Guid.NewGuid().ToString("N"),
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.Append(content);
-                    return Task.FromResult((TagHelperContent)tagHelperContent);
-                });
+                uniqueId: Guid.NewGuid().ToString("N"));
         }
     }
 }

@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Internal;
@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
         private readonly ControllerActionDescriptor _descriptor;
         private readonly IControllerFactory _controllerFactory;
         private readonly IControllerActionArgumentBinder _argumentBinder;
-#pragma warning disable 0618
+
         public ControllerActionInvoker(
             ActionContext actionContext,
             IReadOnlyList<IFilterProvider> filterProviders,
@@ -37,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             IReadOnlyList<IValueProviderFactory> valueProviderFactories,
             IActionBindingContextAccessor actionBindingContextAccessor,
             ILogger logger,
-            TelemetrySource telemetry,
+            DiagnosticSource diagnosticSource,
             int maxModelValidationErrors)
             : base(
                   actionContext,
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
                   valueProviderFactories,
                   actionBindingContextAccessor,
                   logger,
-                  telemetry,
+                  diagnosticSource,
                   maxModelValidationErrors)
         {
             if (actionContext == null)
@@ -112,9 +112,9 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            if (telemetry == null)
+            if (diagnosticSource == null)
             {
-                throw new ArgumentNullException(nameof(telemetry));
+                throw new ArgumentNullException(nameof(diagnosticSource));
             }
 
             _descriptor = descriptor;
@@ -129,7 +129,6 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     "descriptor");
             }
         }
-#pragma warning disable 0618
 
         protected override object CreateInstance()
         {
@@ -146,14 +145,23 @@ namespace Microsoft.AspNet.Mvc.Controllers
         protected override async Task<IActionResult> InvokeActionAsync(ActionExecutingContext actionExecutingContext)
         {
             var actionMethodInfo = _descriptor.MethodInfo;
+            var arguments = ControllerActionExecutor.PrepareArguments(
+                actionExecutingContext.ActionArguments,
+                actionMethodInfo.GetParameters());
+
+            Logger.ActionMethodExecuting(actionExecutingContext, arguments);
+
             var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
                 actionMethodInfo,
                 actionExecutingContext.Controller,
-                actionExecutingContext.ActionArguments);
+                arguments);
 
             var actionResult = CreateActionResult(
                 actionMethodInfo.ReturnType,
                 actionReturnValue);
+
+            Logger.ActionMethodExecuted(actionExecutingContext, actionResult);
+
             return actionResult;
         }
 

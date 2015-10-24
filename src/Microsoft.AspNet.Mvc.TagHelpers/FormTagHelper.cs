@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
 {
@@ -99,6 +99,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             var antiforgeryDefault = true;
 
             // If "action" is already set, it means the user is attempting to use a normal <form>.

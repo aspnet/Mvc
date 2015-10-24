@@ -4,12 +4,14 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Mvc.Logging;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.OptionsModel;
 using Microsoft.Net.Http.Headers;
 
@@ -72,11 +74,20 @@ namespace Microsoft.AspNet.Mvc
             var htmlHelperOptions = services.GetRequiredService<IOptions<MvcViewOptions>>().Value.HtmlHelperOptions;
             var viewComponentHelper = services.GetRequiredService<IViewComponentHelper>();
 
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<ViewComponentResult>();
+
             var viewData = ViewData;
             if (viewData == null)
             {
                 var modelMetadataProvider = services.GetRequiredService<IModelMetadataProvider>();
                 viewData = new ViewDataDictionary(modelMetadataProvider, context.ModelState);
+            }
+
+            var tempData = TempData;
+            if (tempData == null)
+            {
+                tempData = services.GetRequiredService<ITempDataDictionary>();
             }
 
             var contentType = ContentType;
@@ -93,8 +104,8 @@ namespace Microsoft.AspNet.Mvc
             //      3. ViewExecutor.DefaultContentType (sensible default)
             //
             //
-            response.ContentType = 
-                contentType?.ToString() ?? 
+            response.ContentType =
+                contentType?.ToString() ??
                 response.ContentType ??
                 ViewExecutor.DefaultContentType.ToString();
 
@@ -110,7 +121,7 @@ namespace Microsoft.AspNet.Mvc
                     context,
                     NullView.Instance,
                     viewData,
-                    TempData,
+                    tempData,
                     writer,
                     htmlHelperOptions);
 
@@ -124,10 +135,12 @@ namespace Microsoft.AspNet.Mvc
                 }
                 else if (ViewComponentType == null)
                 {
+                    logger.ViewComponentResultExecuting(ViewComponentName, Arguments);
                     await viewComponentHelper.RenderInvokeAsync(ViewComponentName, Arguments);
                 }
                 else
                 {
+                    logger.ViewComponentResultExecuting(ViewComponentType, Arguments);
                     await viewComponentHelper.RenderInvokeAsync(ViewComponentType, Arguments);
                 }
             }

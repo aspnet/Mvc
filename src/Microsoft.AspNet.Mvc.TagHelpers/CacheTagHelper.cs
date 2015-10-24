@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -138,6 +138,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
             TagHelperContent result = null;
             if (Enabled)
             {
@@ -148,7 +158,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     // created within this scope get copied to this scope.
                     using (var link = MemoryCache.CreateLinkingScope())
                     {
-                        result = await context.GetChildContentAsync();
+                        result = await output.GetChildContentAsync();
 
                         MemoryCache.Set(key, result, GetMemoryCacheEntryOptions(link));
                     }
@@ -163,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             }
             else
             {
-                result = await context.GetChildContentAsync();
+                result = await output.GetChildContentAsync();
                 output.Content.SetContent(result);
             }
         }

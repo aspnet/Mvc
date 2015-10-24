@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-#if DNXCORE50
+#if DOTNET5_4
 using System.Reflection;
 #endif
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -227,7 +227,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// </remarks>
         protected ViewDataDictionary(ViewDataDictionary source, object model, Type declaredModelType)
             : this(source._metadataProvider,
-                   new ModelStateDictionary(source.ModelState),
+                   source.ModelState,
                    declaredModelType,
                    data: new CopyOnWriteDictionary<string, object>(source, StringComparer.OrdinalIgnoreCase),
                    templateInfo: new TemplateInfo(source.TemplateInfo))

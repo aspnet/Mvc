@@ -3,17 +3,19 @@
 
 #if MOCK_SUPPORT
 using System;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -112,6 +114,62 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             Assert.Equal("abcd", Encoding.UTF8.GetString(memoryStream.ToArray()));
         }
 
+        private static IServiceProvider GetServiceProvider()
+        {
+            var httpContext = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddInstance<IModelMetadataProvider>(new EmptyModelMetadataProvider());
+            var tempDataProvider = new SessionStateTempDataProvider();
+            serviceCollection.AddInstance<ITempDataDictionary>(new TempDataDictionary(httpContext, tempDataProvider));
+
+            return serviceCollection.BuildServiceProvider();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ViewResultAllowNull()
+        {
+            // Arrange
+            var tempDataNull = false;
+            var viewDataNull = false;
+            var deligateHit = false;
+
+            var view = CreateView(async (v) =>
+            {
+                deligateHit = true;
+                tempDataNull = v.TempData == null;
+                viewDataNull = v.ViewData == null;
+
+                await v.Writer.WriteAsync("abcd");
+            });
+            var context = new DefaultHttpContext();
+
+            var memoryStream = new MemoryStream();
+            context.Response.Body = memoryStream;
+
+            var actionContext = new ActionContext(
+                context,
+                new RouteData(),
+                new ActionDescriptor());
+            
+            context.RequestServices = GetServiceProvider();
+            var viewExecutor = CreateViewExecutor();
+
+            // Act
+            await viewExecutor.ExecuteAsync(
+                actionContext,
+                view,
+                null,
+                null,
+                contentType: null,
+                statusCode: 200);
+
+            // Assert
+            Assert.Equal(200, context.Response.StatusCode);
+            Assert.True(deligateHit);
+            Assert.False(viewDataNull);
+            Assert.False(tempDataNull);
+        }
+
         [Fact]
         public async Task ExecuteAsync_SetsStatusCode()
         {
@@ -146,9 +204,9 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             Assert.Equal(500, context.Response.StatusCode);
             Assert.Equal("abcd", Encoding.UTF8.GetString(memoryStream.ToArray()));
         }
-#pragma warning disable 0618
+
         [Fact]
-        public async Task ExecuteAsync_WritesTelemetry()
+        public async Task ExecuteAsync_WritesDiagnostic()
         {
             // Arrange
             var view = CreateView(async (v) =>
@@ -166,12 +224,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 new ActionDescriptor());
             var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
 
-            var adapter = new TestTelemetryListener();
+            var adapter = new TestDiagnosticListener();
 
-            var telemetryListener = new TelemetryListener("Test");
-            telemetryListener.SubscribeWithAdapter(adapter);
+            var diagnosticSource = new DiagnosticListener("Test");
+            diagnosticSource.SubscribeWithAdapter(adapter);
 
-            var viewExecutor = CreateViewExecutor(telemetryListener);
+            var viewExecutor = CreateViewExecutor(diagnosticSource);
 
             // Act
             await viewExecutor.ExecuteAsync(
@@ -190,7 +248,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             Assert.NotNull(adapter.AfterView?.View);
             Assert.NotNull(adapter.AfterView?.ViewContext);
         }
-#pragma warning restore 0618
+
         [Fact]
         public async Task ExecuteAsync_DoesNotWriteToResponse_OnceExceptionIsThrown()
         {
@@ -277,21 +335,20 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             return view.Object;
         }
-#pragma warning disable 0618
-        private ViewExecutor CreateViewExecutor(TelemetryListener listener = null)
+
+        private ViewExecutor CreateViewExecutor(DiagnosticListener diagnosticSource = null)
         {
-            if (listener == null)
+            if (diagnosticSource == null)
             {
-                listener = new TelemetryListener("Test");
+                diagnosticSource = new DiagnosticListener("Test");
             }
 
             return new ViewExecutor(
                 new TestOptionsManager<MvcViewOptions>(),
                 new TestHttpResponseStreamWriterFactory(),
                 new Mock<ICompositeViewEngine>(MockBehavior.Strict).Object,
-                listener);
+                diagnosticSource);
         }
-#pragma warning restore 0618
     }
 }
 #endif

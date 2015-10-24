@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.AspNet.Mvc.Diagnostics;
 using Microsoft.AspNet.Mvc.Internal;
+using Microsoft.AspNet.Mvc.Logging;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,9 +23,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         private IActionInvokerFactory _actionInvokerFactory;
         private IActionSelector _actionSelector;
         private ILogger _logger;
-#pragma warning disable 0618
-        private TelemetrySource _telemetry;
-#pragma warning restore 0618
+        private DiagnosticSource _diagnosticSource;
 
         public VirtualPathData GetVirtualPath(VirtualPathContext context)
         {
@@ -58,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var actionDescriptor = await _actionSelector.SelectAsync(context);
             if (actionDescriptor == null)
             {
-                _logger.LogVerbose("No actions matched the current request.");
+                _logger.NoActionsMatched();
                 return;
             }
 
@@ -78,37 +79,29 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 }
             }
 
+            // Removing RouteGroup from RouteValues to simulate the result of conventional routing
+            newRouteData.Values.Remove(AttributeRouting.RouteGroupKey);
+
             try
             {
                 context.RouteData = newRouteData;
 
-#pragma warning disable 0618
-                if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.BeforeAction"))
-                {
-                    _telemetry.WriteTelemetry(
-                        "Microsoft.AspNet.Mvc.BeforeAction",
-                        new { actionDescriptor, httpContext = context.HttpContext, routeData = context.RouteData });
-                }
-#pragma warning restore 0618
+                _diagnosticSource.BeforeAction(actionDescriptor, context.HttpContext, context.RouteData);
 
-                using (_logger.BeginScope("ActionId: {ActionId}", actionDescriptor.Id))
+                using (_logger.ActionScope(actionDescriptor))
                 {
-                    _logger.LogVerbose("Executing action {ActionDisplayName}", actionDescriptor.DisplayName);
+                    _logger.ExecutingAction(actionDescriptor);
 
+                    var startTime = Environment.TickCount;
                     await InvokeActionAsync(context, actionDescriptor);
                     context.IsHandled = true;
+
+                    _logger.ExecutedAction(actionDescriptor, startTime);
                 }
             }
             finally
             {
-#pragma warning disable 0618
-                if (_telemetry.IsEnabled("Microsoft.AspNet.Mvc.AfterAction"))
-                {
-                    _telemetry.WriteTelemetry(
-                        "Microsoft.AspNet.Mvc.AfterAction",
-                        new { actionDescriptor, httpContext = context.HttpContext, routeData = context.RouteData });
-                }
-#pragma warning restore 0618
+                _diagnosticSource.AfterAction(actionDescriptor, context.HttpContext, context.RouteData);
 
                 if (!context.IsHandled)
                 {
@@ -155,13 +148,11 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 var factory = context.RequestServices.GetRequiredService<ILoggerFactory>();
                 _logger = factory.CreateLogger<MvcRouteHandler>();
             }
-
-#pragma warning disable 0618
-            if (_telemetry == null)
+            
+            if (_diagnosticSource == null)
             {
-                _telemetry = context.RequestServices.GetRequiredService<TelemetrySource>();
+                _diagnosticSource = context.RequestServices.GetRequiredService<DiagnosticSource>();
             }
-#pragma warning restore 0618
         }
     }
 }

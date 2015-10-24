@@ -9,7 +9,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers
@@ -193,26 +193,28 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
-                getChildContentAsync: useCachedResult =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.AppendEncoded(tagHelperOutputContent.OriginalChildContent);
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
+                uniqueId: "test");
             var htmlAttributes = new TagHelperAttributeList
             {
                 { "class", "form-control" },
             };
-            var output = new TagHelperOutput(expectedTagName, htmlAttributes);
-            output.PreContent.AppendEncoded(expectedPreContent);
-            output.PostContent.AppendEncoded(expectedPostContent);
+            var output = new TagHelperOutput(
+                expectedTagName,
+                htmlAttributes,
+                getChildContentAsync: useCachedResult =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.AppendHtml(tagHelperOutputContent.OriginalChildContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            output.PreContent.AppendHtml(expectedPreContent);
+            output.PostContent.AppendHtml(expectedPostContent);
 
             // LabelTagHelper checks IsContentModified so we don't want to forcibly set it if
             // tagHelperOutputContent.OriginalContent is going to be null or empty.
             if (!string.IsNullOrEmpty(tagHelperOutputContent.OriginalContent))
             {
-                output.Content.AppendEncoded(tagHelperOutputContent.OriginalContent);
+                output.Content.AppendHtml(tagHelperOutputContent.OriginalContent);
             }
 
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);

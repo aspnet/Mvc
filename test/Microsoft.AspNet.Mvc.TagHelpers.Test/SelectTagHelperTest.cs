@@ -10,7 +10,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 using Moq;
 using Xunit;
 
@@ -203,14 +203,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
@@ -233,6 +235,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
+            tagHelper.Init(tagHelperContext);
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
@@ -243,10 +246,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
 
-            Assert.NotNull(viewContext.FormContext?.FormData);
             Assert.Single(
-                viewContext.FormContext.FormData,
-                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+                tagHelperContext.Items,
+                entry => (Type)entry.Key == typeof(SelectTagHelper));
         }
 
         [Theory]
@@ -290,20 +292,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.AppendEncoded("Something");
+                    tagHelperContent.AppendHtml("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.AppendEncoded(expectedPreContent);
-            output.Content.AppendEncoded(expectedContent);
-            output.PostContent.AppendEncoded(originalPostContent);
+            output.PreContent.AppendHtml(expectedPreContent);
+            output.Content.AppendHtml(expectedContent);
+            output.PostContent.AppendHtml(originalPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -329,6 +333,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
+            tagHelper.Init(tagHelperContext);
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
@@ -339,10 +344,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
             Assert.Equal(expectedTagName, output.TagName);
 
-            Assert.NotNull(viewContext.FormContext?.FormData);
             Assert.Single(
-                viewContext.FormContext.FormData,
-                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+                tagHelperContext.Items,
+                entry => (Type)entry.Key == typeof(SelectTagHelper));
 
             Assert.Equal(savedDisabled, items.Select(item => item.Disabled));
             Assert.Equal(savedGroup, items.Select(item => item.Group));
@@ -392,20 +396,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
                     Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.AppendEncoded("Something");
+                    tagHelperContent.AppendHtml("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            var output = new TagHelperOutput(expectedTagName, originalAttributes)
+                })
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.PreContent.AppendEncoded(expectedPreContent);
-            output.Content.AppendEncoded(expectedContent);
-            output.PostContent.AppendEncoded(originalPostContent);
+            output.PreContent.AppendHtml(expectedPreContent);
+            output.Content.AppendHtml(expectedContent);
+            output.PostContent.AppendHtml(originalPostContent);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider)
             {
@@ -423,7 +429,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var savedSelected = items.Select(item => item.Selected).ToList();
             var savedText = items.Select(item => item.Text).ToList();
             var savedValue = items.Select(item => item.Value).ToList();
-
             var tagHelper = new SelectTagHelper(htmlGenerator)
             {
                 For = modelExpression,
@@ -432,6 +437,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
+            tagHelper.Init(tagHelperContext);
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
@@ -442,10 +448,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
             Assert.Equal(expectedTagName, output.TagName);
 
-            Assert.NotNull(viewContext.FormContext?.FormData);
             Assert.Single(
-                viewContext.FormContext.FormData,
-                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+                tagHelperContext.Items,
+                entry => (Type)entry.Key == typeof(SelectTagHelper));
 
             Assert.Equal(savedDisabled, items.Select(item => item.Disabled));
             Assert.Equal(savedGroup, items.Select(item => item.Group));
@@ -478,15 +483,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                expectedTagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-
-            var output = new TagHelperOutput(expectedTagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
             string model = null;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model);
@@ -528,15 +535,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
+            tagHelper.Init(tagHelperContext);
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
             htmlGenerator.Verify();
 
-            Assert.NotNull(viewContext.FormContext?.FormData);
             var keyValuePair = Assert.Single(
-                viewContext.FormContext.FormData,
-                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+                tagHelperContext.Items,
+                entry => (Type)entry.Key == typeof(SelectTagHelper));
             Assert.Same(currentValues, keyValuePair.Value);
         }
 
@@ -557,14 +564,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             var tagHelperContext = new TagHelperContext(
                 contextAttributes,
                 items: new Dictionary<object, object>(),
-                uniqueId: "test",
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                tagName,
+                originalAttributes,
                 getChildContentAsync: useCachedResult =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var output = new TagHelperOutput(tagName, originalAttributes);
             var metadataProvider = new EmptyModelMetadataProvider();
             var modelExplorer = metadataProvider.GetModelExplorerForType(modelType, model);
             var modelExpression = new ModelExpression(propertyName, modelExplorer);
@@ -600,15 +609,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             };
 
             // Act
+            tagHelper.Init(tagHelperContext);
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
             htmlGenerator.Verify();
 
-            Assert.NotNull(viewContext.FormContext?.FormData);
             var keyValuePair = Assert.Single(
-                viewContext.FormContext.FormData,
-                entry => entry.Key == SelectTagHelper.SelectedValuesFormDataKey);
+                tagHelperContext.Items,
+                entry => (Type)entry.Key == typeof(SelectTagHelper));
             Assert.Same(currentValues, keyValuePair.Value);
         }
 

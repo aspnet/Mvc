@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNet.Razor.TagHelpers;
 
 namespace ActivatorWebSite.TagHelpers
 {
@@ -17,9 +17,9 @@ namespace ActivatorWebSite.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.PostContent
-                .AppendEncoded("<footer>")
+                .AppendHtml("<footer>")
                 .Append((string)ViewContext.ViewData["footer"])
-                .AppendEncoded("</footer>");
+                .AppendHtml("</footer>");
         }
     }
 }
