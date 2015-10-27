@@ -21,7 +21,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// This type is designed to avoid creating large in-memory strings when buffering and supporting the contract that
     /// <see cref="RazorPage.FlushAsync"/> expects.
     /// </remarks>
-    public class RazorTextWriter : HtmlTextWriter, IBufferedTextWriter
+    public class RazorTextWriter : HtmlTextWriter
     {
         /// <summary>
         /// Creates a new instance of <see cref="RazorTextWriter"/>.

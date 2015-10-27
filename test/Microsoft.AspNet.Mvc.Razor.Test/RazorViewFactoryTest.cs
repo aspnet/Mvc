@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -18,7 +19,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var factory = new RazorViewFactory(
                 Mock.Of<IRazorPageActivator>(),
                 Mock.Of<IViewStartProvider>(),
-                new CommonTestEncoder());
+                new CommonTestEncoder(),
+                Mock.Of<DiagnosticSource>());
             var page = Mock.Of<IRazorPage>();
             var viewEngine = Mock.Of<IRazorViewEngine>();
 
@@ -38,7 +40,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var factory = new RazorViewFactory(
                 Mock.Of<IRazorPageActivator>(),
                 Mock.Of<IViewStartProvider>(),
-                new CommonTestEncoder());
+                new CommonTestEncoder(),
+                Mock.Of<DiagnosticSource>());
 
             var page = Mock.Of<IRazorPage>();
             var viewEngine = Mock.Of<IRazorViewEngine>();

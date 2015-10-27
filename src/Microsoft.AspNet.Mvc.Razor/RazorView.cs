@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
-using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.Extensions.WebEncoders;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -24,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
         private readonly IHtmlEncoder _htmlEncoder;
-        private IPageExecutionListenerFeature _pageExecutionFeature;
+        private readonly DiagnosticSource _diagnosticSource;
 
         /// <summary>
         /// Initializes a new instance of <see cref="RazorView"/>
@@ -42,21 +41,20 @@ namespace Microsoft.AspNet.Mvc.Razor
             IViewStartProvider viewStartProvider,
             IRazorPage razorPage,
             IHtmlEncoder htmlEncoder,
+            DiagnosticSource diagnosticSource,
             bool isPartial)
         {
             _viewEngine = viewEngine;
             _pageActivator = pageActivator;
             _viewStartProvider = viewStartProvider;
+            _diagnosticSource = diagnosticSource;
             RazorPage = razorPage;
             _htmlEncoder = htmlEncoder;
             IsPartial = isPartial;
         }
 
         /// <inheritdoc />
-        public string Path
-        {
-            get { return RazorPage.Path; }
-        }
+        public string Path => RazorPage.Path;
 
         /// <summary>
         /// Gets <see cref="IRazorPage"/> instance that the views executes on.
@@ -68,11 +66,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         public bool IsPartial { get; }
 
-        private bool EnableInstrumentation
-        {
-            get { return _pageExecutionFeature != null; }
-        }
-
         /// <inheritdoc />
         public virtual async Task RenderAsync(ViewContext context)
         {
@@ -81,42 +74,24 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentNullException(nameof(context));
             }
 
-            _pageExecutionFeature = context.HttpContext.Features.Get<IPageExecutionListenerFeature>();
-
             // Partials don't execute _ViewStart pages, but may execute Layout pages if the Layout property
             // is explicitly specified in the page.
             var bodyWriter = await RenderPageAsync(RazorPage, context, executeViewStart: !IsPartial);
             await RenderLayoutAsync(context, bodyWriter);
         }
 
-        private async Task<IBufferedTextWriter> RenderPageAsync(
+        private async Task<RazorTextWriter> RenderPageAsync(
             IRazorPage page,
             ViewContext context,
             bool executeViewStart)
         {
             var razorTextWriter = new RazorTextWriter(context.Writer, context.Writer.Encoding, _htmlEncoder);
-            var writer = (TextWriter)razorTextWriter;
-            var bufferedWriter = (IBufferedTextWriter)razorTextWriter;
-
-            if (EnableInstrumentation)
-            {
-                writer = _pageExecutionFeature.DecorateWriter(razorTextWriter);
-                bufferedWriter = writer as IBufferedTextWriter;
-                if (bufferedWriter == null)
-                {
-                    var message = Resources.FormatInstrumentation_WriterMustBeBufferedTextWriter(
-                        nameof(TextWriter),
-                        _pageExecutionFeature.GetType().FullName,
-                        typeof(IBufferedTextWriter).FullName);
-                    throw new InvalidOperationException(message);
-                }
-            }
 
             // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
             // and ViewComponents to reference it.
             var oldWriter = context.Writer;
             var oldFilePath = context.ExecutingFilePath;
-            context.Writer = writer;
+            context.Writer = razorTextWriter;
             context.ExecutingFilePath = page.Path;
 
             try
@@ -128,13 +103,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 await RenderPageCoreAsync(page, context);
-                return bufferedWriter;
+                return razorTextWriter;
             }
             finally
             {
                 context.Writer = oldWriter;
                 context.ExecutingFilePath = oldFilePath;
-                writer.Dispose();
+                razorTextWriter.Dispose();
             }
         }
 
@@ -142,11 +117,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             page.IsPartial = IsPartial;
             page.ViewContext = context;
-            if (EnableInstrumentation)
-            {
-                page.PageExecutionContext = _pageExecutionFeature.GetContext(page.Path, context.Writer);
-            }
-
+            page.DiagnosticSource = _diagnosticSource;
             _pageActivator.Activate(page, context);
             return page.ExecuteAsync();
         }
@@ -179,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private async Task RenderLayoutAsync(
             ViewContext context,
-                                             IBufferedTextWriter bodyWriter)
+            RazorTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
