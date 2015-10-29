@@ -478,11 +478,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -1998,11 +1998,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -3518,11 +3518,11 @@
           "Microsoft.Framework.PropertyHelper.Sources": "1.0.0-beta8"
         }
       },
-      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
-      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+      "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151029214503": {
         "type": "project",
         "framework": "DNX,Version=v4.5.1"
       },
@@ -4608,11 +4608,11 @@
       "type": "project",
       "path": "../../src/Microsoft.AspNet.Mvc.Razor.Host/project.json"
     },
-    "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151016064019": {
+    "Microsoft.AspNet.Mvc.TestCommon/6.0.0-t151029214503": {
       "type": "project",
       "path": "../Microsoft.AspNet.Mvc.TestCommon/project.json"
     },
-    "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151016064019": {
+    "Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/6.0.0-t151029214503": {
       "type": "project",
       "path": "../Microsoft.AspNet.Mvc.TestTelemetryListener.Sources/project.json"
     },
