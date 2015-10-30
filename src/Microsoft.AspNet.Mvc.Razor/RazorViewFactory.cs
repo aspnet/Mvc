@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.WebEncoders;
 
@@ -16,6 +17,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         private readonly IHtmlEncoder _htmlEncoder;
         private readonly IRazorPageActivator _pageActivator;
         private readonly IViewStartProvider _viewStartProvider;
+        private readonly DiagnosticSource _diagnosticSource;
 
         /// <summary>
         /// Initializes a new instance of RazorViewFactory
@@ -26,11 +28,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         public RazorViewFactory(
             IRazorPageActivator pageActivator,
             IViewStartProvider viewStartProvider,
-            IHtmlEncoder htmlEncoder)
+            IHtmlEncoder htmlEncoder,
+            DiagnosticSource diagnosticSource)
         {
             _pageActivator = pageActivator;
             _viewStartProvider = viewStartProvider;
             _htmlEncoder = htmlEncoder;
+            _diagnosticSource = diagnosticSource;
         }
 
         /// <inheritdoc />
@@ -55,6 +59,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 _viewStartProvider,
                 page,
                 _htmlEncoder,
+                _diagnosticSource,
                 isPartial);
             return razorView;
         }

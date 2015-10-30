@@ -16,7 +16,6 @@ using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public IHtmlEncoder HtmlEncoder { get; set; }
 
         /// <inheritdoc />
-        public IPageExecutionContext PageExecutionContext { get; set; }
+        public DiagnosticSource DiagnosticSource { get; set; }
 
         /// <summary>
         /// Gets the <see cref="TextWriter"/> that the page is writing output to.
@@ -1063,12 +1062,37 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         public void BeginContext(int position, int length, bool isLiteral)
         {
-            PageExecutionContext?.BeginContext(position, length, isLiteral);
+            const string BeginContextEvent = "Microsoft.AspNet.Mvc.Razor.BeginInstrumentationContext";
+            if (DiagnosticSource != null && DiagnosticSource.IsEnabled(BeginContextEvent))
+            {
+                DiagnosticSource.Write(
+                    BeginContextEvent,
+                    new
+                    {
+                        httpContext = Context,
+                        path = Path,
+                        isPartial = IsPartial,
+                        position = position,
+                        length = length,
+                        isLiteral = isLiteral,
+                    });
+            }
         }
 
         public void EndContext()
         {
-            PageExecutionContext?.EndContext();
+            const string EndContextEvent = "Microsoft.AspNet.Mvc.Razor.EndInstrumentationContext";
+            if (DiagnosticSource != null && DiagnosticSource.IsEnabled(EndContextEvent))
+            {
+                DiagnosticSource.Write(
+                    EndContextEvent,
+                    new
+                    {
+                        httpContext = Context,
+                        path = Path,
+                        isPartial = IsPartial,
+                    });
+            }
         }
 
         /// <summary>

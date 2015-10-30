@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Rendering;
-using Microsoft.AspNet.PageExecutionInstrumentation;
 
 namespace Microsoft.AspNet.Mvc.Razor
 {
@@ -52,9 +52,9 @@ namespace Microsoft.AspNet.Mvc.Razor
         bool IsPartial { get; set; }
 
         /// <summary>
-        /// Gets or sets a <see cref="IPageExecutionContext"/> instance used to instrument the page execution.
+        /// Gets or sets a <see cref="DiagnosticSource"/> instance used to instrument the page execution.
         /// </summary>
-        IPageExecutionContext PageExecutionContext { get; set; }
+        DiagnosticSource DiagnosticSource { get; set; }
 
         /// <summary>
         /// Gets or sets the sections that can be rendered by this page.

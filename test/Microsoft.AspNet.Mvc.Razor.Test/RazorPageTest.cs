@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
-using Microsoft.AspNet.PageExecutionInstrumentation;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
@@ -658,10 +658,13 @@ namespace Microsoft.AspNet.Mvc.Razor
             Assert.Same(HtmlString.Empty, actual);
         }
 
-        [Fact]
-        public async Task WriteAttribute_CallsBeginAndEndContext_OnPageExecutionListenerContext()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task WriteAttribute_CallsBeginAndEndContext_OnPageExecutionListenerContext(bool isPartial)
         {
             // Arrange
+            var path = "path-to-page";
             var page = CreatePage(p =>
             {
                 p.HtmlEncoder = new CommonTestEncoder();
@@ -670,33 +673,93 @@ namespace Microsoft.AspNet.Mvc.Razor
                 p.WriteAttributeValue("prefix2", 22, "attr2", 29, 5, false);
                 p.EndWriteAttribute();
             });
-            var context = new Mock<IPageExecutionContext>(MockBehavior.Strict);
-            var sequence = new MockSequence();
-            context.InSequence(sequence).Setup(f => f.BeginContext(0, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(0, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(8, 14, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(22, 7, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(29, 5, false)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(34, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            page.PageExecutionContext = context.Object;
+            page.Path = path;
+            page.IsPartial = isPartial;
+            var adapter = new TestDiagnosticListener();
+            var diagnosticListener = new DiagnosticListener("Microsoft.AspNet.Mvc.Razor");
+            diagnosticListener.SubscribeWithAdapter(adapter);
+            page.DiagnosticSource = diagnosticListener;
 
             // Act
             await page.ExecuteAsync();
 
             // Assert
-            context.Verify();
+            Func<object, TestDiagnosticListener.BeginPageInstrumentationData> assertStartEvent = data =>
+            {
+                var beginEvent = Assert.IsType<TestDiagnosticListener.BeginPageInstrumentationData>(data);
+                Assert.NotNull(beginEvent.HttpContext);
+                Assert.Equal(path, beginEvent.Path);
+                Assert.Equal(isPartial, beginEvent.IsPartial);
+
+                return beginEvent;
+            };
+
+            Action<object> assertEndEvent = data =>
+            {
+                var endEvent = Assert.IsType<TestDiagnosticListener.EndPageInstrumentationData>(data);
+                Assert.NotNull(endEvent.HttpContext);
+                Assert.Equal(path, endEvent.Path);
+                Assert.Equal(isPartial, endEvent.IsPartial);
+            };
+
+            Assert.Collection(adapter.PageInstrumentationData,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(0, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(0, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(8, beginEvent.Position);
+                    Assert.Equal(14, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(22, beginEvent.Position);
+                    Assert.Equal(7, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(29, beginEvent.Position);
+                    Assert.Equal(5, beginEvent.Length);
+                    Assert.False(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(34, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent);
         }
 
-        [Fact]
-        public async Task WriteAttribute_WithBoolValue_CallsBeginAndEndContext_OnPageExecutionListenerContext()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task WriteAttribute_WithBoolValue_CallsBeginAndEndContext_OnPageExecutionListenerContext(bool isPartial)
         {
             // Arrange
+            var path = "some-path";
             var page = CreatePage(p =>
             {
                 p.HtmlEncoder = new CommonTestEncoder();
@@ -704,45 +767,120 @@ namespace Microsoft.AspNet.Mvc.Razor
                 p.WriteAttributeValue("", 6, "true", 6, 4, false);
                 p.EndWriteAttribute();
             });
-            var context = new Mock<IPageExecutionContext>(MockBehavior.Strict);
-            var sequence = new MockSequence();
-            context.InSequence(sequence).Setup(f => f.BeginContext(0, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(6, 4, false)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(10, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            page.PageExecutionContext = context.Object;
+            page.Path = path;
+            page.IsPartial = isPartial;
+            var adapter = new TestDiagnosticListener();
+            var diagnosticListener = new DiagnosticListener("Microsoft.AspNet.Mvc.Razor");
+            diagnosticListener.SubscribeWithAdapter(adapter);
+            page.DiagnosticSource = diagnosticListener;
 
             // Act
             await page.ExecuteAsync();
 
             // Assert
-            context.Verify();
+            Func<object, TestDiagnosticListener.BeginPageInstrumentationData> assertStartEvent = data =>
+            {
+                var beginEvent = Assert.IsType<TestDiagnosticListener.BeginPageInstrumentationData>(data);
+                Assert.NotNull(beginEvent.HttpContext);
+                Assert.Equal(path, beginEvent.Path);
+                Assert.Equal(isPartial, beginEvent.IsPartial);
+
+                return beginEvent;
+            };
+
+            Action<object> assertEndEvent = data =>
+            {
+                var endEvent = Assert.IsType<TestDiagnosticListener.EndPageInstrumentationData>(data);
+                Assert.NotNull(endEvent.HttpContext);
+                Assert.Equal(path, endEvent.Path);
+                Assert.Equal(isPartial, endEvent.IsPartial);
+            };
+
+            Assert.Collection(adapter.PageInstrumentationData,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(0, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(6, beginEvent.Position);
+                    Assert.Equal(4, beginEvent.Length);
+                    Assert.False(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(10, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent);
         }
 
-        [Fact]
-        public async Task WriteAttribute_CallsBeginAndEndContext_OnPrefixAndSuffixValues()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task WriteAttribute_CallsBeginAndEndContext_OnPrefixAndSuffixValues(bool isPartial)
         {
             // Arrange
+            var path = "some-path";
             var page = CreatePage(p =>
             {
                 p.BeginWriteAttribute("href", "prefix", 0, "tail", 7, 0);
                 p.EndWriteAttribute();
             });
-            var context = new Mock<IPageExecutionContext>(MockBehavior.Strict);
-            var sequence = new MockSequence();
-            context.InSequence(sequence).Setup(f => f.BeginContext(0, 6, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            context.InSequence(sequence).Setup(f => f.BeginContext(7, 4, true)).Verifiable();
-            context.InSequence(sequence).Setup(f => f.EndContext()).Verifiable();
-            page.PageExecutionContext = context.Object;
+            page.Path = path;
+            page.IsPartial = isPartial;
+            var adapter = new TestDiagnosticListener();
+            var diagnosticListener = new DiagnosticListener("Microsoft.AspNet.Mvc.Razor");
+            diagnosticListener.SubscribeWithAdapter(adapter);
+            page.DiagnosticSource = diagnosticListener;
 
             // Act
             await page.ExecuteAsync();
 
             // Assert
-            context.Verify();
+            Func<object, TestDiagnosticListener.BeginPageInstrumentationData> assertStartEvent = data =>
+            {
+                var beginEvent = Assert.IsType<TestDiagnosticListener.BeginPageInstrumentationData>(data);
+                Assert.NotNull(beginEvent.HttpContext);
+                Assert.Equal(path, beginEvent.Path);
+                Assert.Equal(isPartial, beginEvent.IsPartial);
+
+                return beginEvent;
+            };
+
+            Action<object> assertEndEvent = data =>
+            {
+                var endEvent = Assert.IsType<TestDiagnosticListener.EndPageInstrumentationData>(data);
+                Assert.NotNull(endEvent.HttpContext);
+                Assert.Equal(path, endEvent.Path);
+                Assert.Equal(isPartial, endEvent.IsPartial);
+            };
+
+            Assert.Collection(adapter.PageInstrumentationData,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(0, beginEvent.Position);
+                    Assert.Equal(6, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent,
+                data =>
+                {
+                    var beginEvent = assertStartEvent(data);
+                    Assert.Equal(7, beginEvent.Position);
+                    Assert.Equal(4, beginEvent.Length);
+                    Assert.True(beginEvent.IsLiteral);
+                },
+                assertEndEvent);
         }
 
         public static TheoryData AddHtmlAttributeValues_ValueData
