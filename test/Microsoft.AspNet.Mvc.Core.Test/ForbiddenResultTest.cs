@@ -85,6 +85,7 @@ namespace Microsoft.AspNet.Mvc
             };
 
         [Theory]
+        [MemberData(nameof(ExecuteResultAsync_InvokesForbiddenAsyncWithAuthPropertiesData))]
         public async Task ExecuteResultAsync_InvokesForbiddenAsyncWithAuthProperties(AuthenticationProperties expected)
         {
             // Arrange
@@ -97,6 +98,38 @@ namespace Microsoft.AspNet.Mvc
             httpContext.Setup(c => c.RequestServices).Returns(CreateServices());
             httpContext.Setup(c => c.Authentication).Returns(authenticationManager.Object);
             var result = new ForbiddenResult(expected);
+            var routeData = new RouteData();
+
+            var actionContext = new ActionContext(
+                httpContext.Object,
+                routeData,
+                new ActionDescriptor());
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            authenticationManager.Verify();
+        }
+
+        [Theory]
+        [MemberData(nameof(ExecuteResultAsync_InvokesForbiddenAsyncWithAuthPropertiesData))]
+        public async Task ExecuteResultAsync_InvokesForbiddenAsyncWithAuthProperties_WhenAuthenticationSchemesIsEmpty(
+            AuthenticationProperties expected)
+        {
+            // Arrange
+            var authenticationManager = new Mock<AuthenticationManager>();
+            authenticationManager
+                .Setup(c => c.ForbidAsync(expected))
+                .Returns(TaskCache.CompletedTask)
+                .Verifiable();
+            var httpContext = new Mock<HttpContext>();
+            httpContext.Setup(c => c.RequestServices).Returns(CreateServices());
+            httpContext.Setup(c => c.Authentication).Returns(authenticationManager.Object);
+            var result = new ForbiddenResult(expected)
+            {
+                AuthenticationSchemes = new string[0]
+            };
             var routeData = new RouteData();
 
             var actionContext = new ActionContext(

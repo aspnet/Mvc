@@ -29,6 +29,7 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of <see cref="ForbiddenResult"/> with the
         /// specified authentication scheme.
         /// </summary>
+        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
         public ForbiddenResult(string authenticationScheme)
             : this(new[] { authenticationScheme })
         {
@@ -38,6 +39,7 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of <see cref="ForbiddenResult"/> with the
         /// specified authentication schemes.
         /// </summary>
+        /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
         public ForbiddenResult(IList<string> authenticationSchemes)
             : this(authenticationSchemes, properties: null)
         {
@@ -47,6 +49,8 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of <see cref="ForbiddenResult"/> with the
         /// specified <paramref name="properties"/>.
         /// </summary>
+        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
+        /// challenge.</param>
         public ForbiddenResult(AuthenticationProperties properties)
             : this(new string[] { }, properties)
         {
@@ -56,6 +60,9 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of <see cref="ForbiddenResult"/> with the
         /// specified authentication scheme and <paramref name="properties"/>.
         /// </summary>
+        /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
+        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
+        /// challenge.</param>
         public ForbiddenResult(string authenticationScheme, AuthenticationProperties properties)
             : this(new[] { authenticationScheme }, properties)
         {
@@ -65,6 +72,9 @@ namespace Microsoft.AspNet.Mvc
         /// Initializes a new instance of <see cref="ForbiddenResult"/> with the
         /// specified authentication schemes and <paramref name="properties"/>.
         /// </summary>
+        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
+        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
+        /// challenge.</param>
         public ForbiddenResult(IList<string> authenticationSchemes, AuthenticationProperties properties)
         {
             AuthenticationSchemes = authenticationSchemes;
@@ -72,13 +82,12 @@ namespace Microsoft.AspNet.Mvc
         }
 
         /// <summary>
-        /// The list of authentication components that should handle the authentication challenge
-        /// invoked by this instance of <see cref="ForbiddenResult"/>.
+        /// Gets or sets the authentication schemes that are challenged.
         /// </summary>
         public IList<string> AuthenticationSchemes { get; set; }
 
         /// <summary>
-        /// <see cref="AuthenticationProperties"/> used to perform authentication.
+        /// Gets or sets the <see cref="AuthenticationProperties"/> used to perform the authentication challenge.
         /// </summary>
         public AuthenticationProperties Properties { get; set; }
 

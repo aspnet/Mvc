@@ -4,15 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Mvc.Core;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNet.Mvc.Logging
 {
-    /// <summary>
-    /// Extensions methods for logging <see cref="ForbiddenResult"/> instances.
-    /// </summary>
-    public static class ForbiddenResultLoggerExtensions
+    internal static class ForbiddenResultLoggerExtensions
     {
         private static readonly Action<ILogger, string[], Exception> _resultExecuting =
             LoggerMessage.Define<string[]>(
@@ -21,6 +17,8 @@ namespace Microsoft.AspNet.Mvc.Logging
                 formatString: $"Executing {nameof(ForbiddenResult)} with authentication schemes ({{Schemes}}).");
 
         public static void ForbiddenResultExecuting(this ILogger logger, IList<string> authenticationSchemes)
-            => _resultExecuting(logger, authenticationSchemes.ToArray(), null);
+        {
+            _resultExecuting(logger, authenticationSchemes.ToArray(), null);
+        }
     }
 }
