@@ -7,10 +7,10 @@ using Microsoft.AspNet.Mvc.Razor.Compilation;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents a <see cref="IRazorPageFactory"/> that creates <see cref="RazorPage"/> instances
+    /// Represents a <see cref="IRazorPageFactoryProvider"/> that creates <see cref="RazorPage"/> instances
     /// from razor files in the file system.
     /// </summary>
-    public class DefaultRazorPageFactory : IRazorPageFactory
+    public class DefaultRazorPageFactoryProvider : IRazorPageFactoryProvider
     {
         /// <remarks>
         /// This delegate holds on to an instance of <see cref="IRazorCompilationService"/>.
@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="razorCompilationService">The <see cref="IRazorCompilationService"/>.</param>
         /// <param name="compilerCacheProvider">The <see cref="ICompilerCacheProvider"/>.</param>
-        public DefaultRazorPageFactory(
+        public DefaultRazorPageFactoryProvider(
             IRazorCompilationService razorCompilationService,
             ICompilerCacheProvider compilerCacheProvider)
         {
@@ -59,19 +59,32 @@ namespace Microsoft.AspNet.Mvc.Razor
                 relativePath = relativePath.Substring(1);
             }
             var result = CompilerCache.GetOrAdd(relativePath, _compileDelegate);
-            if (result.IsFoundResult)
+            if (result.Success)
             {
-                return new RazorPageFactoryResult(() =>
-                {
-                    var page = (IRazorPage)Activator.CreateInstance(result.CompilationResult.CompiledType);
-                    page.Path = relativePath;
-                    return page;
-                }, result.ExpirationTokens);
+                var pageFactory = GetPageFactory(result.CompilationResult.CompiledType, relativePath);
+                return new RazorPageFactoryResult(pageFactory, result.ExpirationTokens);
             }
             else
             {
                 return new RazorPageFactoryResult(result.ExpirationTokens);
             }
+        }
+
+        /// <summary>
+        /// Creates a factory for <see cref="IRazorPage"/>.
+        /// </summary>
+        /// <param name="compiledType">The <see cref="Type"/> to produce an instance of <see cref="IRazorPage"/>
+        /// from.</param>
+        /// <param name="relativePath">The application relative path of the page.</param>
+        /// <returns>A factory for <paramref name="compiledType"/>.</returns>
+        protected virtual Func<IRazorPage> GetPageFactory(Type compiledType, string relativePath)
+        {
+            return () =>
+            {
+                var page = (IRazorPage)Activator.CreateInstance(compiledType);
+                page.Path = relativePath;
+                return page;
+            };
         }
     }
 }

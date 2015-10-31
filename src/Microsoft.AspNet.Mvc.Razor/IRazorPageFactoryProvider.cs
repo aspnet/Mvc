@@ -6,7 +6,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Defines methods that are used for creating <see cref="IRazorPage"/> instances at a given path.
     /// </summary>
-    public interface IRazorPageFactory
+    public interface IRazorPageFactoryProvider
     {
         /// <summary>
         /// Creates a <see cref="IRazorPage"/> factory for the specified path.

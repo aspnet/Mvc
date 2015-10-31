@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Microsoft.AspNet.Mvc.Razor
 {
     /// <summary>
-    /// Represents the results of locating a <see cref="IRazorPage"/>.
+    /// Result of locating a <see cref="IRazorPage"/>.
     /// </summary>
     public struct RazorPageResult
     {

@@ -145,8 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // In the default scenario the following services are singleton by virtue of being initialized as part of
             // creating the singleton RazorViewEngine instance.
-            services.TryAddTransient<IRazorViewFactory, RazorViewFactory>();
-            services.TryAddTransient<IRazorPageFactory, DefaultRazorPageFactory>();
+            services.TryAddTransient<IRazorPageFactoryProvider, DefaultRazorPageFactoryProvider>();
             services.TryAddTransient<IRazorCompilationService, RazorCompilationService>();
             services.TryAddTransient<IMvcRazorHost, MvcRazorHost>();
 

@@ -15,9 +15,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Initializes a new instance of <see cref="ViewLocationCacheResult"/>
         /// for a view that was successfully found at the specified location.
         /// </summary>
-        /// <param name="foundLocation">The view location.</param>
-        /// <param name="searchedLocations">Locations that were searched
-        /// in addition to <paramref name="foundLocation"/>.</param>
+        /// <param name="view">The <see cref="ViewLocationCacheItem"/> for the found view.</param>
+        /// <param name="viewStarts"><see cref="ViewLocationCacheItem"/>s for applicable _ViewStarts.</param>
         public ViewLocationCacheResult(
             ViewLocationCacheItem view,
             IReadOnlyList<ViewLocationCacheItem> viewStarts)
@@ -29,7 +28,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             ViewEntry = view;
             ViewStartEntries = viewStarts;
-            IsFoundResult = true;
+            Success = true;
         }
 
         /// <summary>
@@ -47,16 +46,24 @@ namespace Microsoft.AspNet.Mvc.Razor
             SearchedLocations = searchedLocations;
         }
 
+        /// <summary>
+        /// <see cref="ViewLocationCacheItem"/> for the located view.
+        /// </summary>
+        /// <remarks><c>null</c> if <see cref="Success"/> is <c>false</c>.</remarks>
         public ViewLocationCacheItem ViewEntry { get; }
 
+        /// <summary>
+        /// <see cref="ViewLocationCacheItem"/>s for applicable _ViewStarts.
+        /// </summary>
+        /// <remarks><c>null</c> if <see cref="Success"/> is <c>false</c>.</remarks>
         public IReadOnlyList<ViewLocationCacheItem> ViewStartEntries { get; }
 
         /// <summary>
         /// The sequence of locations that were searched.
         /// </summary>
         /// <remarks>
-        /// When <see cref="IsFoundResult"/> is <c>true</c> this includes all paths that were search prior to finding
-        /// a view at <see cref="ViewLocation"/>. When <see cref="IsFoundResult"/> is <c>false</c>, this includes
+        /// When <see cref="Success"/> is <c>true</c> this includes all paths that were search prior to finding
+        /// a view at <see cref="ViewLocation"/>. When <see cref="Success"/> is <c>false</c>, this includes
         /// all search paths.
         /// </remarks>
         public IEnumerable<string> SearchedLocations { get; }
@@ -64,6 +71,6 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets a value that indicates whether the view was successfully found.
         /// </summary>
-        public bool IsFoundResult { get; }
+        public bool Success { get; }
     }
 }

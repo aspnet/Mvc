@@ -22,7 +22,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private readonly IRazorViewEngine _viewEngine;
         private readonly IRazorPageActivator _pageActivator;
-        private readonly IReadOnlyList<IRazorPage> _viewStartPages;
         private readonly HtmlEncoder _htmlEncoder;
         private IPageExecutionListenerFeature _pageExecutionFeature;
 
@@ -46,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             _viewEngine = viewEngine;
             _pageActivator = pageActivator;
-            _viewStartPages = viewStartPages;
+            ViewStartPages = viewStartPages;
             RazorPage = razorPage;
             _htmlEncoder = htmlEncoder;
             IsPartial = isPartial;
@@ -67,6 +66,12 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// Gets a value that determines if the view is executed as a partial.
         /// </summary>
         public bool IsPartial { get; }
+
+        /// <summary>
+        /// Gets the sequence of _ViewStart <see cref="IRazorPage"/> instances
+        /// that are executed by this view if <see cref="IsPartial"/> is <c>false</c>.
+        /// </summary>
+        public IReadOnlyList<IRazorPage> ViewStartPages { get; }
 
         private bool EnableInstrumentation
         {
@@ -157,9 +162,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             var oldFilePath = context.ExecutingFilePath;
             try
             {
-                for (var i = 0; i < _viewStartPages.Count; i++)
+                for (var i = 0; i < ViewStartPages.Count; i++)
                 {
-                    var viewStart = _viewStartPages[i];
+                    var viewStart = ViewStartPages[i];
                     context.ExecutingFilePath = viewStart.Path;
                     // Copy the layout value from the previous view start (if any) to the current.
                     viewStart.Layout = layout;

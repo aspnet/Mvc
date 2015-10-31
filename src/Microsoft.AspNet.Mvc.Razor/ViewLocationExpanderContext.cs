@@ -16,6 +16,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         /// <param name="actionContext">The <see cref="Mvc.ActionContext"/> for the current executing action.</param>
         /// <param name="viewName">The view name.</param>
+        /// <param name="controllerName">The controller name.</param>
+        /// <param name="areaName">The area name.</param>
         /// <param name="isPartial">Determines if the view being discovered is a partial.</param>
         public ViewLocationExpanderContext(
             ActionContext actionContext,
@@ -51,8 +53,14 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </summary>
         public string ViewName { get; }
 
+        /// <summary>
+        /// Gets the controller name.
+        /// </summary>
         public string ControllerName { get; }
 
+        /// <summary>
+        /// Gets the area name.
+        /// </summary>
         public string AreaName { get; }
 
         /// <summary>

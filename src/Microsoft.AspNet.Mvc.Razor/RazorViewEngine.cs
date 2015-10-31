@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text.Encodings.Web;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.Caching.Memory;
@@ -27,22 +28,26 @@ namespace Microsoft.AspNet.Mvc.Razor
         private const string AreaKey = "area";
         private static readonly ViewLocationCacheItem[] EmptyViewStartLocationCacheItems =
             new ViewLocationCacheItem[0];
+        private static readonly TimeSpan _cacheExpirationDuration = TimeSpan.FromMinutes(20);
 
-        private readonly IRazorPageFactory _pageFactory;
-        private readonly IRazorViewFactory _viewFactory;
+        private readonly IRazorPageFactoryProvider _pageFactory;
         private readonly IList<IViewLocationExpander> _viewLocationExpanders;
+        private readonly IRazorPageActivator _pageActivator;
+        private readonly HtmlEncoder _htmlEncoder;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorViewEngine" />.
         /// </summary>
         public RazorViewEngine(
-            IRazorPageFactory pageFactory,
-            IRazorViewFactory viewFactory,
+            IRazorPageFactoryProvider pageFactory,
+            IRazorPageActivator pageActivator,
+            HtmlEncoder htmlEncoder,
             IOptions<RazorViewEngineOptions> optionsAccessor)
         {
             _pageFactory = pageFactory;
-            _viewFactory = viewFactory;
+            _pageActivator = pageActivator;
             _viewLocationExpanders = optionsAccessor.Value.ViewLocationExpanders;
+            _htmlEncoder = htmlEncoder;
             ViewLookupCache = new MemoryCache(new MemoryCacheOptions
             {
                 CompactOnMemoryPressure = false
@@ -143,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var cacheResult = GetViewLocationCacheResult(context, pageName, isPartial: true);
-            if (cacheResult.IsFoundResult)
+            if (cacheResult.Success)
             {
                 var razorPage = cacheResult.ViewEntry.PageFactory();
                 return new RazorPageResult(pageName, razorPage);
@@ -240,13 +245,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     applicationRelativePath += ViewExtension;
                 }
 
-                var cacheKey = new ViewLocationCacheKey(
-                    applicationRelativePath,
-                    controllerName: null,
-                    areaName: null,
-                    isPartial: isPartial,
-                    values: null);
-
+                var cacheKey = new ViewLocationCacheKey(applicationRelativePath, isPartial);
                 ViewLocationCacheResult cacheResult;
                 if (!ViewLookupCache.TryGetValue(cacheKey, out cacheResult))
                 {
@@ -254,9 +253,16 @@ namespace Microsoft.AspNet.Mvc.Razor
                     cacheResult = CreateCacheResult(cacheKey, expirationTokens, applicationRelativePath, isPartial);
 
                     var cacheEntryOptions = new MemoryCacheEntryOptions();
+                    cacheEntryOptions.SetSlidingExpiration(_cacheExpirationDuration);
                     foreach (var expirationToken in expirationTokens)
                     {
                         cacheEntryOptions.AddExpirationToken(expirationToken);
+                    }
+                    
+                    // No views were found at the specified location. Create a not found result.
+                    if (cacheResult == null)
+                    {
+                        cacheResult = new ViewLocationCacheResult(new[] { pageName });
                     }
 
                     cacheResult = ViewLookupCache.Set<ViewLocationCacheResult>(
@@ -358,6 +364,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var cacheEntryOptions = new MemoryCacheEntryOptions();
+            cacheEntryOptions.SetSlidingExpiration(_cacheExpirationDuration);
             foreach (var expirationToken in expirationTokens)
             {
                 cacheEntryOptions.AddExpirationToken(expirationToken);
@@ -373,12 +380,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             bool isPartial)
         {
             var factoryResult = _pageFactory.CreateFactory(relativePath);
-            for (var i = 0; i < factoryResult.ExpirationTokens.Count; i++)
+            if (factoryResult.ExpirationTokens != null)
             {
-                expirationTokens.Add(factoryResult.ExpirationTokens[i]);
+                for (var i = 0; i < factoryResult.ExpirationTokens.Count; i++)
+                {
+                    expirationTokens.Add(factoryResult.ExpirationTokens[i]);
+                }
             }
 
-            if (factoryResult.IsFoundResult)
+            if (factoryResult.Success)
             {
                 // Don't need to lookup _ViewStarts for partials.
                 var viewStartPages = isPartial ?
@@ -401,12 +411,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             foreach (var viewStartPath in ViewHierarchyUtility.GetViewStartLocations(path))
             {
                 var result = _pageFactory.CreateFactory(viewStartPath);
-                for (var i = 0; i < result.ExpirationTokens.Count; i++)
+                if (result.ExpirationTokens != null)
                 {
-                    expirationTokens.Add(result.ExpirationTokens[i]);
+                    for (var i = 0; i < result.ExpirationTokens.Count; i++)
+                    {
+                        expirationTokens.Add(result.ExpirationTokens[i]);
+                    }
                 }
 
-                if (result.IsFoundResult)
+                if (result.Success)
                 {
                     // Populate the viewStartPages list so that _ViewStarts appear in the order the need to be
                     // executed (closest last, furthest first). This is the reverse order in which
@@ -423,7 +436,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             string viewName,
             bool isPartial)
         {
-            if (!result.IsFoundResult)
+            if (!result.Success)
             {
                 return ViewEngineResult.NotFound(viewName, result.SearchedLocations);
             }
@@ -436,7 +449,13 @@ namespace Microsoft.AspNet.Mvc.Razor
                 viewStarts[i] = result.ViewStartEntries[i].PageFactory();
             }
 
-            var view = _viewFactory.GetView(this, page, viewStarts, isPartial);
+            var view = new RazorView(
+                this,
+                _pageActivator,
+                viewStarts,
+                page,
+                _htmlEncoder,
+                isPartial);
             return ViewEngineResult.Found(viewName, view);
         }
 
