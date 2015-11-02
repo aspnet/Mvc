@@ -1196,8 +1196,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
-        public virtual ChallengeResult Challenge(string authentiationScheme)
-            => new ChallengeResult(authentiationScheme);
+        public virtual ChallengeResult Challenge(string authenticationScheme)
+            => new ChallengeResult(authenticationScheme);
 
         /// <summary>
         /// Creates a <see cref="ChallengeResult"/> with the specified authentication schemes.
@@ -1205,8 +1205,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
-        public virtual ChallengeResult Challenge(IList<string> authentiationSchemes)
-            => new ChallengeResult(authentiationSchemes);
+        public virtual ChallengeResult Challenge(IList<string> authenticationSchemes)
+            => new ChallengeResult(authenticationSchemes);
 
         /// <summary>
         /// Creates a <see cref="ChallengeResult"/> with the specified <paramref name="properties" />.
@@ -1227,8 +1227,8 @@ namespace Microsoft.AspNet.Mvc
         /// challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
-        public virtual ChallengeResult Challenge(string authentiationScheme, AuthenticationProperties properties)
-            => new ChallengeResult(authentiationScheme, properties);
+        public virtual ChallengeResult Challenge(string authenticationScheme, AuthenticationProperties properties)
+            => new ChallengeResult(authenticationScheme, properties);
 
         /// <summary>
         /// Creates a <see cref="ChallengeResult"/> with the specified specified authentication schemes and
@@ -1240,9 +1240,9 @@ namespace Microsoft.AspNet.Mvc
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
         public virtual ChallengeResult Challenge(
-            IList<string> authentiationSchemes,
+            IList<string> authenticationSchemes,
             AuthenticationProperties properties)
-            => new ChallengeResult(authentiationSchemes, properties);
+            => new ChallengeResult(authenticationSchemes, properties);
 
         /// <summary>
         /// Creates a <see cref="ForbiddenResult"/>.
@@ -1258,8 +1258,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
         /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(string authentiationScheme)
-            => new ForbiddenResult(authentiationScheme);
+        public virtual ForbiddenResult Forbid(string authenticationScheme)
+            => new ForbiddenResult(authenticationScheme);
 
         /// <summary>
         /// Creates a <see cref="ForbiddenResult"/> with the specified authentication schemes.
@@ -1267,8 +1267,8 @@ namespace Microsoft.AspNet.Mvc
         /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(IList<string> authentiationSchemes)
-            => new ForbiddenResult(authentiationSchemes);
+        public virtual ForbiddenResult Forbid(IList<string> authenticationSchemes)
+            => new ForbiddenResult(authenticationSchemes);
 
         /// <summary>
         /// Creates a <see cref="ForbiddenResult"/> with the specified <paramref name="properties" />.
@@ -1289,8 +1289,8 @@ namespace Microsoft.AspNet.Mvc
         /// challenge.</param>
         /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(string authentiationScheme, AuthenticationProperties properties)
-            => new ForbiddenResult(authentiationScheme, properties);
+        public virtual ForbiddenResult Forbid(string authenticationScheme, AuthenticationProperties properties)
+            => new ForbiddenResult(authenticationScheme, properties);
 
         /// <summary>
         /// Creates a <see cref="ForbiddenResult"/> with the specified specified authentication schemes and
@@ -1301,8 +1301,8 @@ namespace Microsoft.AspNet.Mvc
         /// challenge.</param>
         /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(IList<string> authentiationSchemes, AuthenticationProperties properties)
-            => new ForbiddenResult(authentiationSchemes, properties);
+        public virtual ForbiddenResult Forbid(IList<string> authenticationSchemes, AuthenticationProperties properties)
+            => new ForbiddenResult(authenticationSchemes, properties);
 
         /// <summary>
         /// Called before the action method is invoked.
