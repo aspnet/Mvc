@@ -12,8 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionResult"/> that on execution issues a 403 forbidden response
-    /// if the authentication challenge is unacceptable.
+    /// An <see cref="ActionResult"/> that on execution invokes <see cref="AuthenticationManager.ForbidAsync"/>.
     /// </summary>
     public class ForbiddenResult : ActionResult
     {
