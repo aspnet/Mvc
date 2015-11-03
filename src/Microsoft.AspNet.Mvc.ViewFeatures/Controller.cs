@@ -1245,64 +1245,64 @@ namespace Microsoft.AspNet.Mvc
             => new ChallengeResult(authenticationSchemes, properties);
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/>.
+        /// Creates a <see cref="ForbidResult"/>.
         /// </summary>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid()
-            => new ForbiddenResult();
+        public virtual ForbidResult Forbid()
+            => new ForbidResult();
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/> with the specified authentication scheme.
+        /// Creates a <see cref="ForbidResult"/> with the specified authentication scheme.
         /// </summary>
         /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(string authenticationScheme)
-            => new ForbiddenResult(authenticationScheme);
+        public virtual ForbidResult Forbid(string authenticationScheme)
+            => new ForbidResult(authenticationScheme);
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/> with the specified authentication schemes.
+        /// Creates a <see cref="ForbidResult"/> with the specified authentication schemes.
         /// </summary>
         /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(IList<string> authenticationSchemes)
-            => new ForbiddenResult(authenticationSchemes);
+        public virtual ForbidResult Forbid(IList<string> authenticationSchemes)
+            => new ForbidResult(authenticationSchemes);
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/> with the specified <paramref name="properties" />.
+        /// Creates a <see cref="ForbidResult"/> with the specified <paramref name="properties" />.
         /// </summary>
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(AuthenticationProperties properties)
-            => new ForbiddenResult(properties);
+        public virtual ForbidResult Forbid(AuthenticationProperties properties)
+            => new ForbidResult(properties);
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/> with the specified specified authentication scheme and
+        /// Creates a <see cref="ForbidResult"/> with the specified specified authentication scheme and
         /// <paramref name="properties" />.
         /// </summary>
         /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(string authenticationScheme, AuthenticationProperties properties)
-            => new ForbiddenResult(authenticationScheme, properties);
+        public virtual ForbidResult Forbid(string authenticationScheme, AuthenticationProperties properties)
+            => new ForbidResult(authenticationScheme, properties);
 
         /// <summary>
-        /// Creates a <see cref="ForbiddenResult"/> with the specified specified authentication schemes and
+        /// Creates a <see cref="ForbidResult"/> with the specified specified authentication schemes and
         /// <paramref name="properties" />.
         /// </summary>
         /// <param name="authenticationScheme">The authentication schemes to challenge.</param>
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
-        /// <returns>The created <see cref="ForbiddenResult"/> for the response.</returns>
+        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbiddenResult Forbid(IList<string> authenticationSchemes, AuthenticationProperties properties)
-            => new ForbiddenResult(authenticationSchemes, properties);
+        public virtual ForbidResult Forbid(IList<string> authenticationSchemes, AuthenticationProperties properties)
+            => new ForbidResult(authenticationSchemes, properties);
 
         /// <summary>
         /// Called before the action method is invoked.
