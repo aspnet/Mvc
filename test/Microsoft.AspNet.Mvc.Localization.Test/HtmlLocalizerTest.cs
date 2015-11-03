@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.AspNet.Testing;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.WebEncoders.Testing;
@@ -150,9 +152,168 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             Assert.NotNull(exception);
             Assert.Equal("Input string was not in a correct format.", exception.Message);
         }
+
+        [Fact]
+        public void HtmlLocalizer_GetString_ReturnsLocalizedString()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var actualLocalizedString = htmlLocalizer.GetString("John");
+
+            // Assert
+            Assert.Equal("Hello John", actualLocalizedString.Value);
+        }
+
+        [Fact]
+        public void HtmlLocalizer_GetStringWithArguments_ReturnsLocalizedString()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var actualLocalizedString = htmlLocalizer.GetString("John", "Doe");
+
+            // Assert
+            Assert.Equal("Hello John Doe", actualLocalizedString.Value);
+        }
+
+        [Fact]
+        public void HtmlLocalizer_Html_ReturnsLocalizedHtmlString()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var actualLocalizedString = htmlLocalizer.Html("John");
+
+            // Assert
+            Assert.Equal("Hello John", actualLocalizedString.Value);
+        }
+
+        [Fact]
+        public void HtmlLocalizer_WithCulture_ReturnsLocalizedHtmlString()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var actualLocalizedString = htmlLocalizer.WithCulture(new CultureInfo("fr"))["John"];
+
+            // Assert
+            Assert.Equal("Bonjour John", actualLocalizedString.Value);
+        }
+
+        [Fact]
+        public void HtmlLocalizer_GetAllStrings_ReturnsAllLocalizedStrings()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var allLocalizedStrings = htmlLocalizer.GetAllStrings(false).ToList();
+
+            //Assert
+            Assert.Equal(1, allLocalizedStrings.Count);
+            Assert.Equal("World", allLocalizedStrings.First().Value);
+        }
+
+        [Fact]
+        public void HtmlLocalizer_GetAllStringsIncludeAncestorCulture_ReturnsAllLocalizedStrings()
+        {
+            // Arrange
+            var stringLocalizer = new TestStringLocalizer();
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer, new CommonTestEncoder());
+
+            // Act
+            var allLocalizedStrings = htmlLocalizer.GetAllStrings().ToList();
+
+            //Assert
+            Assert.Equal(2, allLocalizedStrings.Count);
+            Assert.Equal("World", allLocalizedStrings[0].Value);
+            Assert.Equal("Bar", allLocalizedStrings[1].Value);
+        }
     }
 
     public class TestClass
     {
+    }
+
+    public class TestStringLocalizer : IStringLocalizer
+    {
+        private CultureInfo _culture { get; set; }
+
+        public TestStringLocalizer(): this(null)
+        {
+        }
+
+        public TestStringLocalizer(CultureInfo culture)
+        {
+            _culture = culture;
+        }
+
+        public LocalizedString this[string name]
+        {
+            get
+            {
+                var value = "Hello ";
+
+                if (_culture != null)
+                {
+                    value = "Bonjour ";
+                }
+                return new LocalizedString(name, value + name);
+            }
+        }
+
+        public LocalizedString this[string name, params object[] arguments]
+        {
+            get
+            {
+                var value = "Hello ";
+
+                if (_culture != null)
+                {
+                    value = "Bonjour ";
+                }
+
+                string argument = string.Empty;
+                foreach (var arg in arguments)
+                {
+                   argument = argument + " " + arg;
+                }
+                return new LocalizedString(name, value + name + argument);
+            }
+        }
+
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures)
+        {
+            var allStrings = new List<LocalizedString>();
+            allStrings.Add(new LocalizedString("Hello", "World"));
+
+            if (includeAncestorCultures)
+            {
+                allStrings.Add(new LocalizedString("Foo", "Bar"));
+            }
+
+            return allStrings;
+        }
+
+        public IStringLocalizer WithCulture(CultureInfo culture)
+        {
+            return new TestStringLocalizer(culture);
+        }
     }
 }
