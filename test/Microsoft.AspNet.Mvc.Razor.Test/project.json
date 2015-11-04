@@ -1,4 +1,8 @@
 {
+  "compilationOptions": {
+    "warningsAsErrors": true,
+    "keyFile": "../../tools/Key.snk"
+  },
   "compile": [
     "../Microsoft.AspNet.Mvc.Razor.Host.Test/TestFileProvider.cs",
     "../Microsoft.AspNet.Mvc.Razor.Host.Test/TestFileInfo.cs",
@@ -14,24 +18,23 @@
       "type": "build"
     },
     "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
-    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-*",
     "Microsoft.Dnx.Runtime": "1.0.0-*",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
     "xunit.runner.aspnet": "2.0.0-aspnet-*"
   },
-    "commands": {
-        "test": "xunit.runner.aspnet"
-    },
-    "frameworks": {
-        "dnx451": {
-            "dependencies": {
-                "Moq": "4.2.1312.1622"
-            }
-        }
-    },
-    "exclude": [
-        "wwwroot",
-        "node_modules",
-        "bower_components"
-    ]
+  "commands": {
+    "test": "xunit.runner.aspnet"
+  },
+  "frameworks": {
+    "dnx451": {
+      "dependencies": {
+        "Moq": "4.2.1312.1622"
+      }
+    }
+  },
+  "exclude": [
+    "wwwroot",
+    "node_modules",
+    "bower_components"
+  ]
 }

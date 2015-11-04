@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
     {
         protected override IEnumerableValueProvider GetEnumerableValueProvider(
             BindingSource bindingSource,
-            IDictionary<string, StringValues> values,
+            Dictionary<string, StringValues> values,
             CultureInfo culture)
         {
             return new JQueryFormValueProvider(bindingSource, values, culture);
