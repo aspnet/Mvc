@@ -105,6 +105,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // DefaultHtmlGenerator is pretty much stateless but depends on IUrlHelper, which is scoped.
             // Therefore it too is scoped.
             services.TryAddScoped<IHtmlGenerator, DefaultHtmlGenerator>();
+            services.TryAddSingleton<IDefaultDisplayTemplates, DefaultDisplayTemplates>();
+            services.TryAddSingleton<IDefaultEditorTemplates, DefaultEditorTemplates>();
 
             //
             // JSON Helper

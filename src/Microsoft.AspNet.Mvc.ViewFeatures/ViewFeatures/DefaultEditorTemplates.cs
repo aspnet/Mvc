@@ -16,11 +16,11 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
-    public static class DefaultEditorTemplates
+    public class DefaultEditorTemplates : IDefaultEditorTemplates
     {
         private const string HtmlAttributeKey = "htmlAttributes";
 
-        public static IHtmlContent BooleanTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent BooleanTemplate(IHtmlHelper htmlHelper)
         {
             bool? value = null;
             if (htmlHelper.ViewData.Model != null)
@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 htmlAttributes: CreateHtmlAttributes(htmlHelper, "list-box tri-state"));
         }
 
-        public static IHtmlContent CollectionTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent CollectionTemplate(IHtmlHelper htmlHelper)
         {
             var viewData = htmlHelper.ViewData;
             var model = viewData.Model;
@@ -125,7 +125,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
         }
 
-        public static IHtmlContent DecimalTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent DecimalTemplate(IHtmlHelper htmlHelper)
         {
             if (htmlHelper.ViewData.TemplateInfo.FormattedModelValue == htmlHelper.ViewData.Model)
             {
@@ -136,7 +136,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return StringTemplate(htmlHelper);
         }
 
-        public static IHtmlContent HiddenInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent HiddenInputTemplate(IHtmlHelper htmlHelper)
         {
             var viewData = htmlHelper.ViewData;
             var model = viewData.Model;
@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var result = new BufferedHtmlContent();
             if (!viewData.ModelMetadata.HideSurroundingHtml)
             {
-                result.Append(DefaultDisplayTemplates.StringTemplate(htmlHelper));
+                result.Append(StringTemplate(htmlHelper));
             }
 
             // Special-case opaque values and arbitrary binary data.
@@ -212,7 +212,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return htmlAttributes;
         }
 
-        public static IHtmlContent MultilineTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent MultilineTemplate(IHtmlHelper htmlHelper)
         {
             return htmlHelper.TextArea(
                 expression: string.Empty,
@@ -222,7 +222,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 htmlAttributes: CreateHtmlAttributes(htmlHelper, "text-box multi-line"));
         }
 
-        public static IHtmlContent ObjectTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent ObjectTemplate(IHtmlHelper htmlHelper)
         {
             var viewData = htmlHelper.ViewData;
             var templateInfo = viewData.TemplateInfo;
@@ -300,7 +300,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return content;
         }
 
-        public static IHtmlContent PasswordTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent PasswordTemplate(IHtmlHelper htmlHelper)
         {
             return htmlHelper.Password(
                 expression: null,
@@ -316,56 +316,56 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 !templateInfo.Visited(modelExplorer);
         }
 
-        public static IHtmlContent StringTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent StringTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper);
         }
 
-        public static IHtmlContent PhoneNumberInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent PhoneNumberInputTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper, inputType: "tel");
         }
 
-        public static IHtmlContent UrlInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent UrlInputTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper, inputType: "url");
         }
 
-        public static IHtmlContent EmailAddressInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent EmailAddressInputTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper, inputType: "email");
         }
 
-        public static IHtmlContent DateTimeInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent DateTimeInputTemplate(IHtmlHelper htmlHelper)
         {
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM-ddTHH:mm:ss.fffK}");
             return GenerateTextBox(htmlHelper, inputType: "datetime");
         }
 
-        public static IHtmlContent DateTimeLocalInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent DateTimeLocalInputTemplate(IHtmlHelper htmlHelper)
         {
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM-ddTHH:mm:ss.fff}");
             return GenerateTextBox(htmlHelper, inputType: "datetime-local");
         }
 
-        public static IHtmlContent DateInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent DateInputTemplate(IHtmlHelper htmlHelper)
         {
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM-dd}");
             return GenerateTextBox(htmlHelper, inputType: "date");
         }
 
-        public static IHtmlContent TimeInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent TimeInputTemplate(IHtmlHelper htmlHelper)
         {
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:HH:mm:ss.fff}");
             return GenerateTextBox(htmlHelper, inputType: "time");
         }
 
-        public static IHtmlContent NumberInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent NumberInputTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper, inputType: "number");
         }
 
-        public static IHtmlContent FileInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent FileInputTemplate(IHtmlHelper htmlHelper)
         {
             if (htmlHelper == null)
             {
@@ -375,7 +375,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return GenerateTextBox(htmlHelper, inputType: "file");
         }
 
-        public static IHtmlContent FileCollectionInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent FileCollectionInputTemplate(IHtmlHelper htmlHelper)
         {
             if (htmlHelper == null)
             {
