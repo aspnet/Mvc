@@ -8,8 +8,6 @@ using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
-using Microsoft.AspNet.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -23,19 +21,25 @@ namespace Microsoft.AspNet.Mvc.Controllers
             // Arrange
             var expected =
                 $"The action descriptor must be of type '{typeof(ControllerActionDescriptor).FullName}'." +
-                Environment.NewLine + "Parameter name: actionContext";
+                Environment.NewLine + "Parameter name: context";
             var actionDescriptor = new ActionDescriptor();
             var controllerFactory = CreateControllerFactory();
             var httpContext = new DefaultHttpContext();
-            var actionContext = new ActionContext(httpContext,
-                                                  new RouteData(),
-                                                  actionDescriptor);
+
+            var context = new ControllerContext()
+            {
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
+            };
 
             // Act and Assert
             var ex = Assert.Throws<ArgumentException>(() =>
-                        controllerFactory.CreateController(actionContext));
+                        controllerFactory.CreateController(context));
             Assert.Equal(expected, ex.Message);
-            Assert.Equal("actionContext", ex.ParamName);
+            Assert.Equal("context", ex.ParamName);
         }
 
         [Fact]
@@ -47,20 +51,25 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = typeof(MyController).GetTypeInfo()
             };
-            var httpContext = new DefaultHttpContext();
-            httpContext.RequestServices = GetServices();
-            var actionContext = new ActionContext(httpContext,
-                                                  new RouteData(),
-                                                  actionDescriptor);
+
+            var context = new ControllerContext()
+            {
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
+            };
+
             var activator = new Mock<IControllerActivator>();
-            activator.Setup(a => a.Create(actionContext, typeof(MyController)))
+            activator.Setup(a => a.Create(context, typeof(MyController)))
                      .Returns(expected)
                      .Verifiable();
 
             var controllerFactory = CreateControllerFactory(activator.Object);
 
             // Act
-            var result = controllerFactory.CreateController(actionContext);
+            var result = controllerFactory.CreateController(context);
 
             // Assert
             var controller = Assert.IsType<MyController>(result);
@@ -76,12 +85,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = typeof(ControllerWithAttributes).GetTypeInfo()
             };
-            var services = GetServices();
-            var httpContext = new DefaultHttpContext
+
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act
@@ -93,22 +105,22 @@ namespace Microsoft.AspNet.Mvc.Controllers
         }
 
         [Fact]
-        public void CreateController_SetsBindingContext()
+        public void CreateController_SetsControllerContext()
         {
             // Arrange
             var actionDescriptor = new ControllerActionDescriptor
             {
                 ControllerTypeInfo = typeof(ControllerWithAttributes).GetTypeInfo()
             };
-            var bindingContext = new ActionBindingContext();
 
-            var services = GetServices();
-            services.GetRequiredService<IActionBindingContextAccessor>().ActionBindingContext = bindingContext;
-            var httpContext = new DefaultHttpContext
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act
@@ -116,7 +128,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
 
             // Assert
             var controller = Assert.IsType<ControllerWithAttributes>(result);
-            Assert.Same(bindingContext, controller.BindingContext);
+            Assert.Same(context, controller.ControllerContext);
         }
 
         [Fact]
@@ -127,12 +139,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = typeof(ControllerWithoutAttributes).GetTypeInfo()
             };
-            var services = GetServices();
-            var httpContext = new DefaultHttpContext
+
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act
@@ -151,12 +166,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = typeof(ControllerWithNonVisibleProperties).GetTypeInfo()
             };
-            var services = GetServices();
-            var httpContext = new DefaultHttpContext
+
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act
@@ -165,7 +183,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             // Assert
             var controller = Assert.IsType<ControllerWithNonVisibleProperties>(result);
             Assert.Null(controller.ActionContext);
-            Assert.Null(controller.BindingContext);
+            Assert.Null(controller.ControllerContext);
         }
 
         [Fact]
@@ -176,12 +194,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = typeof(ControllerThatCannotBeActivated).GetTypeInfo()
             };
-            var services = GetServices();
-            var httpContext = new DefaultHttpContext
+
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act and Assert
@@ -204,12 +225,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
             {
                 ControllerTypeInfo = type.GetTypeInfo()
             };
-            var services = GetServices();
-            var httpContext = new DefaultHttpContext
+
+            var context = new ControllerContext()
             {
-                RequestServices = services
+                ActionDescriptor = actionDescriptor,
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = GetServices(),
+                },
             };
-            var context = new ActionContext(httpContext, new RouteData(), actionDescriptor);
             var factory = CreateControllerFactory(new DefaultControllerActivator(new DefaultTypeActivatorCache()));
 
             // Act and Assert
@@ -256,8 +280,6 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     .Returns(metadataProvider);
             services.Setup(s => s.GetService(typeof(IObjectModelValidator)))
                     .Returns(new DefaultObjectValidator(new IExcludeTypeValidationFilter[0], metadataProvider));
-            services.Setup(s => s.GetService(typeof(IActionBindingContextAccessor)))
-                .Returns(new ActionBindingContextAccessor());
             return services.Object;
         }
 
@@ -266,7 +288,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
             controllerActivator = controllerActivator ?? Mock.Of<IControllerActivator>();
             var propertyActivators = new IControllerPropertyActivator[]
             {
-                new DefaultControllerPropertyActivator(new ActionBindingContextAccessor()),
+                new DefaultControllerPropertyActivator(),
             };
 
             return new DefaultControllerFactory(controllerActivator, propertyActivators);
@@ -276,14 +298,14 @@ namespace Microsoft.AspNet.Mvc.Controllers
         {
             public ActionContext ActionContext { get; set; }
 
-            public ActionBindingContext BindingContext { get; set; }
+            public ControllerContext ControllerContext { get; set; }
         }
 
         public class ControllerWithNonVisibleProperties
         {
             internal ActionContext ActionContext { get; set; }
 
-            public ActionBindingContext BindingContext { get; private set; }
+            public ControllerContext ControllerContext { get; private set; }
         }
 
         private class ControllerWithAttributes
@@ -291,8 +313,8 @@ namespace Microsoft.AspNet.Mvc.Controllers
             [ActionContext]
             public ActionContext ActionContext { get; set; }
 
-            [ActionBindingContext]
-            public ActionBindingContext BindingContext { get; set; }
+            [ControllerContext]
+            public ControllerContext ControllerContext { get; set; }
         }
 
         private class MyController : IDisposable

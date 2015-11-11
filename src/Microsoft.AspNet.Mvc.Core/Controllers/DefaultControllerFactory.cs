@@ -47,20 +47,20 @@ namespace Microsoft.AspNet.Mvc.Controllers
         }
 
         /// <inheritdoc />
-        public virtual object CreateController(ActionContext actionContext)
+        public virtual object CreateController(ControllerContext context)
         {
-            if (actionContext == null)
+            if (context == null)
             {
-                throw new ArgumentNullException(nameof(actionContext));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            var actionDescriptor = actionContext.ActionDescriptor as ControllerActionDescriptor;
+            var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
             if (actionDescriptor == null)
             {
                 throw new ArgumentException(
                     Resources.FormatActionDescriptorMustBeBasedOnControllerAction(
                         typeof(ControllerActionDescriptor)),
-                    nameof(actionContext));
+                    nameof(context));
             }
 
             var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
@@ -75,10 +75,10 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 throw new InvalidOperationException(message);
             }
 
-            var controller = _controllerActivator.Create(actionContext, controllerType);
+            var controller = _controllerActivator.Create(context, controllerType);
             foreach (var propertyActivator in _propertyActivators)
             {
-                propertyActivator.Activate(actionContext, controller);
+                propertyActivator.Activate(context, controller);
             }
 
             return controller;

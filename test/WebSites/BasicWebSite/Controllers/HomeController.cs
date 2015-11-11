@@ -95,7 +95,7 @@ namespace BasicWebSite.Controllers
 
         public string GetApplicationDescription()
         {
-            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            var actionDescriptor = (ControllerActionDescriptor)ControllerContext.ActionDescriptor;
             return actionDescriptor.Properties["description"].ToString();
         }
     }
