@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     public class CompareAttributeAdapter : DataAnnotationsClientModelValidator<CompareAttribute>
     {
         public CompareAttributeAdapter(CompareAttribute attribute, IStringLocalizer stringLocalizer)
-            : base(new CompareAttributeWrapper(attribute), stringLocalizer)
+            : base(new CompareAttributeWrapper(attribute, stringLocalizer), stringLocalizer)
         {
             if (attribute == null)
             {
@@ -41,9 +41,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
         private sealed class CompareAttributeWrapper : CompareAttribute
         {
-            public CompareAttributeWrapper(CompareAttribute attribute)
+            private readonly IStringLocalizer _stringLocalizer;
+            public CompareAttributeWrapper(CompareAttribute attribute, IStringLocalizer stringLocalizer)
                 : base(attribute.OtherProperty)
             {
+                _stringLocalizer = stringLocalizer;
+
                 // Copy settable properties from wrapped attribute. Don't reset default message accessor (set as
                 // CompareAttribute constructor calls ValidationAttribute constructor) when all properties are null to
                 // preserve default error message. Reset the message accessor when just ErrorMessageResourceType is
@@ -60,11 +63,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
             public string FormatErrorMessage(ClientModelValidationContext context)
             {
+                var otherPropertyDisplayName = GetOtherPropertyDisplayName(context);
                 var displayName = context.ModelMetadata.GetDisplayName();
+                if (_stringLocalizer != null &&
+                    !string.IsNullOrEmpty(ErrorMessage) &&
+                    string.IsNullOrEmpty(ErrorMessageResourceName) &&
+                    ErrorMessageResourceType == null)
+                {
+                    return _stringLocalizer[ErrorMessageString, displayName, otherPropertyDisplayName];
+                }
+
                 return string.Format(CultureInfo.CurrentCulture,
-                                     ErrorMessageString,
-                                     displayName,
-                                     GetOtherPropertyDisplayName(context));
+                                 ErrorMessageString,
+                                 displayName,
+                                 otherPropertyDisplayName);
             }
 
             private string GetOtherPropertyDisplayName(ClientModelValidationContext context)

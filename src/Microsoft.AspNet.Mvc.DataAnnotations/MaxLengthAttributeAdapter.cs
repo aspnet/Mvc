@@ -23,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var message = GetErrorMessage(context.ModelMetadata);
+            var message = GetErrorMessage(context.ModelMetadata, Attribute.Length);
             return new[] { new ModelClientValidationMaxLengthRule(message, Attribute.Length) };
         }
     }
