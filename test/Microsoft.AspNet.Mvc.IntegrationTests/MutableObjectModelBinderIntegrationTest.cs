@@ -268,9 +268,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         private class Person2
         {
             public string Name { get; set; }
-
-            [FromServices]
-            public IActionBindingContextAccessor BindingContext { get; set; }
         }
 
         [Fact]
@@ -301,7 +298,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var model = Assert.IsType<Order2>(modelBindingResult.Model);
             Assert.NotNull(model.Customer);
             Assert.Equal("bill", model.Customer.Name);
-            Assert.NotNull(model.Customer.BindingContext);
 
             Assert.Equal(1, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
@@ -340,7 +336,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var model = Assert.IsType<Order2>(modelBindingResult.Model);
             Assert.NotNull(model.Customer);
             Assert.Equal("bill", model.Customer.Name);
-            Assert.NotNull(model.Customer.BindingContext);
 
             Assert.Equal(1, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
@@ -1489,9 +1484,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             [FromBody]
             public Address1 Address { get; set; }
-
-            [FromServices]
-            public IActionBindingContextAccessor BindingContext { get; set; }
         }
 
         // If a nested POCO object has all properties bound from a greedy source, then it should be populated
@@ -1524,7 +1516,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
 
             var model = Assert.IsType<Order9>(modelBindingResult.Model);
             Assert.NotNull(model.Customer);
-            Assert.NotNull(model.Customer.BindingContext);
             Assert.NotNull(model.Customer.Address);
             Assert.Equal(AddressStreetContent, model.Customer.Address.Street);
 

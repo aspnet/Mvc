@@ -190,9 +190,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             [Required]
             public virtual int VirtualProperty { get; set; }
-
-            [FromServices]
-            public ICalculator Calculator { get; set; }
         }
 
         private class DerivedModel : BaseModel
