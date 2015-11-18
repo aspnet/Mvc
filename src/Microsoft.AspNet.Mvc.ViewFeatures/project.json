@@ -1,6 +1,6 @@
 {
   "description": "View Rendering features for the MVC runtime",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,30 +10,30 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Antiforgery": "1.0.0-*",
-    "Microsoft.AspNet.Diagnostics.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Html.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Json": "6.0.0-*",
+    "Microsoft.AspNet.Antiforgery": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Diagnostics.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Html.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Core": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Formatters.Json": "6.0.0-rc1-final",
     "Microsoft.Extensions.BufferedHtmlContent.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyActivator.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     }
   },

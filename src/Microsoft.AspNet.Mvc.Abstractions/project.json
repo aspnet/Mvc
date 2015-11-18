@@ -1,6 +1,6 @@
 {
   "description": "The core abstractions of ASP.NET MVC.",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,21 +10,21 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Routing": "1.0.0-*",
+    "Microsoft.AspNet.Routing": "1.0.0-rc1-final",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     }
   },
@@ -32,10 +32,10 @@
     "net451": {},
     "dotnet5.4": {
       "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
-        "System.Reflection.Extensions": "4.0.1-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
+        "Microsoft.CSharp": "4.0.1-beta-23516",
+        "System.ComponentModel.TypeConverter": "4.0.1-beta-23516",
+        "System.Reflection.Extensions": "4.0.1-beta-23516",
+        "System.Text.Encoding.Extensions": "4.0.11-beta-23516"
       }
     }
   }

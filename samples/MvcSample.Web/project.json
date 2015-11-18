@@ -7,21 +7,21 @@
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-*",
-    "Microsoft.AspNet.Diagnostics": "1.0.0-*",
-    "Microsoft.AspNet.Localization": "1.0.0-*",
-    "Microsoft.AspNet.Mvc": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-*",
-    "Microsoft.AspNet.Server.WebListener": "1.0.0-*",
-    "Microsoft.AspNet.Session": "1.0.0-*",
-    "Microsoft.AspNet.StaticFiles": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
-    "Microsoft.Extensions.Logging.Console": "1.0.0-*"
+    "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Diagnostics": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Localization": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.WebApiCompatShim": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Server.WebListener": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Session": "1.0.0-rc1-final",
+    "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc1-final",
+    "Microsoft.Extensions.Logging.Console": "1.0.0-rc1-final"
   },
   "frameworks": {
-    "dnx451": { },
-    "dnxcore50": { }
+    "dnx451": {},
+    "dnxcore50": {}
   },
   "exclude": [
     "wwwroot",

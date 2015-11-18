@@ -4,18 +4,18 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Http": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-*",
+    "Microsoft.AspNet.Http": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.DataAnnotations": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.TagHelpers": "6.0.0-rc1-final",
     "Microsoft.AspNet.Mvc.TestCommon": {
       "version": "6.0.0-*",
       "type": "build"
     },
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
-    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-*",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+    "Microsoft.AspNet.Testing": "1.0.0-rc1-final",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-rc1-final",
+    "xunit.runner.aspnet": "2.0.0-aspnet-rc1-final"
   },
   "commands": {
     "test": "xunit.runner.aspnet"

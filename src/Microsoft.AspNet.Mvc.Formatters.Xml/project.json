@@ -1,6 +1,6 @@
 {
   "description": "Contains DataContractSerializer and XmlSerializer based input and output formatters",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,13 +10,13 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Mvc.Core": "6.0.0-*",
+    "Microsoft.AspNet.Mvc.Core": "6.0.0-rc1-final",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     }
   },
@@ -29,8 +29,8 @@
     },
     "dotnet5.4": {
       "dependencies": {
-        "System.Runtime.Serialization.Xml": "4.1.0-beta-*",
-        "System.Xml.XmlSerializer": "4.0.11-beta-*"
+        "System.Runtime.Serialization.Xml": "4.1.0-beta-23516",
+        "System.Xml.XmlSerializer": "4.0.11-beta-23516"
       }
     }
   }
