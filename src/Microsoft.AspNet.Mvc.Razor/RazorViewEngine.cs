@@ -312,11 +312,11 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var cacheKey = new ViewLocationCacheKey(
-                expanderContext.ViewName,
-                expanderContext.ControllerName,
-                expanderContext.ViewName,
-                expanderContext.IsPartial,
-                expanderValues);
+                viewName: expanderContext.ViewName,
+                controllerName: expanderContext.ControllerName,
+                areaName: expanderContext.AreaName,
+                isPartial: expanderContext.IsPartial,
+                values: expanderValues);
 
             ViewLocationCacheResult cacheResult;
             if (!ViewLookupCache.TryGetValue(cacheKey, out cacheResult))

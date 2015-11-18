@@ -406,6 +406,131 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             Assert.Same(page, view.RazorPage);
         }
 
+        [Fact]
+        public void FindView_CreatesDifferentCacheEntries_ForAreaViewsAndNonAreaViews()
+        {
+            // Arrange
+            var pageFactory = new Mock<IRazorPageFactoryProvider>();
+            var areaPage = Mock.Of<IRazorPage>();
+            var nonAreaPage = Mock.Of<IRazorPage>();
+            pageFactory
+                .Setup(p => p.CreateFactory("/Areas/Admin/Views/Home/Index.cshtml"))
+                .Returns(new RazorPageFactoryResult(() => areaPage, new IChangeToken[0]));
+            pageFactory
+                .Setup(p => p.CreateFactory("/Views/Home/Index.cshtml"))
+                .Returns(new RazorPageFactoryResult(() => nonAreaPage, new IChangeToken[0]));
+
+            var viewEngine = new TestableRazorViewEngine(
+                pageFactory.Object,
+                GetOptionsAccessor());
+
+            // Act 1
+            var areaContext = GetActionContext(new Dictionary<string, object>()
+            {
+                {"area", "Admin"},
+                {"controller", "Home"},
+            });
+            var result1 = viewEngine.FindView(areaContext, "Index");
+
+            // Assert 1
+            Assert.NotNull(result1);
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Admin/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Views/Home/Index.cshtml"), Times.Never());
+            var view1 = Assert.IsType<RazorView>(result1.View);
+            Assert.Same(areaPage, view1.RazorPage);
+
+            // Act 2
+            var nonAreaContext = GetActionContext(new Dictionary<string, object>()
+            {
+                {"controller", "Home"},
+            });
+            var result2 = viewEngine.FindView(nonAreaContext, "Index");
+
+            // Assert 2
+            Assert.NotNull(result2);
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Admin/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Views/Home/Index.cshtml"), Times.Once());
+            var view2 = Assert.IsType<RazorView>(result2.View);
+            Assert.Same(nonAreaPage, view2.RazorPage);
+
+            // Act 3
+            // Ensure we're getting cached results.
+            var result3 = viewEngine.FindView(areaContext, "Index");
+            var result4 = viewEngine.FindView(nonAreaContext, "Index");
+
+            // Assert 4
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Admin/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Views/Home/Index.cshtml"), Times.Once());
+
+            var view3 = Assert.IsType<RazorView>(result3.View);
+            Assert.Same(areaPage, view3.RazorPage);
+            var view4 = Assert.IsType<RazorView>(result4.View);
+            Assert.Same(nonAreaPage, view4.RazorPage);
+        }
+
+        [Fact]
+        public void FindView_CreatesDifferentCacheEntries_ForDifferentAreas()
+        {
+            // Arrange
+            var pageFactory = new Mock<IRazorPageFactoryProvider>();
+            var areaPage1 = Mock.Of<IRazorPage>();
+            var areaPage2 = Mock.Of<IRazorPage>();
+            pageFactory
+                .Setup(p => p.CreateFactory("/Areas/Marketing/Views/Home/Index.cshtml"))
+                .Returns(new RazorPageFactoryResult(() => areaPage1, new IChangeToken[0]));
+            pageFactory
+                .Setup(p => p.CreateFactory("/Areas/Sales/Views/Home/Index.cshtml"))
+                .Returns(new RazorPageFactoryResult(() => areaPage2, new IChangeToken[0]));
+
+            var viewEngine = new TestableRazorViewEngine(
+                pageFactory.Object,
+                GetOptionsAccessor());
+
+            // Act 1
+            var areaContext1 = GetActionContext(new Dictionary<string, object>()
+            {
+                {"area", "Marketing"},
+                {"controller", "Home"},
+            });
+            var result1 = viewEngine.FindView(areaContext1, "Index");
+
+            // Assert 1
+            Assert.NotNull(result1);
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Marketing/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Sales/Views/Home/Index.cshtml"), Times.Never());
+            var view1 = Assert.IsType<RazorView>(result1.View);
+            Assert.Same(areaPage1, view1.RazorPage);
+
+            // Act 2
+            var areaContext2 = GetActionContext(new Dictionary<string, object>()
+            {
+                {"controller", "Home"},
+                {"area", "Sales"},
+            });
+            var result2 = viewEngine.FindView(areaContext2, "Index");
+
+            // Assert 2
+            Assert.NotNull(result2);
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Marketing/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Sales/Views/Home/Index.cshtml"), Times.Once());
+            var view2 = Assert.IsType<RazorView>(result2.View);
+            Assert.Same(areaPage2, view2.RazorPage);
+
+            // Act 3
+            // Ensure we're getting cached results.
+            var result3 = viewEngine.FindView(areaContext1, "Index");
+            var result4 = viewEngine.FindView(areaContext2, "Index");
+
+            // Assert 4
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Marketing/Views/Home/Index.cshtml"), Times.Once());
+            pageFactory.Verify(p => p.CreateFactory("/Areas/Sales/Views/Home/Index.cshtml"), Times.Once());
+
+            var view3 = Assert.IsType<RazorView>(result3.View);
+            Assert.Same(areaPage1, view3.RazorPage);
+            var view4 = Assert.IsType<RazorView>(result4.View);
+            Assert.Same(areaPage2, view4.RazorPage);
+        }
+
         [Theory]
         [MemberData(nameof(ViewLocationExpanderTestData))]
         public void FindView_UsesViewLocationExpandersToLocateViews(
