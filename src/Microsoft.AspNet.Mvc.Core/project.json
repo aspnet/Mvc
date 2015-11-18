@@ -1,6 +1,6 @@
 {
   "description": "The core runtime components of ASP.NET MVC.",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,30 +10,30 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Authorization": "1.0.0-*",
-    "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-*",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+    "Microsoft.AspNet.Authorization": "1.0.0-rc1-final",
+    "Microsoft.AspNet.FileProviders.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Hosting.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Abstractions": "6.0.0-rc1-final",
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-*",
-    "Microsoft.Extensions.MemoryPool": "1.0.0-*",
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0-rc1-final",
+    "Microsoft.Extensions.MemoryPool": "1.0.0-rc1-final",
     "Microsoft.Extensions.PropertyActivator.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.SecurityHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
-    "System.Diagnostics.DiagnosticSource": "4.0.0-beta-*"
+    "System.Diagnostics.DiagnosticSource": "4.0.0-beta-23516"
   },
   "frameworks": {
     "net451": {
@@ -43,7 +43,7 @@
     },
     "dotnet5.4": {
       "dependencies": {
-        "System.Text.Encoding": "4.0.11-*"
+        "System.Text.Encoding": "4.0.11-beta-23516"
       }
     }
   }

@@ -3,13 +3,16 @@
     "warningsAsErrors": true
   },
   "dependencies": {
-    "Microsoft.AspNet.Mvc": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.Localization": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-*", "type": "build" },
-    "Microsoft.AspNet.Testing": "1.0.0-*",
-    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-*",
-    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-*",
-    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+    "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Localization": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.TestCommon": {
+      "version": "6.0.0-*",
+      "type": "build"
+    },
+    "Microsoft.AspNet.Testing": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-rc1-final",
+    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-rc1-final",
+    "xunit.runner.aspnet": "2.0.0-aspnet-rc1-final"
   },
   "commands": {
     "test": "xunit.runner.aspnet"
@@ -17,8 +20,8 @@
   "frameworks": {
     "dnx451": {
       "dependencies": {
-            "Moq": "4.2.1312.1622"
-        }
+        "Moq": "4.2.1312.1622"
+      }
     }
   }
 }

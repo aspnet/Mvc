@@ -1,6 +1,6 @@
 {
   "description": "The Razor view engine for ASP.NET MVC.",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,24 +10,24 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-*",
-    "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-*",
-    "Microsoft.AspNet.Razor.Runtime.Precompilation": "4.0.0-*",
-    "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces": "1.0.0-*",
+    "Microsoft.AspNet.Mvc.Razor.Host": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.ViewFeatures": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Razor.Runtime.Precompilation": "4.0.0-rc1-final",
+    "Microsoft.AspNet.PageExecutionInstrumentation.Interfaces": "1.0.0-rc1-final",
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyActivator.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     },
-    "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-*",
-    "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-*"
+    "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-rc1-final",
+    "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-rc1-final"
   },
   "frameworks": {
     "net451": {
@@ -41,9 +41,9 @@
     },
     "dotnet5.4": {
       "dependencies": {
-        "System.Text.Encoding": "4.0.11-*",
-        "System.Runtime.Loader": "4.0.0-*",
-        "System.Threading.Tasks.Parallel": "4.0.1-beta-*"
+        "System.Text.Encoding": "4.0.11-beta-23516",
+        "System.Runtime.Loader": "4.0.0-beta-23516",
+        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516"
       }
     }
   },

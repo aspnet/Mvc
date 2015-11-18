@@ -1,6 +1,6 @@
 {
   "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-  "version": "6.0.0-*",
+  "version": "6.0.0-rc1-final",
   "repository": {
     "type": "git",
     "url": "git://github.com/aspnet/mvc"
@@ -10,27 +10,27 @@
     "keyFile": "../../tools/Key.snk"
   },
   "dependencies": {
-    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-*",
-    "Microsoft.AspNet.Razor.Runtime": "4.0.0-*",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
+    "Microsoft.AspNet.FileProviders.Physical": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Razor.Runtime": "4.0.0-rc1-final",
+    "Microsoft.Extensions.Caching.Memory": "1.0.0-rc1-final",
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-rc1-final",
       "type": "build"
     }
   },
   "frameworks": {
     "net451": {
       "dependencies": {
-        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*"
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final"
       }
     },
     "dotnet5.4": {
       "dependencies": {
-        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
-        "System.Collections.Concurrent": "4.0.11-beta-*",
-        "System.ComponentModel.TypeConverter": "4.0.1-beta-*",
-        "System.Reflection.Extensions": "4.0.1-beta-*",
-        "System.Text.Encoding.Extensions": "4.0.11-beta-*"
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
+        "System.Collections.Concurrent": "4.0.11-beta-23516",
+        "System.ComponentModel.TypeConverter": "4.0.1-beta-23516",
+        "System.Reflection.Extensions": "4.0.1-beta-23516",
+        "System.Text.Encoding.Extensions": "4.0.11-beta-23516"
       }
     }
   },

@@ -1,23 +1,26 @@
 {
-    "compilationOptions": {
-        "warningsAsErrors": true
+  "compilationOptions": {
+    "warningsAsErrors": true
+  },
+  "dependencies": {
+    "Microsoft.AspNet.Http": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.Formatters.Xml": "6.0.0-rc1-final",
+    "Microsoft.AspNet.Mvc.TestCommon": {
+      "version": "6.0.0-*",
+      "type": "build"
     },
-    "dependencies": {
-        "Microsoft.AspNet.Http": "1.0.0-*",
-        "Microsoft.AspNet.Mvc": "6.0.0-*",
-        "Microsoft.AspNet.Mvc.Formatters.Xml" : "6.0.0-*",
-        "Microsoft.AspNet.Mvc.TestCommon": { "version": "6.0.0-*", "type": "build" },
-        "Microsoft.AspNet.Testing": "1.0.0-*",
-        "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
-        "Microsoft.Extensions.Logging.Testing": "1.0.0-*",
-        "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-*",
-        "Moq": "4.2.1312.1622",
-        "xunit.runner.aspnet": "2.0.0-aspnet-*"
-    },
-    "commands": {
-        "test": "xunit.runner.aspnet"
-    },
-    "frameworks": {
-        "dnx451": { }
-    }
+    "Microsoft.AspNet.Testing": "1.0.0-rc1-final",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-rc1-final",
+    "Microsoft.Extensions.Logging.Testing": "1.0.0-rc1-final",
+    "Microsoft.Extensions.WebEncoders.Testing": "1.0.0-rc1-final",
+    "Moq": "4.2.1312.1622",
+    "xunit.runner.aspnet": "2.0.0-aspnet-rc1-final"
+  },
+  "commands": {
+    "test": "xunit.runner.aspnet"
+  },
+  "frameworks": {
+    "dnx451": {}
+  }
 }
