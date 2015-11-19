@@ -334,6 +334,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 options,
                 new TestHttpResponseStreamWriterFactory(),
                 new CompositeViewEngine(options),
+                new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 diagnosticSource,
                 NullLoggerFactory.Instance);
 
