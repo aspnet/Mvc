@@ -9,6 +9,7 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.WebApiCompatShim;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -155,7 +156,7 @@ namespace System.Web.Http
             {
                 if (_urlHelper == null)
                 {
-                    _urlHelper = Context?.RequestServices?.GetRequiredService<IUrlHelper>();
+                    _urlHelper = Context?.RequestServices?.GetRequiredService<IUrlHelperFactory>().Create(ActionContext);
                 }
 
                 return _urlHelper;

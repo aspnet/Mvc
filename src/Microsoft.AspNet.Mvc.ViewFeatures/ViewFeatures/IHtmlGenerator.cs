@@ -22,6 +22,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         string FormatValue(object value, string format);
 
         TagBuilder GenerateActionLink(
+            ViewContext viewContext,
             string linkText,
             string actionName,
             string controllerName,
@@ -159,6 +160,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             object htmlAttributes);
 
         TagBuilder GenerateRouteLink(
+            ViewContext viewContext,
             string linkText,
             string routeName,
             string protocol,
