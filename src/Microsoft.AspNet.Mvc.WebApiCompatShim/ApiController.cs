@@ -30,16 +30,14 @@ namespace System.Web.Http
         /// <summary>
         /// Gets the action context.
         /// </summary>
-        /// <remarks>The setter is intended for unit testing purposes only.</remarks>
-        [ActionContext]
-        public ActionContext ActionContext { get; set; }
+        public ActionContext ActionContext => ControllerContext;
 
         /// <summary>
-        /// Gets the <see cref="ActionBindingContext"/>.
+        /// Gets or sets the <see cref="ControllerContext"/>.
         /// </summary>
         /// <remarks>The setter is intended for unit testing purposes only.</remarks>
-        [ActionBindingContext]
-        public ActionBindingContext BindingContext { get; set; }
+        [ControllerContext]
+        public ControllerContext ControllerContext { get; set; }
 
         /// <summary>
         /// Gets the http context.
@@ -48,7 +46,7 @@ namespace System.Web.Http
         {
             get
             {
-                return ActionContext?.HttpContext;
+                return ControllerContext.HttpContext;
             }
         }
 
@@ -101,7 +99,7 @@ namespace System.Web.Http
         {
             get
             {
-                return ActionContext?.ModelState;
+                return ControllerContext.ModelState;
             }
         }
 
@@ -115,7 +113,7 @@ namespace System.Web.Http
             {
                 if (_request == null && ActionContext != null)
                 {
-                    _request = ActionContext.HttpContext.GetHttpRequestMessage();
+                    _request = ControllerContext.HttpContext.GetHttpRequestMessage();
                 }
 
                 return _request;
@@ -553,7 +551,7 @@ namespace System.Web.Http
         {
             var validatidationState = new ValidationStateDictionary();
             ObjectValidator.Validate(
-                BindingContext.ValidatorProvider,
+                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
                 ModelState,
                 validatidationState,
                 keyPrefix,

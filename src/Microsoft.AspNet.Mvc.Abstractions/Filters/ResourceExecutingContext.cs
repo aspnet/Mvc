@@ -29,12 +29,6 @@ namespace Microsoft.AspNet.Mvc.Filters
         /// </summary>
         public virtual FormatterCollection<IInputFormatter> InputFormatters { get; set; }
 
-        /// <summary>
-        /// Gets or sets the list of <see cref="IOutputFormatter"/> instances used to format the response.
-        /// </summary>
-        public virtual FormatterCollection<IOutputFormatter> OutputFormatters { get; set; }
-
-        /// <summary>
         /// Gets or sets the list of <see cref="IModelBinder"/> instances used by model binding.
         /// </summary>
         public virtual IList<IModelBinder> ModelBinders { get; set; }

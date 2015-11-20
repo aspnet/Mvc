@@ -27,12 +27,11 @@ namespace System.Web.Http
 
             var httpContext = new DefaultHttpContext();
             httpContext.User = new ClaimsPrincipal();
-
-            var routeContext = new RouteContext(httpContext);
+            
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             // Act
-            controller.ActionContext = actionContext;
+            controller.ControllerContext = new ControllerContext(actionContext);
 
             // Assert
             Assert.Same(httpContext, controller.Context);

@@ -15,7 +15,7 @@ namespace ApplicationModelWebSite
         [ActionName2("ActionName")]
         public string GetActionName()
         {
-            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            var actionDescriptor = (ControllerActionDescriptor)ControllerContext.ActionDescriptor;
 
             return actionDescriptor.Name;
         }

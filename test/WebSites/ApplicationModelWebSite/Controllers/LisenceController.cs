@@ -11,7 +11,7 @@ namespace ApplicationModelWebSite.Controllers
         [HttpGet("Lisence/GetLisence")]
         public string GetLisence()
         {
-            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            var actionDescriptor = (ControllerActionDescriptor)ControllerContext.ActionDescriptor;
             return actionDescriptor.Properties["lisence"].ToString();
         }
     }

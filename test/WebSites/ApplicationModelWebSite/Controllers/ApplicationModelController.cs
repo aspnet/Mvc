@@ -12,14 +12,14 @@ namespace ApplicationModelWebSite
     {
         public string GetControllerDescription()
         {
-            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            var actionDescriptor = (ControllerActionDescriptor)ControllerContext.ActionDescriptor;
             return actionDescriptor.Properties["description"].ToString();
         }
 
         [ActionDescription("Specific Action Description")]
         public string GetActionSpecificDescription()
         {
-            var actionDescriptor = (ControllerActionDescriptor)ActionContext.ActionDescriptor;
+            var actionDescriptor = (ControllerActionDescriptor)ControllerContext.ActionDescriptor;
             return actionDescriptor.Properties["description"].ToString();
         }
     }
