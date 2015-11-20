@@ -1771,6 +1771,22 @@ namespace Microsoft.AspNet.Mvc.Test
         }
 
         [Fact]
+        public void TryValidateModel_Succeeds_WithoutValidatorMetadata()
+        {
+            // Arrange
+            var model = new TryValidateModelModel();
+            var binder = new GenericModelBinder();
+            var valueProvider = new CompositeValueProvider();
+            var controller = GetController(binder, valueProvider);
+
+            // Act
+            var result = controller.TryValidateModel(model);
+
+            // Assert
+            Assert.True(controller.ModelState.IsValid);
+        }
+
+        [Fact]
         public void TryValidateModelEmptyBindingContextThrowsException()
         {
             // Arrange
