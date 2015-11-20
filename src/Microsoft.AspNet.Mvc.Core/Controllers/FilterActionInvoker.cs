@@ -413,8 +413,10 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     Context.ValidatorProviders = _resourceExecutingContext.ValidatorProviders;
 
                     var valueProviders = new List<IValueProvider>();
-                    foreach (var factory in _resourceExecutingContext.ValueProviderFactories)
+
+                    for (var i = 0; i < _resourceExecutingContext.ValueProviderFactories.Count; i++)
                     {
+                        var factory = _resourceExecutingContext.ValueProviderFactories[i];
                         var valueProvider = await factory.GetValueProviderAsync(Context);
                         if (valueProvider != null)
                         {

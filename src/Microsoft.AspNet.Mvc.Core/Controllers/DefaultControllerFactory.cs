@@ -54,16 +54,14 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-            if (actionDescriptor == null)
+            if (context.ActionDescriptor == null)
             {
-                throw new ArgumentException(
-                    Resources.FormatActionDescriptorMustBeBasedOnControllerAction(
-                        typeof(ControllerActionDescriptor)),
-                    nameof(context));
+                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(ControllerContext.ActionDescriptor),
+                    nameof(ControllerContext)));
             }
 
-            var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
+            var controllerType = context.ActionDescriptor.ControllerTypeInfo.AsType();
             var controllerTypeInfo = controllerType.GetTypeInfo();
             if (controllerTypeInfo.IsValueType ||
                 controllerTypeInfo.IsInterface ||
@@ -71,7 +69,8 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 (controllerTypeInfo.IsGenericType && controllerTypeInfo.IsGenericTypeDefinition))
             {
                 var message = Resources.FormatValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated(
-                    controllerType.FullName, GetType().FullName);
+                    controllerType.FullName, 
+                    GetType().FullName);
                 throw new InvalidOperationException(message);
             }
 

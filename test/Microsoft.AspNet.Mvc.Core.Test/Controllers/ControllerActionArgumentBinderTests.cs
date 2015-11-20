@@ -573,23 +573,19 @@ namespace Microsoft.AspNet.Mvc.Controllers
             Assert.Equal("Hello", controller.StringProperty);
         }
 
-        private static ControllerContext GetControllerContext(ActionDescriptor descriptor = null)
+        private static ControllerContext GetControllerContext(ControllerActionDescriptor descriptor = null)
         {
             var context = new ControllerContext()
             {
                 ActionDescriptor = descriptor ?? GetActionDescriptor(),
                 HttpContext = new DefaultHttpContext(),
-                InputFormatters = new List<IInputFormatter>(),
-                ModelBinders = new List<IModelBinder>(),
                 RouteData = new RouteData(),
-                ValueProviders = new List<IValueProvider>(),
-                ValidatorProviders = new List<IModelValidatorProvider>(),
             };
 
             return context;
         }
 
-        private static ActionDescriptor GetActionDescriptor()
+        private static ControllerActionDescriptor GetActionDescriptor()
         {
             Func<object, int> method = foo => 1;
             return new ControllerActionDescriptor

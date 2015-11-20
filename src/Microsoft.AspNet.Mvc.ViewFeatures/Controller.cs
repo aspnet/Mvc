@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return ControllerContext?.HttpContext?.RequestServices;
+                return HttpContext?.RequestServices;
             }
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return ControllerContext?.HttpContext;
+                return ControllerContext.HttpContext;
             }
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return ControllerContext?.HttpContext?.Request;
+                return HttpContext?.Request;
             }
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return ControllerContext?.HttpContext?.Response;
+                return HttpContext?.Response;
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.AspNet.Mvc
         {
             get
             {
-                return ControllerContext?.RouteData;
+                return ControllerContext.RouteData;
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.Mvc
         /// </summary>
         /// <remarks>
         /// <see cref="Controllers.IControllerActivator"/> activates this property while activating controllers.
-        ///  If user code directly instantiates a controller, the getter returns an empty
+        /// If user code directly instantiates a controller, the getter returns an empty
         /// <see cref="Mvc.ControllerContext"/>.
         /// </remarks>
         [ControllerContext]

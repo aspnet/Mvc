@@ -30,11 +30,10 @@ namespace System.Web.Http
         /// <summary>
         /// Gets the action context.
         /// </summary>
-        /// <remarks>The setter is intended for unit testing purposes only.</remarks>
         public ActionContext ActionContext => ControllerContext;
 
         /// <summary>
-        /// Gets the <see cref="ControllerContext"/>.
+        /// Gets or sets the <see cref="ControllerContext"/>.
         /// </summary>
         /// <remarks>The setter is intended for unit testing purposes only.</remarks>
         [ControllerContext]
@@ -47,7 +46,7 @@ namespace System.Web.Http
         {
             get
             {
-                return ActionContext?.HttpContext;
+                return ControllerContext.HttpContext;
             }
         }
 
@@ -100,7 +99,7 @@ namespace System.Web.Http
         {
             get
             {
-                return ActionContext?.ModelState;
+                return ControllerContext.ModelState;
             }
         }
 
@@ -114,7 +113,7 @@ namespace System.Web.Http
             {
                 if (_request == null && ActionContext != null)
                 {
-                    _request = ActionContext.HttpContext.GetHttpRequestMessage();
+                    _request = ControllerContext.HttpContext.GetHttpRequestMessage();
                 }
 
                 return _request;

@@ -71,9 +71,6 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddMvc();
 
-            // Test service for [FromServices] testing
-            serviceCollection.AddTransient<ITestService, TestService>();
-
             if (updateOptions != null)
             {
                 serviceCollection.Configure(updateOptions);

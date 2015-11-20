@@ -49,16 +49,15 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 throw new ArgumentNullException(nameof(controller));
             }
 
-            var actionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
-            if (actionDescriptor == null)
+            if (context.ActionDescriptor == null)
             {
-                throw new ArgumentException(
-                    Resources.FormatActionDescriptorMustBeBasedOnControllerAction(
-                        typeof(ControllerActionDescriptor)),
-                        nameof(context));
+                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(ControllerContext.ActionDescriptor),
+                    nameof(ControllerContext)));
             }
 
             // Perf: Avoid allocating async state machines when we know there's nothing to bind.
+            var actionDescriptor = context.ActionDescriptor;
             if (actionDescriptor.BoundProperties.Count == 0 &&
                 actionDescriptor.Parameters.Count == 0)
             {

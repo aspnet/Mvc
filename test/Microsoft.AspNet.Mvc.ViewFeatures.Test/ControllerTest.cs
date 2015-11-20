@@ -1416,7 +1416,6 @@ namespace Microsoft.AspNet.Mvc.Test
             binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
                   .Callback((ModelBindingContext context) =>
                   {
-                      System.Diagnostics.Debugger.Break();
                       Assert.Same(
                           valueProvider.Object,
                           Assert.IsType<CompositeValueProvider>(context.ValueProvider)[0]);
@@ -1790,16 +1789,9 @@ namespace Microsoft.AspNet.Mvc.Test
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext,
-                InputFormatters = new List<IInputFormatter>(),
-                ModelBinders = new List<IModelBinder>()
-                {
-                    binder,
-                },
-                ValueProviders = new List<IValueProvider>()
-                {
-                    valueProvider,
-                },
-                ValidatorProviders = new List<IModelValidatorProvider>()
+                ModelBinders = new[] { binder, },
+                ValueProviders = new[] { valueProvider, },
+                ValidatorProviders = new []
                 {
                     new DataAnnotationsModelValidatorProvider(options: null, stringLocalizerFactory: null),
                 },

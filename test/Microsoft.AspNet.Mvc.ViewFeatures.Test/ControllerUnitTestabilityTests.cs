@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
-using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Routing;
 #if MOCK_SUPPORT
 using Moq;
@@ -514,7 +514,7 @@ namespace Microsoft.AspNet.Mvc
         public void ControllerContextSetter_CanBeUsedWithControllerActionContext()
         {
             // Arrange
-            var actionDescriptor = new ActionDescriptor();
+            var actionDescriptor = new ControllerActionDescriptor();
             var httpContext = new DefaultHttpContext();
             var routeData = new RouteData();
 

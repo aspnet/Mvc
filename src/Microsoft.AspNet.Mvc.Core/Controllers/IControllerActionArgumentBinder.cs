@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.Mvc.Controllers
     public interface IControllerActionArgumentBinder
     {
         /// <summary>
-        /// Returns a dictionary of representing the parameter-argument name-value pairs,
+        /// Returns a dictionary of the parameter-argument name-value pairs,
         /// which can be used to invoke the action. Also binds properties explicitly marked properties on the 
         /// <paramref name="controller"/>.
         /// </summary>
