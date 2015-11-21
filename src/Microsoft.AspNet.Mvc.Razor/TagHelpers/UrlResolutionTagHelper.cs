@@ -162,56 +162,40 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
 
                 foreach (var attribute in attributes)
                 {
-                    var stringValue = attribute.Value as string;
-
-                    if (stringValue != null) 
+                    if (attribute.Value is string)
                     {
-                        if (attributeCanAcceptMultipleUrls)
-                        {
-                            var resolvedUrls = new List<string>();
-                            foreach (var item in stringValue.Split(','))
-                            {
-                                resolvedUrls.Add(ResolveUrlString(item));
-                            }
-                            attribute.Value = string.Join(", ", resolvedUrls);
-                        }
-                        else
-                        {
-                            attribute.Value = ResolveUrlString(stringValue);
-                        }
+                        var stringValue = attribute.Value as string;
+                        attribute.Value = attributeCanAcceptMultipleUrls ? ResolveMultipleUrls(stringValue) : ResolveUrl(stringValue);
                     }
-                    else
+                    else if (attribute.Value is HtmlString)
                     {
                         var htmlStringValue = attribute.Value as HtmlString;
-
-                        if (htmlStringValue == null) //not a string or HtmlString by this stage.
-                        {
-                            continue;
-                        }
-
-                        if (attributeCanAcceptMultipleUrls)
-                        {
-                            var resolvedUrls = new List<HtmlString>();
-
-                            foreach (var item in htmlStringValue.ToString().Split(','))
-                            {
-                                resolvedUrls.Add(ResolveUrlHtmlString(new HtmlString(item)));
-                            }
-                            attribute.Value = new HtmlString(string.Join(", ", resolvedUrls));
-                        }
-                        else
-                        {
-                            attribute.Value = ResolveUrlHtmlString(htmlStringValue);
-                        }
+                        attribute.Value = attributeCanAcceptMultipleUrls ? ResolveMultipleUrls(htmlStringValue) : ResolveUrl(htmlStringValue);
                     }
+                    
                 }
             }
         }
-        
-        private string ResolveUrlString(string stringValue)
+
+        private string ResolveMultipleUrls(string stringOfUrls, bool encodeWebRoot = false)
+        {
+            var resolvedUrls = new List<string>();
+            foreach (var item in stringOfUrls.Split(','))
+            {
+                resolvedUrls.Add(ResolveUrl(item, encodeWebRoot));
+            }
+            return string.Join(", ", resolvedUrls);
+        }
+
+        private HtmlString ResolveMultipleUrls(HtmlString stringOfUrls)
+        {
+            return new HtmlString(ResolveMultipleUrls(stringOfUrls.ToString(), encodeWebRoot: true));
+        }
+
+        private string ResolveUrl(string stringValue, bool encodeWebRoot = false)
         {
             string resolvedUrl;
-            if (TryResolveUrl(stringValue, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
+            if (TryResolveUrl(stringValue, encodeWebRoot: encodeWebRoot, resolvedUrl: out resolvedUrl))
             {
                 return resolvedUrl;
             }
@@ -219,14 +203,15 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
             return stringValue;
         }
 
-        private HtmlString ResolveUrlHtmlString(HtmlString htmlStringValue)
+        private HtmlString ResolveUrl(HtmlString htmlStringValue)
         {
             string resolvedUrl;
-            if (htmlStringValue != null && TryResolveUrl(htmlStringValue.ToString(), encodeWebRoot: true, resolvedUrl: out resolvedUrl))
+            if (TryResolveUrl(htmlStringValue.ToString(), encodeWebRoot: true, resolvedUrl: out resolvedUrl))
             {
                 return new HtmlString(resolvedUrl);
             }
             return htmlStringValue;
+
         }
 
         /// <summary>
