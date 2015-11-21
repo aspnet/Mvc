@@ -44,23 +44,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         /// </summary>
         /// <param name="modelMetadata">The <see cref="ModelMetadata"/> associated with the model annotated with
         /// <see cref="Attribute"/>.</param>
+        /// <param name="arguments">Optional param to support error message with param</param>
         /// <returns>Formatted error string.</returns>
-        protected virtual string GetErrorMessage(ModelMetadata modelMetadata)
+        protected virtual string GetErrorMessage(ModelMetadata modelMetadata, params object[] arguments)
         {
             if (modelMetadata == null)
             {
                 throw new ArgumentNullException(nameof(modelMetadata));
             }
 
-            if (_stringLocalizer != null &&
-                !string.IsNullOrEmpty(Attribute.ErrorMessage) &&
-                string.IsNullOrEmpty(Attribute.ErrorMessageResourceName) &&
-                Attribute.ErrorMessageResourceType == null)
+            var displayName = modelMetadata.GetDisplayName();
+            if (UseAspNetLocalizer)
             {
-                return _stringLocalizer[Attribute.ErrorMessage];
+                return _stringLocalizer[Attribute.ErrorMessage, displayName, arguments];
             }
-            
-            return Attribute.FormatErrorMessage(modelMetadata.GetDisplayName());
+            return Attribute.FormatErrorMessage(displayName);
         }
+
+        protected virtual bool UseAspNetLocalizer =>
+            _stringLocalizer != null &&
+            !string.IsNullOrEmpty(Attribute.ErrorMessage) &&
+            string.IsNullOrEmpty(Attribute.ErrorMessageResourceName) &&
+            Attribute.ErrorMessageResourceType == null;
+
     }
 }

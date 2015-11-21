@@ -70,13 +70,12 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
             var metadata = provider.GetMetadataForProperty(typeof(string), "Length");
-            var errorKey = metadata.GetDisplayName();
-            var attribute = new MaxLengthAttribute(10);
-            attribute.ErrorMessage = errorKey;
+            var errorKey = "Error field {0} parameter {1}";
+            var attribute = new MaxLengthAttribute(10) { ErrorMessage = errorKey };
 
             var localizedString = new LocalizedString(errorKey, "Longueur est invalide");
             var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s[errorKey]).Returns(localizedString);
+            stringLocalizer.Setup(s => s[errorKey, "Length", new object[] { 10 }]).Returns(localizedString);
 
             var adapter = new MaxLengthAttributeAdapter(attribute, stringLocalizer.Object);
             var serviceCollection = new ServiceCollection();
@@ -94,5 +93,5 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Assert.Equal("Longueur est invalide", rule.ErrorMessage);
         }
 #endif
-        }
+    }
 }
