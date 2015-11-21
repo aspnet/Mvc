@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -39,15 +38,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public void BinderType_SettingBindingSource_OverridesDefaultCustomBindingSource()
         {
             // Arrange
-            var attribute = new ModelBinderAttribute();
-            attribute.BindingSource = BindingSource.Query;
-            attribute.BinderType = typeof(ByteArrayModelBinder);
+            var attribute = new FromQueryModelBinderAttribute();
 
             // Act
             var source = attribute.BindingSource;
 
             // Assert
             Assert.Equal(BindingSource.Query, source);
+        }
+
+        private class FromQueryModelBinderAttribute : ModelBinderAttribute
+        {
+            // Not the perfect way to override this property since setting its value (possible when not using the class
+            // as an attribute) has no effect. base.BindingSource && BindingSource.Query may be right for some cases.
+            public override BindingSource BindingSource => BindingSource.Query;
         }
     }
 }
