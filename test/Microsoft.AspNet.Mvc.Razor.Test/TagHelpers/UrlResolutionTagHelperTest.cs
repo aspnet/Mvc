@@ -197,5 +197,137 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                 () => tagHelper.Process(context, tagHelperOutput));
             Assert.Equal(expectedExceptionMessage, exception.Message, StringComparer.Ordinal);
         }
+
+        public static TheoryData ResolvableSrcSetAttributeData
+        {
+            get
+            {
+                // url, expectedHref
+                return new TheoryData<object, object>
+                {
+                   { "~/content/image.png 1x", "/approot/content/image.png 1x" },
+                   { "  ~/content/image.png 1x, ~/content/image@2.png 2x", "/approot/content/image.png 1x, /approot/content/image@2.png 2x" },
+                   { "~/content/image.png ~/secondValue/image.png", "/approot/content/image.png ~/secondValue/image.png" },
+                   { "~/content/image.png 200w, ~/content/image@2.png 400w", "/approot/content/image.png 200w, /approot/content/image@2.png 400w" },
+                   {
+                        new HtmlString("~/content/image.png 1x"),
+                        new HtmlString("HtmlEncode[[/approot/]]content/image.png 1x")
+                   },
+                   {
+                        new HtmlString("~/content/image.png 1x, ~/content/image@2.png 2x"),
+                        new HtmlString("HtmlEncode[[/approot/]]content/image.png 1x, HtmlEncode[[/approot/]]content/image@2.png 2x")
+                   },
+                   {
+                       new HtmlString("  ~/content/image.png 1x,    ~/content/image.png 2x"),
+                       new HtmlString("HtmlEncode[[/approot/]]content/image.png 1x, HtmlEncode[[/approot/]]content/image.png 2x")
+                   },
+                   {
+                       new HtmlString("~/content/image.png ~/secondValue/image.png"),
+                       new HtmlString("HtmlEncode[[/approot/]]content/image.png ~/secondValue/image.png")
+                   }
+
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ResolvableSrcSetAttributeData))]
+        public void Process_ResolvesImgSrcSetWithMultipleUrls(object url, object expectedHref)
+        {
+            // Arrange
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "img",
+                attributes: new TagHelperAttributeList
+                {
+                    { "srcset", url }
+                },
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
+            var urlHelperMock = new Mock<IUrlHelper>();
+            urlHelperMock
+                .Setup(urlHelper => urlHelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(value => "/approot" + value.Substring(1)));
+            var tagHelper = new UrlResolutionTagHelper(urlHelperMock.Object, new HtmlTestEncoder());
+
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act
+            tagHelper.Process(context, tagHelperOutput);
+
+            // Assert
+            var attribute = Assert.Single(tagHelperOutput.Attributes);
+            Assert.Equal("srcset", attribute.Name, StringComparer.Ordinal);
+            Assert.IsType(expectedHref.GetType(), url);
+            Assert.Equal(expectedHref.ToString(), attribute.Value.ToString());
+            Assert.False(attribute.Minimized);
+
+        }
+
+        public static TheoryData ResolvableSrcAttributeData
+        {
+            get
+            {
+                // url, expectedHref
+                return new TheoryData<object, object>
+                {
+                   { "~/content/image.png 1x", "/approot/content/image.png 1x" },
+                   { "~/content/image.png 1x, ~/content/image@2.png 2x", "/approot/content/image.png 1x, ~/content/image@2.png 2x" },
+                   { "  ~/content/image.png 1x, ~/content/image@2.png 2x", "/approot/content/image.png 1x, ~/content/image@2.png 2x" },
+                   { "~/content/image.png ~/secondValue/image.png", "/approot/content/image.png ~/secondValue/image.png" },
+                   { "~/content/image.png 200w, ~/content/image@2.png 400w", "/approot/content/image.png 200w, ~/content/image@2.png 400w" },
+                   {
+                        new HtmlString("~/content/image.png 1x, ~/content/image@2.png 2x"),
+                        new HtmlString("HtmlEncode[[/approot/]]content/image.png 1x, ~/content/image@2.png 2x") },
+                   {
+                       new HtmlString("  ~/content/image.png 1x,    ~/content/image.png 2x"),
+                       new HtmlString("HtmlEncode[[/approot/]]content/image.png 1x,    ~/content/image.png 2x")
+                   },
+                   {
+                       new HtmlString("~/content/image.png ~/secondValue/image.png"),
+                       new HtmlString("HtmlEncode[[/approot/]]content/image.png ~/secondValue/image.png")
+                   }
+
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ResolvableSrcAttributeData))]
+        public void Process_AttributesWhichDontSupportMultipleUrlFormatShouldIgnoreMultipleTildSlash(object url, object expectedHref)
+        {
+            // Arrange
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "img",
+                attributes: new TagHelperAttributeList
+                {
+                    { "src", url }
+                },
+                getChildContentAsync: _ => Task.FromResult<TagHelperContent>(null));
+            var urlHelperMock = new Mock<IUrlHelper>();
+            urlHelperMock
+                .Setup(urlHelper => urlHelper.Content(It.IsAny<string>()))
+                .Returns(new Func<string, string>(value => "/approot" + value.Substring(1)));
+            var tagHelper = new UrlResolutionTagHelper(urlHelperMock.Object, new HtmlTestEncoder());
+
+            var context = new TagHelperContext(
+                allAttributes: new ReadOnlyTagHelperAttributeList<IReadOnlyTagHelperAttribute>(
+                    Enumerable.Empty<IReadOnlyTagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act
+            tagHelper.Process(context, tagHelperOutput);
+
+            // Assert
+            var attribute = Assert.Single(tagHelperOutput.Attributes);
+            Assert.Equal("src", attribute.Name, StringComparer.Ordinal);
+            Assert.IsType(expectedHref.GetType(), url);
+            Assert.Equal(expectedHref.ToString(), attribute.Value.ToString());
+            Assert.False(attribute.Minimized);
+
+        }
     }
 }
