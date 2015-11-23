@@ -14,13 +14,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     /// The provided content will be HTML-encoded when written. To write pre-encoded content, use an
     /// <see cref="HtmlContentViewComponentResult"/>.
     /// </remarks>
-    public class StringViewComponentResult : IViewComponentResult
+    public class ContentViewComponentResult : IViewComponentResult
     {
         /// <summary>
-        /// Initializes a new <see cref="StringViewComponentResult"/>.
+        /// Initializes a new <see cref="ContentViewComponentResult"/>.
         /// </summary>
         /// <param name="content">Content to write. The content will be HTML encoded when written.</param>
-        public StringViewComponentResult(string content)
+        public ContentViewComponentResult(string content)
         {
             if (content == null)
             {

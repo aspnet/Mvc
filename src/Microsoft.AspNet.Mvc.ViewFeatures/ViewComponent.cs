@@ -201,15 +201,15 @@ namespace Microsoft.AspNet.Mvc
         /// Returns a result which will render HTML encoded text.
         /// </summary>
         /// <param name="content">The content, will be HTML encoded before output.</param>
-        /// <returns>A <see cref="StringViewComponentResult"/>.</returns>
-        public StringViewComponentResult Content(string content)
+        /// <returns>A <see cref="ContentViewComponentResult"/>.</returns>
+        public ContentViewComponentResult Content(string content)
         {
             if (content == null)
             {
                 throw new ArgumentNullException(nameof(content));
             }
 
-            return new StringViewComponentResult(content);
+            return new ContentViewComponentResult(content);
         }
 
         /// <summary>

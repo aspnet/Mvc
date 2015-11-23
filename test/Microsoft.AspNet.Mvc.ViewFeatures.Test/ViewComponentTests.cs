@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.Mvc
             var actualResult = viewComponent.Content(expectedContent);
 
             // Assert
-            Assert.IsType<StringViewComponentResult>(actualResult);
+            Assert.IsType<ContentViewComponentResult>(actualResult);
             Assert.Same(expectedContent, actualResult.Content);
         }
 

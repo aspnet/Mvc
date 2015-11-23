@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     /// </summary>
     /// <remarks>
     /// The provided content will be HTML-encoded as specified when the content was created. To encoded and write
-    /// text, use a <see cref="StringViewComponentResult"/>.
+    /// text, use a <see cref="ContentViewComponentResult"/>.
     /// </remarks>
     public class HtmlContentViewComponentResult : IViewComponentResult
     {

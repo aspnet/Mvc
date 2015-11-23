@@ -17,14 +17,14 @@ using Xunit;
 
 namespace Microsoft.AspNet.Mvc
 {
-    public class StringViewComponentResultTest
+    public class ContentViewComponentResultTest
     {
         [Fact]
         public void Execute_WritesData_Encoded()
         {
             // Arrange
             var buffer = new MemoryStream();
-            var result = new StringViewComponentResult("<Test />");
+            var result = new ContentViewComponentResult("<Test />");
 
             var viewComponentContext = GetViewComponentContext(Mock.Of<IView>(), buffer);
 

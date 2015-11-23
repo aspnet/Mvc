@@ -217,7 +217,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             var stringResult = value as string;
             if (stringResult != null)
             {
-                return new StringViewComponentResult(stringResult);
+                return new ContentViewComponentResult(stringResult);
             }
 
             var htmlContent = value as IHtmlContent;
