@@ -3,9 +3,9 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace ValidationWebSite.Controllers
+namespace BasicWebSite.Controllers
 {
-    [Route("[Controller]/[Action]")]
+    [Route("[controller]/[action]")]
     public class RemoteAttribute_VerifyController : Controller
     {
         // This action is overloaded and may receive requests to validate either UserId1 or UserId2.

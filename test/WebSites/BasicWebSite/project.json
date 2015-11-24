@@ -1,7 +1,7 @@
 {
     "commands": {
-        "web": "Microsoft.AspNet.Hosting server=Microsoft.AspNet.Server.WebListener server.urls=http://localhost:5001",
-        "kestrel": "Microsoft.AspNet.Hosting --server Microsoft.AspNet.Server.Kestrel --server.urls http://localhost:5000"
+        "weblistener": "Microsoft.AspNet.Server.WebListener",
+        "web": "Microsoft.AspNet.Server.Kestrel"
     },
     "dependencies": {
         "Microsoft.AspNet.Mvc": "6.0.0-*",
@@ -15,5 +15,9 @@
         "dnx451": { },
         "dnxcore50": { }
     },
-    "webroot": "wwwroot"
+    "exclude": [
+        "wwwroot",
+        "node_modules",
+        "bower_components"
+    ]
 }
