@@ -4,7 +4,7 @@
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Routing;
 
-namespace UrlHelperWebSite.Controllers
+namespace UrlHelperSample.Web.Controllers
 {
     [Route("api/[controller]/{id?}", Name = "SimplePocoApi")]
     public class SimplePocoController

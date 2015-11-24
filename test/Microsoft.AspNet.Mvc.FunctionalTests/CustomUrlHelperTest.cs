@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
@@ -15,11 +15,11 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
     /// 1. Based on configuration, generate Content urls pointing to local or a CDN server
     /// 2. Based on configuration, generate lower case urls
     /// </summary>
-    public class CustomUrlHelperTests : IClassFixture<MvcTestFixture<UrlHelperWebSite.Startup>>
+    public class CustomUrlHelperTests : IClassFixture<MvcTestFixture<UrlHelperSample.Web.Startup>>
     {
         private const string _cdnServerBaseUrl = "http://cdn.contoso.com";
 
-        public CustomUrlHelperTests(MvcTestFixture<UrlHelperWebSite.Startup> fixture)
+        public CustomUrlHelperTests(MvcTestFixture<UrlHelperSample.Web.Startup> fixture)
         {
             Client = fixture.Client;
         }
