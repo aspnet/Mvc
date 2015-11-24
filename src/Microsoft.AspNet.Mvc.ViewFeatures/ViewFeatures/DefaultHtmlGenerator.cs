@@ -125,15 +125,19 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
-        public virtual IHtmlContent GenerateAntiforgery(ViewContext viewContext)
+        public virtual void GenerateAntiforgery(ViewContext viewContext, IHtmlContentBuilder content)
         {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
-            var tag = _antiforgery.GetHtml(viewContext.HttpContext);
-            return new HtmlString(tag);
+            if (content == null)
+            {
+                throw new ArgumentNullException(nameof(content));
+            }
+
+            _antiforgery.GetHtml(viewContext.HttpContext, content);
         }
 
         /// <inheritdoc />

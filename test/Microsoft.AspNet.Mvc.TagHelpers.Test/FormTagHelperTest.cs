@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
@@ -64,10 +65,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 model: null,
                 htmlGenerator: htmlGenerator,
                 metadataProvider: metadataProvider);
+            var content = new HtmlContentBuilder();
+            htmlGenerator.GenerateAntiforgery(viewContext, content);
             var expectedPostContent = "Something" +
-                HtmlContentUtilities.HtmlContentToString(
-                    htmlGenerator.GenerateAntiforgery(viewContext),
-                    HtmlEncoder.Default);
+                HtmlContentUtilities.HtmlContentToString(content, HtmlEncoder.Default);
             var formTagHelper = new FormTagHelper(htmlGenerator)
             {
                 Action = "index",
@@ -131,9 +132,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                     It.IsAny<string>(),
                     It.IsAny<object>()))
                 .Returns(new TagBuilder("form"));
+            generator
+                .Setup(mock => mock.GenerateAntiforgery(viewContext, It.IsAny<IHtmlContentBuilder>()))
+                .Callback<ViewContext, IHtmlContentBuilder>((_, content) => content.AppendHtml("<input />"));
 
-            generator.Setup(mock => mock.GenerateAntiforgery(viewContext))
-                     .Returns(new HtmlString("<input />"));
             var formTagHelper = new FormTagHelper(generator.Object)
             {
                 Action = "Index",
@@ -341,9 +343,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Arrange
             var viewContext = CreateViewContext();
             var generator = new Mock<IHtmlGenerator>();
+            generator
+                .Setup(mock => mock.GenerateAntiforgery(viewContext, It.IsAny<IHtmlContentBuilder>()))
+                .Callback<ViewContext, IHtmlContentBuilder>((_, content) => content.AppendHtml("<input />"));
 
-            generator.Setup(mock => mock.GenerateAntiforgery(It.IsAny<ViewContext>()))
-                     .Returns(new HtmlString("<input />"));
             var formTagHelper = new FormTagHelper(generator.Object)
             {
                 Antiforgery = antiforgery,
