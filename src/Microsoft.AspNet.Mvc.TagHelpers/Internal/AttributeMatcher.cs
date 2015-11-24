@@ -93,20 +93,25 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             var presentAttributes = new List<string>();
             var missingAttributes = new List<string>();
 
-            foreach (var attribute in requiredAttributes)
+            foreach (var requiredAttribute in requiredAttributes)
             {
-                if (!context.AllAttributes.ContainsName(attribute) ||
-                    context.AllAttributes[attribute] == null ||
-                    (context.AllAttributes[attribute].Value is string &&
-                    string.IsNullOrWhiteSpace(context.AllAttributes[attribute].Value as string)))
+                IReadOnlyTagHelperAttribute attribute;
+                if (!context.AllAttributes.TryGetAttribute(requiredAttribute, out attribute))
                 {
-                    // Missing attribute!
-                    missingAttributes.Add(attribute);
+                    // Missing attribute.
+                    missingAttributes.Add(requiredAttribute);
+                    continue;
                 }
-                else
+
+                var valueAsString = attribute.Value as string;
+                if (valueAsString != null && string.IsNullOrEmpty(valueAsString))
                 {
-                    presentAttributes.Add(attribute);
+                    // Treat minimized attributes or attributes with empty values as missing.
+                    missingAttributes.Add(requiredAttribute);
+                    continue;
                 }
+
+                presentAttributes.Add(requiredAttribute);
             }
 
             return new PresentMissingAttributes { Present = presentAttributes, Missing = missingAttributes };
