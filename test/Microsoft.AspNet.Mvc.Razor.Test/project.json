@@ -38,7 +38,7 @@
     },
     "dnxcore50": {
       "dependencies": {
-        "moq.netcore": "4.4.0"
+        "moq.netcore": "4.4.0-beta8"
       }
     }
   },

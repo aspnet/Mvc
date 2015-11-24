@@ -561,7 +561,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             public DictionaryWithThrowingConstructor()
                 : base()
             {
-                throw new Exception("No, don't do this.");
+                throw new RankException("No, don't do this.");
             }
         }
     }

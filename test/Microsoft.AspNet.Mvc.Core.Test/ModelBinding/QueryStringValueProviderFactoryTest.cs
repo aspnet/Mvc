@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             var factory = new QueryStringValueProviderFactory();
 
             // Act
-            var result = await _factory.GetValueProviderAsync(actionContext);
+            var result = await factory.GetValueProviderAsync(actionContext);
 
             // Assert
             var valueProvider = Assert.IsType<QueryStringValueProvider>(result);
