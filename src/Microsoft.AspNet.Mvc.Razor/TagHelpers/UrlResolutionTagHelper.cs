@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using System.Text.Encodings.Web;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Razor.TagHelpers;
 
@@ -166,15 +168,24 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                     }
                     else
                     {
-                        var htmlStringValue = attribute.Value as HtmlString;
-                        if (htmlStringValue != null &&
-                            TryResolveUrl(
-                                htmlStringValue.ToString(),
+                        var htmlContent = attribute.Value as IHtmlContent;
+                        if (htmlContent != null)
+                        {
+                            string htmlStringValue;
+                            using (var writer = new StringWriter())
+                            {
+                                htmlContent.WriteTo(writer, HtmlEncoder);
+                                htmlStringValue = writer.ToString();
+                            }
+
+                            if (TryResolveUrl(
+                                htmlStringValue,
                                 encodeWebRoot: true,
                                 resolvedUrl: out resolvedUrl))
-                        {
-                            attribute.Value = new HtmlString(resolvedUrl);
-                        }
+                            {
+                                attribute.Value = new HtmlString(resolvedUrl);
+                            }
+                        }                            
                     }
                 }
             }

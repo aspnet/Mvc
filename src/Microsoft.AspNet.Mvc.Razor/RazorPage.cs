@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -28,21 +27,21 @@ namespace Microsoft.AspNet.Mvc.Razor
     public abstract class RazorPage : IRazorPage
     {
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Stack<TextWriter> _writerScopes;
-        private TextWriter _originalWriter;
+        private readonly Stack<IHtmlContentBuilder> _contentBuilderScopes;
+        private IHtmlContentBuilder _originalWriter;
         private IUrlHelper _urlHelper;
         private ITagHelperActivator _tagHelperActivator;
         private ITypeActivatorCache _typeActivatorCache;
         private bool _renderedBody;
         private AttributeInfo _attributeInfo;
         private TagHelperAttributeInfo _tagHelperAttributeInfo;
-        private StringCollectionTextWriter _valueBuffer;
+        private HtmlContentBuilder _valueBuffer;
 
         public RazorPage()
         {
             SectionWriters = new Dictionary<string, RenderAsyncDelegate>(StringComparer.OrdinalIgnoreCase);
 
-            _writerScopes = new Stack<TextWriter>();
+            _contentBuilderScopes = new Stack<IHtmlContentBuilder>();
         }
 
         /// <summary>
@@ -72,19 +71,22 @@ namespace Microsoft.AspNet.Mvc.Razor
         public DiagnosticSource DiagnosticSource { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="TextWriter"/> that the page is writing output to.
+        /// Gets the <see cref="IHtmlContentBuilder"/> that the page is writing output to.
         /// </summary>
-        public virtual TextWriter Output
+        public virtual IHtmlContentBuilder Output
         {
             get
             {
-                if (ViewContext == null)
+                if (_contentBuilderScopes.Count > 0)
                 {
-                    var message = Resources.FormatViewContextMustBeSet("ViewContext", "Output");
-                    throw new InvalidOperationException(message);
+                    return _contentBuilderScopes.Peek();
                 }
 
-                return ViewContext.Writer;
+                return _originalWriter;
+            }
+            set
+            {
+                _originalWriter = value;
             }
         }
 
@@ -105,7 +107,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public ITempDataDictionary TempData => ViewContext?.TempData;
 
         /// <inheritdoc />
-        public Func<TextWriter, Task> RenderBodyDelegateAsync { get; set; }
+        public IHtmlContent BodyContent { get; set; }
 
         /// <inheritdoc />
         public bool IsLayoutBeingRendered { get; set; }
@@ -144,6 +146,15 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 return _typeActivatorCache;
+            }
+        }
+
+        private RazorTextWriter RazorTextWriter
+        {
+            get
+            {
+                Debug.Assert(ViewContext.Writer is RazorTextWriter);
+                return (RazorTextWriter)ViewContext.Writer;
             }
         }
 
@@ -193,82 +204,48 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </remarks>
         public void StartTagHelperWritingScope()
         {
-            StartTagHelperWritingScope(new StringCollectionTextWriter(Output.Encoding));
+            StartTagHelperWritingScope(new HtmlContentBuilder());
         }
 
         /// <summary>
-        /// Starts a new writing scope with the given <paramref name="writer"/>.
+        /// Starts a new writing scope with the given <paramref name="contentBuilder"/>.
         /// </summary>
         /// <remarks>
         /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
         /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
         /// </remarks>
-        public void StartTagHelperWritingScope(TextWriter writer)
+        public void StartTagHelperWritingScope(IHtmlContentBuilder contentBuilder)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            // If there isn't a base writer take the ViewContext.Writer
-            if (_originalWriter == null)
-            {
-                _originalWriter = ViewContext.Writer;
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             // We need to replace the ViewContext's Writer to ensure that all content (including content written
             // from HTML helpers) is redirected.
-            ViewContext.Writer = writer;
 
-            _writerScopes.Push(ViewContext.Writer);
+            _contentBuilderScopes.Push(contentBuilder);
+            RazorTextWriter.Content = contentBuilder;
         }
 
         /// <summary>
         /// Ends the current writing scope that was started by calling <see cref="StartTagHelperWritingScope"/>.
         /// </summary>
-        /// <returns>The <see cref="TextWriter"/> that contains the content written to the <see cref="Output"/> or
+        /// <returns>The <see cref="IHtmlContentBuilder"/> that contains the content written to the <see cref="Output"/> or
         /// <see cref="ViewContext.Writer"/> during the writing scope.</returns>
         public TagHelperContent EndTagHelperWritingScope()
         {
-            if (_writerScopes.Count == 0)
+            if (_contentBuilderScopes.Count == 0)
             {
                 throw new InvalidOperationException(Resources.RazorPage_ThereIsNoActiveWritingScopeToEnd);
             }
 
-            var writer = _writerScopes.Pop();
+            var contentBuilder = _contentBuilderScopes.Pop();
+            var tagHelperContent = new DefaultTagHelperContent();
+            WriteToStatic(tagHelperContent, contentBuilder);
+            RazorTextWriter.Content = Output;
 
-            if (_writerScopes.Count > 0)
-            {
-                ViewContext.Writer = _writerScopes.Peek();
-            }
-            else
-            {
-                ViewContext.Writer = _originalWriter;
-
-                // No longer a base writer
-                _originalWriter = null;
-            }
-
-            var tagHelperContentWrapperTextWriter = new TagHelperContentWrapperTextWriter(Output.Encoding);
-            var razorWriter = writer as RazorTextWriter;
-            if (razorWriter != null)
-            {
-                razorWriter.CopyTo(tagHelperContentWrapperTextWriter);
-            }
-            else
-            {
-                var stringCollectionTextWriter = writer as StringCollectionTextWriter;
-                if (stringCollectionTextWriter != null)
-                {
-                    stringCollectionTextWriter.CopyTo(tagHelperContentWrapperTextWriter, HtmlEncoder);
-                }
-                else
-                {
-                    tagHelperContentWrapperTextWriter.Write(writer.ToString());
-                }
-            }
-
-            return tagHelperContentWrapperTextWriter.Content;
+            return tagHelperContent;
         }
 
         /// <summary>
@@ -281,48 +258,26 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Writes the specified <paramref name="value"/> with HTML encoding to <paramref name="writer"/>.
+        /// Writes the specified <paramref name="value"/> with HTML encoding to <paramref name="contentBuilder"/>.
         /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
         /// <remarks>
         /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
-        /// <see cref="IHtmlContent.WriteTo(TextWriter, HtmlEncoder)"/>.
+        /// <see cref="IHtmlContent.WriteTo(IHtmlContentBuilder, HtmlEncoder)"/>.
         /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
-        /// <paramref name="writer"/>.
+        /// <paramref name="contentBuilder"/>.
         /// </remarks>
-        public virtual void WriteTo(TextWriter writer, object value)
+        public virtual void WriteTo(IHtmlContentBuilder contentBuilder, object value)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            WriteTo(writer, HtmlEncoder, value);
+            WriteToStatic(contentBuilder, value);
         }
 
-        /// <summary>
-        /// Writes the specified <paramref name="value"/> with HTML encoding to given <paramref name="writer"/>.
-        /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
-        /// <param name="encoder">The <see cref="HtmlEncoder"/> to use when encoding <paramref name="value"/>.</param>
-        /// <param name="value">The <see cref="object"/> to write.</param>
-        /// <remarks>
-        /// <paramref name="value"/>s of type <see cref="IHtmlContent"/> are written using
-        /// <see cref="IHtmlContent.WriteTo(TextWriter, HtmlEncoder)"/>.
-        /// For all other types, the encoded result of <see cref="object.ToString"/> is written to the
-        /// <paramref name="writer"/>.
-        /// </remarks>
-        public static void WriteTo(TextWriter writer, HtmlEncoder encoder, object value)
+        public static void WriteToStatic(IHtmlContentBuilder contentBuilder, object value)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (encoder == null)
-            {
-                throw new ArgumentNullException(nameof(encoder));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             if (value == null || value == HtmlString.Empty)
@@ -333,44 +288,37 @@ namespace Microsoft.AspNet.Mvc.Razor
             var htmlContent = value as IHtmlContent;
             if (htmlContent != null)
             {
-                var htmlTextWriter = writer as HtmlTextWriter;
-                if (htmlTextWriter == null)
-                {
-                    htmlContent.WriteTo(writer, encoder);
-                }
-                else
-                {
-                    // This special case allows us to keep buffering as IHtmlContent until we get to the 'final'
-                    // TextWriter.
-                    htmlTextWriter.Write(htmlContent);
-                }
 
-                return;
+                // This special case allows us to keep buffering as IHtmlContent until we get to the 'final'
+                // IHtmlContentBuilder.
+                contentBuilder.Append(htmlContent);
             }
-
-            WriteTo(writer, encoder, value.ToString());
+            else if (value is HelperResult)
+            {
+                var helperResult = value as HelperResult;
+                helperResult.WriteTo(contentBuilder);
+            }
+            else
+            {
+                contentBuilder.Append(value.ToString());
+            }
         }
 
         /// <summary>
-        /// Writes the specified <paramref name="value"/> with HTML encoding to <paramref name="writer"/>.
+        /// Writes the specified <paramref name="value"/> with HTML encoding to <paramref name="contentBuilder"/>.
         /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> instance to write to.</param>
         /// <param name="value">The <see cref="string"/> to write.</param>
-        public virtual void WriteTo(TextWriter writer, string value)
+        public virtual void WriteTo(IHtmlContentBuilder contentBuilder, string value)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
-            WriteTo(writer, HtmlEncoder, value);
-        }
-
-        private static void WriteTo(TextWriter writer, HtmlEncoder encoder, string value)
-        {
             if (!string.IsNullOrEmpty(value))
             {
-                encoder.Encode(writer, value);
+                contentBuilder.Append(value);
             }
         }
 
@@ -384,38 +332,38 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Writes the specified <paramref name="value"/> without HTML encoding to the <paramref name="writer"/>.
+        /// Writes the specified <paramref name="value"/> without HTML encoding to the <paramref name="contentBuilder"/>.
         /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> instance to write to.</param>
         /// <param name="value">The <see cref="object"/> to write.</param>
-        public virtual void WriteLiteralTo(TextWriter writer, object value)
+        public virtual void WriteLiteralTo(IHtmlContentBuilder contentBuilder, object value)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             if (value != null)
             {
-                WriteLiteralTo(writer, value.ToString());
+                WriteLiteralTo(contentBuilder, value.ToString());
             }
         }
 
         /// <summary>
         /// Writes the specified <paramref name="value"/> without HTML encoding to <see cref="Output"/>.
         /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
+        /// <param name="contentBuilder">The <see cref="IHtmlContentBuilder"/> instance to write to.</param>
         /// <param name="value">The <see cref="string"/> to write.</param>
-        public virtual void WriteLiteralTo(TextWriter writer, string value)
+        public virtual void WriteLiteralTo(IHtmlContentBuilder contentBuilder, string value)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             if (!string.IsNullOrEmpty(value))
             {
-                writer.Write(value);
+                contentBuilder.AppendHtml(value);
             }
         }
 
@@ -431,7 +379,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         public virtual void BeginWriteAttributeTo(
-            TextWriter writer,
+            IHtmlContentBuilder contentBuilder,
             string name,
             string prefix,
             int prefixOffset,
@@ -439,9 +387,9 @@ namespace Microsoft.AspNet.Mvc.Razor
             int suffixOffset,
             int attributeValuesCount)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             if (prefix == null)
@@ -460,7 +408,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             // null  or false. Consequently defer the prefix generation until we encounter the attribute value.
             if (attributeValuesCount != 1)
             {
-               WritePositionTaggedLiteral(writer, prefix, prefixOffset);
+                WritePositionTaggedLiteral(contentBuilder, prefix, prefixOffset);
             }
         }
 
@@ -476,7 +424,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         public void WriteAttributeValueTo(
-            TextWriter writer,
+            IHtmlContentBuilder contentBuilder,
             string prefix,
             int prefixOffset,
             object value,
@@ -494,7 +442,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 }
 
                 // We are not omitting the attribute. Write the prefix.
-                WritePositionTaggedLiteral(writer, _attributeInfo.Prefix, _attributeInfo.PrefixOffset);
+                WritePositionTaggedLiteral(contentBuilder, _attributeInfo.Prefix, _attributeInfo.PrefixOffset);
 
                 if (IsBoolTrueWithEmptyPrefixValue(prefix, value))
                 {
@@ -510,12 +458,12 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 if (!string.IsNullOrEmpty(prefix))
                 {
-                    WritePositionTaggedLiteral(writer, prefix, prefixOffset);
+                    WritePositionTaggedLiteral(contentBuilder, prefix, prefixOffset);
                 }
 
                 BeginContext(valueOffset, valueLength, isLiteral);
 
-                WriteUnprefixedAttributeValueTo(writer, value, isLiteral);
+                WriteUnprefixedAttributeValueTo(contentBuilder, value, isLiteral);
 
                 EndContext();
             }
@@ -526,16 +474,16 @@ namespace Microsoft.AspNet.Mvc.Razor
             EndWriteAttributeTo(Output);
         }
 
-        public virtual void EndWriteAttributeTo(TextWriter writer)
+        public virtual void EndWriteAttributeTo(IHtmlContentBuilder contentBuilder)
         {
-            if (writer == null)
+            if (contentBuilder == null)
             {
-                throw new ArgumentNullException(nameof(writer));
+                throw new ArgumentNullException(nameof(contentBuilder));
             }
 
             if (!_attributeInfo.Suppressed)
             {
-                WritePositionTaggedLiteral(writer, _attributeInfo.Suffix, _attributeInfo.SuffixOffset);
+                WritePositionTaggedLiteral(contentBuilder, _attributeInfo.Suffix, _attributeInfo.SuffixOffset);
             }
         }
 
@@ -585,7 +533,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 if (_valueBuffer == null)
                 {
-                    _valueBuffer = new StringCollectionTextWriter(Output.Encoding);
+                    _valueBuffer = new HtmlContentBuilder();
                 }
 
                 if (!string.IsNullOrEmpty(prefix))
@@ -601,22 +549,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             if (!_tagHelperAttributeInfo.Suppressed)
             {
-                HtmlString htmlString;
-
-                if (_valueBuffer != null)
-                {
-                    using (var stringWriter = new StringWriter())
-                    {
-                        _valueBuffer.Content.WriteTo(stringWriter, HtmlEncoder);
-                        htmlString = new HtmlString(stringWriter.ToString());
-                    }
-                }
-                else
-                {
-                    htmlString = HtmlString.Empty;
-                }
-
-                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, htmlString);
+                var htmlContent = (IHtmlContent)_valueBuffer ?? HtmlString.Empty;
+                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, htmlContent);
             }
         }
 
@@ -635,33 +569,33 @@ namespace Microsoft.AspNet.Mvc.Razor
             return _urlHelper.Content(contentPath);
         }
 
-        private void WriteUnprefixedAttributeValueTo(TextWriter writer, object value, bool isLiteral)
+        private void WriteUnprefixedAttributeValueTo(IHtmlContentBuilder contentBuilder, object value, bool isLiteral)
         {
             var stringValue = value as string;
 
             // The extra branching here is to ensure that we call the Write*To(string) overload where possible.
             if (isLiteral && stringValue != null)
             {
-                WriteLiteralTo(writer, stringValue);
+                WriteLiteralTo(contentBuilder, stringValue);
             }
             else if (isLiteral)
             {
-                WriteLiteralTo(writer, value);
+                WriteLiteralTo(contentBuilder, value);
             }
             else if (stringValue != null)
             {
-                WriteTo(writer, stringValue);
+                WriteTo(contentBuilder, stringValue);
             }
             else
             {
-                WriteTo(writer, value);
+                WriteTo(contentBuilder, value);
             }
         }
 
-        private void WritePositionTaggedLiteral(TextWriter writer, string value, int position)
+        private void WritePositionTaggedLiteral(IHtmlContentBuilder contentBuilder, string value, int position)
         {
             BeginContext(position, value.Length, isLiteral: true);
-            WriteLiteralTo(writer, value);
+            WriteLiteralTo(contentBuilder, value);
             EndContext();
         }
 
@@ -669,16 +603,17 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// In a Razor layout page, renders the portion of a content page that is not within a named section.
         /// </summary>
         /// <returns>The HTML content to render.</returns>
-        protected virtual HelperResult RenderBody()
+        protected virtual IHtmlContent RenderBody()
         {
-            if (RenderBodyDelegateAsync == null)
+            if (BodyContent == null)
             {
                 var message = Resources.FormatRazorPage_MethodCannotBeCalled(nameof(RenderBody), Path);
                 throw new InvalidOperationException(message);
             }
 
             _renderedBody = true;
-            return new HelperResult(RenderBodyDelegateAsync);
+
+            return BodyContent;
         }
 
         /// <summary>
@@ -836,7 +771,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Invokes <see cref="TextWriter.FlushAsync"/> on <see cref="Output"/> writing out any buffered
+        /// Invokes <see cref="IHtmlContentBuilder.FlushAsync"/> on <see cref="Output"/> writing out any buffered
         /// content to the <see cref="HttpResponse.Body"/>.
         /// </summary>
         /// <returns>A <see cref="Task{HtmlString}"/> that represents the asynchronous flush operation and on
@@ -851,7 +786,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // If there are active writing scopes then we should throw. Cannot flush content that has the potential to
             // change.
-            if (_writerScopes.Count > 0)
+            if (_contentBuilderScopes.Count > 0)
             {
                 throw new InvalidOperationException(
                     Resources.FormatRazorPage_CannotFlushWhileInAWritingScope(nameof(FlushAsync), Path));
@@ -865,7 +800,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new InvalidOperationException(message);
             }
 
-            await Output.FlushAsync();
+            await ViewContext.Writer.FlushAsync();
+
             return HtmlString.Empty;
         }
 
@@ -886,7 +822,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames));
                 }
             }
-            else if (RenderBodyDelegateAsync != null && !_renderedBody)
+            else if (BodyContent != null && !_renderedBody)
             {
                 // There are no sections defined, but RenderBody was NOT called.
                 // If a body was defined, then RenderBody should have been called.

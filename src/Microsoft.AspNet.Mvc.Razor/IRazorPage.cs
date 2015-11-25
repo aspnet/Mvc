@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -22,7 +23,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <summary>
         /// Gets or sets the action invoked to render the body.
         /// </summary>
-        Func<TextWriter, Task> RenderBodyDelegateAsync { get; set; }
+        IHtmlContent BodyContent { get; set; }
 
         /// <summary>
         /// Gets or sets a flag that determines if the layout of this page is being rendered.
@@ -67,5 +68,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <exception cref="InvalidOperationException">if one or more sections were not rendered or if no sections were
         /// defined and the body was not rendered.</exception>
         void EnsureRenderedBodyOrSections();
+
+        IHtmlContentBuilder Output { get; set; }
     }
 }

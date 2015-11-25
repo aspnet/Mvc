@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.AspNet.Razor.TagHelpers;
 
@@ -50,18 +51,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(encoding));
             }
 
-            using (var writer = new TagHelperContentWrapperTextWriter(encoding, content))
+            using (var stringWriter = new StringWriter())
             {
-                using (var stringWriter = new StringWriter())
-                {
-                    RazorPage.WriteTo(stringWriter, encoder, value);
+                var htmlContentBuilder = new HtmlContentBuilder();
+                RazorPage.WriteToStatic(htmlContentBuilder, value);
 
-                    // In this case the text likely came directly from the Razor source. Since the original string is
-                    // an attribute value that may have been quoted with single quotes, must handle any double quotes
-                    // in the value. Writing the value out surrounded by double quotes.
-                    var stringValue = stringWriter.ToString().Replace("\"", "&quot;");
-                    writer.Write(stringValue);
-                }
+                htmlContentBuilder.WriteTo(stringWriter, encoder);
+
+                // In this case the text likely came directly from the Razor source. Since the original string is
+                // an attribute value that may have been quoted with single quotes, must handle any double quotes
+                // in the value. Writing the value out surrounded by double quotes.
+                var stringValue = stringWriter.ToString().Replace("\"", "&quot;");
+
+                content.AppendHtml(stringValue);
             }
 
             return content;

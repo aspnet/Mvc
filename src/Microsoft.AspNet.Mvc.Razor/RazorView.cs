@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNet.Html.Abstractions;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 
@@ -93,22 +95,30 @@ namespace Microsoft.AspNet.Mvc.Razor
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var bodyWriter = await RenderPageAsync(RazorPage, context, ViewStartPages);
-            await RenderLayoutAsync(context, bodyWriter);
+            var oldWriter = context.Writer;
+            var razorTextWriter = new RazorTextWriter(context.Writer, _htmlEncoder);
+            context.Writer = razorTextWriter;
+
+            try
+            {
+                await RenderPageAsync(RazorPage, context, ViewStartPages);
+                var content = await RenderLayoutAsync(context);
+                content.WriteTo(oldWriter, _htmlEncoder);
+            }
+            finally
+            {
+                context.Writer = oldWriter;
+                razorTextWriter.Dispose();
+            }
         }
 
-        private async Task<RazorTextWriter> RenderPageAsync(
+        private async Task RenderPageAsync(
             IRazorPage page,
             ViewContext context,
             IReadOnlyList<IRazorPage> viewStartPages)
         {
-            var razorTextWriter = new RazorTextWriter(context.Writer, context.Writer.Encoding, _htmlEncoder);
-
-            // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
-            // and ViewComponents to reference it.
-            var oldWriter = context.Writer;
+            var contentBuilder = new HtmlContentBuilder();
             var oldFilePath = context.ExecutingFilePath;
-            context.Writer = razorTextWriter;
             context.ExecutingFilePath = page.Path;
 
             try
@@ -116,28 +126,31 @@ namespace Microsoft.AspNet.Mvc.Razor
                 if (viewStartPages != null)
                 {
                     // Execute view starts using the same context + writer as the page to render.
-                    await RenderViewStartsAsync(context, viewStartPages);
+                    await RenderViewStartsAsync(context, contentBuilder, viewStartPages);
                 }
 
-                await RenderPageCoreAsync(page, context);
-                return razorTextWriter;
+                await RenderPageCoreAsync(page, contentBuilder, context);
             }
             finally
             {
-                context.Writer = oldWriter;
                 context.ExecutingFilePath = oldFilePath;
-                razorTextWriter.Dispose();
             }
         }
 
-        private Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
+        private Task RenderPageCoreAsync(IRazorPage page, IHtmlContentBuilder contentBuilder, ViewContext context)
         {
             page.ViewContext = context;
+            page.Output = contentBuilder;
             _pageActivator.Activate(page, context);
+
+            Debug.Assert(context.Writer is RazorTextWriter);
+            var razorTextWriter = (RazorTextWriter)context.Writer;
+            razorTextWriter.Content = contentBuilder;
+            
             return page.ExecuteAsync();
         }
 
-        private async Task RenderViewStartsAsync(ViewContext context, IReadOnlyList<IRazorPage> viewStartPages)
+        private async Task RenderViewStartsAsync(ViewContext context, IHtmlContentBuilder contentBuilder, IReadOnlyList<IRazorPage> viewStartPages)
         {
             string layout = null;
             var oldFilePath = context.ExecutingFilePath;
@@ -151,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                     // Copy the layout value from the previous view start (if any) to the current.
                     viewStart.Layout = layout;
 
-                    await RenderPageCoreAsync(viewStart, context);
+                    await RenderPageCoreAsync(viewStart, contentBuilder, context);
 
                     // Pass correct absolute path to next layout or the entry page if this view start set Layout to a
                     // relative path.
@@ -167,17 +180,18 @@ namespace Microsoft.AspNet.Mvc.Razor
             RazorPage.Layout = layout;
         }
 
-        private async Task RenderLayoutAsync(
-            ViewContext context,
-            RazorTextWriter bodyWriter)
+        private async Task<IHtmlContent> RenderLayoutAsync(ViewContext context)
         {
+            Debug.Assert(context.Writer is RazorTextWriter);
+            var razorTextWriter = (RazorTextWriter)context.Writer;
+
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
             var previousPage = RazorPage;
             var renderedLayouts = new List<IRazorPage>();
             while (!string.IsNullOrEmpty(previousPage.Layout))
             {
-                if (!bodyWriter.IsBuffering)
+                if (!razorTextWriter.IsBuffering)
                 {
                     // Once a call to RazorPage.FlushAsync is made, we can no longer render Layout pages - content has
                     // already been written to the client and the layout content would be appended rather than surround
@@ -203,8 +217,8 @@ namespace Microsoft.AspNet.Mvc.Razor
                 // in the layout.
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
-                layoutPage.RenderBodyDelegateAsync = bodyWriter.CopyToAsync;
-                bodyWriter = await RenderPageAsync(layoutPage, context, viewStartPages: null);
+                layoutPage.BodyContent = previousPage.Output;
+                await RenderPageAsync(layoutPage, context, viewStartPages: null);
 
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
@@ -216,11 +230,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 layoutPage.EnsureRenderedBodyOrSections();
             }
 
-            if (bodyWriter.IsBuffering)
-            {
-                // Only copy buffered content to the Output if we're currently buffering.
-                await bodyWriter.CopyToAsync(context.Writer);
-            }
+            return previousPage.Output;
         }
 
         private IRazorPage GetLayoutPage(ViewContext context, string executingFilePath, string layoutPath)
