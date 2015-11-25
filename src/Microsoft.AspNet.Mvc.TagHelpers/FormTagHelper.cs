@@ -180,7 +180,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
 
             if (Antiforgery ?? antiforgeryDefault)
             {
-                Generator.GenerateAntiforgery(ViewContext, output.PostContent);
+                var antiforgeryTag = Generator.GenerateAntiforgery(ViewContext);
+                if (antiforgeryTag != null)
+                {
+                    output.PostContent.Append(antiforgeryTag);
+                }
             }
         }
     }

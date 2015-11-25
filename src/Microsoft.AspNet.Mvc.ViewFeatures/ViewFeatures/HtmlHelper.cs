@@ -260,10 +260,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <inheritdoc />
         public IHtmlContent AntiForgeryToken()
         {
-            var content = new HtmlContentBuilder();
-            _htmlGenerator.GenerateAntiforgery(ViewContext, content);
-
-            return content;
+            var html = _htmlGenerator.GenerateAntiforgery(ViewContext);
+            return html ?? HtmlString.Empty;
         }
 
         /// <inheritdoc />

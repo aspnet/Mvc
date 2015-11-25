@@ -35,11 +35,11 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// Generate an &lt;input type="hidden".../&gt; element containing an antiforgery token.
         /// </summary>
         /// <param name="viewContext">The <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <param name="content">
-        /// The <see cref="IHtmlContentBuilder"/> to contain the antiforgery token. Intended to be used inside a
-        /// &lt;form&gt; element.
-        /// </param>
-        void GenerateAntiforgery(ViewContext viewContext, IHtmlContentBuilder content);
+        /// <returns>
+        /// An <see cref="IHtmlContent"/> instance for the &lt;input type="hidden".../&gt; element. Intended to be used
+        /// inside a &lt;form&gt; element.
+        /// </returns>
+        IHtmlContent GenerateAntiforgery(ViewContext viewContext);
 
         /// <summary>
         /// Generate a &lt;input type="checkbox".../&gt; element.
