@@ -583,8 +583,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             if (modelBindingResult.IsModelSet)
             {
                 objectModelValidator.Validate(
+                    operationBindingContext.ActionContext,
                     operationBindingContext.ValidatorProvider,
-                    modelState,
                     modelBindingContext.ValidationState,
                     modelBindingResult.Key,
                     modelBindingResult.Model);

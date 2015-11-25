@@ -446,7 +446,15 @@ namespace Microsoft.AspNet.Mvc
             serviceCollection.AddSingleton<IUrlHelper>(urlHelper);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
+            var actionContext = new ActionContext()
+            {
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = serviceProvider,
+                },
+            };
+
+            return new ClientModelValidationContext(actionContext, _metadata, _metadataProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithArea(string currentArea)
@@ -476,7 +484,15 @@ namespace Microsoft.AspNet.Mvc
             serviceCollection.AddSingleton<IUrlHelper>(urlHelper);
             serviceProvider = serviceCollection.BuildServiceProvider();
 
-            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
+            var actionContext = new ActionContext()
+            {
+                HttpContext = new DefaultHttpContext()
+                {
+                    RequestServices = serviceProvider,
+                },
+            };
+
+            return new ClientModelValidationContext(actionContext, _metadata, _metadataProvider);
         }
 
         private static ClientModelValidationContext GetValidationContextWithNoController()
@@ -495,9 +511,9 @@ namespace Microsoft.AspNet.Mvc
             var contextAccessor = GetContextAccessor(serviceProvider, routeData);
             var urlHelper = new UrlHelper(contextAccessor);
             serviceCollection.AddSingleton<IUrlHelper>(urlHelper);
-            serviceProvider = serviceCollection.BuildServiceProvider();
+            contextAccessor.ActionContext.HttpContext.RequestServices = serviceCollection.BuildServiceProvider();
 
-            return new ClientModelValidationContext(_metadata, _metadataProvider, serviceProvider);
+            return new ClientModelValidationContext(contextAccessor.ActionContext, _metadata, _metadataProvider);
         }
 
         private static IRouter GetRouteCollectionWithArea(IServiceProvider serviceProvider)

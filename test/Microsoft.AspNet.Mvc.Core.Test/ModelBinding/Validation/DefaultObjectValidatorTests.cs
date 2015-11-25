@@ -21,7 +21,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -32,7 +33,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             AssertKeysEqual(modelState, "parameter");
@@ -47,7 +48,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -58,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -74,7 +76,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -87,7 +90,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -103,7 +106,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -114,7 +118,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter", SuppressValidation = true });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -131,7 +135,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -143,7 +148,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -163,7 +168,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -175,7 +181,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -195,7 +201,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -205,7 +212,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -227,7 +234,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -248,7 +256,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "person", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "person", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -269,7 +277,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -280,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -301,7 +310,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -312,7 +322,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -333,7 +343,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -344,7 +355,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -377,7 +388,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -389,7 +401,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -422,7 +434,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -433,7 +446,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -450,7 +463,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -464,7 +478,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -485,7 +499,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator(typeof(string));
@@ -504,7 +519,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "user", });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "user", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "user", model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -522,7 +537,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -534,7 +550,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "parameter" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "parameter", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "parameter", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -555,7 +571,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -565,7 +582,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -598,7 +615,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -608,7 +626,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -646,7 +664,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator(new SimpleTypesExcludeFilter());
@@ -663,7 +682,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "items", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "items", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -687,7 +706,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator(new SimpleTypesExcludeFilter());
@@ -705,7 +725,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "items" });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "items", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "items", model);
 
             // Assert
             Assert.True(modelState.IsValid);
@@ -734,7 +754,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -746,7 +767,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = string.Empty });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
 
             // Assert
             Assert.False(modelState.IsValid);
@@ -794,7 +815,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -806,7 +828,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 typeof(InvalidTimeZoneException),
                 () =>
                 {
-                    validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+                    validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
                 });
         }
 
@@ -816,7 +838,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator();
@@ -828,7 +851,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             };
 
             // Act & Assert (does not throw)
-            validator.Validate(validatorProvider, modelState, validationState, string.Empty, model);
+            validator.Validate(actionContext, validatorProvider, validationState, string.Empty, model);
         }
 
         [Fact]
@@ -836,7 +859,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
         {
             // Arrange
             var validatorProvider = CreateValidatorProvider();
-            var modelState = new ModelStateDictionary();
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
             var validationState = new ValidationStateDictionary();
 
             var validator = CreateValidator(typeof(User));
@@ -853,7 +877,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             validationState.Add(model, new ValidationStateEntry() { Key = "user", });
 
             // Act
-            validator.Validate(validatorProvider, modelState, validationState, "user", model);
+            validator.Validate(actionContext, validatorProvider, validationState, "user", model);
 
             // Assert
             Assert.Equal(ModelValidationState.Valid, modelState.ValidationState);

@@ -1773,8 +1773,8 @@ namespace Microsoft.AspNet.Mvc
                 modelName);
 
             ObjectValidator.Validate(
+                ControllerContext,
                 new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
-                ModelState,
                 validationState: null,
                 prefix: prefix,
                 model: model);
