@@ -15,15 +15,17 @@ namespace Microsoft.AspNet.Mvc.Rendering
         /// Returns serialized JSON for the <paramref name="value"/>.
         /// </summary>
         /// <param name="value">The value to serialize as JSON.</param>
-        /// <returns>A new <see cref="HtmlString"/> containing the serialized JSON.</returns>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the serialized JSON.</returns>
         IHtmlContent Serialize(object value);
 
         /// <summary>
         /// Returns serialized JSON for the <paramref name="value"/>.
         /// </summary>
         /// <param name="value">The value to serialize as JSON.</param>
-        /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/> to be used by the serializer.</param>
-        /// <returns>A new <see cref="HtmlString"/> containing the serialized JSON.</returns>
+        /// <param name="serializerSettings">
+        /// The <see cref="JsonSerializerSettings"/> to be used by the serializer.
+        /// </param>
+        /// <returns>A new <see cref="IHtmlContent"/> containing the serialized JSON.</returns>
         IHtmlContent Serialize(object value, JsonSerializerSettings serializerSettings);
     }
 }
