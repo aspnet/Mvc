@@ -2,9 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using System.Text;
+using System.IO;
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Razor.Compilation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,15 +31,11 @@ namespace RazorPageExecutionInstrumentationWebSite
 
             app.Use(async (context, next) =>
             {
-                // Add MVC to the request pipeline
-                await next();
-
-                using (var writer = new HttpResponseStreamWriter(context.Response.Body, Encoding.UTF8))
+                using (var writer = new StreamWriter(context.Response.Body))
                 {
-                    foreach (var diagnostic in listener.PageInstrumentationData)
-                    {
-                        writer.WriteLine(diagnostic);
-                    }
+                    context.Items[RazorPageDiagnosticListener.WriterKey] = writer;
+                    context.Response.Body = Stream.Null;
+                    await next();
                 }
             });
 
