@@ -8,10 +8,15 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
     public class ClientModelValidationContext
     {
         public ClientModelValidationContext(
+            ActionContext actionContext,
             ModelMetadata metadata,
-            IModelMetadataProvider metadataProvider,
-            IServiceProvider requestServices)
+            IModelMetadataProvider metadataProvider)
         {
+            if (actionContext == null)
+            {
+                throw new ArgumentNullException(nameof(actionContext));
+            }
+
             if (metadata == null)
             {
                 throw new ArgumentNullException(nameof(metadata));
@@ -22,20 +27,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 throw new ArgumentNullException(nameof(metadataProvider));
             }
 
-            if (requestServices == null)
-            {
-                throw new ArgumentNullException(nameof(requestServices));
-            }
-
             ModelMetadata = metadata;
             MetadataProvider = metadataProvider;
-            RequestServices = requestServices;
         }
+
+        public ActionContext ActionContext { get; }
 
         public ModelMetadata ModelMetadata { get; }
 
         public IModelMetadataProvider MetadataProvider { get; }
-
-        public IServiceProvider RequestServices { get; }
     }
 }
