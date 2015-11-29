@@ -19,6 +19,9 @@ namespace Microsoft.AspNet.Mvc.Localization
         /// <returns>A culture-specific <see cref="IHtmlLocalizer"/>.</returns>
         new IHtmlLocalizer WithCulture(CultureInfo culture);
 
+        // Reviewers: I suggest the Html() methods should just return IHtmlContent because the specialized information
+        // in LocalizedHtmlString is unused. Any objections?
+
         /// <summary>
         /// Gets the <see cref="LocalizedHtmlString"/> resource for a specific key.
         /// </summary>

@@ -9,9 +9,10 @@ using Microsoft.Extensions.Localization;
 namespace Microsoft.AspNet.Mvc.Localization
 {
     /// <summary>
-    /// This is an <see cref="HtmlLocalizer"/> that provides localized HTML content.
+    /// This is an <see cref="IHtmlLocalizer"/> implementation that provides localized HTML content. Keys are
+    /// interpreted relative to the <see cref="Type.FullName"/> of <typeparamref name="TResource"/>.
     /// </summary>
-    /// <typeparam name = "TResource"> The <see cref="System.Type"/> to scope the resource names.</typeparam>
+    /// <typeparam name="TResource">The <see cref="Type"/> to scope the resource names.</typeparam>
     public class HtmlLocalizer<TResource> : IHtmlLocalizer<TResource>
     {
         private readonly IHtmlLocalizer _localizer;

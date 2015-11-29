@@ -4,9 +4,10 @@
 namespace Microsoft.AspNet.Mvc.Localization
 {
     /// <summary>
-    /// An <see cref="IHtmlLocalizer"/> that provides localized HTML content.
+    /// An <see cref="IHtmlLocalizer"/> that provides localized HTML content. Keys are interpreted relative to the
+    /// <see cref="System.Type.FullName"/> of <typeparamref name="TResource"/>.
     /// </summary>
-    /// <typeparam name = "TResource"> The <see cref="System.Type"/> to scope the resource names.</typeparam>
+    /// <typeparam name = "TResource">The <see cref="System.Type"/> to scope the resource names.</typeparam>
     public interface IHtmlLocalizer<TResource> : IHtmlLocalizer
     {
     }
