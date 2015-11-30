@@ -80,6 +80,11 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                 { "video", new[] { "poster", "src" } },
             };
 
+        private static readonly ISet<string> MultipleUrlAttributes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "srcset"
+        };
+
         /// <summary>
         /// Creates a new <see cref="UrlResolutionTagHelper"/>.
         /// </summary>
@@ -150,34 +155,63 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
             }
 
             IEnumerable<TagHelperAttribute> attributes;
+
             if (output.Attributes.TryGetAttributes(attributeName, out attributes))
             {
+                var attributeCanAcceptMultipleUrls = MultipleUrlAttributes.Contains(attributeName);
+
                 foreach (var attribute in attributes)
                 {
-                    string resolvedUrl;
-
-                    var stringValue = attribute.Value as string;
-                    if (stringValue != null)
+                    if (attribute.Value is string)
                     {
-                        if (TryResolveUrl(stringValue, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
-                        {
-                            attribute.Value = resolvedUrl;
-                        }
+                        var stringValue = attribute.Value as string;
+                        attribute.Value = attributeCanAcceptMultipleUrls ? ResolveMultipleUrls(stringValue) : ResolveUrl(stringValue);
                     }
-                    else
+                    else if (attribute.Value is HtmlString)
                     {
                         var htmlStringValue = attribute.Value as HtmlString;
-                        if (htmlStringValue != null &&
-                            TryResolveUrl(
-                                htmlStringValue.ToString(),
-                                encodeWebRoot: true,
-                                resolvedUrl: out resolvedUrl))
-                        {
-                            attribute.Value = new HtmlString(resolvedUrl);
-                        }
+                        attribute.Value = attributeCanAcceptMultipleUrls ? ResolveMultipleUrls(htmlStringValue) : ResolveUrl(htmlStringValue);
                     }
+                    
                 }
             }
+        }
+
+        private string ResolveMultipleUrls(string stringOfUrls, bool encodeWebRoot = false)
+        {
+            var resolvedUrls = new List<string>();
+            foreach (var item in stringOfUrls.Split(','))
+            {
+                resolvedUrls.Add(ResolveUrl(item, encodeWebRoot));
+            }
+            return string.Join(", ", resolvedUrls);
+        }
+
+        private HtmlString ResolveMultipleUrls(HtmlString stringOfUrls)
+        {
+            return new HtmlString(ResolveMultipleUrls(stringOfUrls.ToString(), encodeWebRoot: true));
+        }
+
+        private string ResolveUrl(string stringValue, bool encodeWebRoot = false)
+        {
+            string resolvedUrl;
+            if (TryResolveUrl(stringValue, encodeWebRoot: encodeWebRoot, resolvedUrl: out resolvedUrl))
+            {
+                return resolvedUrl;
+            }
+
+            return stringValue;
+        }
+
+        private HtmlString ResolveUrl(HtmlString htmlStringValue)
+        {
+            string resolvedUrl;
+            if (TryResolveUrl(htmlStringValue.ToString(), encodeWebRoot: true, resolvedUrl: out resolvedUrl))
+            {
+                return new HtmlString(resolvedUrl);
+            }
+            return htmlStringValue;
+
         }
 
         /// <summary>
