@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Routing;
 
 namespace Microsoft.AspNet.Builder
@@ -9,11 +10,11 @@ namespace Microsoft.AspNet.Builder
     /// <summary>
     /// Extension methods for <see cref="IRouteBuilder"/>.
     /// </summary>
-    public static class RouteBuilderExtensions
+    public static class MvcAreaRouteBuilderExtensions
     {
         /// <summary>
         /// Adds a route to the <see cref="IRouteBuilder"/> with the given MVC area with the specified
-        /// name and template.
+        /// <paramref name="name"/>, <paramref name="areaName"/> and <paramref name="template"/>.
         /// </summary>
         /// <param name="routeBuilder">The <see cref="IRouteBuilder"/> to add the route to.</param>
         /// <param name="name">The name of the route.</param>
@@ -32,7 +33,8 @@ namespace Microsoft.AspNet.Builder
 
         /// <summary>
         /// Adds a route to the <see cref="IRouteBuilder"/> with the given MVC area with the specified
-        /// name and template.
+        /// <paramref name="name"/>, <paramref name="areaName"/>, <paramref name="template"/>, and
+        /// <paramref name="defaults"/>.
         /// </summary>
         /// <param name="routeBuilder">The <see cref="IRouteBuilder"/> to add the route to.</param>
         /// <param name="name">The name of the route.</param>
@@ -56,7 +58,8 @@ namespace Microsoft.AspNet.Builder
 
         /// <summary>
         /// Adds a route to the <see cref="IRouteBuilder"/> with the given MVC area with the specified
-        /// name and template.
+        /// <paramref name="name"/>, <paramref name="areaName"/>, <paramref name="template"/>, 
+        /// <paramref name="defaults"/>, and <paramref name="constraints"/>.
         /// </summary>
         /// <param name="routeBuilder">The <see cref="IRouteBuilder"/> to add the route to.</param>
         /// <param name="name">The name of the route.</param>
@@ -85,7 +88,8 @@ namespace Microsoft.AspNet.Builder
 
         /// <summary>
         /// Adds a route to the <see cref="IRouteBuilder"/> with the given MVC area with the specified
-        /// name and template.
+        /// <paramref name="name"/>, <paramref name="areaName"/>, <paramref name="template"/>, 
+        /// <paramref name="defaults"/>, <paramref name="constraints"/>, and <paramref name="dataTokens"/>.
         /// </summary>
         /// <param name="routeBuilder">The <see cref="IRouteBuilder"/> to add the route to.</param>
         /// <param name="name">The name of the route.</param>
@@ -118,18 +122,18 @@ namespace Microsoft.AspNet.Builder
                 throw new ArgumentNullException(nameof(routeBuilder));
             }
 
-            var defaultsDictionary = new RouteValueDictionary(defaults);
-            if (!defaultsDictionary.ContainsKey("area"))
+            if (string.IsNullOrEmpty(areaName))
             {
-                defaultsDictionary.Add("area", areaName);
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(areaName));
             }
+
+            var defaultsDictionary = new RouteValueDictionary(defaults);
+            defaultsDictionary["area"] = areaName;
 
             var constraintsDictionary = new RouteValueDictionary(constraints);
-            if (!constraintsDictionary.ContainsKey("area"))
-            {
-                constraintsDictionary.Add("area", areaName);
-            }
+            constraintsDictionary["area"] = areaName;
 
+            routeBuilder.MapRoute(name, template, defaultsDictionary, constraintsDictionary, dataTokens);
             return routeBuilder;
         }
     }
