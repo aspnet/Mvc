@@ -2,9 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Html.Abstractions;
 
 namespace Microsoft.AspNet.Mvc.Razor
@@ -12,53 +9,33 @@ namespace Microsoft.AspNet.Mvc.Razor
     /// <summary>
     /// Represents a deferred write operation in a <see cref="RazorPage"/>.
     /// </summary>
-    public class HelperResult : IHtmlContent
+    public class HelperResult
     {
-        private readonly Func<TextWriter, Task> _asyncAction;
-
         /// <summary>
         /// Creates a new instance of <see cref="HelperResult"/>.
         /// </summary>
-        /// <param name="asyncAction">The asynchronous delegate to invoke when
+        /// <param name="renderAction">The asynchronous delegate to invoke when
         /// <see cref="WriteTo(TextWriter, HtmlEncoder)"/> is called.</param>
         /// <remarks>Calls to <see cref="WriteTo(TextWriter, HtmlEncoder)"/> result in a blocking invocation of
-        /// <paramref name="asyncAction"/>.</remarks>
-        public HelperResult(Func<TextWriter, Task> asyncAction)
+        /// <paramref name="renderAction"/>.</remarks>
+        public HelperResult(RenderAsyncDelegate renderAction)
         {
-            if (asyncAction == null)
+            if (renderAction == null)
             {
-                throw new ArgumentNullException(nameof(asyncAction));
+                throw new ArgumentNullException(nameof(renderAction));
             }
 
-            _asyncAction = asyncAction;
+            RenderAction = renderAction;
         }
 
         /// <summary>
         /// Gets the asynchronous delegate to invoke when <see cref="WriteTo(TextWriter, HtmlEncoder)"/> is called.
         /// </summary>
-        public Func<TextWriter, Task> WriteAction
+        public RenderAsyncDelegate RenderAction { get; }
+
+        public void WriteTo(IHtmlContentBuilder content)
         {
-            get { return _asyncAction; }
-        }
-
-        /// <summary>
-        /// Method invoked to produce content from the <see cref="HelperResult"/>.
-        /// </summary>
-        /// <param name="writer">The <see cref="TextWriter"/> instance to write to.</param>
-        /// <param name="encoder">The <see cref="HtmlEncoder"/> to encode the content.</param>
-        public virtual void WriteTo(TextWriter writer, HtmlEncoder encoder)
-        {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (encoder == null)
-            {
-                throw new ArgumentNullException(nameof(encoder));
-            }
-
-            _asyncAction(writer).GetAwaiter().GetResult();
+            RenderAction(content).GetAwaiter().GetResult();
         }
     }
 }
