@@ -11,7 +11,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
     /// </summary>
     public class TempDataDictionaryFactory : ITempDataDictionaryFactory
     {
-        private static readonly string Key = typeof(ITempDataDictionary).FullName;
+        private static readonly object Key = typeof(ITempDataDictionary);
 
         private readonly ITempDataProvider _provider;
 

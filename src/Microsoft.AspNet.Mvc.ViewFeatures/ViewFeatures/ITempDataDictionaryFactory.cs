@@ -13,12 +13,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
     {
         /// <summary>
         /// Gets or creates an <see cref="ITempDataDictionary"/> instance for the request associated with the
-        /// given <see cref="HttpContext"/>.
+        /// given <paramref name="context"/>.
         /// </summary>
         /// <param name="context">The <see cref="HttpContext"/>.</param>
         /// <returns>
         /// An <see cref="ITempDataDictionary"/> instance for the request associated with the given
-        /// <see cref="HttpContext"/>.
+        /// <paramref name="context"/>.
         /// </returns>
         ITempDataDictionary GetTempData(HttpContext context);
     }
