@@ -145,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 for (var i = 0; i < viewStartPages.Count; i++)
                 {
-                    var viewStart = ViewStartPages[i];
+                    var viewStart = viewStartPages[i];
                     context.ExecutingFilePath = viewStart.Path;
 
                     // Copy the layout value from the previous view start (if any) to the current.
