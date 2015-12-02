@@ -11,6 +11,7 @@ using Microsoft.AspNet.Html;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.Razor.Buffer;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewEngines;
@@ -183,7 +184,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(v =>
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
-                v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, Encoding.UTF8, v.HtmlEncoder));
+                var buffer = new RazorBuffer(new TestRazorBufferSource(), v.Path);
+                v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, buffer, v.HtmlEncoder));
                 v.Write("Hello ");
                 v.Write("World!");
                 var returnValue = v.EndTagHelperWritingScope();
@@ -1117,7 +1119,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task Write_WithHtmlString_WritesValueWithoutEncoding()
         {
             // Arrange
-            var writer = new RazorTextWriter(TextWriter.Null, Encoding.UTF8, new HtmlTestEncoder());
+            var buffer = new RazorBuffer(new TestRazorBufferSource(), string.Empty);
+            var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             var page = CreatePage(p =>
             {
@@ -1129,9 +1132,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             await page.ExecuteAsync();
 
             // Assert
-            var buffer = writer.BufferedWriter.Entries;
-            Assert.Equal(1, buffer.Count);
-            Assert.Equal("Hello world", HtmlContentUtilities.HtmlContentToString(((IHtmlContent)buffer[0])));
+            Assert.Equal("Hello world", HtmlContentUtilities.HtmlContentToString(writer.Buffer));
         }
 
         private static TestableRazorPage CreatePage(
