@@ -3,9 +3,13 @@
 
 namespace Microsoft.AspNet.Mvc.Routing
 {
+    /// <summary>
+    /// A default implementation of <see cref="IUrlHelperFactory"/>.
+    /// </summary>
     public class UrlHelperFactory : IUrlHelperFactory
     {
-        public IUrlHelper Create(ActionContext context)
+        /// <inheritdoc />
+        public IUrlHelper GetUrlHelper(ActionContext context)
         {
             return new UrlHelper(context);
         }

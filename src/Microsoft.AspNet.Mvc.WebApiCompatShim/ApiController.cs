@@ -82,7 +82,7 @@ namespace System.Web.Http
             {
                 if (_metadataProvider == null)
                 {
-                    _metadataProvider = Context?.RequestServices?.GetRequiredService<IModelMetadataProvider>();
+                    _metadataProvider = Context?.RequestServices.GetRequiredService<IModelMetadataProvider>();
                 }
 
                 return _metadataProvider;
@@ -102,7 +102,7 @@ namespace System.Web.Http
             {
                 if (_objectValidator == null)
                 {
-                    _objectValidator = Context?.RequestServices?.GetRequiredService<IObjectModelValidator>();
+                    _objectValidator = Context?.RequestServices.GetRequiredService<IObjectModelValidator>();
                 }
 
                 return _objectValidator;
@@ -156,7 +156,8 @@ namespace System.Web.Http
             {
                 if (_urlHelper == null)
                 {
-                    _urlHelper = Context?.RequestServices?.GetRequiredService<IUrlHelperFactory>().Create(ActionContext);
+                    var factory = Context?.RequestServices.GetRequiredService<IUrlHelperFactory>();
+                    _urlHelper = factory?.GetUrlHelper(ActionContext);
                 }
 
                 return _urlHelper;

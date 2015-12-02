@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNet.Mvc.Routing
 {
@@ -37,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         protected RouteValueDictionary AmbientValues => ActionContext.RouteData.Values;
 
-        protected ActionContext ActionContext { get; set; }
+        protected ActionContext ActionContext { get; }
 
         protected HttpContext HttpContext => ActionContext.HttpContext;
 

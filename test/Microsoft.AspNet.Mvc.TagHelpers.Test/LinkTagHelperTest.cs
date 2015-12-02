@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(new Func<string, string>(url => url.Replace("~/", "virtualRoot/")));
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
 
             var helper = new LinkTagHelper(
@@ -911,7 +911,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .Returns(new Func<string, string>(url => url));
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
 
             return urlHelperFactory.Object;

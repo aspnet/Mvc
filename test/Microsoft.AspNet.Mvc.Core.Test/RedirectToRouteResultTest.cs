@@ -98,7 +98,7 @@ namespace Microsoft.AspNet.Mvc
                 .Verifiable();
             var factory = new Mock<IUrlHelperFactory>();
             factory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider
