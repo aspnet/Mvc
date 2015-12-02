@@ -16,9 +16,9 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
-    public static class DefaultDisplayTemplates
+    public class DefaultDisplayTemplates: IDefaultDisplayTemplates
     {
-        public static IHtmlContent BooleanTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent BooleanTemplate(IHtmlHelper htmlHelper)
         {
             bool? value = null;
             if (htmlHelper.ViewData.Model != null)
@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             };
         }
 
-        public static IHtmlContent CollectionTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent CollectionTemplate(IHtmlHelper htmlHelper)
         {
             var model = htmlHelper.ViewData.Model;
             if (model == null)
@@ -161,7 +161,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
         }
 
-        public static IHtmlContent DecimalTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent DecimalTemplate(IHtmlHelper htmlHelper)
         {
             if (htmlHelper.ViewData.TemplateInfo.FormattedModelValue == htmlHelper.ViewData.Model)
             {
@@ -172,7 +172,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return StringTemplate(htmlHelper);
         }
 
-        public static IHtmlContent EmailAddressTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent EmailAddressTemplate(IHtmlHelper htmlHelper)
         {
             var uriString = "mailto:" + ((htmlHelper.ViewData.Model == null) ?
                 string.Empty :
@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return HyperlinkTemplate(uriString, linkedText, htmlHelper);
         }
 
-        public static IHtmlContent HiddenInputTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent HiddenInputTemplate(IHtmlHelper htmlHelper)
         {
             if (htmlHelper.ViewData.ModelMetadata.HideSurroundingHtml)
             {
@@ -194,12 +194,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return StringTemplate(htmlHelper);
         }
 
-        public static IHtmlContent HtmlTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent HtmlTemplate(IHtmlHelper htmlHelper)
         {
             return new HtmlString(htmlHelper.ViewData.TemplateInfo.FormattedModelValue.ToString());
         }
 
-        public static IHtmlContent ObjectTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent ObjectTemplate(IHtmlHelper htmlHelper)
         {
             var viewData = htmlHelper.ViewData;
             var templateInfo = viewData.TemplateInfo;
@@ -277,7 +277,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 !templateInfo.Visited(modelExplorer);
         }
 
-        public static IHtmlContent StringTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent StringTemplate(IHtmlHelper htmlHelper)
         {
             var value = htmlHelper.ViewData.TemplateInfo.FormattedModelValue;
             if (value == null)
@@ -288,7 +288,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             return new StringHtmlContent(value.ToString());
         }
 
-        public static IHtmlContent UrlTemplate(IHtmlHelper htmlHelper)
+        public IHtmlContent UrlTemplate(IHtmlHelper htmlHelper)
         {
             var uriString = (htmlHelper.ViewData.Model == null) ? string.Empty : htmlHelper.ViewData.Model.ToString();
             var linkedText = (htmlHelper.ViewData.TemplateInfo.FormattedModelValue == null) ?

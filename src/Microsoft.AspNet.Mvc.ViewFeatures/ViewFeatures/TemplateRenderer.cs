@@ -21,51 +21,61 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
         private const string EditorTemplateViewPath = "EditorTemplates";
         public const string IEnumerableOfIFormFileName = "IEnumerable`" + nameof(IFormFile);
 
-        private static readonly Dictionary<string, Func<IHtmlHelper, IHtmlContent>> _defaultDisplayActions =
-            new Dictionary<string, Func<IHtmlHelper, IHtmlContent>>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "Collection", DefaultDisplayTemplates.CollectionTemplate },
-                { "EmailAddress", DefaultDisplayTemplates.EmailAddressTemplate },
-                { "HiddenInput", DefaultDisplayTemplates.HiddenInputTemplate },
-                { "Html", DefaultDisplayTemplates.HtmlTemplate },
-                { "Text", DefaultDisplayTemplates.StringTemplate },
-                { "Url", DefaultDisplayTemplates.UrlTemplate },
-                { typeof(bool).Name, DefaultDisplayTemplates.BooleanTemplate },
-                { typeof(decimal).Name, DefaultDisplayTemplates.DecimalTemplate },
-                { typeof(string).Name, DefaultDisplayTemplates.StringTemplate },
-                { typeof(object).Name, DefaultDisplayTemplates.ObjectTemplate },
-            };
 
-        private static readonly Dictionary<string, Func<IHtmlHelper, IHtmlContent>> _defaultEditorActions =
+        private static Dictionary<string, Func<IHtmlHelper, IHtmlContent>> _defaultDisplayActions;
+
+        private static Dictionary<string, Func<IHtmlHelper, IHtmlContent>> InitDefaultDisplayActions(IDefaultDisplayTemplates defaultDisplayTemplates)
+        {
+            return
             new Dictionary<string, Func<IHtmlHelper, IHtmlContent>>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Collection", DefaultEditorTemplates.CollectionTemplate },
-                { "EmailAddress", DefaultEditorTemplates.EmailAddressInputTemplate },
-                { "HiddenInput", DefaultEditorTemplates.HiddenInputTemplate },
-                { "MultilineText", DefaultEditorTemplates.MultilineTemplate },
-                { "Password", DefaultEditorTemplates.PasswordTemplate },
-                { "PhoneNumber", DefaultEditorTemplates.PhoneNumberInputTemplate },
-                { "Text", DefaultEditorTemplates.StringTemplate },
-                { "Url", DefaultEditorTemplates.UrlInputTemplate },
-                { "Date", DefaultEditorTemplates.DateInputTemplate },
-                { "DateTime", DefaultEditorTemplates.DateTimeInputTemplate },
-                { "DateTime-local", DefaultEditorTemplates.DateTimeLocalInputTemplate },
-                { "Time", DefaultEditorTemplates.TimeInputTemplate },
-                { typeof(byte).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(sbyte).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(short).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(ushort).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(int).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(uint).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(long).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(ulong).Name, DefaultEditorTemplates.NumberInputTemplate },
-                { typeof(bool).Name, DefaultEditorTemplates.BooleanTemplate },
-                { typeof(decimal).Name, DefaultEditorTemplates.DecimalTemplate },
-                { typeof(string).Name, DefaultEditorTemplates.StringTemplate },
-                { typeof(object).Name, DefaultEditorTemplates.ObjectTemplate },
-                { typeof(IFormFile).Name, DefaultEditorTemplates.FileInputTemplate },
-                { IEnumerableOfIFormFileName, DefaultEditorTemplates.FileCollectionInputTemplate },
+                { "Collection", defaultDisplayTemplates.CollectionTemplate },
+                { "EmailAddress", defaultDisplayTemplates.EmailAddressTemplate },
+                { "HiddenInput", defaultDisplayTemplates.HiddenInputTemplate },
+                { "Html", defaultDisplayTemplates.HtmlTemplate },
+                { "Text", defaultDisplayTemplates.StringTemplate },
+                { "Url", defaultDisplayTemplates.UrlTemplate },
+                { typeof(bool).Name, defaultDisplayTemplates.BooleanTemplate },
+                { typeof(decimal).Name, defaultDisplayTemplates.DecimalTemplate },
+                { typeof(string).Name, defaultDisplayTemplates.StringTemplate },
+                { typeof(object).Name, defaultDisplayTemplates.ObjectTemplate },
             };
+        }
+        private static Dictionary<string, Func<IHtmlHelper, IHtmlContent>> _defaultEditorActions;
+
+        private static Dictionary<string, Func<IHtmlHelper, IHtmlContent>> InitDefaultEditorActions(IDefaultEditorTemplates defaultEditorTemplates)
+        { 
+            return
+            new Dictionary<string, Func<IHtmlHelper, IHtmlContent>>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Collection", defaultEditorTemplates.CollectionTemplate },
+                { "EmailAddress", defaultEditorTemplates.EmailAddressInputTemplate },
+                { "HiddenInput", defaultEditorTemplates.HiddenInputTemplate },
+                { "MultilineText", defaultEditorTemplates.MultilineTemplate },
+                { "Password", defaultEditorTemplates.PasswordTemplate },
+                { "PhoneNumber", defaultEditorTemplates.PhoneNumberInputTemplate },
+                { "Text", defaultEditorTemplates.StringTemplate },
+                { "Url", defaultEditorTemplates.UrlInputTemplate },
+                { "Date", defaultEditorTemplates.DateInputTemplate },
+                { "DateTime", defaultEditorTemplates.DateTimeInputTemplate },
+                { "DateTime-local", defaultEditorTemplates.DateTimeLocalInputTemplate },
+                { "Time", defaultEditorTemplates.TimeInputTemplate },
+                { typeof(byte).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(sbyte).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(short).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(ushort).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(int).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(uint).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(long).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(ulong).Name, defaultEditorTemplates.NumberInputTemplate },
+                { typeof(bool).Name, defaultEditorTemplates.BooleanTemplate },
+                { typeof(decimal).Name, defaultEditorTemplates.DecimalTemplate },
+                { typeof(string).Name, defaultEditorTemplates.StringTemplate },
+                { typeof(object).Name, defaultEditorTemplates.ObjectTemplate },
+                { typeof(IFormFile).Name, defaultEditorTemplates.FileInputTemplate },
+                { IEnumerableOfIFormFileName, defaultEditorTemplates.FileCollectionInputTemplate },
+            };
+    }
 
         private ViewContext _viewContext;
         private ViewDataDictionary _viewData;
@@ -145,7 +155,23 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 
         private Dictionary<string, Func<IHtmlHelper, IHtmlContent>> GetDefaultActions()
         {
-            return _readOnly ? _defaultDisplayActions : _defaultEditorActions;
+            if (_readOnly) {
+                if (_defaultDisplayActions == null)
+                {
+                    var defaultDisplayTemplates = _viewContext.HttpContext.RequestServices.GetRequiredService<IDefaultDisplayTemplates>();
+                    _defaultDisplayActions = InitDefaultDisplayActions(defaultDisplayTemplates);
+                }
+                return _defaultDisplayActions;
+            }
+            else
+            {
+                if (_defaultEditorActions == null)
+                {
+                    var defaultEditorTemplates = _viewContext.HttpContext.RequestServices.GetRequiredService<IDefaultEditorTemplates>();
+                    _defaultEditorActions = InitDefaultEditorActions(defaultEditorTemplates);
+                }
+                return _defaultEditorActions;
+            }
         }
 
         private IEnumerable<string> GetViewNames()

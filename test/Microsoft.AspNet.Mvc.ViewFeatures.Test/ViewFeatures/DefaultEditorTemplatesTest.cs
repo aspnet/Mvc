@@ -109,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(html);
+            var result = new DefaultEditorTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -132,7 +132,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             html.ViewData.TemplateInfo.AddVisited("bar");
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(html);
+            var result = new DefaultEditorTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(html.ViewData.ModelMetadata.NullDisplayText, HtmlContentUtilities.HtmlContentToString(result));
@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             html.ViewData.TemplateInfo.AddVisited("bar");
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(html);
+            var result = new DefaultEditorTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
@@ -198,7 +198,7 @@ Environment.NewLine;
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(htmlHelper);
+            var result = new DefaultEditorTemplates().ObjectTemplate(htmlHelper);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -228,7 +228,7 @@ Environment.NewLine;
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model, provider: provider);
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(html);
+            var result = new DefaultEditorTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -272,7 +272,7 @@ Environment.NewLine;
             var expected = stringBuilder.ToString();
 
             // Act
-            var result = DefaultEditorTemplates.ObjectTemplate(html);
+            var result = new DefaultEditorTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -294,7 +294,7 @@ Environment.NewLine;
             templateInfo.FormattedModelValue = "Formatted string";
 
             // Act
-            var result = DefaultEditorTemplates.HiddenInputTemplate(html);
+            var result = new DefaultEditorTemplates().HiddenInputTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -321,7 +321,7 @@ Environment.NewLine;
             templateInfo.FormattedModelValue = "Formatted string";
 
             // Act
-            var result = DefaultEditorTemplates.HiddenInputTemplate(html);
+            var result = new DefaultEditorTemplates().HiddenInputTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -345,7 +345,7 @@ Environment.NewLine;
             templateInfo.FormattedModelValue = "Formatted string";
 
             // Act
-            var result = DefaultEditorTemplates.MultilineTemplate(html);
+            var result = new DefaultEditorTemplates().MultilineTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));

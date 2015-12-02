@@ -62,7 +62,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(html);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var html = DefaultTemplatesUtilities.GetHtmlHelper(provider: provider);
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(html);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal("(null value)", HtmlContentUtilities.HtmlContentToString(result));
@@ -111,7 +111,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             html.ViewData.TemplateInfo.AddVisited("bar");
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(html);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expectedResult, HtmlContentUtilities.HtmlContentToString(result));
@@ -137,7 +137,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(model, viewEngine.Object);
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(htmlHelper);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(htmlHelper);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var html = DefaultTemplatesUtilities.GetHtmlHelper(model, provider);
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(html);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -206,7 +206,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             var expected = stringBuilder.ToString();
 
             // Act
-            var result = DefaultDisplayTemplates.ObjectTemplate(html);
+            var result = new DefaultDisplayTemplates().ObjectTemplate(html);
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
@@ -225,7 +225,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             templateInfo.FormattedModelValue = "Formatted string";
 
             // Act
-            var result = DefaultDisplayTemplates.HiddenInputTemplate(html);
+            var result = new DefaultDisplayTemplates().HiddenInputTemplate(html);
 
             // Assert
             Assert.Equal("HtmlEncode[[Formatted string]]", HtmlContentUtilities.HtmlContentToString(result));
@@ -251,7 +251,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             templateInfo.FormattedModelValue = "Formatted string";
 
             // Act
-            var result = DefaultDisplayTemplates.HiddenInputTemplate(html);
+            var result = new DefaultDisplayTemplates().HiddenInputTemplate(html);
 
             // Assert
             Assert.Empty(HtmlContentUtilities.HtmlContentToString(result));
