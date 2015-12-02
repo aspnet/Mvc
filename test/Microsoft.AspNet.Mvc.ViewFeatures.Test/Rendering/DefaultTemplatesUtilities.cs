@@ -235,7 +235,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
 
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
             var serviceProvider = new Mock<IServiceProvider>();

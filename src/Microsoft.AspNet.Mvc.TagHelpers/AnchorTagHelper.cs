@@ -165,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (Route == null)
                 {
                     tagBuilder = Generator.GenerateActionLink(
-                        viewContext: ViewContext,
+                        ViewContext,
                         linkText: string.Empty,
                         actionName: Action,
                         controllerName: Controller,

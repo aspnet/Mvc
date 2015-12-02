@@ -82,7 +82,7 @@ namespace Microsoft.AspNet.Mvc
             if (urlHelper == null)
             {
                 var services = context.HttpContext.RequestServices;
-                urlHelper = services.GetRequiredService<IUrlHelperFactory>().Create(context);
+                urlHelper = services.GetRequiredService<IUrlHelperFactory>().GetUrlHelper(context);
             }
 
             return urlHelper;

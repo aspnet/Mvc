@@ -108,8 +108,9 @@ namespace Microsoft.AspNet.Mvc
                 if (_url == null)
                 {
                     // May be null in unit-testing scenarios.
-                    var services = ViewComponentContext.ViewContext?.HttpContext?.RequestServices;
-                    _url = services?.GetRequiredService<IUrlHelperFactory>()?.Create(ViewComponentContext.ViewContext);
+                    var services = ViewComponentContext.ViewContext?.HttpContext.RequestServices;
+                    var factory = services?.GetRequiredService<IUrlHelperFactory>();
+                    _url = factory.GetUrlHelper(ViewComponentContext.ViewContext);
                 }
 
                 return _url;
@@ -181,7 +182,7 @@ namespace Microsoft.AspNet.Mvc
                 if (_viewEngine == null)
                 {
                     // May be null in unit-testing scenarios.
-                    var services = ViewComponentContext.ViewContext?.HttpContext?.RequestServices;
+                    var services = ViewComponentContext.ViewContext?.HttpContext.RequestServices;
                     _viewEngine = services?.GetRequiredService<ICompositeViewEngine>();
                 }
 

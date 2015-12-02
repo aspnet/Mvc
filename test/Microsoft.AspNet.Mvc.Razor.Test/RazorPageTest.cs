@@ -562,7 +562,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 .Verifiable();
             var factory = new Mock<IUrlHelperFactory>();
             factory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(helper.Object);
 
             var page = CreatePage(v =>

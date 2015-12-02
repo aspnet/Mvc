@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(linkText));
             }
 
-            var urlHelper = _urlHelperFactory.Create(viewContext);
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
             var url = urlHelper.Action(actionName, controllerName, routeValues, protocol, hostname, fragment);
             return GenerateLink(linkText, url, htmlAttributes);
         }
@@ -250,7 +250,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
             else
             {
-                var urlHelper = _urlHelperFactory.Create(viewContext);
+                var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
                 action = urlHelper.Action(action: actionName, controller: controllerName, values: routeValues);
             }
 
@@ -270,7 +270,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
-            var urlHelper = _urlHelperFactory.Create(viewContext);
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
             var action = urlHelper.RouteUrl(routeName, routeValues);
 
             return GenerateFormCore(viewContext, action, method, htmlAttributes);
@@ -472,7 +472,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(linkText));
             }
 
-            var urlHelper = _urlHelperFactory.Create(viewContext);
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
             var url = urlHelper.RouteUrl(routeName, routeValues, protocol, hostName, fragment);
             return GenerateLink(linkText, url, htmlAttributes);
         }

@@ -61,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                 .Returns(new Func<string, string>(value => "/approot" + value.Substring(1)));
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelperMock.Object);
             var tagHelper = new UrlResolutionTagHelper(urlHelperFactory.Object, new HtmlTestEncoder());
 
@@ -121,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                 .Returns("approot/home/index.html");
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelperMock.Object);
             var tagHelper = new UrlResolutionTagHelper(urlHelperFactory.Object, htmlEncoder: null);
 
@@ -195,7 +195,7 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
                 .Returns("UnexpectedResult");
             var urlHelperFactory = new Mock<IUrlHelperFactory>();
             urlHelperFactory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelperMock.Object);
             var tagHelper = new UrlResolutionTagHelper(urlHelperFactory.Object, htmlEncoder: null);
 

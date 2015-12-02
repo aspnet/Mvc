@@ -443,7 +443,7 @@ namespace Microsoft.AspNet.Mvc
         {
             var factory = new Mock<IUrlHelperFactory>();
             factory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
             var serviceCollection = GetServiceCollection();
@@ -488,7 +488,7 @@ namespace Microsoft.AspNet.Mvc
             var urlHelper = new UrlHelper(context);
             var factory = new Mock<IUrlHelperFactory>();
             factory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
             serviceCollection.AddSingleton<IUrlHelperFactory>(factory.Object);
@@ -522,7 +522,7 @@ namespace Microsoft.AspNet.Mvc
             var urlHelper = new UrlHelper(context);
             var factory = new Mock<IUrlHelperFactory>();
             factory
-                .Setup(f => f.Create(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
             serviceCollection.AddSingleton<IUrlHelperFactory>(factory.Object);

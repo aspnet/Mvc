@@ -208,7 +208,7 @@ namespace Microsoft.AspNet.Mvc.Razor.TagHelpers
             // Before doing more work, ensure that the URL we're looking at is app relative.
             if (trimmedUrl.Length >= 2 && trimmedUrl[0] == '~' && trimmedUrl[1] == '/')
             {
-                var urlHelper = UrlHelperFactory.Create(ViewContext);
+                var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
                 var appRelativeUrl = urlHelper.Content(trimmedUrl);
 
                 if (encodeWebRoot)

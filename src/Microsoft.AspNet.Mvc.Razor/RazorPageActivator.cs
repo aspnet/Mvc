@@ -118,7 +118,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 {
                     var serviceProvider = context.HttpContext.RequestServices;
                     var factory = (IUrlHelperFactory)serviceProvider.GetRequiredService(typeof(IUrlHelperFactory));
-                    return factory.Create(context);
+                    return factory.GetUrlHelper(context);
                 };
             }
             else

@@ -632,7 +632,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 var services = Context.RequestServices;
                 var factory = services.GetRequiredService<IUrlHelperFactory>();
-                _urlHelper = factory.Create(ViewContext);
+                _urlHelper = factory.GetUrlHelper(ViewContext);
             }
 
             return _urlHelper.Content(contentPath);
