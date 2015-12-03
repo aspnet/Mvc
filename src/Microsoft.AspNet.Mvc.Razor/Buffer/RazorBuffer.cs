@@ -19,7 +19,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
     {
         private readonly IRazorBufferScope _bufferScope;
         private readonly string _name;
-        private int _currentIndex;
 
         /// <summary>
         /// Initializes a new instance of <see cref="RazorBuffer"/>.
@@ -40,7 +39,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
         /// <summary>
         /// Gets the backing buffer.
         /// </summary>
-        public IList<RazorBufferSegment> BufferChunks { get; private set; }
+        public IList<RazorBufferSegment> BufferSegments { get; private set; }
+
+        /// <summary>
+        /// Gets the count of entries in the last element of <see cref="BufferSegments"/>.
+        /// </summary>
+        public int CurrentCount { get; private set; }
 
         /// <inheritdoc />
         public IHtmlContentBuilder Append(string unencoded)
@@ -50,11 +54,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
                 return this;
             }
 
-            EnsureCapacity();
-
-            var chunk = BufferChunks[BufferChunks.Count - 1];
-            chunk.Data.Array[chunk.Data.Offset + _currentIndex] = new RazorValue(unencoded);
-            _currentIndex = (_currentIndex + 1) % chunk.Data.Count;
+            AppendValue(new RazorValue(unencoded));
             return this;
         }
 
@@ -66,11 +66,7 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
                 return this;
             }
 
-            EnsureCapacity();
-
-            var chunk = BufferChunks[BufferChunks.Count - 1];
-            chunk.Data.Array[chunk.Data.Offset + _currentIndex] = new RazorValue(content);
-            _currentIndex = (_currentIndex + 1) % chunk.Data.Count;
+            AppendValue(new RazorValue(content));
             return this;
         }
 
@@ -82,21 +78,42 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
                 return this;
             }
 
-            EnsureCapacity();
-
-            var chunk = BufferChunks[BufferChunks.Count - 1];
-            chunk.Data.Array[chunk.Data.Offset + _currentIndex] = new RazorValue(new HtmlString(encoded));
-            _currentIndex = (_currentIndex + 1) % chunk.Data.Count;
+            var value = new HtmlString(encoded);
+            AppendValue(new RazorValue(value));
             return this;
+        }
+
+        private void AppendValue(RazorValue value)
+        {
+            RazorBufferSegment segment;
+            if (BufferSegments == null)
+            {
+                BufferSegments = new List<RazorBufferSegment>(1);
+                segment = _bufferScope.GetSegment();
+                BufferSegments.Add(segment);
+            }
+            else
+            {
+                segment = BufferSegments[BufferSegments.Count - 1];
+                if (CurrentCount == segment.Data.Count)
+                {
+                    segment = _bufferScope.GetSegment();
+                    BufferSegments.Add(segment);
+                    CurrentCount = 0;
+                }
+            }
+
+            segment.Data.Array[segment.Data.Offset + CurrentCount] = value;
+            CurrentCount++;
         }
 
         /// <inheritdoc />
         public IHtmlContentBuilder Clear()
         {
-            if (BufferChunks != null)
+            if (BufferSegments != null)
             {
-                _currentIndex = 0;
-                BufferChunks.Clear();
+                CurrentCount = 0;
+                BufferSegments = null;
             }
 
             return this;
@@ -105,51 +122,28 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
         /// <inheritdoc />
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
-            if (BufferChunks == null)
+            if (BufferSegments == null)
             {
                 return;
             }
 
             var htmlTextWriter = writer as HtmlTextWriter;
-
-            for (var i = 0; i < BufferChunks.Count; i++)
+            if (htmlTextWriter != null)
             {
-                var chunk = BufferChunks[i];
-                var count = i + 1 < BufferChunks.Count ? chunk.Data.Count : _currentIndex;
+                writer.Write(this);
+                return;
+            }
+
+            for (var i = 0; i < BufferSegments.Count; i++)
+            {
+                var segment = BufferSegments[i];
+                var count = i == BufferSegments.Count - 1 ? CurrentCount : segment.Data.Count;
 
                 for (var j = 0; j < count; j++)
                 {
-                    var value = chunk.Data.Array[chunk.Data.Offset + j];
-                    if (htmlTextWriter != null)
-                    {
-                        htmlTextWriter.Write(value.Value);
-                    }
-                    else
-                    {
-                        value.WriteTo(writer, encoder);
-                    }
+                    var value = segment.Data.Array[segment.Data.Offset + j];
+                    value.WriteTo(writer, encoder);
                 }
-            }
-        }
-
-        private RazorBufferSegment EnsureCapacity()
-        {
-            if (BufferChunks == null)
-            {
-                BufferChunks = new List<RazorBufferSegment>(1);
-                BufferChunks.Add(_bufferScope.GetSegment());
-            };
-
-            var chunk = BufferChunks[BufferChunks.Count - 1];
-            if (_currentIndex == chunk.Data.Count - 1)
-            {
-                chunk = _bufferScope.GetSegment();
-                BufferChunks.Add(chunk);
-                return chunk;
-            }
-            else
-            {
-                return chunk;
             }
         }
 

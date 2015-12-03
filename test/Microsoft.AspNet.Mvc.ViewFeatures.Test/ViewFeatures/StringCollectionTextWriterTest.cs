@@ -113,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             // Assert
             var actual = writer.Entries;
-            Assert.Equal(new object[] { input1, input2, newLine, input3, input4, newLine }, actual);
+            Assert.Equal(new[] { input1, input2, newLine, input3, input4, newLine }, actual);
         }
 
         [Fact]

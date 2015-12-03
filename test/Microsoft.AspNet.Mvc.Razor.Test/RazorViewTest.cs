@@ -1566,7 +1566,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var httpContext = new DefaultHttpContext();
             var serviceProvider = new ServiceCollection()
-                .AddScoped<IRazorBufferScope, TestRazorBufferSource>()
+                .AddScoped<IRazorBufferScope, TestRazorBufferScope>()
                 .BuildServiceProvider();
             httpContext.RequestServices = serviceProvider;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());

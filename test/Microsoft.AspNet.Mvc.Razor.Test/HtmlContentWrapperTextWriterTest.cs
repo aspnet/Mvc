@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var input1 = new ArraySegment<char>(new char[] { 'a', 'b', 'c', 'd' }, 1, 3);
             var input2 = new ArraySegment<char>(new char[] { 'e', 'f' }, 0, 2);
             var input3 = new ArraySegment<char>(new char[] { 'g', 'h', 'i', 'j' }, 3, 1);
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
 
             // Act
@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             // Arrange
             var charArray = Enumerable.Range(0, 2050).Select(_ => 'a').ToArray();
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
 
             // Act
@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Write_HtmlContent_AddsToEntries()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
             var content = new HtmlString("Hello, world!");
 
@@ -76,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Write_Object_HtmlContent_AddsToEntries()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
             var content = new HtmlString("Hello, world!");
 
@@ -93,7 +93,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void WriteLine_Object_HtmlContent_AddsToEntries()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
             var content = new HtmlString("Hello, world!");
 
@@ -116,7 +116,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var input2 = "from";
             var input3 = "ASP";
             var input4 = ".Net";
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
 
             // Act
@@ -134,7 +134,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public void Write_HtmlContent_WritesToBuffer()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), "some-name");
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), "some-name");
             var writer = new HtmlContentWrapperTextWriter(buffer, Encoding.UTF8);
             var content = new HtmlString("Hello, world!");
 
@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.Razor
 
         private static object[] GetValues(RazorBuffer buffer)
         {
-            return buffer.BufferChunks
+            return buffer.BufferSegments
                 .SelectMany(c => c.Data)
                 .Select(d => d.Value)
                 .TakeWhile(d => d != null)

@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(v =>
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
-                var buffer = new RazorBuffer(new TestRazorBufferSource(), v.Path);
+                var buffer = new RazorBuffer(new TestRazorBufferScope(), v.Path);
                 v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, buffer, v.HtmlEncoder));
                 v.Write("Hello ");
                 v.Write("World!");
@@ -1119,7 +1119,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task Write_WithHtmlString_WritesValueWithoutEncoding()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferSource(), string.Empty);
+            var buffer = new RazorBuffer(new TestRazorBufferScope(), string.Empty);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             var page = CreatePage(p =>
