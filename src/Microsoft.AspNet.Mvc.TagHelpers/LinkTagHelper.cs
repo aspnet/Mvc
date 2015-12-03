@@ -12,7 +12,6 @@ using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.TagHelpers.Internal;
 using Microsoft.AspNet.Mvc.TagHelpers.Logging;
-using Microsoft.AspNet.Mvc.ViewFeatures;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -287,7 +286,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             if (mode == Mode.Fallback)
             {
                 string resolvedUrl;
-                if (TryResolveUrl(FallbackHref, encodeWebRoot: false, resolvedUrl: out resolvedUrl))
+                if (TryResolveUrl(FallbackHref, resolvedUrl: out resolvedUrl))
                 {
                     FallbackHref = resolvedUrl;
                 }
@@ -352,13 +351,12 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // indicating that the primary stylesheet failed to load.
                 builder
                     .AppendHtml("<script>")
-                    .AppendHtml(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                            JavaScriptEncoder.Encode(FallbackTestProperty),
-                            JavaScriptEncoder.Encode(FallbackTestValue),
-                            JavaScriptStringArrayEncoder.Encode(JavaScriptEncoder, fallbackHrefs)))
+                    .AppendFormat(
+                        CultureInfo.InvariantCulture,
+                        JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
+                        new HtmlString(JavaScriptEncoder.Encode(FallbackTestProperty)),
+                        new HtmlString(JavaScriptEncoder.Encode(FallbackTestValue)),
+                        new HtmlString(JavaScriptStringArrayEncoder.Encode(JavaScriptEncoder, fallbackHrefs)))
                     .AppendHtml("</script>");
             }
         }
@@ -410,7 +408,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 builder
                     .AppendHtml(attribute.Name)
                     .AppendHtml("=\"")
-                    .Append(HtmlEncoder, ViewContext.Writer.Encoding, attributeValue)
+                    .Append(HtmlEncoder, attributeValue)
                     .AppendHtml("\" ");
             }
 
