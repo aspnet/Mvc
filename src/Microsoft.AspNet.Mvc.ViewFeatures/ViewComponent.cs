@@ -6,6 +6,7 @@ using System.Security.Principal;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewComponents;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
@@ -107,8 +108,9 @@ namespace Microsoft.AspNet.Mvc
                 if (_url == null)
                 {
                     // May be null in unit-testing scenarios.
-                    var services = ViewComponentContext.ViewContext?.HttpContext?.RequestServices;
-                    _url = services?.GetRequiredService<IUrlHelper>();
+                    var services = ViewComponentContext.ViewContext?.HttpContext.RequestServices;
+                    var factory = services?.GetRequiredService<IUrlHelperFactory>();
+                    _url = factory?.GetUrlHelper(ViewComponentContext.ViewContext);
                 }
 
                 return _url;
@@ -180,7 +182,7 @@ namespace Microsoft.AspNet.Mvc
                 if (_viewEngine == null)
                 {
                     // May be null in unit-testing scenarios.
-                    var services = ViewComponentContext.ViewContext?.HttpContext?.RequestServices;
+                    var services = ViewComponentContext.ViewContext?.HttpContext.RequestServices;
                     _viewEngine = services?.GetRequiredService<ICompositeViewEngine>();
                 }
 

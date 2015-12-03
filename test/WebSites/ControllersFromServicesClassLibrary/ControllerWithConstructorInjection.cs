@@ -3,36 +3,22 @@
 
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Routing;
 
 namespace ControllersFromServicesClassLibrary
 {
-    public class ConstructorInjectionController
+    public class ConstructorInjectionController : Controller
     {
-        public ConstructorInjectionController(IUrlHelper urlHelper,
-                                              QueryValueService queryService)
+        public ConstructorInjectionController(QueryValueService queryService)
         {
-            UrlHelper = urlHelper;
             QueryService = queryService;
         }
 
-        private IUrlHelper UrlHelper { get; }
-
         private QueryValueService QueryService { get; }
-
-        [ActionContext]
-        public ActionContext ActionContext { get; set; }
-
-        public HttpRequest Request => ActionContext.HttpContext.Request;
 
         [HttpGet("/constructorinjection")]
         public IActionResult Index()
         {
-            var content = string.Join(" ", 
-                                      UrlHelper.Action(), 
-                                      QueryService.GetValue(), 
-                                      Request.Headers["Test-Header"]);
-
+            var content = string.Join(" ", Url.Action(), QueryService.GetValue(), Request.Headers["Test-Header"]);
             return new ContentResult { Content = content };
         }
     }

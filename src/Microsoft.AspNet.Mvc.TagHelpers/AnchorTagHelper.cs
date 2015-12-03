@@ -101,6 +101,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public IDictionary<string, string> RouteValues { get; set; } =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Gets or sets the <see cref="Microsoft.AspNet.Mvc.ViewContext"/> for the current request.
+        /// </summary>
+        [HtmlAttributeNotBound]
+        [ViewContext]
+        public ViewContext ViewContext { get; set; }
+
         /// <inheritdoc />
         /// <remarks>Does nothing if user provides an <c>href</c> attribute.</remarks>
         /// <exception cref="InvalidOperationException">
@@ -158,6 +165,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 if (Route == null)
                 {
                     tagBuilder = Generator.GenerateActionLink(
+                        ViewContext,
                         linkText: string.Empty,
                         actionName: Action,
                         controllerName: Controller,
@@ -180,13 +188,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 }
                 else
                 {
-                    tagBuilder = Generator.GenerateRouteLink(linkText: string.Empty,
-                                                             routeName: Route,
-                                                             protocol: Protocol,
-                                                             hostName: Host,
-                                                             fragment: Fragment,
-                                                             routeValues: routeValues,
-                                                             htmlAttributes: null);
+                    tagBuilder = Generator.GenerateRouteLink(
+                        viewContext: ViewContext,
+                        linkText: string.Empty,
+                        routeName: Route,
+                        protocol: Protocol,
+                        hostName: Host,
+                        fragment: Fragment,
+                        routeValues: routeValues,
+                        htmlAttributes: null);
                 }
 
                 if (tagBuilder != null)
