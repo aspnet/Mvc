@@ -110,7 +110,7 @@ namespace Microsoft.AspNet.Mvc
                     // May be null in unit-testing scenarios.
                     var services = ViewComponentContext.ViewContext?.HttpContext.RequestServices;
                     var factory = services?.GetRequiredService<IUrlHelperFactory>();
-                    _url = factory.GetUrlHelper(ViewComponentContext.ViewContext);
+                    _url = factory?.GetUrlHelper(ViewComponentContext.ViewContext);
                 }
 
                 return _url;
