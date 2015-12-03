@@ -12,8 +12,7 @@ using Microsoft.Extensions.PlatformAbstractions;
 namespace Microsoft.AspNet.Mvc.Localization
 {
     /// <summary>
-    /// A <see cref="IHtmlLocalizer"/> implementation that provides localized strings for views. Keys are interpreted
-    /// relative to the path of the executing view.
+    /// A <see cref="IHtmlLocalizer"/> implementation that provides localized strings for views.
     /// </summary>
     public class ViewLocalizer : IViewLocalizer, ICanHasViewContext
     {

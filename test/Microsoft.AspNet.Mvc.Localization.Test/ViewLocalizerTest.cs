@@ -5,12 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.Encodings.Web;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.PlatformAbstractions;
-using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -299,8 +297,7 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
                 return new LocalizedHtmlString(
                     localizedString.Name,
                     localizedString.Value,
-                    isResourceNotFound: false,
-                    arguments: null);
+                    isResourceNotFound: false);
             }
 
             public LocalizedHtmlString Html(string key, params object[] arguments)

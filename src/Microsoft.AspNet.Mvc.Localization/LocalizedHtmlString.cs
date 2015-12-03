@@ -27,27 +27,40 @@ namespace Microsoft.AspNet.Mvc.Localization
         /// <param name="key">The name of the string resource.</param>
         /// <param name="value">The string resource.</param>
         /// <param name="isResourceNotFound">A flag that indicates if the resource is not found.</param>
+        public LocalizedHtmlString(string key, string value, bool isResourceNotFound)
+            : this(key, value, isResourceNotFound, arguments: EmptyArguments)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of <see cref="LocalizedHtmlString"/>.
+        /// </summary>
+        /// <param name="key">The name of the string resource.</param>
+        /// <param name="value">The string resource.</param>
+        /// <param name="isResourceNotFound">A flag that indicates if the resource is not found.</param>
         /// <param name="arguments">The values to format the <paramref name="value"/> with.</param>
         public LocalizedHtmlString(string key, string value, bool isResourceNotFound, params object[] arguments)
         {
             if (key == null)
             {
-                throw new ArgumentException(nameof(key));
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (value == null)
             {
-                throw new ArgumentException(nameof(value));
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (arguments == null)
+            {
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             Key = key;
             Value = value;
             IsResourceNotFound = isResourceNotFound;
-            _arguments = arguments ?? EmptyArguments;
+            _arguments = arguments;
         }
-
-        // Reviewers: The following properties, especially Key and IsResourceNotFound seem to exist only for
-        // consistency with LocalizedString but they're unused. Should they be removed?
 
         /// <summary>
         /// The name of the string resource.
@@ -88,7 +101,7 @@ namespace Microsoft.AspNet.Mvc.Localization
             }
         }
 
-        private void FormatValue(
+        private static void FormatValue(
             TextWriter writer,
             HtmlEncoder encoder,
             string resourceString,
@@ -109,7 +122,7 @@ namespace Microsoft.AspNet.Mvc.Localization
                     if (position < length && resourceString[position] == '}')
                     {
                         // Escaped curly brace: "}}".
-                        AppendCurly(isToken, currentCharacter, tokenBuffer, writer);
+                        AppendCurlyBrace(isToken, currentCharacter, tokenBuffer, writer);
                         position++;
                     }
                     else
@@ -132,7 +145,7 @@ namespace Microsoft.AspNet.Mvc.Localization
                     if (position < length && resourceString[position] == '{')
                     {
                         // Escaped curly brace: "{{".
-                        AppendCurly(isToken, currentCharacter, tokenBuffer, writer);
+                        AppendCurlyBrace(isToken, currentCharacter, tokenBuffer, writer);
                         position++;
                     }
                     else
@@ -152,7 +165,7 @@ namespace Microsoft.AspNet.Mvc.Localization
             AppendToOutput(tokenBuffer, arguments, writer, encoder);
         }
 
-        private void Append(
+        private static void Append(
             bool isToken,
             char value,
             StringBuilder tokenBuffer,
@@ -168,25 +181,25 @@ namespace Microsoft.AspNet.Mvc.Localization
             }
         }
 
-        private void AppendCurly(
+        private static void AppendCurlyBrace(
             bool isToken,
-            char curly,
+            char curlyBrace,
             StringBuilder tokenBuffer,
             TextWriter writer)
         {
             if (isToken)
             {
                 tokenBuffer
-                    .Append(curly)
-                    .Append(curly);
+                    .Append(curlyBrace)
+                    .Append(curlyBrace);
             }
             else
             {
-                writer.Write(curly);
+                writer.Write(curlyBrace);
             }
         }
 
-        private void AppendToOutput(
+        private static void AppendToOutput(
             StringBuilder tokenBuffer,
             object[] arguments,
             TextWriter writer,

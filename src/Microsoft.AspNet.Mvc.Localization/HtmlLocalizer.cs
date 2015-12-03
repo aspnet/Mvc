@@ -141,7 +141,7 @@ namespace Microsoft.AspNet.Mvc.Localization
         /// </summary>
         /// <param name="result">The <see cref="LocalizedString"/>.</param>
         protected virtual LocalizedHtmlString ToHtmlString(LocalizedString result) =>
-            new LocalizedHtmlString(result.Name, result.Value, result.ResourceNotFound, arguments: null);
+            new LocalizedHtmlString(result.Name, result.Value, result.ResourceNotFound);
 
         protected virtual LocalizedHtmlString ToHtmlString(LocalizedString result, object[] arguments) =>
             new LocalizedHtmlString(result.Name, result.Value, result.ResourceNotFound, arguments);
