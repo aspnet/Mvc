@@ -167,7 +167,7 @@ namespace Microsoft.AspNet.Mvc
             {
                 if (_url == null)
                 {
-                    var factory = Resolver.GetRequiredService<IUrlHelperFactory>();
+                    var factory = Resolver?.GetRequiredService<IUrlHelperFactory>();
                     _url = factory?.GetUrlHelper(ControllerContext);
                 }
 
