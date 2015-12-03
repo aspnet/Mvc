@@ -349,15 +349,17 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Build the <script /> tag that checks the effective style of <meta /> tag above and renders the extra
                 // <link /> tag to load the fallback stylesheet if the test CSS property value is found to be false,
                 // indicating that the primary stylesheet failed to load.
+                // GetEmbeddedJavaScript returns JavaScript to which we add '"{0}","{1}",{2});'
                 builder
                     .AppendHtml("<script>")
-                    .AppendFormat(
-                        CultureInfo.InvariantCulture,
-                        JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName),
-                        new HtmlString(JavaScriptEncoder.Encode(FallbackTestProperty)),
-                        new HtmlString(JavaScriptEncoder.Encode(FallbackTestValue)),
-                        new HtmlString(JavaScriptStringArrayEncoder.Encode(JavaScriptEncoder, fallbackHrefs)))
-                    .AppendHtml("</script>");
+                    .AppendHtml(JavaScriptResources.GetEmbeddedJavaScript(FallbackJavaScriptResourceName))
+                    .AppendHtml("\"")
+                    .AppendHtml(JavaScriptEncoder.Encode(FallbackTestProperty))
+                    .AppendHtml("\",\"")
+                    .AppendHtml(JavaScriptEncoder.Encode(FallbackTestValue))
+                    .AppendHtml("\",")
+                    .AppendHtml(JavaScriptStringArrayEncoder.Encode(JavaScriptEncoder, fallbackHrefs))
+                    .AppendHtml(");</script>");
             }
         }
 

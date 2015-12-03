@@ -335,15 +335,15 @@ namespace Microsoft.AspNet.Mvc.Razor
             if (htmlContent != null)
             {
                 var htmlTextWriter = writer as HtmlTextWriter;
-                if (htmlTextWriter != null)
+                if (htmlTextWriter == null)
+                {
+                    htmlContent.WriteTo(writer, encoder);
+                }
+                else
                 {
                     // This special case allows us to keep buffering as IHtmlContent until we get to the 'final'
                     // TextWriter.
                     htmlTextWriter.Write(htmlContent);
-                }
-                else
-                {
-                    htmlContent.WriteTo(writer, encoder);
                 }
 
                 return;

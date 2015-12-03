@@ -101,13 +101,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         public override void Write(IHtmlContent value)
         {
             var htmlTextWriter = TargetWriter as HtmlTextWriter;
-            if (htmlTextWriter != null)
+            if (htmlTextWriter == null)
             {
-                htmlTextWriter.Write(value);
+                value.WriteTo(TargetWriter, HtmlEncoder);
             }
             else
             {
-                value.WriteTo(TargetWriter, HtmlEncoder);
+                htmlTextWriter.Write(value);
             }
         }
 

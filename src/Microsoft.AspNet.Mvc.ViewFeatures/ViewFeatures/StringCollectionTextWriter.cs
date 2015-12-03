@@ -183,7 +183,15 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <param name="encoder">The <see cref="HtmlEncoder"/> to encode the copied/written content.</param>
         public void CopyTo(TextWriter writer, HtmlEncoder encoder)
         {
-            Content.WriteTo(writer, encoder);
+            var htmlTextWriter = writer as HtmlTextWriter;
+            if (htmlTextWriter != null)
+            {
+                htmlTextWriter.Write(Content);
+            }
+            else
+            {
+                Content.WriteTo(writer, encoder);
+            }
         }
 
         /// <summary>
@@ -220,16 +228,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             public void WriteTo(TextWriter writer, HtmlEncoder encoder)
             {
-                var htmlTextWriter = writer as HtmlTextWriter;
-                if (htmlTextWriter != null)
-                {
-                    // As a perf optimization, we can buffer this output rather than writing it out character by
-                    // character. May occur through StringCollectionTextWriter.CopyTo() or as content is rewritten
-                    // later.
-                    htmlTextWriter.Write(this);
-                    return;
-                }
-
                 foreach (var item in _entries)
                 {
                     if (item == null)

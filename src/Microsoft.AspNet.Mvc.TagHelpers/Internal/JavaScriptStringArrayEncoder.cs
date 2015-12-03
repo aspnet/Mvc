@@ -16,10 +16,6 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// inline in an HTML file.
         /// </summary>
         public static string Encode(JavaScriptEncoder encoder, string[] values)
-        /// <param name="encoder">
-        /// The <see cref="JavaScriptEncoder"/> to encode <paramref name="values"/> elements.
-        /// </param>
-        /// <param name="values">The <see cref="string"/>s to convert to a JavaScript array literal.</param>
         {
             var writer = new StringWriter();
             writer.Write('[');

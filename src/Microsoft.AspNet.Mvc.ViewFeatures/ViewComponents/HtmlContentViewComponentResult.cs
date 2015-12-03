@@ -47,13 +47,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
 
             var htmlWriter = context.Writer as HtmlTextWriter;
-            if (htmlWriter != null)
+            if (htmlWriter == null)
             {
-                htmlWriter.Write(EncodedContent);
+                EncodedContent.WriteTo(context.Writer, context.HtmlEncoder);
             }
             else
             {
-                EncodedContent.WriteTo(context.Writer, context.HtmlEncoder);
+                htmlWriter.Write(EncodedContent);
             }
         }
 
