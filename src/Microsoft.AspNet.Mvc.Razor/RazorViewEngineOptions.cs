@@ -16,8 +16,6 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private IFileProvider _fileProvider;
 
-        private string _configuration;
-
         private CSharpParseOptions _parseOptions;
 
         private CSharpCompilationOptions _compilationOptions;
