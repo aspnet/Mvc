@@ -38,7 +38,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         private readonly IFileProvider _fileProvider;
         private readonly Lazy<List<MetadataReference>> _applicationReferences;
         private readonly string _classPrefix;
-        private readonly string _configuration;
         private readonly Action<RoslynCompilationContext> _compilationCallback;
         private readonly CSharpParseOptions _parseOptions;
         private readonly CSharpCompilationOptions _compilationOptions;
