@@ -16,9 +16,9 @@ namespace Microsoft.AspNet.Mvc.Razor
     {
         private IFileProvider _fileProvider;
 
-        private CSharpParseOptions _parseOptions;
+        private CSharpParseOptions _parseOptions = new CSharpParseOptions(LanguageVersion.CSharp6);
 
-        private CSharpCompilationOptions _compilationOptions;
+        private CSharpCompilationOptions _compilationOptions = new CSharpCompilationOptions(CodeAnalysis.OutputKind.DynamicallyLinkedLibrary);
 
         private Action<RoslynCompilationContext> _compilationCallback = c => { };
 

@@ -70,8 +70,8 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
             _fileProvider = optionsAccessor.Value.FileProvider;
             _classPrefix = host.MainClassNamePrefix;
             _compilationCallback = optionsAccessor.Value.CompilationCallback;
-            _parseOptions = optionsAccessor.Value.ParseOptions ?? new CSharpParseOptions(LanguageVersion.CSharp6);
-            _compilationOptions = optionsAccessor.Value.CompilationOptions ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            _parseOptions = optionsAccessor.Value.ParseOptions;
+            _compilationOptions = optionsAccessor.Value.CompilationOptions;
 
 
 #if DOTNET5_5
