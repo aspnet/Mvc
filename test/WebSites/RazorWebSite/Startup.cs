@@ -22,7 +22,7 @@ namespace RazorWebSite
 #if DNX451
                     options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("DNX451", "DNX451_CUSTOM_DEFINE");
 #else
-                    options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("DNCORE50", "DNXCORE50_CUSTOM_DEFINE");
+                    options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("DNXCORE50", "DNXCORE50_CUSTOM_DEFINE");
 #endif
                 })
                 .AddViewOptions(options =>
