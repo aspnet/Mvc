@@ -533,7 +533,7 @@ namespace Microsoft.AspNet.Mvc
 
         private static IRouter GetRouteCollectionWithArea(IServiceProvider serviceProvider)
         {
-            var builder = GetRouteBuilder(serviceProvider, isBound: true);
+            var builder = GetRouteBuilder(serviceProvider);
 
             // Setting IsBound to true makes order more important than usual. First try the route that requires the
             // area value. Skip usual "area:exists" constraint because that isn't relevant for link generation and it
@@ -546,13 +546,13 @@ namespace Microsoft.AspNet.Mvc
 
         private static IRouter GetRouteCollectionWithNoController(IServiceProvider serviceProvider)
         {
-            var builder = GetRouteBuilder(serviceProvider, isBound: false);
+            var builder = GetRouteBuilder(serviceProvider);
             builder.MapRoute("default", "static/route");
 
             return builder.Build();
         }
 
-        private static RouteBuilder GetRouteBuilder(IServiceProvider serviceProvider, bool isBound)
+        private static RouteBuilder GetRouteBuilder(IServiceProvider serviceProvider)
         {
             var builder = new RouteBuilder
             {
@@ -562,7 +562,6 @@ namespace Microsoft.AspNet.Mvc
             var handler = new Mock<IRouter>(MockBehavior.Strict);
             handler
                 .Setup(router => router.GetVirtualPath(It.IsAny<VirtualPathContext>()))
-                .Callback<VirtualPathContext>(context => context.IsBound = isBound)
                 .Returns((VirtualPathData)null);
             builder.DefaultHandler = handler.Object;
 
