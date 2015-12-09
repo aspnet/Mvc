@@ -19,6 +19,14 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         public bool? IsRequired { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that indicates whether children of the model should be validated. If <c>null</c>
+        /// then <see cref="ModelMetadata.ValidateChildren"/> will be computed based on the value of
+        /// <see cref="ModelMetadata.IsComplexType"/> and <see cref="ModelMetadata.IsEnumerableType"/>. By default
+        /// complex types and enumerable types support validation of children.
+        /// </summary>
+        public bool? ValidateChildren { get; set; }
+
+        /// <summary>
         /// Gets a list of metadata items for validators.
         /// </summary>
         /// <remarks>
