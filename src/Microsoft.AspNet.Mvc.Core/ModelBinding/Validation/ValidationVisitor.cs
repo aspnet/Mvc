@@ -189,7 +189,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
             else if (_model != null)
             {
-                // Suppress validation for the prefix, but we still want to validate the object.
+                // Suppress validation for the entries matching this prefix. This will temporarily set
+                // the current node to 'skipped' but we're going to visit it right away, so subsequent
+                // code will set it to 'valid' or 'invalid'
                 SuppressValidation(_key);
             }
 
@@ -213,7 +215,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             }
             else if (_model != null)
             {
-                // Suppress validation for the prefix, but we still want to validate the object.
+                // Suppress validation for the entries matching this prefix. This will temporarily set
+                // the current node to 'skipped' but we're going to visit it right away, so subsequent
+                // code will set it to 'valid' or 'invalid'
                 SuppressValidation(_key);
             }
 

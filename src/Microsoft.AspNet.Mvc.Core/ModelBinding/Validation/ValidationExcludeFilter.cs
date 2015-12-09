@@ -8,8 +8,19 @@ using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 {
+    /// <summary>
+    /// An <see cref="IValidationMetadataProvider"/> which configures <see cref="ModelMetadata.ValidateChildren"/> to
+    /// <c>false</c> for matching types.
+    /// </summary>
     public class ValidationExcludeFilter : IValidationMetadataProvider
     {
+        /// <summary>
+        /// Creates a new <see cref="ValidationExcludeFilter"/> for the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The <see cref="Type"/>. This <see cref="Type"/> and all assignable values will have
+        /// <see cref="ModelMetadata.ValidateChildren"/> set to <c>false</c>.
+        /// </param>
         public ValidationExcludeFilter(Type type)
         {
             if (type == null)
@@ -20,22 +31,41 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
             Type = type;
         }
 
-        public ValidationExcludeFilter(string typeFullName)
+        /// <summary>
+        /// Creates a new <see cref="ValidationExcludeFilter"/> for the given <paramref name="fullTypeName"/>.
+        /// </summary>
+        /// <param name="fullTypeName">
+        /// The type full name. This type and all of its subclasses will have
+        /// <see cref="ModelMetadata.ValidateChildren"/> set to <c>false</c>.
+        /// </param>
+        public ValidationExcludeFilter(string fullTypeName)
         {
-            if (typeFullName == null)
+            if (fullTypeName == null)
             {
-                throw new ArgumentNullException(nameof(typeFullName));
+                throw new ArgumentNullException(nameof(fullTypeName));
             }
 
-            TypeFullName = typeFullName;
+            FullTypeName = fullTypeName;
         }
 
+        /// <summary>
+        /// Gets the <see cref="Type"/> for which to suppress validation of children.
+        /// </summary>
         public Type Type { get; }
 
-        public string TypeFullName { get; }
+        /// <summary>
+        /// Gets the full name of a type for which to suppress validation of children.
+        /// </summary>
+        public string FullTypeName { get; }
 
+        /// <inheritdoc />
         public void GetValidationMetadata(ValidationMetadataProviderContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (Type != null)
             {
                 if (Type.GetTypeInfo().IsAssignableFrom(context.Key.ModelType.GetTypeInfo()))
@@ -46,7 +76,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
                 return;
             }
 
-            if (TypeFullName != null)
+            if (FullTypeName != null)
             {
                 if (IsMatchingName(context.Key.ModelType))
                 {
@@ -55,18 +85,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Validation
 
                 return;
             }
+
+            Debug.Fail("We shouldn't get here.");
         }
 
         private bool IsMatchingName(Type type)
         {
-            Debug.Assert(TypeFullName != null);
+            Debug.Assert(FullTypeName != null);
 
             if (type == null)
             {
                 return false;
             }
 
-            if (string.Equals(type.FullName, TypeFullName, StringComparison.Ordinal))
+            if (string.Equals(type.FullName, FullTypeName, StringComparison.Ordinal))
             {
                 return true;
             }

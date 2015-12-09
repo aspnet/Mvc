@@ -177,10 +177,10 @@ namespace Microsoft.AspNet.Mvc
             Assert.IsType<DataMemberRequiredBindingMetadataProvider>(providers[i++]);
 
             excludeFilter = Assert.IsType<ValidationExcludeFilter>(providers[i++]);
-            Assert.Equal(typeof(XObject).FullName, excludeFilter.TypeFullName);
+            Assert.Equal(typeof(XObject).FullName, excludeFilter.FullTypeName);
 
             excludeFilter = Assert.IsType<ValidationExcludeFilter>(providers[i++]);
-            Assert.Equal("System.Xml.XmlNode", excludeFilter.TypeFullName);
+            Assert.Equal("System.Xml.XmlNode", excludeFilter.FullTypeName);
         }
 
         [Fact]

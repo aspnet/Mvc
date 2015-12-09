@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 #if DNXCORE50
 using System.Reflection;
 #endif
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNet.Testing;
 using Moq;
 using Xunit;

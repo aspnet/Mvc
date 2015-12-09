@@ -290,7 +290,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         public abstract string TemplateHint { get; }
 
         /// <summary>
-        /// Gets a value that indicates whether children of the model should be validated.
+        /// Gets a value that indicates whether properties or elements of the model should be validated.
         /// </summary>
         public abstract bool ValidateChildren { get; }
 
