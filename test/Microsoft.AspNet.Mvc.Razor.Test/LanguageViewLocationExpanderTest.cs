@@ -175,8 +175,10 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         [ConditionalTheory]
-        [OSSkipCondition(OperatingSystems.Linux, "Invalid culture detection is OS specific.")]
-        [OSSkipCondition(OperatingSystems.MacOSX, "Invalid culture detection is OS specific.")]
+        [OSSkipCondition(OperatingSystems.Linux,
+            SkipReason = "Invalid culture detection is OS-specific")]
+        [OSSkipCondition(OperatingSystems.MacOSX,
+            SkipReason = "Invalid culture detection is OS-specific")]
         [MemberData(nameof(ViewLocationExpanderTestData))]
         public void ExpandViewLocations_IncorrectLocaleContextValue(IEnumerable<string> viewLocations)
         {
