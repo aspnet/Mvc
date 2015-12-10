@@ -3,7 +3,7 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace UrlHelperWebSite.Controllers
+namespace UrlHelperSample.Web.Controllers
 {
     public class HomeController : Controller
     {
