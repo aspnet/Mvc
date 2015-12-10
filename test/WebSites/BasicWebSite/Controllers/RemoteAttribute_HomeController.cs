@@ -1,16 +1,15 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using BasicWebSite.Models;
 using Microsoft.AspNet.Mvc;
-using ValidationWebSite.Models;
 
-namespace ValidationWebSite.MyArea.Controllers
+namespace BasicWebSite.Controllers
 {
-    [Area("Aria")]
-    [Route("[Area]/[Controller]/[Action]", Order = -2)]
+    [Route("[controller]/[action]")]
     public class RemoteAttribute_HomeController : Controller
     {
-        private static Person _person;
+        private static RemoteAttributeUser _user;
 
         [HttpGet]
         public IActionResult Create()
@@ -19,23 +18,21 @@ namespace ValidationWebSite.MyArea.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(Person person)
+        public IActionResult Create(RemoteAttributeUser user)
         {
             ModelState.Remove("id");
             if (!ModelState.IsValid)
             {
-                return View(person);
+                return View(user);
             }
 
-            _person = person;
+            _user = user;
             return RedirectToAction(nameof(Details));
         }
 
-        [Route("/[Area]", Name = "AriaHome", Order = -3)]
-        [Route("/[Area]/[Controller]/Index", Order = -2)]
         public IActionResult Details()
         {
-            return View(_person);
+            return View(_user);
         }
     }
 }

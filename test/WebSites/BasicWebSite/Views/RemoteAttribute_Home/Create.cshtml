@@ -1,9 +1,9 @@
-﻿@model ValidationWebSite.Models.Person
+﻿@model BasicWebSite.Models.RemoteAttributeUser
 @{
+    Layout = "_Layout.cshtml";
     object areaObject;
     ViewContext.ActionDescriptor.RouteValueDefaults.TryGetValue("area", out areaObject);
     var areaName = (areaObject as string) ?? "root";
-
     ViewBag.Title = "Create in " + areaName + " area.";
 }
 

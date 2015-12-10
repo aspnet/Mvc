@@ -140,7 +140,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
         {
             var controller = new TestController();
             controller.ControllerContext = new ControllerContext(operationContext.ActionContext);
-            controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator();
+            controller.ObjectValidator = ModelBindingTestHelper.GetObjectValidator(operationContext.MetadataProvider);
             controller.MetadataProvider = operationContext.MetadataProvider;
             controller.ControllerContext.ValidatorProviders = new[] { operationContext.ValidatorProvider }.ToList();
 
