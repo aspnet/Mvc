@@ -4,7 +4,6 @@
 using InlineConstraintSample.Web.Constraints;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Localization;
-using Microsoft.AspNet.Routing.Constraints;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InlineConstraintSample.Web
@@ -45,12 +44,7 @@ namespace InlineConstraintSample.Web
             localizationOptions.RequestCultureProviders.Clear();
             app.UseRequestLocalization(localizationOptions, new RequestCulture("en-GB", "en-US"));
 
-            app.UseMvc(routes =>
-            {
-                // Fall-back used in link generation, matches when constraints do not. See tests involving the
-                // ProductsController.GetGeneratedLink action.
-                routes.MapRoute("areaExists", "area-exists/{controller=Home}/{action=Index}");
-            });
+            app.UseMvc();
         }
     }
 }

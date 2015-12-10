@@ -20,7 +20,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_UsesFileProviderOnViewEngineOptionsToLocateViews()
         {
             // Arrange
-            var expectedMessage = "Hello test-user, this is /Home";
+            var expectedMessage = "Hello test-user, this is /";
 
             // Act
             var response = await Client.GetStringAsync("http://localhost/Home?User=test-user");
@@ -35,6 +35,33 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Arrange
             var expectedMessage = "Hello admin-user, this is /Restricted/Admin/Login";
             var target = "http://localhost/Restricted/Admin/Login?AdminUser=admin-user";
+
+            // Act
+            var response = await Client.GetStringAsync(target);
+
+            // Assert
+            Assert.Equal(expectedMessage, response);
+        }
+
+        [Fact]
+        public async Task RazorViewEngine_NormalizesControllerRouteValue_WhenLookingUpViewPaths()
+        {
+            // Arrange
+            var expectedMessage = "Hello test-user, this is /";
+
+            // Act
+            var response = await Client.GetStringAsync("http://localhost/home?User=test-user");
+
+            // Assert
+            Assert.Equal(expectedMessage, response);
+        }
+
+        [Fact]
+        public async Task RazorViewEngine_NormalizesAreaRouteValue_WhenLookupViewPaths()
+        {
+            // Arrange
+            var expectedMessage = "Hello admin-user, this is /restricted/admin/login";
+            var target = "http://localhost/restricted/admin/login?AdminUser=admin-user";
 
             // Act
             var response = await Client.GetStringAsync(target);

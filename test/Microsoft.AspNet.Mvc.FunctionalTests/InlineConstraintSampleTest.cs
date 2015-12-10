@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RoutingToANonExistantArea_WithExistConstraint_RoutesToCorrectAction()
         {
             // Arrange & Act
-            var response = await Client.GetAsync("http://localhost/area-exists/Users");
+            var response = await Client.GetAsync("http://localhost/constant-prefix/Users");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -391,7 +391,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         "GetProductById",
                         "id",
                         "sdsd",
-                        "/area-exists/Products/GetProductById?id=sdsd"
+                        string.Empty        // Link generation expected to fail.
                     };
 
                 // Attribute Route, name:alpha constraint
@@ -441,7 +441,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         "GetProductByCategoryId",
                         "catId",
                         "500",
-                        "/area-exists/Products/GetProductByCategoryId?catId=500"
+                        string.Empty        // Link generation expected to fail.
                     };
 
                 // Attribute Route, name:length(1,20)? constraint
@@ -471,7 +471,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         "GetProductByManufacturerId",
                         "manId",
                         "qwer",
-                        "/area-exists/Products/GetProductByManufacturerId?manId=qwer"
+                        string.Empty        // Link generation expected to fail.
                     };
 
                 // Attribute Route, manId:int:min(10)? constraint
@@ -481,7 +481,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                         "GetProductByManufacturerId",
                         "manId",
                         "1",
-                        "/area-exists/Products/GetProductByManufacturerId?manId=1"
+                        string.Empty        // Link generation expected to fail.
                     };
 
                 // Attribute Route, dateTime:datetime constraint

@@ -7,7 +7,7 @@ namespace InlineConstraintSample.Web.Controllers
 {
     public class UsersController : Controller
     {
-        [Route("area-exists/[controller]")]
+        [Route("constant-prefix/[controller]")]
         public IActionResult Index()
         {
             return Content("Users.Index");

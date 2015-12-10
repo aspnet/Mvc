@@ -31,7 +31,10 @@ namespace EmbeddedViewSample.Web
             app.UseMvc(routes =>
             {
                 routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
-                routes.MapRoute("default", "{controller}/{action}/{id?}", new { action = "Index" });
+                routes.MapRoute(
+                    "default",
+                    "{controller}/{action}/{id?}",
+                    new { controller = "Home", action = "Index" });
             });
         }
     }
