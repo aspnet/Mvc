@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -15,7 +16,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
         [InlineData("json", "application/json", "JSON")]
         [InlineData(".foo", "text/foo", "Foo")]
         [InlineData(".Json", "application/json", "json")]
-        [InlineData("FOo", "text/foo", "FOO")]        
+        [InlineData("FOo", "text/foo", "FOO")]
         public void FormatterMappings_SetFormatMapping_DiffSetGetFormat(string setFormat, string contentType, string getFormat)
         {
             // Arrange
@@ -27,16 +28,16 @@ namespace Microsoft.AspNet.Mvc.Formatters
             var returnMediaType = options.GetMediaTypeMappingForFormat(getFormat);
 
             // Assert
-            Assert.Equal(mediaType, returnMediaType);
+            Assert.Equal(new StringSegment(mediaType.ToString()), returnMediaType);
         }
-        
+
         [Fact]
         public void FormatterMappings_Invalid_Period()
         {
             // Arrange
             var options = new FormatterMappings();
             var format = ".";
-            var expected = string.Format(@"The format provided is invalid '{0}'. A format must be a non-empty file-" + 
+            var expected = string.Format(@"The format provided is invalid '{0}'. A format must be a non-empty file-" +
                 "extension, optionally prefixed with a '.' character.", format);
 
             // Act and assert
@@ -70,12 +71,12 @@ namespace Microsoft.AspNet.Mvc.Formatters
         {
             // Arrange
             var options = new FormatterMappings();
-            var expected = string.Format(@"The media type ""{0}"" is not valid. MediaTypes containing wildcards (*) " + 
+            var expected = string.Format(@"The media type ""{0}"" is not valid. MediaTypes containing wildcards (*) " +
                 "are not allowed in formatter mappings.", format);
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => options.SetMediaTypeMappingForFormat(
-                "star", 
+                "star",
                 MediaTypeHeaderValue.Parse(format)));
             Assert.Equal(expected, exception.Message);
         }
@@ -108,7 +109,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             // Assert
             Assert.Equal(expected, cleared);
-            Assert.Null(options.GetMediaTypeMappingForFormat(format));
+            Assert.False(options.GetMediaTypeMappingForFormat(format).HasValue);
         }
     }
 }

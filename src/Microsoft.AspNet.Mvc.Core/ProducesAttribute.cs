@@ -8,6 +8,7 @@ using Microsoft.AspNet.Mvc.ApiExplorer;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Filters;
 using Microsoft.AspNet.Mvc.Formatters;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc
@@ -31,7 +32,7 @@ namespace Microsoft.AspNet.Mvc
             }
 
             Type = type;
-            ContentTypes = new List<MediaTypeHeaderValue>();
+            ContentTypes = new MediaTypeCollection();
         }
 
         /// <summary>
@@ -51,7 +52,7 @@ namespace Microsoft.AspNet.Mvc
 
         public Type Type { get; set; }
 
-        public IList<MediaTypeHeaderValue> ContentTypes { get; set; }
+        public MediaTypeCollection ContentTypes { get; set; }
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
@@ -74,12 +75,12 @@ namespace Microsoft.AspNet.Mvc
             }
         }
 
-        private List<MediaTypeHeaderValue> GetContentTypes(string firstArg, string[] args)
+        private MediaTypeCollection GetContentTypes(string firstArg, string[] args)
         {
             var completeArgs = new List<string>();
             completeArgs.Add(firstArg);
             completeArgs.AddRange(args);
-            var contentTypes = new List<MediaTypeHeaderValue>();
+            var contentTypes = new MediaTypeCollection();
             foreach (var arg in completeArgs)
             {
                 var contentType = MediaTypeHeaderValue.Parse(arg);
@@ -95,7 +96,7 @@ namespace Microsoft.AspNet.Mvc
             return contentTypes;
         }
 
-        public void SetContentTypes(IList<MediaTypeHeaderValue> contentTypes)
+        public void SetContentTypes(IList<StringSegment> contentTypes)
         {
             contentTypes.Clear();
             foreach (var contentType in ContentTypes)

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNet.Mvc.Core;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.Formatters
@@ -13,8 +14,8 @@ namespace Microsoft.AspNet.Mvc.Formatters
     /// </summary>
     public class FormatterMappings
     {
-        private readonly Dictionary<string, MediaTypeHeaderValue> _map =
-            new Dictionary<string, MediaTypeHeaderValue>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, StringSegment> _map =
+            new Dictionary<string, StringSegment>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Sets mapping for the format to specified <see cref="MediaTypeHeaderValue"/>. 
@@ -36,7 +37,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             ValidateContentType(contentType);
             format = RemovePeriodIfPresent(format);
-            _map[format] = contentType.CopyAsReadOnly();
+            _map[format] = new StringSegment(contentType.ToString());
         }
 
         /// <summary>
@@ -44,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
         /// </summary>
         /// <param name="format">The format value.</param>
         /// <returns>The <see cref="MediaTypeHeaderValue"/> for input format.</returns>
-        public MediaTypeHeaderValue GetMediaTypeMappingForFormat(string format)
+        public StringSegment GetMediaTypeMappingForFormat(string format)
         {
             if (format == null)
             {
@@ -53,7 +54,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             format = RemovePeriodIfPresent(format);
 
-            MediaTypeHeaderValue value = null;
+            StringSegment value = default(StringSegment);
             _map.TryGetValue(format, out value);
 
             return value;
