@@ -22,10 +22,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_NormalizesActionName_WhenLookingUpViewPaths()
         {
             // Arrange
-            var expectedMessage = "Hello test-user, this is /EmbeddedView_Home";
+            var expectedMessage = "Hello test-user, this is /Home";
 
             // Act
-            var response = await Client.GetStringAsync("http://localhost/EmbeddedView_Home/index?User=test-user");
+            var response = await Client.GetStringAsync("http://localhost/Home/index?User=test-user");
 
             // Assert
             Assert.Equal(expectedMessage, response);
@@ -35,10 +35,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_NormalizesControllerRouteValue_WhenLookingUpViewPaths()
         {
             // Arrange
-            var expectedMessage = "Hello test-user, this is /embeddedview_home";
+            var expectedMessage = "Hello test-user, this is /home";
 
             // Act
-            var response = await Client.GetStringAsync("http://localhost/embeddedview_home?User=test-user");
+            var response = await Client.GetStringAsync("http://localhost/home?User=test-user");
 
             // Assert
             Assert.Equal(expectedMessage, response);
@@ -48,8 +48,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_NormalizesAreaRouteValue_WhenLookupViewPaths()
         {
             // Arrange
-            var expectedMessage = "Hello admin-user, this is /restricted/embeddedview_admin/login";
-            var target = "http://localhost/restricted/embeddedview_admin/login?AdminUser=admin-user";
+            var expectedMessage = "Hello admin-user, this is /restricted/admin/login";
+            var target = "http://localhost/restricted/admin/login?AdminUser=admin-user";
 
             // Act
             var response = await Client.GetStringAsync(target);

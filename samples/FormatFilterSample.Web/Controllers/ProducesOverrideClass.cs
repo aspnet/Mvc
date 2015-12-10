@@ -6,6 +6,7 @@ using Microsoft.AspNet.Mvc;
 namespace FormatFilterSample.Web
 {
     [Produces("application/custom_ProducesController")]
+    [Route("[controller]/[action]")]
     public class ProducesOverrideController
     {
         [Produces("application/ProducesMethod")]

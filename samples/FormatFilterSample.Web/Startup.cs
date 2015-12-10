@@ -29,16 +29,7 @@ namespace FormatFilterSample.Web
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute("formatroute",
-                                "{controller}/{action}/{id}.{format?}",
-                                new { controller = "Home", action = "Index" });
-
-                routes.MapRoute("optionalroute",
-                                "{controller}/{action}.{format?}",
-                                new { controller = "Home", action = "Index" });
-            });
+            app.UseMvc();
         }
     }
 }

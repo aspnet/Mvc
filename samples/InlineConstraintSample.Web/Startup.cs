@@ -30,8 +30,7 @@ namespace InlineConstraintSample.Web
                 {
                     if (routeOptions.ConstraintMap.ContainsKey("IsbnDigitScheme13"))
                     {
-                        routeOptions.ConstraintMap["IsbnDigitScheme13"] =
-                            typeof(IsbnDigitScheme13Constraint);
+                        routeOptions.ConstraintMap["IsbnDigitScheme13"] = typeof(IsbnDigitScheme13Constraint);
                     }
                 });
 
@@ -48,24 +47,8 @@ namespace InlineConstraintSample.Web
 
             app.UseMvc(routes =>
             {
-                routes.MapRoute(
-                    name: "isbn10",
-                    template: "book/{action}/{isbnNumber:IsbnDigitScheme10(true)}",
-                    defaults: new { controller = "InlineConstraint_Isbn10" });
-
-                routes.MapRoute(
-                    "StoreId",
-                    "store/{action}/{id:guid?}",
-                    defaults: new { controller = "InlineConstraint_Store" });
-
-                routes.MapRoute(
-                    "StoreLocation",
-                    "store/{action}/{location:minlength(3):maxlength(10)}",
-                    defaults: new { controller = "InlineConstraint_Store" },
-                    constraints: new { location = new AlphaRouteConstraint() });
-
-                // Used by tests for the 'exists' constraint.
-                routes.MapRoute("areaExists-area", "area-exists/{area:exists}/{controller=Home}/{action=Index}");
+                // Fall-back used in link generation, matches when constraints do not. See tests involving the
+                // ProductsController.GetGeneratedLink action.
                 routes.MapRoute("areaExists", "area-exists/{controller=Home}/{action=Index}");
             });
         }

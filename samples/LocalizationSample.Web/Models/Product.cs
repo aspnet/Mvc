@@ -5,11 +5,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LocalizationSample.Web.Models
 {
-
     public class Product
     {
         [Required(ErrorMessage = "ProductName")]
         public string ProductName { get; set; }
     }
-
 }

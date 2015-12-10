@@ -8,12 +8,15 @@ namespace FormatFilterSample.Web
     [FormatFilter]
     public class FormatFilterController : Controller
     {
+        [Route("[controller]/[action]/{id}.{format?}")]
+        [Route("[controller]/[action].{format}")]
         public Product GetProduct(int id = 0)
         {
             return new Product() { SampleInt = id };
         }
 
         [Produces("application/custom", "application/json", "text/json")]
+        [Route("[controller]/[action]/{id}.{format}")]
         public Product ProducesMethod(int id)
         {
             return new Product() { SampleInt = id };

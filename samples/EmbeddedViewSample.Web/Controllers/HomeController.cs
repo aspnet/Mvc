@@ -3,14 +3,13 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace CustomRouteSample.Web.Controllers.Canada
+namespace EmbeddedViewSample.Web
 {
-    [Locale("en-CA")]
-    public class CustomRoute_ProductsController : Controller
+    public class HomeController : Controller
     {
-        public string Index()
+        public IActionResult Index()
         {
-            return "Hello from Canada.";
+            return View();
         }
     }
 }

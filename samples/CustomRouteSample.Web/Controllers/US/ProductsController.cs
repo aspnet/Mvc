@@ -3,14 +3,14 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace EmbeddedViewSample.Web.Controllers
+namespace CustomRouteSample.Web.Controllers.US
 {
-    [Area("Restricted")]
-    public class EmbeddedView_AdminController : Controller
+    [Locale("en-US")]
+    public class ProductsController : Controller
     {
-        public IActionResult Login()
+        public string Index()
         {
-            return View();
+            return "Hello from the USA.";
         }
     }
 }

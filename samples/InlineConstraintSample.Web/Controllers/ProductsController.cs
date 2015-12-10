@@ -9,7 +9,7 @@ using Microsoft.AspNet.Mvc;
 namespace InlineConstraintSample.Web.Controllers
 {
     [Route("products/[action]")]
-    public class InlineConstraint_ProductsController : Controller
+    public class ProductsController : Controller
     {
         public IDictionary<string, object> Index()
         {

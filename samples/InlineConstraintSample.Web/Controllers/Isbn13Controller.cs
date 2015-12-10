@@ -5,11 +5,13 @@ using Microsoft.AspNet.Mvc;
 
 namespace InlineConstraintSample.Web.Controllers
 {
-    public class InlineConstraint_Isbn10Controller : Controller
+    [Route("book/[action]")]
+    public class Isbn13Controller : Controller
     {
+        [HttpGet("{isbnNumber:IsbnDigitScheme13}")]
         public string Index(string isbnNumber)
         {
-            return "10 Digit ISBN Number " + isbnNumber;
+            return "13 Digit ISBN Number " + isbnNumber;
         }
     }
 }

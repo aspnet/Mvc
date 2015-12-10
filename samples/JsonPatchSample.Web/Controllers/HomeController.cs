@@ -9,7 +9,7 @@ using Microsoft.AspNet.Mvc;
 namespace JsonPatchSample.Web.Controllers
 {
     [Route("jsonpatch/[action]")]
-    public class JsonPatchController : Controller
+    public class HomeController : Controller
     {
         [HttpPatch]
         public IActionResult JsonPatchWithModelState([FromBody] JsonPatchDocument<Customer> patchDoc)

@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RouteToLocale_ConventionalRoute_BasedOnUser(string user, string expected)
         {
             // Arrange
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/CustomRoute_Products/Index");
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Products/Index");
             request.Headers.Add("User", user);
 
             // Act
@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RouteWithAttributeRoute_IncludesLocale_BasedOnUser(string user, string expected)
         {
             // Arrange
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/CustomRoute_Orders/5");
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Orders/5");
             request.Headers.Add("User", user);
 
             // Act

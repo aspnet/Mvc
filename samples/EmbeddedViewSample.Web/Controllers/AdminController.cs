@@ -3,11 +3,12 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace EmbeddedViewSample.Web
+namespace EmbeddedViewSample.Web.Controllers
 {
-    public class EmbeddedView_HomeController : Controller
+    [Area("Restricted")]
+    public class AdminController : Controller
     {
-        public IActionResult Index()
+        public IActionResult Login()
         {
             return View();
         }

@@ -3,14 +3,14 @@
 
 using Microsoft.AspNet.Mvc;
 
-namespace CustomRouteSample.Web.Controllers.US
+namespace CustomRouteSample.Web.Controllers.Spain
 {
-    [Locale("en-US")]
-    public class CustomRoute_ProductsController : Controller
+    [Locale("es-ES")]
+    public class ProductsController : Controller
     {
         public string Index()
         {
-            return "Hello from the USA.";
+            return "Hola from Spain.";
         }
     }
 }

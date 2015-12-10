@@ -5,9 +5,9 @@ using Microsoft.AspNet.Mvc;
 
 namespace CustomRouteSample.Web.Controllers
 {
-    public class CustomRoute_OrdersControlller : Controller
+    public class OrdersControlller : Controller
     {
-        [HttpGet("CustomRoute_Orders/{id}")]
+        [HttpGet("Orders/{id}")]
         public string Index(int id)
         {
             return "Hello from " + RouteData.Values["locale"] + ".";

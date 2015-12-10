@@ -43,7 +43,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var result = await GetResponseValues(response);
             Assert.Equal(result["id"], "5");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductById");
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductById");
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["name"], "asdf");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByName");
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
 
             var result = await GetResponseValues(response);
             Assert.Equal(result["dateTime"], new DateTime(2014, 10, 11, 13, 45, 30));
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByManufacturingDate");
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["name"], "Sports");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByCategoryName");
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByCategoryName");
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["catId"], "40");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByCategoryId");
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["price"], "4023.23423");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByPrice");
         }
 
@@ -215,7 +215,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByPrice");
         }
 
@@ -229,7 +229,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["manId"], "57");
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByManufacturerId");
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetProductByManufacturerId");
         }
 
@@ -255,7 +255,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Products");
+            Assert.Equal(result["controller"], "Products");
             Assert.Equal(result["action"], "GetUserByName");
             Assert.Equal(result["name"], "abc");
         }
@@ -281,7 +281,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["id"], "691cf17a-791b-4af8-99fd-e739e168170f");
-            Assert.Equal(result["controller"], "InlineConstraint_Store");
+            Assert.Equal(result["controller"], "Store");
             Assert.Equal(result["action"], "GetStoreById");
         }
 
@@ -294,7 +294,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
-            Assert.Equal(result["controller"], "InlineConstraint_Store");
+            Assert.Equal(result["controller"], "Store");
             Assert.Equal(result["action"], "GetStoreById");
         }
 
@@ -318,7 +318,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var result = await GetResponseValues(response);
             Assert.Equal(result["location"], "Bellevue");
-            Assert.Equal(result["controller"], "InlineConstraint_Store");
+            Assert.Equal(result["controller"], "Store");
             Assert.Equal(result["action"], "GetStoreByLocation");
         }
 
@@ -377,7 +377,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, id:int? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductById",
                         "id",
                         "5",
@@ -387,17 +387,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, id:int? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductById",
                         "id",
                         "sdsd",
-                        "/area-exists/InlineConstraint_Products/GetProductById?id=sdsd"
+                        "/area-exists/Products/GetProductById?id=sdsd"
                     };
 
                 // Attribute Route, name:alpha constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByName",
                         "name",
                         "zxcv",
@@ -407,7 +407,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, name:length(1,20)? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByCategoryName",
                         "name",
                         "sports",
@@ -417,7 +417,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, name:length(1,20)? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByCategoryName",
                         null,
                         null,
@@ -427,7 +427,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, catId:int:range(10, 100) constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByCategoryId",
                         "catId",
                         "50",
@@ -437,17 +437,17 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, catId:int:range(10, 100) constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByCategoryId",
                         "catId",
                         "500",
-                        "/area-exists/InlineConstraint_Products/GetProductByCategoryId?catId=500"
+                        "/area-exists/Products/GetProductByCategoryId?catId=500"
                     };
 
                 // Attribute Route, name:length(1,20)? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByPrice",
                         "price",
                         "123.45",
@@ -457,7 +457,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, price:float? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByManufacturerId",
                         "manId",
                         "15",
@@ -467,27 +467,27 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Attribute Route, manId:int:min(10)? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByManufacturerId",
                         "manId",
                         "qwer",
-                        "/area-exists/InlineConstraint_Products/GetProductByManufacturerId?manId=qwer"
+                        "/area-exists/Products/GetProductByManufacturerId?manId=qwer"
                     };
 
                 // Attribute Route, manId:int:min(10)? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByManufacturerId",
                         "manId",
                         "1",
-                        "/area-exists/InlineConstraint_Products/GetProductByManufacturerId?manId=1"
+                        "/area-exists/Products/GetProductByManufacturerId?manId=1"
                     };
 
                 // Attribute Route, dateTime:datetime constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Products",
+                        "Products",
                         "GetProductByManufacturingDate",
                         "dateTime",
                         "2014-10-11T13:45:30",
@@ -497,7 +497,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
                 // Conventional Route, id:guid? constraint
                 yield return new object[]
                     {
-                        "InlineConstraint_Store",
+                        "Store",
                         "GetStoreById",
                         "id",
                         "691cf17a-791b-4af8-99fd-e739e168170f",

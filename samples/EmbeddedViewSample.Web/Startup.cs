@@ -19,9 +19,10 @@ namespace EmbeddedViewSample.Web
 
             services.Configure<RazorViewEngineOptions>(options =>
             {
+                // Base namespace matches the resources added to the assembly from the EmbeddedResources folder.
                 options.FileProvider = new EmbeddedFileProvider(
                     GetType().GetTypeInfo().Assembly,
-                    "EmbeddedViewSample.Web.EmbeddedResources");
+                    baseNamespace: "EmbeddedViewSample.Web.EmbeddedResources");
             });
         }
 
@@ -30,10 +31,7 @@ namespace EmbeddedViewSample.Web
             app.UseMvc(routes =>
             {
                 routes.MapRoute("areaRoute", "{area:exists}/{controller}/{action}");
-                routes.MapRoute(
-                    "default",
-                    "{controller}/{action}/{id?}",
-                    new { controller = "Home", action = "Index" });
+                routes.MapRoute("default", "{controller}/{action}/{id?}", new { action = "Index" });
             });
         }
     }

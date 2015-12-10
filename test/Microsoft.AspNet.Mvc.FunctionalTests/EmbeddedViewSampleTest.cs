@@ -20,10 +20,10 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_UsesFileProviderOnViewEngineOptionsToLocateViews()
         {
             // Arrange
-            var expectedMessage = "Hello test-user, this is /EmbeddedView_Home";
+            var expectedMessage = "Hello test-user, this is /Home";
 
             // Act
-            var response = await Client.GetStringAsync("http://localhost/EmbeddedView_Home?User=test-user");
+            var response = await Client.GetStringAsync("http://localhost/Home?User=test-user");
 
             // Assert
             Assert.Equal(expectedMessage, response);
@@ -33,8 +33,8 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
         public async Task RazorViewEngine_UsesFileProviderOnViewEngineOptionsToLocateAreaViews()
         {
             // Arrange
-            var expectedMessage = "Hello admin-user, this is /Restricted/EmbeddedView_Admin/Login";
-            var target = "http://localhost/Restricted/EmbeddedView_Admin/Login?AdminUser=admin-user";
+            var expectedMessage = "Hello admin-user, this is /Restricted/Admin/Login";
+            var target = "http://localhost/Restricted/Admin/Login?AdminUser=admin-user";
 
             // Act
             var response = await Client.GetStringAsync(target);
