@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Security.Claims;
+using HtmlGenerationWebSite.Models;
 using Microsoft.AspNet.Mvc;
 
 namespace HtmlGenerationWebSite.Controllers
@@ -72,9 +73,10 @@ namespace HtmlGenerationWebSite.Controllers
         }
 
         [HttpPost("/categories/update-products")]
-        public void UpdateCategories([FromServices] ProductsService productsService)
+        public void UpdateCategories([FromServices] TokenProviderService tokenService)
         {
-            productsService.UpdateProducts();
+            var key = typeof(Product);
+            tokenService.ExpireToken(key);
         }
 
         [HttpGet("/catalog/GetDealPercentage/{dealPercentage}")]
