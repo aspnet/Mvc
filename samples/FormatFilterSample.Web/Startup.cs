@@ -3,6 +3,7 @@
 
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
@@ -20,6 +21,7 @@ namespace FormatFilterSample.Web
 
                 var customFormatter = new CustomFormatter("application/custom");
                 options.OutputFormatters.Add(customFormatter);
+                options.OutputFormatters.RemoveType<StringOutputFormatter>();
 
                 options.FormatterMappings.SetMediaTypeMappingForFormat(
                     "custom",

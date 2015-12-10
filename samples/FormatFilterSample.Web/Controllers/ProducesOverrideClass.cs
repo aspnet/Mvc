@@ -5,11 +5,11 @@ using Microsoft.AspNet.Mvc;
 
 namespace FormatFilterSample.Web
 {
-    [Produces("application/custom_ProducesController")]
+    [Produces("application/controller")]
     [Route("[controller]/[action]")]
     public class ProducesOverrideController
     {
-        [Produces("application/ProducesMethod")]
+        [Produces("application/custom")]
         public string ReturnClassName()
         {
             return "ProducesOverrideController";

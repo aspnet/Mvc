@@ -24,12 +24,17 @@ namespace FormatFilterSample.Web
         {
             if (base.CanWriteResult(context))
             {
-                var actionReturn = context.Object as Product;
-                if (actionReturn != null)
+                if (context.Object is Product)
+                {
+                    return true;
+                }
+
+                if (context.Object is string)
                 {
                     return true;
                 }
             }
+
             return false;
         }
 

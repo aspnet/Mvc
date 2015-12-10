@@ -112,6 +112,7 @@ namespace Microsoft.AspNet.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"ProducesOverrideController", await response.Content.ReadAsStringAsync());
+            Assert.Equal("application/custom", response.Content.Headers.ContentType.MediaType);
         }
     }
 }
