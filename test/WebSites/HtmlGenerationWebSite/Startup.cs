@@ -16,7 +16,8 @@ namespace HtmlGenerationWebSite
             // null which is interpreted as true unless element includes an action attribute.
             services.AddMvc().InitializeTagHelper<FormTagHelper>((helper, _) => helper.Antiforgery = false);
 
-            services.AddSingleton<ProductsService>();
+            services.AddSingleton<TokenProviderService>();
+            services.AddTransient<ProductsService>();
         }
 
         public void Configure(IApplicationBuilder app)
