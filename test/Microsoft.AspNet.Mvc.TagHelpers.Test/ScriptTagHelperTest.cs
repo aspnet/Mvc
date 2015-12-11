@@ -853,7 +853,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             // Assert
             Assert.Equal("script", output.TagName);
             Assert.Equal("/js/site.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["src"].Value);
-            Assert.Equal(Environment.NewLine + "<script>(isavailable()||document.write(\"<script " +
+            Assert.Equal(Environment.NewLine + "<script>((function(){try {return isavailable()} catch(e) {return false}}())||document.write(\"<script " +
                 "src=\\\"JavaScriptEncode[[fallback.js?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\\\">" +
                 "<\\/script>\"));</script>", output.PostElement.GetContent());
         }

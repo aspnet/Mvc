@@ -299,7 +299,9 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 // Build the <script> tag that checks the test method and if it fails, renders the extra script.
                 builder.AppendHtml(Environment.NewLine)
                        .AppendHtml("<script>(")
+                       .AppendHtml("(function(){try {return ")
                        .AppendHtml(FallbackTestExpression)
+                       .AppendHtml("} catch(e) {return false}}())")
                        .AppendHtml("||document.write(\"");
 
                 // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
