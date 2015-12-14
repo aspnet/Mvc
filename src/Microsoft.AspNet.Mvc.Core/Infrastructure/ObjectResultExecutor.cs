@@ -48,7 +48,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             Logger = loggerFactory.CreateLogger<ObjectResultExecutor>();
             WriterFactory = writerFactory.CreateWriter;
         }
-        
+
         /// <summary>
         /// Gets the <see cref="ILogger"/>.
         /// </summary>
@@ -89,8 +89,6 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 throw new ArgumentNullException(nameof(result));
             }
 
-            ValidateContentTypes(result.ContentTypes);
-
             var formatters = result.Formatters;
             if (formatters == null || formatters.Count == 0)
             {
@@ -108,7 +106,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 WriterFactory,
                 objectType,
                 result.Value);
-            
+
             var selectedFormatter = SelectFormatter(formatterContext, result.ContentTypes, formatters);
             if (selectedFormatter == null)
             {
@@ -121,7 +119,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             Logger.FormatterSelected(selectedFormatter, formatterContext);
             Logger.ObjectResultExecuting(context);
-            
+
             result.OnFormatting(context);
             return selectedFormatter.WriteAsync(formatterContext);
         }
@@ -158,6 +156,15 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             {
                 throw new ArgumentNullException(nameof(formatters));
             }
+
+            var responseContentType = formatterContext.HttpContext.Response.ContentType;
+            if (!string.IsNullOrEmpty(responseContentType))
+            {
+                contentTypes.Clear();
+                contentTypes.Add(MediaTypeHeaderValue.Parse(responseContentType));
+            }
+
+            ValidateContentTypes(contentTypes);
 
             // Check if any content-type was explicitly set (for example, via ProducesAttribute
             // or URL path extension mapping). If yes, then ignore content-negotiation and use this content-type.
@@ -324,7 +331,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             {
                 throw new ArgumentNullException(nameof(sortedAcceptHeaders));
             }
-            
+
             foreach (var contentType in sortedAcceptHeaders)
             {
                 foreach (var formatter in formatters)
@@ -466,7 +473,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                     }
                 }
             }
-            
+
             // We want a descending sort, but BinarySearch does ascending
             sorted.Reverse();
             return sorted;
