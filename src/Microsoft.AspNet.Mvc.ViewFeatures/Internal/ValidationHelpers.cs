@@ -5,12 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 {
     internal static class ValidationHelpers
     {
-        public static string GetUserErrorMessageOrDefault(ModelError modelError, ModelStateEntry entry)
+        public static string GetUserErrorMessageOrDefault(
+            ModelError modelError,
+            ModelStateEntry entry,
+            IModelBindingMessageProvider messageProvider)
         {
             if (!string.IsNullOrEmpty(modelError.ErrorMessage))
             {
@@ -23,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
             }
 
             var attemptedValue = entry.AttemptedValue ?? "null";
-            return Resources.FormatCommon_ValueNotValidForProperty(attemptedValue);
+            return messageProvider.ValueInvalid_UnknownErrorResource(attemptedValue);
         }
 
         // Returns non-null list of model states, which caller will render in order provided.

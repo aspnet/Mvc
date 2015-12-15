@@ -31,6 +31,10 @@ namespace Microsoft.AspNet.Mvc.Internal
             messageProvider.MissingBindRequiredValueAccessor = Resources.FormatModelBinding_MissingBindRequiredMember;
             messageProvider.MissingKeyOrValueAccessor = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent;
             messageProvider.ValueMustNotBeNullAccessor = Resources.FormatModelBinding_NullValueNotValid;
+            messageProvider.ValueInvalid_UnknownErrorResource = Resources.FormatCommon_ValueNotValidForProperty;
+            messageProvider.ValueInvalid_WithValueResource
+                = Resources.FormatModelError_InvalidValue_MessageWithModelValue;
+            messageProvider.ValueInvalid_WithoutValueResource = Resources.FormatModelError_InvalidValue_GenericMessage;
 
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());

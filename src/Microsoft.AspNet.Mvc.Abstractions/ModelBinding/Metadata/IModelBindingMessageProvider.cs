@@ -30,5 +30,28 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </summary>
         /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
         Func<string, string> ValueMustNotBeNullAccessor { get; }
+
+        /// <summary>
+        /// Fallback error message HTML and tag helpers display when a property is invalid but the
+        /// <see cref="ModelError"/>s have <c>null</c> <see cref="ModelError.ErrorMessage"/>s.
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
+        Func<string, string> ValueInvalid_UnknownErrorResource { get; }
+
+        /// <summary>
+        /// Replacement <see cref="ModelError.ErrorMessage"/> used in <see cref="ModelError"/> when
+        /// <see cref="ModelError.Exception"/> is of type <see cref="FormatException"/> and value is known i.e. when
+        /// the bound value could not be converted and the "replacer" has the attempted value.
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "The value '{0}' is not valid for {1}.".</value>
+        Func<string, string, string> ValueInvalid_WithValueResource { get; }
+
+        /// <summary>
+        /// Replacement <see cref="ModelError.ErrorMessage"/> used in <see cref="ModelError"/> when
+        /// <see cref="ModelError.Exception"/> is of type <see cref="FormatException"/> and value is unknown i.e. when
+        /// the bound value could not be converted and the "replacer" does not have the attempted value.
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "The supplied value is invalid for {0}.".</value>
+        Func<string, string> ValueInvalid_WithoutValueResource { get; }
     }
 }

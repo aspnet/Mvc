@@ -247,9 +247,6 @@
   <data name="Common_PropertyNotFound" xml:space="preserve">
     <value>The property {0}.{1} could not be found.</value>
   </data>
-  <data name="Common_ValueNotValidForProperty" xml:space="preserve">
-    <value>The value '{0}' is invalid.</value>
-  </data>
   <data name="RemoteAttribute_NoUrlFound" xml:space="preserve">
     <value>No URL for remote validation could be found.</value>
   </data>
