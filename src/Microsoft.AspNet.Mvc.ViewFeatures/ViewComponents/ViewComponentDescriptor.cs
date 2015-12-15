@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
@@ -115,8 +116,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         public string ShortName { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="Type"/>.
+        /// Gets or sets the <see cref="System.Type"/>.
         /// </summary>
         public Type Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="System.Reflection.MethodInfo"/> to invoke.
+        /// </summary>
+        public MethodInfo MethodInfo { get; set; }
     }
 }

@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Infrastructure;
+using Microsoft.AspNet.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
@@ -14,6 +16,8 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
     /// </summary>
     public class DefaultViewComponentDescriptorProvider : IViewComponentDescriptorProvider
     {
+        private const string AsyncMethodName = "InvokeAsync";
+        private const string SyncMethodName = "Invoke";
         private readonly IAssemblyProvider _assemblyProvider;
 
         /// <summary>
@@ -32,7 +36,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             return types
                 .Where(IsViewComponentType)
-                .Select(CreateCandidate);
+                .Select(CreateDescriptor);
         }
 
         /// <summary>
@@ -63,16 +67,69 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             return ViewComponentConventions.IsComponent(typeInfo);
         }
 
-        private static ViewComponentDescriptor CreateCandidate(TypeInfo typeInfo)
+        private static ViewComponentDescriptor CreateDescriptor(TypeInfo typeInfo)
         {
-            var candidate = new ViewComponentDescriptor()
+            var type = typeInfo.AsType();
+            var candidate = new ViewComponentDescriptor
             {
                 FullName = ViewComponentConventions.GetComponentFullName(typeInfo),
                 ShortName = ViewComponentConventions.GetComponentName(typeInfo),
-                Type = typeInfo.AsType(),
+                Type = type,
+                MethodInfo = FindMethod(type)
             };
 
             return candidate;
+        }
+
+        private static MethodInfo FindMethod(Type componentType)
+        {
+            var componentName = componentType.FullName;
+            var methods = componentType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => string.Equals(m.Name, AsyncMethodName, StringComparison.Ordinal) ||
+                    string.Equals(m.Name, SyncMethodName, StringComparison.Ordinal))
+                .ToArray();
+
+            if (methods.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatViewComponent_CannotFindMethod(SyncMethodName, AsyncMethodName, componentName));
+            }
+            else if (methods.Length > 1)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatViewComponent_AmbiguousMethods(componentName, AsyncMethodName, SyncMethodName));
+            }
+
+            var method = methods[0];
+            if (string.Equals(method.Name, AsyncMethodName, StringComparison.Ordinal))
+            {
+                if (!method.ReturnType.GetTypeInfo().IsGenericType ||
+                    method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
+                {
+                    throw new InvalidOperationException(Resources.FormatViewComponent_AsyncMethod_ShouldReturnTask(
+                        AsyncMethodName,
+                        componentName,
+                        nameof(Task)));
+                }
+            }
+            else
+            {
+                if (method.ReturnType == typeof(void))
+                {
+                    throw new InvalidOperationException(Resources.FormatViewComponent_SyncMethod_ShouldReturnValue(
+                        SyncMethodName,
+                        componentName));
+                }
+                else if (method.ReturnType.IsAssignableFrom(typeof(Task)))
+                {
+                    throw new InvalidOperationException(Resources.FormatViewComponent_SyncMethod_CannotReturnTask(
+                        SyncMethodName,
+                        componentName,
+                        nameof(Task)));
+                }
+            }
+
+            return method;
         }
     }
 }
