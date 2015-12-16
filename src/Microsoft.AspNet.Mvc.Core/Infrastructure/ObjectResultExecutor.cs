@@ -89,6 +89,24 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 throw new ArgumentNullException(nameof(result));
             }
 
+            // If the user sets the content type both on the ObjectResult (example: by Produces) and Response object,
+            // then the one set on ObjectResult takes precedence over the Response object
+            if (result.ContentTypes == null || result.ContentTypes.Count == 0)
+            {
+                var responseContentType = context.HttpContext.Response.ContentType;
+                if (!string.IsNullOrEmpty(responseContentType))
+                {
+                    if (result.ContentTypes == null)
+                    {
+                        result.ContentTypes = new List<MediaTypeHeaderValue>();
+                    }
+
+                    result.ContentTypes.Add(MediaTypeHeaderValue.Parse(responseContentType));
+                }
+            }
+
+            ValidateContentTypes(result.ContentTypes);
+
             var formatters = result.Formatters;
             if (formatters == null || formatters.Count == 0)
             {
@@ -156,15 +174,6 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             {
                 throw new ArgumentNullException(nameof(formatters));
             }
-
-            var responseContentType = formatterContext.HttpContext.Response.ContentType;
-            if (!string.IsNullOrEmpty(responseContentType))
-            {
-                contentTypes.Clear();
-                contentTypes.Add(MediaTypeHeaderValue.Parse(responseContentType));
-            }
-
-            ValidateContentTypes(contentTypes);
 
             // Check if any content-type was explicitly set (for example, via ProducesAttribute
             // or URL path extension mapping). If yes, then ignore content-negotiation and use this content-type.
