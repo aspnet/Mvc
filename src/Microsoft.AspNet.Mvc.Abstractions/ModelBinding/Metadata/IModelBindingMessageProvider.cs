@@ -53,5 +53,23 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </summary>
         /// <value>Default <see cref="string"/> is "The supplied value is invalid for {0}.".</value>
         Func<string, string> ValueInvalid_WithoutValueResource { get; }
+
+        /// <summary>
+        /// Fallback error message used when deserialization of request body fails due to no supported encodings
+        /// found on the input formatter.
+        /// </summary>
+        /// <value>
+        /// Default <see cref="string"/> is "No encoding found for input formatter '{0}'. There must be at
+        /// least one supported encoding registered in order for the formatter to read content.".
+        /// </value>
+        Func<string, string> NoEncodingFoundOnInputFormatter { get; }
+
+        /// <summary>
+        /// Fallback error message used when no input formatter was found based on the request's content type.
+        /// </summary>
+        /// /// <value>
+        /// Default <see cref="string"/> is "Unsupported content type '{0}'.".
+        /// </value>
+        Func<string, string> UnsupportedContentType { get; }
     }
 }

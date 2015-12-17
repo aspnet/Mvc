@@ -84,8 +84,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
 
             if (formatter == null)
             {
-                var unsupportedContentType = Resources.FormatUnsupportedContentType(
-                    bindingContext.OperationBindingContext.HttpContext.Request.ContentType);
+                var unsupportedContentType = bindingContext.ModelMetadata.ModelBindingMessageProvider
+                    .UnsupportedContentType(bindingContext.OperationBindingContext.HttpContext.Request.ContentType);
                 bindingContext.ModelState.AddModelError(modelBindingKey, unsupportedContentType);
 
                 // This model binder is the only handler for the Body binding source and it cannot run twice. Always

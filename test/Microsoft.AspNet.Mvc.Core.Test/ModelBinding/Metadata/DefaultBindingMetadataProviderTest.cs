@@ -524,7 +524,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 ValueMustNotBeNullAccessor = Resources.FormatModelBinding_NullValueNotValid,
                 ValueInvalid_UnknownErrorResource = Resources.FormatCommon_ValueNotValidForProperty,
                 ValueInvalid_WithoutValueResource = Resources.FormatModelError_InvalidValue_GenericMessage,
-                ValueInvalid_WithValueResource = Resources.FormatModelError_InvalidValue_MessageWithModelValue
+                ValueInvalid_WithValueResource = Resources.FormatModelError_InvalidValue_MessageWithModelValue,
+                NoEncodingFoundOnInputFormatter = Resources.FormatInputFormatterNoEncoding,
+                UnsupportedContentType = Resources.FormatUnsupportedContentType
             };
         }
 
