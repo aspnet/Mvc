@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.Mvc.ModelBinding.Test;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -40,10 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(binderResult));
+            var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
 
             // Act
@@ -52,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 string.Empty,
                 new ActionContext() { HttpContext = new DefaultHttpContext() },
                 metadataProvider,
-                GetCompositeBinder(binder.Object),
+                GetCompositeBinder(binder),
                 Mock.Of<IValueProvider>(),
                 new List<IInputFormatter>(),
                 new Mock<IObjectModelValidator>(MockBehavior.Strict).Object,
@@ -157,12 +155,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(binderResult));
+            var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
-            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
+            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -170,7 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 string.Empty,
                 new ActionContext() { HttpContext = new DefaultHttpContext() },
                 metadataProvider,
-                GetCompositeBinder(binder.Object),
+                GetCompositeBinder(binder),
                 Mock.Of<IValueProvider>(),
                 new List<IInputFormatter>(),
                 new Mock<IObjectModelValidator>(MockBehavior.Strict).Object,
@@ -213,7 +208,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 { "ExcludedProperty", "ExcludedPropertyValue" }
             };
 
-            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
 
@@ -247,10 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(binderResult));
+            var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
 
             // Act
@@ -259,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 string.Empty,
                 new ActionContext() { HttpContext = new DefaultHttpContext() },
                 metadataProvider,
-                GetCompositeBinder(binder.Object),
+                GetCompositeBinder(binder),
                 Mock.Of<IValueProvider>(),
                 new List<IInputFormatter>(),
                 new Mock<IObjectModelValidator>(MockBehavior.Strict).Object,
@@ -504,12 +496,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(binderResult));
+            var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
-            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
+            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -518,7 +507,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 prefix: "",
                 actionContext: new ActionContext() { HttpContext = new DefaultHttpContext() },
                 metadataProvider: metadataProvider,
-                modelBinder: GetCompositeBinder(binder.Object),
+                modelBinder: GetCompositeBinder(binder),
                 valueProvider: Mock.Of<IValueProvider>(),
                 inputFormatters: new List<IInputFormatter>(),
                 objectModelValidator: new Mock<IObjectModelValidator>(MockBehavior.Strict).Object,
@@ -561,7 +550,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 { "ExcludedProperty", "ExcludedPropertyValue" }
             };
 
-            Func<ModelBindingContext, string, bool> includePredicate =
+            Func<IModelBindingContext, string, bool> includePredicate =
                 (context, propertyName) =>
                                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
@@ -597,10 +586,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Task.FromResult<ModelBindingResult>(binderResult));
+            var binder = new StubModelBinder(binderResult);
+
             var model = new MyModel();
 
             // Act
@@ -669,11 +656,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
 
-            var binder = new Mock<IModelBinder>();
-            binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                  .Returns(ModelBindingResult.NoResultAsync);
+            var binder = new StubModelBinder();
             var model = new MyModel();
-            Func<ModelBindingContext, string, bool> includePredicate =
+            Func<IModelBindingContext, string, bool> includePredicate =
                (context, propertyName) => true;
 
             // Act & Assert

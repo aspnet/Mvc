@@ -2,14 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class SimpleTypeModelBinder : IModelBinder
     {
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
+            if (bindingContext == null)
+            {
+                throw new ArgumentNullException(nameof(bindingContext));
+            }
+            Debug.Assert(bindingContext.Result == null);
+
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile
             // allocations afterwards and look for Task<ModelBindingResult>.
@@ -17,14 +24,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (bindingContext.ModelMetadata.IsComplexType)
             {
                 // this type cannot be converted
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
                 // no entry
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
@@ -53,11 +60,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                         bindingContext.ModelMetadata.ModelBindingMessageProvider.ValueMustNotBeNullAccessor(
                             valueProviderResult.ToString()));
 
-                    return ModelBindingResult.FailedAsync(bindingContext.ModelName);
+                    bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                    return Internal.TaskCache.CompletedTask;
                 }
                 else
                 {
-                    return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
+                    bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
+                    return Internal.TaskCache.CompletedTask;
                 }
             }
             catch (Exception exception)
@@ -69,7 +78,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
                 // Were able to find a converter for the type but conversion failed.
                 // Tell the model binding system to skip other model binders.
-                return ModelBindingResult.FailedAsync(bindingContext.ModelName);
+                bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                return Internal.TaskCache.CompletedTask;
             }
         }
     }

@@ -1184,7 +1184,7 @@ namespace Microsoft.AspNetCore.Mvc
         public Task<bool> TryUpdateModelAsync<TModel>(
             TModel model,
             string prefix,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<IModelBindingContext, string, bool> predicate)
             where TModel : class
         {
             if (model == null)
@@ -1274,7 +1274,7 @@ namespace Microsoft.AspNetCore.Mvc
             TModel model,
             string prefix,
             IValueProvider valueProvider,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<IModelBindingContext, string, bool> predicate)
             where TModel : class
         {
             if (model == null)
@@ -1360,7 +1360,7 @@ namespace Microsoft.AspNetCore.Mvc
             Type modelType,
             string prefix,
             IValueProvider valueProvider,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<IModelBindingContext, string, bool> predicate)
         {
             if (model == null)
             {

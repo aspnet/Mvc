@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             IList<IInputFormatter> inputFormatters,
             IObjectModelValidator objectModelValidator,
             IModelValidatorProvider validatorProvider,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<IModelBindingContext, string, bool> predicate)
             where TModel : class
         {
             if (model == null)
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                IList<IInputFormatter> inputFormatters,
                IObjectModelValidator objectModelValidator,
                IModelValidatorProvider validatorProvider,
-               Func<ModelBindingContext, string, bool> predicate)
+               Func<IModelBindingContext, string, bool> predicate)
         {
             if (model == null)
             {
@@ -536,15 +536,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             modelBindingContext.Model = model;
             modelBindingContext.PropertyFilter = predicate;
 
-            var modelBindingResult = await modelBinder.BindModelAsync(modelBindingContext);
-            if (modelBindingResult.IsModelSet)
+            await modelBinder.BindModelAsync(modelBindingContext);
+            var modelBindingResult = modelBindingContext.Result;
+            if (modelBindingResult != null && modelBindingResult.Value.IsModelSet)
             {
                 objectModelValidator.Validate(
                     operationBindingContext.ActionContext,
                     operationBindingContext.ValidatorProvider,
                     modelBindingContext.ValidationState,
-                    modelBindingResult.Key,
-                    modelBindingResult.Model);
+                    modelBindingResult.Value.Key,
+                    modelBindingResult.Value.Model);
 
                 return modelState.IsValid;
             }
@@ -553,7 +554,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         // Internal for tests
-        internal static string GetPropertyName(Expression expression)
+        public static string GetPropertyName(Expression expression)
         {
             if (expression.NodeType == ExpressionType.Convert ||
                 expression.NodeType == ExpressionType.ConvertChecked)
@@ -596,7 +597,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="prefix">The model prefix.</param>
         /// <param name="expressions">Expressions identifying the properties to allow for binding.</param>
         /// <returns>An expression which can be used with <see cref="IPropertyBindingPredicateProvider"/>.</returns>
-        public static Expression<Func<ModelBindingContext, string, bool>> GetIncludePredicateExpression<TModel>(
+        public static Expression<Func<IModelBindingContext, string, bool>> GetIncludePredicateExpression<TModel>(
             string prefix,
             Expression<Func<TModel, object>>[] expressions)
         {
@@ -615,11 +616,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                                                         Expression.Invoke(predicate, firstExpression.Parameters));
             }
 
-            return Expression.Lambda<Func<ModelBindingContext, string, bool>>(
+            return Expression.Lambda<Func<IModelBindingContext, string, bool>>(
                 orWrapperExpression, firstExpression.Parameters);
         }
 
-        private static Expression<Func<ModelBindingContext, string, bool>> GetPredicateExpression<TModel>
+        private static Expression<Func<IModelBindingContext, string, bool>> GetPredicateExpression<TModel>
             (string prefix, Expression<Func<TModel, object>> expression)
         {
             var propertyName = GetPropertyName(expression.Body);
@@ -683,7 +684,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        internal static void ValidateBindingContext(ModelBindingContext bindingContext)
+        internal static void ValidateBindingContext(IModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -697,7 +698,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         internal static void ValidateBindingContext(
-            ModelBindingContext bindingContext,
+            IModelBindingContext bindingContext,
             Type requiredType,
             bool allowNullModel)
         {

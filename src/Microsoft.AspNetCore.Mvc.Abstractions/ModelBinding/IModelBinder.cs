@@ -27,6 +27,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <see cref="ModelBindingResult"/> should be <see cref="ModelBindingResult.NoResult"/>.
         /// </para>
         /// </returns>
-        Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext);
+        Task BindModelAsync(IModelBindingContext bindingContext);
     }
 }

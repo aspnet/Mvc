@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new CollectionModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var modelState = bindingContext.ModelState;
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -269,7 +269,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -299,7 +299,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -345,13 +345,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var culture = new CultureInfo("fr-FR");
             var bindingContext = GetModelBindingContext(new SimpleValueProvider());
 
-            Mock.Get(bindingContext.OperationBindingContext.ModelBinder)
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) =>
-                {
-                    Assert.Equal("someName", mbc.ModelName);
-                    return ModelBindingResult.SuccessAsync(mbc.ModelName, 42);
-                });
+            bindingContext.OperationBindingContext.ModelBinder = new StubModelBinder(mbc =>
+            {
+                Assert.Equal("someName", mbc.ModelName);
+                mbc.Result = ModelBindingResult.Success(mbc.ModelName, 42);
+            });
+
             var modelBinder = new CollectionModelBinder<int>();
 
             // Act
@@ -390,28 +389,24 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static IModelBinder CreateIntBinder()
         {
-            Mock<IModelBinder> mockIntBinder = new Mock<IModelBinder>();
-            mockIntBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) =>
+            return new StubModelBinder(mbc =>
+            {
+                var value = mbc.ValueProvider.GetValue(mbc.ModelName);
+                if (value == ValueProviderResult.None)
                 {
-                    var value = mbc.ValueProvider.GetValue(mbc.ModelName);
-                    if (value == ValueProviderResult.None)
-                    {
-                        return ModelBindingResult.NoResultAsync;
-                    }
+                    return ModelBindingResult.NoResultAsync;
+                }
 
-                    var model = value.ConvertTo(mbc.ModelType);
-                    if (model == null)
-                    {
-                        return ModelBindingResult.FailedAsync(mbc.ModelName);
-                    }
-                    else
-                    {
-                        return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
-                    }
-                });
-            return mockIntBinder.Object;
+                var model = value.ConvertTo(mbc.ModelType);
+                if (model == null)
+                {
+                    return ModelBindingResult.FailedAsync(mbc.ModelName);
+                }
+                else
+                {
+                    return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
+                }
+            });
         }
 
         private static ModelBindingContext CreateContext()

@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private class TestProvider : IPropertyBindingPredicateProvider
         {
-            public Func<ModelBindingContext, string, bool> PropertyFilter
+            public Func<IModelBindingContext, string, bool> PropertyFilter
             {
                 get
                 {
@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private class BaseProvider : IPropertyBindingPredicateProvider
         {
-            public Func<ModelBindingContext, string, bool> PropertyFilter
+            public Func<IModelBindingContext, string, bool> PropertyFilter
             {
                 get
                 {

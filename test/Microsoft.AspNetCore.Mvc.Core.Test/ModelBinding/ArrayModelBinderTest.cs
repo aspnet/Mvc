@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Internal;
 using Moq;
 using Xunit;
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 {
@@ -25,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ArrayModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -53,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -82,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -117,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ArrayModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -142,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ArrayModelBinder<int>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -159,20 +160,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private static IModelBinder CreateIntBinder()
         {
-            var mockIntBinder = new Mock<IModelBinder>();
-            mockIntBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns((ModelBindingContext mbc) =>
+            return new StubModelBinder(async mbc =>
+            {
+                var value = mbc.ValueProvider.GetValue(mbc.ModelName);
+                if (value != ValueProviderResult.None)
                 {
-                    var value = mbc.ValueProvider.GetValue(mbc.ModelName);
-                    if (value != ValueProviderResult.None)
-                    {
-                        var model = value.ConvertTo(mbc.ModelType);
-                        return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
-                    }
-                    return ModelBindingResult.NoResultAsync;
-                });
-            return mockIntBinder.Object;
+                    var model = value.ConvertTo(mbc.ModelType);
+                    return ModelBindingResult.Success(mbc.ModelName, model);
+                }
+                return ModelBindingResult.NoResult;
+            });
         }
 
         private static ModelBindingContext GetBindingContext(

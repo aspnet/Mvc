@@ -105,11 +105,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Callback((ModelBindingContext context) =>
+                .Callback((IModelBindingContext context) =>
                 {
                     context.ModelMetadata = metadataProvider.GetMetadataForType(typeof(string));
+                    context.Result = ModelBindingResult.Success(string.Empty, value);
                 })
-                .Returns(ModelBindingResult.SuccessAsync(string.Empty, value));
+                .Returns(Internal.TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -368,13 +369,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     ParameterType = typeof(int)
                 });
 
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.SuccessAsync(string.Empty, model: null));
+            var binder = new StubModelBinder(ModelBindingResult.Success(string.Empty, model: null));
 
             var controllerContext = GetControllerContext(actionDescriptor);
-            controllerContext.ModelBinders.Add(binder.Object);
+            controllerContext.ModelBinders.Add(binder);
             controllerContext.ValueProviders.Add(new SimpleValueProvider());
 
             var argumentBinder = GetArgumentBinder();
@@ -403,13 +401,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     ParameterType = typeof(int?)
                 });
 
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.SuccessAsync(key: string.Empty, model: null));
+            var binder = new StubModelBinder(ModelBindingResult.Success(key: string.Empty, model: null));
 
             var controllerContext = GetControllerContext(actionDescriptor);
-            controllerContext.ModelBinders.Add(binder.Object);
+            controllerContext.ModelBinders.Add(binder);
             controllerContext.ValueProviders.Add(new SimpleValueProvider());
 
             var argumentBinder = GetArgumentBinder();
@@ -541,23 +536,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var argumentBinder = GetArgumentBinder();
             var controller = new TestController();
 
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns<ModelBindingContext>(bindingContext =>
+            var binder = new StubModelBinder(bindingContext =>
+            {
+                // BindingContext.ModelName will be string.Empty here. This is a 'fallback to empty prefix'
+                // because the value providers have no data.
+                object model;
+                if (inputPropertyValues.TryGetValue(bindingContext.FieldName, out model))
                 {
-                    // BindingContext.ModelName will be string.Empty here. This is a 'fallback to empty prefix'
-                    // because the value providers have no data.
-                    object model;
-                    if (inputPropertyValues.TryGetValue(bindingContext.FieldName, out model))
-                    {
-                        return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
-                    }
-                    else
-                    {
-                        return ModelBindingResult.FailedAsync(bindingContext.ModelName);
-                    }
-                });
+                    bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
+                }
+                else
+                {
+                    bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                }
+            });
             controllerContext.ModelBinders.Add(binder.Object);
             controllerContext.ValueProviders.Add(new SimpleValueProvider());
 
@@ -610,7 +602,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
                   .Returns<ModelBindingContext>(mbc =>
                   {
-                      return ModelBindingResult.SuccessAsync(string.Empty, model);
+                      mbc.Result = ModelBindingResult.Success(string.Empty, model);
+                      return Internal.TaskCache.CompletedTask;
                   });
 
             context.ModelBinders.Add(binder.Object);
@@ -642,7 +635,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     It.IsAny<object>()));
             return mockValidator.Object;
         }
-        
+
         // No need for bind-related attributes on properties in this controller class. Properties are added directly
         // to the BoundProperties collection, bypassing usual requirements.
         private class TestController

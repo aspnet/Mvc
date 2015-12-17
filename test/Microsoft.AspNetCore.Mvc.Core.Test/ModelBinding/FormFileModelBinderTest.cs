@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = new FormFileModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);

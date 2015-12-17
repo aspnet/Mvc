@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Primitives;
+using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -17,13 +18,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class FormCollectionModelBinder : IModelBinder
     {
+        private static Task _complete = Task.FromResult(0);
+
         /// <inheritdoc />
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
+            Debug.Assert(bindingContext.Result == null);
 
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile
@@ -31,13 +35,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (bindingContext.ModelType != typeof(IFormCollection))
             {
-                return ModelBindingResult.NoResultAsync;
+                return _complete;
             }
 
             return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
         {
             object model;
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
@@ -52,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
-            return ModelBindingResult.Success(bindingContext.ModelName, model);
+            bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
         }
 
         private class EmptyFormCollection : IFormCollection

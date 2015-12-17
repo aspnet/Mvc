@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class DefaultPropertyBindingPredicateProvider<TModel> : IPropertyBindingPredicateProvider
         where TModel : class
     {
-        private static readonly Func<ModelBindingContext, string, bool> _defaultFilter =
+        private static readonly Func<IModelBindingContext, string, bool> _defaultFilter =
             (context, propertyName) => true;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        public virtual Func<ModelBindingContext, string, bool> PropertyFilter
+        public virtual Func<IModelBindingContext, string, bool> PropertyFilter
         {
             get
             {
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private Func<ModelBindingContext, string, bool> GetPredicateFromExpression(
+        private Func<IModelBindingContext, string, bool> GetPredicateFromExpression(
             IEnumerable<Expression<Func<TModel, object>>> includeExpressions)
         {
             var expression = ModelBindingHelper.GetIncludePredicateExpression(Prefix, includeExpressions.ToArray());

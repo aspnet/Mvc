@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             var expectedModel = bindingContext.OperationBindingContext.HttpContext.GetHttpRequestMessage();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             var bindingContext = GetBindingContext(type);
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);

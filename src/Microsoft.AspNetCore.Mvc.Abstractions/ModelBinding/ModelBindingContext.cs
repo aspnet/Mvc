@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -9,15 +10,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// <summary>
     /// A context that contains operating information for model binding and validation.
     /// </summary>
-    public class ModelBindingContext
+    public class ModelBindingContext : IModelBindingContext
     {
-        private string _fieldName;
-        private ModelMetadata _modelMetadata;
-        private string _modelName;
-        private ModelStateDictionary _modelState;
-        private OperationBindingContext _operationBindingContext;
-        private IValueProvider _valueProvider;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelBindingContext"/> class.
         /// </summary>
@@ -35,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="bindingInfo"><see cref="BindingInfo"/> associated with the model.</param>
         /// <param name="modelName">The name of the property or parameter being bound.</param>
         /// <returns>A new instance of <see cref="ModelBindingContext"/>.</returns>
-        public static ModelBindingContext CreateBindingContext(
+        public static IModelBindingContext CreateBindingContext(
             OperationBindingContext operationBindingContext,
             ModelMetadata metadata,
             BindingInfo bindingInfo,
@@ -85,18 +79,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             };
         }
 
-        public static ModelBindingContext CreateChildBindingContext(
-            ModelBindingContext parent,
+        public ModelBindingContextDisposable PushContext(
             ModelMetadata modelMetadata,
             string fieldName,
             string modelName,
             object model)
         {
-            if (parent == null)
-            {
-                throw new ArgumentNullException(nameof(parent));
-            }
-
             if (modelMetadata == null)
             {
                 throw new ArgumentNullException(nameof(modelMetadata));
@@ -112,22 +100,33 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            return new ModelBindingContext()
-            {
-                ModelState = parent.ModelState,
-                OperationBindingContext = parent.OperationBindingContext,
-                ValueProvider = parent.ValueProvider,
-                ValidationState = parent.ValidationState,
+            var scope = PushContext();
 
-                Model = model,
-                ModelMetadata = modelMetadata,
-                ModelName = modelName,
-                FieldName = fieldName,
-                BinderModelName = modelMetadata.BinderModelName,
-                BinderType = modelMetadata.BinderType,
-                BindingSource = modelMetadata.BindingSource,
-                PropertyFilter = modelMetadata.PropertyBindingPredicateProvider?.PropertyFilter,
-            };
+            Model = model;
+            ModelMetadata = modelMetadata;
+            ModelName = modelName;
+            FieldName = fieldName;
+            BinderModelName = modelMetadata.BinderModelName;
+            BinderType = modelMetadata.BinderType;
+            BindingSource = modelMetadata.BindingSource;
+            PropertyFilter = modelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
+
+            FallbackToEmptyPrefix = false;
+            IsTopLevelObject = false;
+
+            return scope;
+        }
+
+        public ModelBindingContextDisposable PushContext()
+        {
+            _stack.Push(_state);
+            _state.Result = null;
+            return new ModelBindingContextDisposable(this);
+        }
+
+        public void PopContext()
+        {
+            _state = _stack.Pop();
         }
 
         /// <summary>
@@ -135,15 +134,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         public OperationBindingContext OperationBindingContext
         {
-            get { return _operationBindingContext; }
+            get { return _state.OperationBindingContext; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _operationBindingContext = value;
+                _state.OperationBindingContext = value;
             }
         }
 
@@ -152,15 +150,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         public string FieldName
         {
-            get { return _fieldName; }
+            get { return _state.FieldName; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _fieldName = value;
+                _state.FieldName = value;
             }
         }
 
@@ -171,22 +168,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// The <see cref="Model"/> will typically be set for a binding operation that works
         /// against a pre-existing model object to update certain properties.
         /// </remarks>
-        public object Model { get; set; }
+        public object Model { get { return _state.Model; } set { _state.Model = value; } }
 
         /// <summary>
         /// Gets or sets the metadata for the model associated with this context.
         /// </summary>
         public ModelMetadata ModelMetadata
         {
-            get { return _modelMetadata; }
+            get { return _state.ModelMetadata; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _modelMetadata = value;
+                _state.ModelMetadata = value;
             }
         }
 
@@ -196,15 +192,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         public string ModelName
         {
-            get { return _modelName; }
+            get { return _state.ModelName; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _modelName = value;
+                _state.ModelName = value;
             }
         }
 
@@ -214,15 +209,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         public ModelStateDictionary ModelState
         {
-            get { return _modelState; }
+            get { return _state.ModelState; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _modelState = value;
+                _state.ModelState = value;
             }
         }
 
@@ -238,19 +232,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets a model name which is explicitly set using an <see cref="IModelNameProvider"/>.
         /// <see cref="Model"/>.
         /// </summary>
-        public string BinderModelName { get; set; }
+        public string BinderModelName { get { return _state.BinderModelName; } set { _state.BinderModelName = value; } }
 
         /// <summary>
         /// Gets or sets a value which represents the <see cref="BindingSource"/> associated with the
         /// <see cref="Model"/>.
         /// </summary>
-        public BindingSource BindingSource { get; set; }
+        public BindingSource BindingSource { get { return _state.BindingSource; } set { _state.BindingSource = value; } }
 
         /// <summary>
         /// Gets the <see cref="Type"/> of an <see cref="IModelBinder"/> associated with the
         /// <see cref="Model"/>.
         /// </summary>
-        public Type BinderType { get; set; }
+        public Type BinderType { get { return _state.BinderType; } set { _state.BinderType = value; } }
 
         /// <summary>
         /// Gets or sets a value that indicates whether the binder should use an empty prefix to look up
@@ -260,28 +254,27 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Passed into the model binding system. Should not be <c>true</c> when <see cref="IsTopLevelObject"/> is
         /// <c>false</c>.
         /// </remarks>
-        public bool FallbackToEmptyPrefix { get; set; }
+        public bool FallbackToEmptyPrefix { get { return _state.FallbackToEmptyPrefix; } set { _state.FallbackToEmptyPrefix = value; } }
 
         /// <summary>
         /// Gets or sets an indication that the current binder is handling the top-level object.
         /// </summary>
         /// <remarks>Passed into the model binding system.</remarks>
-        public bool IsTopLevelObject { get; set; }
+        public bool IsTopLevelObject { get { return _state.IsTopLevelObject; } set { _state.IsTopLevelObject = value; } }
 
         /// <summary>
         /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
         /// </summary>
         public IValueProvider ValueProvider
         {
-            get { return _valueProvider; }
+            get { return _state.ValueProvider; }
             set
             {
                 if (value == null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }
-
-                _valueProvider = value;
+                _state.ValueProvider = value;
             }
         }
 
@@ -289,12 +282,57 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets a predicate which will be evaluated for each property to determine if the property
         /// is eligible for model binding.
         /// </summary>
-        public Func<ModelBindingContext, string, bool> PropertyFilter { get; set; }
+        public Func<IModelBindingContext, string, bool> PropertyFilter { get { return _state.PropertyFilter; } set { _state.PropertyFilter = value; } }
 
         /// <summary>
         /// Gets or sets the <see cref="ValidationStateDictionary"/>. Used for tracking validation state to
         /// customize validation behavior for a model object.
         /// </summary>
-        public ValidationStateDictionary ValidationState { get; set; }
+        public ValidationStateDictionary ValidationState { get { return _state.ValidationState; } set { _state.ValidationState = value; } }
+
+        public ModelBindingResult? Result
+        {
+            get
+            {
+                return _state.Result;
+            }
+            set
+            {
+                if (value.HasValue && value.Value == ModelBindingResult.NoResult)
+                {
+                    value = null;
+                }
+                else
+                {
+                    _state.Result = value;
+                }
+            }
+        }
+
+
+        private struct State
+        {
+            public OperationBindingContext OperationBindingContext;
+            public string FieldName;
+            public object Model;
+            public ModelMetadata ModelMetadata;
+            public string ModelName;
+
+            public IValueProvider ValueProvider;
+            public Func<IModelBindingContext, string, bool> PropertyFilter;
+            public ValidationStateDictionary ValidationState;
+            public ModelStateDictionary ModelState;
+
+            public string BinderModelName;
+            public BindingSource BindingSource;
+            public Type BinderType;
+            public bool FallbackToEmptyPrefix;
+            public bool IsTopLevelObject;
+
+            public ModelBindingResult? Result;
+        };
+
+        State _state;
+        Stack<State> _stack = new Stack<State>();
     }
 }

@@ -14,16 +14,16 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
     public class HttpRequestMessageModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType == typeof(HttpRequestMessage))
             {
                 var model = bindingContext.OperationBindingContext.HttpContext.GetHttpRequestMessage();
                 bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
-                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
+                bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
             }
 
-            return ModelBindingResult.NoResultAsync;
+            return Internal.TaskCache.CompletedTask;
         }
     }
 }

@@ -1,7 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 #if DOTNET5_4
 using System.Reflection;
 #endif
@@ -17,8 +19,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class HeaderModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
+            if (bindingContext == null)
+            {
+                throw new ArgumentNullException(nameof(bindingContext));
+            }
+            Debug.Assert(bindingContext.Result == null);
+
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile
             // allocations afterwards and look for Task<ModelBindingResult>.
@@ -29,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Headers are opt-in. This model either didn't specify [FromHeader] or specified something
                 // incompatible so let other binders run.
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
@@ -59,7 +67,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (model == null)
             {
-                return ModelBindingResult.FailedAsync(bindingContext.ModelName);
+                bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                return Internal.TaskCache.CompletedTask;
             }
             else
             {
@@ -68,7 +77,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     request.Headers.GetCommaSeparatedValues(headerName),
                     request.Headers[headerName]);
 
-                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
+                bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
+                return Internal.TaskCache.CompletedTask;
             }
         }
     }

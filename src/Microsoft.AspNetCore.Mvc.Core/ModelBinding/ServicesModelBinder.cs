@@ -4,6 +4,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -14,8 +16,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class ServicesModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
+            if (bindingContext == null)
+            {
+                throw new ArgumentNullException(nameof(bindingContext));
+            }
+            Debug.Assert(bindingContext.Result == null);
+
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile
             // allocations afterwards and look for Task<ModelBindingResult>.
@@ -26,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Services are opt-in. This model either didn't specify [FromService] or specified something
                 // incompatible so let other binders run.
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
@@ -34,7 +42,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
 
-            return ModelBindingResult.SuccessAsync(bindingContext.ModelName, model);
+            bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
+            return Internal.TaskCache.CompletedTask;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.False(result.IsModelSet);
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Null(result.Model);
@@ -181,7 +181,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -207,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new SimpleTypeModelBinder();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.True(result.IsModelSet);

@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new BinderTypeBasedModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, binderResult);
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new BinderTypeBasedModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, binderResult);
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new BinderTypeBasedModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             var p = (Person)binderResult.Model;
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
             // Act
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => binder.BindModelAsync(bindingContext));
+                () => binder.BindModelResultAsync(bindingContext));
 
             // Assert
             Assert.Equal(expected, ex.Message);
@@ -123,9 +123,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private class NullModelBinder : IModelBinder
         {
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            public Task BindModelAsync(IModelBindingContext bindingContext)
             {
-                return ModelBindingResult.NoResultAsync;
+                return Task.FromResult(0);
             }
         }
 
@@ -138,9 +138,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 _model = new Person();
             }
 
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            public Task BindModelAsync(IModelBindingContext bindingContext)
             {
-                return ModelBindingResult.SuccessAsync(bindingContext.ModelName, _model);
+                bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, _model);
+                return Task.FromResult(0);
             }
         }
     }

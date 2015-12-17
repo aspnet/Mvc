@@ -21,12 +21,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class FormFileModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public Task BindModelAsync(IModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
+            Debug.Assert(bindingContext.Result == null);
 
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task<ModelBindingResult> BindModelCoreAsync(ModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
         {
             // If we're at the top level, then use the FieldName (paramter or property name).
             // This handles the fact that there will be nothing in the ValueProviders for this parameter
@@ -65,12 +66,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // This binder does not support the requested type.
                 Debug.Fail("We shouldn't be called without a matching type.");
-                return ModelBindingResult.NoResult;
+                return;
             }
 
             if (value == null)
             {
-                return ModelBindingResult.Failed(bindingContext.ModelName);
+                bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                return;
             }
             else
             {
@@ -85,11 +87,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     rawValue: null,
                     attemptedValue: null);
 
-                return ModelBindingResult.Success(bindingContext.ModelName, value);
+                bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, value);
+                return;
             }
         }
 
-        private async Task<List<IFormFile>> GetFormFilesAsync(string modelName, ModelBindingContext bindingContext)
+        private async Task<List<IFormFile>> GetFormFilesAsync(string modelName, IModelBindingContext bindingContext)
         {
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             var postedFiles = new List<IFormFile>();

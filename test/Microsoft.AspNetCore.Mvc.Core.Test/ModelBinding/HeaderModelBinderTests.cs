@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var modelBindingContext = GetBindingContext(type);
 
             // Act
-            var result = await binder.BindModelAsync(modelBindingContext);
+            var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
-            var result = await binder.BindModelAsync(modelBindingContext);
+            var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
-            var result = await binder.BindModelAsync(modelBindingContext);
+            var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
-            var result = await binder.BindModelAsync(modelBindingContext);
+            var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
 
             // Act
-            var result = await binder.BindModelAsync(modelBindingContext);
+            var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);

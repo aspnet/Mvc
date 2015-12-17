@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public void CreateChildBindingContext_CopiesProperties()
         {
             // Arrange
-            var originalBindingContext = new ModelBindingContext
+            var bindingContext = new ModelBindingContext
             {
                 Model = new object(),
                 ModelMetadata = new TestModelMetadataProvider().GetMetadataForType(typeof(object)),
@@ -32,28 +33,36 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 });
 
             var newModelMetadata = metadataProvider.GetMetadataForType(typeof(object));
-            
+
             // Act
-            var newBindingContext = ModelBindingContext.CreateChildBindingContext(
-                originalBindingContext,
-                newModelMetadata,
+            var originalBinderModelName = bindingContext.BinderModelName;
+            var originalBinderType = bindingContext.BinderType;
+            var originalBindingSource = bindingContext.BindingSource;
+            var originalModelState = bindingContext.ModelState;
+            var originalOperationBindingContext = bindingContext.OperationBindingContext;
+            var originalValueProvider = bindingContext.ValueProvider;
+
+            var disposable = bindingContext.PushContext(
+                modelMetadata: newModelMetadata,
                 fieldName: "fieldName",
                 modelName: "modelprefix.fieldName",
                 model: null);
 
             // Assert
-            Assert.Same(newModelMetadata.BinderModelName, newBindingContext.BinderModelName);
-            Assert.Same(newModelMetadata.BinderType, newBindingContext.BinderType);
-            Assert.Same(newModelMetadata.BindingSource, newBindingContext.BindingSource);
-            Assert.False(newBindingContext.FallbackToEmptyPrefix);
-            Assert.Equal("fieldName", newBindingContext.FieldName);
-            Assert.False(newBindingContext.IsTopLevelObject);
-            Assert.Null(newBindingContext.Model);
-            Assert.Same(newModelMetadata, newBindingContext.ModelMetadata);
-            Assert.Equal("modelprefix.fieldName", newBindingContext.ModelName);
-            Assert.Same(originalBindingContext.ModelState, newBindingContext.ModelState);
-            Assert.Same(originalBindingContext.OperationBindingContext, newBindingContext.OperationBindingContext);
-            Assert.Same(originalBindingContext.ValueProvider, newBindingContext.ValueProvider);
+            Assert.Same(newModelMetadata.BinderModelName, bindingContext.BinderModelName);
+            Assert.Same(newModelMetadata.BinderType, bindingContext.BinderType);
+            Assert.Same(newModelMetadata.BindingSource, bindingContext.BindingSource);
+            Assert.False(bindingContext.FallbackToEmptyPrefix);
+            Assert.Equal("fieldName", bindingContext.FieldName);
+            Assert.False(bindingContext.IsTopLevelObject);
+            Assert.Null(bindingContext.Model);
+            Assert.Same(newModelMetadata, bindingContext.ModelMetadata);
+            Assert.Equal("modelprefix.fieldName", bindingContext.ModelName);
+            Assert.Same(originalModelState, bindingContext.ModelState);
+            Assert.Same(originalOperationBindingContext, bindingContext.OperationBindingContext);
+            Assert.Same(originalValueProvider, bindingContext.ValueProvider);
+
+            disposable.Dispose();
         }
 
         [Fact]
@@ -71,8 +80,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private class TestModelBinder : IModelBinder
         {
-            public Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+            public Task BindModelAsync(IModelBindingContext bindingContext)
             {
+                if (bindingContext == null)
+                {
+                    throw new ArgumentNullException(nameof(bindingContext));
+                }
+                Debug.Assert(bindingContext.Result == null);
+
                 throw new NotImplementedException();
             }
         }

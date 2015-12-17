@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new DictionaryModelBinder<int, string>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new DictionaryModelBinder<int, string>();
 
             // Act
-            var result = await binder.BindModelAsync(bindingContext);
+            var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -137,7 +137,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 nameof(ModelWithDictionaryProperties.DictionaryProperty));
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 nameof(ModelWithDictionaryProperties.DictionaryProperty));
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 nameof(ModelWithDictionaryProperties.DictionaryWithValueTypesProperty));
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 nameof(ModelWithDictionaryProperties.DictionaryWithComplexValuesProperty));
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -312,7 +312,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 nameof(ModelWithDictionaryProperties.CustomDictionaryProperty));
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -341,7 +341,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.NotEqual(ModelBindingResult.NoResult, result);
@@ -370,7 +370,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             context.ValueProvider = new TestValueProvider(new Dictionary<string, object>());
 
             // Act
-            var result = await binder.BindModelAsync(context);
+            var result = await binder.BindModelResultAsync(context);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, result);
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var backingStore = dictionary.ToDictionary(
                 kvp => string.Format(keyFormat, kvp.Key),
                 kvp => (StringValues)kvp.Value);
-            
+
             var formCollection = new FormCollection(backingStore);
 
             return new FormValueProvider(
@@ -474,21 +474,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType<IDictionary<int, string>>().BindingDetails(bd => bd.IsReadOnly = isReadOnly);
 
-            var binder = new Mock<IModelBinder>();
-            binder
-                .Setup(mb => mb.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns<ModelBindingContext>(mbc =>
+            var binder = new StubModelBinder(mbc =>
+            {
+                KeyValuePair<int, string> value;
+                if (values.TryGetValue(mbc.ModelName, out value))
                 {
-                    KeyValuePair<int, string> value;
-                    if (values.TryGetValue(mbc.ModelName, out value))
-                    {
-                        return ModelBindingResult.SuccessAsync(mbc.ModelName, value);
-                    }
-                    else
-                    {
-                        return ModelBindingResult.NoResultAsync;
-                    }
-                });
+                    mbc.Result = ModelBindingResult.Success(mbc.ModelName, value);
+                }
+            });
 
             var valueProvider = new SimpleValueProvider();
             foreach (var kvp in values)

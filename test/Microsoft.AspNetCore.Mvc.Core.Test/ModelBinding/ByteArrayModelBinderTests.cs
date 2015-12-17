@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ByteArrayModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(binderResult);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ByteArrayModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(binderResult);
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ByteArrayModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(binderResult);
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ByteArrayModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(binderResult);
@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binder = new ByteArrayModelBinder();
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.Equal(ModelBindingResult.NoResult, binderResult);

@@ -118,18 +118,19 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 parameter.BindingInfo,
                 parameter.Name);
 
-            var modelBindingResult = await operationContext.ModelBinder.BindModelAsync(modelBindingContext);
-            if (modelBindingResult.IsModelSet)
+            await operationContext.ModelBinder.BindModelAsync(modelBindingContext);
+            var modelBindingResult = modelBindingContext.Result;
+            if (modelBindingResult != null && modelBindingResult.Value.IsModelSet)
             {
                 _validator.Validate(
                     operationContext.ActionContext,
                     operationContext.ValidatorProvider,
                     modelBindingContext.ValidationState,
-                    modelBindingResult.Key,
-                    modelBindingResult.Model);
+                    modelBindingResult.Value.Key,
+                    modelBindingResult.Value.Model);
             }
 
-            return modelBindingResult;
+            return modelBindingResult.HasValue ? modelBindingResult.Value : ModelBindingResult.NoResult;
         }
 
         // Called via reflection.

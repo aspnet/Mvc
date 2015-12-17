@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 _providers = providers;
             }
 
-            public Func<ModelBindingContext, string, bool> PropertyFilter
+            public Func<IModelBindingContext, string, bool> PropertyFilter
             {
                 get
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
             }
 
-            private Func<ModelBindingContext, string, bool> CreatePredicate()
+            private Func<IModelBindingContext, string, bool> CreatePredicate()
             {
                 var predicates = _providers
                     .Select(p => p.PropertyFilter)

@@ -16,16 +16,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class ArrayModelBinder<TElement> : CollectionModelBinder<TElement>
     {
         /// <inheritdoc />
-        public override Task<ModelBindingResult> BindModelAsync(ModelBindingContext bindingContext)
+        public override Task BindModelAsync(IModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
+            Debug.Assert(bindingContext.Result == null);
 
             if (bindingContext.ModelMetadata.IsReadOnly)
             {
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             return base.BindModelAsync(bindingContext);

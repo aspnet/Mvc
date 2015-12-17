@@ -17,12 +17,12 @@ namespace Microsoft.AspNetCore.Mvc
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
     public class BindAttribute : Attribute, IModelNameProvider, IPropertyBindingPredicateProvider
     {
-        private static readonly Func<ModelBindingContext, string, bool> _defaultFilter =
+        private static readonly Func<IModelBindingContext, string, bool> _defaultFilter =
             (context, propertyName) => true;
 
         private ObjectFactory _factory;
 
-        private Func<ModelBindingContext, string, bool> _predicateFromInclude;
+        private Func<IModelBindingContext, string, bool> _predicateFromInclude;
 
         /// <summary>
         /// Creates a new instace of <see cref="BindAttribute"/>.
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <inheritdoc />
-        public Func<ModelBindingContext, string, bool> PropertyFilter
+        public Func<IModelBindingContext, string, bool> PropertyFilter
         {
             get
             {
@@ -125,14 +125,14 @@ namespace Microsoft.AspNetCore.Mvc
             return _factory;
         }
 
-        private static Func<ModelBindingContext, string, bool> CreatePredicateFromProviderType(
+        private static Func<IModelBindingContext, string, bool> CreatePredicateFromProviderType(
             ObjectFactory factory)
         {
             // Holding state to avoid execessive creation of the provider.
             var initialized = false;
-            Func<ModelBindingContext, string, bool> predicate = null;
+            Func<IModelBindingContext, string, bool> predicate = null;
 
-            return (ModelBindingContext context, string propertyName) =>
+            return (IModelBindingContext context, string propertyName) =>
             {
                 if (!initialized)
                 {

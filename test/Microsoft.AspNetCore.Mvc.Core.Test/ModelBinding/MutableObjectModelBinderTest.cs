@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
+using Microsoft.AspNet.Mvc.ModelBinding.Test;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -411,10 +412,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Returns(true);
 
             // Mock binder fails to bind all properties.
-            var mockBinder = new Mock<IModelBinder>();
-            mockBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.NoResultAsync);
+            var mockBinder = new StubModelBinder();
 
             var bindingContext = new ModelBindingContext
             {
@@ -423,7 +421,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 ValueProvider = mockValueProvider.Object,
                 OperationBindingContext = new OperationBindingContext
                 {
-                    ModelBinder = mockBinder.Object,
+                    ModelBinder = mockBinder,
                     MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
                     ValidatorProvider = Mock.Of<IModelValidatorProvider>()
                 },
@@ -442,7 +440,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Returns(new ModelMetadata[0]);
 
             // Act
-            var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
+            var retValue = await testableBinder.Object.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(retValue);
@@ -462,10 +460,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Returns(false);
 
             // Mock binder fails to bind all properties.
-            var mockBinder = new Mock<IModelBinder>();
-            mockBinder
-                .Setup(o => o.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.NoResultAsync);
+            var mockBinder = new StubModelBinder();
 
             var bindingContext = new ModelBindingContext
             {
@@ -475,7 +470,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 ValueProvider = mockValueProvider.Object,
                 OperationBindingContext = new OperationBindingContext
                 {
-                    ModelBinder = mockBinder.Object,
+                    ModelBinder = mockBinder,
                     MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
                     ValidatorProvider = Mock.Of<IModelValidatorProvider>()
                 },
@@ -495,7 +490,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Returns(new ModelMetadata[0]);
 
             // Act
-            var retValue = await testableBinder.Object.BindModelAsync(bindingContext);
+            var retValue = await testableBinder.Object.BindModelResultAsync(bindingContext);
 
             // Assert
             Assert.NotNull(retValue);
@@ -1810,7 +1805,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private class ExcludedProvider : IPropertyBindingPredicateProvider
         {
-            public Func<ModelBindingContext, string, bool> PropertyFilter
+            public Func<IModelBindingContext, string, bool> PropertyFilter
             {
                 get
                 {
@@ -1881,33 +1876,33 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return CanUpdatePropertyPublic(propertyMetadata);
             }
 
-            public virtual object CreateModelPublic(ModelBindingContext bindingContext)
+            public virtual object CreateModelPublic(IModelBindingContext bindingContext)
             {
                 return base.CreateModel(bindingContext);
             }
 
-            protected override object CreateModel(ModelBindingContext bindingContext)
+            protected override object CreateModel(IModelBindingContext bindingContext)
             {
                 return CreateModelPublic(bindingContext);
             }
 
-            public virtual object GetModelPublic(ModelBindingContext bindingContext)
+            public virtual object GetModelPublic(IModelBindingContext bindingContext)
             {
                 return base.GetModel(bindingContext);
             }
 
-            protected override object GetModel(ModelBindingContext bindingContext)
+            protected override object GetModel(IModelBindingContext bindingContext)
             {
                 return GetModelPublic(bindingContext);
             }
 
-            public virtual new IEnumerable<ModelMetadata> GetMetadataForProperties(ModelBindingContext bindingContext)
+            public virtual new IEnumerable<ModelMetadata> GetMetadataForProperties(IModelBindingContext bindingContext)
             {
                 return base.GetMetadataForProperties(bindingContext);
             }
 
             public new void SetProperty(
-                ModelBindingContext bindingContext,
+                IModelBindingContext bindingContext,
                 ModelMetadata metadata,
                 ModelMetadata propertyMetadata,
                 ModelBindingResult result)
