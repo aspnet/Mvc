@@ -331,7 +331,11 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                             _bytesRead,
                             _charBuffer,
                             0);
+<<<<<<< HEAD
 
+=======
+                        
+>>>>>>> Use system.buffers for our reader/writer
                         Debug.Assert(n > 0);
 
                         _charsRead += n; // Number of chars in StreamReader's buffer.
