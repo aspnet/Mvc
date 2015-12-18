@@ -32,13 +32,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         Func<string, string> ValueMustNotBeNullAccessor { get; }
 
         /// <summary>
-        /// Fallback error message HTML and tag helpers display when a property is invalid but the
-        /// <see cref="ModelError"/>s have <c>null</c> <see cref="ModelError.ErrorMessage"/>s.
-        /// </summary>
-        /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
-        Func<string, string> InvalidValueWithUnknownModelErrorAccessor { get; }
-
-        /// <summary>
         /// Error message the model binding system adds when <see cref="ModelError.Exception"/> is of type
         /// <see cref="FormatException"/> and value is known.
         /// </summary>

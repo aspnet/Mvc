@@ -13,7 +13,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private Func<string, string> _missingBindRequiredValueAccessor;
         private Func<string> _missingKeyOrValueAccessor;
         private Func<string, string> _valueMustNotBeNullAccessor;
-        private Func<string, string> _valueInvalid_UnknownErrorResource;
         private Func<string, string, string> _valueInvalid_WithValueResource;
         private Func<string, string> _valueInvalid_WithoutValueResource;
 
@@ -39,7 +38,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             MissingBindRequiredValueAccessor = originalProvider.MissingBindRequiredValueAccessor;
             MissingKeyOrValueAccessor = originalProvider.MissingKeyOrValueAccessor;
             ValueMustNotBeNullAccessor = originalProvider.ValueMustNotBeNullAccessor;
-            InvalidValueWithUnknownModelErrorAccessor = originalProvider.InvalidValueWithUnknownModelErrorAccessor;
             InvalidValueWithUnknownSuppliedValueAccessor = originalProvider.InvalidValueWithUnknownSuppliedValueAccessor;
             InvalidValueWithKnownSuppliedValueAccessor = originalProvider.InvalidValueWithKnownSuppliedValueAccessor;
         }
@@ -77,24 +75,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 }
 
                 _missingKeyOrValueAccessor = value;
-            }
-        }
-
-        /// <inheritdoc/>
-        public Func<string, string> InvalidValueWithUnknownModelErrorAccessor
-        {
-            get
-            {
-                return _valueInvalid_UnknownErrorResource;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _valueInvalid_UnknownErrorResource = value;
             }
         }
 

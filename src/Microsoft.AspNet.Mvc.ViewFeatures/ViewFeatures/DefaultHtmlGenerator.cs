@@ -32,7 +32,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         private readonly IModelMetadataProvider _metadataProvider;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly HtmlEncoder _htmlEncoder;
-        private readonly ModelBindingMessageProvider _modelBindingMessageProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultHtmlGenerator"/> class.
@@ -88,7 +87,6 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             _metadataProvider = metadataProvider;
             _urlHelperFactory = urlHelperFactory;
             _htmlEncoder = htmlEncoder;
-            _modelBindingMessageProvider = optionsAccessor.Value.ModelBindingMessageProvider;
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = viewOptionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
@@ -765,10 +763,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             else if (modelError != null)
             {
                 tagBuilder.InnerHtml.SetContent(
-                    ValidationHelpers.GetUserErrorMessageOrDefault(
-                        modelError,
-                        entry,
-                        _modelBindingMessageProvider));
+                    ValidationHelpers.GetUserErrorMessageOrDefault(modelError, entry));
             }
 
             if (formContext != null)
@@ -831,10 +826,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 for (var i = 0; i < modelState.Errors.Count; i++)
                 {
                     var modelError = modelState.Errors[i];
-                    var errorText = ValidationHelpers.GetUserErrorMessageOrDefault(
-                        modelError,
-                        entry: null,
-                        messageProvider: _modelBindingMessageProvider);
+                    var errorText = ValidationHelpers.GetUserErrorMessageOrDefault(modelError, entry: null);
 
                     if (!string.IsNullOrEmpty(errorText))
                     {
