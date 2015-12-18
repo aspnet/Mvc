@@ -36,22 +36,20 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// <see cref="ModelError"/>s have <c>null</c> <see cref="ModelError.ErrorMessage"/>s.
         /// </summary>
         /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
-        Func<string, string> ValueInvalid_UnknownErrorResource { get; }
+        Func<string, string> InvalidValueWithUnknownModelErrorAccessor { get; }
 
         /// <summary>
-        /// Replacement <see cref="ModelError.ErrorMessage"/> used in <see cref="ModelError"/> when
-        /// <see cref="ModelError.Exception"/> is of type <see cref="FormatException"/> and value is known i.e. when
-        /// the bound value could not be converted and the "replacer" has the attempted value.
+        /// Error message the model binding system adds when <see cref="ModelError.Exception"/> is of type
+        /// <see cref="FormatException"/> and value is known.
         /// </summary>
         /// <value>Default <see cref="string"/> is "The value '{0}' is not valid for {1}.".</value>
-        Func<string, string, string> ValueInvalid_WithValueResource { get; }
+        Func<string, string, string> InvalidValueWithKnownSuppliedValueAccessor { get; }
 
         /// <summary>
-        /// Replacement <see cref="ModelError.ErrorMessage"/> used in <see cref="ModelError"/> when
-        /// <see cref="ModelError.Exception"/> is of type <see cref="FormatException"/> and value is unknown i.e. when
-        /// the bound value could not be converted and the "replacer" does not have the attempted value.
+        /// Error message the model binding system adds when <see cref="ModelError.Exception"/> is of type
+        /// <see cref="FormatException"/> and value is unknown.
         /// </summary>
         /// <value>Default <see cref="string"/> is "The supplied value is invalid for {0}.".</value>
-        Func<string, string> ValueInvalid_WithoutValueResource { get; }
+        Func<string, string> InvalidValueWithUnknownSuppliedValueAccessor { get; }
     }
 }

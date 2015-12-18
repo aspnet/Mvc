@@ -261,7 +261,7 @@ namespace Microsoft.AspNet.Mvc.IntegrationTests
                 .BindingDetails((Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessageProvider.ValueInvalid_WithValueResource =
+                    binding.ModelBindingMessageProvider.InvalidValueWithKnownSuppliedValueAccessor =
                         (value, paramName) => $"Hmm, '{ value }' is not a valid value for '{ paramName }'.";
                 }));
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder(metadataProvider);

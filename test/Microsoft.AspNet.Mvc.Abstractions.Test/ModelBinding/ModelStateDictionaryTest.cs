@@ -744,7 +744,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var expected = "Hmm, the supplied value is not valid for Length.";
             var dictionary = new ModelStateDictionary();
             var bindingMessageProvider = TestModelMetadataProvider.CreateMessageProvider();
-            bindingMessageProvider.ValueInvalid_WithoutValueResource =
+            bindingMessageProvider.InvalidValueWithUnknownSuppliedValueAccessor =
                 (value) => $"Hmm, the supplied value is not valid for {value}.";
             var bindingMetadataProvider = new DefaultBindingMetadataProvider(bindingMessageProvider);
             var provider = TestModelMetadataProvider.CreateProvider(new[] { bindingMetadataProvider });

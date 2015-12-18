@@ -27,7 +27,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
             }
 
             var attemptedValue = entry.AttemptedValue ?? "null";
-            return messageProvider.ValueInvalid_UnknownErrorResource(attemptedValue);
+            return messageProvider.InvalidValueWithUnknownModelErrorAccessor(attemptedValue);
         }
 
         // Returns non-null list of model states, which caller will render in order provided.

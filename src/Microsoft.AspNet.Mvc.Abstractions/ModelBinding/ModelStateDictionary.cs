@@ -267,11 +267,11 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 string errorMessage;
                 if (entry == null)
                 {
-                    errorMessage = metadata.ModelBindingMessageProvider.ValueInvalid_WithoutValueResource(name);
+                    errorMessage = metadata.ModelBindingMessageProvider.InvalidValueWithUnknownSuppliedValueAccessor(name);
                 }
                 else
                 {
-                    errorMessage = metadata.ModelBindingMessageProvider.ValueInvalid_WithValueResource(
+                    errorMessage = metadata.ModelBindingMessageProvider.InvalidValueWithKnownSuppliedValueAccessor(
                         entry.AttemptedValue,
                         name);
                 }

@@ -39,9 +39,9 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             MissingBindRequiredValueAccessor = originalProvider.MissingBindRequiredValueAccessor;
             MissingKeyOrValueAccessor = originalProvider.MissingKeyOrValueAccessor;
             ValueMustNotBeNullAccessor = originalProvider.ValueMustNotBeNullAccessor;
-            ValueInvalid_UnknownErrorResource = originalProvider.ValueInvalid_UnknownErrorResource;
-            ValueInvalid_WithoutValueResource = originalProvider.ValueInvalid_WithoutValueResource;
-            ValueInvalid_WithValueResource = originalProvider.ValueInvalid_WithValueResource;
+            InvalidValueWithUnknownModelErrorAccessor = originalProvider.InvalidValueWithUnknownModelErrorAccessor;
+            InvalidValueWithUnknownSuppliedValueAccessor = originalProvider.InvalidValueWithUnknownSuppliedValueAccessor;
+            InvalidValueWithKnownSuppliedValueAccessor = originalProvider.InvalidValueWithKnownSuppliedValueAccessor;
         }
 
         /// <inheritdoc/>
@@ -81,7 +81,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<string, string> ValueInvalid_UnknownErrorResource
+        public Func<string, string> InvalidValueWithUnknownModelErrorAccessor
         {
             get
             {
@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<string, string> ValueInvalid_WithoutValueResource
+        public Func<string, string> InvalidValueWithUnknownSuppliedValueAccessor
         {
             get
             {
@@ -117,7 +117,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc/>
-        public Func<string, string, string> ValueInvalid_WithValueResource
+        public Func<string, string, string> InvalidValueWithKnownSuppliedValueAccessor
         {
             get
             {

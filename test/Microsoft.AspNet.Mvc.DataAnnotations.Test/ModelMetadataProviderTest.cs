@@ -1040,10 +1040,10 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                     MissingBindRequiredValueAccessor = name => $"A value for the '{ name }' property was not provided.",
                     MissingKeyOrValueAccessor = () => $"A value is required.",
                     ValueMustNotBeNullAccessor = value => $"The value '{ value }' is invalid.",
-                    ValueInvalid_UnknownErrorResource = value => $"The value '{ value }' is invalid.",
-                    ValueInvalid_WithValueResource =
+                    InvalidValueWithUnknownModelErrorAccessor = value => $"The value '{ value }' is invalid.",
+                    InvalidValueWithKnownSuppliedValueAccessor =
                     (value1, value2) => $"The value '{value1}' is not valid for {value2}.",
-                    ValueInvalid_WithoutValueResource = value => $"The supplied value is invalid for {value}."
+                    InvalidValueWithUnknownSuppliedValueAccessor = value => $"The supplied value is invalid for {value}."
                 };
             }
 
