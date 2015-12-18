@@ -16,8 +16,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private Func<string, string> _valueInvalid_UnknownErrorResource;
         private Func<string, string, string> _valueInvalid_WithValueResource;
         private Func<string, string> _valueInvalid_WithoutValueResource;
-        private Func<string, string> _noEncodingFoundOnInputFormatter;
-        private Func<string, string> _unsupportedContentType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelBindingMessageProvider"/> class.
@@ -44,8 +42,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             ValueInvalid_UnknownErrorResource = originalProvider.ValueInvalid_UnknownErrorResource;
             ValueInvalid_WithoutValueResource = originalProvider.ValueInvalid_WithoutValueResource;
             ValueInvalid_WithValueResource = originalProvider.ValueInvalid_WithValueResource;
-            UnsupportedContentType = originalProvider.UnsupportedContentType;
-            NoEncodingFoundOnInputFormatter = originalProvider.NoEncodingFoundOnInputFormatter;
         }
 
         /// <inheritdoc/>
@@ -153,42 +149,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 }
 
                 _valueMustNotBeNullAccessor = value;
-            }
-        }
-
-        /// <inheritdoc/>
-        public Func<string, string> NoEncodingFoundOnInputFormatter
-        {
-            get
-            {
-                return _noEncodingFoundOnInputFormatter;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _noEncodingFoundOnInputFormatter = value;
-            }
-        }
-
-        /// <inheritdoc/>
-        public Func<string, string> UnsupportedContentType
-        {
-            get
-            {
-                return _unsupportedContentType;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _unsupportedContentType = value;
             }
         }
     }

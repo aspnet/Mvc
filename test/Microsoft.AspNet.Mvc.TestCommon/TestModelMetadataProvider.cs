@@ -114,10 +114,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
                 ValueInvalid_UnknownErrorResource = value => $"The value '{ value }' is invalid.",
                 ValueInvalid_WithValueResource =
                 (value1, value2) => $"The value '{value1}' is not valid for {value2}.",
-                ValueInvalid_WithoutValueResource = value => $"The supplied value is invalid for {value}.",
-                NoEncodingFoundOnInputFormatter = (name) => $"No encoding found for input formatter '{name}'. There " +
-                "must be at least one supported encoding registered in order for the formatter to read content.",
-                UnsupportedContentType = (contentType) => $"Unsupported content type '{contentType}'."
+                ValueInvalid_WithoutValueResource = value => $"The supplied value is invalid for {value}."
             };
         }
 

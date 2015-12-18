@@ -143,7 +143,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
             // No supported encoding was found so there is no way for us to start reading.
             context.ModelState.TryAddModelError(
                 context.ModelName,
-                context.Metadata.ModelBindingMessageProvider.NoEncodingFoundOnInputFormatter(GetType().FullName));
+                Resources.FormatInputFormatterNoEncoding(GetType().FullName));
 
             return null;
         }

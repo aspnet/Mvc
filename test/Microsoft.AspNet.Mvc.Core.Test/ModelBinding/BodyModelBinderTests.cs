@@ -208,46 +208,6 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task NullFormatterCustomError_AddedToModelState()
-        {
-            // Arrange
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.ContentType = "text/xyz";
-
-            var provider = new TestModelMetadataProvider();
-            provider.ForType<Person>().BindingDetails(d =>
-            {
-                d.ModelBindingMessageProvider.UnsupportedContentType=
-                    (contentType) => $"Hmm, '{contentType}' is not a supported content type.";
-                d.BindingSource = BindingSource.Body;
-            });
-
-            var bindingContext = GetBindingContext(
-                typeof(Person),
-                inputFormatters: null,
-                httpContext: httpContext,
-                metadataProvider: provider);
-
-            var binder = bindingContext.OperationBindingContext.ModelBinder;
-
-            // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
-
-            // Assert
-
-            // Returns non-null result because it understands the metadata type.
-            Assert.NotNull(binderResult);
-            Assert.False(binderResult.IsModelSet);
-            Assert.Null(binderResult.Model);
-
-            // Key is empty because this was a top-level binding.
-            var entry = Assert.Single(bindingContext.ModelState);
-            Assert.Equal(string.Empty, entry.Key);
-            var errorMessage = Assert.Single(entry.Value.Errors).ErrorMessage;
-            Assert.Equal("Hmm, 'text/xyz' is not a supported content type.", errorMessage);
-        }
-
-        [Fact]
         public async Task BindModelCoreAsync_UsesFirstFormatterWhichCanRead()
         {
             // Arrange

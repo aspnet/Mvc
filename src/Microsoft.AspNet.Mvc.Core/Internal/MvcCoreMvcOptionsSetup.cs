@@ -35,8 +35,6 @@ namespace Microsoft.AspNet.Mvc.Internal
             messageProvider.ValueInvalid_WithValueResource
                 = Resources.FormatModelError_InvalidValue_MessageWithModelValue;
             messageProvider.ValueInvalid_WithoutValueResource = Resources.FormatModelError_InvalidValue_GenericMessage;
-            messageProvider.UnsupportedContentType = Resources.FormatUnsupportedContentType;
-            messageProvider.NoEncodingFoundOnInputFormatter = Resources.FormatInputFormatterNoEncoding;
 
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());
