@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Controllers;
 using Microsoft.AspNet.Mvc.Formatters;
@@ -110,7 +111,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAdd(ServiceDescriptor.Singleton<JsonOutputFormatter>(serviceProvider =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<MvcJsonOptions>>().Value;
-                return new JsonOutputFormatter(options.SerializerSettings);
+                var charPool = serviceProvider.GetRequiredService<ArrayPool<char>>();
+                return new JsonOutputFormatter(options.SerializerSettings, charPool);
             }));
 
             //
