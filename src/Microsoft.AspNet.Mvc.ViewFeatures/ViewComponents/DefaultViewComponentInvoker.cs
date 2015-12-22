@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultViewComponentInvoker"/>.
         /// </summary>
-        /// <param name="typeActivatorCache">Caches factories for instantiating View Component instances.</param>
+        /// <param name="typeActivatorCache">Caches factories for instantiating view component instances.</param>
         /// <param name="viewComponentActivator">The <see cref="IViewComponentActivator"/>.</param>
         /// <param name="diagnosticSource">The <see cref="DiagnosticSource"/>.</param>
         /// <param name="logger">The <see cref="ILogger"/>.</param>
@@ -121,7 +121,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 _diagnosticSource.BeforeViewComponent(context, component);
                 _logger.ViewComponentExecuting(context);
 
-                var startTime = DateTime.UtcNow;
+                var startTime = Environment.TickCount;
                 var method = context.ViewComponentDescriptor.MethodInfo;
                 var result = await ControllerActionExecutor.ExecuteAsync(method, component, context.Arguments);
 
@@ -146,7 +146,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     context.Arguments,
                     method.GetParameters());
 
-                var startTime = DateTime.UtcNow;
+                var startTime = Environment.TickCount;
                 object result;
                 try
                 {

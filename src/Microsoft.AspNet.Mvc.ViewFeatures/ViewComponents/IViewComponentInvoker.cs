@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     /// <summary>
-    /// Specifies the contract for execution of a View Component.
+    /// Specifies the contract for execution of a view component.
     /// </summary>
     public interface IViewComponentInvoker
     {
         /// <summary>
-        /// Executes the View Component specified by <see cref="ViewComponentContext.ViewComponentDescriptor"/>
+        /// Executes the view component specified by <see cref="ViewComponentContext.ViewComponentDescriptor"/>
         /// of <paramref name="context"/> and writes the result to <see cref="ViewComponentContext.Writer"/>.
         /// </summary>
         /// <param name="context">The <see cref="ViewComponentContext"/>.</param>

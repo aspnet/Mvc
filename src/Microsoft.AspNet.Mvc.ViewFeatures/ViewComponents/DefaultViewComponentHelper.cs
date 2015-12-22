@@ -29,7 +29,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// Initializes a new instance of <see cref="DefaultViewComponentHelper"/>.
         /// </summary>
         /// <param name="descriptorProvider">The <see cref="IViewComponentDescriptorCollectionProvider"/>
-        /// used to locate View Components.</param>
+        /// used to locate view components.</param>
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         /// <param name="selector">The <see cref="IViewComponentSelector"/>.</param>
         /// <param name="invokerFactory">The <see cref="IViewComponentInvokerFactory"/>.</param>

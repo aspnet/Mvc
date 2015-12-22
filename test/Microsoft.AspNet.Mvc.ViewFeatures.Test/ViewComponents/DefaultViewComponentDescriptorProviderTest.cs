@@ -139,7 +139,6 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
         private class NoMethodsViewComponent
         {
-
         }
 
         private class NonPublicInvokeViewComponent
@@ -194,7 +193,6 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         {
             public void Invoke(int x)
             {
-
             }
         }
 

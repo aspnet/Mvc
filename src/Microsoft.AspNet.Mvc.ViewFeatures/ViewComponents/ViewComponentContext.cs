@@ -11,7 +11,7 @@ using Microsoft.AspNet.Mvc.ViewFeatures;
 namespace Microsoft.AspNet.Mvc.ViewComponents
 {
     /// <summary>
-    /// A context for View Components.
+    /// A context for view components.
     /// </summary>
     public class ViewComponentContext
     {
@@ -31,9 +31,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         /// Creates a new <see cref="ViewComponentContext"/>.
         /// </summary>
         /// <param name="viewComponentDescriptor">
-        /// The <see cref="ViewComponentContext"/> for the View Component being invoked.
+        /// The <see cref="ViewComponentContext"/> for the view component being invoked.
         /// </param>
-        /// <param name="arguments">The View Component arguments.</param>
+        /// <param name="arguments">The view component arguments.</param>
         /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
         /// <param name="writer">The <see cref="TextWriter"/> for writing output.</param>
         public ViewComponentContext(
@@ -46,6 +46,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             if (viewComponentDescriptor == null)
             {
                 throw new ArgumentNullException(nameof(viewComponentDescriptor));
+            }
+
+            if (arguments == null)
+            {
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             if (htmlEncoder == null)
@@ -77,7 +82,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         }
 
         /// <summary>
-        /// Gets or sets the View Component arguments.
+        /// Gets or sets the view component arguments.
         /// </summary>
         /// <remarks>
         /// The property setter is provided for unit test purposes only.
@@ -93,7 +98,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         public HtmlEncoder HtmlEncoder { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="ViewComponents.ViewComponentDescriptor"/> for the View Component being invoked.
+        /// Gets or sets the <see cref="ViewComponents.ViewComponentDescriptor"/> for the view component being invoked.
         /// </summary>
         /// <remarks>
         /// The property setter is provided for unit test purposes only.

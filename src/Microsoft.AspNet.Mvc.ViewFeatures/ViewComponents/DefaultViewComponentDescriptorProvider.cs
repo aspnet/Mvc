@@ -51,11 +51,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         }
 
         /// <summary>
-        /// Determines whether or not the given <see cref="TypeInfo"/> is a View Component class.
+        /// Determines whether or not the given <see cref="TypeInfo"/> is a view component class.
         /// </summary>
         /// <param name="typeInfo">The <see cref="TypeInfo"/>.</param>
         /// <returns>
-        /// <c>true</c> if <paramref name="typeInfo"/>represents a View Component class, otherwise <c>false</c>.
+        /// <c>true</c> if <paramref name="typeInfo"/>represents a view component class, otherwise <c>false</c>.
         /// </returns>
         protected virtual bool IsViewComponentType(TypeInfo typeInfo)
         {
@@ -85,8 +85,9 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
         {
             var componentName = componentType.FullName;
             var methods = componentType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => string.Equals(m.Name, AsyncMethodName, StringComparison.Ordinal) ||
-                    string.Equals(m.Name, SyncMethodName, StringComparison.Ordinal))
+                .Where(method =>
+                    string.Equals(method.Name, AsyncMethodName, StringComparison.Ordinal) ||
+                    string.Equals(method.Name, SyncMethodName, StringComparison.Ordinal))
                 .ToArray();
 
             if (methods.Length == 0)
@@ -100,11 +101,11 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                     Resources.FormatViewComponent_AmbiguousMethods(componentName, AsyncMethodName, SyncMethodName));
             }
 
-            var method = methods[0];
-            if (string.Equals(method.Name, AsyncMethodName, StringComparison.Ordinal))
+            var selectedMethod = methods[0];
+            if (string.Equals(selectedMethod.Name, AsyncMethodName, StringComparison.Ordinal))
             {
-                if (!method.ReturnType.GetTypeInfo().IsGenericType ||
-                    method.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
+                if (!selectedMethod.ReturnType.GetTypeInfo().IsGenericType ||
+                    selectedMethod.ReturnType.GetGenericTypeDefinition() != typeof(Task<>))
                 {
                     throw new InvalidOperationException(Resources.FormatViewComponent_AsyncMethod_ShouldReturnTask(
                         AsyncMethodName,
@@ -114,13 +115,13 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
             }
             else
             {
-                if (method.ReturnType == typeof(void))
+                if (selectedMethod.ReturnType == typeof(void))
                 {
                     throw new InvalidOperationException(Resources.FormatViewComponent_SyncMethod_ShouldReturnValue(
                         SyncMethodName,
                         componentName));
                 }
-                else if (method.ReturnType.IsAssignableFrom(typeof(Task)))
+                else if (selectedMethod.ReturnType.IsAssignableFrom(typeof(Task)))
                 {
                     throw new InvalidOperationException(Resources.FormatViewComponent_SyncMethod_CannotReturnTask(
                         SyncMethodName,
@@ -129,7 +130,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 }
             }
 
-            return method;
+            return selectedMethod;
         }
     }
 }

@@ -8,24 +8,24 @@ using Microsoft.AspNet.Html;
 namespace Microsoft.AspNet.Mvc
 {
     /// <summary>
-    /// Supports the rendering of View Components in a view.
+    /// Supports the rendering of view components in a view.
     /// </summary>
     public interface IViewComponentHelper
     {
         /// <summary>
-        /// Invokes a View Component with the specified <paramref name="name"/>.
+        /// Invokes a view component with the specified <paramref name="name"/>.
         /// </summary>
-        /// <param name="name">The name of the View Component.</param>
-        /// <param name="arguments">Arguments to be passed to tbe invoked View Component method.</param>
+        /// <param name="name">The name of the view component.</param>
+        /// <param name="arguments">Arguments to be passed to the invoked view component method.</param>
         /// <returns>A <see cref="Task"/> that on completion returns the rendered <see cref="IHtmlContent" />.
         /// </returns>
         Task<IHtmlContent> InvokeAsync(string name, object arguments);
 
         /// <summary>
-        /// Invokes a View Component of type <paramref name="componentType" />.
+        /// Invokes a view component of type <paramref name="componentType" />.
         /// </summary>
-        /// <param name="componentType">The View Component <see cref="Type"/>.</param>
-        /// <param name="arguments">Arguments to be passed to tbe invoked View Component method.</param>
+        /// <param name="componentType">The view component <see cref="Type"/>.</param>
+        /// <param name="arguments">Arguments to be passed to the invoked view component method.</param>
         /// <returns>A <see cref="Task"/> that on completion returns the rendered <see cref="IHtmlContent" />.
         /// </returns>
         Task<IHtmlContent> InvokeAsync(Type componentType, object arguments);
