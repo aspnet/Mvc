@@ -81,16 +81,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             if (!_cache.TryGetValue(path, out value))
             {
                 var cacheEntryOptions = new MemoryCacheEntryOptions();
-                var fileInfo = _fileProvider.GetFileInfo(resolvedPath);
                 cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(resolvedPath));
+                var fileInfo = _fileProvider.GetFileInfo(resolvedPath);
 
                 if (!fileInfo.Exists &&
                     _requestPathBase.HasValue &&
                     resolvedPath.StartsWith(_requestPathBase.Value, StringComparison.OrdinalIgnoreCase))
                 {
-                    resolvedPath = resolvedPath.Substring(_requestPathBase.Value.Length);
-                    fileInfo = _fileProvider.GetFileInfo(resolvedPath);
-                    cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(resolvedPath));
+                    var requestPathBaseRelativePath = resolvedPath.Substring(_requestPathBase.Value.Length);
+                    cacheEntryOptions.AddExpirationToken(_fileProvider.Watch(requestPathBaseRelativePath));
+                    fileInfo = _fileProvider.GetFileInfo(requestPathBaseRelativePath);
                 }
 
                 if (fileInfo.Exists)
