@@ -138,12 +138,12 @@ namespace Microsoft.AspNet.Mvc
             }
             else if (ViewComponentType == null)
             {
-                logger.ViewComponentResultExecuting(ViewComponentName, Arguments);
+                logger.ViewComponentResultExecuting(ViewComponentName);
                 return viewComponentHelper.InvokeAsync(ViewComponentName, Arguments);
             }
             else
             {
-                logger.ViewComponentResultExecuting(ViewComponentType, Arguments);
+                logger.ViewComponentResultExecuting(ViewComponentType);
                 return viewComponentHelper.InvokeAsync(ViewComponentType, Arguments);
             }
         }

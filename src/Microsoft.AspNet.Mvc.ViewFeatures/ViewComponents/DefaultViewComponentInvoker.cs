@@ -118,12 +118,14 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             using (_logger.ViewComponentScope(context))
             {
+                var method = context.ViewComponentDescriptor.MethodInfo;
+                var arguments = ControllerActionExecutor.PrepareArguments(context.Arguments, method.GetParameters());
+
                 _diagnosticSource.BeforeViewComponent(context, component);
-                _logger.ViewComponentExecuting(context);
+                _logger.ViewComponentExecuting(context, arguments);
 
                 var startTime = Environment.TickCount;
-                var method = context.ViewComponentDescriptor.MethodInfo;
-                var result = await ControllerActionExecutor.ExecuteAsync(method, component, context.Arguments);
+                var result = await ControllerActionExecutor.ExecuteAsync(method, component, arguments);
 
                 var viewComponentResult = CoerceToViewComponentResult(result);
                 _logger.ViewComponentExecuted(context, startTime, viewComponentResult);
@@ -139,18 +141,19 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
 
             using (_logger.ViewComponentScope(context))
             {
-                _diagnosticSource.BeforeViewComponent(context, component);
-                _logger.ViewComponentExecuting(context);
                 var method = context.ViewComponentDescriptor.MethodInfo;
-                var indexedArguments = ControllerActionExecutor.PrepareArguments(
+                var arguments = ControllerActionExecutor.PrepareArguments(
                     context.Arguments,
                     method.GetParameters());
+
+                _diagnosticSource.BeforeViewComponent(context, component);
+                _logger.ViewComponentExecuting(context, arguments);
 
                 var startTime = Environment.TickCount;
                 object result;
                 try
                 {
-                    result = method.Invoke(component, indexedArguments);
+                    result = method.Invoke(component, arguments);
                 }
                 catch (TargetInvocationException ex)
                 {
