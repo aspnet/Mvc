@@ -66,10 +66,10 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Logging
         public static void ViewComponentExecuted(
             this ILogger logger,
             ViewComponentContext context,
-            int startTime,
+            DateTime startTime,
             object result)
         {
-            var elapsed = new TimeSpan(Environment.TickCount - startTime);
+            var elapsed = DateTime.UtcNow - startTime;
             _viewComponentExecuted(
                 logger,
                 context.ViewComponentDescriptor.DisplayName,

@@ -124,7 +124,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 _diagnosticSource.BeforeViewComponent(context, component);
                 _logger.ViewComponentExecuting(context, arguments);
 
-                var startTime = Environment.TickCount;
+                var startTime = DateTime.UtcNow;
                 var result = await ControllerActionExecutor.ExecuteAsync(method, component, arguments);
 
                 var viewComponentResult = CoerceToViewComponentResult(result);
@@ -149,7 +149,7 @@ namespace Microsoft.AspNet.Mvc.ViewComponents
                 _diagnosticSource.BeforeViewComponent(context, component);
                 _logger.ViewComponentExecuting(context, arguments);
 
-                var startTime = Environment.TickCount;
+                var startTime = DateTime.UtcNow;
                 object result;
                 try
                 {
