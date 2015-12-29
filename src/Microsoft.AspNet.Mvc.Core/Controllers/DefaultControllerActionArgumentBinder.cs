@@ -56,7 +56,8 @@ namespace Microsoft.AspNet.Mvc.Controllers
                     nameof(ControllerContext)));
             }
 
-            // Perf: Avoid allocating async state machines when we know there's nothing to bind.
+            // Perf: Avoid allocating async state machines where possible. We only need the state
+            // machine if you need to bind properties.
             var actionDescriptor = context.ActionDescriptor;
             if (actionDescriptor.BoundProperties.Count == 0 &&
                 actionDescriptor.Parameters.Count == 0)
@@ -66,10 +67,8 @@ namespace Microsoft.AspNet.Mvc.Controllers
             }
             else if (actionDescriptor.BoundProperties.Count == 0)
             {
-                return BindActionArgumentsCoreAsync(
-                    context,
-                    controller,
-                    actionDescriptor);
+                var operationBindingContext = GetOperationBindingContext(context);
+                return PopulateArgumentsAsync(operationBindingContext, actionDescriptor.Parameters);
             }
             else
             {
@@ -96,15 +95,6 @@ namespace Microsoft.AspNet.Mvc.Controllers
                 operationBindingContext,
                 actionDescriptor.Parameters);
             return actionArguments;
-        }
-
-        private Task<IDictionary<string, object>> BindActionArgumentsCoreAsync(
-            ControllerContext context,
-            object controller,
-            ControllerActionDescriptor actionDescriptor)
-        {
-            var operationBindingContext = GetOperationBindingContext(context);
-            return PopulateArgumentsAsync(operationBindingContext, actionDescriptor.Parameters);
         }
 
         public async Task<ModelBindingResult> BindModelAsync(
@@ -163,18 +153,28 @@ namespace Microsoft.AspNet.Mvc.Controllers
             IDictionary<string, object> properties)
         {
             var propertyHelpers = PropertyHelper.GetProperties(controller);
-            foreach (var property in actionDescriptor.BoundProperties)
+            for (var i = 0; i < actionDescriptor.BoundProperties.Count; i++)
             {
-                var propertyHelper = propertyHelpers.First(helper =>
-                    string.Equals(helper.Name, property.Name, StringComparison.Ordinal));
-                var propertyType = propertyHelper.Property.PropertyType;
-                var metadata = _modelMetadataProvider.GetMetadataForType(propertyType);
+                var property = actionDescriptor.BoundProperties[i];
+
+                PropertyHelper propertyHelper = null;
+                for (var j = 0; j < propertyHelpers.Length; j++)
+                {
+                    if (string.Equals(propertyHelpers[i].Name, property.Name, StringComparison.Ordinal))
+                    {
+                        propertyHelper = propertyHelpers[i];
+                        break;
+                    }
+                }
 
                 object value;
-                if (!properties.TryGetValue(property.Name, out value))
+                if (propertyHelper == null || !properties.TryGetValue(property.Name, out value))
                 {
                     continue;
                 }
+
+                var propertyType = propertyHelper.Property.PropertyType;
+                var metadata = _modelMetadataProvider.GetMetadataForType(propertyType);
 
                 if (propertyHelper.Property.CanWrite && propertyHelper.Property.SetMethod?.IsPublic == true)
                 {
