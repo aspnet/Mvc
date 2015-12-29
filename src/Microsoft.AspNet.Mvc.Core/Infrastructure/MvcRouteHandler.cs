@@ -87,7 +87,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 {
                     _logger.ExecutingAction(actionDescriptor);
 
-                    var startTime = Environment.TickCount;
+                    var startTime = DateTime.UtcNow;
 
                     var actionContext = new ActionContext(httpContext, routeData, actionDescriptor);
                     if (_actionContextAccessor != null)

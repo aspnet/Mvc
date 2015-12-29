@@ -36,9 +36,9 @@ namespace Microsoft.AspNet.Mvc.Logging
             _actionExecuting(logger, action.DisplayName, null);
         }
 
-        public static void ExecutedAction(this ILogger logger, ActionDescriptor action, int startTicks)
+        public static void ExecutedAction(this ILogger logger, ActionDescriptor action, DateTime startTime)
         {
-            var elapsed = new TimeSpan(Environment.TickCount - startTicks);
+            var elapsed = DateTime.UtcNow - startTime;
             _actionExecuted(logger, action.DisplayName, elapsed.TotalMilliseconds, null);
         }
 
