@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Text;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.Localization;
@@ -12,7 +15,8 @@ using Microsoft.Extensions.PlatformAbstractions;
 namespace Microsoft.AspNet.Mvc.Localization
 {
     /// <summary>
-    /// A <see cref="IHtmlLocalizer"/> implementation that provides localized strings for views.
+    /// An <see cref="IViewLocalizer"/> implementation that derives the resource location from the executing view's
+    /// file path.
     /// </summary>
     public class ViewLocalizer : IViewLocalizer, ICanHasViewContext
     {
@@ -42,7 +46,7 @@ namespace Microsoft.AspNet.Mvc.Localization
         }
 
         /// <inheritdoc />
-        public virtual LocalizedString this[string key]
+        public virtual LocalizedHtmlString this[string key]
         {
             get
             {
@@ -56,7 +60,7 @@ namespace Microsoft.AspNet.Mvc.Localization
         }
 
         /// <inheritdoc />
-        public virtual LocalizedString this[string key, params object[] arguments]
+        public virtual LocalizedHtmlString this[string key, params object[] arguments]
         {
             get
             {
@@ -76,17 +80,16 @@ namespace Microsoft.AspNet.Mvc.Localization
         public LocalizedString GetString(string name, params object[] values) => _localizer.GetString(name, values);
 
         /// <inheritdoc />
-        public LocalizedHtmlString Html(string key) => _localizer.Html(key);
+        public IHtmlLocalizer WithCulture(CultureInfo culture) => _localizer.WithCulture(culture);
 
         /// <inheritdoc />
-        public LocalizedHtmlString Html(string key, params object[] arguments) => _localizer.Html(key, arguments);
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) =>
+            _localizer.GetAllStrings(includeParentCultures);
 
-        /// <inheritdoc />
-        public IStringLocalizer WithCulture(CultureInfo culture) => _localizer.WithCulture(culture);
-
-        /// <inheritdoc />
-        IHtmlLocalizer IHtmlLocalizer.WithCulture(CultureInfo culture) => _localizer.WithCulture(culture);
-
+        /// <summary>
+        /// Apply the specified <see cref="ViewContext"/>.
+        /// </summary>
+        /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
         public void Contextualize(ViewContext viewContext)
         {
             if (viewContext == null)
@@ -94,17 +97,34 @@ namespace Microsoft.AspNet.Mvc.Localization
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
-            var baseName = viewContext.View.Path.Replace('/', '.').Replace('\\', '.');
-            if (baseName.StartsWith("."))
+            // Given a view path "/Views/Home/Index.cshtml" we want a baseName like "MyApplication.Views.Home.Index"
+            var path = viewContext.ExecutingFilePath;
+
+            if (string.IsNullOrEmpty(path))
             {
-                baseName = baseName.Substring(1);
+                path = viewContext.View.Path;
             }
 
-            _localizer = _localizerFactory.Create(baseName, _applicationName);
+            Debug.Assert(!string.IsNullOrEmpty(path), "Couldn't determine a path for the view");
+
+            _localizer = _localizerFactory.Create(BuildBaseName(path), _applicationName);
         }
 
-        /// <inheritdoc />
-        public IEnumerable<LocalizedString> GetAllStrings(bool includeAncestorCultures) =>
-            _localizer.GetAllStrings(includeAncestorCultures);
+        private string BuildBaseName(string path)
+        {
+            var extension = Path.GetExtension(path);
+            var startIndex = path[0] == '/' || path[0] == '\\' ? 1 : 0;
+            var length = path.Length - startIndex - extension.Length;
+            var capacity = length + _applicationName.Length + 1;
+            var builder = new StringBuilder(path, startIndex, length, capacity);
+
+            builder.Replace('/', '.').Replace('\\', '.');
+
+            // Prepend the application name
+            builder.Insert(0, '.');
+            builder.Insert(0, _applicationName);
+
+            return builder.ToString();
+        }
     }
 }

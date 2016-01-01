@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FilesWebSite
@@ -18,12 +19,20 @@ namespace FilesWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseMiddleware<SendFileMiddleware>();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(name: null, template: "{controller}/{action}", defaults: null);
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }

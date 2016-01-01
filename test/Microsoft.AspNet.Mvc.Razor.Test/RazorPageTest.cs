@@ -5,22 +5,22 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Html;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Mvc.Razor.Buffer;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.TestCommon;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Buffer;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
@@ -172,32 +172,6 @@ namespace Microsoft.AspNet.Mvc.Razor
                 var content = Assert.IsType<DefaultTagHelperContent>(returnValue);
                 Assert.Equal("HtmlEncode[[Hello World!]]", content.GetContent());
             });
-            await page.ExecuteAsync();
-        }
-
-        [Fact]
-        public async Task EndTagHelperWritingScope_CopiesContent_IfRazorTextWriter()
-        {
-            // Arrange
-            var viewContext = CreateViewContext();
-
-            // Act
-            var page = CreatePage(v =>
-            {
-                v.HtmlEncoder = new HtmlTestEncoder();
-                var buffer = new RazorBuffer(new TestRazorBufferScope(), v.Path);
-                v.StartTagHelperWritingScope(new RazorTextWriter(TextWriter.Null, buffer, v.HtmlEncoder));
-                v.Write("Hello ");
-                v.Write("World!");
-                var returnValue = v.EndTagHelperWritingScope();
-
-                // Assert
-                var content = Assert.IsType<DefaultTagHelperContent>(returnValue);
-                Assert.Equal("HtmlEncode[[Hello ]]HtmlEncode[[World!]]", content.GetContent());
-                Assert.Equal(
-                    "HtmlEncode[[Hello ]]HtmlEncode[[World!]]",
-                    HtmlContentUtilities.HtmlContentToString(content));
-            }, viewContext);
             await page.ExecuteAsync();
         }
 
@@ -1127,7 +1101,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         public async Task Write_WithHtmlString_WritesValueWithoutEncoding()
         {
             // Arrange
-            var buffer = new RazorBuffer(new TestRazorBufferScope(), string.Empty);
+            var buffer = new ViewBuffer(new TestViewBufferScope(), string.Empty);
             var writer = new RazorTextWriter(TextWriter.Null, buffer, new HtmlTestEncoder());
 
             var page = CreatePage(p =>
@@ -1177,8 +1151,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         private static ViewContext CreateViewContext(TextWriter writer = null)
         {
             writer = writer ?? new StringWriter();
+            var httpContext = new DefaultHttpContext();
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<IViewBufferScope, TestViewBufferScope>()
+                .BuildServiceProvider();
+            httpContext.RequestServices = serviceProvider;
             var actionContext = new ActionContext(
-                new DefaultHttpContext(),
+                httpContext,
                 new RouteData(),
                 new ActionDescriptor());
             return new ViewContext(

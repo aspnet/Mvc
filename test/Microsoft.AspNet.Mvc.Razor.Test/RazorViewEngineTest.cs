@@ -11,7 +11,7 @@ using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Testing;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
@@ -1575,34 +1575,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
 
             // Assert
             Assert.Null(result);
-        }
-
-        [Fact]
-        public void GetNormalizedRouteValue_ReturnsRouteDataValue_IfRouteConstraintKeyHandlingIsCatchAll()
-        {
-            // Arrange
-            var key = "some-key";
-            var actionDescriptor = new ActionDescriptor
-            {
-                RouteConstraints = new[]
-                {
-                    RouteDataActionConstraint.CreateCatchAll(key)
-                }
-            };
-
-            var actionContext = new ActionContext
-            {
-                ActionDescriptor = actionDescriptor,
-                RouteData = new RouteData()
-            };
-
-            actionContext.RouteData.Values[key] = "route-value";
-
-            // Act
-            var result = RazorViewEngine.GetNormalizedRouteValue(actionContext, key);
-
-            // Assert
-            Assert.Equal("route-value", result);
         }
 
         [Fact]

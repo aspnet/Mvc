@@ -4,6 +4,7 @@
 using System.Security.Claims;
 using Microsoft.AspNet.Authorization;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -58,12 +59,22 @@ namespace FiltersWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseErrorReporter();
 
             app.UseMiddleware<AuthorizeBasicMiddleware>("Interactive");
             app.UseMiddleware<AuthorizeBasicMiddleware>("Api");
+            app.UseMiddleware<ErrorReporterMiddleware>();
 
             app.UseMvcWithDefaultRoute();
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }

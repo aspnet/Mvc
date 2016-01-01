@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -13,11 +13,10 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultCompilerCacheProvider"/>.
         /// </summary>
-        /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
-        public DefaultCompilerCacheProvider(IOptions<RazorViewEngineOptions> mvcViewOptions)
+        /// <param name="fileProviderAccessor">The <see cref="IRazorViewEngineFileProviderAccessor"/>.</param>
+        public DefaultCompilerCacheProvider(IRazorViewEngineFileProviderAccessor fileProviderAccessor)
         {
-            var fileProvider = mvcViewOptions.Value.FileProvider;
-            Cache = new CompilerCache(fileProvider);
+            Cache = new CompilerCache(fileProviderAccessor.FileProvider);
         }
 
         /// <inheritdoc />

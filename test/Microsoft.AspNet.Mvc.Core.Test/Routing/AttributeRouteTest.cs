@@ -9,9 +9,12 @@ using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Routing.Internal;
 using Microsoft.AspNet.Routing.Tree;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
+using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -19,6 +22,8 @@ namespace Microsoft.AspNet.Mvc.Routing
 {
     public class AttributeRouteTest
     {
+        private static readonly RequestDelegate NullHandler = (c) => Task.FromResult(0);
+
         // This test verifies that AttributeRoute can respond to changes in the AD collection. It does this
         // by running a successful request, then removing that action and verifying the next route isn't
         // successful.
@@ -29,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             var handler = new Mock<IRouter>(MockBehavior.Strict);
             handler
                 .Setup(h => h.RouteAsync(It.IsAny<RouteContext>()))
-                .Callback<RouteContext>(c => c.IsHandled = true)
+                .Callback<RouteContext>(c => c.Handler = NullHandler)
                 .Returns(Task.FromResult(true))
                 .Verifiable();
 
@@ -64,10 +69,15 @@ namespace Microsoft.AspNet.Mvc.Routing
                 .SetupGet(ad => ad.ActionDescriptors)
                 .Returns(new ActionDescriptorsCollection(actionDescriptors, version: 1));
 
+            var policy = new UriBuilderContextPooledObjectPolicy(new UrlTestEncoder());
+            var pool = new DefaultObjectPool<UriBuildingContext>(policy);
+
             var route = new AttributeRoute(
                 handler.Object,
                 actionDescriptorsProvider.Object,
                 Mock.Of<IInlineConstraintResolver>(),
+                pool,
+                new UrlTestEncoder(),
                 NullLoggerFactory.Instance);
 
             var requestServices = new Mock<IServiceProvider>(MockBehavior.Strict);
@@ -85,7 +95,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             await route.RouteAsync(context);
 
             // Assert 1
-            Assert.True(context.IsHandled);
+            Assert.NotNull(context.Handler);
             Assert.Equal("5", context.RouteData.Values["id"]);
             Assert.Equal("2", context.RouteData.Values[TreeRouter.RouteGroupKey]);
 
@@ -103,7 +113,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             await route.RouteAsync(context);
 
             // Assert 2
-            Assert.False(context.IsHandled);
+            Assert.Null(context.Handler);
             Assert.Empty(context.RouteData.Values);
 
             handler.Verify(h => h.RouteAsync(It.IsAny<RouteContext>()), Times.Once());

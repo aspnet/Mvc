@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Builder;
 using Microsoft.AspNet.Http;
@@ -10,9 +11,11 @@ using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -31,7 +34,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             string expectedPath)
         {
             // Arrange
-            var httpContext = CreateHttpContext(GetServices(), appRoot);
+            var httpContext = CreateHttpContext(CreateServices(), appRoot);
             var actionContext = CreateActionContext(httpContext);
             var urlHelper = CreateUrlHelper(actionContext);
 
@@ -56,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             string expectedPath)
         {
             // Arrange
-            var httpContext = CreateHttpContext(GetServices(), appRoot);
+            var httpContext = CreateHttpContext(CreateServices(), appRoot);
             var actionContext = CreateActionContext(httpContext);
             var urlHelper = CreateUrlHelper(actionContext);
 
@@ -266,7 +269,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithDictionary()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -286,7 +289,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithEmptyHostName()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -309,7 +312,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithEmptyProtocol()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -332,7 +335,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithNullProtocol()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -355,7 +358,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithNullProtocolAndNullHostName()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -378,7 +381,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithObjectProperties()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -392,7 +395,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithProtocol()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -413,7 +416,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrl_WithUnicodeHost_DoesNotPunyEncodeTheHost()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -435,7 +438,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithRouteNameAndDefaults()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var routeCollection = GetRouter(services, "MyRouteName", "any/url");
             var urlHelper = CreateUrlHelper("/app", routeCollection);
 
@@ -450,7 +453,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithRouteNameAndDictionary()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -471,7 +474,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithRouteNameAndObjectProperties()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -491,7 +494,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithUrlRouteContext_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             var routeContext = new UrlRouteContext()
@@ -519,7 +522,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void RouteUrlWithAllParameters_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -543,7 +546,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void UrlAction_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // We're using a dictionary with a case-sensitive comparer and loading it with data
@@ -571,7 +574,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void UrlAction_WithUnicodeHost_DoesNotPunyEncodeTheHost()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -590,7 +593,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void UrlRouteUrl_RouteValuesAsDictionary_CaseSensitive()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // We're using a dictionary with a case-sensitive comparer and loading it with data
@@ -619,7 +622,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void UrlActionWithUrlActionContext_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             var actionContext = new UrlActionContext()
@@ -643,7 +646,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void UrlActionWithAllParameters_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -664,7 +667,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void LinkWithAllParameters_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -684,7 +687,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void LinkWithNullRouteName_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var urlHelper = CreateUrlHelperWithRouteCollection(services, "/app");
 
             // Act
@@ -704,7 +707,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void LinkWithDefaultsAndNullRouteValues_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var routeCollection = GetRouter(services, "MyRouteName", "any/url");
             var urlHelper = CreateUrlHelper("/app", routeCollection);
 
@@ -719,7 +722,7 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void LinkWithCustomHostAndProtocol_ReturnsExpectedResult()
         {
             // Arrange
-            var services = GetServices();
+            var services = CreateServices();
             var routeCollection = GetRouter(services, "MyRouteName", "any/url");
             var urlHelper = CreateUrlHelper("myhost", "https", routeCollection);
 
@@ -741,12 +744,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void Action_RouteValueInvalidation_DoesNotAffectActionAndController()
         {
             // Arrange
-            var services = GetServices();
-            var routeBuilder = new RouteBuilder()
-            {
-                DefaultHandler = new PassThroughRouter(),
-                ServiceProvider = services,
-            };
+            var services = CreateServices();
+            var routeBuilder = CreateRouteBuilder(services);
 
             routeBuilder.MapRoute(
                 "default",
@@ -786,12 +785,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void Action_RouteValueInvalidation_AffectsOtherRouteValues()
         {
             // Arrage
-            var services = GetServices();
-            var routeBuilder = new RouteBuilder()
-            {
-                DefaultHandler = new PassThroughRouter(),
-                ServiceProvider = services,
-            };
+            var services = CreateServices();
+            var routeBuilder = CreateRouteBuilder(services);
 
             routeBuilder.MapRoute(
                 "default",
@@ -834,12 +829,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         public void Action_RouteValueInvalidation_DoesNotAffectActionAndController_ActionPassedInRouteValues()
         {
             // Arrage
-            var services = GetServices();
-            var routeBuilder = new RouteBuilder()
-            {
-                DefaultHandler = new PassThroughRouter(),
-                ServiceProvider = services,
-            };
+            var services = CreateServices();
+            var routeBuilder = CreateRouteBuilder(services);
 
             routeBuilder.MapRoute(
                 "default",
@@ -902,7 +893,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         private static UrlHelper CreateUrlHelper()
         {
-            var services = GetServices();
+            var services = CreateServices();
             var context = CreateHttpContext(services, string.Empty);
             var actionContext = CreateActionContext(context);
             
@@ -916,7 +907,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         private static UrlHelper CreateUrlHelper(string host)
         {
-            var services = GetServices();
+            var services = CreateServices();
             var context = CreateHttpContext(services, string.Empty);
             context.Request.Host = new HostString(host);
 
@@ -927,7 +918,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         private static UrlHelper CreateUrlHelper(string host, string protocol, IRouter router)
         {
-            var services = GetServices();
+            var services = CreateServices();
             var context = CreateHttpContext(services, string.Empty);
             context.Request.Host = new HostString(host);
             context.Request.Scheme = protocol;
@@ -939,7 +930,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
         private static UrlHelper CreateUrlHelper(string appBase, IRouter router)
         {
-            var services = GetServices();
+            var services = CreateServices();
             var context = CreateHttpContext(services, appBase);
             var actionContext = CreateActionContext(context, router);
             
@@ -957,27 +948,26 @@ namespace Microsoft.AspNet.Mvc.Routing
             return GetRouter(services, "mockRoute", "/mockTemplate");
         }
 
-        private static IServiceProvider GetServices()
+        private static IServiceProvider CreateServices()
         {
-            var services = new Mock<IServiceProvider>();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddRouting();
+            services.AddSingleton<UrlEncoder>(UrlEncoder.Default);
+            return services.BuildServiceProvider();
+        }
 
-            var optionsAccessor = new Mock<IOptions<RouteOptions>>();
-            optionsAccessor
-                .SetupGet(o => o.Value)
-                .Returns(new RouteOptions());
-            services
-                .Setup(s => s.GetService(typeof(IOptions<RouteOptions>)))
-                .Returns(optionsAccessor.Object);
+        private static IRouteBuilder CreateRouteBuilder(IServiceProvider services)
+        {
+            var app = new Mock<IApplicationBuilder>();
+            app
+                .SetupGet(a => a.ApplicationServices)
+                .Returns(services);
 
-            services
-                .Setup(s => s.GetService(typeof(IInlineConstraintResolver)))
-                .Returns(new DefaultInlineConstraintResolver(optionsAccessor.Object));
-
-            services
-                .Setup(s => s.GetService(typeof(ILoggerFactory)))
-                .Returns(NullLoggerFactory.Instance);
-
-            return services.Object;
+            return new RouteBuilder(app.Object)
+            {
+                DefaultHandler = new PassThroughRouter(),
+            };
         }
 
         private static IRouter GetRouter(
@@ -985,8 +975,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             string mockRouteName,
             string mockTemplateValue)
         {
-            var routeBuilder = new RouteBuilder();
-            routeBuilder.ServiceProvider = services;
+            var routeBuilder = CreateRouteBuilder(services);
 
             var target = new Mock<IRouter>(MockBehavior.Strict);
             target
@@ -994,13 +983,15 @@ namespace Microsoft.AspNet.Mvc.Routing
                 .Returns<VirtualPathContext>(context => null);
             routeBuilder.DefaultHandler = target.Object;
 
-            routeBuilder.MapRoute(string.Empty,
-                        "{controller}/{action}/{id}",
-                        new RouteValueDictionary(new { id = "defaultid" }));
+            routeBuilder.MapRoute(
+                string.Empty,
+                "{controller}/{action}/{id}",
+                new RouteValueDictionary(new { id = "defaultid" }));
 
-            routeBuilder.MapRoute("namedroute",
-                        "named/{controller}/{action}/{id}",
-                        new RouteValueDictionary(new { id = "defaultid" }));
+            routeBuilder.MapRoute(
+                "namedroute",
+                "named/{controller}/{action}/{id}",
+                new RouteValueDictionary(new { id = "defaultid" }));
 
             var mockHttpRoute = new Mock<IRouter>();
             mockHttpRoute
@@ -1020,7 +1011,7 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             public Task RouteAsync(RouteContext context)
             {
-                context.IsHandled = true;
+                context.Handler = (c) => Task.FromResult(0);
                 return Task.FromResult(false);
             }
         }

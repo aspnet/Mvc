@@ -6,7 +6,7 @@ using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Microsoft.AspNet.Mvc
@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc
             IApplicationEnvironment applicationEnvironment,
             IHostingEnvironment hostingEnvironment)
         {
-            razorOptions.FileProvider = new PhysicalFileProvider(applicationEnvironment.ApplicationBasePath);
+            razorOptions.FileProviders.Add(new PhysicalFileProvider(applicationEnvironment.ApplicationBasePath));
 
             var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp6);
             var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);

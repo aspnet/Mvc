@@ -17,7 +17,7 @@ using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Constraints;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -104,8 +104,8 @@ namespace Microsoft.AspNet.Mvc.Description
             var action = CreateActionDescriptor();
             action.ActionConstraints = new List<IActionConstraintMetadata>()
             {
-                new HttpMethodConstraint(new string[] { "PUT", "POST" }),
-                new HttpMethodConstraint(new string[] { "GET" }),
+                new ActionConstraints.HttpMethodConstraint(new string[] { "PUT", "POST" }),
+                new ActionConstraints.HttpMethodConstraint(new string[] { "GET" }),
             };
 
             // Act

@@ -10,7 +10,7 @@ using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNet.Mvc.Internal
 {
@@ -51,7 +51,7 @@ namespace Microsoft.AspNet.Mvc.Internal
             options.OutputFormatters.Add(new StreamOutputFormatter());
 
             // Set up ValueProviders
-            options.ValueProviderFactories.Add(new RouteValueValueProviderFactory());
+            options.ValueProviderFactories.Add(new RouteValueProviderFactory());
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
             options.ValueProviderFactories.Add(new FormValueProviderFactory());
             options.ValueProviderFactories.Add(new JQueryFormValueProviderFactory());

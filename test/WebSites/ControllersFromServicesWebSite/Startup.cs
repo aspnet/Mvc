@@ -1,10 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
 using ControllersFromServicesClassLibrary;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +13,7 @@ namespace ControllersFromServicesWebSite
 {
     public class Startup
     {
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services
                 .AddMvc()
@@ -24,8 +24,6 @@ namespace ControllersFromServicesWebSite
 
             services.AddTransient<QueryValueService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            return services.BuildServiceProvider();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -36,6 +34,16 @@ namespace ControllersFromServicesWebSite
             {
                 routes.MapRoute("default", "{controller}/{action}/{id}");
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }

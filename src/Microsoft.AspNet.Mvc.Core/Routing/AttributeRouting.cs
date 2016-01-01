@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Encodings.Web;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Routing.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNet.Mvc.Routing
 {
@@ -31,9 +34,17 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             var actionDescriptorProvider = services.GetRequiredService<IActionDescriptorsCollectionProvider>();
             var inlineConstraintResolver = services.GetRequiredService<IInlineConstraintResolver>();
+            var pool = services.GetRequiredService<ObjectPool<UriBuildingContext>>();
+            var urlEncoder = services.GetRequiredService<UrlEncoder>();
             var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
-            return new AttributeRoute(target, actionDescriptorProvider, inlineConstraintResolver, loggerFactory);
+            return new AttributeRoute(
+                target,
+                actionDescriptorProvider,
+                inlineConstraintResolver,
+                pool,
+                urlEncoder,
+                loggerFactory);
         }
     }
 }

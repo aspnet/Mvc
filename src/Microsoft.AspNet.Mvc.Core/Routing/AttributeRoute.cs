@@ -4,14 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.Core;
 using Microsoft.AspNet.Mvc.Infrastructure;
 using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Routing.Internal;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.AspNet.Routing.Tree;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNet.Mvc.Routing
 {
@@ -20,6 +23,8 @@ namespace Microsoft.AspNet.Mvc.Routing
         private readonly IRouter _target;
         private readonly IActionDescriptorsCollectionProvider _actionDescriptorsCollectionProvider;
         private readonly IInlineConstraintResolver _constraintResolver;
+        private readonly ObjectPool<UriBuildingContext> _contextPool;
+        private readonly UrlEncoder _urlEncoder;
         private readonly ILoggerFactory _loggerFactory;
 
         private TreeRouter _router;
@@ -28,6 +33,8 @@ namespace Microsoft.AspNet.Mvc.Routing
             IRouter target,
             IActionDescriptorsCollectionProvider actionDescriptorsCollectionProvider,
             IInlineConstraintResolver constraintResolver,
+            ObjectPool<UriBuildingContext> contextPool,
+            UrlEncoder urlEncoder,
             ILoggerFactory loggerFactory)
         {
             if (target == null)
@@ -45,6 +52,16 @@ namespace Microsoft.AspNet.Mvc.Routing
                 throw new ArgumentNullException(nameof(constraintResolver));
             }
 
+            if (contextPool == null)
+            {
+                throw new ArgumentNullException(nameof(contextPool));
+            }
+
+            if (urlEncoder == null)
+            {
+                throw new ArgumentNullException(nameof(urlEncoder));
+            }
+
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
@@ -53,6 +70,8 @@ namespace Microsoft.AspNet.Mvc.Routing
             _target = target;
             _actionDescriptorsCollectionProvider = actionDescriptorsCollectionProvider;
             _constraintResolver = constraintResolver;
+            _contextPool = contextPool;
+            _urlEncoder = urlEncoder;
             _loggerFactory = loggerFactory;
         }
 
@@ -95,7 +114,7 @@ namespace Microsoft.AspNet.Mvc.Routing
             {
                 routeBuilder.Add(new TreeRouteLinkGenerationEntry()
                 {
-                    Binder = new TemplateBinder(routeInfo.ParsedTemplate, routeInfo.Defaults),
+                    Binder = new TemplateBinder(_urlEncoder, _contextPool, routeInfo.ParsedTemplate, routeInfo.Defaults),
                     Defaults = routeInfo.Defaults,
                     Constraints = routeInfo.Constraints,
                     Order = routeInfo.Order,
@@ -282,9 +301,14 @@ namespace Microsoft.AspNet.Mvc.Routing
 
             routeInfo.Constraints = constraintBuilder.Build();
 
-            routeInfo.Defaults = routeInfo.ParsedTemplate.Parameters
-                .Where(p => p.DefaultValue != null)
-                .ToDictionary(p => p.Name, p => p.DefaultValue, StringComparer.OrdinalIgnoreCase);
+            routeInfo.Defaults = new RouteValueDictionary();
+            foreach (var parameter in routeInfo.ParsedTemplate.Parameters)
+            {
+                if (parameter.DefaultValue != null)
+                {
+                    routeInfo.Defaults.Add(parameter.Name, parameter.DefaultValue);
+                }
+            }
 
             return routeInfo;
         }
@@ -293,9 +317,9 @@ namespace Microsoft.AspNet.Mvc.Routing
         {
             public ActionDescriptor ActionDescriptor { get; set; }
 
-            public IReadOnlyDictionary<string, IRouteConstraint> Constraints { get; set; }
+            public IDictionary<string, IRouteConstraint> Constraints { get; set; }
 
-            public IReadOnlyDictionary<string, object> Defaults { get; set; }
+            public RouteValueDictionary Defaults { get; set; }
 
             public string ErrorMessage { get; set; }
 

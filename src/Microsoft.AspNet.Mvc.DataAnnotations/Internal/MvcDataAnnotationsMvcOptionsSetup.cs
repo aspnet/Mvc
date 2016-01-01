@@ -6,7 +6,7 @@ using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNet.Mvc.DataAnnotations.Internal
 {
@@ -27,9 +27,12 @@ namespace Microsoft.AspNet.Mvc.DataAnnotations.Internal
 
             // This service will be registered only if AddDataAnnotationsLocalization() is added to service collection.
             var stringLocalizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
+            var validationAttributeAdapterProvider = serviceProvider.GetRequiredService<IValidationAttributeAdapterProvider>();
 
             options.ModelMetadataDetailsProviders.Add(new DataAnnotationsMetadataProvider());
+
             options.ModelValidatorProviders.Add(new DataAnnotationsModelValidatorProvider(
+                validationAttributeAdapterProvider,
                 dataAnnotationLocalizationOptions,
                 stringLocalizerFactory));
         }

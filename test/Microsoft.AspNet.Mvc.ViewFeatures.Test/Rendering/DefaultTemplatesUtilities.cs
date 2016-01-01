@@ -12,13 +12,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNet.Antiforgery;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
+using Microsoft.AspNet.Mvc.DataAnnotations;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewEngines;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Buffer;
 using Microsoft.AspNet.Routing;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 
@@ -226,6 +229,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
             localizationOptionsAccesor.SetupGet(o => o.Value).Returns(new MvcDataAnnotationsLocalizationOptions());
 
             options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider(
+                new ValidationAttributeAdapterProvider(),
                 localizationOptionsAccesor.Object,
                 stringLocalizerFactory: null));
             var optionsAccessor = new Mock<IOptions<MvcViewOptions>>();
@@ -238,21 +242,6 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider
-                .Setup(s => s.GetService(typeof(ICompositeViewEngine)))
-                .Returns(viewEngine);
-            serviceProvider
-                .Setup(s => s.GetService(typeof(IUrlHelperFactory)))
-                .Returns(urlHelperFactory.Object);
-            serviceProvider
-                .Setup(s => s.GetService(typeof(IViewComponentHelper)))
-                .Returns(new Mock<IViewComponentHelper>().Object);
-            serviceProvider
-                .Setup(s => s.GetService(typeof(IViewComponentHelper)))
-                .Returns(new Mock<IViewComponentHelper>().Object);
-
-            httpContext.RequestServices = serviceProvider.Object;
             if (htmlGenerator == null)
             {
                 htmlGenerator = new DefaultHtmlGenerator(
@@ -268,6 +257,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlGenerator,
                 viewEngine,
                 provider,
+                new TestViewBufferScope(),
                 new HtmlTestEncoder(),
                 UrlEncoder.Default,
                 JavaScriptEncoder.Default);
@@ -276,14 +266,22 @@ namespace Microsoft.AspNet.Mvc.Rendering
             {
                 innerHelper = innerHelperWrapper(innerHelper);
             }
-            serviceProvider
-                .Setup(s => s.GetService(typeof(IHtmlHelper)))
-                .Returns(() => innerHelper);
+
+            var serviceProvider = new ServiceCollection()
+               .AddSingleton(viewEngine)
+               .AddSingleton(urlHelperFactory.Object)
+               .AddSingleton(Mock.Of<IViewComponentHelper>())
+               .AddSingleton(innerHelper)
+               .AddSingleton<IViewBufferScope, TestViewBufferScope>()
+               .BuildServiceProvider();
+
+            httpContext.RequestServices = serviceProvider;
 
             var htmlHelper = new HtmlHelper<TModel>(
                 htmlGenerator,
                 viewEngine,
                 provider,
+                new TestViewBufferScope(),
                 new HtmlTestEncoder(),
                 UrlEncoder.Default,
                 JavaScriptEncoder.Default);

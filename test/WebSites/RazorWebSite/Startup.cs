@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNet.Builder;
+using Microsoft.AspNet.Hosting;
 using Microsoft.AspNet.Localization;
 using Microsoft.AspNet.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,24 +43,34 @@ namespace RazorWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            var options = new RequestLocalizationOptions
+            app.UseRequestLocalization(options =>
             {
-                SupportedCultures = new List<CultureInfo>
+                options.DefaultRequestCulture = new RequestCulture("en-GB", "en-US");
+                options.SupportedCultures = new List<CultureInfo>
                 {
                     new CultureInfo("fr"),
                     new CultureInfo("en-GB"),
-                    new CultureInfo("en-US")
-                },
-                SupportedUICultures = new List<CultureInfo>
+                    new CultureInfo("en-US"),
+                };
+                options.SupportedUICultures = new List<CultureInfo>
                 {
                     new CultureInfo("fr"),
                     new CultureInfo("en-GB"),
-                    new CultureInfo("en-US")
-                }
-            };
-            app.UseRequestLocalization(options, new RequestCulture("en-GB", "en-US"));
+                    new CultureInfo("en-US"),
+                };
+            });
 
             app.UseMvcWithDefaultRoute();
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }

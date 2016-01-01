@@ -17,6 +17,7 @@ using Microsoft.AspNet.Mvc.Razor.Internal;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Buffer;
 using Microsoft.AspNet.Razor.Runtime.TagHelpers;
 using Microsoft.AspNet.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +30,7 @@ namespace Microsoft.AspNet.Mvc.Razor
     public abstract class RazorPage : IRazorPage
     {
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Stack<TextWriter> _writerScopes;
+        private readonly Stack<HtmlContentWrapperTextWriter> _writerScopes;
         private TextWriter _originalWriter;
         private IUrlHelper _urlHelper;
         private ITagHelperActivator _tagHelperActivator;
@@ -37,13 +38,13 @@ namespace Microsoft.AspNet.Mvc.Razor
         private bool _renderedBody;
         private AttributeInfo _attributeInfo;
         private TagHelperAttributeInfo _tagHelperAttributeInfo;
-        private StringCollectionTextWriter _valueBuffer;
+        private HtmlContentWrapperTextWriter _valueBuffer;
+        private IViewBufferScope _bufferScope;
 
         public RazorPage()
         {
             SectionWriters = new Dictionary<string, RenderAsyncDelegate>(StringComparer.OrdinalIgnoreCase);
-
-            _writerScopes = new Stack<TextWriter>();
+            _writerScopes = new Stack<HtmlContentWrapperTextWriter>();
         }
 
         /// <summary>
@@ -148,6 +149,20 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
         }
 
+        private IViewBufferScope BufferScope
+        {
+            get
+            {
+                if (_bufferScope == null)
+                {
+                    var services = ViewContext.HttpContext.RequestServices;
+                    _bufferScope = services.GetRequiredService<IViewBufferScope>();
+                }
+
+                return _bufferScope;
+            }
+        }
+
         /// <summary>
         /// Format an error message about using an indexer when the tag helper property is <c>null</c>.
         /// </summary>
@@ -194,41 +209,26 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// </remarks>
         public void StartTagHelperWritingScope()
         {
-            StartTagHelperWritingScope(new StringCollectionTextWriter(Output.Encoding));
-        }
-
-        /// <summary>
-        /// Starts a new writing scope with the given <paramref name="writer"/>.
-        /// </summary>
-        /// <remarks>
-        /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
-        /// be buffered until <see cref="EndTagHelperWritingScope"/> is called.
-        /// </remarks>
-        public void StartTagHelperWritingScope(TextWriter writer)
-        {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
             // If there isn't a base writer take the ViewContext.Writer
             if (_originalWriter == null)
             {
                 _originalWriter = ViewContext.Writer;
             }
 
+            var buffer = new ViewBuffer(BufferScope, Path);
+            var writer = new HtmlContentWrapperTextWriter(buffer, _originalWriter.Encoding);
+
             // We need to replace the ViewContext's Writer to ensure that all content (including content written
             // from HTML helpers) is redirected.
             ViewContext.Writer = writer;
 
-            _writerScopes.Push(ViewContext.Writer);
+            _writerScopes.Push(writer);
         }
 
         /// <summary>
         /// Ends the current writing scope that was started by calling <see cref="StartTagHelperWritingScope"/>.
         /// </summary>
-        /// <returns>The <see cref="TextWriter"/> that contains the content written to the <see cref="Output"/> or
-        /// <see cref="ViewContext.Writer"/> during the writing scope.</returns>
+        /// <returns>The buffered <see cref="TagHelperContent"/>.</returns>
         public TagHelperContent EndTagHelperWritingScope()
         {
             if (_writerScopes.Count == 0)
@@ -237,6 +237,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var writer = _writerScopes.Pop();
+            Debug.Assert(writer == ViewContext.Writer);
 
             if (_writerScopes.Count > 0)
             {
@@ -251,24 +252,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             }
 
             var tagHelperContent = new DefaultTagHelperContent();
-            var razorWriter = writer as RazorTextWriter;
-            if (razorWriter != null)
-            {
-                tagHelperContent.Append(razorWriter.Buffer);
-            }
-            else
-            {
-                var stringCollectionTextWriter = writer as StringCollectionTextWriter;
-                if (stringCollectionTextWriter != null)
-                {
-                    tagHelperContent.Append(stringCollectionTextWriter.Content);
-                }
-                else
-                {
-                    tagHelperContent.AppendHtml(writer.ToString());
-                }
-            }
-
+            tagHelperContent.AppendHtml(writer.ContentBuilder);
             return tagHelperContent;
         }
 
@@ -586,7 +570,8 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 if (_valueBuffer == null)
                 {
-                    _valueBuffer = new StringCollectionTextWriter(Output.Encoding);
+                    var buffer = new ViewBuffer(BufferScope, Path);
+                    _valueBuffer = new HtmlContentWrapperTextWriter(buffer, Output.Encoding);
                 }
 
                 if (!string.IsNullOrEmpty(prefix))
@@ -604,7 +589,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 executionContext.AddHtmlAttribute(
                     _tagHelperAttributeInfo.Name,
-                    _valueBuffer?.Content ?? HtmlString.Empty);
+                    (IHtmlContent)_valueBuffer?.ContentBuilder ?? HtmlString.Empty);
                 _valueBuffer = null;
             }
         }

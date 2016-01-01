@@ -9,7 +9,7 @@ using System.Threading;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Mvc.Razor.Precompilation;
 using Microsoft.Extensions.PlatformAbstractions;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNet.Mvc.Razor.Compilation
 {
@@ -33,16 +33,16 @@ namespace Microsoft.AspNet.Mvc.Razor.Compilation
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultCompilerCacheProvider"/>.
         /// </summary>
-        /// <param name="loaderContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
-        /// <param name="optionsAccessor">An accessor to the <see cref="RazorViewEngineOptions"/>.</param>
+        /// <param name="loadContextAccessor">The <see cref="IAssemblyLoadContextAccessor"/>.</param>
+        /// <param name="fileProviderAccessor">The <see cref="IRazorViewEngineFileProviderAccessor"/>.</param>
         /// <param name="assemblies"><see cref="Assembly"/> instances to scan for precompiled views.</param>
         public PrecompiledViewsCompilerCacheProvider(
             IAssemblyLoadContextAccessor loadContextAccessor,
-            IOptions<RazorViewEngineOptions> mvcViewOptions,
+            IRazorViewEngineFileProviderAccessor fileProviderAccessor,
             IEnumerable<Assembly> assemblies)
         {
             _loadContextAccessor = loadContextAccessor;
-            _fileProvider = mvcViewOptions.Value.FileProvider;
+            _fileProvider = fileProviderAccessor.FileProvider;
             _createCache = CreateCache;
             _assemblies = assemblies.ToArray();
         }

@@ -10,9 +10,9 @@ using Microsoft.AspNet.Html;
 using Microsoft.AspNet.Mvc.ModelBinding;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewEngines;
+using Microsoft.AspNet.Mvc.ViewFeatures.Buffer;
 using Microsoft.AspNet.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures
 {
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             foreach (var item in TriStateValues(value))
             {
-                selectTag.InnerHtml.Append(DefaultHtmlGenerator.GenerateOption(item, item.Text));
+                selectTag.InnerHtml.AppendHtml(DefaultHtmlGenerator.GenerateOption(item, item.Text));
             }
             
             return selectTag;
@@ -124,6 +124,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 var fieldNameBase = oldPrefix;
                 var result = new HtmlContentBuilder();
                 var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
+                var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
 
                 var index = 0;
                 foreach (var item in collection)
@@ -143,6 +144,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
                     var templateBuilder = new TemplateBuilder(
                         viewEngine,
+                        viewBufferScope,
                         htmlHelper.ViewContext,
                         htmlHelper.ViewData,
                         modelExplorer,
@@ -150,7 +152,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                         templateName: null,
                         readOnly: true,
                         additionalViewData: null);
-                    result.Append(templateBuilder.Build());
+                    result.AppendHtml(templateBuilder.Build());
                 }
 
                 return result;
@@ -223,6 +225,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             var serviceProvider = htmlHelper.ViewContext.HttpContext.RequestServices;
             var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
+            var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
 
             var content = new HtmlContentBuilder();
             foreach (var propertyExplorer in modelExplorer.Properties)
@@ -235,6 +238,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
                 var templateBuilder = new TemplateBuilder(
                     viewEngine,
+                    viewBufferScope,
                     htmlHelper.ViewContext,
                     htmlHelper.ViewData,
                     propertyExplorer,
@@ -262,7 +266,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
                 }
                 else
                 {
-                    content.Append(templateBuilderResult);
+                    content.AppendHtml(templateBuilderResult);
                 }
             }
 

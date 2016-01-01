@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNet.Mvc.ApiExplorer;
 using Microsoft.AspNet.Mvc.Filters;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.Formatters
@@ -122,12 +122,22 @@ namespace Microsoft.AspNet.Mvc.Formatters
             }
 
             var objectResult = context.Result as ObjectResult;
-            if (objectResult != null)
+            if (objectResult == null)
             {
-                var contentType = _options.FormatterMappings.GetMediaTypeMappingForFormat(format);
-                objectResult.ContentTypes.Clear();
-                objectResult.ContentTypes.Add(contentType);
+                return;
             }
+
+            // If the action sets a single content type, then its takes precedence over the user
+            // supplied content type based on format mapping.
+            if ((objectResult.ContentTypes != null && objectResult.ContentTypes.Count == 1) ||
+                !string.IsNullOrEmpty(context.HttpContext.Response.ContentType))
+            {
+                return;
+            }
+
+            var contentType = _options.FormatterMappings.GetMediaTypeMappingForFormat(format);
+            objectResult.ContentTypes.Clear();
+            objectResult.ContentTypes.Add(contentType);
         }
 
         /// <inheritdoc />

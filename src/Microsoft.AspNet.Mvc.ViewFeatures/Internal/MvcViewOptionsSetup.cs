@@ -2,10 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNet.Mvc.DataAnnotations;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.OptionsModel;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
 {
@@ -29,10 +30,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Internal
             var dataAnnotationsLocalizationOptions =
                 serviceProvider.GetRequiredService<IOptions<MvcDataAnnotationsLocalizationOptions>>();
             var stringLocalizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
+            var validationAttributeAdapterProvider = serviceProvider.GetRequiredService<IValidationAttributeAdapterProvider>();
 
             // Set up client validators
             options.ClientModelValidatorProviders.Add(new DefaultClientModelValidatorProvider());
             options.ClientModelValidatorProviders.Add(new DataAnnotationsClientModelValidatorProvider(
+                validationAttributeAdapterProvider,
                 dataAnnotationsLocalizationOptions,
                 stringLocalizerFactory));
             options.ClientModelValidatorProviders.Add(new NumericClientModelValidatorProvider());

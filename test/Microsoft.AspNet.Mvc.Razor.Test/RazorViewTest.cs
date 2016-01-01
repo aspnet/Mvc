@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Http.Features;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ModelBinding;
-using Microsoft.AspNet.Mvc.Razor.Buffer;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.ViewFeatures;
+using Microsoft.AspNet.Mvc.ViewFeatures.Buffer;
 using Microsoft.AspNet.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
@@ -357,6 +356,102 @@ namespace Microsoft.AspNet.Mvc.Razor
 
             // Assert
             activator.Verify();
+        }
+
+        [Fact]
+        public async Task RenderAsync_ExecutesDefaultLayout()
+        {
+            // Arrange
+            var path = "/Views/Home/Index.cshtml";
+            var layoutPath = "/Views/_Shared/_Layout.cshtml";
+            var page = new TestableRazorPage(p => { })
+            {
+                Path = path,
+                // Initialize Layout property when instantiated.
+                Layout = layoutPath,
+            };
+            var layoutExecuted = false;
+            var layout = new TestableRazorPage(
+                p =>
+                {
+                    layoutExecuted = true;
+                    p.RenderBodyPublic();
+                })
+            {
+                Path = layoutPath,
+            };
+
+            var viewEngine = new Mock<IRazorViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(engine => engine.GetPage(path, layoutPath))
+                .Returns(new RazorPageResult(layoutPath, layout));
+
+            var view = new RazorView(
+                viewEngine.Object,
+                Mock.Of<IRazorPageActivator>(),
+                new IRazorPage[0],
+                page,
+                new HtmlTestEncoder());
+            var context = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(context);
+
+            // Assert
+            Assert.True(layoutExecuted);
+        }
+
+        [Fact]
+        public async Task RenderAsync_ExecutesDefaultLayout_WithViewStart()
+        {
+            // Arrange
+            var path = "/Views/Home/Index.cshtml";
+            var layoutPath = "/Views/_Shared/_Layout.cshtml";
+            var viewStartPath = "/Views/_ViewStart.cshtml";
+
+            var viewStart = new TestableRazorPage(p => { })
+            {
+                Path = viewStartPath,
+            };
+            var page = new TestableRazorPage(p => { })
+            {
+                Path = path,
+                // Initialize Layout property when instantiated.
+                Layout = layoutPath,
+            };
+
+            var layoutExecuted = false;
+            var layout = new TestableRazorPage(
+                p =>
+                {
+                    layoutExecuted = true;
+                    p.RenderBodyPublic();
+                })
+            {
+                Path = layoutPath,
+            };
+
+            var viewEngine = new Mock<IRazorViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(engine => engine.GetAbsolutePath(viewStartPath, /* pagePath */ null))
+                .Returns<string>(null);
+            viewEngine
+                .Setup(engine => engine.GetPage(path, layoutPath))
+                .Returns(new RazorPageResult(layoutPath, layout));
+
+            var view = new RazorView(
+                viewEngine.Object,
+                Mock.Of<IRazorPageActivator>(),
+                new[] { viewStart },
+                page,
+                new HtmlTestEncoder());
+            var context = CreateViewContext(view);
+
+            // Act
+            await view.RenderAsync(context);
+
+            // Assert
+            Assert.True(layoutExecuted);
         }
 
         [Fact]
@@ -1566,7 +1661,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         {
             var httpContext = new DefaultHttpContext();
             var serviceProvider = new ServiceCollection()
-                .AddScoped<IRazorBufferScope, TestRazorBufferScope>()
+                .AddScoped<IViewBufferScope, TestViewBufferScope>()
                 .BuildServiceProvider();
             httpContext.RequestServices = serviceProvider;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());

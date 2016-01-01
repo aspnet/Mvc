@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Routing;
+using Microsoft.AspNet.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApiCompatShimWebSite
@@ -19,8 +19,6 @@ namespace WebApiCompatShimWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseErrorReporter();
-
             app.UseMvc(routes =>
             {
                 // Tests include different styles of WebAPI conventional routing and action selection - the prefix keeps
@@ -33,6 +31,16 @@ namespace WebApiCompatShimWebSite
                 // This route can't access any of our webapi controllers
                 routes.MapRoute("default", "{controller}/{action}/{id?}");
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var application = new WebApplicationBuilder()
+                .UseConfiguration(WebApplicationConfiguration.GetDefault(args))
+                .UseStartup<Startup>()
+                .Build();
+
+            application.Run();
         }
     }
 }
