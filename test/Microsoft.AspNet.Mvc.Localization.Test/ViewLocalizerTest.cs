@@ -67,13 +67,8 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             htmlLocalizerFactory.Setup(h => h.Create("TestApplication.example", "TestApplication"))
                 .Returns(htmlLocalizer.Object);
 
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(htmlLocalizerFactory.Object, applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -99,13 +94,8 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             htmlLocalizerFactory.Setup(
                 h => h.Create("TestApplication.example", "TestApplication")).Returns(htmlLocalizer.Object);
 
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(htmlLocalizerFactory.Object, applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -123,13 +113,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -148,13 +134,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -174,13 +156,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -198,13 +176,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -222,13 +196,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -246,13 +216,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
@@ -270,13 +236,9 @@ namespace Microsoft.AspNet.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
             var applicationEnvironment = new Mock<IApplicationEnvironment>();
             applicationEnvironment.Setup(a => a.ApplicationName).Returns("TestApplication");
+
+            var viewContext = new ViewContext { ExecutingFilePath = "example", };
             var viewLocalizer = new ViewLocalizer(new TestHtmlLocalizerFactory(), applicationEnvironment.Object);
-
-            var view = new Mock<IView>();
-            view.Setup(v => v.Path).Returns("example");
-            var viewContext = new ViewContext();
-            viewContext.View = view.Object;
-
             viewLocalizer.Contextualize(viewContext);
 
             // Act
