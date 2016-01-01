@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc.Abstractions;
 using Microsoft.AspNet.Mvc.ActionConstraints;
@@ -32,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             _logger = loggerFactory.CreateLogger<DefaultActionSelector>();
         }
 
-        public Task<ActionDescriptor> SelectAsync(RouteContext context)
+        public ActionDescriptor SelectAsync(RouteContext context)
         {
             if (context == null)
             {
@@ -71,13 +70,13 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             if (finalMatches == null || finalMatches.Count == 0)
             {
-                return Task.FromResult<ActionDescriptor>(null);
+                return null;
             }
             else if (finalMatches.Count == 1)
             {
                 var selectedAction = finalMatches[0];
 
-                return Task.FromResult(selectedAction);
+                return selectedAction;
             }
             else
             {

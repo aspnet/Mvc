@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
 using Microsoft.AspNet.Mvc.Abstractions;
@@ -25,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
     public class DefaultActionSelectorTests
     {
         [Fact]
-        public async void SelectAsync_AmbiguousActions_LogIsCorrect()
+        public void SelectAsync_AmbiguousActions_LogIsCorrect()
         {
             // Arrange
             var sink = new TestSink();
@@ -44,9 +43,9 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 $"ambiguity. Matching actions: {actionNames}";
 
             // Act
-            await Assert.ThrowsAsync<AmbiguousActionException>(async () =>
+            Assert.Throws<AmbiguousActionException>(() =>
             {
-                await selector.SelectAsync(routeContext);
+                selector.SelectAsync(routeContext);
             });
 
             // Assert
@@ -56,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         }
 
         [Fact]
-        public async Task SelectAsync_PrefersActionWithConstraints()
+        public void SelectAsync_PrefersActionWithConstraints()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -79,14 +78,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public async Task SelectAsync_ConstraintsRejectAll()
+        public void SelectAsync_ConstraintsRejectAll()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -111,14 +110,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public async Task SelectAsync_ConstraintsRejectAll_DifferentStages()
+        public void SelectAsync_ConstraintsRejectAll_DifferentStages()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -145,14 +144,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public async Task SelectAsync_ActionConstraintFactory()
+        public void SelectAsync_ActionConstraintFactory()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -177,14 +176,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public async Task SelectAsync_ActionConstraintFactory_ReturnsNull()
+        public void SelectAsync_ActionConstraintFactory_ReturnsNull()
         {
             // Arrange
             var nullConstraint = new ActionDescriptor()
@@ -203,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, nullConstraint);
@@ -211,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // There's a custom constraint provider registered that only understands BooleanConstraintMarker
         [Fact]
-        public async Task SelectAsync_CustomProvider()
+        public void SelectAsync_CustomProvider()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -233,7 +232,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
@@ -241,7 +240,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public async Task SelectAsync_ConstraintsInOrder()
+        public void SelectAsync_ConstraintsInOrder()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -266,7 +265,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, best);
@@ -274,7 +273,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public async Task SelectAsync_ConstraintsInOrder_MultipleStages()
+        public void SelectAsync_ConstraintsInOrder_MultipleStages()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -303,14 +302,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public async Task SelectAsync_Fallback_ToActionWithoutConstraints()
+        public void SelectAsync_Fallback_ToActionWithoutConstraints()
         {
             // Arrange
             var nomatch1 = new ActionDescriptor()
@@ -341,14 +340,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = await selector.SelectAsync(context);
+            var action = selector.SelectAsync(context);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public async Task SelectAsync_Ambiguous()
+        public void SelectAsync_Ambiguous()
         {
             // Arrange
             var expectedMessage =
@@ -375,9 +374,9 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             context.RouteData.Values.Add("action", "Buy");
 
             // Act
-            var ex = await Assert.ThrowsAsync<AmbiguousActionException>(async () =>
+            var ex = Assert.Throws<AmbiguousActionException>(() =>
             {
-                await selector.SelectAsync(context);
+                selector.SelectAsync(context);
             });
 
             // Assert
@@ -390,7 +389,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         [InlineData("POST")]
         [InlineData("DELETE")]
         [InlineData("PATCH")]
-        public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributeViaAcceptVerbs_ORsMultipleHttpMethods(string verb)
+        public void HttpMethodAttribute_ActionWithMultipleHttpMethodAttributeViaAcceptVerbs_ORsMultipleHttpMethods(string verb)
         {
             // Arrange
             var routeContext = new RouteContext(GetHttpContext(verb));
@@ -398,7 +397,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             routeContext.RouteData.Values.Add("action", "Patch");
 
             // Act
-            var result = await InvokeActionSelector(routeContext);
+            var result = InvokeActionSelector(routeContext);
 
             // Assert
             Assert.Equal("Patch", result.Name);
@@ -411,7 +410,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         [InlineData("DELETE")]
         [InlineData("PATCH")]
         [InlineData("HEAD")]
-        public async Task HttpMethodAttribute_ActionWithMultipleHttpMethodAttributes_ORsMultipleHttpMethods(string verb)
+        public void HttpMethodAttribute_ActionWithMultipleHttpMethodAttributes_ORsMultipleHttpMethods(string verb)
         {
             // Arrange
             var routeContext = new RouteContext(GetHttpContext(verb));
@@ -419,7 +418,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             routeContext.RouteData.Values.Add("action", "Put");
 
             // Act
-            var result = await InvokeActionSelector(routeContext);
+            var result = InvokeActionSelector(routeContext);
 
             // Assert
             Assert.Equal("Put", result.Name);
@@ -428,7 +427,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         [Theory]
         [InlineData("GET")]
         [InlineData("PUT")]
-        public async Task HttpMethodAttribute_ActionDecoratedWithHttpMethodAttribute_OverridesConvention(string verb)
+        public void HttpMethodAttribute_ActionDecoratedWithHttpMethodAttribute_OverridesConvention(string verb)
         {
             // Arrange
             // Note no action name is passed, hence should return a null action descriptor.
@@ -436,7 +435,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             routeContext.RouteData.Values.Add("controller", "HttpMethodAttributeTests_RestOnly");
 
             // Act
-            var result = await InvokeActionSelector(routeContext);
+            var result = InvokeActionSelector(routeContext);
 
             // Assert
             Assert.Null(result);
@@ -466,7 +465,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         [InlineData("POST")]
         [InlineData("DELETE")]
         [InlineData("PATCH")]
-        public async Task ActionNameAttribute_ActionGetsExposedViaActionName_UnreachableByConvention(string verb)
+        public void ActionNameAttribute_ActionGetsExposedViaActionName_UnreachableByConvention(string verb)
         {
             // Arrange
             var routeContext = new RouteContext(GetHttpContext(verb));
@@ -474,7 +473,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             routeContext.RouteData.Values.Add("action", "RPCMethodWithHttpGet");
 
             // Act
-            var result = await InvokeActionSelector(routeContext);
+            var result = InvokeActionSelector(routeContext);
 
             // Assert
             Assert.Null(result);
@@ -496,7 +495,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         [InlineData("POST", "CustomActionName_RpcMethod")]
         [InlineData("DELETE", "CustomActionName_RpcMethod")]
         [InlineData("PATCH", "CustomActionName_RpcMethod")]
-        public async Task ActionNameAttribute_DifferentActionName_UsesActionNameFromActionNameAttribute(string verb, string actionName)
+        public void ActionNameAttribute_DifferentActionName_UsesActionNameFromActionNameAttribute(string verb, string actionName)
         {
             // Arrange
             var routeContext = new RouteContext(GetHttpContext(verb));
@@ -504,13 +503,13 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             routeContext.RouteData.Values.Add("action", actionName);
 
             // Act
-            var result = await InvokeActionSelector(routeContext);
+            var result = InvokeActionSelector(routeContext);
 
             // Assert
             Assert.Equal(actionName, result.Name);
         }
 
-        private async Task<ActionDescriptor> InvokeActionSelector(RouteContext context)
+        private ActionDescriptor InvokeActionSelector(RouteContext context)
         {
             var actionDescriptorProvider = GetActionDescriptorProvider();
 
@@ -536,7 +535,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 actionConstraintProviders,
                 NullLoggerFactory.Instance);
 
-            return await defaultActionSelector.SelectAsync(context);
+            return defaultActionSelector.SelectAsync(context);
         }
 
         private ControllerActionDescriptorProvider GetActionDescriptorProvider()
