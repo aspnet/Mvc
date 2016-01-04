@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.AspNet.Mvc;
 using Microsoft.AspNet.Mvc.Formatters;
 using Microsoft.AspNet.Mvc.Internal;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -66,6 +67,20 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder AddControllersAsServices(
            this IMvcBuilder builder,
+           params Type[] controllerTypes)
+        {
+            return builder.AddControllersAsServices(controllerTypes.AsEnumerable());
+        }
+
+        /// <summary>
+        /// Register the specified <paramref name="controllerTypes"/> as services and as a source for controller
+        /// discovery.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="controllerTypes">A sequence of controller <see cref="Type"/>s to register.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddControllersAsServices(
+           this IMvcBuilder builder,
            IEnumerable<Type> controllerTypes)
         {
             if (builder == null)
@@ -75,6 +90,20 @@ namespace Microsoft.Extensions.DependencyInjection
 
             ControllersAsServices.AddControllersAsServices(builder.Services, controllerTypes);
             return builder;
+        }
+
+        /// <summary>
+        /// Registers controller types from the specified <paramref name="controllerAssemblies"/> as services and as a source
+        /// for controller discovery.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
+        /// <param name="controllerAssemblies">Assemblies to scan.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder AddControllersAsServices(
+            this IMvcBuilder builder,
+            params Assembly[] controllerAssemblies)
+        {
+            return builder.AddControllersAsServices(controllerAssemblies.AsEnumerable());
         }
 
         /// <summary>
