@@ -74,11 +74,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (controllerTypes == null)
-            {
-                throw new ArgumentNullException(nameof(controllerTypes));
-            }
-
             ControllersAsServices.AddControllersAsServices(builder.Services, controllerTypes);
             return builder;
         }
@@ -97,11 +92,6 @@ namespace Microsoft.Extensions.DependencyInjection
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (controllerAssemblies == null)
-            {
-                throw new ArgumentNullException(nameof(controllerAssemblies));
             }
 
             ControllersAsServices.AddControllersAsServices(builder.Services, controllerAssemblies);
