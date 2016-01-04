@@ -62,8 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// discovery.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
-        /// <param name="controllerTypes">A sequence of controller <see cref="Type"/>s to register in the
-        /// <paramref name="services"/> and used for controller discovery.</param>
+        /// <param name="controllerTypes">A sequence of controller <see cref="Type"/>s to register.</param>
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder AddControllersAsServices(
            this IMvcBuilder builder,
@@ -79,7 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Registers controller types from the specified <paramref name="assemblies"/> as services and as a source
+        /// Registers controller types from the specified <paramref name="controllerAssemblies"/> as services and as a source
         /// for controller discovery.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcBuilder"/>.</param>
