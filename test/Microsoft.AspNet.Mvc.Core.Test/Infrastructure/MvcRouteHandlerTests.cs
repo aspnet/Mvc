@@ -59,7 +59,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             var mockActionSelector = new Mock<IActionSelector>();
             mockActionSelector
-                .Setup(a => a.SelectAsync(It.IsAny<RouteContext>()))
+                .Setup(a => a.Select(It.IsAny<RouteContext>()))
                 .Returns<ActionDescriptor>(null);
 
             var context = CreateRouteContext(
@@ -173,7 +173,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             if (actionSelector == null)
             {
                 var mockActionSelector = new Mock<IActionSelector>();
-                mockActionSelector.Setup(a => a.SelectAsync(It.IsAny<RouteContext>()))
+                mockActionSelector.Setup(a => a.Select(It.IsAny<RouteContext>()))
                     .Returns(actionDescriptor);
 
                 actionSelector = mockActionSelector.Object;

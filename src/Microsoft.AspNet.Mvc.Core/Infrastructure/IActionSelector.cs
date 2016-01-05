@@ -8,6 +8,6 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 {
     public interface IActionSelector
     {
-        ActionDescriptor SelectAsync(RouteContext context);
+        ActionDescriptor Select(RouteContext context);
     }
 }

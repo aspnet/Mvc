@@ -47,7 +47,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             EnsureServices(context.HttpContext);
 
-            var actionDescriptor = _actionSelector.SelectAsync(context);
+            var actionDescriptor = _actionSelector.Select(context);
             if (actionDescriptor == null)
             {
                 _logger.NoActionsMatched();

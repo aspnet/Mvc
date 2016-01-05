@@ -31,7 +31,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             _logger = loggerFactory.CreateLogger<DefaultActionSelector>();
         }
 
-        public ActionDescriptor SelectAsync(RouteContext context)
+        public ActionDescriptor Select(RouteContext context)
         {
             if (context == null)
             {

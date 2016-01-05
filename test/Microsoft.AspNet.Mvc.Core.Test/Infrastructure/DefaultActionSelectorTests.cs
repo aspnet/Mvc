@@ -24,7 +24,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
     public class DefaultActionSelectorTests
     {
         [Fact]
-        public void SelectAsync_AmbiguousActions_LogIsCorrect()
+        public void Select_AmbiguousActions_LogIsCorrect()
         {
             // Arrange
             var sink = new TestSink();
@@ -45,7 +45,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             Assert.Throws<AmbiguousActionException>(() =>
             {
-                selector.SelectAsync(routeContext);
+                selector.Select(routeContext);
             });
 
             // Assert
@@ -55,7 +55,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         }
 
         [Fact]
-        public void SelectAsync_PrefersActionWithConstraints()
+        public void Select_PrefersActionWithConstraints()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -78,14 +78,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void SelectAsync_ConstraintsRejectAll()
+        public void Select_ConstraintsRejectAll()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -110,14 +110,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void SelectAsync_ConstraintsRejectAll_DifferentStages()
+        public void Select_ConstraintsRejectAll_DifferentStages()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -144,14 +144,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void SelectAsync_ActionConstraintFactory()
+        public void Select_ActionConstraintFactory()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -176,14 +176,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void SelectAsync_ActionConstraintFactory_ReturnsNull()
+        public void Select_ActionConstraintFactory_ReturnsNull()
         {
             // Arrange
             var nullConstraint = new ActionDescriptor()
@@ -202,7 +202,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, nullConstraint);
@@ -210,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // There's a custom constraint provider registered that only understands BooleanConstraintMarker
         [Fact]
-        public void SelectAsync_CustomProvider()
+        public void Select_CustomProvider()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -232,7 +232,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
@@ -240,7 +240,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void SelectAsync_ConstraintsInOrder()
+        public void Select_ConstraintsInOrder()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -265,7 +265,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, best);
@@ -273,7 +273,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void SelectAsync_ConstraintsInOrder_MultipleStages()
+        public void Select_ConstraintsInOrder_MultipleStages()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -302,14 +302,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void SelectAsync_Fallback_ToActionWithoutConstraints()
+        public void Select_Fallback_ToActionWithoutConstraints()
         {
             // Arrange
             var nomatch1 = new ActionDescriptor()
@@ -340,14 +340,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.SelectAsync(context);
+            var action = selector.Select(context);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void SelectAsync_Ambiguous()
+        public void Select_Ambiguous()
         {
             // Arrange
             var expectedMessage =
@@ -376,7 +376,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var ex = Assert.Throws<AmbiguousActionException>(() =>
             {
-                selector.SelectAsync(context);
+                selector.Select(context);
             });
 
             // Assert
@@ -535,7 +535,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 actionConstraintProviders,
                 NullLoggerFactory.Instance);
 
-            return defaultActionSelector.SelectAsync(context);
+            return defaultActionSelector.Select(context);
         }
 
         private ControllerActionDescriptorProvider GetActionDescriptorProvider()
