@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.Mvc.Logging
         public static void ExecutedAction(this ILogger logger, ActionDescriptor action, long startTimestamp)
         {
             // Don't log if logging wasn't enabled at start of request as time will be wildly wrong.
-            if (logger.IsEnabled(LogLevel.Information) && startTimestamp != 0)
+            if (startTimestamp != 0)
             {
                 var currentTimestamp = Stopwatch.GetTimestamp();
                 var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));

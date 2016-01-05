@@ -72,7 +72,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Logging
             object result)
         {
             // Don't log if logging wasn't enabled at start of request as time will be wildly wrong.
-            if (logger.IsEnabled(LogLevel.Debug) && startTimestamp != 0)
+            if (startTimestamp != 0)
             {
                 var currentTimestamp = Stopwatch.GetTimestamp();
                 var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
