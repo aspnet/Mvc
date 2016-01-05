@@ -15,7 +15,6 @@ namespace Microsoft.AspNet.Mvc.Routing
     /// </summary>
     public class UrlHelper : IUrlHelper
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified action context and
         /// action selector.
@@ -146,11 +145,13 @@ namespace Microsoft.AspNet.Mvc.Routing
                 {
                     return "/";
                 }
+                else if (!pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
+                {
+                    return "/" + pathData.VirtualPath;
+                }
                 else
                 {
-                    return !pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal)
-                        ? "/" + pathData.VirtualPath
-                        : pathData.VirtualPath;
+                    return pathData.VirtualPath;
                 }
             }
             else
@@ -161,34 +162,21 @@ namespace Microsoft.AspNet.Mvc.Routing
                 }
                 else
                 {
-                    var requiresLeadingSlash = !pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal);
-                    var virtualPathStartIndex = 0;
+                    var builder = new StringBuilder(
+                        pathBase.Value,
+                        pathBase.Value.Length + pathData.VirtualPath.Length);
+
                     if (pathBase.Value.EndsWith("/", StringComparison.Ordinal))
                     {
-                        if (!requiresLeadingSlash)
-                        {
-                            // If the base path has a trailing slash and the virtual path string has a leading slash,
-                            // we need to trim one of them.
-                            virtualPathStartIndex = 1;
-
-                        }
-
-                        requiresLeadingSlash = false;
+                        builder.Length--;
                     }
 
-                    var virtualPathLength = pathData.VirtualPath.Length - virtualPathStartIndex;
-
-                    var builder = new StringBuilder(
-                        pathBase.Value.Length
-                        + (requiresLeadingSlash ? 1 : 0)
-                        + virtualPathLength);
-
-                    builder.Append(pathBase.Value);
-                    if (requiresLeadingSlash)
+                    if (!pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
                     {
                         builder.Append("/");
                     }
-                    builder.Append(pathData.VirtualPath, virtualPathStartIndex, virtualPathLength);
+
+                    builder.Append(pathData.VirtualPath);
 
                     return builder.ToString();
                 }
