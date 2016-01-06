@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
                 v.Write("Hello Prefix");
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 v.Write("Hello from Output");
                 v.ViewContext.Writer.Write("Hello from view context writer");
                 var scopeValue = v.EndTagHelperWritingScope();
@@ -67,7 +67,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
                 v.Write("Hello Prefix");
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 v.Write("Hello In Scope");
                 var scopeValue = v.EndTagHelperWritingScope();
                 v.Write("From Scope: ");
@@ -91,10 +91,10 @@ namespace Microsoft.AspNet.Mvc.Razor
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
                 v.Write("Hello Prefix");
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 v.Write("Hello In Scope Pre Nest");
 
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 v.Write("Hello In Nested Scope");
                 var scopeValue1 = v.EndTagHelperWritingScope();
 
@@ -123,7 +123,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(async v =>
             {
                 v.Path = "/Views/TestPath/Test.cshtml";
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 await v.FlushAsync();
             });
 
@@ -164,7 +164,7 @@ namespace Microsoft.AspNet.Mvc.Razor
             var page = CreatePage(v =>
             {
                 v.HtmlEncoder = new HtmlTestEncoder();
-                v.StartTagHelperWritingScope();
+                v.StartTagHelperWritingScope(encoder: null);
                 v.Write("Hello World!");
                 var returnValue = v.EndTagHelperWritingScope();
 
@@ -923,7 +923,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
-                startTagHelperWritingScope: () => { },
+                startTagHelperWritingScope: _ => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
@@ -964,7 +964,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
-                startTagHelperWritingScope: () => { },
+                startTagHelperWritingScope: _ => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
@@ -992,7 +992,7 @@ namespace Microsoft.AspNet.Mvc.Razor
                 items: new Dictionary<object, object>(),
                 uniqueId: string.Empty,
                 executeChildContentAsync: () => Task.FromResult(result: true),
-                startTagHelperWritingScope: () => { },
+                startTagHelperWritingScope: _ => { },
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
