@@ -21,8 +21,8 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <param name="modeInfos">The modes and their required attributes.</param>
         /// <param name="compare">A comparer delegate.</param>
         /// <param name="result">The resulting most effective mode.</param>
-        /// <returns><c>true</c> if a result was found, otherwise <c>false</c>.</returns>
-        public static bool  TryDetermineMode<TMode>(
+        /// <returns><c>true</c> if a mode was determined, otherwise <c>false</c>.</returns>
+        public static bool TryDetermineMode<TMode>(
             TagHelperContext context,
             IReadOnlyList<ModeAttributes<TMode>> modeInfos,
             Func<TMode, TMode, int> compare,
@@ -36,6 +36,11 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             if (modeInfos == null)
             {
                 throw new ArgumentNullException(nameof(modeInfos));
+            }
+
+            if (compare == null)
+            {
+                throw new ArgumentNullException(nameof(compare));
             }
 
             var foundResult = false;
