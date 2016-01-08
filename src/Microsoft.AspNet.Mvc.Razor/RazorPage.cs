@@ -60,8 +60,8 @@ namespace Microsoft.AspNet.Mvc.Razor
         public string Layout { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="System.Text.Encodings.Web.HtmlEncoder"/> to be used for encoding HTML. For example,
-        /// used when encoding C# variables referenced on the page.
+        /// Gets the <see cref="System.Text.Encodings.Web.HtmlEncoder"/> to use when this <see cref="RazorPage"/>
+        /// handles non-<see cref="IHtmlContent"/> C# expressions.
         /// </summary>
         [RazorInject]
         public HtmlEncoder HtmlEncoder { get; set; }
@@ -200,11 +200,11 @@ namespace Microsoft.AspNet.Mvc.Razor
         }
 
         /// <summary>
-        /// Starts a new writing scope and overrides <see cref="HtmlEncoder"/> within that scope.
+        /// Starts a new writing scope and optionally overrides <see cref="HtmlEncoder"/> within that scope.
         /// </summary>
         /// <param name="encoder">
-        /// The <see cref="System.Text.Encodings.Web.HtmlEncoder"/> to use. Does not override all HTML encodings which
-        /// may occur.
+        /// The <see cref="System.Text.Encodings.Web.HtmlEncoder"/> to use when this <see cref="RazorPage"/> handles
+        /// non-<see cref="IHtmlContent"/> C# expressions. If <c>null</c>, does not change <see cref="HtmlEncoder"/>.
         /// </param>
         /// <remarks>
         /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
