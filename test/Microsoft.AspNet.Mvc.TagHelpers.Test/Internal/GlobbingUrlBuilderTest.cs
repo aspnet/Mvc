@@ -277,7 +277,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             Mock.Get(fileProvider).Setup(f => f.Watch(It.IsAny<string>())).Returns(changeToken.Object);
             var cache = MakeCache();
             Mock.Get(cache).Setup(c => c.Set(
-                /*key*/ It.IsAny<string>(),
+                /*key*/ It.IsAny<object>(),
                 /*value*/ It.IsAny<object>(),
                 /*options*/ It.IsAny<MemoryCacheEntryOptions>()))
                 .Returns(new object())
@@ -500,7 +500,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         private static IMemoryCache MakeCache(object result = null)
         {
             var cache = new Mock<IMemoryCache>();
-            cache.Setup(c => c.TryGetValue(It.IsAny<string>(), out result))
+            cache.Setup(c => c.TryGetValue(It.IsAny<object>(), out result))
                 .Returns(result != null);
             return cache.Object;
         }

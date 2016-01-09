@@ -3,11 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNet.FileProviders;
 using Microsoft.AspNet.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 {
@@ -17,6 +17,13 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
     /// </summary>
     public class GlobbingUrlBuilder
     {
+        private static readonly IList<string> EmptyList =
+#if NET451
+            new string[0];
+#else
+            Array.Empty<string>();
+#endif
+
         private static readonly char[] PatternSeparator = new[] { ',' };
 
         // Valid whitespace characters defined by the HTML5 spec.
@@ -75,61 +82,76 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
         /// <returns>The list of URLs</returns>
         public virtual ICollection<string> BuildUrlList(string staticUrl, string includePattern, string excludePattern)
         {
-            var urls = new HashSet<string>(StringComparer.Ordinal);
 
-            // Add the statically declared url if present
+            var urls = new List<string>();
             if (staticUrl != null)
             {
                 urls.Add(staticUrl);
             }
 
             // Add urls that match the globbing patterns specified
-            var matchedUrls = ExpandGlobbedUrl(includePattern, excludePattern);
-            urls.UnionWith(matchedUrls);
+            var globbedUrls = ExpandGlobbedUrl(includePattern, excludePattern);
+
+            // ExpandGlobbedUrl returns a sorted list. We can take advantage of this to perform an order preserving distinct.
+            string lastAddedEntry = null;
+            for (var i = 0; i < globbedUrls.Count; i++)
+            {
+                if (!string.Equals(staticUrl, globbedUrls[i], StringComparison.Ordinal) &&
+                    !string.Equals(lastAddedEntry, globbedUrls[i], StringComparison.Ordinal))
+                {
+                    lastAddedEntry = globbedUrls[i];
+                    urls.Add(lastAddedEntry);
+                }
+            }
 
             return urls;
         }
 
-        private IEnumerable<string> ExpandGlobbedUrl(string include, string exclude)
+        private IList<string> ExpandGlobbedUrl(string include, string exclude)
         {
             if (string.IsNullOrEmpty(include))
             {
-                return Enumerable.Empty<string>();
+                return EmptyList;
             }
-
-            var includePatterns = include.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
-            var excludePatterns = exclude?.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
-
-            if (includePatterns.Length == 0)
+            else if (Cache == null)
             {
-                return Enumerable.Empty<string>();
+                var includePatterns = include.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
+                if (includePatterns.Length == 0)
+                {
+                    return EmptyList;
+                }
+
+                return FindFiles(includePatterns, exclude);
             }
-
-            if (Cache != null)
+            else
             {
-                var cacheKey = $"{nameof(GlobbingUrlBuilder)}-inc:{include}-exc:{exclude}";
-                IEnumerable<string> files;
+                var cacheKey = new GlobbingUrlKey(include, exclude);
+                List<string> files;
                 if (!Cache.TryGetValue(cacheKey, out files))
                 {
-                    var options = new MemoryCacheEntryOptions();
+                    var includePatterns = include.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
+                    if (includePatterns.Length == 0)
+                    {
+                        return new List<string>();
+                    }
 
+                    var options = new MemoryCacheEntryOptions();
                     for (var i = 0; i < includePatterns.Length; i++)
                     {
                         var changeToken = FileProvider.Watch(includePatterns[i]);
                         options.AddExpirationToken(changeToken);
                     }
 
-                    files = FindFiles(includePatterns, excludePatterns);
+                    files = FindFiles(includePatterns, exclude);
 
                     Cache.Set(cacheKey, files, options);
                 }
+
                 return files;
             }
-
-            return FindFiles(includePatterns, excludePatterns);
         }
 
-        private IEnumerable<string> FindFiles(string[] includePatterns, string[] excludePatterns)
+        private List<string> FindFiles(string[] includePatterns, string exclude)
         {
             var matcher = MatcherBuilder != null ? MatcherBuilder() : new Matcher();
             var trimmedIncludePatterns = new List<string>();
@@ -139,9 +161,10 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
             matcher.AddIncludePatterns(trimmedIncludePatterns);
 
-            if (excludePatterns != null)
+            if (!string.IsNullOrWhiteSpace(exclude))
             {
-                var trimmedExcludePatterns = new List<string>();
+                var excludePatterns = exclude.Split(PatternSeparator, StringSplitOptions.RemoveEmptyEntries);
+                var trimmedExcludePatterns = new List<string>(excludePatterns.Length);
                 for (var i = 0; i < excludePatterns.Length; i++)
                 {
                     trimmedExcludePatterns.Add(TrimLeadingTildeSlash(excludePatterns[i]));
@@ -150,16 +173,16 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
 
             var matches = matcher.Execute(_baseGlobbingDirectory);
+            var matchedUrls = new List<string>();
+            foreach (var matchedPath in matches.Files)
+            {
+                // Resolve the path to site root
+                var relativePath = new PathString("/" + matchedPath.Path);
+                matchedUrls.Add(RequestPathBase.Add(relativePath).ToString());
+            }
 
-            return matches.Files.Select(ResolveMatchedPath)
-                .OrderBy(path => path, DefaultPathComparer);
-        }
-
-        private string ResolveMatchedPath(FilePatternMatch matchedPath)
-        {
-            // Resolve the path to site root
-            var relativePath = new PathString("/" + matchedPath.Path);
-            return RequestPathBase.Add(relativePath).ToString();
+            matchedUrls.Sort(DefaultPathComparer);
+            return matchedUrls;
         }
 
         private class PathComparer : IComparer<string>
@@ -189,41 +212,80 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 yExtIndex = yExtIndex > ySlashIndex ? yExtIndex : -1;
 
                 // Get paths without their extensions, if they have one
+                var xLength = xExtIndex >= 0 ? xExtIndex : x.Length;
+                var yLength = yExtIndex >= 0 ? yExtIndex : y.Length;
+                var compareLength = Math.Max(xLength, yLength);
+
+                if (string.Compare(x, 0, y, 0, compareLength, StringComparison.Ordinal) == 0)
+                {
+                    // Only extension differs so just compare the extension
+                    if (xExtIndex >= 0 && yExtIndex >= 0)
+                    {
+                        var length = x.Length - xExtIndex;
+                        return string.Compare(x, xExtIndex, y, yExtIndex, length, StringComparison.Ordinal);
+                    }
+
+                    return xExtIndex - yExtIndex;
+                }
+
                 var xNoExt = xExtIndex >= 0 ? x.Substring(0, xExtIndex) : x;
                 var yNoExt = yExtIndex >= 0 ? y.Substring(0, yExtIndex) : y;
 
-                if (string.Equals(xNoExt, yNoExt, StringComparison.Ordinal))
+                var result = 0;
+                var xTokenizer = new StringTokenizer(xNoExt, '/').GetEnumerator();
+                var yTokenizer = new StringTokenizer(yNoExt, '/').GetEnumerator();
+                StringSegment xSegment;
+                StringSegment ySegment;
+                while (TryGetNextSegment(ref xTokenizer, out xSegment))
                 {
-                    // Only extension differs so just compare the extension
-                    var xExt = xExtIndex >= 0 ? x.Substring(xExtIndex) : string.Empty;
-                    var yExt = yExtIndex >= 0 ? y.Substring(yExtIndex) : string.Empty;
-                    return string.Compare(xExt, yExt, StringComparison.Ordinal);
-                }
-
-                var xSegments = xNoExt.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                var ySegments = yNoExt.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (xSegments.Length != ySegments.Length)
-                {
-                    // Different path depths so shallower path wins
-                    return xSegments.Length.CompareTo(ySegments.Length);
-                }
-
-                // Depth is the same so compare each segment
-                for (int i = 0; i < xSegments.Length; i++)
-                {
-                    var xSegment = xSegments[i];
-                    var ySegment = ySegments[i];
-
-                    var xToY = string.Compare(xSegment, ySegment, StringComparison.Ordinal);
-                    if (xToY != 0)
+                    if (!TryGetNextSegment(ref yTokenizer, out ySegment))
                     {
-                        return xToY;
+                        // Different path depths (right is shorter), so shallower path wins.
+                        return 1;
+                    }
+
+                    if (result != 0)
+                    {
+                        // Once we've determined that a segment differs, we need to ensure that the two paths
+                        // are of equal depth.
+                        continue;
+                    }
+
+                    var length = Math.Max(xSegment.Length, ySegment.Length);
+                    result = string.Compare(
+                        xSegment.Buffer,
+                        xSegment.Offset,
+                        ySegment.Buffer,
+                        ySegment.Offset,
+                        length,
+                        StringComparison.Ordinal);
+                }
+
+                if (TryGetNextSegment(ref yTokenizer, out ySegment))
+                {
+                    // Different path depths (left is shorter). Shallower path wins.
+                    return -1;
+                }
+                else
+                {
+                    // Segments are of equal length
+                    return result;
+                }
+            }
+
+            private static bool TryGetNextSegment(ref StringTokenizer.Enumerator enumerator, out StringSegment segment)
+            {
+                while (enumerator.MoveNext())
+                {
+                    if (enumerator.Current.HasValue && enumerator.Current.Length > 0)
+                    {
+                        segment = enumerator.Current;
+                        return true;
                     }
                 }
 
-                // Should't get here, but if we do, hey, they're the same :)
-                return 0;
+                segment = default(StringSegment);
+                return false;
             }
         }
 
@@ -243,6 +305,26 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
 
             return result;
+        }
+
+        private struct GlobbingUrlKey : IEquatable<GlobbingUrlKey>
+        {
+            public GlobbingUrlKey(string include, string exclude)
+            {
+                Include = include;
+                Exclude = exclude;
+            }
+
+            public string Include { get; }
+
+            public string Exclude { get; }
+
+            public bool Equals(GlobbingUrlKey other)
+            {
+                return string.Equals(Include, other.Include, StringComparison.Ordinal) &&
+                    string.Equals(Exclude, other.Exclude, StringComparison.Ordinal);
+
+            }
         }
     }
 }
