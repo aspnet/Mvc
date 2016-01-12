@@ -30,5 +30,19 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         /// </summary>
         /// <value>Default <see cref="string"/> is "The value '{0}' is invalid.".</value>
         Func<string, string> ValueMustNotBeNullAccessor { get; }
+
+        /// <summary>
+        /// Error message the model binding system adds when <see cref="ModelError.Exception"/> is of type
+        /// <see cref="FormatException"/> and value is known.
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "The value '{0}' is not valid for {1}.".</value>
+        Func<string, string, string> InvalidValueWithKnownSuppliedValueAccessor { get; }
+
+        /// <summary>
+        /// Error message the model binding system adds when <see cref="ModelError.Exception"/> is of type
+        /// <see cref="FormatException"/> and value is unknown.
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "The supplied value is invalid for {0}.".</value>
+        Func<string, string> InvalidValueWithUnknownSuppliedValueAccessor { get; }
     }
 }

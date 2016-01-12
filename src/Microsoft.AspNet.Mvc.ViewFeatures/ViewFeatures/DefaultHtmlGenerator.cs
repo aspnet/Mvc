@@ -12,6 +12,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNet.Antiforgery;
 using Microsoft.AspNet.Html;
 using Microsoft.AspNet.Mvc.ModelBinding;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNet.Mvc.ModelBinding.Validation;
 using Microsoft.AspNet.Mvc.Rendering;
 using Microsoft.AspNet.Mvc.Routing;
@@ -38,12 +39,14 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <param name="antiforgery">The <see cref="IAntiforgery"/> instance which is used to generate antiforgery
         /// tokens.</param>
         /// <param name="optionsAccessor">The accessor for <see cref="MvcOptions"/>.</param>
+        /// <param name="viewOptionsAccessor">The accessor for <see cref="MvcViewOptions"/>.</param>
         /// <param name="metadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         public DefaultHtmlGenerator(
             IAntiforgery antiforgery,
-            IOptions<MvcViewOptions> optionsAccessor,
+            IOptions<MvcOptions> optionsAccessor,
+            IOptions<MvcViewOptions> viewOptionsAccessor,
             IModelMetadataProvider metadataProvider,
             IUrlHelperFactory urlHelperFactory,
             HtmlEncoder htmlEncoder)
@@ -51,6 +54,11 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             if (antiforgery == null)
             {
                 throw new ArgumentNullException(nameof(antiforgery));
+            }
+
+            if (viewOptionsAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(viewOptionsAccessor));
             }
 
             if (optionsAccessor == null)
@@ -74,14 +82,14 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             }
 
             _antiforgery = antiforgery;
-            var clientValidatorProviders = optionsAccessor.Value.ClientModelValidatorProviders;
+            var clientValidatorProviders = viewOptionsAccessor.Value.ClientModelValidatorProviders;
             _clientModelValidatorProvider = new CompositeClientModelValidatorProvider(clientValidatorProviders);
             _metadataProvider = metadataProvider;
             _urlHelperFactory = urlHelperFactory;
             _htmlEncoder = htmlEncoder;
 
             // Underscores are fine characters in id's.
-            IdAttributeDotReplacement = optionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
+            IdAttributeDotReplacement = viewOptionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
         }
 
         /// <inheritdoc />

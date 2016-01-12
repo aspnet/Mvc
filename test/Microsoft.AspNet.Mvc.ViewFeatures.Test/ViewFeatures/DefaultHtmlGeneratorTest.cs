@@ -655,6 +655,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
 
             return new DefaultHtmlGenerator(
                 antiforgery,
+                optionsAccessor.Object,
                 mvcViewOptionsAccessor.Object,
                 metadataProvider,
                 new UrlHelperFactory(),

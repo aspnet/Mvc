@@ -13,6 +13,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
         private Func<string, string> _missingBindRequiredValueAccessor;
         private Func<string> _missingKeyOrValueAccessor;
         private Func<string, string> _valueMustNotBeNullAccessor;
+        private Func<string, string, string> _valueInvalid_WithValueResource;
+        private Func<string, string> _valueInvalid_WithoutValueResource;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelBindingMessageProvider"/> class.
@@ -36,6 +38,8 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
             MissingBindRequiredValueAccessor = originalProvider.MissingBindRequiredValueAccessor;
             MissingKeyOrValueAccessor = originalProvider.MissingKeyOrValueAccessor;
             ValueMustNotBeNullAccessor = originalProvider.ValueMustNotBeNullAccessor;
+            InvalidValueWithUnknownSuppliedValueAccessor = originalProvider.InvalidValueWithUnknownSuppliedValueAccessor;
+            InvalidValueWithKnownSuppliedValueAccessor = originalProvider.InvalidValueWithKnownSuppliedValueAccessor;
         }
 
         /// <inheritdoc/>
@@ -71,6 +75,42 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Metadata
                 }
 
                 _missingKeyOrValueAccessor = value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Func<string, string> InvalidValueWithUnknownSuppliedValueAccessor
+        {
+            get
+            {
+                return _valueInvalid_WithoutValueResource;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _valueInvalid_WithoutValueResource = value;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Func<string, string, string> InvalidValueWithKnownSuppliedValueAccessor
+        {
+            get
+            {
+                return _valueInvalid_WithValueResource;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _valueInvalid_WithValueResource = value;
             }
         }
 

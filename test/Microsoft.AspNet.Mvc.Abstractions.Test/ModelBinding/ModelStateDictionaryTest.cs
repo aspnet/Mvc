@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNet.Mvc.ModelBinding.Metadata;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.ModelBinding
@@ -726,6 +727,27 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             var expected = "The supplied value is invalid for Length.";
             var dictionary = new ModelStateDictionary();
             var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
+
+            // Act
+            dictionary.TryAddModelError("key", new FormatException(), metadata);
+
+            // Assert
+            var error = Assert.Single(dictionary["key"].Errors);
+            Assert.Equal(expected, error.ErrorMessage);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ReturnCustomGenericErrorMessage_WhenModelStateNotSet()
+        {
+            // Arrange
+            var expected = "Hmm, the supplied value is not valid for Length.";
+            var dictionary = new ModelStateDictionary();
+            var bindingMessageProvider = TestModelMetadataProvider.CreateMessageProvider();
+            bindingMessageProvider.InvalidValueWithUnknownSuppliedValueAccessor =
+                (value) => $"Hmm, the supplied value is not valid for {value}.";
+            var bindingMetadataProvider = new DefaultBindingMetadataProvider(bindingMessageProvider);
+            var provider = TestModelMetadataProvider.CreateProvider(new[] { bindingMetadataProvider });
             var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
 
             // Act

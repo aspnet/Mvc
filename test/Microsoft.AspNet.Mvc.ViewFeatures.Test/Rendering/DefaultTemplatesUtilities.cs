@@ -232,8 +232,12 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 new ValidationAttributeAdapterProvider(),
                 localizationOptionsAccesor.Object,
                 stringLocalizerFactory: null));
-            var optionsAccessor = new Mock<IOptions<MvcViewOptions>>();
+            var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor
+                .SetupGet(o => o.Value)
+                .Returns(new MvcOptions());
+            var viewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
+            viewOptionsAccessor
                 .SetupGet(o => o.Value)
                 .Returns(options);
 
@@ -247,6 +251,7 @@ namespace Microsoft.AspNet.Mvc.Rendering
                 htmlGenerator = new DefaultHtmlGenerator(
                     Mock.Of<IAntiforgery>(),
                     optionsAccessor.Object,
+                    viewOptionsAccessor.Object,
                     provider,
                     urlHelperFactory.Object,
                     new HtmlTestEncoder());

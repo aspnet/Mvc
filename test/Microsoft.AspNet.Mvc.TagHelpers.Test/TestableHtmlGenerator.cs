@@ -32,7 +32,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
         public TestableHtmlGenerator(IModelMetadataProvider metadataProvider, IUrlHelper urlHelper)
             : this(
                   metadataProvider,
-                  GetOptions(),
+                  GetMvcViewOptions(),
                   urlHelper,
                   validationAttributes: new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase))
         {
@@ -45,6 +45,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             IDictionary<string, object> validationAttributes)
             : base(
                   Mock.Of<IAntiforgery>(),
+                  GetMvcOptions(),
                   options,
                   metadataProvider,
                   CreateUrlHelperFactory(urlHelper),
@@ -103,12 +104,22 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
             return ValidationAttributes;
         }
 
-        private static IOptions<MvcViewOptions> GetOptions()
+        private static IOptions<MvcViewOptions> GetMvcViewOptions()
         {
             var mockOptions = new Mock<IOptions<MvcViewOptions>>();
             mockOptions
                 .SetupGet(options => options.Value)
                 .Returns(new MvcViewOptions());
+
+            return mockOptions.Object;
+        }
+
+        private static IOptions<MvcOptions> GetMvcOptions()
+        {
+            var mockOptions = new Mock<IOptions<MvcOptions>>();
+            mockOptions
+                .SetupGet(options => options.Value)
+                .Returns(new MvcOptions());
 
             return mockOptions.Object;
         }

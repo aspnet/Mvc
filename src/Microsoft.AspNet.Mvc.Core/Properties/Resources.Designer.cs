@@ -1034,6 +1034,54 @@ namespace Microsoft.AspNet.Mvc.Core
             return GetString("HttpResponseStreamWriter_StreamNotWritable");
         }
 
+        /// <summary>
+        /// The supplied value is invalid for {0}.
+        /// </summary>
+        internal static string ModelError_InvalidValue_GenericMessage
+        {
+            get { return GetString("ModelError_InvalidValue_GenericMessage"); }
+        }
+
+        /// <summary>
+        /// The supplied value is invalid for {0}.
+        /// </summary>
+        internal static string FormatModelError_InvalidValue_GenericMessage(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelError_InvalidValue_GenericMessage"), p0);
+        }
+
+        /// <summary>
+        /// The value '{0}' is not valid for {1}.
+        /// </summary>
+        internal static string ModelError_InvalidValue_MessageWithModelValue
+        {
+            get { return GetString("ModelError_InvalidValue_MessageWithModelValue"); }
+        }
+
+        /// <summary>
+        /// The value '{0}' is not valid for {1}.
+        /// </summary>
+        internal static string FormatModelError_InvalidValue_MessageWithModelValue(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelError_InvalidValue_MessageWithModelValue"), p0, p1);
+        }
+
+        /// <summary>
+        /// The value '{0}' is invalid.
+        /// </summary>
+        internal static string Common_ValueNotValidForProperty
+        {
+            get { return GetString("Common_ValueNotValidForProperty"); }
+        }
+
+        /// <summary>
+        /// The value '{0}' is invalid.
+        /// </summary>
+        internal static string FormatCommon_ValueNotValidForProperty(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Common_ValueNotValidForProperty"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
