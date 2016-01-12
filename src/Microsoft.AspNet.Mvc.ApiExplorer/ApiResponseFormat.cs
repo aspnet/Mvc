@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNet.Mvc.Formatters;
-using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.ApiExplorer
 {
@@ -19,6 +19,6 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
         /// <summary>
         /// The media type of the response.
         /// </summary>
-        public MediaTypeHeaderValue MediaType { get; set; }
+        public StringSegment MediaType { get; set; }
     }
 }

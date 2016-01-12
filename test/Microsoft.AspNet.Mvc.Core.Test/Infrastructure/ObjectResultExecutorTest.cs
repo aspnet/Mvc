@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -43,12 +44,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                new[] { new MediaTypeHeaderValue("application/json") },
+                new[] { new StringSegment("application/json") },
                 formatters);
 
             // Assert
             Assert.Same(formatters[1], formatter);
-            Assert.Equal(new MediaTypeHeaderValue("application/json"), context.ContentType);
+            Assert.Equal(new StringSegment("application/json"), context.ContentType);
         }
 
         // For this test case probably the most common use case is when there is a format mapping based
@@ -98,12 +99,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                new[] { new MediaTypeHeaderValue("application/json") },
+                new[] { new StringSegment("application/json") },
                 formatters);
 
             // Assert
             Assert.Same(formatters[1], formatter);
-            Assert.Equal(new MediaTypeHeaderValue("application/json"), context.ContentType);
+            Assert.Equal(new StringSegment("application/json"), context.ContentType);
         }
 
         [Fact]
@@ -149,7 +150,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                new[] { new MediaTypeHeaderValue("application/json") },
+                new[] { new StringSegment("application/json") },
                 formatters);
 
             // Assert
@@ -240,12 +241,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                contentTypes.Select(contentType => MediaTypeHeaderValue.Parse(contentType)).ToList(),
+                contentTypes.Select(contentType => new StringSegment(contentType)).ToList(),
                 formatters);
 
             // Assert
             Assert.Same(formatters[1], formatter);
-            Assert.Equal(new MediaTypeHeaderValue(expectedContentType), context.ContentType);
+            Assert.Equal(new StringSegment(expectedContentType), context.ContentType);
         }
 
         [Fact]
@@ -270,12 +271,12 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                new List<MediaTypeHeaderValue>(),
+                new MediaTypeCollection(),
                 formatters);
 
             // Assert
             Assert.Same(formatters[1], formatter);
-            Assert.Equal(new MediaTypeHeaderValue("application/json"), context.ContentType);
+            Assert.Equal(new StringSegment("application/json"), context.ContentType);
             Assert.Null(context.FailedContentNegotiation);
         }
 
@@ -297,17 +298,17 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 objectType: null,
                 @object: null);
 
-            context.HttpContext.Request.Headers[HeaderNames.Accept] = "text/custom, application/custom";
+            context.HttpContext.Request.Headers[HeaderNames.Accept] = "text/custom,application/custom";
 
             // Act
             var formatter = executor.SelectFormatter(
                 context,
-                new MediaTypeHeaderValue[] { },
+                new StringSegment[] { },
                 formatters);
 
             // Assert
             Assert.Same(formatters[0], formatter);
-            Assert.Equal(new MediaTypeHeaderValue("application/xml"), context.ContentType);
+            Assert.Equal(new StringSegment("application/xml"), context.ContentType);
             Assert.True(context.FailedContentNegotiation);
         }
 
@@ -373,9 +374,14 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         {
             // Arrange
             var result = new ObjectResult("input");
-            result.ContentTypes = contentTypes
-                .Select(contentType => MediaTypeHeaderValue.Parse(contentType))
-                .ToList();
+
+            var mediaTypes = new MediaTypeCollection();
+            foreach (var contentType in contentTypes)
+            {
+                mediaTypes.Add(new StringSegment(contentType));
+            }
+
+            result.ContentTypes = mediaTypes;
 
             var executor = CreateExecutor();
 
@@ -395,7 +401,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         // Chrome & Opera
         [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", "application/json; charset=utf-8")]
         // IE
-        [InlineData("text/html, application/xhtml+xml, */*", "application/json; charset=utf-8")]
+        [InlineData("text/html,application/xhtml+xml,*/*", "application/json; charset=utf-8")]
         // Firefox & Safari
         [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "application/json; charset=utf-8")]
         // Misc
@@ -432,7 +438,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
         // Chrome & Opera
         [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8", "application/xml; charset=utf-8")]
         // IE
-        [InlineData("text/html, application/xhtml+xml, */*", "application/json; charset=utf-8")]
+        [InlineData("text/html,application/xhtml+xml,*/*", "application/json; charset=utf-8")]
         // Firefox & Safari
         [InlineData("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "application/xml; charset=utf-8")]
         // Misc
@@ -552,7 +558,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
                 SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/plain"));
 
                 SupportedEncodings.Add(Encoding.UTF8);
-            }
+        }
 
             public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
             {
@@ -572,7 +578,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             new public IOutputFormatter SelectFormatter(
                 OutputFormatterWriteContext formatterContext,
-                IList<MediaTypeHeaderValue> contentTypes,
+                IList<StringSegment> contentTypes,
                 IList<IOutputFormatter> formatters)
             {
                 return base.SelectFormatter(formatterContext, contentTypes, formatters);
@@ -593,7 +599,7 @@ namespace Microsoft.AspNet.Mvc.Infrastructure
 
             protected override IOutputFormatter SelectFormatter(
                 OutputFormatterWriteContext formatterContext,
-                IList<MediaTypeHeaderValue> contentTypes,
+                IList<StringSegment> contentTypes,
                 IList<IOutputFormatter> formatters)
             {
                 SelectedOutputFormatter = base.SelectFormatter(formatterContext, contentTypes, formatters);

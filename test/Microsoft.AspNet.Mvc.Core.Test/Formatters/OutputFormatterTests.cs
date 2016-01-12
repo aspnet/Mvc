@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Http.Internal;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Moq;
+using Moq.Protected;
 using Xunit;
 
 namespace Microsoft.AspNet.Mvc.Formatters
@@ -59,7 +61,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
                 typeof(string),
                 "someValue")
             {
-                ContentType = MediaTypeHeaderValue.Parse(httpRequest.Headers[HeaderNames.Accept]),
+                ContentType = new StringSegment(httpRequest.Headers[HeaderNames.Accept]),
             };
 
             // Act
@@ -69,17 +71,92 @@ namespace Microsoft.AspNet.Mvc.Formatters
             Assert.Equal(Encoding.GetEncoding(expectedEncoding), actualEncoding);
         }
 
+        [Theory]
+        [InlineData("application/json; charset=utf-16", "application/json; charset=utf-32")]
+        [InlineData("application/json; charset=utf-16; format=indent", "application/json; charset=utf-32; format=indent")]
+        public void WriteResponse_OverridesCharset_IfDifferentFromContentTypeCharset(
+            string contentType,
+            string expectedContentType)
+        {
+            // Arrange
+            var formatter = new Mock<OutputFormatter>();
+
+            formatter
+                .Setup(f => f.SelectCharacterEncoding(It.IsAny<OutputFormatterWriteContext>()))
+                .Returns(Encoding.UTF32);
+
+            var formatterContext = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null)
+            {
+                ContentType = new StringSegment(contentType),
+            };
+
+            // Act
+            formatter.Object.WriteAsync(formatterContext);
+
+            // Assert
+            Assert.Equal(new StringSegment(expectedContentType), formatterContext.ContentType);
+        }
+
+        [Theory]
+        [InlineData("application/json")]
+        [InlineData("application/json; charset=utf-16")]
+        public void WriteResponse_AddOrOverrideCharsetReturnsMediaTypeFromCache_IfEncodingIsUtf8(
+            string contentType)
+        {
+            // Arrange
+            var formatter = new Mock<OutputFormatter>();
+
+            formatter
+                .Setup(f => f.SelectCharacterEncoding(It.IsAny<OutputFormatterWriteContext>()))
+                .Returns(Encoding.UTF8);
+
+            var mediaTypeCache = new Dictionary<StringSegment, StringSegment>
+            {
+                {
+                    new StringSegment("application/json"),
+                    new StringSegment("application/json; charset=utf-8")
+                }
+            };
+
+            formatter
+                .Protected()
+                .SetupGet<IDictionary<StringSegment, StringSegment>>("OutputMediaTypeCache")
+                .Returns(mediaTypeCache);
+
+            var formatterContext = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                objectType: null,
+                @object: null)
+            {
+                ContentType = new StringSegment(contentType),
+            };
+
+            formatter.Object.SupportedMediaTypes.Add(new StringSegment("application/json"));
+
+            // Act
+            formatter.Object.WriteAsync(formatterContext);
+
+            // Assert
+            Assert.Equal(mediaTypeCache[new StringSegment("application/json")], formatterContext.ContentType);
+            Assert.Same(mediaTypeCache[new StringSegment("application/json")].Buffer, formatterContext.ContentType.Buffer);
+        }
+
         [Fact]
         public void WriteResponseContentHeaders_NoSupportedEncodings_NoEncodingIsSet()
         {
             // Arrange
             var formatter = new TestOutputFormatter();
 
-            var testContentType = MediaTypeHeaderValue.Parse("text/json");
+            var testContentType = new StringSegment("text/json");
 
             formatter.SupportedEncodings.Clear();
             formatter.SupportedMediaTypes.Clear();
-            formatter.SupportedMediaTypes.Add(testContentType);
+            formatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/json"));
 
             var context = new OutputFormatterWriteContext(
                 new DefaultHttpContext(),
@@ -94,11 +171,11 @@ namespace Microsoft.AspNet.Mvc.Formatters
             formatter.WriteResponseHeaders(context);
 
             // Assert
-            Assert.Null(context.ContentType.Encoding);
+            Assert.Null(MediaTypeHeaderValue.Parse(context.ContentType.Value).Encoding);
             Assert.Equal(testContentType, context.ContentType);
 
             // If we had set an encoding, it would be part of the content type header
-            Assert.Equal(testContentType, context.HttpContext.Response.GetTypedHeaders().ContentType);
+            Assert.Equal(MediaTypeHeaderValue.Parse(testContentType.Value), context.HttpContext.Response.GetTypedHeaders().ContentType);
         }
 
         [Fact]
@@ -154,7 +231,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
             formatter.SupportedTypes.Add(typeof(int));
 
             // Act
-            var contentTypes = formatter.GetSupportedContentTypes(contentType: null, objectType: typeof(string));
+            var contentTypes = formatter.GetSupportedContentTypes(
+                contentType: new StringSegment(buffer: null),
+                objectType: typeof(string));
 
             // Assert
             Assert.Null(contentTypes);
@@ -174,7 +253,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
                 typeof(string),
                 "Hello, world!")
             {
-                ContentType = formatter.SupportedMediaTypes[0],
+                ContentType = new StringSegment(formatter.SupportedMediaTypes[0].ToString()),
             };
 
             // Act
@@ -194,7 +273,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
             formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
 
             // Act
-            var contentTypes = formatter.GetSupportedContentTypes(contentType: null, objectType: typeof(string));
+            var contentTypes = formatter.GetSupportedContentTypes(
+                contentType: new StringSegment(buffer: null),
+                objectType: typeof(string));
 
             // Assert
             Assert.Equal(2, contentTypes.Count);
@@ -214,7 +295,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             // Act
             var contentTypes = formatter.GetSupportedContentTypes(
-                MediaTypeHeaderValue.Parse("application/*"),
+                new StringSegment(("application/*")),
                 typeof(int));
 
             // Assert
@@ -234,7 +315,7 @@ namespace Microsoft.AspNet.Mvc.Formatters
 
             // Act
             var contentTypes = formatter.GetSupportedContentTypes(
-                MediaTypeHeaderValue.Parse("application/xml"),
+                new StringSegment(("application/xml")),
                 typeof(int));
 
             // Assert
@@ -251,7 +332,9 @@ namespace Microsoft.AspNet.Mvc.Formatters
             formatter.SupportedMediaTypes.Clear();
 
             // Act
-            var contentTypes = formatter.GetSupportedContentTypes(contentType: null, objectType: typeof(int));
+            var contentTypes = formatter.GetSupportedContentTypes(
+                contentType: new StringSegment(buffer: null),
+                objectType: typeof(int));
 
             // Assert
             Assert.Null(contentTypes);

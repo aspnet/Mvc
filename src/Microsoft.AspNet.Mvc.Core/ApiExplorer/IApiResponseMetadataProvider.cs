@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNet.Mvc.ApiExplorer
 {
@@ -20,6 +20,6 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
         /// <summary>
         /// Configures a collection of allowed content types which can be produced by the action.
         /// </summary>
-        void SetContentTypes(IList<MediaTypeHeaderValue> contentTypes);
+        void SetContentTypes(IList<StringSegment> contentTypes);
     }
 }

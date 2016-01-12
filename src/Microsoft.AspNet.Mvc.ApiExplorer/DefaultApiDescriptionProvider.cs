@@ -15,6 +15,7 @@ using Microsoft.AspNet.Routing;
 using Microsoft.AspNet.Routing.Template;
 using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNet.Mvc.ApiExplorer
@@ -311,7 +312,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
 
             // Walk through all 'filter' attributes in order, and allow each one to see or override
             // the results of the previous ones. This is similar to the execution path for content-negotiation.
-            var contentTypes = new List<MediaTypeHeaderValue>();
+            var contentTypes = new List<StringSegment>();
             if (responseMetadataAttributes != null)
             {
                 foreach (var metadataAttribute in responseMetadataAttributes)
@@ -322,7 +323,7 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
 
             if (contentTypes.Count == 0)
             {
-                contentTypes.Add(null);
+                contentTypes.Add(new StringSegment(buffer: null));
             }
 
             foreach (var contentType in contentTypes)
@@ -332,7 +333,9 @@ namespace Microsoft.AspNet.Mvc.ApiExplorer
                     var responseFormatMetadataProvider = formatter as IApiResponseFormatMetadataProvider;
                     if (responseFormatMetadataProvider != null)
                     {
-                        var supportedTypes = responseFormatMetadataProvider.GetSupportedContentTypes(contentType, type);
+                        var supportedTypes = responseFormatMetadataProvider.GetSupportedContentTypes(
+                            contentType,
+                            type);
 
                         if (supportedTypes != null)
                         {
