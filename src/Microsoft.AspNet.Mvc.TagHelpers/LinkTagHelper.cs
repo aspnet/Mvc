@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -341,10 +342,15 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 .AppendHtml(JavaScriptEncoder.Encode(FallbackTestValue))
                 .AppendHtml("\",");
 
-            builder.AppendHtml("[");
+            AppendFallbackHrefs(builder, fallbackHrefs);
+            builder.AppendHtml("</script>");
+        }
 
-                // Perf: Avoid allocating enumerator
+        private void AppendFallbackHrefs(TagHelperContent builder, IReadOnlyList<string> fallbackHrefs)
+        {
+            builder.AppendHtml("[");
             var firstAdded = false;
+            // Perf: Avoid allocating enumerator
             for (var i = 0; i < fallbackHrefs.Count; i++)
             {
                 if (firstAdded)
@@ -368,8 +374,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers
                 builder.AppendHtml(JavaScriptEncoder.Encode(valueToWrite));
                 builder.AppendHtml("\"");
             }
-
-            builder.AppendHtml("]);</script>");
+            builder.AppendHtml("]);");
         }
 
         private void EnsureGlobbingUrlBuilder()

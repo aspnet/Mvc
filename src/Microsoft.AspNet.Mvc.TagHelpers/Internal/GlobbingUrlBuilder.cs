@@ -119,35 +119,26 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
 
             var cacheKey = new GlobbingUrlKey(include, exclude);
             List<string> files;
-            if (!Cache.TryGetValue(cacheKey, out files))
+            if (Cache.TryGetValue(cacheKey, out files))
             {
-                var includeTokenizer = new StringTokenizer(include, ',');
-                var includeEnumerator = includeTokenizer.GetEnumerator();
-                if (!includeEnumerator.MoveNext())
-                {
-                    return EmptyList;
-                }
-
-                var options = new MemoryCacheEntryOptions();
-                var trimmedIncludePatterns = new List<string>();
-                foreach (var includePattern in includeTokenizer)
-                {
-                    var changeToken = FileProvider.Watch(includePattern.Value);
-                    options.AddExpirationToken(changeToken);
-                    trimmedIncludePatterns.Add(TrimLeadingTildeSlash(includePattern));
-                }
-
-                files = Cache.Set<List<string>>(
-                    cacheKey,
-                    FindFiles(trimmedIncludePatterns, exclude),
-                    options);
+                return files;
             }
 
-            return files;
-        }
+            var includeTokenizer = new StringTokenizer(include, ',');
+            var includeEnumerator = includeTokenizer.GetEnumerator();
+            if (!includeEnumerator.MoveNext())
+            {
+                return EmptyList;
+            }
 
-        private List<string> FindFiles(List<string> trimmedIncludePatterns, string exclude)
-        {
+            var options = new MemoryCacheEntryOptions();
+            var trimmedIncludePatterns = new List<string>();
+            foreach (var includePattern in includeTokenizer)
+            {
+                var changeToken = FileProvider.Watch(includePattern.Value);
+                options.AddExpirationToken(changeToken);
+                trimmedIncludePatterns.Add(NormalizePath(includePattern));
+            }
             var matcher = MatcherBuilder != null ? MatcherBuilder() : new Matcher();
             matcher.AddIncludePatterns(trimmedIncludePatterns);
 
@@ -157,11 +148,19 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 var trimmedExcludePatterns = new List<string>();
                 foreach (var excludePattern in excludeTokenizer)
                 {
-                    trimmedExcludePatterns.Add(TrimLeadingTildeSlash(excludePattern));
+                    trimmedExcludePatterns.Add(NormalizePath(excludePattern));
                 }
                 matcher.AddExcludePatterns(trimmedExcludePatterns);
             }
 
+            return Cache.Set<List<string>>(
+                cacheKey,
+                FindFiles(matcher),
+                options);
+        }
+
+        private List<string> FindFiles(Matcher matcher)
+        {
             var matches = matcher.Execute(_baseGlobbingDirectory);
             var matchedUrls = new List<string>();
             foreach (var matchedPath in matches.Files)
@@ -210,6 +209,14 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
                 var xLength = xExtIndex >= 0 ? xExtIndex : x.Length;
                 var yLength = yExtIndex >= 0 ? yExtIndex : y.Length;
                 var compareLength = Math.Max(xLength, yLength);
+
+                // In the resulting sequence, we want shorter paths to appear prior to longer paths. For paths of equal
+                // depth, we'll compare individual segments. The first segment that differs determines the result.
+                // For e.g.
+                // Foo.cshtml < Foo.xhtml
+                // Bar.cshtml < Foo.cshtml
+                // ZZ/z.txt < A/A/a.txt
+                // ZZ/a/z.txt < ZZ/z/a.txt
 
                 if (string.Compare(x, 0, y, 0, compareLength, StringComparison.Ordinal) == 0)
                 {
@@ -284,7 +291,7 @@ namespace Microsoft.AspNet.Mvc.TagHelpers.Internal
             }
         }
 
-        private static string TrimLeadingTildeSlash(StringSegment value)
+        private static string NormalizePath(StringSegment value)
         {
             if (!value.HasValue || value.Length == 0)
             {
