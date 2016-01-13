@@ -25,9 +25,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
             buffer.Append("Hello world");
 
             // Assert
-            var segment = Assert.Single(buffer.BufferSegments);
-            Assert.Equal(1, buffer.CurrentCount);
-            Assert.Equal("Hello world", segment[0].Value);
+            var page = Assert.Single(buffer.Pages);
+            Assert.Equal(1, page.Count);
+            Assert.Equal("Hello world", page.Buffer[0].Value);
         }
 
         [Fact]
@@ -41,9 +41,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
             buffer.AppendHtml(content);
 
             // Assert
-            var segment = Assert.Single(buffer.BufferSegments);
-            Assert.Equal(1, buffer.CurrentCount);
-            Assert.Same(content, segment[0].Value);
+            var page = Assert.Single(buffer.Pages);
+            Assert.Equal(1, page.Count);
+            Assert.Same(content, page.Buffer[0].Value);
         }
 
         [Fact]
@@ -57,14 +57,14 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
             buffer.AppendHtml(value);
 
             // Assert
-            var segment = Assert.Single(buffer.BufferSegments);
-            Assert.Equal(1, buffer.CurrentCount);
-            var htmlString = Assert.IsType<HtmlString>(segment[0].Value);
+            var page = Assert.Single(buffer.Pages);
+            Assert.Equal(1, page.Count);
+            var htmlString = Assert.IsType<HtmlString>(page.Buffer[0].Value);
             Assert.Equal("Hello world", htmlString.ToString());
         }
 
         [Fact]
-        public void Append_CreatesNewSegments_WhenCurrentSegmentIsFull()
+        public void Append_CreatesNewPages_WhenCurrentPageIsFull()
         {
             // Arrange
             var buffer = new ViewBuffer(new TestViewBufferScope(), "some-name");
@@ -79,12 +79,12 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
             buffer.Append("world");
 
             // Assert
-            Assert.Equal(2, buffer.CurrentCount);
-            Assert.Collection(buffer.BufferSegments,
-                segment => Assert.Equal(expected, segment.Select(v => v.Value)),
-                segment =>
+            Assert.Equal(2, buffer.Pages[0].Count);
+            Assert.Collection(buffer.Pages,
+                page => Assert.Equal(expected, page.Buffer.Select(v => v.Value)),
+                page =>
                 {
-                    var array = segment;
+                    var array = page.Buffer;
                     Assert.Equal("Hello", array[0].Value);
                     Assert.Equal("world", array[1].Value);
                 });
@@ -107,9 +107,9 @@ namespace Microsoft.AspNet.Mvc.Razor.Buffer
             buffer.Append("world");
 
             // Assert
-            var segment = Assert.Single(buffer.BufferSegments);
-            Assert.Equal(1, buffer.CurrentCount);
-            Assert.Equal("world", segment[0].Value);
+            var page = Assert.Single(buffer.Pages);
+            Assert.Equal(1, page.Count);
+            Assert.Equal("world", page.Buffer[0].Value);
         }
 
         [Fact]

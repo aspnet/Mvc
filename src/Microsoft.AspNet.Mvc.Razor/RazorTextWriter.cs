@@ -99,15 +99,7 @@ namespace Microsoft.AspNet.Mvc.Razor
         /// <inheritdoc />
         public override void Write(IHtmlContent value)
         {
-            var htmlTextWriter = TargetWriter as HtmlTextWriter;
-            if (htmlTextWriter == null)
-            {
-                value.WriteTo(TargetWriter, HtmlEncoder);
-            }
-            else
-            {
-                htmlTextWriter.Write(value);
-            }
+            value.WriteTo(TargetWriter, HtmlEncoder);
         }
 
         /// <inheritdoc />

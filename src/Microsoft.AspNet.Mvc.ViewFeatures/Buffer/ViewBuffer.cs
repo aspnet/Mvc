@@ -37,17 +37,14 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 
             _bufferScope = bufferScope;
             _name = name;
+
+            Pages = new List<ViewBufferPage>();
         }
 
         /// <summary>
         /// Gets the backing buffer.
         /// </summary>
-        public IList<ViewBufferValue[]> BufferSegments { get; private set; }
-
-        /// <summary>
-        /// Gets the count of entries in the last element of <see cref="BufferSegments"/>.
-        /// </summary>
-        public int CurrentCount { get; private set; }
+        public IList<ViewBufferPage> Pages { get; }
 
         /// <inheritdoc />
         public IHtmlContentBuilder Append(string unencoded)
@@ -69,7 +66,49 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
                 return this;
             }
 
-            AppendValue(new ViewBufferValue(content));
+            // Perf: special case ViewBuffers so we can 'combine' them.
+            var otherBuffer = content as ViewBuffer;
+            if (otherBuffer == null)
+            {
+                AppendValue(new ViewBufferValue(content));
+                return this;
+            }
+
+            for (var i = 0; i < otherBuffer.Pages.Count; i++)
+            {
+                var otherPage = otherBuffer.Pages[i];
+
+                // If we haven't started writing a page yet, then let's copy from the other buffer.
+                if (Pages.Count == 0 || Pages[Pages.Count - 1].IsFull)
+                {
+                    Pages.Add(otherPage);
+                    continue;
+                }
+
+                // If the other page is less than half full, let's blit it's contents if we
+                // have room.
+                var isLessThanHalfFull = (double)(otherPage.Capacity - otherPage.Count) / otherPage.Capacity > .5;
+                var currentPage = Pages[Pages.Count - 1];
+                if (isLessThanHalfFull && currentPage.Capacity - currentPage.Count > otherPage.Count)
+                {
+                    // We have room, let's copy the items.
+                    for (var j = 0; j < otherPage.Count; j++)
+                    {
+                        currentPage.Buffer[j + currentPage.Count] = otherPage.Buffer[j];
+                    }
+
+                    currentPage.Count += otherPage.Count;
+
+                    // Now we can return this page, and it can be reused in the scope of this request.
+                    _bufferScope.ReturnSegment(otherPage.Buffer);
+                }
+
+                // Otherwise, let's just take the the page from the other buffer.
+                Pages.Add(otherPage);
+
+            }
+
+            otherBuffer.Clear();
             return this;
         }
 
@@ -88,35 +127,37 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 
         private void AppendValue(ViewBufferValue value)
         {
-            ViewBufferValue[] segment;
-            if (BufferSegments == null)
+            var page = GetCurrentPage();
+            page.Append(value);
+        }
+
+        private ViewBufferPage GetCurrentPage()
+        {
+            ViewBufferPage page;
+            if (Pages.Count == 0)
             {
-                BufferSegments = new List<ViewBufferValue[]>(1);
-                segment = _bufferScope.GetSegment();
-                BufferSegments.Add(segment);
+                page = new ViewBufferPage(_bufferScope.GetSegment());
+                Pages.Add(page);
             }
             else
             {
-                segment = BufferSegments[BufferSegments.Count - 1];
-                if (CurrentCount == segment.Length)
+                page = Pages[Pages.Count - 1];
+                if (page.IsFull)
                 {
-                    segment = _bufferScope.GetSegment();
-                    BufferSegments.Add(segment);
-                    CurrentCount = 0;
+                    page = new ViewBufferPage(_bufferScope.GetSegment());
+                    Pages.Add(page);
                 }
             }
 
-            segment[CurrentCount] = value;
-            CurrentCount++;
+            return page;
         }
 
         /// <inheritdoc />
         public IHtmlContentBuilder Clear()
         {
-            if (BufferSegments != null)
+            if (Pages != null)
             {
-                CurrentCount = 0;
-                BufferSegments = null;
+                Pages.Clear();
             }
 
             return this;
@@ -125,7 +166,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
         /// <inheritdoc />
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
-            if (BufferSegments == null)
+            if (Pages == null)
             {
                 return;
             }
@@ -137,14 +178,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
                 return;
             }
 
-            for (var i = 0; i < BufferSegments.Count; i++)
+            for (var i = 0; i < Pages.Count; i++)
             {
-                var segment = BufferSegments[i];
-                var count = i == BufferSegments.Count - 1 ? CurrentCount : segment.Length;
-
-                for (var j = 0; j < count; j++)
+                var page = Pages[i];
+                for (var j = 0; j < page.Count; j++)
                 {
-                    var value = segment[j];
+                    var value = page.Buffer[j];
 
                     var valueAsString = value.Value as string;
                     if (valueAsString != null)
@@ -171,7 +210,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
         /// <returns>A <see cref="Task"/> which will complete once content has been written.</returns>
         public async Task WriteToAsync(TextWriter writer, HtmlEncoder encoder)
         {
-            if (BufferSegments == null)
+            if (Pages == null)
             {
                 return;
             }
@@ -183,14 +222,12 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
                 return;
             }
 
-            for (var i = 0; i < BufferSegments.Count; i++)
+            for (var i = 0; i < Pages.Count; i++)
             {
-                var segment = BufferSegments[i];
-                var count = i == BufferSegments.Count - 1 ? CurrentCount : segment.Length;
-
-                for (var j = 0; j < count; j++)
+                var page = Pages[i];
+                for (var j = 0; j < page.Count; j++)
                 {
-                    var value = segment[j];
+                    var value = page.Buffer[j];
 
                     var valueAsString = value.Value as string;
                     if (valueAsString != null)
@@ -218,135 +255,5 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
         }
 
         private string DebuggerToString() => _name;
-
-        private class HtmlContentTextWriter : TextWriter
-        {
-            private const int PageSize = 1024;
-
-            private readonly TextWriter _inner;
-            private readonly List<char[]> _pages;
-            private readonly ArrayPool<char> _pool;
-
-            private int _currentPage;
-            private int _currentIndex; // The next 'free' character
-
-            public HtmlContentTextWriter(ArrayPool<char> pool, TextWriter inner)
-            {
-                _pool = pool;
-                _inner = inner;
-                _pages = new List<char[]>();
-            }
-
-            public override Encoding Encoding => _inner.Encoding;
-
-            public override void Flush()
-            {
-                // Don't do anything. We'll call FlushAsync.
-            }
-
-            public override async Task FlushAsync()
-            {
-                for (var i = 0; i <= _currentPage; i++)
-                {
-                    var page = _pages[i];
-
-                    var count = i == _currentPage ? _currentIndex : page.Length;
-                    await _inner.WriteAsync(page, 0, count);
-                }
-
-                _currentPage = 0;
-                _currentIndex = 0;
-            }
-
-            public override void Write(char value)
-            {
-                var page = GetCurrentPage();
-                page[_currentIndex++] = value;
-            }
-
-            public override void Write(char[] buffer)
-            {
-                Write(buffer, 0, buffer.Length);
-            }
-
-            public override void Write(char[] buffer, int index, int count)
-            {
-                while (count > 0)
-                {
-                    var page = GetCurrentPage();
-                    var copyLength = page.Length - _currentIndex;
-                    Debug.Assert(copyLength > 0);
-
-                    System.Buffer.BlockCopy(
-                        buffer,
-                        index, 
-                        page,
-                        _currentIndex,
-                        copyLength);
-
-                    _currentIndex += copyLength;
-                    index += copyLength;
-
-                    count -= copyLength;
-                }
-            }
-
-            public override void Write(string value)
-            {
-                var index = 0;
-                var count = value.Length;
-
-                while (count > 0)
-                {
-                    var page = GetCurrentPage();
-                    var copyLength = page.Length - _currentIndex;
-                    Debug.Assert(copyLength > 0);
-
-                    value.CopyTo(
-                        index,
-                        page,
-                        _currentIndex,
-                        copyLength);
-
-                    _currentIndex += copyLength;
-                    index += copyLength;
-
-                    count -= copyLength;
-                }
-            }
-
-            private char[] GetCurrentPage()
-            {
-                var page = _pages.Count == 0 ? null : _pages[_currentPage];
-                if (page == null || _currentIndex == page.Length)
-                {
-                    // Current page is full.
-                    _currentPage++;
-                    _currentIndex = 0;
-
-                    if (_pages.Count > _currentPage)
-                    {
-                        page = _pages[_currentPage];
-                    }
-                    else
-                    {
-                        page = _pool.Rent(PageSize);
-                        _pages.Add(page);
-                    }
-                }
-
-                return page;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-
-                for (var i = 0; i < _pages.Count; i++)
-                {
-                    _pool.Return(_pages[i]);
-                }
-            }
-        }
     }
 }
