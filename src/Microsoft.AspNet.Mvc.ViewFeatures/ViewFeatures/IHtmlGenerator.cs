@@ -324,7 +324,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
             object htmlAttributes);
 
         /// <summary>
-        /// Generate a <paramref name="tag"> element if the <paramref name="viewContext"/>'s
+        /// Generate a <paramref name="tag"/> element if the <paramref name="viewContext"/>'s
         /// <see cref="ActionContext.ModelState"/> contains an error for the <paramref name="expression"/>.
         /// </summary>
         /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
@@ -344,7 +344,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures
         /// <see cref="IDictionary{string, object}"/> instance containing the HTML attributes.
         /// </param>
         /// <returns>
-        /// A <see cref="TagBuilder"/> containing a <paramref name="tag"> element if the
+        /// A <see cref="TagBuilder"/> containing a <paramref name="tag"/> element if the
         /// <paramref name="viewContext"/>'s <see cref="ActionContext.ModelState"/> contains an error for the
         /// <paramref name="expression"/> or (as a placeholder) if client-side validation is enabled. <c>null</c> if
         /// the <paramref name="expression"/> is valid and client-side validation is disabled.
