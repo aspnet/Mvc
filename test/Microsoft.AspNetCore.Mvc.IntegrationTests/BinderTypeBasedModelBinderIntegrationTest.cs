@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelState = operationContext.ActionContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
 
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, modelBindingResult);
+            Assert.Equal(null, modelBindingResult);
 
             // ModelState (not set unless inner binder sets it)
             Assert.True(modelState.IsValid);
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.Equal(ModelBindingResult.NoResult, modelBindingResult);
+            Assert.Equal(null, modelBindingResult);
 
             // ModelState
             Assert.True(modelState.IsValid);
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             // Assert
 
             // ModelBindingResult
-            Assert.Equal(ModelBindingResult.NoResult, modelBindingResult);
+            Assert.Equal(null, modelBindingResult);
 
             // ModelState
             Assert.True(modelState.IsValid);
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelState = operationContext.ActionContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
 
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelState = operationContext.ActionContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
 
@@ -260,7 +260,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelState = operationContext.ActionContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
 

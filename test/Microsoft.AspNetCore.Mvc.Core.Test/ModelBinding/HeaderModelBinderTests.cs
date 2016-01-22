@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.Equal(headerValue.Split(','), result.Model);
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.Equal(headerValue, result.Model);
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(modelBindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         private static ModelBindingContext GetBindingContext(Type modelType)

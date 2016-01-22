@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
 
             var entry = bindingContext.ValidationState[result.Model];
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         // We only support IFormCollection here. Using the concrete type won't work.
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             var form = Assert.IsAssignableFrom<IFormCollection>(result.Model);
             Assert.Empty(form);
         }

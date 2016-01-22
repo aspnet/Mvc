@@ -9,7 +9,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding
             IModelBindingContext context)
         {
             await binder.BindModelAsync(context);
-            return context.Result.HasValue ? context.Result.Value : ModelBindingResult.NoResult;
+            return context.Result ?? default(ModelBindingResult);
         }
     }
 }

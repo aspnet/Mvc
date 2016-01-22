@@ -298,14 +298,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             set
             {
-                if (value.HasValue && value.Value == ModelBindingResult.NoResult)
+#if DEBUG
+                if (value.HasValue && value.Value == default(ModelBindingResult))
                 {
-                    value = null;
+                    throw new ArgumentException(nameof(ModelBindingResult));
                 }
-                else
-                {
-                    _state.Result = value;
-                }
+#endif
+
+                _state.Result = value;
             }
         }
 

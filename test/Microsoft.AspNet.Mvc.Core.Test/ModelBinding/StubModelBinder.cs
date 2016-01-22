@@ -17,7 +17,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             _callback = context => Internal.TaskCache.CompletedTask;
         }
 
-        public StubModelBinder(ModelBindingResult result)
+        public StubModelBinder(ModelBindingResult? result)
         {
             _callback = context =>
             {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.Mvc.ModelBinding.Test
             };
         }
 
-        public StubModelBinder(Func<IModelBindingContext, Task<ModelBindingResult>> callback)
+        public StubModelBinder(Func<IModelBindingContext, Task<ModelBindingResult?>> callback)
         {
             _callback = async context =>
             {

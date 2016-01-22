@@ -13,18 +13,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public struct ModelBindingResult : IEquatable<ModelBindingResult>
     {
         /// <summary>
-        /// A <see cref="ModelBinding"/> representing the lack of a result. The model binding
-        /// system will continue to execute other model binders.
-        /// </summary>
-        public static readonly ModelBindingResult NoResult = new ModelBindingResult();
-
-        /// <summary>
-        /// Returns a completed <see cref="Task{ModelBindingResult}"/> representing the lack of a result. The model
-        /// binding system will continue to execute other model binders.
-        /// </summary>
-        public static readonly Task<ModelBindingResult> NoResultAsync = Task.FromResult(NoResult);
-
-        /// <summary>
         /// Creates a <see cref="ModelBindingResult"/> representing a failed model binding operation.
         /// </summary>
         /// <param name="key">The key of the current model binding operation.</param>

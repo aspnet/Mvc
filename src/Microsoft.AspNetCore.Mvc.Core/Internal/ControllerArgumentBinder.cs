@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return actionArguments;
         }
 
-        public async Task<ModelBindingResult> BindModelAsync(
+        public async Task<ModelBindingResult?> BindModelAsync(
             ParameterDescriptor parameter,
             OperationBindingContext operationContext)
         {
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     modelBindingResult.Value.Model);
             }
 
-            return modelBindingResult.HasValue ? modelBindingResult.Value : ModelBindingResult.NoResult;
+            return modelBindingResult;
         }
 
         // Called via reflection.
@@ -226,9 +226,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var parameter = parameterMetadata[i];
                 var modelBindingResult = await BindModelAsync(parameter, operationContext);
-                if (modelBindingResult.IsModelSet)
+                if (modelBindingResult != null && modelBindingResult.Value.IsModelSet)
                 {
-                    arguments[parameter.Name] = modelBindingResult.Model;
+                    arguments[parameter.Name] = modelBindingResult.Value.Model;
                 }
             }
 

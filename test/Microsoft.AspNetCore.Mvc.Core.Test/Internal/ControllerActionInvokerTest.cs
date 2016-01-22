@@ -2091,7 +2091,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var binder = new Mock<IModelBinder>();
             binder.Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                  .Returns(ModelBindingResult.NoResultAsync);
+                  .Returns(Internal.TaskCache.CompletedTask);
             var context = new Mock<HttpContext>();
             context.SetupGet(c => c.Items)
                    .Returns(new Dictionary<object, object>());

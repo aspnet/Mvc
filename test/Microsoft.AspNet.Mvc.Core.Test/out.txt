@@ -1,0 +1,320 @@
+xUnit.net DNX Runner (32-bit DNX 4.5.1)
+  Discovering: Microsoft.AspNet.Mvc.Core.Test
+  Discovered:  Microsoft.AspNet.Mvc.Core.Test
+  Starting:    Microsoft.AspNet.Mvc.Core.Test
+      Assert.Equal() Failure
+      Expected: [42, some-value]
+      Actual:   (null)
+      Stack Trace:
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\KeyValuePairModelBinderTest.cs(99,0): at Microsoft.AspNet.Mvc.ModelBinding.Test.KeyValuePairModelBinderTest.<BindModel_SubBindingSucceeds>d__3.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.InvalidOperationException : Nullable object must have a value.
+      Stack Trace:
+           at System.ThrowHelper.ThrowInvalidOperationException(ExceptionResource resource)
+           at System.Nullable`1.get_Value()
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\DictionaryModelBinder.cs(39,0): at Microsoft.AspNet.Mvc.ModelBinding.DictionaryModelBinder`2.<BindModelAsync>d__0.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Internal\ModelBinderExtensions.cs(11,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBinderExtensions.<BindModelResultAsync>d__0.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\DictionaryModelBinderTest.cs(372,0): at Microsoft.AspNet.Mvc.ModelBinding.Test.DictionaryModelBinderTest.<DictionaryModelBinder_DoesNotCreateCollection_IfNotIsTopLevelObject>d__12.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.InvalidOperationException : Nullable object must have a value.
+      Stack Trace:
+           at System.ThrowHelper.ThrowInvalidOperationException(ExceptionResource resource)
+           at System.Nullable`1.get_Value()
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\DictionaryModelBinder.cs(39,0): at Microsoft.AspNet.Mvc.ModelBinding.DictionaryModelBinder`2.<BindModelAsync>d__0.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Internal\ModelBinderExtensions.cs(11,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBinderExtensions.<BindModelResultAsync>d__0.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\DictionaryModelBinderTest.cs(372,0): at Microsoft.AspNet.Mvc.ModelBinding.Test.DictionaryModelBinderTest.<DictionaryModelBinder_DoesNotCreateCollection_IfNotIsTopLevelObject>d__12.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Moq.MockException : 
+      Expected invocation on the mock once, but was 0 times: o => o.Validate(It.IsAny<ActionContext>(), It.IsAny<IModelValidatorProvider>(), It.IsAny<ValidationStateDictionary>(), It.IsAny<String>(), It.IsAny<Object>())
+      
+      Configured setups:
+      o => o.Validate(It.IsAny<ActionContext>(), It.IsAny<IModelValidatorProvider>(), It.IsAny<ValidationStateDictionary>(), It.IsAny<String>(), It.IsAny<Object>()), Times.Never
+      No invocations performed.
+      Stack Trace:
+           at Moq.Mock.ThrowVerifyException(MethodCall expected, IEnumerable`1 setups, IEnumerable`1 actualCalls, Expression expression, Times times, Int32 callCount)
+           at Moq.Mock.VerifyCalls(Interceptor targetInterceptor, MethodCall expected, Expression expression, Times times)
+           at Moq.Mock.Verify[T](Mock`1 mock, Expression`1 expression, Times times, String failMessage)
+           at Moq.Mock`1.Verify(Expression`1 expression, Times times)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(158,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_CallsValidator_IfModelBinderSucceeds>d__3.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : Invalid callback. Setup on method with parameters (IModelBindingContext) cannot invoke callback with parameters (ModelBindingContext).
+      Stack Trace:
+           at Moq.MethodCall.ThrowParameterMismatch(ParameterInfo[] expected, ParameterInfo[] actual)
+           at Moq.MethodCall.SetCallbackWithArguments(Delegate callback)
+           at Moq.MethodCallReturn`2.SetCallbackWithArguments(Delegate callback)
+           at Moq.MethodCallReturn`2.Callback[T](Action`1 callback)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(106,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_AddsActionArguments_IfBinderReturnsNotNull>d__2.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Assert.Equal() Failure
+      Expected: List<String> ["Hello", "World", "!!"]
+      Actual:   List<String> ["goodbye"]
+      Stack Trace:
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(351,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_AddsToCollectionControllerProperties>d__8.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Assert.Equal() Failure
+      Expected: Hello
+      Actual:   (null)
+      Stack Trace:
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(323,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_SetsControllerProperties_ForReferenceTypes>d__7.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Moq.MockException : 
+      Expected invocation on the mock once, but was 0 times: o => o.Validate(It.IsAny<ActionContext>(), It.IsAny<IModelValidatorProvider>(), It.IsAny<ValidationStateDictionary>(), It.IsAny<String>(), It.IsAny<Object>())
+      
+      Configured setups:
+      o => o.Validate(It.IsAny<ActionContext>(), It.IsAny<IModelValidatorProvider>(), It.IsAny<ValidationStateDictionary>(), It.IsAny<String>(), It.IsAny<Object>()), Times.Never
+      No invocations performed.
+      Stack Trace:
+           at Moq.Mock.ThrowVerifyException(MethodCall expected, IEnumerable`1 setups, IEnumerable`1 actualCalls, Expression expression, Times times, Int32 callCount)
+           at Moq.Mock.VerifyCalls(Interceptor targetInterceptor, MethodCall expected, Expression expression, Times times)
+           at Moq.Mock.Verify[T](Mock`1 mock, Expression`1 expression, Times times, String failMessage)
+           at Moq.Mock`1.Verify(Expression`1 expression, Times times)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(245,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_CallsValidator_ForControllerProperties_IfModelBinderSucceeds>d__5.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Assert.Null() Failure
+      Expected: (null)
+      Actual:   -1
+      Stack Trace:
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(425,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_SetsNullValues_ForNullableProperties>d__10.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      Assert.Equal() Failure
+      Expected: List<String> ["hello", "world"]
+      Actual:   List<String> ["goodbye"]
+      Stack Trace:
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\Controllers\ControllerActionArgumentBinderTests.cs(569,0): at Microsoft.AspNet.Mvc.Controllers.ControllerActionArgumentBinderTests.<BindActionArgumentsAsync_SetsMultipleControllerProperties>d__14.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\ModelBindingHelperTest.cs(246,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelperTest.<TryUpdateModel_UsingIncludeExpressionOverload_ReturnsFalse_IfBinderIsUnsuccessful>d__7.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\ModelBindingHelperTest.cs(246,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelperTest.<TryUpdateModel_UsingIncludeExpressionOverload_ReturnsFalse_IfBinderIsUnsuccessful>d__7.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\ModelBindingHelperTest.cs(298,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelperTest.<TryUpdateModel_UsingIncludeExpressionOverload_ReturnsTrue_ModelBindsAndValidatesSuccessfully>d__8.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : Object instance was not created by Moq.
+      Parameter name: mocked
+      Stack Trace:
+           at Moq.Mock.Get[T](T mocked)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ModelBinding\CollectionModelBinderTest.cs(346,0): at Microsoft.AspNet.Mvc.ModelBinding.Test.CollectionModelBinderTest.<BindSimpleCollection_SubBindingSucceeds>d__14.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ControllerBase.cs(1248,0): at Microsoft.AspNet.Mvc.ControllerBase.TryUpdateModelAsync[TModel](TModel model, String prefix, IValueProvider valueProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ControllerBaseTest.cs(1297,0): at Microsoft.AspNet.Mvc.Core.Test.ControllerBaseTest.<TryUpdateModel_IncludeExpressionWithValueProviderOverload_UsesPassedArguments>d__68.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ControllerBase.cs(1248,0): at Microsoft.AspNet.Mvc.ControllerBase.TryUpdateModelAsync[TModel](TModel model, String prefix, IValueProvider valueProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ControllerBaseTest.cs(1297,0): at Microsoft.AspNet.Mvc.Core.Test.ControllerBaseTest.<TryUpdateModel_IncludeExpressionWithValueProviderOverload_UsesPassedArguments>d__68.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ControllerBase.cs(1160,0): at Microsoft.AspNet.Mvc.ControllerBase.TryUpdateModelAsync[TModel](TModel model, String prefix, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ControllerBaseTest.cs(1264,0): at Microsoft.AspNet.Mvc.Core.Test.ControllerBaseTest.<TryUpdateModel_IncludeExpressionOverload_UsesPassedArguments>d__67.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+      System.ArgumentException : ParameterExpression of type 'Microsoft.AspNet.Mvc.ModelBinding.ModelBindingContext' cannot be used for delegate parameter of type 'Microsoft.AspNet.Mvc.ModelBinding.IModelBindingContext'
+      Stack Trace:
+           at System.Linq.Expressions.Expression.ValidateLambdaArgs(Type delegateType, Expression& body, ReadOnlyCollection`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, String name, Boolean tailCall, IEnumerable`1 parameters)
+           at System.Linq.Expressions.Expression.Lambda[TDelegate](Expression body, IEnumerable`1 parameters)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(618,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.GetIncludePredicateExpression[TModel](String prefix, Expression`1[] expressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ModelBinding\ModelBindingHelper.cs(201,0): at Microsoft.AspNet.Mvc.ModelBinding.ModelBindingHelper.TryUpdateModelAsync[TModel](TModel model, String prefix, ActionContext actionContext, IModelMetadataProvider metadataProvider, IModelBinder modelBinder, IValueProvider valueProvider, IList`1 inputFormatters, IObjectModelValidator objectModelValidator, IModelValidatorProvider validatorProvider, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\src\Microsoft.AspNet.Mvc.Core\ControllerBase.cs(1160,0): at Microsoft.AspNet.Mvc.ControllerBase.TryUpdateModelAsync[TModel](TModel model, String prefix, Expression`1[] includeExpressions)
+        C:\Users\lodejard\projects\Mvc\test\Microsoft.AspNet.Mvc.Core.Test\ControllerBaseTest.cs(1264,0): at Microsoft.AspNet.Mvc.Core.Test.ControllerBaseTest.<TryUpdateModel_IncludeExpressionOverload_UsesPassedArguments>d__67.MoveNext()
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+        --- End of stack trace from previous location where exception was thrown ---
+           at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+           at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+  Finished:    Microsoft.AspNet.Mvc.Core.Test
+=== TEST EXECUTION SUMMARY ===
+   Microsoft.AspNet.Mvc.Core.Test  Total: 2088, Errors: 0, Failed: 18, Skipped: 0, Time: 4.048s

@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
 
             var array = Assert.IsType<int[]>(result.Model);
             Assert.Equal(new[] { 42, 84 }, array);
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
 
             Assert.Empty(Assert.IsType<string[]>(result.Model));
             Assert.Equal("modelName", result.Key);
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         public static TheoryData<int[]> ArrayModelData
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         // Here "fails silently" means the call does not update the array but also does not throw or set an error.
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Same(model, result.Model);
 
@@ -168,7 +168,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                     var model = value.ConvertTo(mbc.ModelType);
                     return ModelBindingResult.Success(mbc.ModelName, model);
                 }
-                return ModelBindingResult.NoResult;
+                return null;
             });
         }
 

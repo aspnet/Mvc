@@ -23,13 +23,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class ModelBindingHelperTest
     {
-        public static TheoryData<ModelBindingResult> UnsuccessfulModelBindingData
+        public static TheoryData<ModelBindingResult?> UnsuccessfulModelBindingData
         {
             get
             {
-                return new TheoryData<ModelBindingResult>
+                return new TheoryData<ModelBindingResult?>
                 {
-                    ModelBindingResult.NoResult,
+                    null,
                     ModelBindingResult.Failed("someKey"),
                 };
             }
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         [Theory]
         [MemberData(nameof(UnsuccessfulModelBindingData))]
-        public async Task TryUpdateModel_ReturnsFalse_IfBinderIsUnsuccessful(ModelBindingResult binderResult)
+        public async Task TryUpdateModel_ReturnsFalse_IfBinderIsUnsuccessful(ModelBindingResult? binderResult)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Theory]
         [MemberData(nameof(UnsuccessfulModelBindingData))]
         public async Task TryUpdateModel_UsingIncludePredicateOverload_ReturnsFalse_IfBinderIsUnsuccessful(
-            ModelBindingResult binderResult)
+            ModelBindingResult? binderResult)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -238,7 +238,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Theory]
         [MemberData(nameof(UnsuccessfulModelBindingData))]
         public async Task TryUpdateModel_UsingIncludeExpressionOverload_ReturnsFalse_IfBinderIsUnsuccessful(
-            ModelBindingResult binderResult)
+            ModelBindingResult? binderResult)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -492,7 +492,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Theory]
         [MemberData(nameof(UnsuccessfulModelBindingData))]
         public async Task TryUpdateModelNonGeneric_PredicateOverload_ReturnsFalse_IfBinderIsUnsuccessful(
-            ModelBindingResult binderResult)
+            ModelBindingResult? binderResult)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -582,7 +582,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Theory]
         [MemberData(nameof(UnsuccessfulModelBindingData))]
         public async Task TryUpdateModelNonGeneric_ModelTypeOverload_ReturnsFalse_IfBinderIsUnsuccessful(
-            ModelBindingResult binderResult)
+            ModelBindingResult? binderResult)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();

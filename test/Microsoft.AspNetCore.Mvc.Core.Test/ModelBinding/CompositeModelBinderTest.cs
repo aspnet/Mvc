@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Equal(42, result.Model);
         }
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Equal(42, result.Model);
 
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Equal(42, result.Model);
 
@@ -177,7 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Equal(string.Empty, result.Key);
             Assert.Equal(expectedModel, result.Model);
@@ -212,7 +212,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await composite.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -307,7 +307,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await composite.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.Equal("someName", result.Key);
             Assert.Null(result.Model);
@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await shimBinder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -353,7 +353,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             var model = Assert.IsType<SimplePropertiesModel>(result.Model);
             Assert.Equal("firstName-value", model.FirstName);
             Assert.Equal("lastName-value", model.LastName);
@@ -383,7 +383,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             var model = Assert.IsType<Person>(result.Model);
             Assert.Equal("firstName-value", model.FirstName);
             Assert.Equal("lastName-value", model.LastName);
@@ -411,7 +411,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -427,7 +427,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         [Fact]
@@ -445,7 +445,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
         }
 

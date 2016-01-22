@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.NoResultAsync);
+                .Returns(Internal.TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -183,7 +183,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.NoResultAsync);
+                .Returns(Internal.TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -269,7 +269,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(ModelBindingResult.NoResultAsync);
+                .Returns(Internal.TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);

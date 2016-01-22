@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
 
             var list = Assert.IsAssignableFrom<IList<int>>(result.Model);
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
 
             Assert.Same(list, result.Model);
@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
 
             var list = Assert.IsAssignableFrom<IList<int>>(result.Model);
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
 
             Assert.Same(list, result.Model);
@@ -195,7 +195,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.True(result.IsModelSet);
             Assert.NotNull(result.Model);
 
@@ -239,7 +239,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
 
             Assert.Empty(Assert.IsType<List<string>>(result.Model));
             Assert.Equal("modelName", result.Key);
@@ -272,7 +272,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
 
             Assert.Same(list, result.Model);
             Assert.Empty(list);
@@ -302,7 +302,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         // Model type -> can create instance.
@@ -389,22 +389,24 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static IModelBinder CreateIntBinder()
         {
-            return new StubModelBinder(mbc =>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            return new StubModelBinder(async mbc =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             {
                 var value = mbc.ValueProvider.GetValue(mbc.ModelName);
                 if (value == ValueProviderResult.None)
                 {
-                    return ModelBindingResult.NoResultAsync;
+                    return null;
                 }
 
                 var model = value.ConvertTo(mbc.ModelType);
                 if (model == null)
                 {
-                    return ModelBindingResult.FailedAsync(mbc.ModelName);
+                    return ModelBindingResult.Failed(mbc.ModelName);
                 }
                 else
                 {
-                    return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
+                    return ModelBindingResult.Success(mbc.ModelName, model);
                 }
             });
         }

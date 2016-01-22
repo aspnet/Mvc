@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         public static TheoryData<Type> ConvertableTypeData
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.False(result.IsModelSet);
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.Null(result.Model);
             Assert.False(bindingContext.ModelState.IsValid);
             var error = Assert.Single(bindingContext.ModelState["theModelName"].Errors);
@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
             Assert.Empty(bindingContext.ModelState);
         }
 

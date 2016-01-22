@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.Null(result.Model);
             Assert.False(bindingContext.ModelState.IsValid);
             Assert.Equal("someName", bindingContext.ModelName);
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
             Assert.True(bindingContext.ModelState.IsValid);
             Assert.Equal(0, bindingContext.ModelState.ErrorCount);
         }
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
             Assert.Equal(new KeyValuePair<int, string>(42, "some-value"), result.Model);
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             bool isSuccess)
         {
             // Arrange
-            ModelBindingResult innerResult;
+            ModelBindingResult? innerResult;
             if (isSuccess)
             {
                 innerResult = ModelBindingResult.Success("somename.key", model);
@@ -130,9 +130,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
             // Act
             var result = await binder.TryBindStrongModel<int>(bindingContext, "key");
-
             // Assert
-            Assert.Equal(innerResult, result);
+            Assert.Equal(innerResult.Value, result);
             Assert.Empty(bindingContext.ModelState);
         }
 
@@ -157,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, result);
+            Assert.NotEqual(default(ModelBindingResult), result);
 
             var model = Assert.IsType<KeyValuePair<string, string>>(result.Model);
             Assert.Equal(default(KeyValuePair<string, string>), model);
@@ -187,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var result = await binder.BindModelResultAsync(context);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, result);
+            Assert.Equal(default(ModelBindingResult), result);
         }
 
         private static ModelBindingContext CreateContext()
@@ -237,28 +236,32 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private static IModelBinder CreateIntBinder()
         {
-            var mockIntBinder = new StubModelBinder(mbc =>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            var mockIntBinder = new StubModelBinder(async mbc =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             {
                 if (mbc.ModelType == typeof(int))
                 {
                     var model = 42;
-                    return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
+                    return ModelBindingResult.Success(mbc.ModelName, model);
                 }
-                return ModelBindingResult.NoResultAsync;
+                return null;
             });
             return mockIntBinder;
         }
 
         private static IModelBinder CreateStringBinder()
         {
-            return new StubModelBinder(mbc =>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+            return new StubModelBinder(async mbc =>
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
             {
                 if (mbc.ModelType == typeof(string))
                 {
                     var model = "some-value";
-                    return ModelBindingResult.SuccessAsync(mbc.ModelName, model);
+                    return ModelBindingResult.Success(mbc.ModelName, model);
                 }
-                return ModelBindingResult.NoResultAsync;
+                return null;
             });
         }
 

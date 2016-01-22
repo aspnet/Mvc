@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public void NoResult_SetsProperties()
         {
             // Arrange & Act
-            var result = ModelBindingResult.NoResult;
+            var result = default(ModelBindingResult);
 
             // Assert
             Assert.Null(result.Key);
@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task NoResultAsync_SetsProperties()
         {
             // Arrange & Act
-            var result = await ModelBindingResult.NoResultAsync;
+            var result = await Task.FromResult(default(ModelBindingResult));
 
             // Assert
             Assert.Null(result.Key);

@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             ModelBindingHelper.ValidateBindingContext(bindingContext);
             if (!CanBindType(bindingContext.ModelMetadata))
             {
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             var mutableObjectBinderContext = new MutableObjectBinderContext()
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (!(CanCreateModel(mutableObjectBinderContext)))
             {
-                return ModelBindingResult.NoResultAsync;
+                return Internal.TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext, mutableObjectBinderContext);
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // exceptions as necessary.
             foreach (var entry in results)
             {
-                if (entry.Value != ModelBindingResult.NoResult)
+                if (entry.Value != null)
                 {
                     var result = entry.Value;
                     var propertyMetadata = entry.Key;

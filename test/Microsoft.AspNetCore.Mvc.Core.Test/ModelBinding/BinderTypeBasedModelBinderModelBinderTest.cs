@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.Equal(ModelBindingResult.NoResult, binderResult);
+            Assert.Equal(default(ModelBindingResult), binderResult);
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotEqual(ModelBindingResult.NoResult, binderResult);
+            Assert.NotEqual(default(ModelBindingResult), binderResult);
             Assert.False(binderResult.IsModelSet);
         }
 
