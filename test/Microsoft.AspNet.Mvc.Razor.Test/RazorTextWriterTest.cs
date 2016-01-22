@@ -90,7 +90,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync(buffer1);
 
             // Assert
-            Assert.Null(buffer.Pages);
             unbufferedWriter.Verify(v => v.Write('x'), Times.Once());
             unbufferedWriter.Verify(v => v.Write(buffer1, 1, 2), Times.Once());
             unbufferedWriter.Verify(v => v.Write(buffer1, 0, 4), Times.Once());
@@ -117,7 +116,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             await writer.WriteLineAsync("gh");
 
             // Assert
-            Assert.Null(buffer.Pages);
             unbufferedWriter.Verify(v => v.Write("a"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteLine("ab"), Times.Once());
             unbufferedWriter.Verify(v => v.WriteAsync("ef"), Times.Once());
@@ -160,7 +158,6 @@ namespace Microsoft.AspNet.Mvc.Razor.Test
             writer.WriteLine(3L);
 
             // Assert
-            Assert.Null(buffer.Pages);
             unbufferedWriter.Verify(v => v.Write("False"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("1.1"), Times.Once());
             unbufferedWriter.Verify(v => v.Write("3"), Times.Once());

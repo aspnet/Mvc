@@ -13,7 +13,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 {
     public class ViewBufferTextWriter : TextWriter
     {
-        private const int PageSize = 1024;
+        public const int PageSize = 1024;
 
         private readonly TextWriter _inner;
         private readonly List<char[]> _pages;
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 
         public override async Task FlushAsync()
         {
-            if (_pages.Count == 0 || (_currentPage == 0 && _currentIndex == 0))
+            if (_pages.Count == 0)
             {
                 return;
             }
@@ -48,7 +48,27 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
                 var page = _pages[i];
 
                 var count = i == _currentPage ? _currentIndex : page.Length;
-                await _inner.WriteAsync(page, 0, count);
+                if (count > 0)
+                {
+                    await _inner.WriteAsync(page, 0, count);
+                }
+            }
+
+            // Return all but one of the pages. This way if someone writes a large chunk of
+            // content, we can return those buffers and avoid holding them for the whole
+            // page's lifetime.
+            for (var i = _pages.Count - 1; i > 0; i--)
+            {
+                var page = _pages[i];
+
+                try
+                {
+                    _pages.RemoveAt(i);
+                }
+                finally
+                {
+                    _pool.Return(page);
+                }
             }
 
             _currentPage = 0;
@@ -74,7 +94,7 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
                 var copyLength = Math.Min(count, page.Length - _currentIndex);
                 Debug.Assert(copyLength > 0);
 
-                System.Buffer.BlockCopy(
+                Array.Copy(
                     buffer,
                     index,
                     page,
@@ -129,14 +149,23 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 
         private char[] GetCurrentPage()
         {
-            char[] page;
+            char[] page = null;
             if (_pages.Count == 0)
             {
                 Debug.Assert(_currentPage == 0);
                 Debug.Assert(_currentIndex == 0);
 
-                page = _pool.Rent(PageSize);
-                _pages.Add(page);
+                try
+                {
+                    page = _pool.Rent(PageSize);
+                    _pages.Add(page);
+                }
+                catch when (page != null)
+                {
+                    _pool.Return(page);
+                    throw;
+                }
+
                 return page;
             }
 
@@ -151,8 +180,16 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
 
                 if (_pages.Count == _currentPage)
                 {
-                    page = _pool.Rent(PageSize);
-                    _pages.Add(page);
+                    try
+                    {
+                        page = _pool.Rent(PageSize);
+                        _pages.Add(page);
+                    }
+                    catch when (page != null)
+                    {
+                        _pool.Return(page);
+                        throw;
+                    }
                 }
             }
 
@@ -167,6 +204,8 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
             {
                 _pool.Return(_pages[i]);
             }
+
+            _pages.Clear();
         }
     }
 }

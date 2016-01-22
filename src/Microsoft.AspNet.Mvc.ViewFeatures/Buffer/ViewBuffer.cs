@@ -77,34 +77,33 @@ namespace Microsoft.AspNet.Mvc.ViewFeatures.Buffer
             for (var i = 0; i < otherBuffer.Pages.Count; i++)
             {
                 var otherPage = otherBuffer.Pages[i];
+                var currentPage = Pages.Count == 0 ? null : Pages[Pages.Count - 1];
 
-                // If we haven't started writing a page yet, then let's copy from the other buffer.
-                if (Pages.Count == 0 || Pages[Pages.Count - 1].IsFull)
-                {
-                    Pages.Add(otherPage);
-                    continue;
-                }
-
-                // If the other page is less than half full, let's blit it's contents if we
-                // have room.
-                var isLessThanHalfFull = (double)(otherPage.Capacity - otherPage.Count) / otherPage.Capacity > .5;
-                var currentPage = Pages[Pages.Count - 1];
-                if (isLessThanHalfFull && currentPage.Capacity - currentPage.Count > otherPage.Count)
+                // If the other page is less or equal to than half full, let's copy it's to the current page if
+                // possible.
+                var isLessThanHalfFull = 2 * otherPage.Count <= otherPage.Capacity;
+                if (isLessThanHalfFull &&
+                    currentPage != null &&
+                    currentPage.Capacity - currentPage.Count >= otherPage.Count)
                 {
                     // We have room, let's copy the items.
-                    for (var j = 0; j < otherPage.Count; j++)
-                    {
-                        currentPage.Buffer[j + currentPage.Count] = otherPage.Buffer[j];
-                    }
+                    Array.Copy(
+                        sourceArray: otherPage.Buffer,
+                        sourceIndex: 0,
+                        destinationArray: currentPage.Buffer,
+                        destinationIndex: currentPage.Count,
+                        length: otherPage.Count);
 
                     currentPage.Count += otherPage.Count;
 
                     // Now we can return this page, and it can be reused in the scope of this request.
                     _bufferScope.ReturnSegment(otherPage.Buffer);
                 }
-
-                // Otherwise, let's just take the the page from the other buffer.
-                Pages.Add(otherPage);
+                else
+                {
+                    // Otherwise, let's just take the the page from the other buffer.
+                    Pages.Add(otherPage);
+                }
 
             }
 
