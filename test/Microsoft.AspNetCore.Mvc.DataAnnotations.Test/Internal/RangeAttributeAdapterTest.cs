@@ -3,6 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Localization;
 using Moq;
@@ -14,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
     {
         [Fact]
         [ReplaceCulture]
-        public void GetClientValidationRules_ReturnsValidationParameters_WithoutLocalization()
+        public void AddValidation_WithoutLocalization()
         {
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -28,23 +29,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             var adapter = new RangeAttributeAdapter(attribute, stringLocalizer: null);
 
             var actionContext = new ActionContext();
-            var context = new ClientModelValidationContext(actionContext, metadata, provider);
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
 
             // Act
-            var rules = adapter.GetClientValidationRules(context);
+            adapter.AddValidation(context);
 
             // Assert
-            var rule = Assert.Single(rules);
-            Assert.Equal("range", rule.ValidationType);
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal(0m, rule.ValidationParameters["min"]);
-            Assert.Equal(100m, rule.ValidationParameters["max"]);
-            Assert.Equal(expectedMessage, rule.ErrorMessage);
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-max", kvp.Key); Assert.Equal("100", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-min", kvp.Key); Assert.Equal("0", kvp.Value); });
         }
 
         [Fact]
         [ReplaceCulture]
-        public void GetClientValidationRules_ReturnsValidationParameters()
+        public void AddValidation_WithLocalization()
         {
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -57,24 +58,25 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             var expectedMessage = "The field Length must be between 0 and 100.";
 
             var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s[attribute.ErrorMessage, expectedProperties])
+            stringLocalizer
+                .Setup(s => s[attribute.ErrorMessage, expectedProperties])
                 .Returns(new LocalizedString(attribute.ErrorMessage, expectedMessage));
 
             var adapter = new RangeAttributeAdapter(attribute, stringLocalizer: stringLocalizer.Object);
 
             var actionContext = new ActionContext();
-            var context = new ClientModelValidationContext(actionContext, metadata, provider);
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
 
             // Act
-            var rules = adapter.GetClientValidationRules(context);
+            adapter.AddValidation(context);
 
             // Assert
-            var rule = Assert.Single(rules);
-            Assert.Equal("range", rule.ValidationType);
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal(0m, rule.ValidationParameters["min"]);
-            Assert.Equal(100m, rule.ValidationParameters["max"]);
-            Assert.Equal(expectedMessage, rule.ErrorMessage);
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-max", kvp.Key); Assert.Equal("100", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-min", kvp.Key); Assert.Equal("0", kvp.Value); });
         }
     }
 }

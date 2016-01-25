@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -191,12 +192,12 @@ namespace Microsoft.AspNetCore.Mvc
             var context = GetValidationContextWithArea(currentArea: null);
 
             // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => attribute.GetClientValidationRules(context));
+            var exception = Assert.Throws<InvalidOperationException>(() => attribute.AddValidation(context));
             Assert.Equal("No URL for remote validation could be found.", exception.Message);
         }
 
         [Fact]
-        public void GetClientValidationRules_WithRoute_CallsUrlHelperWithExpectedValues()
+        public void AddValidation_WithRoute_CallsUrlHelperWithExpectedValues()
         {
             // Arrange
             var routeName = "RouteName";
@@ -205,21 +206,23 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = new MockUrlHelper(url, routeName);
             var context = GetValidationContext(urlHelper);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(url, rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
 
             var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
             Assert.Empty(routeDictionary);
         }
 
         [Fact]
-        public void GetClientValidationRules_WithActionController_CallsUrlHelperWithExpectedValues()
+        public void AddValidation_WithActionController_CallsUrlHelperWithExpectedValues()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
@@ -227,14 +230,16 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = new MockUrlHelper(url, routeName: null);
             var context = GetValidationContext(urlHelper);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(url, rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
 
             var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
             Assert.Equal(2, routeDictionary.Count);
@@ -255,15 +260,21 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = new MockUrlHelper(url, routeName: null);
             var context = GetValidationContext(urlHelper);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(3, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length,*.Password,*.ConfirmPassword", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal("POST", rule.ValidationParameters["type"]);
-            Assert.Equal(url, rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => 
+                {
+                    Assert.Equal("data-val-remote-additionalfields", kvp.Key);
+                    Assert.Equal("*.Length,*.Password,*.ConfirmPassword", kvp.Value);
+                },
+                kvp => { Assert.Equal("data-val-remote-type", kvp.Key); Assert.Equal("POST", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
 
             var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
             Assert.Equal(2, routeDictionary.Count);
@@ -283,15 +294,21 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = new MockUrlHelper(url, routeName: null);
             var context = GetValidationContext(urlHelper);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(3, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal("POST", rule.ValidationParameters["type"]);
-            Assert.Equal(url, rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-additionalfields", kvp.Key);
+                    Assert.Equal("*.Length", kvp.Value);
+                },
+                kvp => { Assert.Equal("data-val-remote-type", kvp.Key); Assert.Equal("POST", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
 
             var routeDictionary = Assert.IsType<RouteValueDictionary>(urlHelper.RouteValues);
             Assert.Equal(3, routeDictionary.Count);
@@ -302,20 +319,26 @@ namespace Microsoft.AspNetCore.Mvc
 
         // Root area is current in this case.
         [Fact]
-        public void GetClientValidationRules_WithActionController_FindsControllerInCurrentArea()
+        public void AddValidation_WithActionController_FindsControllerInCurrentArea()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
             var context = GetValidationContextWithArea(currentArea: null);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Test area is current in this case.
@@ -326,16 +349,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(
-                "/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]",
-                rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Explicit reference to the (current) root area.
@@ -347,14 +374,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller", areaName);
             var context = GetValidationContextWithArea(currentArea: null);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Test area is current in this case.
@@ -366,14 +399,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller", areaName);
             var context = GetValidationContextWithArea(currentArea: "Test");
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Root area is current in this case.
@@ -384,16 +423,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
             var context = GetValidationContextWithArea(currentArea: null);
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(
-                "/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]",
-                rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Explicit reference to the current (Test) area.
@@ -404,16 +447,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(
-                "/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]",
-                rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[Test]]/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         // Test area is current in this case.
@@ -424,16 +471,20 @@ namespace Microsoft.AspNetCore.Mvc
             var attribute = new RemoteAttribute("Action", "Controller", "AnotherArea");
             var context = GetValidationContextWithArea(currentArea: "Test");
 
-            // Act & Assert
-            var rule = Assert.Single(attribute.GetClientValidationRules(context));
-            Assert.Equal("remote", rule.ValidationType);
-            Assert.Equal("'Length' is invalid.", rule.ErrorMessage);
+            // Act
+            attribute.AddValidation(context);
 
-            Assert.Equal(2, rule.ValidationParameters.Count);
-            Assert.Equal("*.Length", rule.ValidationParameters["additionalfields"]);
-            Assert.Equal(
-                "/UrlEncode[[AnotherArea]]/UrlEncode[[Controller]]/UrlEncode[[Action]]",
-                rule.ValidationParameters["url"]);
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("'Length' is invalid.", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("*.Length", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-url", kvp.Key);
+                    Assert.Equal("/UrlEncode[[AnotherArea]]/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
+                });
         }
 
         private static ClientModelValidationContext GetValidationContext(IUrlHelper urlHelper)
@@ -455,7 +506,11 @@ namespace Microsoft.AspNetCore.Mvc
                 },
             };
 
-            return new ClientModelValidationContext(actionContext, _metadata, _metadataProvider);
+            return new ClientModelValidationContext(
+                actionContext,
+                _metadata,
+                _metadataProvider,
+                new AttributeDictionary());
         }
 
         private static ClientModelValidationContext GetValidationContextWithArea(string currentArea)
@@ -499,7 +554,11 @@ namespace Microsoft.AspNetCore.Mvc
                 },
             };
 
-            return new ClientModelValidationContext(actionContext, _metadata, _metadataProvider);
+           return new ClientModelValidationContext(
+                actionContext,
+                _metadata,
+                _metadataProvider,
+                new AttributeDictionary());
         }
 
         private static IRouter GetRouteCollectionWithArea(IServiceProvider serviceProvider)

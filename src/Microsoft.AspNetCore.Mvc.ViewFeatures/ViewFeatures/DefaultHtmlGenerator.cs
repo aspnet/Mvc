@@ -569,7 +569,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 }
             }
 
-            tagBuilder.MergeAttributes(GetValidationAttributes(viewContext, modelExplorer, expression));
+            AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             return tagBuilder;
         }
@@ -640,7 +640,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             tagBuilder.MergeAttribute("name", fullName, true);
-            tagBuilder.MergeAttributes(GetValidationAttributes(viewContext, modelExplorer, expression));
+            AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             // If there are any errors for a named field, we add this CSS attribute.
             if (entry != null && entry.Errors.Count > 0)
@@ -863,31 +863,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             return tagBuilder;
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<ModelClientValidationRule> GetClientValidationRules(
-            ViewContext viewContext,
-            ModelExplorer modelExplorer,
-            string expression)
-        {
-            if (viewContext == null)
-            {
-                throw new ArgumentNullException(nameof(viewContext));
-            }
-
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-            var validationContext = new ClientModelValidationContext(
-                viewContext,
-                modelExplorer.Metadata,
-                _metadataProvider);
-
-            var validatorProviderContext = new ClientValidatorProviderContext(modelExplorer.Metadata);
-            _clientModelValidatorProvider.GetValidators(validatorProviderContext);
-
-            var validators = validatorProviderContext.Validators;
-            return validators.SelectMany(v => v.GetClientValidationRules(validationContext));
         }
 
         /// <inheritdoc />
@@ -1251,7 +1226,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 tagBuilder.AddCssClass(HtmlHelper.ValidationInputCssClassName);
             }
 
-            tagBuilder.MergeAttributes(GetValidationAttributes(viewContext, modelExplorer, expression));
+            AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             return tagBuilder;
         }
@@ -1277,28 +1252,48 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         // Only render attributes if client-side validation is enabled, and then only if we've
         // never rendered validation for a field with this name in this form.
-        protected virtual IDictionary<string, object> GetValidationAttributes(
+        public virtual void AddValidationAttributes(
             ViewContext viewContext,
+            TagBuilder tagBuilder,
             ModelExplorer modelExplorer,
             string expression)
         {
             var formContext = viewContext.ClientValidationEnabled ? viewContext.FormContext : null;
             if (formContext == null)
             {
-                return null;
+                return;
             }
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
             if (formContext.RenderedField(fullName))
             {
-                return null;
+                return;
             }
 
             formContext.RenderedField(fullName, true);
 
-            var clientRules = GetClientValidationRules(viewContext, modelExplorer, expression);
+            modelExplorer = modelExplorer ??
+                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
 
-            return UnobtrusiveValidationAttributesGenerator.GetValidationAttributes(clientRules);
+
+            var validatorProviderContext = new ClientValidatorProviderContext(modelExplorer.Metadata);
+            _clientModelValidatorProvider.GetValidators(validatorProviderContext);
+
+            var validators = validatorProviderContext.Validators;
+            if (validators.Count > 0)
+            {
+                var validationContext = new ClientModelValidationContext(
+                    viewContext,
+                    modelExplorer.Metadata,
+                    _metadataProvider,
+                    tagBuilder.Attributes);
+
+                for (var i = 0; i < validators.Count; i++)
+                {
+                    var validator = validators[i];
+                    validator.AddValidation(validationContext);
+                }
+            }
         }
 
         private static Enum ConvertEnumFromInteger(object value, Type targetType)

@@ -4,6 +4,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Testing;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
     {
         [Fact]
         [ReplaceCulture]
-        public void ClientRulesWithCorrectValidationTypeAndErrorMessage()
+        public void AddValidation_CorrectValidationTypeAndErrorMessage()
         {
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -22,17 +23,18 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var adapter = new NumericClientModelValidator();
 
             var actionContext = new ActionContext();
-            var context = new ClientModelValidationContext(actionContext, metadata, provider);
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
 
             var expectedMessage = "The field DisplayId must be a number.";
 
             // Act
-            var rules = adapter.GetClientValidationRules(context);
+            adapter.AddValidation(context);
 
             // Assert
-            var rule = Assert.Single(rules);
-            Assert.Equal("number", rule.ValidationType);
-            Assert.Equal(expectedMessage, rule.ErrorMessage);
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-number", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); });
         }
 
         private class TypeWithNumericProperty
