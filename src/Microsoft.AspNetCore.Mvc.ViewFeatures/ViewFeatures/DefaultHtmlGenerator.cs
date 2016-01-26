@@ -1250,14 +1250,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return tagBuilder;
         }
 
-        // Only render attributes if client-side validation is enabled, and then only if we've
-        // never rendered validation for a field with this name in this form.
-        public virtual void AddValidationAttributes(
+        /// <summary>
+        /// Adds validation attributes to the <paramref name="tagBuilder" /> if client validation
+        /// is enabled.
+        /// </summary>
+        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
+        /// <param name="tagBuilder">A <see cref="TagBuilder"/> instance.</param>
+        /// <param name="modelExplorer">The <see cref="ModelExplorer"/> for the <paramref name="expression"/>.</param>
+        /// <param name="expression">Expression name, relative to the current model.</param>
+        protected virtual void AddValidationAttributes(
             ViewContext viewContext,
             TagBuilder tagBuilder,
             ModelExplorer modelExplorer,
             string expression)
         {
+            // Only render attributes if client-side validation is enabled, and then only if we've
+            // never rendered validation for a field with this name in this form.
             var formContext = viewContext.ClientValidationEnabled ? viewContext.FormContext : null;
             if (formContext == null)
             {
