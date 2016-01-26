@@ -85,8 +85,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // "SelectExpressionNotEnumerable" InvalidOperationException during generation.
             // Metadata.IsEnumerableType is similar but does not take runtime type into account.
             var realModelType = For.ModelExplorer.ModelType;
-            _allowMultiple = typeof(string) != realModelType &&
-                typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(realModelType.GetTypeInfo());
+            if (typeof(string) != realModelType)
+            {
+                var realModelTypeInfo = realModelType.GetTypeInfo();
+
+                if (typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(realModelTypeInfo))
+                {
+                    _allowMultiple = true;
+                }
+                else if (realModelTypeInfo.IsEnum && 
+                    realModelTypeInfo.IsDefined(typeof(FlagsAttribute), inherit: false))
+                {
+                    _allowMultiple = true;
+                }
+            }
             _currentValues = Generator.GetCurrentValues(
                 ViewContext,
                 For.ModelExplorer,

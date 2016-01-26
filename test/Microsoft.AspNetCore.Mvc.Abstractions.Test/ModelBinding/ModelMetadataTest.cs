@@ -416,14 +416,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             }
 
-            public override IReadOnlyDictionary<string, string> EnumNamesAndValues
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
             public override bool HasNonDefaultEditFormat
             {
                 get

@@ -122,7 +122,6 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 // then its behavior is undefined (but hopefully stable). Add to EnumNamesAndValues in same order but
                 // Dictionary does not guarantee order will be preserved.
                 var groupedDisplayNamesAndValues = new List<KeyValuePair<EnumGroupAndName, string>>();
-                var namesAndValues = new Dictionary<string, string>();
                 foreach (var name in Enum.GetNames(underlyingType))
                 {
                     var field = underlyingType.GetField(name);
@@ -133,11 +132,9 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                     groupedDisplayNamesAndValues.Add(new KeyValuePair<EnumGroupAndName, string>(
                         new EnumGroupAndName(groupName, displayName),
                         value));
-                    namesAndValues.Add(name, value);
                 }
 
                 displayMetadata.EnumGroupedDisplayNamesAndValues = groupedDisplayNamesAndValues;
-                displayMetadata.EnumNamesAndValues = namesAndValues;
             }
 
             // HasNonDefaultEditFormat

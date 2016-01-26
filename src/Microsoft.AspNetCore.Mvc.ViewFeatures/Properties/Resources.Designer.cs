@@ -347,7 +347,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// The parameter '{0}' must evaluate to an IEnumerable when multiple selection is allowed.
+        /// The parameter '{0}' must evaluate to an IEnumerable or an Enum with an associated FlagsAttribute when multiple selection is allowed.
         /// </summary>
         internal static string HtmlHelper_SelectExpressionNotEnumerable
         {
@@ -355,7 +355,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// The parameter '{0}' must evaluate to an IEnumerable when multiple selection is allowed.
+        /// The parameter '{0}' must evaluate to an IEnumerable or an Enum with an associated FlagsAttribute when multiple selection is allowed.
         /// </summary>
         internal static string FormatHtmlHelper_SelectExpressionNotEnumerable(object p0)
         {
@@ -363,7 +363,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// The type '{0}' is not supported. Type must be an {1} that does not have an associated {2}.
+        /// The type '{0}' is not supported. Type must be an {1}.
         /// </summary>
         internal static string HtmlHelper_TypeNotSupported_ForGetEnumSelectList
         {
@@ -371,11 +371,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// The type '{0}' is not supported. Type must be an {1} that does not have an associated {2}.
+        /// The type '{0}' is not supported. Type must be an {1}.
         /// </summary>
-        internal static string FormatHtmlHelper_TypeNotSupported_ForGetEnumSelectList(object p0, object p1, object p2)
+        internal static string FormatHtmlHelper_TypeNotSupported_ForGetEnumSelectList(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_TypeNotSupported_ForGetEnumSelectList"), p0, p1, p2);
+            return string.Format(CultureInfo.CurrentCulture, GetString("HtmlHelper_TypeNotSupported_ForGetEnumSelectList"), p0, p1);
         }
 
         /// <summary>

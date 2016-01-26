@@ -58,7 +58,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             Assert.Null(metadata.EditFormatString);
             Assert.Null(metadata.ElementMetadata);
             Assert.Null(metadata.EnumGroupedDisplayNamesAndValues);
-            Assert.Null(metadata.EnumNamesAndValues);
             Assert.Null(metadata.NullDisplayText);
             Assert.Null(metadata.TemplateHint);
             Assert.Null(metadata.SimpleDisplayProperty);

@@ -149,15 +149,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public abstract IEnumerable<KeyValuePair<EnumGroupAndName, string>> EnumGroupedDisplayNamesAndValues { get; }
 
         /// <summary>
-        /// Gets the names and values of all <see cref="Enum"/> values in <see cref="UnderlyingOrModelType"/>.
-        /// </summary>
-        /// <value>
-        /// An <see cref="IReadOnlyDictionary{string, string}"/> of mappings between <see cref="Enum"/> field names
-        /// and values. <c>null</c> if <see cref="IsEnum"/> is <c>false</c>.
-        /// </value>
-        public abstract IReadOnlyDictionary<string, string> EnumNamesAndValues { get; }
-
-        /// <summary>
         /// Gets a value indicating whether <see cref="EditFormatString"/> has a non-<c>null</c>, non-empty
         /// value different from the default for the datatype.
         /// </summary>
