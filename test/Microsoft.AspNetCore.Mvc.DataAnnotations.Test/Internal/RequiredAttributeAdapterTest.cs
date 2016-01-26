@@ -72,5 +72,33 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
                 kvp => { Assert.Equal("data-val-required", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); });
         }
+
+        [Fact]
+        [ReplaceCulture]
+        public void AddValidation_DoesNotTrounceExistingAttributes()
+        {
+            // Arrange
+            var expectedMessage = ValidationAttributeUtil.GetRequiredErrorMessage("Length");
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), "Length");
+
+            var attribute = new RequiredAttribute();
+            var adapter = new RequiredAttributeAdapter(attribute, stringLocalizer: null);
+
+            var actionContext = new ActionContext();
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
+
+            context.Attributes.Add("data-val", "original");
+            context.Attributes.Add("data-val-required", "original");
+
+            // Act
+            adapter.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-required", kvp.Key); Assert.Equal("original", kvp.Value); });
+        }
     }
 }

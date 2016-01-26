@@ -254,7 +254,7 @@ namespace Microsoft.AspNetCore.Mvc
             MergeAttribute(context.Attributes, "data-val-remote-additionalfields", additionalFields);
         }
 
-        private bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
+        private static bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
         {
             if (attributes.ContainsKey(key))
             {

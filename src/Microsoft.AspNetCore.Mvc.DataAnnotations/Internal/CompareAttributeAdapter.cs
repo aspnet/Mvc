@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
 
             MergeAttribute(context.Attributes, "data-val", "true");
             MergeAttribute(context.Attributes, "data-val-equalto", GetErrorMessage(context));
-            MergeAttribute(context.Attributes, "data-value-equalto-other", _otherProperty);
+            MergeAttribute(context.Attributes, "data-val-equalto-other", _otherProperty);
         }
 
         /// <inheritdoc />

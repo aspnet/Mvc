@@ -20,6 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             // This will trigger the conversion of Attribute.Minimum and Attribute.Maximum.
             // This is needed, because the attribute is stateful and will convert from a string like
             // "100m" to the decimal value 100.
+            //
+            // Validate a randomly selected number.
             attribute.IsValid(3); 
 
             _max = Convert.ToString(Attribute.Maximum, CultureInfo.InvariantCulture);

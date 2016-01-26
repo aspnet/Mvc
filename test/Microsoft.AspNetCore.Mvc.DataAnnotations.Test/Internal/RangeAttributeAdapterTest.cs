@@ -78,5 +78,38 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 kvp => { Assert.Equal("data-val-range-max", kvp.Key); Assert.Equal("100", kvp.Value); },
                 kvp => { Assert.Equal("data-val-range-min", kvp.Key); Assert.Equal("0", kvp.Value); });
         }
+
+        [Fact]
+        [ReplaceCulture]
+        public void AddValidation_DoesNotTrounceExistingAttributes()
+        {
+            // Arrange
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), "Length");
+
+            var attribute = new RangeAttribute(typeof(decimal), "0", "100");
+            attribute.ErrorMessage = "The field Length must be between {1} and {2}.";
+
+            var adapter = new RangeAttributeAdapter(attribute, stringLocalizer: null);
+
+            var actionContext = new ActionContext();
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
+
+            context.Attributes.Add("data-val", "original");
+            context.Attributes.Add("data-val-range", "original");
+            context.Attributes.Add("data-val-range-max", "original");
+            context.Attributes.Add("data-val-range-min", "original");
+
+            // Act
+            adapter.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-max", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-range-min", kvp.Key); Assert.Equal("original", kvp.Value); });
+        }
     }
 }

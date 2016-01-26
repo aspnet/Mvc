@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             MergeAttribute(context.Attributes, "data-val-number", GetErrorMessage(context.ModelMetadata));
         }
 
-        private bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
+        private static bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
         {
             if (attributes.ContainsKey(key))
             {

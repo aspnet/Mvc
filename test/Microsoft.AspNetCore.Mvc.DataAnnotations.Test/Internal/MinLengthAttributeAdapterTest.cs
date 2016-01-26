@@ -102,5 +102,35 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-minlength", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp => { Assert.Equal("data-val-minlength-min", kvp.Key); Assert.Equal("2", kvp.Value); });
         }
+
+        [Fact]
+        [ReplaceCulture]
+        public void AddValidation_DoesNotTrounceExistingAttributes()
+        {
+            // Arrange
+            var propertyName = "Length";
+            var provider = TestModelMetadataProvider.CreateDefaultProvider();
+            var metadata = provider.GetMetadataForProperty(typeof(string), propertyName);
+
+            var attribute = new MinLengthAttribute(2) { ErrorMessage = "Array must have at least {1} items." };
+            var adapter = new MinLengthAttributeAdapter(attribute, stringLocalizer: null);
+
+            var actionContext = new ActionContext();
+            var context = new ClientModelValidationContext(actionContext, metadata, provider, new AttributeDictionary());
+
+            context.Attributes.Add("data-val", "original");
+            context.Attributes.Add("data-val-minlength", "original");
+            context.Attributes.Add("data-val-minlength-min", "original");
+
+            // Act
+            adapter.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-minlength", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-minlength-min", kvp.Key); Assert.Equal("original", kvp.Value); });
+        }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp =>
                 {
-                    Assert.Equal("data-value-equalto-other", kvp.Key);
+                    Assert.Equal("data-val-equalto-other", kvp.Key);
                     Assert.Equal(kvp.Value, "*.OtherProperty");
                 });
         }
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp =>
                 {
-                    Assert.Equal("data-value-equalto-other", kvp.Key);
+                    Assert.Equal("data-val-equalto-other", kvp.Key);
                     Assert.Equal(kvp.Value, "*.OtherProperty");
                 });
         }
@@ -106,6 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var attribute = new CompareAttribute("OtherProperty");
             var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
+            // Mono issue - https://github.com/aspnet/External/issues/19
             var expectedMessage = PlatformNormalizer.NormalizeContent("'MyProperty' and 'OtherProperty' do not match.");
 
             var actionContext = new ActionContext();
@@ -125,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp =>
                 {
-                    Assert.Equal("data-value-equalto-other", kvp.Key);
+                    Assert.Equal("data-val-equalto-other", kvp.Key);
                     Assert.Equal(kvp.Value, "*.OtherProperty");
                 });
         }
@@ -162,7 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp =>
                 {
-                    Assert.Equal("data-value-equalto-other", kvp.Key);
+                    Assert.Equal("data-val-equalto-other", kvp.Key);
                     Assert.Equal(kvp.Value, "*.OtherProperty");
                 });
         }
@@ -202,9 +203,42 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp =>
                 {
-                    Assert.Equal("data-value-equalto-other", kvp.Key);
+                    Assert.Equal("data-val-equalto-other", kvp.Key);
                     Assert.Equal(kvp.Value, "*.OtherProperty");
                 });
+        }
+
+        [Fact]
+        [ReplaceCulture]
+        public void AddValidation_DoesNotTrounceExistingAttributes()
+        {
+            // Arrange
+            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var metadata = metadataProvider.GetMetadataForProperty(typeof(PropertyNameModel), "MyProperty");
+
+            var attribute = new CompareAttribute("OtherProperty");
+            var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
+
+            var actionContext = new ActionContext();
+            var context = new ClientModelValidationContext(
+                actionContext,
+                metadata,
+                metadataProvider,
+                new AttributeDictionary());
+
+            context.Attributes.Add("data-val", "original");
+            context.Attributes.Add("data-val-equalto", "original");
+            context.Attributes.Add("data-val-equalto-other", "original");
+
+            // Act
+            adapter.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-equalto", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-equalto-other", kvp.Key); Assert.Equal("original", kvp.Value); });
         }
 
         private class PropertyDisplayNameModel

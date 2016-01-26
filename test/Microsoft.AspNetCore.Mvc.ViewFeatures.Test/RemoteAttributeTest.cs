@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void GetClientValidationRules_WithBadRouteName_Throws()
+        public void AddValidation_WithBadRouteName_Throws()
         {
             // Arrange
             var attribute = new RemoteAttribute("nonexistentRoute");
@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void GetClientValidationRules_WithActionController_PropertiesSet_CallsUrlHelperWithExpectedValues()
+        public void AddValidation_WithActionController_PropertiesSet_CallsUrlHelperWithExpectedValues()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller")
@@ -283,7 +283,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void GetClientValidationRules_WithActionControllerArea_CallsUrlHelperWithExpectedValues()
+        public void AddValidation_WithActionControllerArea_CallsUrlHelperWithExpectedValues()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "Test")
@@ -343,7 +343,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         // Test area is current in this case.
         [Fact]
-        public void GetClientValidationRules_WithActionControllerInArea_FindsControllerInCurrentArea()
+        public void AddValidation_WithActionControllerInArea_FindsControllerInCurrentArea()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller");
@@ -368,7 +368,7 @@ namespace Microsoft.AspNetCore.Mvc
         // Explicit reference to the (current) root area.
         [Theory]
         [MemberData(nameof(NullOrEmptyNames))]
-        public void GetClientValidationRules_WithActionControllerArea_FindsControllerInRootArea(string areaName)
+        public void AddValidation_WithActionControllerArea_FindsControllerInRootArea(string areaName)
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", areaName);
@@ -393,7 +393,7 @@ namespace Microsoft.AspNetCore.Mvc
         // Test area is current in this case.
         [Theory]
         [MemberData(nameof(NullOrEmptyNames))]
-        public void GetClientValidationRules_WithActionControllerAreaInArea_FindsControllerInRootArea(string areaName)
+        public void AddValidation_WithActionControllerAreaInArea_FindsControllerInRootArea(string areaName)
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", areaName);
@@ -417,7 +417,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         // Root area is current in this case.
         [Fact]
-        public void GetClientValidationRules_WithActionControllerArea_FindsControllerInNamedArea()
+        public void AddValidation_WithActionControllerArea_FindsControllerInNamedArea()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
@@ -441,7 +441,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         // Explicit reference to the current (Test) area.
         [Fact]
-        public void GetClientValidationRules_WithActionControllerAreaInArea_FindsControllerInNamedArea()
+        public void AddValidation_WithActionControllerAreaInArea_FindsControllerInNamedArea()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "Test");
@@ -465,7 +465,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         // Test area is current in this case.
         [Fact]
-        public void GetClientValidationRules_WithActionControllerAreaInArea_FindsControllerInDifferentArea()
+        public void AddValidation_WithActionControllerAreaInArea_FindsControllerInDifferentArea()
         {
             // Arrange
             var attribute = new RemoteAttribute("Action", "Controller", "AnotherArea");
@@ -485,6 +485,37 @@ namespace Microsoft.AspNetCore.Mvc
                     Assert.Equal("data-val-remote-url", kvp.Key);
                     Assert.Equal("/UrlEncode[[AnotherArea]]/UrlEncode[[Controller]]/UrlEncode[[Action]]", kvp.Value);
                 });
+        }
+
+        // Test area is current in this case.
+        [Fact]
+        public void AddValidation_DoesNotTrounceExistingAttributes()
+        {
+            // Arrange
+            var attribute = new RemoteAttribute("Action", "Controller", "AnotherArea")
+            {
+                HttpMethod = "PUT",
+            };
+
+            var context = GetValidationContextWithArea(currentArea: "Test");
+
+            context.Attributes.Add("data-val", "original");
+            context.Attributes.Add("data-val-remote", "original");
+            context.Attributes.Add("data-val-remote-additionalfields", "original");
+            context.Attributes.Add("data-val-remote-type", "original");
+            context.Attributes.Add("data-val-remote-url", "original");
+
+            // Act
+            attribute.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-additionalfields", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-type", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal("original", kvp.Value); });
         }
 
         private static ClientModelValidationContext GetValidationContext(IUrlHelper urlHelper)

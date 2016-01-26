@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
         /// <param name="key">The attribute key.</param>
         /// <param name="value">The attribute value.</param>
         /// <returns><c>true</c> if an attribute was added, otherwise <c>false</c>.</returns>
-        protected bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
+        protected static bool MergeAttribute(IDictionary<string, string> attributes, string key, string value)
         {
             if (attributes.ContainsKey(key))
             {
