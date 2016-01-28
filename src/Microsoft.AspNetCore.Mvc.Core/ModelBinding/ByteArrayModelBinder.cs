@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -28,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Check if this binder applies.
             if (bindingContext.ModelType != typeof(byte[]))
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             // Check for missing data case 1: There was no <input ... /> element containing this data.
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (valueProviderResult == ValueProviderResult.None)
             {
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
@@ -46,14 +47,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (string.IsNullOrEmpty(value))
             {
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             try
             {
                 var model = Convert.FromBase64String(value);
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
             catch (Exception exception)
             {
@@ -66,7 +67,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Matched the type (byte[]) only this binder supports. As in missing data cases, always tell the model
             // binding system to skip other model binders i.e. return non-null.
             bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-            return Internal.TaskCache.CompletedTask;
+            return TaskCache.CompletedTask;
         }
     }
 }

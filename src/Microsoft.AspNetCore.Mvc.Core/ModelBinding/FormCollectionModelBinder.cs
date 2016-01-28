@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Primitives;
 
@@ -33,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (bindingContext.ModelType != typeof(IFormCollection))
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext);

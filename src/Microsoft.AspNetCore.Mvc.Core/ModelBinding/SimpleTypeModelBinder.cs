@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -24,14 +25,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (bindingContext.ModelMetadata.IsComplexType)
             {
                 // this type cannot be converted
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             var valueProviderResult = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
             if (valueProviderResult == ValueProviderResult.None)
             {
                 // no entry
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
@@ -61,12 +62,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                             valueProviderResult.ToString()));
 
                     bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                    return Internal.TaskCache.CompletedTask;
+                    return TaskCache.CompletedTask;
                 }
                 else
                 {
                     bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-                    return Internal.TaskCache.CompletedTask;
+                    return TaskCache.CompletedTask;
                 }
             }
             catch (Exception exception)
@@ -79,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 // Were able to find a converter for the type but conversion failed.
                 // Tell the model binding system to skip other model binders.
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
     }

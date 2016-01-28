@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Formatters are opt-in. This model either didn't specify [FromBody] or specified something
                 // incompatible so let other binders run.
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext);

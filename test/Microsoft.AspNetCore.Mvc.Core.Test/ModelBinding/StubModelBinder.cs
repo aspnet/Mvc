@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 {
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         public StubModelBinder()
         {
-            _callback = context => Internal.TaskCache.CompletedTask;
+            _callback = context => TaskCache.CompletedTask;
         }
 
         public StubModelBinder(ModelBindingResult? result)
@@ -21,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             _callback = context =>
             {
                 context.Result = result;
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             };
         }
 
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             _callback = context =>
             {
                 callback(context);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             };
         }
 

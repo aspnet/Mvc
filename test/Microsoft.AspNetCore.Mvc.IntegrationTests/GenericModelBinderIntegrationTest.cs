@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;
-using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 {
@@ -165,11 +166,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 {
                     // Binding Sources are opt-in. This model either didn't specify one or specified something
                     // incompatible so let other binders run.
-                    return Internal.TaskCache.CompletedTask;
+                    return TaskCache.CompletedTask;
                 }
 
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, new Address());
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
 

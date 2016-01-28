@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -33,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
             }
 
-            return Internal.TaskCache.CompletedTask;
+            return TaskCache.CompletedTask;
         }
     }
 }

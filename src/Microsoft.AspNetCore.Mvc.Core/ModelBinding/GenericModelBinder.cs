@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection;
 #endif
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -29,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binderType = ResolveBinderType(bindingContext);
             if (binderType == null)
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             var binder = (IModelBinder)Activator.CreateInstance(binderType);
@@ -40,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 !collectionBinder.CanCreateInstance(bindingContext.ModelType))
             {
                 // Able to resolve a binder type but need a new model instance and that binder cannot create it.
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext, binder);

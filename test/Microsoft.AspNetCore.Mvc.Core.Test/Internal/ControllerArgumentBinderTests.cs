@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Internal.TaskCache.CompletedTask);
+                .Returns(TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     context.ModelMetadata = metadataProvider.GetMetadataForType(typeof(string));
                     context.Result = ModelBindingResult.Success(string.Empty, value);
                 })
-                .Returns(Internal.TaskCache.CompletedTask);
+                .Returns(TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -183,7 +183,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Internal.TaskCache.CompletedTask);
+                .Returns(TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -269,7 +269,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Returns(Internal.TaskCache.CompletedTask);
+                .Returns(TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
@@ -603,7 +603,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                   .Returns<ModelBindingContext>(mbc =>
                   {
                       mbc.Result = ModelBindingResult.Success(string.Empty, model);
-                      return Internal.TaskCache.CompletedTask;
+                      return TaskCache.CompletedTask;
                   });
 
             context.ModelBinders.Add(binder.Object);

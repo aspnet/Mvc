@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             ModelBindingHelper.ValidateBindingContext(bindingContext);
             if (!CanBindType(bindingContext.ModelMetadata))
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             var mutableObjectBinderContext = new MutableObjectBinderContext()
@@ -41,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (!(CanCreateModel(mutableObjectBinderContext)))
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext, mutableObjectBinderContext);

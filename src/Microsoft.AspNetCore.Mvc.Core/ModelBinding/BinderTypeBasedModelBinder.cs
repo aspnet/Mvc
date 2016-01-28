@@ -3,10 +3,11 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -38,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Return null so that we are able to continue with the default set of model binders,
                 // if there is no specific model binder provided.
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext);

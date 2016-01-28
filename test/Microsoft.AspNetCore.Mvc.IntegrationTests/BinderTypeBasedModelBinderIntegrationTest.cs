@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Globalization;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Testing;
 using Xunit;
-using System;
-using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 {
@@ -292,7 +292,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
                 if (bindingContext.ModelType != typeof(Address))
                 {
-                    return Internal.TaskCache.CompletedTask;
+                    return TaskCache.CompletedTask;
                 }
 
                 var address = new Address() { Street = "SomeStreet" };
@@ -303,7 +303,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                     address.Street);
 
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, address);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
 
@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                     model);
 
                 bindingContext.Result =ModelBindingResult.Success(bindingContext.ModelName, model);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
 
@@ -339,7 +339,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 Debug.Assert(bindingContext.Result == null);
 
                 bindingContext.Result =  ModelBindingResult.Success(bindingContext.ModelName, model: null);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
 
@@ -354,7 +354,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 Debug.Assert(bindingContext.Result == null);
 
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
 
@@ -368,7 +368,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 }
                 Debug.Assert(bindingContext.Result == null);
 
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
     }

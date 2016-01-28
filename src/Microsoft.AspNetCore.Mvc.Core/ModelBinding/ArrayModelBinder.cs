@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -26,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (bindingContext.ModelMetadata.IsReadOnly)
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return base.BindModelAsync(bindingContext);

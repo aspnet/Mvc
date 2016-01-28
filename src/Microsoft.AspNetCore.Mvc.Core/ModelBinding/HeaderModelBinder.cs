@@ -9,6 +9,7 @@ using System.Reflection;
 #endif
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Headers are opt-in. This model either didn't specify [FromHeader] or specified something
                 // incompatible so let other binders run.
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
@@ -68,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (model == null)
             {
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
             else
             {
@@ -78,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     request.Headers[headerName]);
 
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
         }
     }

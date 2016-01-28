@@ -1,11 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Services are opt-in. This model either didn't specify [FromService] or specified something
                 // incompatible so let other binders run.
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
@@ -43,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
 
             bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-            return Internal.TaskCache.CompletedTask;
+            return TaskCache.CompletedTask;
         }
     }
 }

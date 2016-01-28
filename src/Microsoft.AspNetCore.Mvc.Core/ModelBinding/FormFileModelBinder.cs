@@ -10,6 +10,7 @@ using System.Reflection;
 #endif
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Net.Http.Headers;
 
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (bindingContext.ModelType != typeof(IFormFile) &&
                 !typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
             {
-                return Internal.TaskCache.CompletedTask;
+                return TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext);
