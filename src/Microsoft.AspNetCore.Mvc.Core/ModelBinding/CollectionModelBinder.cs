@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         // Internal for testing.
-        public class CollectionResult
+        internal class CollectionResult
         {
             public IEnumerable<TElement> Model { get; set; }
 
