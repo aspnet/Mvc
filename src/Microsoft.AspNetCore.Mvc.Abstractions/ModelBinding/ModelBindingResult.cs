@@ -26,22 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             return new ModelBindingResult(key, model: null, isModelSet: false);
         }
-
-        /// <summary>
-        /// Creates a completed <see cref="Task{ModelBindingResult}"/> representing a failed model binding operation.
-        /// </summary>
-        /// <param name="key">The key of the current model binding operation.</param>
-        /// <returns>A completed <see cref="Task{ModelBindingResult}"/> representing a failed model binding operation.</returns>
-        public static Task<ModelBindingResult> FailedAsync(string key)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            return Task.FromResult(Failed(key));
-        }
-
+        
         /// <summary>
         /// Creates a <see cref="ModelBindingResult"/> representing a successful model binding operation.
         /// </summary>
@@ -58,25 +43,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             return new ModelBindingResult(key, model, isModelSet: true);
-        }
-
-        /// <summary>
-        /// Creates a completed <see cref="Task{ModelBindingResult}"/> representing a successful model binding
-        /// operation.
-        /// </summary>
-        /// <param name="key">The key of the current model binding operation.</param>
-        /// <param name="model">The model value. May be <c>null.</c></param>
-        /// <returns>A completed <see cref="Task{ModelBindingResult}"/> representing a successful model bind.</returns>
-        public static Task<ModelBindingResult> SuccessAsync(
-            string key,
-            object model)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            return Task.FromResult(Success(key, model));
         }
 
         private ModelBindingResult(string key, object model, bool isModelSet)

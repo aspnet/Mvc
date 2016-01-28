@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var binder = new Mock<IModelBinder>();
             binder
                 .Setup(b => b.BindModelAsync(It.IsAny<DefaultModelBindingContext>()))
-                .Returns(ModelBindingResult.FailedAsync(string.Empty));
+                .Returns(TaskCache.CompletedTask);
 
             var controllerContext = GetControllerContext(actionDescriptor);
             controllerContext.ModelBinders.Add(binder.Object);
