@@ -34,7 +34,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
                 return;
             }
-            else if (!keyResult.IsModelSet && valueResult.IsModelSet)
+
+            if (!keyResult.IsModelSet && valueResult.IsModelSet)
             {
                 bindingContext.ModelState.TryAddModelError(
                     keyResult.Key,
@@ -45,7 +46,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
                 return;
             }
-            else if (keyResult.IsModelSet && !valueResult.IsModelSet)
+
+            if (keyResult.IsModelSet && !valueResult.IsModelSet)
             {
                 bindingContext.ModelState.TryAddModelError(
                     valueResult.Key,
@@ -56,17 +58,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
                 return;
             }
-            else
-            {
-                // If we failed to find data for a top-level model, then generate a
-                // default 'empty' model and return it.
-                if (bindingContext.IsTopLevelObject)
-                {
-                    var model = new KeyValuePair<TKey, TValue>();
-                    bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-                }
 
-                return;
+            // If we failed to find data for a top-level model, then generate a
+            // default 'empty' model and return it.
+            if (bindingContext.IsTopLevelObject)
+            {
+                var model = new KeyValuePair<TKey, TValue>();
+                bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
             }
         }
 
