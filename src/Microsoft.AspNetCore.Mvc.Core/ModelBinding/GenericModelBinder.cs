@@ -53,7 +53,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             await binder.BindModelAsync(bindingContext);
             if (bindingContext.Result == null)
             {
-                // Were able to resolve a binder type.
                 // Always tell the model binding system to skip other model binders.
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
             }
