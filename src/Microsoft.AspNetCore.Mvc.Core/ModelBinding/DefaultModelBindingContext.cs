@@ -115,6 +115,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             BindingSource = modelMetadata.BindingSource;
             PropertyFilter = modelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
 
+            FallbackToEmptyPrefix = false;
+            IsTopLevelObject = false;
+
             return scope;
         }
 
@@ -124,8 +127,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             _stack.Push(_state);
 
             Result = null;
-            FallbackToEmptyPrefix = false;
-            IsTopLevelObject = false;
 
             return new NestedScope(this);
         }

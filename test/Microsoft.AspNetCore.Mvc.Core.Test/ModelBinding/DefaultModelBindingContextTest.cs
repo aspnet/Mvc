@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
     public class DefaultModelBindingContextTest
     {
         [Fact]
-        public void CreateChildBindingContext_CopiesProperties()
+        public void EnterNestedScope_CopiesProperties()
         {
             // Arrange
             var bindingContext = new DefaultModelBindingContext
