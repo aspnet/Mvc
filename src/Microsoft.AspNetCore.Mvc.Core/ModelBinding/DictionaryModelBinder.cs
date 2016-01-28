@@ -28,7 +28,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
-            Debug.Assert(bindingContext.Result == null);
 
             await base.BindModelAsync(bindingContext);
             if (bindingContext.Result == null || !bindingContext.Result.Value.IsModelSet)

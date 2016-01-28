@@ -40,7 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
-            Debug.Assert(bindingContext.Result == null);
 
             // This method is optimized to use cached tasks when possible and avoid allocating
             // using Task.FromResult. If you need to make changes of this nature, profile

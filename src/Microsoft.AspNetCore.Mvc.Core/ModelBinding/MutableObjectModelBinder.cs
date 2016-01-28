@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
-            Debug.Assert(bindingContext.Result == null);
 
             ModelBindingHelper.ValidateBindingContext(bindingContext);
             if (!CanBindType(bindingContext.ModelMetadata))
