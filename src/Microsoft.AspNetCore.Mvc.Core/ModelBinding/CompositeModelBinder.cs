@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <inheritdoc />
         public IList<IModelBinder> ModelBinders { get; }
 
-        public async Task BindModelAsync(IModelBindingContext bindingContext)
+        public virtual async Task BindModelAsync(IModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
