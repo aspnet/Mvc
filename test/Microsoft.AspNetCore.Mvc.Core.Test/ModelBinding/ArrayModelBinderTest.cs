@@ -4,9 +4,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Internal;
-using Moq;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Xunit;
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 {
@@ -160,15 +159,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private static IModelBinder CreateIntBinder()
         {
-            return new StubModelBinder(async mbc =>
+            return new StubModelBinder(mbc =>
             {
                 var value = mbc.ValueProvider.GetValue(mbc.ModelName);
                 if (value != ValueProviderResult.None)
                 {
                     var model = value.ConvertTo(mbc.ModelType);
-                    return ModelBindingResult.Success(mbc.ModelName, model);
+                    return Task.FromResult<ModelBindingResult?>(ModelBindingResult.Success(mbc.ModelName, model));
                 }
-                return null;
+                return Task.FromResult<ModelBindingResult?>(null);
             });
         }
 
