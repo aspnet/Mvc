@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Test;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
@@ -22,7 +23,6 @@ using Microsoft.AspNetCore.Testing;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
-using Microsoft.AspNet.Mvc.ModelBinding.Test;
 
 namespace Microsoft.AspNetCore.Mvc.Core.Test
 {
