@@ -82,6 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             };
         }
 
+        /// <inheritdoc />
         public override NestedScope EnterNestedScope(
             ModelMetadata modelMetadata,
             string fieldName,
@@ -117,6 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return scope;
         }
 
+        /// <inheritdoc />
         public override NestedScope EnterNestedScope()
         {
             _stack.Push(_state);
@@ -128,14 +130,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return new NestedScope(this);
         }
 
-        protected override void PopContext()
+        /// <inheritdoc />
+        protected override void ExitNestedScope()
         {
             _state = _stack.Pop();
         }
 
-        /// <summary>
-        /// Represents the <see cref="OperationBindingContext"/> associated with this context.
-        /// </summary>
+        /// <inheritdoc />
         public override OperationBindingContext OperationBindingContext
         {
             get { return _state.OperationBindingContext; }
@@ -149,9 +150,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets or sets the name of the current field being bound.
-        /// </summary>
+        /// <inheritdoc />
         public override string FieldName
         {
             get { return _state.FieldName; }
@@ -165,22 +164,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets or sets the model value for the current operation.
-        /// </summary>
-        /// <remarks>
-        /// The <see cref="Model"/> will typically be set for a binding operation that works
-        /// against a pre-existing model object to update certain properties.
-        /// </remarks>
+        /// <inheritdoc />
         public override object Model
         {
             get { return _state.Model; }
             set { _state.Model = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the metadata for the model associated with this context.
-        /// </summary>
+        /// <inheritdoc />
         public override ModelMetadata ModelMetadata
         {
             get { return _state.ModelMetadata; }
@@ -194,10 +185,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets or sets the name of the model. This property is used as a key for looking up values in
-        /// <see cref="IValueProvider"/> during model binding.
-        /// </summary>
+        /// <inheritdoc />
         public override string ModelName
         {
             get { return _state.ModelName; }
@@ -211,10 +199,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets or sets the <see cref="ModelStateDictionary"/> used to capture <see cref="ModelState"/> values
-        /// for properties in the object graph of the model when binding.
-        /// </summary>
+        /// <inheritdoc />
         public override ModelStateDictionary ModelState
         {
             get { return _state.ModelState; }
@@ -228,71 +213,45 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets the type of the model.
-        /// </summary>
-        /// <remarks>
-        /// The <see cref="ModelMetadata"/> property must be set to access this property.
-        /// </remarks>
+        /// <inheritdoc />
         public override Type ModelType => ModelMetadata?.ModelType;
 
-        /// <summary>
-        /// Gets or sets a model name which is explicitly set using an <see cref="IModelNameProvider"/>.
-        /// <see cref="Model"/>.
-        /// </summary>
+        /// <inheritdoc />
         public override string BinderModelName
         {
             get { return _state.BinderModelName; }
             set { _state.BinderModelName = value; }
         }
 
-        /// <summary>
-        /// Gets or sets a value which represents the <see cref="BindingSource"/> associated with the
-        /// <see cref="Model"/>.
-        /// </summary>
+        /// <inheritdoc />
         public override BindingSource BindingSource
         {
             get { return _state.BindingSource; }
             set { _state.BindingSource = value; }
         }
 
-        /// <summary>
-        /// Gets the <see cref="Type"/> of an <see cref="IModelBinder"/> associated with the
-        /// <see cref="Model"/>.
-        /// </summary>
+        /// <inheritdoc />
         public override Type BinderType
         {
             get { return _state.BinderType; }
             set { _state.BinderType = value; }
         }
 
-        /// <summary>
-        /// Gets or sets a value that indicates whether the binder should use an empty prefix to look up
-        /// values in <see cref="IValueProvider"/> when no values are found using the <see cref="ModelName"/> prefix.
-        /// </summary>
-        /// <remarks>
-        /// Passed into the model binding system. Should not be <c>true</c> when <see cref="IsTopLevelObject"/> is
-        /// <c>false</c>.
-        /// </remarks>
+        /// <inheritdoc />
         public override bool FallbackToEmptyPrefix
         {
             get { return _state.FallbackToEmptyPrefix; }
             set { _state.FallbackToEmptyPrefix = value; }
         }
 
-        /// <summary>
-        /// Gets or sets an indication that the current binder is handling the top-level object.
-        /// </summary>
-        /// <remarks>Passed into the model binding system.</remarks>
+        /// <inheritdoc />
         public override bool IsTopLevelObject
         {
             get { return _state.IsTopLevelObject; }
             set { _state.IsTopLevelObject = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
-        /// </summary>
+        /// <inheritdoc />
         public override IValueProvider ValueProvider
         {
             get { return _state.ValueProvider; }
@@ -306,26 +265,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        /// <summary>
-        /// Gets or sets a predicate which will be evaluated for each property to determine if the property
-        /// is eligible for model binding.
-        /// </summary>
+        /// <inheritdoc />
         public override Func<ModelBindingContext, string, bool> PropertyFilter
         {
             get { return _state.PropertyFilter; }
             set { _state.PropertyFilter = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the <see cref="ValidationStateDictionary"/>. Used for tracking validation state to
-        /// customize validation behavior for a model object.
-        /// </summary>
+        /// <inheritdoc />
         public override ValidationStateDictionary ValidationState
         {
             get { return _state.ValidationState; }
             set { _state.ValidationState = value; }
         }
 
+        /// <inheritdoc />
         public override ModelBindingResult? Result
         {
             get
