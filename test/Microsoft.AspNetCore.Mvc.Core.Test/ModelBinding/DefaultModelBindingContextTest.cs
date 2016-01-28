@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 {
-    public class ModelBindingContextTest
+    public class DefaultModelBindingContextTest
     {
         [Fact]
         public void CreateChildBindingContext_CopiesProperties()
