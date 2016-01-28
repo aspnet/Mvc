@@ -171,7 +171,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// The <see cref="Model"/> will typically be set for a binding operation that works
         /// against a pre-existing model object to update certain properties.
         /// </remarks>
-        public object Model { get { return _state.Model; } set { _state.Model = value; } }
+        public object Model
+        {
+            get { return _state.Model; }
+            set { _state.Model = value; }
+        }
 
         /// <summary>
         /// Gets or sets the metadata for the model associated with this context.
@@ -235,19 +239,31 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets a model name which is explicitly set using an <see cref="IModelNameProvider"/>.
         /// <see cref="Model"/>.
         /// </summary>
-        public string BinderModelName { get { return _state.BinderModelName; } set { _state.BinderModelName = value; } }
+        public string BinderModelName
+        {
+            get { return _state.BinderModelName; }
+            set { _state.BinderModelName = value; }
+        }
 
         /// <summary>
         /// Gets or sets a value which represents the <see cref="BindingSource"/> associated with the
         /// <see cref="Model"/>.
         /// </summary>
-        public BindingSource BindingSource { get { return _state.BindingSource; } set { _state.BindingSource = value; } }
+        public BindingSource BindingSource
+        {
+            get { return _state.BindingSource; }
+            set { _state.BindingSource = value; }
+        }
 
         /// <summary>
         /// Gets the <see cref="Type"/> of an <see cref="IModelBinder"/> associated with the
         /// <see cref="Model"/>.
         /// </summary>
-        public Type BinderType { get { return _state.BinderType; } set { _state.BinderType = value; } }
+        public Type BinderType
+        {
+            get { return _state.BinderType; }
+            set { _state.BinderType = value; }
+        }
 
         /// <summary>
         /// Gets or sets a value that indicates whether the binder should use an empty prefix to look up
@@ -257,13 +273,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Passed into the model binding system. Should not be <c>true</c> when <see cref="IsTopLevelObject"/> is
         /// <c>false</c>.
         /// </remarks>
-        public bool FallbackToEmptyPrefix { get { return _state.FallbackToEmptyPrefix; } set { _state.FallbackToEmptyPrefix = value; } }
+        public bool FallbackToEmptyPrefix
+        {
+            get { return _state.FallbackToEmptyPrefix; }
+            set { _state.FallbackToEmptyPrefix = value; }
+        }
 
         /// <summary>
         /// Gets or sets an indication that the current binder is handling the top-level object.
         /// </summary>
         /// <remarks>Passed into the model binding system.</remarks>
-        public bool IsTopLevelObject { get { return _state.IsTopLevelObject; } set { _state.IsTopLevelObject = value; } }
+        public bool IsTopLevelObject
+        {
+            get { return _state.IsTopLevelObject; }
+            set { _state.IsTopLevelObject = value; }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="IValueProvider"/> associated with this context.
@@ -285,13 +309,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets a predicate which will be evaluated for each property to determine if the property
         /// is eligible for model binding.
         /// </summary>
-        public Func<IModelBindingContext, string, bool> PropertyFilter { get { return _state.PropertyFilter; } set { _state.PropertyFilter = value; } }
+        public Func<IModelBindingContext, string, bool> PropertyFilter
+        {
+            get { return _state.PropertyFilter; }
+            set { _state.PropertyFilter = value; }
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="ValidationStateDictionary"/>. Used for tracking validation state to
         /// customize validation behavior for a model object.
         /// </summary>
-        public ValidationStateDictionary ValidationState { get { return _state.ValidationState; } set { _state.ValidationState = value; } }
+        public ValidationStateDictionary ValidationState
+        {
+            get { return _state.ValidationState; }
+            set { _state.ValidationState = value; }
+        }
 
         public ModelBindingResult? Result
         {
@@ -301,12 +333,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             set
             {
-#if DEBUG
                 if (value.HasValue && value.Value == default(ModelBindingResult))
                 {
                     throw new ArgumentException(nameof(ModelBindingResult));
                 }
-#endif
 
                 _state.Result = value;
             }
