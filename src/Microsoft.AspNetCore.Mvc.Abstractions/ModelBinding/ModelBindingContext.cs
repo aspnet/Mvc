@@ -12,6 +12,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class ModelBindingContext : IModelBindingContext
     {
+        State _state;
+        Stack<State> _stack = new Stack<State>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelBindingContext"/> class.
         /// </summary>
@@ -331,8 +334,5 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public ModelBindingResult? Result;
         };
-
-        State _state;
-        Stack<State> _stack = new Stack<State>();
     }
 }
