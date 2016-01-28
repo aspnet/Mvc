@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             private readonly ModelBindingContext _context;
 
             /// <summary>
-            /// Initializes the disposable for a pushed context.
+            /// Initializes the <see cref="NestedScope"/> for a <see cref="ModelBindingContext"/>.
             /// </summary>
             /// <param name="context"></param>
             public NestedScope(ModelBindingContext context)
@@ -163,7 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             /// <summary>
-            /// Disposes the child binding context state by calling PopContext.
+            /// Exits the <see cref="NestedScope"/> created by calling <see cref="ModelBindingContext.EnterNestedScope"/>.
             /// </summary>
             public void Dispose()
             {
