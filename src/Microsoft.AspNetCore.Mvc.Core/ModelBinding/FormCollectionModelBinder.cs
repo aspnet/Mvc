@@ -18,8 +18,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class FormCollectionModelBinder : IModelBinder
     {
-        private static Task _complete = Task.FromResult(0);
-
         /// <inheritdoc />
         public Task BindModelAsync(IModelBindingContext bindingContext)
         {
@@ -35,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (bindingContext.ModelType != typeof(IFormCollection))
             {
-                return _complete;
+                return Internal.TaskCache.CompletedTask;
             }
 
             return BindModelCoreAsync(bindingContext);
