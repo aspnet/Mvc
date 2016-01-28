@@ -80,17 +80,13 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(model.Customer.Address);
             Assert.Equal(AddressStreetContent, model.Customer.Address.Street);
 
-            Assert.Equal(2, modelState.Count);
+            Assert.Equal(1, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
             Assert.Equal("bill", entry.AttemptedValue);
             Assert.Equal("bill", entry.RawValue);
-
-            entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Address").Value;
-            Assert.Null(entry.AttemptedValue); // ModelState entries for body don't include original text.
-            Assert.Same(model.Customer.Address, entry.RawValue);
         }
 
         [Fact]
@@ -125,17 +121,13 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(model.Customer.Address);
             Assert.Equal(AddressStreetContent, model.Customer.Address.Street);
 
-            Assert.Equal(2, modelState.Count);
+            Assert.Equal(1, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
 
             var entry = Assert.Single(modelState, e => e.Key == "Customer.Name").Value;
             Assert.Equal("bill", entry.AttemptedValue);
             Assert.Equal("bill", entry.RawValue);
-
-            entry = Assert.Single(modelState, e => e.Key == "Customer.Address").Value;
-            Assert.Null(entry.AttemptedValue); // ModelState entries for body don't include original text.
-            Assert.Same(model.Customer.Address, entry.RawValue);
         }
 
         [Fact]
@@ -169,14 +161,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal("bill", model.Customer.Name);
             Assert.Null(model.Customer.Address);
 
-            Assert.Equal(2, modelState.Count);
+            Assert.Equal(1, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
 
-            var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Address").Value;
-            Assert.Null(entry.AttemptedValue);
-            Assert.Null(entry.RawValue);
-            entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
+            var entry = Assert.Single(modelState, e => e.Key == "parameter.Customer.Name").Value;
             Assert.Equal("bill", entry.AttemptedValue);
             Assert.Equal("bill", entry.RawValue);
         }
@@ -1355,13 +1344,10 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(model.Customer.Address);
             Assert.Equal(AddressStreetContent, model.Customer.Address.Street);
 
-            Assert.Equal(1, modelState.Count);
+            Assert.Equal(0, modelState.Count);
             Assert.Equal(0, modelState.ErrorCount);
             Assert.True(modelState.IsValid);
-
-            var entry = Assert.Single(modelState, e => e.Key == "Customer.Address").Value;
-            Assert.Null(entry.AttemptedValue);
-            Assert.Same(model.Customer.Address, entry.RawValue);
+            Assert.Empty(modelState);
         }
 
         private class Order10
