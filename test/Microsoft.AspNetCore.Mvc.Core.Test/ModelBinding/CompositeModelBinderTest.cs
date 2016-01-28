@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task ModelBinder_ReturnsNoResult_IfBinderMatchesButDoesNotSetModel()
+        public async Task ModelBinder_ReturnsNothing_IfBinderMatchesButDoesNotSetModel()
         {
             // Arrange
             var bindingContext = new ModelBindingContext
@@ -314,7 +314,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task BindModel_UnsuccessfulBind_SimpleTypeNoFallback_ReturnsNoResult()
+        public async Task BindModel_UnsuccessfulBind_SimpleTypeNoFallback_ReturnsNothing()
         {
             // Arrange
             var shimBinder = CreateCompositeBinder(new StubModelBinder());
@@ -415,7 +415,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task BindModel_DoesNotAddAValidationNode_IfModelBindingResultIsNoResult()
+        public async Task BindModel_DoesNotAddAValidationNode_IfModelBindingResultIsNothing()
         {
             // Arrange
             var mockBinder = new StubModelBinder();

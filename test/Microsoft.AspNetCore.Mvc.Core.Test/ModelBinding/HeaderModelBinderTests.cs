@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task HeaderBinder_ReturnsNoResult_ForNullBindingSource()
+        public async Task HeaderBinder_ReturnsNothing_ForNullBindingSource()
         {
             // Arrange
             var type = typeof(string);
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         }
 
         [Fact]
-        public async Task HeaderBinder_ReturnsNoResult_ForNonHeaderBindingSource()
+        public async Task HeaderBinder_ReturnsNothing_ForNonHeaderBindingSource()
         {
             // Arrange
             var type = typeof(string);

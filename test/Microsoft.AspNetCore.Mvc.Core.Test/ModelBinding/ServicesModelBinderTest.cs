@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task ServiceModelBinder_ReturnsNoResult_ForNullBindingSource()
+        public async Task ServiceModelBinder_ReturnsNothing_ForNullBindingSource()
         {
             // Arrange
             var type = typeof(IService);
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task ServiceModelBinder_ReturnsNoResult_ForNonServiceBindingSource()
+        public async Task ServiceModelBinder_ReturnsNothing_ForNonServiceBindingSource()
         {
             // Arrange
             var type = typeof(IService);

@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task FormFileModelBinder_ReturnsNoResult_WhenNoFilePosted()
+        public async Task FormFileModelBinder_ReturnsNothing_WhenNoFilePosted()
         {
             // Arrange
             var formFiles = new FormFileCollection();
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task FormFileModelBinder_ReturnsNoResult_WhenNamesDontMatch()
+        public async Task FormFileModelBinder_ReturnsNothing_WhenNamesDontMatch()
         {
             // Arrange
             var formFiles = new FormFileCollection();
@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task FormFileModelBinder_ReturnsNoResult_WithEmptyContentDisposition()
+        public async Task FormFileModelBinder_ReturnsNothing_WithEmptyContentDisposition()
         {
             // Arrange
             var formFiles = new FormFileCollection();
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public async Task FormFileModelBinder_ReturnsNoResult_WithNoFileNameAndZeroLength()
+        public async Task FormFileModelBinder_ReturnsNothing_WithNoFileNameAndZeroLength()
         {
             // Arrange
             var formFiles = new FormFileCollection();

@@ -69,29 +69,5 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.False(result.IsModelSet);
             Assert.Null(result.Model);
         }
-
-        [Fact]
-        public void NoResult_SetsProperties()
-        {
-            // Arrange & Act
-            var result = default(ModelBindingResult);
-
-            // Assert
-            Assert.Null(result.Key);
-            Assert.False(result.IsModelSet);
-            Assert.Null(result.Model);
-        }
-
-        [Fact]
-        public async Task NoResultAsync_SetsProperties()
-        {
-            // Arrange & Act
-            var result = await Task.FromResult(default(ModelBindingResult));
-
-            // Assert
-            Assert.Null(result.Key);
-            Assert.False(result.IsModelSet);
-            Assert.Null(result.Model);
-        }
     }
 }

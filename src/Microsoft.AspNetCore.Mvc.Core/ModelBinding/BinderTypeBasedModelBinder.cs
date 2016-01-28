@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (bindingContext.BinderType == null)
             {
-                // Return NoResult so that we are able to continue with the default set of model binders,
+                // Return null so that we are able to continue with the default set of model binders,
                 // if there is no specific model binder provided.
                 bindingContext.Result = null;
                 return Internal.TaskCache.CompletedTask;

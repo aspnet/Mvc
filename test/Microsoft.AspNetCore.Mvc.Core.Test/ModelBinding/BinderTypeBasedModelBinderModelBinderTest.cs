@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
     public class BinderTypeBasedModelBinderModelBinderTest
     {
         [Fact]
-        public async Task BindModel_ReturnsNoResult_IfNoBinderTypeIsSet()
+        public async Task BindModel_ReturnsNothing_IfNoBinderTypeIsSet()
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(Person));

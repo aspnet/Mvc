@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         [InlineData(typeof(object))]
         [InlineData(typeof(Calendar))]
         [InlineData(typeof(TestClass))]
-        public async Task BindModel_ReturnsNoResult_IfTypeCannotBeConverted(Type destinationType)
+        public async Task BindModel_ReturnsNothing_IfTypeCannotBeConverted(Type destinationType)
         {
             // Arrange
             var bindingContext = GetBindingContext(destinationType);
