@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class AddressBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {

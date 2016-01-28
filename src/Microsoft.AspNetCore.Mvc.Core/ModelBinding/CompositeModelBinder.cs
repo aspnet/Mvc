@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// instances.
     /// </summary>
     /// <remarks>
-    /// If no binder is available and the <see cref="ModelBindingContext"/> allows it,
+    /// If no binder is available and the <see cref="DefaultModelBindingContext"/> allows it,
     /// this class tries to find a binder using an empty prefix.
     /// </remarks>
     public class CompositeModelBinder : ICompositeModelBinder
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <inheritdoc />
         public IList<IModelBinder> ModelBinders { get; }
 
-        public virtual async Task BindModelAsync(IModelBindingContext bindingContext)
+        public virtual async Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Debug.Assert(bindingContext.Result == null);
 
             ModelBindingResult? result = null;
-            using (bindingContext.PushContext())
+            using (bindingContext.EnterNestedScope())
             {
                 if (PrepareBindingContext(bindingContext))
                 {
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             bindingContext.Result = result;
         }
 
-        private async Task RunModelBinders(IModelBindingContext bindingContext)
+        private async Task RunModelBinders(ModelBindingContext bindingContext)
         {
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
@@ -102,7 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private static bool PrepareBindingContext(IModelBindingContext bindingContext)
+        private static bool PrepareBindingContext(ModelBindingContext bindingContext)
         {
             // If the property has a specified data binding sources, we need to filter the set of value providers
             // to just those that match. We can skip filtering when IsGreedy == true, because that can't use

@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task BindModel_SuccessfulBind_ReturnsModel()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task BindModel_SuccessfulBind_SetsValidationStateAtTopLevel()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 IsTopLevelObject = true,
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task BindModel_SuccessfulBind_DoesNotSetValidationState_WhenNotTopLevel()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             // Arrange
             var expectedModel = new List<int> { 1, 2, 3, 4, 5 };
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 IsTopLevelObject = true,
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task ModelBinder_ReturnsNothing_IfBinderMatchesButDoesNotSetModel()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task ModelBinder_DoesNotFallBackToEmpty_IfFallbackToEmptyPrefixFalse()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = false,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
@@ -250,7 +250,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task ModelBinder_DoesNotFallBackToEmpty_IfErrorsAreAdded()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = false,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public async Task ModelBinder_ReturnsNonEmptyResult_SetsNullValue_SetsModelStateKey()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(List<int>)),
@@ -319,7 +319,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             // Arrange
             var shimBinder = CreateCompositeBinder(new StubModelBinder());
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int)),
@@ -449,13 +449,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.True(result.IsModelSet);
         }
 
-        private static ModelBindingContext CreateBindingContext(
+        private static DefaultModelBindingContext CreateBindingContext(
             IModelBinder binder,
             IValueProvider valueProvider,
             Type type)
         {
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FallbackToEmptyPrefix = true,
                 IsTopLevelObject = true,

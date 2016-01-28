@@ -54,10 +54,10 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             Assert.False(bindingContext.Result.HasValue);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            ModelBindingContext bindingContext = new ModelBindingContext
+            DefaultModelBindingContext bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",

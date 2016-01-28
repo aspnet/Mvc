@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             IList<IInputFormatter> inputFormatters,
             IObjectModelValidator objectModelValidator,
             IModelValidatorProvider validatorProvider,
-            Func<IModelBindingContext, string, bool> predicate)
+            Func<ModelBindingContext, string, bool> predicate)
             where TModel : class
         {
             if (model == null)
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                IList<IInputFormatter> inputFormatters,
                IObjectModelValidator objectModelValidator,
                IModelValidatorProvider validatorProvider,
-               Func<IModelBindingContext, string, bool> predicate)
+               Func<ModelBindingContext, string, bool> predicate)
         {
             if (model == null)
             {
@@ -528,7 +528,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 ValueProvider = valueProvider,
             };
 
-            var modelBindingContext = ModelBindingContext.CreateBindingContext(
+            var modelBindingContext = DefaultModelBindingContext.CreateBindingContext(
                 operationBindingContext,
                 modelMetadata,
                 bindingInfo: null,
@@ -597,7 +597,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="prefix">The model prefix.</param>
         /// <param name="expressions">Expressions identifying the properties to allow for binding.</param>
         /// <returns>An expression which can be used with <see cref="IPropertyBindingPredicateProvider"/>.</returns>
-        public static Expression<Func<IModelBindingContext, string, bool>> GetIncludePredicateExpression<TModel>(
+        public static Expression<Func<ModelBindingContext, string, bool>> GetIncludePredicateExpression<TModel>(
             string prefix,
             Expression<Func<TModel, object>>[] expressions)
         {
@@ -616,11 +616,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                                                         Expression.Invoke(predicate, firstExpression.Parameters));
             }
 
-            return Expression.Lambda<Func<IModelBindingContext, string, bool>>(
+            return Expression.Lambda<Func<ModelBindingContext, string, bool>>(
                 orWrapperExpression, firstExpression.Parameters);
         }
 
-        private static Expression<Func<IModelBindingContext, string, bool>> GetPredicateExpression<TModel>
+        private static Expression<Func<ModelBindingContext, string, bool>> GetPredicateExpression<TModel>
             (string prefix, Expression<Func<TModel, object>> expression)
         {
             var propertyName = GetPropertyName(expression.Body);
@@ -684,7 +684,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        internal static void ValidateBindingContext(IModelBindingContext bindingContext)
+        internal static void ValidateBindingContext(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -698,7 +698,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         internal static void ValidateBindingContext(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             Type requiredType,
             bool allowNullModel)
         {

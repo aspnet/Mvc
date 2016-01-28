@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class FormCollectionModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             object model;
             var request = bindingContext.OperationBindingContext.HttpContext.Request;

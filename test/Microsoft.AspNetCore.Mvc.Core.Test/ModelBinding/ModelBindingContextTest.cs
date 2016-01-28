@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public void CreateChildBindingContext_CopiesProperties()
         {
             // Arrange
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 Model = new object(),
                 ModelMetadata = new TestModelMetadataProvider().GetMetadataForType(typeof(object)),
@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var originalOperationBindingContext = bindingContext.OperationBindingContext;
             var originalValueProvider = bindingContext.ValueProvider;
 
-            var disposable = bindingContext.PushContext(
+            var disposable = bindingContext.EnterNestedScope(
                 modelMetadata: newModelMetadata,
                 fieldName: "fieldName",
                 modelName: "modelprefix.fieldName",
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         public void ModelTypeAreFedFromModelMetadata()
         {
             // Act
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(typeof(int))
             };
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private class TestModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {

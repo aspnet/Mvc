@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public sealed class KeyValuePairModelBinder<TKey, TValue> : IModelBinder
     {
-        public async Task BindModelAsync(IModelBindingContext bindingContext)
+        public async Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         internal async Task<ModelBindingResult> TryBindStrongModel<TModel>(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             string propertyName)
         {
             var propertyModelMetadata =
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var propertyModelName =
                 ModelNames.CreatePropertyModelName(bindingContext.ModelName, propertyName);
 
-            using (bindingContext.PushContext(
+            using (bindingContext.EnterNestedScope(
                 modelMetadata: propertyModelMetadata,
                 fieldName: propertyName,
                 modelName: propertyModelName,

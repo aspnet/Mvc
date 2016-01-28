@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class AddressModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {
@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class SuccessModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class NullModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {
@@ -345,7 +345,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class NullModelNotSetModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {
@@ -360,7 +360,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class NullResultModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 if (bindingContext == null)
                 {

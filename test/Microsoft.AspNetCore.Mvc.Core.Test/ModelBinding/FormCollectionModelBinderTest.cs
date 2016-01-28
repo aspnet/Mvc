@@ -114,10 +114,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return httpContext.Object;
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType, HttpContext httpContext)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType, HttpContext httpContext)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "file",

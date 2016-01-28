@@ -260,7 +260,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Same(canReadFormatter1, binderResult.Model);
         }
 
-        private static ModelBindingContext GetBindingContext(
+        private static DefaultModelBindingContext GetBindingContext(
             Type modelType,
             IEnumerable<IInputFormatter> inputFormatters = null,
             HttpContext httpContext = null,
@@ -292,7 +292,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 MetadataProvider = metadataProvider,
             };
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 FieldName = "someField",
                 IsTopLevelObject = true,

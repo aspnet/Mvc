@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         private readonly ConcurrentDictionary<Type, ObjectFactory> _typeActivatorCache =
                new ConcurrentDictionary<Type, ObjectFactory>();
 
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             var requestServices = bindingContext.OperationBindingContext.HttpContext.RequestServices;
             var createFactory = _typeActivatorCache.GetOrAdd(bindingContext.BinderType, _createFactory);

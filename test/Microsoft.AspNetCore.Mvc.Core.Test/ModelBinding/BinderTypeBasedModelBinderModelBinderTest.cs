@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal(expected, ex.Message);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType, Type binderType = null)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType, Type binderType = null)
         {
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType(modelType).BindingDetails(bd => bd.BinderType = binderType);
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
             };
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private class NullModelBinder : IModelBinder
         {
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 return Task.FromResult(0);
             }
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 _model = new Person();
             }
 
-            public Task BindModelAsync(IModelBindingContext bindingContext)
+            public Task BindModelAsync(ModelBindingContext bindingContext)
             {
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, _model);
                 return Task.FromResult(0);

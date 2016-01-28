@@ -362,14 +362,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Equal(new[] { 42 }, boundCollection.Model.ToArray());
         }
 
-        private static ModelBindingContext GetModelBindingContext(
+        private static DefaultModelBindingContext GetModelBindingContext(
             IValueProvider valueProvider,
             bool isReadOnly = false)
         {
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType<IList<int>>().BindingDetails(bd => bd.IsReadOnly = isReadOnly);
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(typeof(IList<int>)),
                 ModelName = "someName",
@@ -411,9 +411,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             });
         }
 
-        private static ModelBindingContext CreateContext()
+        private static DefaultModelBindingContext CreateContext()
         {
-            var modelBindingContext = new ModelBindingContext()
+            var modelBindingContext = new DefaultModelBindingContext()
             {
                 OperationBindingContext = new OperationBindingContext()
                 {

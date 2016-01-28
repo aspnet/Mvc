@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class GenericModelBinder : IModelBinder
     {
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return BindModelCoreAsync(bindingContext, binder);
         }
 
-        private async Task BindModelCoreAsync(IModelBindingContext bindingContext, IModelBinder binder)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext, IModelBinder binder)
         {
             Debug.Assert(binder != null);
 
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private static Type ResolveBinderType(IModelBindingContext context)
+        private static Type ResolveBinderType(ModelBindingContext context)
         {
             var modelType = context.ModelType;
 
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 modelType);
         }
 
-        private static Type GetEnumerableBinder(IModelBindingContext context)
+        private static Type GetEnumerableBinder(ModelBindingContext context)
         {
             var modelTypeArguments = GetGenericBinderTypeArgs(typeof(IEnumerable<>), context.ModelType);
             if (modelTypeArguments == null)

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             typeof(MutableObjectModelBinder).GetTypeInfo().GetDeclaredMethod(nameof(CallPropertyAddRange));
 
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         private async Task BindModelCoreAsync(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             MutableObjectBinderContext mutableObjectBinderContext)
         {
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
@@ -173,7 +173,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                         context.ModelBindingContext.ModelName,
                         fieldName);
 
-                    using (context.ModelBindingContext.PushContext(
+                    using (context.ModelBindingContext.EnterNestedScope(
                         modelMetadata: propertyMetadata,
                         fieldName: fieldName,
                         modelName: modelName,
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return false;
         }
 
-        private bool CanBindValue(IModelBindingContext bindingContext)
+        private bool CanBindValue(ModelBindingContext bindingContext)
         {
             var valueProvider = bindingContext.ValueProvider;
 
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         // binding failed, the entry's value will have IsModelSet == false. Binding is attempted for all elements of
         // propertyMetadatas.
         private async Task<IDictionary<ModelMetadata, ModelBindingResult>> BindPropertiesAsync(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             IEnumerable<ModelMetadata> propertyMetadatas)
         {
             var results = new Dictionary<ModelMetadata, ModelBindingResult>();
@@ -301,7 +301,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 var fieldName = propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName;
                 var modelName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, fieldName);
 
-                using (bindingContext.PushContext(
+                using (bindingContext.EnterNestedScope(
                     modelMetadata: propertyMetadata,
                     fieldName: fieldName,
                     modelName: modelName,
@@ -325,9 +325,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Creates suitable <see cref="object"/> for given <paramref name="bindingContext"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        /// <returns>An <see cref="object"/> compatible with <see cref="ModelBindingContext.ModelType"/>.</returns>
-        protected virtual object CreateModel(IModelBindingContext bindingContext)
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <returns>An <see cref="object"/> compatible with <see cref="DefaultModelBindingContext.ModelType"/>.</returns>
+        protected virtual object CreateModel(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -340,11 +340,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Get <see cref="ModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
-        /// new instance of <see cref="ModelBindingContext.ModelType"/>.
+        /// Get <see cref="DefaultModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
+        /// new instance of <see cref="DefaultModelBindingContext.ModelType"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        protected virtual object GetModel(IModelBindingContext bindingContext)
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        protected virtual object GetModel(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -362,10 +362,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Gets the collection of <see cref="ModelMetadata"/> for properties this binder should update.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
         /// <returns>Collection of <see cref="ModelMetadata"/> for properties this binder should update.</returns>
         protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(
-            IModelBindingContext bindingContext)
+            ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -382,9 +382,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                                     CanUpdateProperty(propertyMetadata));
         }
 
-        private static Func<IModelBindingContext, string, bool> GetPropertyFilter()
+        private static Func<ModelBindingContext, string, bool> GetPropertyFilter()
         {
-            return (IModelBindingContext context, string propertyName) =>
+            return (ModelBindingContext context, string propertyName) =>
             {
                 var modelMetadataPredicate = context.ModelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
 
@@ -394,7 +394,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             };
         }
 
-        internal static PropertyValidationInfo GetPropertyValidationInfo(IModelBindingContext bindingContext)
+        internal static PropertyValidationInfo GetPropertyValidationInfo(ModelBindingContext bindingContext)
         {
             var validationInfo = new PropertyValidationInfo();
 
@@ -420,7 +420,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         // Internal for testing.
         internal void ProcessResults(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             IDictionary<ModelMetadata, ModelBindingResult> results)
         {
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
@@ -458,9 +458,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Updates a property in the current <see cref="ModelBindingContext.Model"/>.
+        /// Updates a property in the current <see cref="DefaultModelBindingContext.Model"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
         /// <param name="metadata">
         /// The <see cref="ModelMetadata"/> for the model containing property to set.
         /// </param>
@@ -468,7 +468,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="result">The <see cref="ModelBindingResult"/> for the property's new value.</param>
         /// <remarks>Should succeed in all cases that <see cref="CanUpdateProperty"/> returns <c>true</c>.</remarks>
         protected virtual void SetProperty(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             ModelMetadata metadata,
             ModelMetadata propertyMetadata,
             ModelBindingResult result)
@@ -514,7 +514,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         private void AddToProperty(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             ModelMetadata modelMetadata,
             ModelMetadata propertyMetadata,
             ModelBindingResult result)
@@ -571,7 +571,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static void AddModelError(
             Exception exception,
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             ModelBindingResult result)
         {
             var targetInvocationException = exception as TargetInvocationException;

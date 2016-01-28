@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class ArrayModelBinder<TElement> : CollectionModelBinder<TElement>
     {
         /// <inheritdoc />
-        public override Task BindModelAsync(IModelBindingContext bindingContext)
+        public override Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {

@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class FormFileModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             // If we're at the top level, then use the FieldName (paramter or property name).
             // This handles the fact that there will be nothing in the ValueProviders for this parameter
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private async Task<List<IFormFile>> GetFormFilesAsync(string modelName, IModelBindingContext bindingContext)
+        private async Task<List<IFormFile>> GetFormFilesAsync(string modelName, ModelBindingContext bindingContext)
         {
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
             var postedFiles = new List<IFormFile>();

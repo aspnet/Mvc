@@ -215,9 +215,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal((FlagsEnum)expected, boundModel);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
-            return new ModelBindingContext
+            return new DefaultModelBindingContext
             {
                 ModelMetadata = new EmptyModelMetadataProvider().GetMetadataForType(modelType),
                 ModelName = "theModelName",

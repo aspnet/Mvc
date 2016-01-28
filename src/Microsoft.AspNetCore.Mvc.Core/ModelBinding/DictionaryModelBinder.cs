@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class DictionaryModelBinder<TKey, TValue> : CollectionModelBinder<KeyValuePair<TKey, TValue>>
     {
         /// <inheritdoc />
-        public override async Task BindModelAsync(IModelBindingContext bindingContext)
+        public override async Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 // that culture when rendering a form.
                 var convertedKey = ModelBindingHelper.ConvertTo<TKey>(kvp.Key, culture: null);
 
-                using (bindingContext.PushContext(
+                using (bindingContext.EnterNestedScope(
                     modelMetadata: valueMetadata,
                     fieldName: bindingContext.FieldName,
                     modelName: kvp.Value,

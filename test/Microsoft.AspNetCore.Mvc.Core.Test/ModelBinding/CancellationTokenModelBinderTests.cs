@@ -45,10 +45,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal(default(ModelBindingResult), result);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
-            ModelBindingContext bindingContext = new ModelBindingContext
+            DefaultModelBindingContext bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",

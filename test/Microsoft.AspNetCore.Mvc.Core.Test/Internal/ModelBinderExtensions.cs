@@ -6,7 +6,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     {
         public static async Task<ModelBindingResult> BindModelResultAsync(
             this IModelBinder binder, 
-            IModelBindingContext context)
+            ModelBindingContext context)
         {
             await binder.BindModelAsync(context);
             return context.Result ?? default(ModelBindingResult);

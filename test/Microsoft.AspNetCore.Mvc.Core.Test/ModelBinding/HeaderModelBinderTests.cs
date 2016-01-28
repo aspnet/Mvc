@@ -116,12 +116,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal(default(ModelBindingResult), result);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType(modelType).BindingDetails(d => d.BindingSource = BindingSource.Header);
             var modelMetadata = metadataProvider.GetMetadataForType(modelType);
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = modelMetadata,
                 ModelName = "modelName",

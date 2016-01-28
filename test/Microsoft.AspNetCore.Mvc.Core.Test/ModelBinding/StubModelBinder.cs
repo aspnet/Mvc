@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 {
     public class StubModelBinder : IModelBinder
     {
-        private readonly Func<IModelBindingContext, Task> _callback;
+        private readonly Func<ModelBindingContext, Task> _callback;
 
         public StubModelBinder()
         {
@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             };
         }
 
-        public StubModelBinder(Action<IModelBindingContext> callback)
+        public StubModelBinder(Action<ModelBindingContext> callback)
         {
             _callback = context =>
             {
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             };
         }
 
-        public StubModelBinder(Func<IModelBindingContext, Task<ModelBindingResult?>> callback)
+        public StubModelBinder(Func<ModelBindingContext, Task<ModelBindingResult?>> callback)
         {
             _callback = async context =>
             {
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         public IModelBinder Object => this;
 
-        public virtual async Task BindModelAsync(IModelBindingContext bindingContext)
+        public virtual async Task BindModelAsync(ModelBindingContext bindingContext)
         {
             BindModelCount += 1;
 

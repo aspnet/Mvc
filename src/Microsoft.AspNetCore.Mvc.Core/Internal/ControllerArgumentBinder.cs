@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
-            var modelBindingContext = ModelBindingContext.CreateBindingContext(
+            var modelBindingContext = DefaultModelBindingContext.CreateBindingContext(
                 operationContext,
                 metadata,
                 parameter.BindingInfo,

@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class CollectionModelBinder<TElement> : ICollectionModelBinder
     {
         /// <inheritdoc />
-        public virtual async Task BindModelAsync(IModelBindingContext bindingContext)
+        public virtual async Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         // is [ "1", "2" ] and needs to be converted to an int[].
         // Internal for testing.
         internal async Task<CollectionResult> BindSimpleCollection(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             ValueProviderResult values)
         {
             var boundCollection = new List<TElement>();
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
                 object boundValue = null;
 
-                using (bindingContext.PushContext(
+                using (bindingContext.EnterNestedScope(
                     elementMetadata,
                     fieldName: bindingContext.FieldName,
                     modelName: bindingContext.ModelName,
@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         // Used when the ValueProvider contains the collection to be bound as multiple elements, e.g. foo[0], foo[1].
-        private Task<CollectionResult> BindComplexCollection(IModelBindingContext bindingContext)
+        private Task<CollectionResult> BindComplexCollection(ModelBindingContext bindingContext)
         {
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
             var valueProviderResultIndex = bindingContext.ValueProvider.GetValue(indexPropertyName);
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         // Internal for testing.
         internal async Task<CollectionResult> BindComplexCollectionFromIndexes(
-            IModelBindingContext bindingContext,
+            ModelBindingContext bindingContext,
             IEnumerable<string> indexNames)
         {
             bool indexNamesIsFinite;
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 var didBind = false;
                 object boundValue = null;
                 ModelBindingResult? result;
-                using (bindingContext.PushContext(
+                using (bindingContext.EnterNestedScope(
                     elementMetadata,
                     fieldName: indexName,
                     modelName: fullChildName,

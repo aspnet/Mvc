@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to bind a model.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
         /// <returns>
         /// <para>
         /// A <see cref="Task"/> which on completion returns a <see cref="ModelBindingResult"/> which
@@ -24,9 +24,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// with <see cref="ModelBindingResult.Success"/>. If model binding failed, the
         /// <see cref="ModelBindingResult"/> should be a value created with <see cref="ModelBindingResult.Failed"/>.
         /// If there was no data, or this model binder cannot handle the operation, the
-        /// <see cref="IModelBindingContext.Result"/> should be null.
+        /// <see cref="ModelBindingContext.Result"/> should be null.
         /// </para>
         /// </returns>
-        Task BindModelAsync(IModelBindingContext bindingContext);
+        Task BindModelAsync(ModelBindingContext bindingContext);
     }
 }

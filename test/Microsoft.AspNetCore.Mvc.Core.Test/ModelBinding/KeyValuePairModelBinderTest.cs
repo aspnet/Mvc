@@ -189,9 +189,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal(default(ModelBindingResult), result);
         }
 
-        private static ModelBindingContext CreateContext()
+        private static DefaultModelBindingContext CreateContext()
         {
-            var modelBindingContext = new ModelBindingContext()
+            var modelBindingContext = new DefaultModelBindingContext()
             {
                 OperationBindingContext = new OperationBindingContext()
                 {
@@ -208,13 +208,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             return modelBindingContext;
         }
 
-        private static ModelBindingContext GetBindingContext(
+        private static DefaultModelBindingContext GetBindingContext(
             IValueProvider valueProvider,
             IModelBinder innerBinder = null,
             Type keyValuePairType = null)
         {
             var metataProvider = new EmptyModelMetadataProvider();
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metataProvider.GetMetadataForType(
                     keyValuePairType ?? typeof(KeyValuePair<int, string>)),

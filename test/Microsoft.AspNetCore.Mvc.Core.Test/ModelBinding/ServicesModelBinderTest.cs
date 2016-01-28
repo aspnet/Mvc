@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Equal(default(ModelBindingResult), result);
         }
 
-        private static ModelBindingContext GetBindingContext(Type modelType)
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType(modelType).BindingDetails(d => d.BindingSource = BindingSource.Services);
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var services = new ServiceCollection();
             services.AddSingleton<IService>(new Service());
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = modelMetadata,
                 ModelName = "modelName",

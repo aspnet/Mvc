@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
     public class HttpRequestMessageModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext.ModelType == typeof(HttpRequestMessage))
             {

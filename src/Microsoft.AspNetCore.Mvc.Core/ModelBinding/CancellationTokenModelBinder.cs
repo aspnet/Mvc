@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     public class CancellationTokenModelBinder : IModelBinder
     {
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {

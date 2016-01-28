@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class SimpleTypeModelBinder : IModelBinder
     {
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {

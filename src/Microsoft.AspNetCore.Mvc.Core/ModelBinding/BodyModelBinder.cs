@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <inheritdoc />
-        public Task BindModelAsync(IModelBindingContext bindingContext)
+        public Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
@@ -61,11 +61,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to bind the model using formatters.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
         /// <returns>
         /// A <see cref="Task{ModelBindingResult}"/> which when completed returns a <see cref="ModelBindingResult"/>.
         /// </returns>
-        private async Task BindModelCoreAsync(IModelBindingContext bindingContext)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {

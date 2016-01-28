@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var metadataProvider = new EmptyModelMetadataProvider();
             var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
-            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -208,7 +208,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 { "ExcludedProperty", "ExcludedPropertyValue" }
             };
 
-            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
 
@@ -498,7 +498,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var metadataProvider = new EmptyModelMetadataProvider();
             var binder = new StubModelBinder(binderResult);
             var model = new MyModel();
-            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
 
             // Act
             var result = await ModelBindingHelper.TryUpdateModelAsync(
@@ -550,7 +550,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 { "ExcludedProperty", "ExcludedPropertyValue" }
             };
 
-            Func<IModelBindingContext, string, bool> includePredicate =
+            Func<ModelBindingContext, string, bool> includePredicate =
                 (context, propertyName) =>
                                 string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
@@ -658,7 +658,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var binder = new StubModelBinder();
             var model = new MyModel();
-            Func<IModelBindingContext, string, bool> includePredicate =
+            Func<ModelBindingContext, string, bool> includePredicate =
                (context, propertyName) => true;
 
             // Act & Assert

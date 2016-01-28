@@ -1179,7 +1179,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Arrange
             var modelName = "mymodel";
 
-            Func<IModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
                 string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
 
@@ -1211,7 +1211,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Arrange
             var modelName = "mymodel";
 
-            Func<IModelBindingContext, string, bool> includePredicate =
+            Func<ModelBindingContext, string, bool> includePredicate =
                (context, propertyName) => string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
                                           string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
 
@@ -1311,7 +1311,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Arrange
             var modelName = "mymodel";
 
-            Func<IModelBindingContext, string, bool> includePredicate =
+            Func<ModelBindingContext, string, bool> includePredicate =
                (context, propertyName) => string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
                                           string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
 

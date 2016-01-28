@@ -409,9 +409,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Equal(expectedResult, result);
         }
 
-        private static ModelBindingContext CreateContext()
+        private static DefaultModelBindingContext CreateContext()
         {
-            var modelBindingContext = new ModelBindingContext()
+            var modelBindingContext = new DefaultModelBindingContext()
             {
                 ModelState = new ModelStateDictionary(),
                 OperationBindingContext = new OperationBindingContext()
@@ -467,7 +467,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             return new TestValueProvider(BindingSource.Form, backingStore);
         }
 
-        private static ModelBindingContext GetModelBindingContext(
+        private static DefaultModelBindingContext GetModelBindingContext(
             bool isReadOnly,
             IDictionary<string, KeyValuePair<int, string>> values)
         {
@@ -489,7 +489,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 valueProvider.Add(kvp.Key, string.Empty);
             }
 
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = metadataProvider.GetMetadataForType(typeof(IDictionary<int, string>)),
                 ModelName = "someName",

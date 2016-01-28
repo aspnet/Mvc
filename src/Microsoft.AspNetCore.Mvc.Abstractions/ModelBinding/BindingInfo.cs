@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 _providers = providers;
             }
 
-            public Func<IModelBindingContext, string, bool> PropertyFilter
+            public Func<ModelBindingContext, string, bool> PropertyFilter
             {
                 get
                 {
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             }
 
-            private Func<IModelBindingContext, string, bool> CreatePredicate()
+            private Func<ModelBindingContext, string, bool> CreatePredicate()
             {
                 var predicates = _providers
                     .Select(p => p.PropertyFilter)

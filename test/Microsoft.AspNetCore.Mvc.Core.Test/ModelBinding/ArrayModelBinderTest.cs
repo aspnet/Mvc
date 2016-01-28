@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             });
         }
 
-        private static ModelBindingContext GetBindingContext(
+        private static DefaultModelBindingContext GetBindingContext(
             IValueProvider valueProvider,
             bool isReadOnly = false)
         {
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var modelMetadata = metadataProvider.GetMetadataForProperty(
                 typeof(ModelWithIntArrayProperty),
                 nameof(ModelWithIntArrayProperty.ArrayProperty));
-            var bindingContext = new ModelBindingContext
+            var bindingContext = new DefaultModelBindingContext
             {
                 ModelMetadata = modelMetadata,
                 ModelName = "someName",
@@ -199,9 +199,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             return bindingContext;
         }
 
-        private static ModelBindingContext CreateContext()
+        private static DefaultModelBindingContext CreateContext()
         {
-            var modelBindingContext = new ModelBindingContext()
+            var modelBindingContext = new DefaultModelBindingContext()
             {
                 OperationBindingContext = new OperationBindingContext()
                 {
