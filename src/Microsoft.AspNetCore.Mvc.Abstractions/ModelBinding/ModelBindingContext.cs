@@ -114,16 +114,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             BindingSource = modelMetadata.BindingSource;
             PropertyFilter = modelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
 
-            FallbackToEmptyPrefix = false;
-            IsTopLevelObject = false;
-
             return scope;
         }
 
         public ModelBindingContextDisposable PushContext()
         {
             _stack.Push(_state);
-            _state.Result = null;
+
+            Result = null;
+            FallbackToEmptyPrefix = false;
+            IsTopLevelObject = false;
+
             return new ModelBindingContextDisposable(this);
         }
 

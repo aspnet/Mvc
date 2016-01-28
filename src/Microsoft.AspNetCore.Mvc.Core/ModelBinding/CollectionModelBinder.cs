@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         // Used when the ValueProvider contains the collection to be bound as a single element, e.g. the raw value
         // is [ "1", "2" ] and needs to be converted to an int[].
         // Internal for testing.
-        public async Task<CollectionResult> BindSimpleCollection(
+        internal async Task<CollectionResult> BindSimpleCollection(
             IModelBindingContext bindingContext,
             ValueProviderResult values)
         {

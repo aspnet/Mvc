@@ -158,7 +158,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             bindingContext.ValueProvider = valueProvider;
-            bindingContext.FallbackToEmptyPrefix = false;
 
             return true;
         }
