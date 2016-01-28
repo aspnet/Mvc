@@ -66,12 +66,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Update the existing successful but empty ModelBindingResult.
             var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
             var valueMetadata = metadataProvider.GetMetadataForType(typeof(TValue));
-            //var valueBindingContext = ModelBindingContext.CreateChildBindingContext(
-            //    bindingContext,
-            //    valueMetadata,
-            //    fieldName: bindingContext.FieldName,
-            //    modelName: bindingContext.ModelName,
-            //    model: null);
 
             var modelBinder = bindingContext.OperationBindingContext.ModelBinder;
 
