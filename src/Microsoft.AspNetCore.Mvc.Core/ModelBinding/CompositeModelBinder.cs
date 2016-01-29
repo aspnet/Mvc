@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// instances.
     /// </summary>
     /// <remarks>
-    /// If no binder is available and the <see cref="DefaultModelBindingContext"/> allows it,
+    /// If no binder is available and the <see cref="ModelBindingContext"/> allows it,
     /// this class tries to find a binder using an empty prefix.
     /// </remarks>
     public class CompositeModelBinder : ICompositeModelBinder

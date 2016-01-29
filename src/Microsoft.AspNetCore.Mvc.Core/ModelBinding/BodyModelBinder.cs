@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to bind the model using formatters.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <returns>
         /// A <see cref="Task{ModelBindingResult}"/> which when completed returns a <see cref="ModelBindingResult"/>.
         /// </returns>

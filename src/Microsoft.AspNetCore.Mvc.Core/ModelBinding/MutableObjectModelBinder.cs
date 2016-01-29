@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Creates suitable <see cref="object"/> for given <paramref name="bindingContext"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <returns>An <see cref="object"/> compatible with <see cref="DefaultModelBindingContext.ModelType"/>.</returns>
         protected virtual object CreateModel(ModelBindingContext bindingContext)
         {
@@ -342,7 +342,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Get <see cref="DefaultModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
         /// new instance of <see cref="DefaultModelBindingContext.ModelType"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         protected virtual object GetModel(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
@@ -361,7 +361,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Gets the collection of <see cref="ModelMetadata"/> for properties this binder should update.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <returns>Collection of <see cref="ModelMetadata"/> for properties this binder should update.</returns>
         protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(
             ModelBindingContext bindingContext)
@@ -459,7 +459,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Updates a property in the current <see cref="DefaultModelBindingContext.Model"/>.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <param name="metadata">
         /// The <see cref="ModelMetadata"/> for the model containing property to set.
         /// </param>

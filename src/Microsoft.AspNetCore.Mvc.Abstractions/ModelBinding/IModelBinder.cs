@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to bind a model.
         /// </summary>
-        /// <param name="bindingContext">The <see cref="DefaultModelBindingContext"/>.</param>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <returns>
         /// <para>
         /// A <see cref="Task"/> which on completion returns a <see cref="ModelBindingResult"/> which
