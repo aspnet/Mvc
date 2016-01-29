@@ -298,7 +298,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-
         private struct State
         {
             public OperationBindingContext OperationBindingContext;
