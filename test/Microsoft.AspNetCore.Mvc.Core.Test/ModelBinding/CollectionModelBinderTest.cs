@@ -389,9 +389,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static IModelBinder CreateIntBinder()
         {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-            return new StubModelBinder(async mbc =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+            return new StubModelBinder(mbc =>
             {
                 var value = mbc.ValueProvider.GetValue(mbc.ModelName);
                 if (value == ValueProviderResult.None)

@@ -165,9 +165,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
                 if (value != ValueProviderResult.None)
                 {
                     var model = value.ConvertTo(mbc.ModelType);
-                    return Task.FromResult<ModelBindingResult?>(ModelBindingResult.Success(mbc.ModelName, model));
+                    return ModelBindingResult.Success(mbc.ModelName, model);
                 }
-                return Task.FromResult<ModelBindingResult?>(null);
+                return null;
             });
         }
 

@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             var innerBinder = new StubModelBinder(context =>
             {
                 Assert.Equal("someName.key", context.ModelName);
-                return Task.FromResult(innerResult);
+                return innerResult;
             });
             var bindingContext = GetBindingContext(new SimpleValueProvider(), innerBinder);
 
@@ -236,9 +236,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private static IModelBinder CreateIntBinder()
         {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-            var mockIntBinder = new StubModelBinder(async mbc =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+            var mockIntBinder = new StubModelBinder(mbc =>
             {
                 if (mbc.ModelType == typeof(int))
                 {
@@ -252,9 +250,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private static IModelBinder CreateStringBinder()
         {
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-            return new StubModelBinder(async mbc =>
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+            return new StubModelBinder(mbc =>
             {
                 if (mbc.ModelType == typeof(string))
                 {

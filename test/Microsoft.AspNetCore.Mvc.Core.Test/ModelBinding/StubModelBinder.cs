@@ -35,6 +35,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             };
         }
 
+        public StubModelBinder(Func<ModelBindingContext, ModelBindingResult?> callback)
+        {
+            _callback = context =>
+            {
+                var result = callback.Invoke(context);
+                context.Result = result;
+                return TaskCache.CompletedTask;
+            };
+        }
+
         public StubModelBinder(Func<ModelBindingContext, Task<ModelBindingResult?>> callback)
         {
             _callback = async context =>
