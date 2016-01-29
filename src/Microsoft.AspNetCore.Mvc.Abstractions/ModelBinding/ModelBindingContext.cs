@@ -13,7 +13,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     {
         /// <summary>
         /// Gets or sets a model name which is explicitly set using an <see cref="IModelNameProvider"/>.
-        /// <see cref="Model"/>.
         /// </summary>
         public abstract string BinderModelName { get; set; }
 
