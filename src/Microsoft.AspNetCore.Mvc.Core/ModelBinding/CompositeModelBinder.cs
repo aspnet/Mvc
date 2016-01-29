@@ -36,67 +36,83 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <inheritdoc />
         public IList<IModelBinder> ModelBinders { get; }
 
-        public virtual async Task BindModelAsync(ModelBindingContext bindingContext)
+        public virtual Task BindModelAsync(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
             {
                 throw new ArgumentNullException(nameof(bindingContext));
             }
 
-            ModelBindingResult? result = null;
-            using (bindingContext.EnterNestedScope())
-            {
-                if (PrepareBindingContext(bindingContext))
-                {
-                    await RunModelBinders(bindingContext);
-                    result = bindingContext.Result;
-                }
-            }
-            bindingContext.Result = result;
+            return RunModelBinders(bindingContext);
+            //ModelBindingResult? result = null;
+            //using (bindingContext.EnterNestedScope())
+            //{
+            //    if (PrepareBindingContext(bindingContext))
+            //    {
+            //        await RunModelBinders(bindingContext);
+            //        result = bindingContext.Result;
+            //    }
+            //}
+            //bindingContext.Result = result;
         }
 
         private async Task RunModelBinders(ModelBindingContext bindingContext)
         {
             RuntimeHelpers.EnsureSufficientExecutionStack();
 
-            // Perf: Avoid allocations
-            for (var i = 0; i < ModelBinders.Count; i++)
+            ModelBindingResult? overallResult = null;
+            try
             {
-                var binder = ModelBinders[i];
-                await binder.BindModelAsync(bindingContext);
-                if (bindingContext.Result != null)
+                using (bindingContext.EnterNestedScope())
                 {
-                    var result = bindingContext.Result.Value;
-                    // This condition is necessary because the ModelState entry would never be validated if
-                    // caller fell back to the empty prefix, leading to an possibly-incorrect !IsValid. In most
-                    // (hopefully all) cases, the ModelState entry exists because some binders add errors before
-                    // returning a result with !IsModelSet. Those binders often cannot run twice anyhow.
-                    if (result.IsModelSet ||
-                        bindingContext.ModelState.ContainsKey(bindingContext.ModelName))
+                    if (PrepareBindingContext(bindingContext))
                     {
-                        if (bindingContext.IsTopLevelObject && result.Model != null)
+                        // Perf: Avoid allocations
+                        for (var i = 0; i < ModelBinders.Count; i++)
                         {
-                            ValidationStateEntry entry;
-                            if (!bindingContext.ValidationState.TryGetValue(result.Model, out entry))
+                            var binder = ModelBinders[i];
+                            await binder.BindModelAsync(bindingContext);
+                            if (bindingContext.Result != null)
                             {
-                                entry = new ValidationStateEntry()
+                                var result = bindingContext.Result.Value;
+                                // This condition is necessary because the ModelState entry would never be validated if
+                                // caller fell back to the empty prefix, leading to an possibly-incorrect !IsValid. In most
+                                // (hopefully all) cases, the ModelState entry exists because some binders add errors before
+                                // returning a result with !IsModelSet. Those binders often cannot run twice anyhow.
+                                if (result.IsModelSet ||
+                                    bindingContext.ModelState.ContainsKey(bindingContext.ModelName))
                                 {
-                                    Key = result.Key,
-                                    Metadata = bindingContext.ModelMetadata,
-                                };
-                                bindingContext.ValidationState.Add(result.Model, entry);
+                                    if (bindingContext.IsTopLevelObject && result.Model != null)
+                                    {
+                                        ValidationStateEntry entry;
+                                        if (!bindingContext.ValidationState.TryGetValue(result.Model, out entry))
+                                        {
+                                            entry = new ValidationStateEntry()
+                                            {
+                                                Key = result.Key,
+                                                Metadata = bindingContext.ModelMetadata,
+                                            };
+                                            bindingContext.ValidationState.Add(result.Model, entry);
+                                        }
+                                    }
+
+                                    overallResult = bindingContext.Result;
+                                    return;
+                                }
+
+                                // Current binder should have been able to bind value but found nothing. Exit loop in a way that
+                                // tells caller to fall back to the empty prefix, if appropriate. Do not return result because it
+                                // means only "other binders are not applicable".
+                                overallResult = null;
+                                return;
                             }
                         }
-
-                        return;
                     }
-
-                    // Current binder should have been able to bind value but found nothing. Exit loop in a way that
-                    // tells caller to fall back to the empty prefix, if appropriate. Do not return result because it
-                    // means only "other binders are not applicable".
-                    bindingContext.Result = null;
-                    return;
                 }
+            }
+            finally
+            {
+                bindingContext.Result = overallResult;
             }
         }
 
