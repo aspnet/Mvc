@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -45,12 +44,8 @@ namespace Microsoft.AspNetCore.Mvc
                 data.Add("localhost", "/pathbase", "/path", "?foo=bar", "https://localhost/pathbase/path?foo=bar");
 
                 // Encode some special characters on the url.
-                // Two paths hit aspnet/External#50 with Mono on Mac.
-                if (!TestPlatformHelper.IsMac || !TestPlatformHelper.IsMono)
-                {
-                    data.Add("localhost", "/path?base", null, null, "https://localhost/path%3Fbase");
-                    data.Add("localhost", null, "/pa?th", null, "https://localhost/pa%3Fth");
-                }
+                data.Add("localhost", "/path?base", null, null, "https://localhost/path%3Fbase");
+                data.Add("localhost", null, "/pa?th", null, "https://localhost/pa%3Fth");
 
                 data.Add("localhost", "/", null, "?foo=bar%2Fbaz", "https://localhost/?foo=bar%2Fbaz");
 
