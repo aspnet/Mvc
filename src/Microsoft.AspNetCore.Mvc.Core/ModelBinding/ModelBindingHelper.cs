@@ -554,7 +554,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         // Internal for tests
-        public static string GetPropertyName(Expression expression)
+        internal static string GetPropertyName(Expression expression)
         {
             if (expression.NodeType == ExpressionType.Convert ||
                 expression.NodeType == ExpressionType.ConvertChecked)
