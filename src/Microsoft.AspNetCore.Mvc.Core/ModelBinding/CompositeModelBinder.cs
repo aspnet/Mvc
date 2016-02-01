@@ -44,16 +44,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             return RunModelBinders(bindingContext);
-            //ModelBindingResult? result = null;
-            //using (bindingContext.EnterNestedScope())
-            //{
-            //    if (PrepareBindingContext(bindingContext))
-            //    {
-            //        await RunModelBinders(bindingContext);
-            //        result = bindingContext.Result;
-            //    }
-            //}
-            //bindingContext.Result = result;
         }
 
         private async Task RunModelBinders(ModelBindingContext bindingContext)
