@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var binder = bindingContext.OperationBindingContext.ModelBinder;
 
             // Act
-            var binderResult = await binder.BindModelAsync(bindingContext);
+            var binderResult = await binder.BindModelResultAsync(bindingContext);
 
             // Assert
 

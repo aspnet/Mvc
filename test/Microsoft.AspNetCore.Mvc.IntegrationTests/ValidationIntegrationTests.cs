@@ -1193,7 +1193,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             modelState.SetModelValue("CustomParameter.message", "Hello", "Hello");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -1281,7 +1281,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             modelState.SetModelValue("other.key", "1", "1");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -1328,7 +1328,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             modelState.SetModelValue("other.key", "1", "1");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);

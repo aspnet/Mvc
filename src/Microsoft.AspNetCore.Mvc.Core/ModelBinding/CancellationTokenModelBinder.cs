@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 //
                 // DO NOT simplify this code by removing the cast.
                 var model = (object)bindingContext.OperationBindingContext.HttpContext.RequestAborted;
+                bindingContext.ValidationState.Add(model, new ValidationStateEntry() { SuppressValidation = true });
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
             }
 
