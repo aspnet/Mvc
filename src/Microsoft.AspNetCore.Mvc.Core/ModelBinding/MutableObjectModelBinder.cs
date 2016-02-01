@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Creates suitable <see cref="object"/> for given <paramref name="bindingContext"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        /// <returns>An <see cref="object"/> compatible with <see cref="DefaultModelBindingContext.ModelType"/>.</returns>
+        /// <returns>An <see cref="object"/> compatible with <see cref="ModelBindingContext.ModelType"/>.</returns>
         protected virtual object CreateModel(ModelBindingContext bindingContext)
         {
             if (bindingContext == null)
@@ -338,8 +338,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Get <see cref="DefaultModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
-        /// new instance of <see cref="DefaultModelBindingContext.ModelType"/>.
+        /// Get <see cref="ModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
+        /// new instance of <see cref="ModelBindingContext.ModelType"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         protected virtual object GetModel(ModelBindingContext bindingContext)
@@ -456,7 +456,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Updates a property in the current <see cref="DefaultModelBindingContext.Model"/>.
+        /// Updates a property in the current <see cref="ModelBindingContext.Model"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <param name="metadata">
