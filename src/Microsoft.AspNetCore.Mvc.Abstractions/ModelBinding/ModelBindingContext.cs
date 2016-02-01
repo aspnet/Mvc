@@ -124,10 +124,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Pushes a layer of state onto this context. Model binders will call this as part of recursion when binding properties
         /// or collection items.
         /// </summary>
-        /// <param name="modelMetadata"><see cref="ModelBinding.ModelMetadata"/> to assign to the <see cref="ModelMetadata"/> property</param>
-        /// <param name="fieldName">Name to assign to the <see cref="FieldName"/> property</param>
-        /// <param name="modelName">Name to assign to the <see cref="ModelName"/> property</param>
-        /// <param name="model">Instance to assign to the <see cref="Model"/> property</param>
+        /// <param name="modelMetadata"><see cref="ModelBinding.ModelMetadata"/> to assign to the <see cref="ModelMetadata"/> property.</param>
+        /// <param name="fieldName">Name to assign to the <see cref="FieldName"/> property.</param>
+        /// <param name="modelName">Name to assign to the <see cref="ModelName"/> property.</param>
+        /// <param name="model">Instance to assign to the <see cref="Model"/> property.</param>
         /// <returns>A <see cref="NestedScope"/> scope object which should be used in a using statement where PushContext is called.</returns>
         public abstract NestedScope EnterNestedScope(ModelMetadata modelMetadata, string fieldName, string modelName, object model);
 
