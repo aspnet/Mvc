@@ -93,7 +93,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                                 // Current binder should have been able to bind value but found nothing. Exit loop in a way that
                                 // tells caller to fall back to the empty prefix, if appropriate. Do not return result because it
                                 // means only "other binders are not applicable".
-                                overallResult = null;
+
+                                // overallResult MUST still be null at this return statement.
                                 return;
                             }
                         }
