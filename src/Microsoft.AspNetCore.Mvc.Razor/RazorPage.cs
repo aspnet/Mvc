@@ -40,6 +40,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private TagHelperAttributeInfo _tagHelperAttributeInfo;
         private HtmlContentWrapperTextWriter _valueBuffer;
         private IViewBufferScope _bufferScope;
+        private bool _ignoreBody;
+        private readonly HashSet<string> _ignoredSections = new HashSet<string>();
 
         public RazorPage()
         {
@@ -656,6 +658,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
+        /// In a Razor layout page, ignores rendering the portion of a content page that is not within a named section.
+        /// </summary>
+        public void IgnoreBody()
+        {
+            _ignoreBody = true;
+        }
+
+        /// <summary>
         /// Creates a named content section in the page that can be invoked in a Layout page using
         /// <see cref="RenderSection(string)"/> or <see cref="RenderSectionAsync(string, bool)"/>.
         /// </summary>
@@ -814,6 +824,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
+        /// In layout pages, ignores rendering the content of the section named <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The section to ignore.</param>
+        public void IgnoreSection(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            _ignoredSections.Add(name);
+        }
+
+        /// <summary>
         /// Invokes <see cref="TextWriter.FlushAsync"/> on <see cref="Output"/> and <see cref="Stream.FlushAsync"/>
         /// on the response stream, writing out any buffered content to the <see cref="HttpResponse.Body"/>.
         /// </summary>
@@ -858,16 +882,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     _renderedSections,
                     StringComparer.OrdinalIgnoreCase);
 
-                if (sectionsNotRendered.Any())
+                var sectionsNotIgnored = sectionsNotRendered.Except(_ignoredSections, StringComparer.OrdinalIgnoreCase).ToArray();
+
+                if (sectionsNotIgnored.Length > 0)
                 {
-                    var sectionNames = string.Join(", ", sectionsNotRendered);
+                    var sectionNames = string.Join(", ", sectionsNotIgnored);
                     throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames));
                 }
             }
-            else if (BodyContent != null && !_renderedBody)
+            else if (BodyContent != null && !_renderedBody && !_ignoreBody)
             {
                 // There are no sections defined, but RenderBody was NOT called.
-                // If a body was defined, then RenderBody should have been called.
+                // If a body was defined and the body not ignored, then RenderBody should have been called.
                 var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody), Path);
                 throw new InvalidOperationException(message);
             }

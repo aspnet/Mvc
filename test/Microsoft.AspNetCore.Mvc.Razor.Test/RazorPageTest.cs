@@ -475,6 +475,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Fact]
+        public async Task EnsureRenderedBodyOrSections_SucceedsIfRenderBodyIsNotCalledFromPage_AndNoSectionsAreDefined_AndBodyIgnored()
+        {
+            // Arrange
+            var path = "page-path";
+            var page = CreatePage(v =>
+            {
+            });
+            page.Path = path;
+            page.BodyContent = new HtmlString("some content");
+            page.IgnoreBody();
+
+            // Act & Assert (does not throw)
+            await page.ExecuteAsync();
+            page.EnsureRenderedBodyOrSections();
+        }
+
+        [Fact]
         public async Task EnsureRenderedBodyOrSections_ThrowsIfDefinedSectionsAreNotRendered()
         {
             // Arrange
@@ -497,6 +514,28 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 "The following sections have been defined but have not been rendered by the page at " +
                 $"'{path}': '{sectionName}'.",
                 ex.Message);
+        }
+
+        [Fact]
+        public async Task EnsureRenderedBodyOrSections_SucceedsIfDefinedSectionsAreNotRendered_AndIgnored()
+        {
+            // Arrange
+            var path = "page-path";
+            var sectionName = "sectionA";
+            var page = CreatePage(v =>
+            {
+            });
+            page.Path = path;
+            page.BodyContent = new HtmlString("some content");
+            page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
+            {
+                { sectionName, _nullRenderAsyncDelegate }
+            };
+            page.IgnoreSection(sectionName);
+
+            // Act & Assert (does not throw)
+            await page.ExecuteAsync();
+            page.EnsureRenderedBodyOrSections();
         }
 
         [Fact]
