@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
+namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class DefaultModelBindingContextTest
     {
