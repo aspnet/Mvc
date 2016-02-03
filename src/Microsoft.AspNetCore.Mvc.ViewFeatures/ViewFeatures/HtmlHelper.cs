@@ -428,12 +428,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             var type = typeof(TEnum);
             var metadata = MetadataProvider.GetMetadataForType(type);
-            if (!metadata.IsEnum || metadata.IsFlagsEnum)
+            if (!metadata.IsEnum)
             {
                 var message = Resources.FormatHtmlHelper_TypeNotSupported_ForGetEnumSelectList(
                     type.FullName,
-                    nameof(Enum).ToLowerInvariant(),
-                    nameof(FlagsAttribute));
+                    nameof(Enum).ToLowerInvariant());
                 throw new ArgumentException(message, nameof(TEnum));
             }
 
@@ -449,12 +448,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var metadata = MetadataProvider.GetMetadataForType(enumType);
-            if (!metadata.IsEnum || metadata.IsFlagsEnum)
+            if (!metadata.IsEnum)
             {
                 var message = Resources.FormatHtmlHelper_TypeNotSupported_ForGetEnumSelectList(
                     enumType.FullName,
-                    nameof(Enum).ToLowerInvariant(),
-                    nameof(FlagsAttribute));
+                    nameof(Enum).ToLowerInvariant());
                 throw new ArgumentException(message, nameof(enumType));
             }
 
@@ -1231,12 +1229,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(metadata));
             }
 
-            if (!metadata.IsEnum || metadata.IsFlagsEnum)
+            if (!metadata.IsEnum)
             {
                 var message = Resources.FormatHtmlHelper_TypeNotSupported_ForGetEnumSelectList(
                     metadata.ModelType.FullName,
-                    nameof(Enum).ToLowerInvariant(),
-                    nameof(FlagsAttribute));
+                    nameof(Enum).ToLowerInvariant());
                 throw new ArgumentException(message, nameof(metadata));
             }
 

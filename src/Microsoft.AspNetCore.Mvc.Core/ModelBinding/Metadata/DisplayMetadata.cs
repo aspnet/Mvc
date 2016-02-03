@@ -64,13 +64,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         public IEnumerable<KeyValuePair<EnumGroupAndName, string>> EnumGroupedDisplayNamesAndValues { get; set; }
 
         /// <summary>
-        /// Gets the names and values of all <see cref="System.Enum"/> values in
-        /// <see cref="ModelMetadata.UnderlyingOrModelType"/>. See <see cref="ModelMetadata.EnumNamesAndValues"/>.
-        /// </summary>
-        // This could be implemented in DefaultModelMetadata. But value should be cached.
-        public IReadOnlyDictionary<string, string> EnumNamesAndValues { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether or not the model has a non-default edit format.
         /// See <see cref="ModelMetadata.HasNonDefaultEditFormat"/>
         /// </summary>

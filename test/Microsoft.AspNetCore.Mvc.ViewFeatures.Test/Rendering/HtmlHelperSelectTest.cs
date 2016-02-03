@@ -34,6 +34,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             new SelectListItem { Text = "Two",   Value = "2"},
             new SelectListItem { Text = "Three", Value = "3"},
         };
+        private static readonly List<SelectListItem> FlagsEnumSelectList = new List<SelectListItem>
+        {
+            new SelectListItem { Text = "Zero",  Value = "0"},
+            new SelectListItem { Text = "One",   Value = "1"},
+            new SelectListItem { Text = "Two",   Value = "2"},
+            new SelectListItem { Text = "Three", Value = "3"},
+            new SelectListItem { Text = "Four", Value = "4"},
+            new SelectListItem { Text = "All", Value = "-1"},
+        };
         private static readonly List<SelectListItem> SomeDisabledOneSelectedSelectList = new List<SelectListItem>
         {
             new SelectListItem { Disabled = false, Selected = false, Text = "Zero",  Value = "0"},
@@ -74,12 +83,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             new SelectListItem { Text = SelectSources.PropertyOfModel.ToString() },
         };
 
-        // Select list -> expected HTML with null model, expected HTML with model containing "2".
-        public static TheoryData<IEnumerable<SelectListItem>, string, string> DropDownListDataSet
+        // Select list -> expected HTML with null model.
+        public static TheoryData<IEnumerable<SelectListItem>, string> DropDownListWithNullModelDataSet
         {
             get
             {
-                return new TheoryData<IEnumerable<SelectListItem>, string, string>
+                return new TheoryData<IEnumerable<SelectListItem>, string>
                 {
                     {
                         BasicSelectList,
@@ -87,12 +96,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         Environment.NewLine +
                         "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
-                        Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
                         "</select>"
                     },
@@ -104,12 +107,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
-                        Environment.NewLine +
-                        "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
                         "</select>"
                     },
                     {
@@ -117,16 +114,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
                         Environment.NewLine +
                         "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
-                        Environment.NewLine +
-                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
                         "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "</optgroup>" + Environment.NewLine +
                         "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
@@ -144,7 +131,63 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
                         "</optgroup>" + Environment.NewLine +
-                        "</select>",
+                        "</select>"
+                    },
+                    {
+                        OneDisabledGroupAllSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" +
+                        Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "</select>"
+                    },
+                };
+            }
+        }
+        
+        // Select list -> expected HTML with model containing "2".
+        public static TheoryData<IEnumerable<SelectListItem>, string> DropDownListWithModelValueDataSet
+        {
+            get
+            {
+                return new TheoryData<IEnumerable<SelectListItem>, string>
+                {
+                    {
+                        BasicSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
+                        Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        SomeDisabledOneSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
+                        Environment.NewLine +
+                        "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        SomeGroupedSomeSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
+                        Environment.NewLine +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        OneGroupSomeSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
                         Environment.NewLine +
                         "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
@@ -158,14 +201,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         OneDisabledGroupAllSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" +
                         Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\"><optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" +
-                        Environment.NewLine +
                         "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                         "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
@@ -177,12 +212,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             }
         }
 
-        // Select list -> expected HTML with null model, with model containing "2", and with model containing "1", "3".
-        public static TheoryData<IEnumerable<SelectListItem>, string, string, string> ListBoxDataSet
+        // List box -> expected HTML with null model.
+        public static TheoryData<IEnumerable<SelectListItem>, string> ListBoxWithNullModelDataSet
         {
             get
             {
-                return new TheoryData<IEnumerable<SelectListItem>, string, string, string>
+                return new TheoryData<IEnumerable<SelectListItem>, string>
                 {
                     {
                         BasicSelectList,
@@ -191,18 +226,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
-                        Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
-                        Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
                         "</select>"
                     },
                     {
@@ -213,13 +236,129 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
+                        "</select>"
+                    },
+                    {
+                        SomeGroupedSomeSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
+                        Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        OneGroupSomeSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
+                        Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        OneDisabledGroupAllSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "</select>"
+                    },
+                };
+            }
+        }
+
+        // List box -> expected HTML with model containing "2".
+        public static TheoryData<IEnumerable<SelectListItem>, string> ListBoxWithModelValueDataSet
+        {
+            get
+            {
+                return new TheoryData<IEnumerable<SelectListItem>, string>
+                {
+                    {
+                        BasicSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
+                        Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        SomeDisabledOneSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
                         Environment.NewLine +
                         "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                         "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
+                        "</select>"
+                    },
+                    {
+                        SomeGroupedSomeSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
+                        Environment.NewLine +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        OneGroupSomeSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
+                        Environment.NewLine +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        OneDisabledGroupAllSelectedSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</optgroup>" + Environment.NewLine +
+                        "</select>"
+                    },
+                };
+            }
+        }
+
+        // List box -> expected HTML with model containing "1", "3".
+        public static TheoryData<IEnumerable<SelectListItem>, string> ListBoxWithMultipleModelValuesDataSet
+        {
+            get
+            {
+                return new TheoryData<IEnumerable<SelectListItem>, string>
+                {
+                    {
+                        BasicSelectList,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
+                        Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {
+                        SomeDisabledOneSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
                         Environment.NewLine +
                         "<option disabled=\"HtmlEncode[[disabled]]\" selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
@@ -231,26 +370,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         SomeGroupedSomeSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
                         Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
-                        Environment.NewLine +
-                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<optgroup label=\"HtmlEncode[[Group Two]]\">" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
-                        Environment.NewLine +
                         "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
                         "</optgroup>" + Environment.NewLine +
@@ -264,22 +383,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                         OneGroupSomeSelectedSelectList,
                         "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
                         Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
-                        Environment.NewLine +
-                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\"><optgroup label=\"HtmlEncode[[Group One]]\">" +
-                        Environment.NewLine +
                         "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
                         "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
@@ -289,22 +392,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     },
                     {
                         OneDisabledGroupAllSelectedSelectList,
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
-                        "<optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "</select>",
-                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
-                        "<optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
-                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
-                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
-                        "</optgroup>" + Environment.NewLine +
-                        "</select>",
                         "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
                         "<optgroup disabled=\"HtmlEncode[[disabled]]\" label=\"HtmlEncode[[Disabled Group]]\">" + Environment.NewLine +
                         "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
@@ -318,12 +405,70 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             }
         }
 
+        // List box -> EnumWithFlags value, expected HTML
+        public static TheoryData<IEnumerable<SelectListItem>, EnumWithFlags, string> ListBoxWithFlagsEnumDataSet
+        {
+            get
+            {
+                return new TheoryData<IEnumerable<SelectListItem>, EnumWithFlags, string>
+                {
+                    {   // Single flag set
+                        FlagsEnumSelectList,
+                        EnumWithFlags.One,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[4]]\">HtmlEncode[[Four]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[-1]]\">HtmlEncode[[All]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {   // No flags set
+                        FlagsEnumSelectList,
+                        EnumWithFlags.Zero,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[4]]\">HtmlEncode[[Four]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[-1]]\">HtmlEncode[[All]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {   // Multiple flags set
+                        FlagsEnumSelectList,
+                        EnumWithFlags.One | EnumWithFlags.Four,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[4]]\">HtmlEncode[[Four]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[-1]]\">HtmlEncode[[All]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                    {   // All flags set
+                        FlagsEnumSelectList,
+                        EnumWithFlags.All,
+                        "<select id=\"HtmlEncode[[Property1]]\" multiple=\"HtmlEncode[[multiple]]\" name=\"HtmlEncode[[Property1]]\">" +
+                        "<option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
+                        "<option value=\"HtmlEncode[[3]]\">HtmlEncode[[Three]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[4]]\">HtmlEncode[[Four]]</option>" + Environment.NewLine +
+                        "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[-1]]\">HtmlEncode[[All]]</option>" + Environment.NewLine +
+                        "</select>"
+                    },
+                };
+            }
+        }
+
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownList_WithNullModel_GeneratesExpectedValue_DoesNotChangeSelectList(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
@@ -346,11 +491,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownList_WithNullSelectList_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
@@ -366,11 +510,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownList_WithNullExpression_Throws(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
@@ -387,10 +530,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithModelValueDataSet))]
         public void DropDownList_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml,
             string expectedHtml)
         {
             // Arrange
@@ -601,11 +743,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownListFor_WithNullModel_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
@@ -624,11 +765,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownListFor_WithNullModelAndNullSelectList_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
@@ -648,10 +788,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithModelValueDataSet))]
         public void DropDownListFor_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml,
             string expectedHtml)
         {
             // Arrange
@@ -672,10 +811,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithModelValueDataSet))]
         public void DropDownListFor_WithModelValueAndNullSelectList_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml,
             string expectedHtml)
         {
             // Arrange
@@ -748,12 +886,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithNullModelDataSet))]
         public void ListBox_WithNullModel_GeneratesExpectedValue_DoesNotChangeSelectList(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml1,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<ModelContainingList>(model: null);
@@ -776,12 +912,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithModelValueDataSet))]
         public void ListBox_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string expectedHtml,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var model = new ModelContainingList { Property1 = { "2" } };
@@ -797,11 +931,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithMultipleModelValuesDataSet))]
         public void ListBox_WithMultipleModelValues_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string ignoredHtml2,
             string expectedHtml)
         {
             // Arrange
@@ -1012,12 +1144,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithNullModelDataSet))]
         public void ListBoxFor_WithNullModel_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml1,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<ModelContainingList>(model: null);
@@ -1032,12 +1162,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithModelValueDataSet))]
         public void ListBoxFor_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string expectedHtml,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var model = new ModelContainingList { Property1 = { "2" } };
@@ -1077,11 +1205,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithMultipleModelValuesDataSet))]
         public void ListBoxFor_WithMultipleModelValues_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string ignoredHtml2,
             string expectedHtml)
         {
             // Arrange
@@ -1098,11 +1224,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownListInTemplate_WithNullModel_GeneratesExpectedValue_DoesNotChangeSelectList(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
@@ -1130,10 +1255,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithModelValueDataSet))]
         public void DropDownListInTemplate_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml,
             string expectedHtml)
         {
             // Arrange
@@ -1154,11 +1278,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithNullModelDataSet))]
         public void DropDownListForInTemplate_WithNullModel_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
@@ -1174,10 +1297,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(DropDownListDataSet))]
+        [MemberData(nameof(DropDownListWithModelValueDataSet))]
         public void DropDownListForInTemplate_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml,
             string expectedHtml)
         {
             // Arrange
@@ -1194,12 +1316,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithNullModelDataSet))]
         public void ListBoxInTemplate_WithNullModel_GeneratesExpectedValue_DoesNotChangeSelectList(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml1,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<List<string>>(model: null);
@@ -1223,12 +1343,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithModelValueDataSet))]
         public void ListBoxInTemplate_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string expectedHtml,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var model = new List<string> { "2" };
@@ -1245,12 +1363,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithNullModelDataSet))]
         public void ListBoxForInTemplate_WithNullModel_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string expectedHtml,
-            string ignoredHtml1,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var helper = DefaultTemplatesUtilities.GetHtmlHelper<List<string>>(model: null);
@@ -1266,12 +1382,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Theory]
-        [MemberData(nameof(ListBoxDataSet))]
+        [MemberData(nameof(ListBoxWithModelValueDataSet))]
         public void ListBoxForInTemplate_WithModelValue_GeneratesExpectedValue(
             IEnumerable<SelectListItem> selectList,
-            string ignoredHtml1,
-            string expectedHtml,
-            string ignoredHtml2)
+            string expectedHtml)
         {
             // Arrange
             var model = new List<string> { "2" };
@@ -1287,18 +1401,24 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             Assert.Equal(savedSelected, selectList.Select(item => item.Selected));
         }
 
-        [Fact]
-        public void GetEnumSelectListTEnum_ThrowsWithFlagsEnum()
+        [Theory]
+        [MemberData(nameof(ListBoxWithFlagsEnumDataSet))]
+        public void ListBox_WithFlagsEnum_GeneratesExpectedValue(
+            IEnumerable<SelectListItem> selectList,
+            EnumWithFlags enumValue,
+            string expectedHtml)
         {
             // Arrange
-            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            var htmlHelper = new TestHtmlHelper(metadataProvider);
+            var model = new ModelContainingEnumWithFlags { Property1 = enumValue };
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            var savedSelected = selectList.Select(item => item.Selected).ToList();
 
-            // Act & Assert
-            ExceptionAssert.ThrowsArgument(
-                () => htmlHelper.GetEnumSelectList<EnumWithFlags>(),
-                "TEnum",
-                $"The type '{ typeof(EnumWithFlags).FullName }' is not supported.");
+            // Act
+            var html = helper.ListBox("Property1", selectList, htmlAttributes: null);
+
+            // Assert
+            Assert.Equal(expectedHtml, HtmlContentUtilities.HtmlContentToString(html));
+            Assert.Equal(savedSelected, selectList.Select(item => item.Selected));
         }
 
         [Fact]
@@ -1331,20 +1451,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             Assert.Same(htmlHelper.SelectListItems, result);            // No replacement of the underlying List
             VerifySelectList(htmlHelper.CopiedSelectListItems, result); // No change to the (mutable) items
-        }
-
-        [Fact]
-        public void GetEnumSelectListType_ThrowsWithFlagsEnum()
-        {
-            // Arrange
-            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            var htmlHelper = new TestHtmlHelper(metadataProvider);
-
-            // Act & Assert
-            ExceptionAssert.ThrowsArgument(
-                () => htmlHelper.GetEnumSelectList(typeof(EnumWithFlags)),
-                "enumType",
-                $"The type '{ typeof(EnumWithFlags).FullName }' is not supported.");
         }
 
         [Fact]
@@ -1473,6 +1579,28 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                             new SelectListItem { Text = nameof(EnumWithFields.Three), Value = "3" },
                             new SelectListItem { Text = nameof(EnumWithFields.MinusTwo), Value = "-2" },
                             new SelectListItem { Text = nameof(EnumWithFields.MinusOne), Value = "-1" },
+                        }
+                    },
+                    {
+                        typeof(EnumWithFlags),
+                        new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = nameof(EnumWithFlags.Zero), Value = "0" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.One), Value = "1" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.Two), Value = "2" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.Four), Value = "4" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.All), Value = "-1" },
+                        }
+                    },
+                    {
+                        typeof(EnumWithFlags?),
+                        new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = nameof(EnumWithFlags.Zero), Value = "0" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.One), Value = "1" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.Two), Value = "2" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.Four), Value = "4" },
+                            new SelectListItem { Text = nameof(EnumWithFlags.All), Value = "-1" },
                         }
                     },
                 };
@@ -1680,7 +1808,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Flags]
-        private enum EnumWithFlags
+        public enum EnumWithFlags
         {
             Four = 4,
             Two = 2,
@@ -1709,6 +1837,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         private class ModelContainingList
         {
             public List<string> Property1 { get; } = new List<string>();
+        }
+
+        private class ModelContainingEnumWithFlags
+        {
+            public EnumWithFlags? Property1 { get; set; }
         }
     }
 }

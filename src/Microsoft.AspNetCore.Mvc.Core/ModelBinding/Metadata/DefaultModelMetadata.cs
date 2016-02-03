@@ -261,15 +261,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc />
-        public override IReadOnlyDictionary<string, string> EnumNamesAndValues
-        {
-            get
-            {
-                return DisplayMetadata.EnumNamesAndValues;
-            }
-        }
-
-        /// <inheritdoc />
         public override bool HasNonDefaultEditFormat
         {
             get

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -24,8 +25,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
     public class DefaultHtmlGenerator : IHtmlGenerator
     {
         private const string HiddenListItem = @"<li style=""display:none""></li>";
-        private static readonly MethodInfo ConvertEnumFromStringMethod =
-            typeof(DefaultHtmlGenerator).GetTypeInfo().GetDeclaredMethod(nameof(ConvertEnumFromString));
+
+        private static readonly IDictionary<Type, Action<string, ICollection<string>>> _cachedEnumConverters
+            = new ConcurrentDictionary<Type, Action<string, ICollection<string>>>();
 
         // See: (http://www.w3.org/TR/html5/forms.html#the-input-element)
         private static readonly string[] _placeholderInputTypes =
@@ -931,9 +933,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 }
             }
 
+            modelExplorer = modelExplorer ??
+                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
+            var metadata = modelExplorer.Metadata;
+
             // Convert raw value to a collection.
-            IEnumerable rawValues;
-            if (allowMultiple)
+            IEnumerable rawValues = null;
+            if (allowMultiple && !metadata.IsFlagsEnum)
             {
                 rawValues = rawValue as IEnumerable;
                 if (rawValues == null || rawValues is string)
@@ -942,79 +948,43 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         Resources.FormatHtmlHelper_SelectExpressionNotEnumerable(nameof(expression)));
                 }
             }
-            else
+
+            if (rawValues == null)
             {
                 rawValues = new[] { rawValue };
             }
 
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-            var metadata = modelExplorer.Metadata;
             if (allowMultiple && metadata.IsEnumerableType)
             {
                 metadata = metadata.ElementMetadata;
             }
 
-            var enumNames = metadata.EnumNamesAndValues;
-            var isTargetEnum = metadata.IsEnum;
-
-            // Logic below assumes isTargetEnum and enumNames are consistent. Confirm that expectation is met.
-            Debug.Assert(isTargetEnum ^ enumNames == null);
-
-            var innerType = metadata.UnderlyingOrModelType;
-
             // Convert raw value collection to strings.
             var currentValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var innerType = metadata.UnderlyingOrModelType;
+            Action<string, ICollection<string>> enumConverter = null;
+
+            if (metadata.IsEnum && !_cachedEnumConverters.TryGetValue(innerType, out enumConverter))
+            {
+                enumConverter = (Action<string, ICollection<string>>)typeof(EnumCurrentValuesHelper<>)
+                    .MakeGenericType(innerType)
+                    .GetMethod("GetEnumValues")
+                    .CreateDelegate(typeof(Action<string, ICollection<string>>));
+            }
+
             foreach (var value in rawValues)
             {
                 // Add original or converted string.
                 var stringValue = (value as string) ?? Convert.ToString(value, CultureInfo.CurrentCulture);
 
-                // Do not add simple names of enum properties here because whitespace isn't relevant for their binding.
-                // Will add matching names just below.
-                if (enumNames == null || !enumNames.ContainsKey(stringValue.Trim()))
+                if (metadata.IsEnum)
+                {
+                    enumConverter(stringValue, currentValues);
+                }
+
+                if (stringValue != null)
                 {
                     currentValues.Add(stringValue);
-                }
-
-                // Remainder handles isEnum cases. Convert.ToString() returns field names for enum values but select
-                // list may (well, should) contain integer values.
-                var enumValue = value as Enum;
-                if (isTargetEnum && enumValue == null && value != null)
-                {
-                    var valueType = value.GetType();
-                    if (typeof(long).IsAssignableFrom(valueType) || typeof(ulong).IsAssignableFrom(valueType))
-                    {
-                        // E.g. user added an int to a ViewData entry and called a string-based HTML helper.
-                        enumValue = ConvertEnumFromInteger(value, innerType);
-                    }
-                    else if (!string.IsNullOrEmpty(stringValue))
-                    {
-                        // E.g. got a string from ModelState.
-                        var methodInfo = ConvertEnumFromStringMethod.MakeGenericMethod(innerType);
-                        enumValue = (Enum)methodInfo.Invoke(obj: null, parameters: new[] { stringValue });
-                    }
-                }
-
-                if (enumValue != null)
-                {
-                    // Add integer value.
-                    var integerString = enumValue.ToString("d");
-                    currentValues.Add(integerString);
-
-                    // isTargetEnum may be false when raw value has a different type than the target e.g. ViewData
-                    // contains enum values and property has type int or string.
-                    if (isTargetEnum)
-                    {
-                        // Add all simple names for this value.
-                        var matchingNames = enumNames
-                            .Where(kvp => string.Equals(integerString, kvp.Value, StringComparison.Ordinal))
-                            .Select(kvp => kvp.Key);
-                        foreach (var name in matchingNames)
-                        {
-                            currentValues.Add(name);
-                        }
-                    }
                 }
             }
 
@@ -1325,32 +1295,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
         }
 
-        private static Enum ConvertEnumFromInteger(object value, Type targetType)
-        {
-            try
-            {
-                return (Enum)Enum.ToObject(targetType, value);
-            }
-            catch (Exception exception)
-            when (exception is FormatException || exception.InnerException is FormatException)
-            {
-                // The integer was too large for this enum type.
-                return null;
-            }
-        }
-
-        private static object ConvertEnumFromString<TEnum>(string value) where TEnum : struct
-        {
-            TEnum enumValue;
-            if (Enum.TryParse(value, out enumValue))
-            {
-                return enumValue;
-            }
-
-            // Do not return default(TEnum) when parse was unsuccessful.
-            return null;
-        }
-
         private static bool EvalBoolean(ViewContext viewContext, string key)
         {
             return Convert.ToBoolean(viewContext.ViewData.Eval(key), CultureInfo.InvariantCulture);
@@ -1517,6 +1461,74 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             var tagBuilder = GenerateOption(item, item.Text);
             return tagBuilder;
+        }
+
+        private class EnumCurrentValuesHelper<TEnum> where TEnum : struct
+        {
+            static EnumCurrentValuesHelper()
+            {
+                unchecked
+                {
+                    // Eagerly converting the values so we don't have to do it every time
+                    _longValues = Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(v => Convert.ToInt64(v)).ToArray();
+                    _enumValues = Enum.GetValues(typeof(TEnum)).Cast<TEnum>().Select(v => v as Enum).ToArray();
+                }
+            }
+
+            private static readonly long[] _longValues;
+            private static readonly Enum[] _enumValues;
+            private static readonly string[] _names = Enum.GetNames(typeof(TEnum));
+            private static readonly Type _underlyingType = Enum.GetUnderlyingType(typeof(TEnum));
+            private static readonly bool _isFlagsEnum = typeof(TEnum).GetTypeInfo().IsDefined(typeof(FlagsAttribute), false);
+
+            public static void GetEnumValues(string stringValue, ICollection<string> outValues)
+            {
+                // It's a possibility
+                if (_longValues.Length == 0)
+                {
+                    return;
+                }
+
+                TEnum parsed;
+                if (Enum.TryParse(stringValue, out parsed))
+                {
+                    var enumValue = parsed as Enum;
+                    var longValue = Convert.ToInt64(enumValue);
+
+                    outValues.Add(enumValue.ToString("d"));
+                    outValues.Add(enumValue.ToString());
+
+                    if (_isFlagsEnum && longValue != 0)
+                    {
+                        // GetValues will return flag values
+                        // from least to most significant, meaning zeroes first
+                        // We are skipping unnecessary calls to ChangeType here
+                        long possibleValue = 0;
+                        for (var i = 0; i < _longValues.Length; i++)
+                        {
+                            possibleValue = _longValues[i];
+                            if (possibleValue != 0 && (longValue & possibleValue) == possibleValue)
+                            {
+                                outValues.Add(_enumValues[i].ToString("d"));
+                                outValues.Add(_names[i]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Add all simple names for this value.
+                        for (var i = 0; i < _longValues.Length; i++)
+                        {
+                            var possibleValue = _enumValues[i];
+                            if (possibleValue.Equals(enumValue))
+                            {
+                                outValues.Add(possibleValue.ToString("d"));
+                                outValues.Add(_names[i]);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
