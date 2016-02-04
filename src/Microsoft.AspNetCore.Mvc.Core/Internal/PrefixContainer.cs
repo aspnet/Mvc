@@ -254,7 +254,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             while (start <= end)
             {
-                var pivot = start + (end - start >> 1);
+                var pivot = start + ((end - start) / 2);
                 var candidate = _sortedValues[pivot];
                 var compare = string.Compare(
                     prefix,
