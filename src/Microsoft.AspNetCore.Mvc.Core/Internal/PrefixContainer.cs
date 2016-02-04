@@ -265,9 +265,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     StringComparison.OrdinalIgnoreCase);
                 if (compare == 0)
                 {
-                    // Ok, so now we have a candiate that for which candidate.StartsWith(prefix) is
-                    // at least true. If the candidate is longer than the prefix, we need to look 
-                    // at the next character and see if it's a delimiter.
+                    Debug.Assert(candidate.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+
+                    // Ok, so now we have a candiate that starts with the prefix. If the candidate is longer than
+                    // the prefix, we need to look at the next character and see if it's a delimiter.
                     if (candidate.Length == prefix.Length)
                     {
                         // Exact match
