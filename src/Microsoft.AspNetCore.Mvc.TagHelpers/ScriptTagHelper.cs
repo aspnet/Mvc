@@ -208,9 +208,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            // NOTE: Values in TagHelperOutput.Attributes may already be HTML-encoded.
-            var attributes = new TagHelperAttributeList(output.Attributes);
-
             if (AppendVersion == true)
             {
                 EnsureFileVersionProvider();
@@ -228,7 +225,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (mode == Mode.GlobbedSrc || mode == Mode.Fallback && !string.IsNullOrEmpty(SrcInclude))
             {
-                BuildGlobbedScriptTags(attributes, builder);
+                BuildGlobbedScriptTags(output.Attributes, builder);
                 if (string.IsNullOrEmpty(Src))
                 {
                     // Only SrcInclude is specified. Don't render the original tag.
@@ -245,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     FallbackSrc = resolvedUrl;
                 }
 
-                BuildFallbackBlock(attributes, builder);
+                BuildFallbackBlock(output.Attributes, builder);
             }
 
             output.PostElement.SetContent(builder);
@@ -289,11 +286,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                        .AppendHtml("||document.write(\"");
 
                 // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
-                if (!attributes.ContainsName(SrcAttributeName))
-                {
-                    // Need this entry to place each fallback source.
-                    attributes.Add(new TagHelperAttribute(SrcAttributeName, value: null));
-                }
+                var addSrc = !attributes.ContainsName(SrcAttributeName);
 
                 foreach (var src in fallbackSrcs)
                 {
@@ -316,18 +309,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         }
                         else
                         {
-                            // Ignore attribute.Value; use src instead.
-                            var attributeValue = src;
-                            if (AppendVersion == true)
-                            {
-                                attributeValue = _fileVersionProvider.AddFileVersionToPath(attributeValue);
-                            }
-
-                            // attribute.Key ("src") does not need to be JavaScript-encoded.
-                            var encodedValue = JavaScriptEncoder.Encode(attributeValue);
-
-                            AppendAttribute(builder, attribute.Name, encodedValue, escapeQuotes: true);
+                            AppendEncodedVersionedSrc(attribute.Name, src, builder);
                         }
+                    }
+
+                    if (addSrc)
+                    {
+                        AppendEncodedVersionedSrc(SrcAttributeName, src, builder);
                     }
 
                     builder.AppendHtml("><\\/script>");
@@ -335,6 +323,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 builder.AppendHtml("\"));</script>");
             }
+        }
+
+        private void AppendEncodedVersionedSrc(string name, string srcValue, DefaultTagHelperContent builder)
+        {
+            // Ignore attribute.Value; use src instead.
+            if (AppendVersion == true)
+            {
+                srcValue = _fileVersionProvider.AddFileVersionToPath(srcValue);
+            }
+
+            // attribute.Key ("src") does not need to be JavaScript-encoded.
+            var encodedValue = JavaScriptEncoder.Encode(srcValue);
+
+            AppendAttribute(builder, SrcAttributeName, encodedValue, escapeQuotes: true);
         }
 
         private void EnsureGlobbingUrlBuilder()
