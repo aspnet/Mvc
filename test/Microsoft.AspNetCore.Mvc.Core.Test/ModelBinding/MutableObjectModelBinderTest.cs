@@ -1330,10 +1330,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return _metadataProvider.GetMetadataForProperty(type, propertyName);
         }
 
-        private class EmptyModel
-        {
-        }
-
         private class BindingOptionalProperty
         {
             [BindingBehavior(BindingBehavior.Optional)]
@@ -1428,18 +1424,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             [BindingBehavior(BindingBehavior.Optional)]
             public string Optional { get; set; }
-        }
-
-        [BindRequired]
-        private class ModelWithBindRequiredAndRequiredAttribute
-        {
-            [Range(5, 20)]
-            [Required(ErrorMessage = "Custom Message {0}")]
-            public int ValueTypeProperty { get; set; }
-
-            [StringLength(25)]
-            [Required(ErrorMessage = "Custom Message {0}")]
-            public string ReferenceTypeProperty { get; set; }
         }
 
         private sealed class MyModelTestingCanUpdateProperty
@@ -1582,12 +1566,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             };
 
             public IList<int> SettableList { get; set; } = new List<int> { 3, 9, 0 };
-        }
-
-        private IServiceProvider CreateServices()
-        {
-            var services = new Mock<IServiceProvider>(MockBehavior.Strict);
-            return services.Object;
         }
 
         // Provides the ability to easily mock + call each of these APIs
