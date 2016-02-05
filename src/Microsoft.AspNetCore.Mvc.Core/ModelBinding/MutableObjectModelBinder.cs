@@ -32,34 +32,93 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return TaskCache.CompletedTask;
             }
 
-            var mutableObjectBinderContext = new MutableObjectBinderContext()
-            {
-                ModelBindingContext = bindingContext,
-                PropertyMetadata = GetMetadataForProperties(bindingContext).ToArray(),
-            };
-
-            if (!(CanCreateModel(mutableObjectBinderContext)))
+            if (!(CanCreateModel(bindingContext)))
             {
                 return TaskCache.CompletedTask;
             }
 
-            return BindModelCoreAsync(bindingContext, mutableObjectBinderContext);
+            // Perf: separated to avoid allocating a state machine when we don't
+            // need to go async.
+            return BindModelCoreAsync(bindingContext);
         }
 
-        private async Task BindModelCoreAsync(
-            ModelBindingContext bindingContext,
-            MutableObjectBinderContext mutableObjectBinderContext)
+        private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
-            var model = GetModel(bindingContext);
+            bindingContext.Model = GetModel(bindingContext);
 
-            var results = await BindPropertiesAsync(bindingContext, mutableObjectBinderContext.PropertyMetadata);
+            foreach (var property in bindingContext.ModelMetadata.Properties)
+            {
+                if (!CanBindProperty(bindingContext, property))
+                {
+                    continue;
+                }
 
-            // Post-processing e.g. property setters and hooking up validation.
-            bindingContext.Model = model;
-            ProcessResults(bindingContext, results);
+                // ModelBindingContext.Model property values may be non-null when invoked via TryUpdateModel(). Pass
+                // complex (including collection) values down so that binding system does not unnecessarily recreate
+                // instances or overwrite inner properties that are not bound. No need for this with simple values
+                // because they will be overwritten if binding succeeds. Arrays are never reused because they cannot
+                // be resized.
+                object propertyModel = null;
+                if (property.PropertyGetter != null &&
+                    property.IsComplexType &&
+                    !property.ModelType.IsArray)
+                {
+                    propertyModel = property.PropertyGetter(bindingContext.Model);
+                }
 
-            bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
+                var fieldName = property.BinderModelName ?? property.PropertyName;
+                var modelName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, fieldName);
+
+                ModelBindingResult result;
+                using (bindingContext.EnterNestedScope(
+                    modelMetadata: property,
+                    fieldName: fieldName,
+                    modelName: modelName,
+                    model: propertyModel))
+                {
+                    await BindProperty(bindingContext);
+                    result = bindingContext.Result ?? ModelBindingResult.Failed(modelName);
+                }
+
+                if (result.IsModelSet)
+                {
+                    SetProperty(bindingContext, property, result);
+                }
+                else if (property.IsBindingRequired)
+                {
+                    var message = property.ModelBindingMessageProvider.MissingBindRequiredValueAccessor(fieldName);
+                    bindingContext.ModelState.TryAddModelError(modelName, message);
+                }
+            }
+
+            bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, bindingContext.Model);
+        }
+
+        protected virtual bool CanBindProperty(ModelBindingContext bindingContext, ModelMetadata propertyMetadata)
+        {
+            var modelMetadataPredicate = bindingContext.ModelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
+            if (modelMetadataPredicate?.Invoke(bindingContext, propertyMetadata.PropertyName) == false)
+            {
+                return false;
+            }
+
+            if (bindingContext.PropertyFilter?.Invoke(bindingContext, propertyMetadata.PropertyName) == false)
+            {
+                return false;
+            }
+
+            if (!propertyMetadata.IsBindingAllowed)
+            {
+                return false;
+            }
+
+            if (!CanUpdateProperty(propertyMetadata))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -78,9 +137,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return CanUpdatePropertyInternal(propertyMetadata);
         }
 
-        internal bool CanCreateModel(MutableObjectBinderContext context)
+        protected virtual Task BindProperty(ModelBindingContext bindingContext)
         {
-            var bindingContext = context.ModelBindingContext;
+            return bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(bindingContext);
+        }
+
+        internal bool CanCreateModel(ModelBindingContext bindingContext)
+        {
             var isTopLevelObject = bindingContext.IsTopLevelObject;
 
             // If we get here the model is a complex object which was not directly bound by any previous model binder,
@@ -88,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // recursion.
             //
             // First, we want to make sure this object is allowed to come from a value provider source as this binder
-            // will always include value provider data. For instance if the model is marked with [FromBody], then we
+            // will only include value provider data. For instance if the model is marked with [FromBody], then we
             // can just skip it. A greedy source cannot be a value provider.
             //
             // If the model isn't marked with ANY binding source, then we assume it's OK also.
@@ -108,14 +171,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return true;
             }
 
-            // 2. If it is top level object and there are no properties to bind
-            if (isTopLevelObject && context.PropertyMetadata != null && context.PropertyMetadata.Count == 0)
-            {
-                return true;
-            }
-
-            // 3. Any of the model properties can be bound using a value provider.
-            if (CanValueBindAnyModelProperties(context))
+            // 2. Any of the model properties can be bound using a value provider.
+            if (CanValueBindAnyModelProperties(bindingContext))
             {
                 return true;
             }
@@ -123,11 +180,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return false;
         }
 
-        private bool CanValueBindAnyModelProperties(MutableObjectBinderContext context)
+        private bool CanValueBindAnyModelProperties(ModelBindingContext bindingContext)
         {
             // If there are no properties on the model, there is nothing to bind. We are here means this is not a top
             // level object. So we return false.
-            if (context.PropertyMetadata == null || context.PropertyMetadata.Count == 0)
+            if (bindingContext.ModelMetadata.Properties.Count == 0)
             {
                 return false;
             }
@@ -157,9 +214,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // create the model and try to bind it. OR if ALL properties of the model have a greedy source,
             // then we go ahead and create it.
             //
+            var hasBindableProperty = false;
             var isAnyPropertyEnabledForValueProviderBasedBinding = false;
-            foreach (var propertyMetadata in context.PropertyMetadata)
+            foreach (var propertyMetadata in bindingContext.ModelMetadata.Properties)
             {
+                if (!CanBindProperty(bindingContext, propertyMetadata))
+                {
+                    continue;
+                }
+
+                hasBindableProperty |= true;
+
                 // This check will skip properties which are marked explicitly using a non value binder.
                 var bindingSource = propertyMetadata.BindingSource;
                 if (bindingSource == null || !bindingSource.IsGreedy)
@@ -168,17 +233,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
                     var fieldName = propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName;
                     var modelName = ModelNames.CreatePropertyModelName(
-                        context.ModelBindingContext.ModelName,
+                        bindingContext.ModelName,
                         fieldName);
 
-                    using (context.ModelBindingContext.EnterNestedScope(
+                    using (bindingContext.EnterNestedScope(
                         modelMetadata: propertyMetadata,
                         fieldName: fieldName,
                         modelName: modelName,
                         model: null))
                     {
                         // If any property can return a true value.
-                        if (CanBindValue(context.ModelBindingContext))
+                        if (CanBindValue(bindingContext))
                         {
                             return true;
                         }
@@ -186,12 +251,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             }
 
-            if (!isAnyPropertyEnabledForValueProviderBasedBinding)
+            if (hasBindableProperty && !isAnyPropertyEnabledForValueProviderBasedBinding)
             {
-                // Either there are no properties or all the properties are marked as
-                // a non value provider based marker.
-                // This would be the case when the model has all its properties annotated with
-                // a IBinderMetadata. We want to be able to create such a model.
+                // All the properties are marked as a non value provider based marker like [FromHeader] or
+                // [FromBody].
                 return true;
             }
 
@@ -205,8 +268,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var bindingSource = bindingContext.BindingSource;
             if (bindingSource != null && !bindingSource.IsGreedy)
             {
-                var rootValueProvider =
-                    bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
+                var rootValueProvider = bindingContext.OperationBindingContext.ValueProvider as IBindingSourceValueProvider;
                 if (rootValueProvider != null)
                 {
                     valueProvider = rootValueProvider.Filter(bindingSource);
@@ -273,52 +335,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return true;
         }
 
-        // Returned dictionary contains entries corresponding to properties against which binding was attempted. If
-        // binding failed, the entry's value will have IsModelSet == false. Binding is attempted for all elements of
-        // propertyMetadatas.
-        private async Task<IDictionary<ModelMetadata, ModelBindingResult>> BindPropertiesAsync(
-            ModelBindingContext bindingContext,
-            IEnumerable<ModelMetadata> propertyMetadatas)
-        {
-            var results = new Dictionary<ModelMetadata, ModelBindingResult>();
-            foreach (var propertyMetadata in propertyMetadatas)
-            {
-                // ModelBindingContext.Model property values may be non-null when invoked via TryUpdateModel(). Pass
-                // complex (including collection) values down so that binding system does not unnecessarily recreate
-                // instances or overwrite inner properties that are not bound. No need for this with simple values
-                // because they will be overwritten if binding succeeds. Arrays are never reused because they cannot
-                // be resized.
-                object model = null;
-                if (propertyMetadata.PropertyGetter != null &&
-                    propertyMetadata.IsComplexType &&
-                    !propertyMetadata.ModelType.IsArray)
-                {
-                    model = propertyMetadata.PropertyGetter(bindingContext.Model);
-                }
-
-                var fieldName = propertyMetadata.BinderModelName ?? propertyMetadata.PropertyName;
-                var modelName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, fieldName);
-
-                using (bindingContext.EnterNestedScope(
-                    modelMetadata: propertyMetadata,
-                    fieldName: fieldName,
-                    modelName: modelName,
-                    model: model))
-                {
-                    await bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(bindingContext);
-                    var result = bindingContext.Result;
-                    if (result == null)
-                    {
-                        // Could not bind. Let ProcessResult() know explicitly.
-                        result = ModelBindingResult.Failed(bindingContext.ModelName);
-                    }
-
-                    results[propertyMetadata] = result.Value;
-                }
-            }
-
-            return results;
-        }
 
         /// <summary>
         /// Creates suitable <see cref="object"/> for given <paramref name="bindingContext"/>.
@@ -358,104 +374,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets the collection of <see cref="ModelMetadata"/> for properties this binder should update.
-        /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        /// <returns>Collection of <see cref="ModelMetadata"/> for properties this binder should update.</returns>
-        protected virtual IEnumerable<ModelMetadata> GetMetadataForProperties(
-            ModelBindingContext bindingContext)
-        {
-            if (bindingContext == null)
-            {
-                throw new ArgumentNullException(nameof(bindingContext));
-            }
-
-            var validationInfo = GetPropertyValidationInfo(bindingContext);
-            var newPropertyFilter = GetPropertyFilter();
-            return bindingContext.ModelMetadata.Properties
-                                 .Where(propertyMetadata =>
-                                    newPropertyFilter(bindingContext, propertyMetadata.PropertyName) &&
-                                    (validationInfo.RequiredProperties.Contains(propertyMetadata.PropertyName) ||
-                                    !validationInfo.SkipProperties.Contains(propertyMetadata.PropertyName)) &&
-                                    CanUpdateProperty(propertyMetadata));
-        }
-
-        private static Func<ModelBindingContext, string, bool> GetPropertyFilter()
-        {
-            return (ModelBindingContext context, string propertyName) =>
-            {
-                var modelMetadataPredicate = context.ModelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
-
-                return
-                    (context.PropertyFilter == null || context.PropertyFilter(context, propertyName)) &&
-                    (modelMetadataPredicate == null || modelMetadataPredicate(context, propertyName));
-            };
-        }
-
-        internal static PropertyValidationInfo GetPropertyValidationInfo(ModelBindingContext bindingContext)
-        {
-            var validationInfo = new PropertyValidationInfo();
-
-            foreach (var propertyMetadata in bindingContext.ModelMetadata.Properties)
-            {
-                var propertyName = propertyMetadata.PropertyName;
-
-                if (!propertyMetadata.IsBindingAllowed)
-                {
-                    // Nothing to do here if binding is not allowed.
-                    validationInfo.SkipProperties.Add(propertyName);
-                    continue;
-                }
-
-                if (propertyMetadata.IsBindingRequired)
-                {
-                    validationInfo.RequiredProperties.Add(propertyName);
-                }
-            }
-
-            return validationInfo;
-        }
-
-        // Internal for testing.
-        internal void ProcessResults(
-            ModelBindingContext bindingContext,
-            IDictionary<ModelMetadata, ModelBindingResult> results)
-        {
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var metadata = metadataProvider.GetMetadataForType(bindingContext.ModelType);
-
-            var validationInfo = GetPropertyValidationInfo(bindingContext);
-
-            // Eliminate provided properties from RequiredProperties; leaving just *missing* required properties.
-            var boundProperties = results.Where(p => p.Value.IsModelSet).Select(p => p.Key.PropertyName);
-            validationInfo.RequiredProperties.ExceptWith(boundProperties);
-
-            foreach (var missingRequiredProperty in validationInfo.RequiredProperties)
-            {
-                var propertyMetadata = metadata.Properties[missingRequiredProperty];
-                var propertyName = propertyMetadata.BinderModelName ?? missingRequiredProperty;
-                var modelStateKey = ModelNames.CreatePropertyModelName(bindingContext.ModelName, propertyName);
-
-                bindingContext.ModelState.TryAddModelError(
-                    modelStateKey,
-                    bindingContext.ModelMetadata.ModelBindingMessageProvider.MissingBindRequiredValueAccessor(
-                        propertyName));
-            }
-
-            // For each property that BindPropertiesAsync() attempted to bind, call the setter, recording
-            // exceptions as necessary.
-            foreach (var entry in results)
-            {
-                if (entry.Value != null)
-                {
-                    var result = entry.Value;
-                    var propertyMetadata = entry.Key;
-                    SetProperty(bindingContext, metadata, propertyMetadata, result);
-                }
-            }
-        }
-
-        /// <summary>
         /// Updates a property in the current <see cref="ModelBindingContext.Model"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
@@ -467,7 +385,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <remarks>Should succeed in all cases that <see cref="CanUpdateProperty"/> returns <c>true</c>.</remarks>
         protected virtual void SetProperty(
             ModelBindingContext bindingContext,
-            ModelMetadata metadata,
             ModelMetadata propertyMetadata,
             ModelBindingResult result)
         {
@@ -476,16 +393,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(bindingContext));
             }
 
-            if (metadata == null)
-            {
-                throw new ArgumentNullException(nameof(metadata));
-            }
-
             if (propertyMetadata == null)
             {
                 throw new ArgumentNullException(nameof(propertyMetadata));
             }
-
 
             if (!result.IsModelSet)
             {
@@ -496,7 +407,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (propertyMetadata.IsReadOnly)
             {
                 // Try to handle as a collection if property exists but is not settable.
-                AddToProperty(bindingContext, metadata, propertyMetadata, result);
+                AddToProperty(bindingContext, propertyMetadata, result);
                 return;
             }
 
@@ -513,7 +424,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private void AddToProperty(
             ModelBindingContext bindingContext,
-            ModelMetadata modelMetadata,
             ModelMetadata propertyMetadata,
             ModelBindingResult result)
         {
@@ -586,19 +496,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 modelState.AddModelError(modelStateKey, exception, bindingContext.ModelMetadata);
             }
-        }
-
-        internal sealed class PropertyValidationInfo
-        {
-            public PropertyValidationInfo()
-            {
-                RequiredProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                SkipProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            }
-
-            public HashSet<string> RequiredProperties { get; private set; }
-
-            public HashSet<string> SkipProperties { get; private set; }
         }
     }
 }
