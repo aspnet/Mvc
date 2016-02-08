@@ -964,78 +964,27 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Empty(modelState);
         }
 
-        // Property name, property accessor, collection.
-        public static TheoryData<string, Func<object, object>, object> CollectionPropertyData
-        {
-            get
-            {
-                return new TheoryData<string, Func<object, object>, object>
-                {
-                    {
-                        nameof(CollectionContainer.ReadOnlyDictionary),
-                        model => ((CollectionContainer)model).ReadOnlyDictionary,
-                        new Dictionary<int, string>
-                        {
-                            { 1, "one" },
-                            { 2, "two" },
-                            { 3, "three" },
-                        }
-                    },
-                    {
-                        nameof(CollectionContainer.ReadOnlyList),
-                        model => ((CollectionContainer)model).ReadOnlyList,
-                        new List<int> { 1, 2, 3, 4 }
-                    },
-                    {
-                        nameof(CollectionContainer.SettableArray),
-                        model => ((CollectionContainer)model).SettableArray,
-                        new int[] { 1, 2, 3, 4 }
-                    },
-                    {
-                        nameof(CollectionContainer.SettableDictionary),
-                        model => ((CollectionContainer)model).SettableDictionary,
-                        new Dictionary<int, string>
-                        {
-                            { 1, "one" },
-                            { 2, "two" },
-                            { 3, "three" },
-                        }
-                    },
-                    {
-                        nameof(CollectionContainer.SettableList),
-                        model => ((CollectionContainer)model).SettableList,
-                        new List<int> { 1, 2, 3, 4 }
-                    },
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(CollectionPropertyData))]
-        public void SetProperty_CollectionProperty_UpdatesModel(
-            string propertyName,
-            Func<object, object> propertyAccessor,
-            object collection)
+        [Fact]
+        public void SetProperty_ReadOnlyProperty_IsNoOp()
         {
             // Arrange
             var model = new CollectionContainer();
-            var type = model.GetType();
-            var bindingContext = CreateContext(GetMetadataForType(type), model);
-            var modelState = bindingContext.ModelState;
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var metadata = metadataProvider.GetMetadataForType(type);
+            var originalCollection = model.ReadOnlyList;
 
-            var propertyMetadata = bindingContext.ModelMetadata.Properties[propertyName];
-            var result = ModelBindingResult.Success(propertyName, collection);
-            var testableBinder = new TestableMutableObjectModelBinder();
+            var modelMetadata = GetMetadataForType(model.GetType());
+            var propertyMetadata = GetMetadataForProperty(model.GetType(), nameof(CollectionContainer.ReadOnlyList));
+
+            var bindingContext = CreateContext(modelMetadata, model);
+            var result = ModelBindingResult.Success(propertyMetadata.PropertyName, new List<string>() { "hi" });
+
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, result);
+            binder.SetPropertyPublic(bindingContext, propertyMetadata, result);
 
             // Assert
-            Assert.Equal(collection, propertyAccessor(model));
-            Assert.True(modelState.IsValid);
-            Assert.Empty(modelState);
+            Assert.Same(originalCollection, model.ReadOnlyList);
+            Assert.Empty(model.ReadOnlyList);
         }
 
         [Fact]

@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -15,9 +13,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class MutableObjectModelBinder : IModelBinder
     {
-        private static readonly MethodInfo CallPropertyAddRangeOpenGenericMethod =
-            typeof(MutableObjectModelBinder).GetTypeInfo().GetDeclaredMethod(nameof(CallPropertyAddRange));
-
         /// <inheritdoc />
         public Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -386,8 +381,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (propertyMetadata.IsReadOnly)
             {
-                // Try to handle as a collection if property exists but is not settable.
-                AddToProperty(bindingContext, propertyMetadata, result);
+                // The property should have already been set when we called BindPropertyAsync, so there's
+                // nothing to do here.
                 return;
             }
 
@@ -399,61 +394,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             catch (Exception exception)
             {
                 AddModelError(exception, bindingContext, result);
-            }
-        }
-
-        private void AddToProperty(
-            ModelBindingContext bindingContext,
-            ModelMetadata propertyMetadata,
-            ModelBindingResult result)
-        {
-            var target = propertyMetadata.PropertyGetter(bindingContext.Model);
-            var source = result.Model;
-            if (target == null || source == null)
-            {
-                // Cannot copy to or from a null collection.
-                return;
-            }
-
-            if (target == source)
-            {
-                // Added to the target collection in BindPropertiesAsync().
-                return;
-            }
-
-            // Determine T if this is an ICollection<T> property. No need for a T[] case because CanUpdateProperty()
-            // ensures property is either settable or not an array. Underlying assumption is that CanUpdateProperty()
-            // and SetProperty() are overridden together.
-            if (!propertyMetadata.IsCollectionType)
-            {
-                // Not a collection model.
-                return;
-            }
-
-            var propertyAddRange = CallPropertyAddRangeOpenGenericMethod.MakeGenericMethod(
-                propertyMetadata.ElementMetadata.ModelType);
-            try
-            {
-                propertyAddRange.Invoke(obj: null, parameters: new[] { target, source });
-            }
-            catch (Exception exception)
-            {
-                AddModelError(exception, bindingContext, result);
-            }
-        }
-
-        // Called via reflection.
-        private static void CallPropertyAddRange<TElement>(object target, object source)
-        {
-            var targetCollection = (ICollection<TElement>)target;
-            var sourceCollection = source as IEnumerable<TElement>;
-            if (sourceCollection != null && !targetCollection.IsReadOnly)
-            {
-                targetCollection.Clear();
-                foreach (var item in sourceCollection)
-                {
-                    targetCollection.Add(item);
-                }
             }
         }
 
