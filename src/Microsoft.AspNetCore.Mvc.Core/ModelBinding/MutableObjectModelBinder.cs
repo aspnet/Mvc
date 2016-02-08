@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return TaskCache.CompletedTask;
             }
 
-            if (!(CanCreateModel(bindingContext)))
+            if (!CanCreateModel(bindingContext))
             {
                 return TaskCache.CompletedTask;
             }
@@ -45,7 +45,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         private async Task BindModelCoreAsync(ModelBindingContext bindingContext)
         {
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
-            bindingContext.Model = GetModel(bindingContext);
+            if (bindingContext.Model == null)
+            {
+                bindingContext.Model = CreateModel(bindingContext);
+            }
 
             foreach (var property in bindingContext.ModelMetadata.Properties)
             {
@@ -95,6 +98,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, bindingContext.Model);
         }
 
+        /// <summary>
+        /// Gets a value indicating whether or not the model property identified by <paramref name="propertyMetadata"/>
+        /// can be bound.
+        /// </summary>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/> for the container model.</param>
+        /// <param name="propertyMetadata">The <see cref="ModelMetadata"/> for the model property.</param>
+        /// <returns><c>true</c> if the model property can be bound, otherwise <c>false</c>.</returns>
         protected virtual bool CanBindProperty(ModelBindingContext bindingContext, ModelMetadata propertyMetadata)
         {
             var modelMetadataPredicate = bindingContext.ModelMetadata.PropertyBindingPredicateProvider?.PropertyFilter;
@@ -113,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return false;
             }
 
-            if (!CanUpdateProperty(propertyMetadata))
+            if (!CanUpdatePropertyInternal(propertyMetadata))
             {
                 return false;
             }
@@ -122,21 +132,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Gets an indication whether a property with the given <paramref name="propertyMetadata"/> can be updated.
+        /// Attempts to bind a property of the model.
         /// </summary>
-        /// <param name="propertyMetadata"><see cref="ModelMetadata"/> for the property of interest.</param>
-        /// <returns><c>true</c> if the property can be updated; <c>false</c> otherwise.</returns>
-        /// <remarks>Should return <c>true</c> only for properties <see cref="SetProperty"/> can update.</remarks>
-        protected virtual bool CanUpdateProperty(ModelMetadata propertyMetadata)
-        {
-            if (propertyMetadata == null)
-            {
-                throw new ArgumentNullException(nameof(propertyMetadata));
-            }
-
-            return CanUpdatePropertyInternal(propertyMetadata);
-        }
-
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/> for the model property.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that when completed will set <see cref="ModelBindingContext.Result"/> to the
+        /// result of model binding.
+        /// </returns>
         protected virtual Task BindProperty(ModelBindingContext bindingContext)
         {
             return bindingContext.OperationBindingContext.ModelBinder.BindModelAsync(bindingContext);
@@ -194,7 +196,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             //
             // However, because a property might specify a custom binding source ([FromForm]), it's not correct
             // for us to just try bindingContext.ValueProvider.ContainsPrefixAsync(bindingContext.ModelName),
-            // because that may include ALL value providers - that would lead us to mistakenly create the model
+            // because that may include other value providers - that would lead us to mistakenly create the model
             // when the data is coming from a source we should use (ex: value found in query string, but the
             // model has [FromForm]).
             //
@@ -223,7 +225,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     continue;
                 }
 
-                hasBindableProperty |= true;
+                hasBindableProperty = true;
 
                 // This check will skip properties which are marked explicitly using a non value binder.
                 var bindingSource = propertyMetadata.BindingSource;
@@ -253,7 +255,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (hasBindableProperty && !isAnyPropertyEnabledForValueProviderBasedBinding)
             {
-                // All the properties are marked as a non value provider based marker like [FromHeader] or
+                // All the properties are marked with a non value provider based marker like [FromHeader] or
                 // [FromBody].
                 return true;
             }
@@ -304,6 +306,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return true;
         }
 
+        // Internal for tests
         internal static bool CanUpdatePropertyInternal(ModelMetadata propertyMetadata)
         {
             return !propertyMetadata.IsReadOnly || CanUpdateReadOnlyProperty(propertyMetadata.ModelType);
@@ -354,32 +357,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Get <see cref="ModelBindingContext.Model"/> if that property is not <c>null</c>. Otherwise activate a
-        /// new instance of <see cref="ModelBindingContext.ModelType"/>.
-        /// </summary>
-        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        protected virtual object GetModel(ModelBindingContext bindingContext)
-        {
-            if (bindingContext == null)
-            {
-                throw new ArgumentNullException(nameof(bindingContext));
-            }
-
-            if (bindingContext.Model != null)
-            {
-                return bindingContext.Model;
-            }
-
-            return CreateModel(bindingContext);
-        }
-
-        /// <summary>
         /// Updates a property in the current <see cref="ModelBindingContext.Model"/>.
         /// </summary>
         /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
-        /// <param name="metadata">
-        /// The <see cref="ModelMetadata"/> for the model containing property to set.
-        /// </param>
         /// <param name="propertyMetadata">The <see cref="ModelMetadata"/> for the property to set.</param>
         /// <param name="result">The <see cref="ModelBindingResult"/> for the property's new value.</param>
         /// <remarks>Should succeed in all cases that <see cref="CanUpdateProperty"/> returns <c>true</c>.</remarks>

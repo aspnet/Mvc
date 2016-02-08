@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Internal;
@@ -30,31 +29,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             bool isTopLevelObject,
             bool expectedCanCreate)
         {
-            var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider
-                .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
-                .Returns(false);
+            var bindingContext = CreateContext(GetMetadataForType(typeof(Person)));
+            bindingContext.IsTopLevelObject = isTopLevelObject;
 
-            var bindingContext = new DefaultModelBindingContext()
-            {
-                IsTopLevelObject = isTopLevelObject,
-
-                // Random type.
-                ModelMetadata = _metadataProvider.GetMetadataForType(typeof(Person)),
-                ValueProvider = mockValueProvider.Object,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValueProvider = mockValueProvider.Object,
-                    MetadataProvider = _metadataProvider,
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                },
-                ModelState = new ModelStateDictionary(),
-            };
-
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.Equal(expectedCanCreate, canCreate);
@@ -63,26 +44,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CanCreateModel_ReturnsFalse_IfNotIsTopLevelObjectAndModelIsMarkedWithBinderMetadata()
         {
-            // Get the property metadata so that it is not a top level object.
-            var modelMetadata = GetMetadataForType(typeof(Document))
-                .Properties
-                .First(metadata => metadata.PropertyName == nameof(Document.SubDocument));
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = modelMetadata,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                },
-                BindingSource = modelMetadata.BindingSource,
-                BinderModelName = modelMetadata.BinderModelName,
-                ModelState = new ModelStateDictionary(),
-            };
+            var modelMetadata = GetMetadataForProperty(typeof(Document), nameof(Document.SubDocument));
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var bindingContext = CreateContext(modelMetadata);
+            bindingContext.IsTopLevelObject = false;
+
+            var binder = new MutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.False(canCreate);
@@ -91,56 +61,30 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CanCreateModel_ReturnsTrue_IfIsTopLevelObjectAndModelIsMarkedWithBinderMetadata()
         {
-            var bindingContext = new DefaultModelBindingContext
-            {
-                // Here the metadata represents a top level object.
-                IsTopLevelObject = true,
+            var bindingContext = CreateContext(GetMetadataForType(typeof(Document)));
+            bindingContext.IsTopLevelObject = true;
 
-                ModelMetadata = GetMetadataForType(typeof(Document)),
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                },
-                ModelState = new ModelStateDictionary(),
-            };
-
-            var mutableBinder = new MutableObjectModelBinder();
+            var binder = new MutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.True(canCreate);
         }
 
-        [Fact]
-        public void CanCreateModel_CreatesModel_IfTheModelIsBinderPoco()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void CanCreateModel_CreatesModel_WithAllGreedyProperties(bool isTopLevelObject)
         {
-            var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider
-                .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
-                .Returns(false);
+            var bindingContext = CreateContext(GetMetadataForType(typeof(HasAllGreedyProperties)));
+            bindingContext.IsTopLevelObject = isTopLevelObject;
 
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = GetMetadataForType(typeof(BinderMetadataPocoType)),
-                ValueProvider = mockValueProvider.Object,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                    ValueProvider = mockValueProvider.Object,
-                    MetadataProvider = _metadataProvider,
-                },
-
-                // Setting it to empty ensures that model does not get created because of no model name.
-                ModelName = "dummyModelName",
-                ModelState = new ModelStateDictionary(),
-            };
-
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.True(canCreate);
@@ -153,31 +97,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             bool valueAvailable)
         {
             // Arrange
-            var mockValueProvider = new Mock<IValueProvider>(MockBehavior.Strict);
-            mockValueProvider
+            var valueProvider = new Mock<IValueProvider>(MockBehavior.Strict);
+            valueProvider
                 .Setup(provider => provider.ContainsPrefix("SimpleContainer.Simple.Name"))
                 .Returns(valueAvailable);
 
-            var typeMetadata = GetMetadataForType(typeof(SimpleContainer));
-            var modelMetadata = typeMetadata.Properties[nameof(SimpleContainer.Simple)];
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = modelMetadata,
-                ModelName = "SimpleContainer.Simple",
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                    ValueProvider = mockValueProvider.Object,
-                    MetadataProvider = _metadataProvider,
-                },
-                ValueProvider = mockValueProvider.Object,
-                ModelState = new ModelStateDictionary(),
-            };
+            var modelMetadata = GetMetadataForProperty(typeof(SimpleContainer), nameof(SimpleContainer.Simple));
+            var bindingContext = CreateContext(modelMetadata);
+            bindingContext.IsTopLevelObject = false;
+            bindingContext.ModelName = "SimpleContainer.Simple";
+            bindingContext.ValueProvider = valueProvider.Object;
+            bindingContext.OperationBindingContext.ValueProvider = valueProvider.Object;
 
-            var mutableBinder = new MutableObjectModelBinder();
+            var binder = new MutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             // Result matches whether first Simple property can bind.
@@ -188,17 +123,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void CanCreateModel_ReturnsFalse_IfNotIsTopLevelObjectAndModelHasNoProperties()
         {
             // Arrange
-            var bindingContext = new DefaultModelBindingContext
-            {
-                IsTopLevelObject = false,
+            var bindingContext = CreateContext(GetMetadataForType(typeof(PersonWithNoProperties)));
+            bindingContext.IsTopLevelObject = false;
 
-                ModelMetadata = GetMetadataForType(typeof(PersonWithNoProperties))
-            };
-
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.False(canCreate);
@@ -208,16 +139,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void CanCreateModel_ReturnsTrue_IfIsTopLevelObjectAndModelHasNoProperties()
         {
             // Arrange
-            var bindingContext = new DefaultModelBindingContext
-            {
-                IsTopLevelObject = true,
-                ModelMetadata = GetMetadataForType(typeof(PersonWithNoProperties))
-            };
+            var bindingContext = CreateContext(GetMetadataForType(typeof(PersonWithNoProperties)));
+            bindingContext.IsTopLevelObject = true;
 
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.True(canCreate);
@@ -234,29 +162,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Type modelType,
             bool valueProviderProvidesValue)
         {
-            var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider.Setup(o => o.ContainsPrefix(It.IsAny<string>()))
-                             .Returns(valueProviderProvidesValue);
+            var valueProvider = new Mock<IValueProvider>();
+            valueProvider
+                .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
+                .Returns(valueProviderProvidesValue);
 
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = GetMetadataForType(modelType),
-                ValueProvider = mockValueProvider.Object,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                    ValueProvider = mockValueProvider.Object,
-                    MetadataProvider = _metadataProvider,
-                },
-                // Setting it to empty ensures that model does not get created becasue of no model name.
-                ModelName = "dummyName",
-                ModelState = new ModelStateDictionary(),
-            };
+            var bindingContext = CreateContext(GetMetadataForType(modelType));
+            bindingContext.IsTopLevelObject = false;
+            bindingContext.ValueProvider = valueProvider.Object;
+            bindingContext.OperationBindingContext.ValueProvider = valueProvider.Object;
 
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.Equal(valueProviderProvidesValue, canCreate);
@@ -269,46 +188,24 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Type modelType,
             bool originalValueProviderProvidesValue)
         {
-            var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider
+            var valueProvider = new Mock<IValueProvider>();
+            valueProvider
                 .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
                 .Returns(false);
 
-            var mockOriginalValueProvider = new Mock<IBindingSourceValueProvider>();
-            mockOriginalValueProvider
+            var originalValueProvider = new Mock<IBindingSourceValueProvider>();
+            originalValueProvider
                 .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
                 .Returns(originalValueProviderProvidesValue);
 
-            mockOriginalValueProvider
+            originalValueProvider
                 .Setup(o => o.Filter(It.IsAny<BindingSource>()))
-                .Returns<BindingSource>(source =>
-                {
-                    if (source == BindingSource.Query)
-                    {
-                        return mockOriginalValueProvider.Object;
-                    }
+                .Returns<BindingSource>(source => source == BindingSource.Query ? originalValueProvider.Object : null);
 
-                    return null;
-                });
-
-            var modelMetadata = GetMetadataForType(modelType);
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = modelMetadata,
-                ValueProvider = mockValueProvider.Object,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValueProvider = mockOriginalValueProvider.Object,
-                    MetadataProvider = TestModelMetadataProvider.CreateDefaultProvider(),
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                },
-
-                // Setting it to empty ensures that model does not get created because of no model name.
-                ModelName = "dummyName",
-                BindingSource = modelMetadata.BindingSource,
-                BinderModelName = modelMetadata.BinderModelName,
-                ModelState = new ModelStateDictionary(),
-            };
+            var bindingContext = CreateContext(GetMetadataForType(modelType));
+            bindingContext.IsTopLevelObject = false;
+            bindingContext.ValueProvider = valueProvider.Object;
+            bindingContext.OperationBindingContext.ValueProvider = originalValueProvider.Object;
 
             var binder = new TestableMutableObjectModelBinder();
 
@@ -328,40 +225,32 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Type modelType,
             bool valueProviderProvidesValue)
         {
-            var mockValueProvider = new Mock<IValueProvider>();
-            mockValueProvider.Setup(o => o.ContainsPrefix(It.IsAny<string>()))
-                             .Returns(valueProviderProvidesValue);
+            var valueProvider = new Mock<IValueProvider>();
+            valueProvider
+                .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
+                .Returns(valueProviderProvidesValue);
 
-            var mockOriginalValueProvider = new Mock<IValueProvider>();
-            mockOriginalValueProvider.Setup(o => o.ContainsPrefix(It.IsAny<string>()))
-                                     .Returns(false);
+            var originalValueProvider = new Mock<IValueProvider>();
+            originalValueProvider
+                .Setup(o => o.ContainsPrefix(It.IsAny<string>()))
+                .Returns(false);
 
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = GetMetadataForType(modelType),
-                ValueProvider = mockValueProvider.Object,
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ValidatorProvider = Mock.Of<IModelValidatorProvider>(),
-                    ValueProvider = mockOriginalValueProvider.Object,
-                    MetadataProvider = _metadataProvider,
-                },
-                // Setting it to empty ensures that model does not get created becasue of no model name.
-                ModelName = "dummyName",
-                ModelState = new ModelStateDictionary(),
-            };
+            var bindingContext = CreateContext(GetMetadataForType(modelType));
+            bindingContext.IsTopLevelObject = false;
+            bindingContext.ValueProvider = valueProvider.Object;
+            bindingContext.OperationBindingContext.ValueProvider = originalValueProvider.Object;
 
-            var mutableBinder = new TestableMutableObjectModelBinder();
+            var binder = new TestableMutableObjectModelBinder();
 
             // Act
-            var canCreate = mutableBinder.CanCreateModel(bindingContext);
+            var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
             Assert.Equal(valueProviderProvidesValue, canCreate);
         }
 
         [Fact]
-        public async Task BindModel_InitsInstance_IfIsTopLevelObject()
+        public async Task BindModelAsync_CreatesModel_IfIsTopLevelObject()
         {
             // Arrange
             var mockValueProvider = new Mock<IValueProvider>();
@@ -391,7 +280,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder
-                .Setup(o => o.GetModelPublic(bindingContext))
+                .Setup(o => o.CreateModelPublic(bindingContext))
                 .Returns(model)
                 .Verifiable();
             testableBinder
@@ -399,18 +288,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Returns(false);
 
             // Act
-            var retValue = await testableBinder.Object.BindModelResultAsync(bindingContext);
+            var result = await testableBinder.Object.BindModelResultAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(retValue);
-            Assert.True(retValue.IsModelSet);
-            var returnedPerson = Assert.IsType<Person>(retValue.Model);
+            Assert.NotNull(result);
+            Assert.True(result.IsModelSet);
+            var returnedPerson = Assert.IsType<Person>(result.Model);
             Assert.Same(model, returnedPerson);
             testableBinder.Verify();
         }
 
         [Theory]
-        [InlineData(nameof(MyModelTestingCanUpdateProperty.ReadOnlyArray), false)]
         [InlineData(nameof(MyModelTestingCanUpdateProperty.ReadOnlyInt), false)]    // read-only value type
         [InlineData(nameof(MyModelTestingCanUpdateProperty.ReadOnlyObject), true)]
         [InlineData(nameof(MyModelTestingCanUpdateProperty.ReadOnlySimple), true)]
@@ -468,49 +356,43 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetModel_ModelIsNotNull_DoesNothing()
+        public async Task BindModelAsync_ModelIsNotNull_DoesNotCallCreateModel()
         {
             // Arrange
-            var bindingContext = new DefaultModelBindingContext
-            {
-                Model = new Person(),
-                ModelMetadata = GetMetadataForType(typeof(Person))
-            };
-
+            var bindingContext = CreateContext(GetMetadataForType(typeof(Person)), new Person());
             var originalModel = bindingContext.Model;
-            var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
+
+            var binder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
+            binder
+                .Setup(b => b.CreateModelPublic(It.IsAny<ModelBindingContext>()))
+                .Verifiable();
 
             // Act
-            var newModel = testableBinder.Object.GetModelPublic(bindingContext);
+            await binder.Object.BindModelAsync(bindingContext);
 
             // Assert
             Assert.Same(originalModel, bindingContext.Model);
-            Assert.Same(originalModel, newModel);
-            testableBinder.Verify(o => o.CreateModelPublic(bindingContext), Times.Never());
+            binder.Verify(o => o.CreateModelPublic(bindingContext), Times.Never());
         }
 
         [Fact]
-        public void GetModel_ModelIsNull_CallsCreateModel()
+        public async Task BindModelAsync_ModelIsNull_CallsCreateModel()
         {
             // Arrange
-            var bindingContext = new DefaultModelBindingContext
-            {
-                ModelMetadata = GetMetadataForType(typeof(Person))
-            };
+            var bindingContext = CreateContext(GetMetadataForType(typeof(Person)), model: null);
 
-            var originalModel = bindingContext.Model;
             var testableBinder = new Mock<TestableMutableObjectModelBinder> { CallBase = true };
             testableBinder
                 .Setup(o => o.CreateModelPublic(bindingContext))
-                .Returns(new Person()).Verifiable();
+                .Returns(new Person())
+                .Verifiable();
 
             // Act
-            var newModel = testableBinder.Object.GetModelPublic(bindingContext);
+            await testableBinder.Object.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Null(originalModel);
-            Assert.Null(bindingContext.Model);
-            Assert.IsType<Person>(newModel);
+            Assert.NotNull(bindingContext.Model);
+            Assert.IsType<Person>(bindingContext.Model);
             testableBinder.Verify();
         }
 
@@ -850,45 +732,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Assert
             var modelStateDictionary = bindingContext.ModelState;
             Assert.True(modelStateDictionary.IsValid);
-        }
-
-        [Fact]
-        public async Task BindModelAsync_ValueTypeProperty_TriesToSetNullModel_CapturesException()
-        {
-            // Arrange
-            var model = new Person();
-            var containerMetadata = GetMetadataForType(model.GetType());
-
-            var bindingContext = CreateContext(containerMetadata, model);
-
-            var binder = new TestableMutableObjectModelBinder();
-
-            var property = GetMetadataForProperty(model.GetType(), nameof(Person.ValueTypeRequired));
-            binder.Results[property] = ModelBindingResult.Success(
-                key: "theModel." + nameof(Person.ValueTypeRequired),
-                model: null);
-
-            // Act
-            await binder.BindModelAsync(bindingContext);
-
-            // Assert
-            var modelStateDictionary = bindingContext.ModelState;
-            Assert.False(modelStateDictionary.IsValid);
-
-            // Check ValueTypeRequired error.
-            var modelStateEntry = Assert.Single(
-                modelStateDictionary,
-                entry => entry.Key == "theModel." + nameof(Person.ValueTypeRequired));
-            Assert.Equal("theModel." + nameof(Person.ValueTypeRequired), modelStateEntry.Key);
-
-            var modelState = modelStateEntry.Value;
-            Assert.Equal(ModelValidationState.Invalid, modelState.ValidationState);
-
-            var error = Assert.Single(modelState.Errors);
-            Assert.Equal(string.Empty, error.ErrorMessage);
-            Assert.IsType<NullReferenceException>(error.Exception);
-
-            Assert.Equal(0, model.ValueTypeRequired); 
         }
 
         [Fact]
@@ -1245,34 +1088,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                          bindingContext.ModelState["foo"].Errors[0].Exception.Message);
         }
 
-        // This can only really be done by writing an invalid model binder and returning 'isModelSet: true'
-        // with a null model for a value type.
-        [Fact]
-        public void SetProperty_SettingNonNullableValueTypeToNull_CapturesException()
-        {
-            // Arrange
-            var model = new Person();
-            var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-
-            var metadataProvider = bindingContext.OperationBindingContext.MetadataProvider;
-            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
-            var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfBirth)];
-
-            var result = ModelBindingResult.Success("foo.DateOfBirth", model: null);
-            var testableBinder = new TestableMutableObjectModelBinder();
-
-            // Act
-            testableBinder.SetPropertyPublic(bindingContext, propertyMetadata, result);
-
-            // Assert
-            Assert.False(bindingContext.ModelState.IsValid);
-
-            var entry = Assert.Single(bindingContext.ModelState, kvp => kvp.Key == "foo.DateOfBirth").Value;
-            var error = Assert.Single(entry.Errors);
-            Assert.Equal(string.Empty, error.ErrorMessage);
-            Assert.IsType<NullReferenceException>(error.Exception);
-        }
-
         [Fact]
         [ReplaceCulture]
         public void SetProperty_PropertySetterThrows_CapturesException()
@@ -1300,11 +1115,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                          bindingContext.ModelState["foo.NameNoAttribute"].Errors[0].Exception.Message);
         }
 
-        private static DefaultModelBindingContext CreateContext(ModelMetadata metadata, object model)
+        private static DefaultModelBindingContext CreateContext(ModelMetadata metadata, object model = null)
         {
             var valueProvider = new TestValueProvider(new Dictionary<string, object>());
-            return new DefaultModelBindingContext
+            return new DefaultModelBindingContext()
             {
+                BinderModelName = metadata.BinderModelName,
+                BindingSource = metadata.BindingSource,
                 IsTopLevelObject = true,
                 Model = model,
                 ModelMetadata = metadata,
@@ -1430,7 +1247,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             public int ReadOnlyInt { get; private set; }
             public string ReadOnlyString { get; private set; }
-            public string[] ReadOnlyArray { get; private set; }
             public object ReadOnlyObject { get; } = new Simple { Name = "Joe" };
             public string ReadWriteString { get; set; }
             public Simple ReadOnlySimple { get; } = new Simple { Name = "Joe" };
@@ -1457,7 +1273,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             public int UnMarkedProperty { get; set; }
         }
 
-        private class BinderMetadataPocoType
+        private class HasAllGreedyProperties
         {
             [NonValueBinderMetadata]
             public string MarkedWithABinderMetadata { get; set; }
@@ -1620,16 +1436,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return CanBindPropertyPublic(bindingContext, propertyMetadata);
             }
 
-            public virtual bool CanUpdatePropertyPublic(ModelMetadata propertyMetadata)
-            {
-                return base.CanUpdateProperty(propertyMetadata);
-            }
-
-            protected override bool CanUpdateProperty(ModelMetadata propertyMetadata)
-            {
-                return CanUpdatePropertyPublic(propertyMetadata);
-            }
-
             public virtual object CreateModelPublic(ModelBindingContext bindingContext)
             {
                 return base.CreateModel(bindingContext);
@@ -1638,16 +1444,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             protected override object CreateModel(ModelBindingContext bindingContext)
             {
                 return CreateModelPublic(bindingContext);
-            }
-
-            public virtual object GetModelPublic(ModelBindingContext bindingContext)
-            {
-                return base.GetModel(bindingContext);
-            }
-
-            protected override object GetModel(ModelBindingContext bindingContext)
-            {
-                return GetModelPublic(bindingContext);
             }
 
             public virtual void SetPropertyPublic(
