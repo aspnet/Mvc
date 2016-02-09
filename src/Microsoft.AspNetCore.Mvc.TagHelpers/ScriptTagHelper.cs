@@ -286,8 +286,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                        .AppendHtml("||document.write(\"");
 
                 // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
-                var addSrc = !attributes.ContainsName(SrcAttributeName);
-
                 foreach (var src in fallbackSrcs)
                 {
                     // Fallback "src" values come from bound attributes and globbing. Must always be non-null.
@@ -295,12 +293,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                     builder.AppendHtml("<script");
 
+                    var addSrc = true;
+
                     // Perf: Avoid allocating enumerator
                     for (var i = 0; i < attributes.Count; i++)
                     {
                         var attribute = attributes[i];
                         if (!attribute.Name.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                         {
+                            addSrc = false;
                             var encodedKey = JavaScriptEncoder.Encode(attribute.Name);
                             var attributeValue = attribute.Value.ToString();
                             var encodedValue = JavaScriptEncoder.Encode(attributeValue);
@@ -325,9 +326,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
-        private void AppendEncodedVersionedSrc(string name, string srcValue, DefaultTagHelperContent builder)
+        private void AppendEncodedVersionedSrc(string srcName, string srcValue, DefaultTagHelperContent builder)
         {
-            // Ignore attribute.Value; use src instead.
             if (AppendVersion == true)
             {
                 srcValue = _fileVersionProvider.AddFileVersionToPath(srcValue);
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // attribute.Key ("src") does not need to be JavaScript-encoded.
             var encodedValue = JavaScriptEncoder.Encode(srcValue);
 
-            AppendAttribute(builder, SrcAttributeName, encodedValue, escapeQuotes: true);
+            AppendAttribute(builder, srcName, encodedValue, escapeQuotes: true);
         }
 
         private void EnsureGlobbingUrlBuilder()

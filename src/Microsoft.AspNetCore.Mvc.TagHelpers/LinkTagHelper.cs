@@ -398,7 +398,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
-        private void BuildLinkTag(string newHref, TagHelperAttributeList attributes, TagHelperContent builder)
+        private void BuildLinkTag(string href, TagHelperAttributeList attributes, TagHelperContent builder)
         {
             builder.AppendHtml("<link ");
 
@@ -406,33 +406,32 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             for (var i = 0; i < attributes.Count; i++)
             {
                 var attribute = attributes[i];
+                object attributeValue;
 
-                // Ignore the href in the existing attributes dictionary, it's handled below.
-                if (AppendVersion == true &&
-                    string.Equals(attribute.Name, HrefAttributeName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(attribute.Name, HrefAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
-                    continue;
+                    if (AppendVersion == true)
+                    {
+                        attributeValue = _fileVersionProvider.AddFileVersionToPath(href);
+                    }
+                    else
+                    {
+                        attributeValue = href;
+                    }
+                }
+                else
+                {
+                    attributeValue = attribute.Value;
                 }
 
-                AppendEncodedAttribute(attribute.Name, attribute.Value, builder);
-            }
-
-            if (AppendVersion == true)
-            {
-                var versionedHref = _fileVersionProvider.AddFileVersionToPath(newHref);
-                AppendEncodedAttribute(HrefAttributeName, versionedHref, builder);
+                builder
+                    .AppendHtml(attribute.Name)
+                    .AppendHtml("=\"")
+                    .Append(HtmlEncoder, attributeValue)
+                    .AppendHtml("\" ");
             }
 
             builder.AppendHtml("/>");
-        }
-
-        private void AppendEncodedAttribute(string name, object value, TagHelperContent builder)
-        {
-            builder
-                .AppendHtml(name)
-                .AppendHtml("=\"")
-                .Append(HtmlEncoder, value)
-                .AppendHtml("\" ");
         }
 
         private enum Mode
