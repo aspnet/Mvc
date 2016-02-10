@@ -681,12 +681,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (StringComparer.OrdinalIgnoreCase.Equals(key, prefix))
-            {
-                return true;
-            }
-
-            if (key.Length <= prefix.Length)
+            if (key.Length < prefix.Length)
             {
                 return false;
             }
@@ -713,6 +708,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 {
                     return false;
                 }
+            }
+            else if (key.Length == prefix.Length)
+            {
+                return true;
             }
 
             // Everything is prefixed by the empty string
