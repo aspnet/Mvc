@@ -681,6 +681,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(key));
             }
 
+            if (prefix.Length == 0)
+            {
+                // Everything is prefixed by the empty string
+                return true;
+            }
+
             if (key.Length < prefix.Length)
             {
                 return false;
@@ -688,7 +694,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             if (!key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
-                if (key.StartsWith("[", StringComparison.OrdinalIgnoreCase))
+                if (key[0] == '[')
                 {
                     var subKey = key.Substring(key.IndexOf('.') + 1);
 
@@ -696,9 +702,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     {
                         return false;
                     }
-
-                    if (string.Equals(prefix, subKey, StringComparison.OrdinalIgnoreCase))
+                    else if (prefix.Length == subKey.Length)
                     {
+                        // prefix == subKey
                         return true;
                     }
 
@@ -711,23 +717,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             else if (key.Length == prefix.Length)
             {
+                // key == prefix
                 return true;
             }
 
-            // Everything is prefixed by the empty string
-            if (prefix.Length == 0)
+            var charAfterPrefix = key[prefix.Length];
+            switch (charAfterPrefix)
             {
-                return true;
-            }
-            else
-            {
-                var charAfterPrefix = key[prefix.Length];
-                switch (charAfterPrefix)
-                {
-                    case '[':
-                    case '.':
-                        return true;
-                }
+                case '[':
+                case '.':
+                    return true;
             }
 
             return false;
