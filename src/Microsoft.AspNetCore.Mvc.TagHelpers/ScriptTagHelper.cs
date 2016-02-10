@@ -285,7 +285,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                        .AppendHtml(FallbackTestExpression)
                        .AppendHtml("||document.write(\"");
 
-                // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
                 foreach (var src in fallbackSrcs)
                 {
                     // Fallback "src" values come from bound attributes and globbing. Must always be non-null.
@@ -314,6 +313,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         }
                     }
 
+                    // May have no "src" attribute in the dictionary e.g. if Src and SrcInclude were not bound.
                     if (addSrc)
                     {
                         AppendEncodedVersionedSrc(SrcAttributeName, src, builder);

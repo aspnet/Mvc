@@ -402,36 +402,54 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             builder.AppendHtml("<link ");
 
+            var addHref = true;
+
             // Perf: Avoid allocating enumerator
             for (var i = 0; i < attributes.Count; i++)
             {
                 var attribute = attributes[i];
-                object attributeValue;
 
                 if (string.Equals(attribute.Name, HrefAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (AppendVersion == true)
-                    {
-                        attributeValue = _fileVersionProvider.AddFileVersionToPath(href);
-                    }
-                    else
-                    {
-                        attributeValue = href;
-                    }
+                    addHref = false;
+
+                    AppendEncodedVersionedHref(attribute.Name, href, builder);
                 }
                 else
                 {
-                    attributeValue = attribute.Value;
+                    AppendAttribute(attribute.Name, attribute.Value, builder);
                 }
+            }
 
-                builder
-                    .AppendHtml(attribute.Name)
-                    .AppendHtml("=\"")
-                    .Append(HtmlEncoder, attributeValue)
-                    .AppendHtml("\" ");
+            // May have no "href" attribute in the dictionary e.g. if Href and HrefInclude were not bound.
+            if (addHref)
+            {
+                AppendEncodedVersionedHref(HrefAttributeName, href, builder);
             }
 
             builder.AppendHtml("/>");
+        }
+
+        private void AppendEncodedVersionedHref(string hrefName, string hrefValue, TagHelperContent builder)
+        {
+            if (AppendVersion == true)
+            {
+                hrefValue = _fileVersionProvider.AddFileVersionToPath(hrefValue);
+            }
+
+            // attribute.Key ("src") does not need to be JavaScript-encoded.
+            var encodedValue = JavaScriptEncoder.Encode(hrefValue);
+
+            AppendAttribute(hrefName, encodedValue, builder);
+        }
+
+        private void AppendAttribute(string key, object value, TagHelperContent builder)
+        {
+            builder
+                .AppendHtml(key)
+                .AppendHtml("=\"")
+                .Append(HtmlEncoder, value)
+                .AppendHtml("\" ");
         }
 
         private enum Mode
