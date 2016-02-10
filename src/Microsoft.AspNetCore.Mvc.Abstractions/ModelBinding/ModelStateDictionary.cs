@@ -692,23 +692,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return false;
             }
 
+            var subKeyIndex = 0;
             if (!key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 if (key[0] == '[')
                 {
-                    var subKey = key.Substring(key.IndexOf('.') + 1);
+                    subKeyIndex = key.IndexOf('.') + 1;
 
-                    if (!subKey.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    if (string.Compare(key, subKeyIndex, prefix, 0, prefix.Length, StringComparison.OrdinalIgnoreCase) != 0)
                     {
                         return false;
                     }
-                    else if (prefix.Length == subKey.Length)
+                    else if (prefix.Length == (key.Length - subKeyIndex))
                     {
                         // prefix == subKey
                         return true;
                     }
-
-                    key = subKey;
                 }
                 else
                 {
@@ -721,7 +720,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return true;
             }
 
-            var charAfterPrefix = key[prefix.Length];
+            var charAfterPrefix = key[subKeyIndex + prefix.Length];
             switch (charAfterPrefix)
             {
                 case '[':
