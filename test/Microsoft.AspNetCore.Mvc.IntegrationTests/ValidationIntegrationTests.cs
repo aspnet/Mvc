@@ -117,6 +117,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         [MemberData(nameof(MultipleActionParametersAndValidationData))]
         public async Task MultipleActionParameter_ValidModelState(List<ParameterDescriptor> parameters)
         {
+            // Since validation attribute is only present on the FromBody model's property(TransferInfo's AccountId),
+            // validation should not trigger for the parameter which is bound from Uri.
+
             // Arrange
             var actionDescriptor = new ControllerActionDescriptor()
             {
