@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         protected virtual bool ValidateNode()
         {
             var state = _modelState.GetValidationState(_key);
-            if (state == ModelValidationState.Unvalidated)
+            if (state != ModelValidationState.Invalid)
             {
                 var validators = _validatorCache.GetValidators(_metadata, _validatorProvider);
 
