@@ -12,9 +12,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     {
         /// <summary>
         /// Gets a <see cref="T:ViewBufferValue[]"/>.
-        /// </summary>
-        /// <returns>The <see cref="T:ViewBufferValue[]"/>.</returns>
-        ViewBufferValue[] GetSegment();
+        /// <param name="size">The minimum size of the returned segment.</param>
+        /// <returns>The <see cref="ViewBufferValue[]"/>.</returns>
+        ViewBufferValue[] GetSegment(int size);
 
         /// <summary>
         /// Returns a <see cref="T:ViewBufferValue[]"/> that can be reused.
@@ -23,11 +23,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         void ReturnSegment(ViewBufferValue[] segment);
 
         /// <summary>
-        /// Creates a <see cref="ViewBufferTextWriter"/> that will delegate to the provided
+        /// Creates a <see cref="PagedBufferedTextWriter"/> that will delegate to the provided
         /// <paramref name="writer"/>.
         /// </summary>
         /// <param name="writer">The <see cref="TextWriter"/>.</param>
-        /// <returns>A <see cref="ViewBufferTextWriter"/>.</returns>
-        ViewBufferTextWriter CreateWriter(TextWriter writer);
+        /// <returns>A <see cref="PagedBufferedTextWriter"/>.</returns>
+        PagedBufferedTextWriter CreateWriter(TextWriter writer);
     }
 }

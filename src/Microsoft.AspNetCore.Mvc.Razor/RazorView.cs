@@ -99,24 +99,32 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             _bufferScope = context.HttpContext.RequestServices.GetRequiredService<IViewBufferScope>();
-            var bodyWriter = await RenderPageAsync(RazorPage, context, invokeViewStarts: true);
+            var bodyWriter = await RenderPageContentAsync(RazorPage, context, invokeViewStarts: true);
             await RenderLayoutAsync(context, bodyWriter);
         }
 
-        private async Task<RazorTextWriter> RenderPageAsync(
+        private async Task<ViewBufferTextWriter> RenderPageContentAsync(
             IRazorPage page,
             ViewContext context,
             bool invokeViewStarts)
         {
-            Debug.Assert(_bufferScope != null);
-            var buffer = new ViewBuffer(_bufferScope, page.Path);
-            var razorTextWriter = new RazorTextWriter(context.Writer, buffer, _htmlEncoder);
+            var writer = context.Writer as ViewBufferTextWriter;
+            if (writer == null)
+            {
+                Debug.Assert(_bufferScope != null);
+
+                // If we get here, this is likely the top-level page (not a partial) - this means
+                // that context.Writer is wrapping the output stream. We need to buffer, so create a buffered writer.
+                var buffer = new ViewBuffer(_bufferScope, page.Path, pageSize: 256);
+                writer = new ViewBufferTextWriter(buffer, context.Writer.Encoding, _htmlEncoder, context.Writer);
+            }
 
             // The writer for the body is passed through the ViewContext, allowing things like HtmlHelpers
             // and ViewComponents to reference it.
             var oldWriter = context.Writer;
             var oldFilePath = context.ExecutingFilePath;
-            context.Writer = razorTextWriter;
+
+            context.Writer = writer;
             context.ExecutingFilePath = page.Path;
 
             try
@@ -128,13 +136,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 }
 
                 await RenderPageCoreAsync(page, context);
-                return razorTextWriter;
+                return writer;
             }
             finally
             {
                 context.Writer = oldWriter;
                 context.ExecutingFilePath = oldFilePath;
-                razorTextWriter.Dispose();
             }
         }
 
@@ -184,7 +191,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
         private async Task RenderLayoutAsync(
             ViewContext context,
-            RazorTextWriter bodyWriter)
+            ViewBufferTextWriter bodyWriter)
         {
             // A layout page can specify another layout page. We'll need to continue
             // looking for layout pages until they're no longer specified.
@@ -219,7 +226,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
                 layoutPage.BodyContent = bodyWriter.Buffer;
-                bodyWriter = await RenderPageAsync(layoutPage, context, invokeViewStarts: false);
+                bodyWriter = await RenderPageContentAsync(layoutPage, context, invokeViewStarts: false);
 
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
@@ -233,10 +240,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             if (bodyWriter.IsBuffering)
             {
-                // Only copy buffered content to the Output if we're currently buffering.
-                using (var writer = _bufferScope.CreateWriter(context.Writer))
+                // If IsBuffering - then we've got a bunch of content in the view buffer. How to best deal with it
+                // really depends on whether or not we're writing directly to the output or if we're writing to
+                // another buffer.
+
+                var viewBufferTextWriter = context.Writer as ViewBufferTextWriter;
+                if (viewBufferTextWriter == null)
                 {
-                    await bodyWriter.Buffer.WriteToAsync(writer, _htmlEncoder);
+                    // This means we're writing to a 'real' writer, probably to the actual output stream.
+                    // We're using PagedBufferedTextWriter here to 'smooth' synchronous writes of IHtmlContent values.
+                    using (var writer = _bufferScope.CreateWriter(context.Writer))
+                    {
+                        await bodyWriter.Buffer.WriteToAsync(writer, _htmlEncoder);
+                    }
+                }
+                else
+                {
+                    // This means we're writing to another buffer. Use MoveTo to combine them.
+                    bodyWriter.Buffer.MoveTo(viewBufferTextWriter.Buffer);
+                    return;
                 }
             }
         }
