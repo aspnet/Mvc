@@ -688,22 +688,22 @@ namespace Microsoft.AspNetCore.Mvc
 
             public IActionResult HttpBadRequest_Action()
             {
-                return HttpBadRequest();
+                return BadRequest();
             }
 
             public IActionResult HttpBadRequestObject_Action(object error)
             {
-                return HttpBadRequest(error);
+                return BadRequest(error);
             }
 
             public IActionResult HttpNotFound_Action()
             {
-                return HttpNotFound();
+                return NotFound();
             }
 
             public IActionResult HttpNotFoundObject_Action(object value)
             {
-                return HttpNotFound(value);
+                return NotFound(value);
             }
         }
 

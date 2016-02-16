@@ -765,7 +765,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.HttpUnauthorized();
+            var result = controller.Unauthorized();
 
             // Assert
             Assert.IsType<HttpUnauthorizedResult>(result);
@@ -779,7 +779,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.HttpNotFound();
+            var result = controller.NotFound();
 
             // Assert
             Assert.IsType<HttpNotFoundResult>(result);
@@ -793,7 +793,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.HttpNotFound("Test Content");
+            var result = controller.NotFound("Test Content");
 
             // Assert
             Assert.IsType<HttpNotFoundObjectResult>(result);
@@ -814,7 +814,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var input = new DisposableObject();
 
             // Act
-            var result = controller.HttpNotFound(input);
+            var result = controller.NotFound(input);
 
             // Assert
             Assert.IsType<HttpNotFoundObjectResult>(result);
@@ -870,7 +870,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.HttpBadRequest();
+            var result = controller.BadRequest();
 
             // Assert
             Assert.IsType<BadRequestResult>(result);
@@ -885,7 +885,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var obj = new object();
 
             // Act
-            var result = controller.HttpBadRequest(obj);
+            var result = controller.BadRequest(obj);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
@@ -906,7 +906,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var input = new DisposableObject();
 
             // Act
-            var result = controller.HttpBadRequest(input);
+            var result = controller.BadRequest(input);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
@@ -924,7 +924,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.HttpBadRequest(new ModelStateDictionary());
+            var result = controller.BadRequest(new ModelStateDictionary());
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);
