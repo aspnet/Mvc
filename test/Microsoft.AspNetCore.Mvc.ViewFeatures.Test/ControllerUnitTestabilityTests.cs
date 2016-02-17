@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Assert
             Assert.NotNull(result);
 
-            var httpNotFoundResult = Assert.IsType<HttpNotFoundResult>(result);
+            var httpNotFoundResult = Assert.IsType<NotFoundResult>(result);
             Assert.Equal(StatusCodes.Status404NotFound, httpNotFoundResult.StatusCode);
         }
 
@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Assert
             Assert.NotNull(result);
 
-            var httpNotFoundObjectResult = Assert.IsType<HttpNotFoundObjectResult>(result);
+            var httpNotFoundObjectResult = Assert.IsType<NotFoundObjectResult>(result);
             Assert.Equal(StatusCodes.Status404NotFound, httpNotFoundObjectResult.StatusCode);
             Assert.Equal("Test Content", httpNotFoundObjectResult.Value);
         }

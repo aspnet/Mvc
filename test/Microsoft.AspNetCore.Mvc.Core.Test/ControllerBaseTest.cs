@@ -768,7 +768,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.Unauthorized();
 
             // Assert
-            Assert.IsType<HttpUnauthorizedResult>(result);
+            Assert.IsType<UnauthorizedResult>(result);
             Assert.Equal(StatusCodes.Status401Unauthorized, result.StatusCode);
         }
 
@@ -782,7 +782,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.NotFound();
 
             // Assert
-            Assert.IsType<HttpNotFoundResult>(result);
+            Assert.IsType<NotFoundResult>(result);
             Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
         }
 
@@ -796,7 +796,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.NotFound("Test Content");
 
             // Assert
-            Assert.IsType<HttpNotFoundObjectResult>(result);
+            Assert.IsType<NotFoundObjectResult>(result);
             Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
             Assert.Equal("Test Content", result.Value);
         }
@@ -817,7 +817,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.NotFound(input);
 
             // Assert
-            Assert.IsType<HttpNotFoundObjectResult>(result);
+            Assert.IsType<NotFoundObjectResult>(result);
             Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
             Assert.Same(input, result.Value);
             mockHttpContext.Verify(
@@ -835,7 +835,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.Ok();
 
             // Assert
-            Assert.IsType<HttpOkResult>(result);
+            Assert.IsType<OkResult>(result);
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
         }
 
@@ -855,7 +855,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var result = controller.Ok(input);
 
             // Assert
-            Assert.IsType<HttpOkObjectResult>(result);
+            Assert.IsType<OkObjectResult>(result);
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
             Assert.Same(input, result.Value);
             mockHttpContext.Verify(
