@@ -303,6 +303,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Fact]
+        public async Task IgnoreSection_ThrowsIfSectionIsNotFound()
+        {
+            // Arrange
+            var page = CreatePage(v =>
+            {
+                v.Path = "/Views/TestPath/Test.cshtml";
+                v.IgnoreSection("bar");
+            });
+            page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
+            {
+                { "baz", _nullRenderAsyncDelegate }
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => page.ExecuteAsync());
+            Assert.Equal("Section 'bar' is not defined in path '/Views/TestPath/Test.cshtml'.", ex.Message);
+        }
+
+        [Fact]
         public void IsSectionDefined_ThrowsIfPreviousSectionWritersIsNotRegistered()
         {
             // Arrange

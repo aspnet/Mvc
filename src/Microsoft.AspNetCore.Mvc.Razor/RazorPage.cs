@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private HtmlContentWrapperTextWriter _valueBuffer;
         private IViewBufferScope _bufferScope;
         private bool _ignoreBody;
-        private readonly HashSet<string> _ignoredSections = new HashSet<string>();
+        private HashSet<string> _ignoredSections;
 
         public RazorPage()
         {
@@ -660,9 +660,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// <summary>
         /// In a Razor layout page, ignores rendering the portion of a content page that is not within a named section.
         /// </summary>
-        public void IgnoreBody()
+        /// <returns>Returns <see cref="HtmlString.Empty"/> to allow the <see cref="Write(object)"/> call to
+        /// succeed.</returns>
+        public HtmlString IgnoreBody()
         {
             _ignoreBody = true;
+
+            return HtmlString.Empty;
         }
 
         /// <summary>
@@ -824,17 +828,32 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
-        /// In layout pages, ignores rendering the content of the section named <paramref name="name"/>.
+        /// In layout pages, ignores rendering the content of the section named <paramref name="sectionName"/>.
         /// </summary>
-        /// <param name="name">The section to ignore.</param>
-        public void IgnoreSection(string name)
+        /// <param name="sectionName">The section to ignore.</param>
+        /// <returns>Returns <see cref="HtmlString.Empty"/> to allow the <see cref="Write(object)"/> call to
+        /// succeed.</returns>
+        public HtmlString IgnoreSection(string sectionName)
         {
-            if (name == null)
+            if (sectionName == null)
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(sectionName));
             }
 
-            _ignoredSections.Add(name);
+            if (!PreviousSectionWriters.ContainsKey(sectionName))
+            {
+                // If the section is not defined, throw an error.
+                throw new InvalidOperationException(Resources.FormatSectionNotDefined(sectionName, Path));
+            }
+
+            if (_ignoredSections == null)
+            {
+                _ignoredSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            _ignoredSections.Add(sectionName);
+
+            return HtmlString.Empty;
         }
 
         /// <summary>
@@ -882,19 +901,27 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     _renderedSections,
                     StringComparer.OrdinalIgnoreCase);
 
-                var sectionsNotIgnored = sectionsNotRendered.Except(_ignoredSections, StringComparer.OrdinalIgnoreCase).ToArray();
+                string[] sectionsNotIgnored;
+                if (_ignoredSections != null)
+                {
+                    sectionsNotIgnored = sectionsNotRendered.Except(_ignoredSections, StringComparer.OrdinalIgnoreCase).ToArray();
+                }
+                else
+                {
+                    sectionsNotIgnored = sectionsNotRendered.ToArray();
+                }
 
                 if (sectionsNotIgnored.Length > 0)
                 {
                     var sectionNames = string.Join(", ", sectionsNotIgnored);
-                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames));
+                    throw new InvalidOperationException(Resources.FormatSectionsNotRendered(Path, sectionNames, nameof(IgnoreSection)));
                 }
             }
             else if (BodyContent != null && !_renderedBody && !_ignoreBody)
             {
                 // There are no sections defined, but RenderBody was NOT called.
                 // If a body was defined and the body not ignored, then RenderBody should have been called.
-                var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody), Path);
+                var message = Resources.FormatRenderBodyNotCalled(nameof(RenderBody), Path, nameof(IgnoreBody));
                 throw new InvalidOperationException(message);
             }
         }
