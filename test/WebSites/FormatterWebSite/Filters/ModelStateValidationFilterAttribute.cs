@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace FormatterWebSite
 {
@@ -12,10 +12,7 @@ namespace FormatterWebSite
         {
             if (!context.ModelState.IsValid)
             {
-                context.Result = new ObjectResult(context.ModelState)
-                {
-                    StatusCode = StatusCodes.Status400BadRequest
-                };
+                context.Result = new BadRequestObjectResult(context.ModelState);
             }
         }
     }

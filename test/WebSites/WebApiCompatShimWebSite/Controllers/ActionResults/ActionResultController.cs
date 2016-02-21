@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace WebApiCompatShimWebSite
@@ -118,6 +118,11 @@ namespace WebApiCompatShimWebSite
         {
             // Uris can be absolute or relative
             return Redirect(new Uri("api/Blog", UriKind.RelativeOrAbsolute));
+        }
+
+        public IActionResult GetRedirectUrlUsingRouteName()
+        {
+            return RedirectToRoute("named-action", new { controller = "BasicApi", action = "WriteToHttpContext" });
         }
 
         public IActionResult GetResponseMessage()

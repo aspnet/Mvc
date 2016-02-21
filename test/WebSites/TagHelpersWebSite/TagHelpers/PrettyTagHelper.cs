@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace TagHelpersWebSite.TagHelpers
 {
-    [TargetElement("*")]
+    [HtmlTargetElement("*")]
     public class PrettyTagHelper : TagHelper
     {
         private static readonly Dictionary<string, string> PrettyTagStyles =
@@ -25,16 +26,20 @@ namespace TagHelpersWebSite.TagHelpers
 
         public string Style { get; set; }
 
-        [Activate]
+        [ViewContext]
+        [HtmlAttributeNotBound]
         public ViewContext ViewContext { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            // Need to check if output.TagName == null in-case the ConditionTagHelper calls into SuppressOutput and
-            // therefore sets the TagName to null.
-            if (MakePretty.HasValue && !MakePretty.Value ||
-                output.TagName == null)
+            if (MakePretty.HasValue && !MakePretty.Value)
             {
+                return;
+            }
+
+            if (output.TagName == null)
+            {
+                // Another tag helper e.g. TagHelperviewComponentTagHelper has suppressed the start and end tags.
                 return;
             }
 
@@ -48,7 +53,7 @@ namespace TagHelpersWebSite.TagHelpers
                     style += ";";
                 }
 
-                output.Attributes["style"] = style + prettyStyle;
+                output.Attributes.SetAttribute("style", style + prettyStyle);
             }
         }
     }

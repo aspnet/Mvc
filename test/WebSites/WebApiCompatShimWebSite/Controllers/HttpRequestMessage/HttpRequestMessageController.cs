@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,8 +10,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Microsoft.AspNet.Http;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WebApiCompatShimWebSite
 {
@@ -70,7 +70,7 @@ namespace WebApiCompatShimWebSite
 
             if (mediaType == null)
             {
-                // This will perform content negotation
+                // This will perform content negotiation
                 return Request.CreateResponse<User>(HttpStatusCode.OK, user);
             }
             else
@@ -93,7 +93,7 @@ namespace WebApiCompatShimWebSite
         [HttpGet]
         public HttpResponseMessage Fail()
         {
-            // This will perform content negotation
+            // This will perform content negotiation
             return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "It failed.");
         }
 

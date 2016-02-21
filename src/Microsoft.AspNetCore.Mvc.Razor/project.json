@@ -1,0 +1,55 @@
+{
+  "description": "The Razor view engine for ASP.NET MVC.",
+  "version": "1.0.0-*",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aspnet/mvc"
+  },
+  "compilationOptions": {
+    "warningsAsErrors": true,
+    "keyFile": "../../tools/Key.snk"
+  },
+  "dependencies": {
+    "Microsoft.AspNetCore.Mvc.Razor.Host": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.0-*",
+    "Microsoft.Extensions.FileProviders.Composite": "1.0.0-*",
+    "Microsoft.Extensions.HashCodeCombiner.Sources": {
+      "version": "1.0.0-*",
+      "type": "build"
+    },
+    "Microsoft.Extensions.PropertyActivator.Sources": {
+      "version": "1.0.0-*",
+      "type": "build"
+    },
+    "Microsoft.Extensions.PropertyHelper.Sources": {
+      "version": "1.0.0-*",
+      "type": "build"
+    },
+    "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-*",
+    "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*"
+  },
+  "frameworks": {
+    "net451": {
+      "frameworkAssemblies": {
+        "System.Collections": "",
+        "System.IO": "",
+        "System.Runtime": "",
+        "System.Text.Encoding": "",
+        "System.Threading.Tasks": ""
+      }
+    },
+    "dotnet5.6": {
+      "dependencies": {
+        "System.Text.Encoding": "4.0.11-*",
+        "System.Runtime.Loader": "4.0.0-*",
+        "System.Threading.Tasks.Parallel": "4.0.1-*"
+      }
+    }
+  },
+  "exclude": [
+    "wwwroot",
+    "node_modules",
+    "bower_components"
+  ]
+}

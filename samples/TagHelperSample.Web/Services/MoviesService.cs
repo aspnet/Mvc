@@ -1,12 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Framework.Caching.Memory;
-using Microsoft.Framework.Expiration.Interfaces;
+using Microsoft.Extensions.Primitives;
 using TagHelperSample.Web.Models;
 
 namespace TagHelperSample.Web.Services
@@ -18,11 +17,11 @@ namespace TagHelperSample.Web.Services
         private CancellationTokenSource _featuredMoviesTokenSource;
         private CancellationTokenSource _quotesTokenSource;
 
-        public IEnumerable<FeaturedMovies> GetFeaturedMovies(out IExpirationTrigger expirationTrigger)
+        public IEnumerable<FeaturedMovies> GetFeaturedMovies(out IChangeToken expirationToken)
         {
             _featuredMoviesTokenSource = new CancellationTokenSource();
 
-            expirationTrigger = new CancellationTokenTrigger(_featuredMoviesTokenSource.Token);
+            expirationToken = new CancellationChangeToken(_featuredMoviesTokenSource.Token);
             return GetMovies().OrderBy(m => m.Rank).Take(2);
         }
 
@@ -33,7 +32,7 @@ namespace TagHelperSample.Web.Services
             _featuredMoviesTokenSource = null;
         }
 
-        public string GetCriticsQuote(out IExpirationTrigger trigger)
+        public string GetCriticsQuote(out IChangeToken expirationToken)
         {
             _quotesTokenSource = new CancellationTokenSource();
 
@@ -45,7 +44,7 @@ namespace TagHelperSample.Web.Services
                 "Bravo!"
             };
 
-            trigger = new CancellationTokenTrigger(_quotesTokenSource.Token);
+            expirationToken = new CancellationChangeToken(_quotesTokenSource.Token);
             return quotes[_random.Next(0, quotes.Length)];
         }
 

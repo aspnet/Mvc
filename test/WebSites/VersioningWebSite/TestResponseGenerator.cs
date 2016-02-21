@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VersioningWebSite
 {
@@ -14,9 +17,9 @@ namespace VersioningWebSite
     {
         private readonly ActionContext _actionContext;
 
-        public TestResponseGenerator(IScopedInstance<ActionContext> contextAccessor)
+        public TestResponseGenerator(IActionContextAccessor contextAccessor)
         {
-            _actionContext = contextAccessor.Value;
+            _actionContext = contextAccessor.ActionContext;
             if (_actionContext == null)
             {
                 throw new InvalidOperationException("ActionContext should not be null here.");
@@ -33,7 +36,7 @@ namespace VersioningWebSite
                     .Where(kvp => kvp.Key != "link" && kvp.Key != "link_action" && kvp.Key != "link_controller")
                     .ToDictionary(kvp => kvp.Key.Substring("link_".Length), kvp => (object)kvp.Value[0]);
 
-                var urlHelper = _actionContext.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
+                var urlHelper = GetUrlHelper(_actionContext);
                 link = urlHelper.Action(query["link_action"], query["link_controller"], values);
             }
 
@@ -51,6 +54,13 @@ namespace VersioningWebSite
 
                 link,
             });
+        }
+
+        private IUrlHelper GetUrlHelper(ActionContext context)
+        {
+            var services = context.HttpContext.RequestServices;
+            var urlHelper = services.GetRequiredService<IUrlHelperFactory>().GetUrlHelper(context);
+            return urlHelper;
         }
     }
 }

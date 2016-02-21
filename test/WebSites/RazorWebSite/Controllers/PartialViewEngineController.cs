@@ -1,7 +1,7 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RazorWebSite.Controllers
 {
@@ -14,7 +14,7 @@ namespace RazorWebSite.Controllers
 
         public IActionResult ViewWithFullPath()
         {
-            return PartialView(@"/Views/ViewEngine/ViewWithFullPath.cshtml");
+            return PartialView("/Views/ViewEngine/ViewWithFullPath.rzr");
         }
 
         public IActionResult PartialViewWithNamePassedIn()
@@ -41,6 +41,11 @@ namespace RazorWebSite.Controllers
                 Address = new Address { ZipCode = "98052" }
             };
             return PartialView(model);
+        }
+
+        public IActionResult ViewPartialMissingSection()
+        {
+            return View();
         }
     }
 }

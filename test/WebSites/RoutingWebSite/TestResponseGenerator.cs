@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace RoutingWebSite
 {
@@ -13,10 +15,13 @@ namespace RoutingWebSite
     public class TestResponseGenerator
     {
         private readonly ActionContext _actionContext;
+        private readonly IUrlHelperFactory _urlHelperFactory;
 
-        public TestResponseGenerator(IScopedInstance<ActionContext> contextAccessor)
+        public TestResponseGenerator(IActionContextAccessor contextAccessor, IUrlHelperFactory urlHelperFactory)
         {
-            _actionContext = contextAccessor.Value;
+            _urlHelperFactory = urlHelperFactory;
+
+            _actionContext = contextAccessor.ActionContext;
             if (_actionContext == null)
             {
                 throw new InvalidOperationException("ActionContext should not be null here.");
@@ -33,7 +38,7 @@ namespace RoutingWebSite
                     .Where(kvp => kvp.Key != "link" && kvp.Key != "link_action" && kvp.Key != "link_controller")
                     .ToDictionary(kvp => kvp.Key.Substring("link_".Length), kvp => (object)kvp.Value[0]);
 
-                var urlHelper = _actionContext.HttpContext.RequestServices.GetRequiredService<IUrlHelper>();
+                var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContext);
                 link = urlHelper.Action(query["link_action"], query["link_controller"], values);
             }
 

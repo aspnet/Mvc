@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.WebUtilities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 
 namespace FormatterWebSite.Controllers
@@ -32,10 +33,6 @@ namespace FormatterWebSite.Controllers
         [HttpPost]
         public IActionResult ReturnInput([FromBody]DummyClass dummyObject)
         {
-            if (!ModelState.IsValid)
-            {
-                return new HttpStatusCodeResult(StatusCodes.Status400BadRequest);
-            }
             return Content(dummyObject.SampleInt.ToString());
         }
 

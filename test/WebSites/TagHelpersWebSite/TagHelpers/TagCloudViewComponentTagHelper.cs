@@ -1,18 +1,22 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.ViewComponents;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace MvcSample.Web.Components
 {
-    [TargetElement("tag-cloud")]
+    [HtmlTargetElement("tag-cloud")]
     [ViewComponent(Name = "Tags")]
     public class TagCloudViewComponentTagHelper : ITagHelper
     {
@@ -23,34 +27,46 @@ namespace MvcSample.Web.Components
              "non proident, sunt in culpa qui officia deserunt mollit anim id est laborum")
                 .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .ToArray();
+        private readonly HtmlEncoder _htmlEncoder;
+
+        public TagCloudViewComponentTagHelper(HtmlEncoder htmlEncoder)
+        {
+            _htmlEncoder = htmlEncoder;
+        }
 
         public int Count { get; set; }
 
-        [Activate]
+        [HtmlAttributeNotBound]
+        [ViewContext]
         public ViewContext ViewContext { get; set; }
 
         public int Order { get; } = 0;
+
+        public void Init(TagHelperContext context)
+        {
+        }
 
         public async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             var result = await InvokeAsync(Count);
             var writer = new StringWriter();
-            
+
             var viewComponentDescriptor = new ViewComponentDescriptor()
             {
-                Type = typeof(TagCloudViewComponentTagHelper),
+                TypeInfo = typeof(TagCloudViewComponentTagHelper).GetTypeInfo(),
                 ShortName = "TagCloudViewComponentTagHelper",
                 FullName = "TagCloudViewComponentTagHelper",
             };
 
             await result.ExecuteAsync(new ViewComponentContext(
                 viewComponentDescriptor,
-                new object[0],
+                new Dictionary<string, object>(),
+                _htmlEncoder,
                 ViewContext,
                 writer));
 
             output.TagName = null;
-            output.Content.SetContent(writer.ToString());
+            output.Content.AppendHtml(writer.ToString());
         }
 
         public async Task<IViewComponentResult> InvokeAsync(int count)

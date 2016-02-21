@@ -1,20 +1,24 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Authentication;
-using Microsoft.AspNet.Builder;
-using Microsoft.Framework.OptionsModel;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace FiltersWebSite
 {
     public class AuthorizeBasicMiddleware : AuthenticationMiddleware<BasicOptions>
     {
         public AuthorizeBasicMiddleware(
-            RequestDelegate next, 
-            IOptions<BasicOptions> options,
-            string authScheme) : 
-                base(next, options, 
-                    new ConfigureOptions<BasicOptions>(o => o.AuthenticationScheme = authScheme) { Name = authScheme })
+            RequestDelegate next,
+            ILoggerFactory loggerFactory,
+            UrlEncoder encoder,
+            string authScheme) :
+                base(next,
+                     new BasicOptions { AuthenticationScheme = authScheme },
+                     loggerFactory,
+                     encoder)
         {
         }
 

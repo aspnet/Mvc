@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Builder;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FilesWebSite
 {
@@ -18,12 +19,20 @@ namespace FilesWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseMiddleware<SendFileMiddleware>();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(name: null, template: "{controller}/{action}", defaults: null);
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
     }
 }

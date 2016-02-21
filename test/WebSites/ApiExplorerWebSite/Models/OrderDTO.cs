@@ -1,15 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ApiExplorerWebSite
 {
     public class OrderDTO
     {
-        [FromServices]
-        public IOrderRepository Repository { get; set; }
-
         public string CustomerId { get; set; }
 
         [FromHeader(Name = "Referrer")]

@@ -1,0 +1,6 @@
+@model DateTime
+
+@addTagHelper Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper, Microsoft.AspNetCore.Mvc.Razor.Host.Test
+
+<input-test for="Now" />
+<input-test for="@Model" />

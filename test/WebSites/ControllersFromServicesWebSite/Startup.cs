@@ -1,47 +1,30 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
-using Microsoft.AspNet.Builder;
-using Microsoft.Framework.DependencyInjection;
 using ControllersFromServicesClassLibrary;
-
-#if DNX451
-using Autofac;
-using Microsoft.Framework.DependencyInjection.Autofac;
-#endif
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllersFromServicesWebSite
 {
     public class Startup
     {
-        // Set up application services
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc()
-                    .WithControllersAsServices(
-                     new[]
-                     {
-                            typeof(TimeScheduleController).GetTypeInfo().Assembly
-                     });
+            services
+                .AddMvc()
+                .AddControllersAsServices(typeof(AnotherController))
+                .AddControllersAsServices(new[]
+                {
+                    typeof(TimeScheduleController).GetTypeInfo().Assembly
+                });
 
             services.AddTransient<QueryValueService>();
-
-#if DNX451
-            // Create the autofac container
-            var builder = new ContainerBuilder();
-
-            // Create the container and use the default application services as a fallback
-            AutofacRegistration.Populate(
-                builder,
-                services);
-
-            return builder.Build()
-                          .Resolve<IServiceProvider>();
-#else
-            return services.BuildServiceProvider();
-#endif
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -52,6 +35,16 @@ namespace ControllersFromServicesWebSite
             {
                 routes.MapRoute("default", "{controller}/{action}/{id}");
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using XmlFormattersWebSite.Models;
 
 namespace XmlFormattersWebSite.Controllers
@@ -24,7 +24,7 @@ namespace XmlFormattersWebSite.Controllers
             }
 
             ModelState.AddModelError("key1", "key1-error");
-            ModelState.AddModelError("key2", exception);
+            ModelState.AddModelError("key2", exception, ViewData.ModelMetadata);
 
             return new ObjectResult(new SerializableError(ModelState));
         }
@@ -40,7 +40,7 @@ namespace XmlFormattersWebSite.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return HttpBadRequest(ModelState);
+                return BadRequest(ModelState);
             }
 
             return Content("Hello World!");

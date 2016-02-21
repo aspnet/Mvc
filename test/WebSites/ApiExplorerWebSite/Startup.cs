@@ -1,10 +1,11 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Xml;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ApiExplorerWebSite
 {
@@ -13,10 +14,8 @@ namespace ApiExplorerWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-            services.AddSingleton<ApiExplorerDataFilter>();
-
-            services.ConfigureMvc(options =>
+            services.AddTransient<ILoggerFactory, LoggerFactory>();
+            services.AddMvc(options =>
             {
                 options.Filters.AddService(typeof(ApiExplorerDataFilter));
 
@@ -28,6 +27,8 @@ namespace ApiExplorerWebSite
                 options.OutputFormatters.Add(new JsonOutputFormatter());
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             });
+
+            services.AddSingleton<ApiExplorerDataFilter>();
         }
 
 
@@ -39,6 +40,16 @@ namespace ApiExplorerWebSite
             {
                 routes.MapRoute("default", "{controller}/{action}");
             });
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
     }
 }

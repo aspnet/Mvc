@@ -1,8 +1,8 @@
-// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FormatterWebSite
 {
@@ -37,7 +37,7 @@ namespace FormatterWebSite
 
         [HttpGet]
         [Produces("text/plain")]
-        public Stream MemoryStreamOverridesContentTypeWithProduces()
+        public Stream MemoryStreamOverridesProducesContentTypeWithResponseContentType()
         {
             // Produces will set a ContentType on the implicit ObjectResult and
             // ContentType on response are overriden by content types from ObjectResult.

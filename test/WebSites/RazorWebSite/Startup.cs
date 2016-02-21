@@ -1,43 +1,76 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Razor;
-using Microsoft.Framework.DependencyInjection;
+using System.Collections.Generic;
+using System.Globalization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RazorWebSite
 {
     public class Startup
     {
-        // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add MVC services to the services container
-            services.AddMvc();
+            services
+                .AddMvc()
+                .AddRazorOptions(options =>
+                {
+                    options.ViewLocationExpanders.Add(new NonMainPageViewLocationExpander());
+#if DNX451
+                    options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("DNX451", "DNX451_CUSTOM_DEFINE");
+#else
+                    options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("DNXCORE50", "DNXCORE50_CUSTOM_DEFINE");
+#endif
+                })
+                .AddViewOptions(options =>
+                {
+                    options.HtmlHelperOptions.ClientValidationEnabled = false;
+                    options.HtmlHelperOptions.Html5DateRenderingMode = Microsoft.AspNetCore.Mvc.Rendering.Html5DateRenderingMode.Rfc3339;
+                    options.HtmlHelperOptions.IdAttributeDotReplacement = "!";
+                    options.HtmlHelperOptions.ValidationMessageElement = "validationMessageElement";
+                    options.HtmlHelperOptions.ValidationSummaryMessageElement = "validationSummaryElement";
+                })
+                .AddViewLocalization(LanguageViewLocationExpanderFormat.SubFolder);
+
             services.AddTransient<InjectedHelper>();
             services.AddTransient<TaskReturningService>();
             services.AddTransient<FrameworkSpecificHelper>();
-            services.Configure<RazorViewEngineOptions>(options =>
-            {
-                var expander = new LanguageViewLocationExpander(
-                        context => context.HttpContext.Request.Query["language-expander-value"]);
-                options.ViewLocationExpanders.Add(expander);
-                options.ViewLocationExpanders.Add(new CustomPartialDirectoryViewLocationExpander());
-            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseCultureReplacer();
-
-            // Add MVC to the request pipeline
-            app.UseMvc(routes =>
+            app.UseRequestLocalization(new RequestLocalizationOptions
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                DefaultRequestCulture = new RequestCulture("en-GB", "en-US"),
+                SupportedCultures = new List<CultureInfo>
+                {
+                    new CultureInfo("fr"),
+                    new CultureInfo("en-GB"),
+                    new CultureInfo("en-US"),
+                },
+                SupportedUICultures = new List<CultureInfo>
+                {
+                    new CultureInfo("fr"),
+                    new CultureInfo("en-GB"),
+                    new CultureInfo("en-US"),
+                }
             });
+
+            app.UseMvcWithDefaultRoute();
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
     }
 }

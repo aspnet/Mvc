@@ -1,8 +1,8 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNet.Razor.Runtime.TagHelpers;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using TagHelpersWebSite.Models;
 
 namespace TagHelpersWebSite.TagHelpers
@@ -14,7 +14,7 @@ namespace TagHelpersWebSite.TagHelpers
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             output.TagName = "section";
-            output.PostContent.SetContent(string.Format(
+            output.PostContent.AppendHtml(string.Format(
                 "<p><strong>Version:</strong> {0}</p>" + Environment.NewLine +
                 "<p><strong>Copyright Year:</strong> {1}</p>" + Environment.NewLine +
                 "<p><strong>Approved:</strong> {2}</p>" + Environment.NewLine +
@@ -23,7 +23,7 @@ namespace TagHelpersWebSite.TagHelpers
                 Info.CopyrightYear.ToString(),
                 Info.Approved.ToString(),
                 Info.TagsToShow.ToString()));
-            output.SelfClosing = false;
+            output.TagMode = TagMode.StartTagAndEndTag;
         }
     }
 }

@@ -1,0 +1,44 @@
+{
+  "resource": "TestFiles/**",
+  "dependencies": {
+    "Microsoft.AspNetCore.Mvc.Core": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.DataAnnotations": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Razor": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Razor.Host": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.TestCommon": {
+      "version": "1.0.0-*",
+      "type": "build"
+    },
+    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.0-*",
+    "Microsoft.AspNetCore.Testing": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "xunit.runner.aspnet": "2.0.0-aspnet-*"
+  },
+  "commands": {
+    "test": "xunit.runner.aspnet"
+  },
+  "compilationOptions": {
+    "define": [
+      "__RemoveThisBitTo__GENERATE_BASELINES"
+    ],
+    "keyFile": "../../tools/Key.snk"
+  },
+  "frameworks": {
+    "dnx451": {
+      "dependencies": {
+        "Moq": "4.2.1312.1622"
+      }
+    },
+    "dnxcore50": {
+      "dependencies": {
+        "moq.netcore": "4.4.0-beta8"
+      }
+    }
+  },
+  "exclude": [
+    "wwwroot",
+    "node_modules",
+    "bower_components"
+  ]
+}

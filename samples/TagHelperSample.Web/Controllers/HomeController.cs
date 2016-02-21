@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNet.Mvc;
-using Microsoft.AspNet.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using TagHelperSample.Web.Models;
 
 namespace TagHelperSample.Web.Controllers
@@ -17,11 +17,11 @@ namespace TagHelperSample.Web.Controllers
 
         public HomeController()
         {
-            // Unable to set ViewBag (or ViewData) entries from constructor due to an InvalidOperationException thrown
+            // Unable to set ViewBag or ViewData entries from constructor due to an InvalidOperationException thrown
             // from the DynamicViewData.ViewData getter. In MVC 5.2, no properties in the Controller class except
             // ControllerContext, Url, and anything ControllerContext-derived (e.g. HttpContext and User) return null
             // even if invoked from the constructor i.e. prior to the Initialize() call.
-            ////ViewBag.Items = _items;
+            ////ViewData["Items"] = _items;
         }
 
         // GET: /<controller>/
@@ -33,7 +33,7 @@ namespace TagHelperSample.Web.Controllers
         // GET: /Home/Create
         public IActionResult Create()
         {
-            ViewBag.Items = _items;
+            ViewData["Items"] = _items;
             return View();
         }
 
@@ -49,7 +49,7 @@ namespace TagHelperSample.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Items = _items;
+            ViewData["Items"] = _items;
             return View();
         }
 
@@ -59,7 +59,7 @@ namespace TagHelperSample.Web.Controllers
             User user;
             _users.TryGetValue(id, out user);
 
-            ViewBag.Items = _items;
+            ViewData["Items"] = _items;
             return View(user);
         }
 
@@ -73,8 +73,18 @@ namespace TagHelperSample.Web.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.Items = _items;
+            ViewData["Items"] = _items;
             return View();
+        }
+
+        // POST: Home/Reset
+        [HttpPost]
+        public IActionResult Reset()
+        {
+            _users.Clear();
+            _next = 0;
+
+            return RedirectToAction("Index");
         }
     }
 }

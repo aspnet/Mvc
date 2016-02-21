@@ -1,10 +1,10 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
 using System.Text;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.Runtime;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.PlatformAbstractions;
 
 namespace FilesWebSite
 {
@@ -20,13 +20,13 @@ namespace FilesWebSite
         public IActionResult DowloadFromDisk()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain");
+            return PhysicalFile(path, "text/plain");
         }
 
         public IActionResult DowloadFromDiskWithFileName()
         {
             var path = Path.Combine(_appEnvironment.ApplicationBasePath, "sample.txt");
-            return File(path, "text/plain", "downloadName.txt");
+            return PhysicalFile(path, "text/plain", "downloadName.txt");
         }
 
         public IActionResult DowloadFromStream()

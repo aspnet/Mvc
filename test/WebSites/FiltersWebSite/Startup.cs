@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Security.Claims;
-using Microsoft.AspNet.Authorization;
-using Microsoft.AspNet.Builder;
-using Microsoft.AspNet.Mvc;
-using Microsoft.Framework.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FiltersWebSite
 {
@@ -15,23 +16,27 @@ namespace FiltersWebSite
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.ConfigureAuthorization(options =>
+            services.AddAuthorization(options =>
             {
-                // This policy cannot succeed since it has no requirements
-                options.AddPolicy("Impossible", policy => { });
+                // This policy cannot succeed since the claim is never added
+                options.AddPolicy("Impossible", policy =>
+                {
+                    policy.AuthenticationSchemes.Add("Interactive");
+                    policy.RequireClaim("Never");
+                });
                 options.AddPolicy("Api", policy =>
                 {
-                    policy.ActiveAuthenticationSchemes.Add("Api");
+                    policy.AuthenticationSchemes.Add("Api");
                     policy.RequireClaim(ClaimTypes.NameIdentifier);
                 });
                 options.AddPolicy("Api-Manager", policy =>
                 {
-                    policy.ActiveAuthenticationSchemes.Add("Api");
+                    policy.AuthenticationSchemes.Add("Api");
                     policy.Requirements.Add(Operations.Edit);
                 });
                 options.AddPolicy("Interactive", policy =>
                 {
-                    policy.ActiveAuthenticationSchemes.Add("Interactive");
+                    policy.AuthenticationSchemes.Add("Interactive");
                     policy.RequireClaim(ClaimTypes.NameIdentifier)
                           .RequireClaim("Permission", "CanViewPage");
                 });
@@ -39,8 +44,6 @@ namespace FiltersWebSite
             services.AddSingleton<RandomNumberFilter>();
             services.AddSingleton<RandomNumberService>();
             services.AddTransient<IAuthorizationHandler, ManagerHandler>();
-            services.Configure<BasicOptions>(o => o.AuthenticationScheme = "Api", "Api");
-            services.Configure<BasicOptions>(o => o.AuthenticationScheme = "Interactive", "Interactive");
 
             services.Configure<MvcOptions>(options =>
             {
@@ -56,17 +59,22 @@ namespace FiltersWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseErrorReporter();
 
             app.UseMiddleware<AuthorizeBasicMiddleware>("Interactive");
             app.UseMiddleware<AuthorizeBasicMiddleware>("Api");
+            app.UseMiddleware<ErrorReporterMiddleware>();
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
+        }
+
+        public static void Main(string[] args)
+        {
+            var host = new WebHostBuilder()
+                .UseDefaultConfiguration(args)
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
     }
 }
