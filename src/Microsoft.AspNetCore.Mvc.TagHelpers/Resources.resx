@@ -144,4 +144,7 @@
   <data name="FormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified" xml:space="preserve">
     <value>Cannot determine an '{4}' attribute for {0}. A {0} with a specified '{1}' must not have an '{2}' or '{3}' attribute.</value>
   </data>
+  <data name="CacheTagHelper_NoDistributedCacheService" xml:space="preserve">
+    <value>Cannot find the {0} service. Register the service before using the {1} attribute.</value>
+  </data>
 </root>

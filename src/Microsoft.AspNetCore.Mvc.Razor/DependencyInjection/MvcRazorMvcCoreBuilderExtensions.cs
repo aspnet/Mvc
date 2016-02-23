@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
@@ -142,7 +140,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
             services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
 
-            // Consumed by the Cache tag helper to cache results across the lifetime of the application.
+            // Consumed by the default IChunkTreeCache
             services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
             if (DnxPlatformServices.Default?.AssemblyLoadContextAccessor != null)

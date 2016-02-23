@@ -154,6 +154,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return string.Format(CultureInfo.CurrentCulture, GetString("FormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified"), p0, p1, p2, p3, p4);
         }
 
+        /// <summary>
+        /// Cannot find the {0} service. Register the service before using the {1} attribute.
+        /// </summary>
+        internal static string CacheTagHelper_NoDistributedCacheService
+        {
+            get { return GetString("CacheTagHelper_NoDistributedCacheService"); }
+        }
+
+        /// <summary>
+        /// Cannot find the {0} service. Register the service before using the {1} attribute.
+        /// </summary>
+        internal static string FormatCacheTagHelper_NoDistributedCacheService(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CacheTagHelper_NoDistributedCacheService"), p0, p1);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
