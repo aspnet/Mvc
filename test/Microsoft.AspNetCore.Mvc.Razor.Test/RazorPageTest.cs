@@ -303,6 +303,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Fact]
+        public async Task IgnoreSection_ThrowsIfSectionIsNotFound()
+        {
+            // Arrange
+            var page = CreatePage(v =>
+            {
+                v.Path = "/Views/TestPath/Test.cshtml";
+                v.IgnoreSection("bar");
+            });
+            page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
+            {
+                { "baz", _nullRenderAsyncDelegate }
+            };
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => page.ExecuteAsync());
+            Assert.Equal("Section 'bar' is not defined in path '/Views/TestPath/Test.cshtml'.", ex.Message);
+        }
+
+        [Fact]
         public void IsSectionDefined_ThrowsIfPreviousSectionWritersIsNotRegistered()
         {
             // Arrange
@@ -475,6 +494,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Fact]
+        public async Task EnsureRenderedBodyOrSections_SucceedsIfRenderBodyIsNotCalledFromPage_AndNoSectionsAreDefined_AndBodyIgnored()
+        {
+            // Arrange
+            var path = "page-path";
+            var page = CreatePage(v =>
+            {
+            });
+            page.Path = path;
+            page.BodyContent = new HtmlString("some content");
+            page.IgnoreBody();
+
+            // Act & Assert (does not throw)
+            await page.ExecuteAsync();
+            page.EnsureRenderedBodyOrSections();
+        }
+
+        [Fact]
         public async Task EnsureRenderedBodyOrSections_ThrowsIfDefinedSectionsAreNotRendered()
         {
             // Arrange
@@ -497,6 +533,28 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 "The following sections have been defined but have not been rendered by the page at " +
                 $"'{path}': '{sectionName}'.",
                 ex.Message);
+        }
+
+        [Fact]
+        public async Task EnsureRenderedBodyOrSections_SucceedsIfDefinedSectionsAreNotRendered_AndIgnored()
+        {
+            // Arrange
+            var path = "page-path";
+            var sectionName = "sectionA";
+            var page = CreatePage(v =>
+            {
+            });
+            page.Path = path;
+            page.BodyContent = new HtmlString("some content");
+            page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
+            {
+                { sectionName, _nullRenderAsyncDelegate }
+            };
+            page.IgnoreSection(sectionName);
+
+            // Act & Assert (does not throw)
+            await page.ExecuteAsync();
+            page.EnsureRenderedBodyOrSections();
         }
 
         [Fact]
