@@ -3,16 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
@@ -23,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     public class CacheTagHelper : TagHelper
     {
         /// <summary>
-        /// Prefix used by <see cref="CacheTagHelper"/> instances when creating entries in <see cref="MemoryCache"/>.
+        /// Prefix used by <see cref="CacheTagHelper"/> instances when creating entries in <see cref="Cache"/>.
         /// </summary>
         public static readonly string CacheKeyPrefix = nameof(CacheTagHelper);
         private const string VaryByAttributeName = "vary-by";
@@ -35,18 +34,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ExpiresOnAttributeName = "expires-on";
         private const string ExpiresAfterAttributeName = "expires-after";
         private const string ExpiresSlidingAttributeName = "expires-sliding";
-        private const string CachePriorityAttributeName = "priority";
+        private const string KeyName = "key";
+        private const string OptionValuesPrefix = "option-";
         private const string CacheKeyTokenSeparator = "||";
         private const string EnabledAttributeName = "enabled";
+        private IDictionary<string, string> _optionValues;
         private static readonly char[] AttributeSeparator = new[] { ',' };
-
         /// <summary>
         /// Creates a new <see cref="CacheTagHelper"/>.
         /// </summary>
-        /// <param name="memoryCache">The <see cref="IMemoryCache"/>.</param>
-        public CacheTagHelper(IMemoryCache memoryCache, HtmlEncoder htmlEncoder)
+        /// <param name="cache">The <see cref="IHtmlFragmentCache"/>.</param>
+        public CacheTagHelper(IHtmlFragmentCache cache, HtmlEncoder htmlEncoder)
         {
-            MemoryCache = memoryCache;
+            Cache = cache;
             HtmlEncoder = htmlEncoder;
         }
 
@@ -60,9 +60,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Gets the <see cref="IMemoryCache"/> instance used to cache entries.
+        /// Gets the <see cref="IHtmlFragmentCache"/> instance used to cache entries.
         /// </summary>
-        protected IMemoryCache MemoryCache { get; }
+        protected IHtmlFragmentCache Cache { get; }
 
         /// <summary>
         /// Gets the <see cref="System.Text.Encodings.Web.HtmlEncoder"/> which encodes the content to be cached.
@@ -132,16 +132,37 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public TimeSpan? ExpiresSliding { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="CacheItemPriority"/> policy for the cache entry.
-        /// </summary>
-        [HtmlAttributeName(CachePriorityAttributeName)]
-        public CacheItemPriority? Priority { get; set; }
-
-        /// <summary>
         /// Gets or sets the value which determines if the tag helper is enabled or not.
         /// </summary>
         [HtmlAttributeName(EnabledAttributeName)]
         public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a key to discriminate cached entries.
+        /// </summary>
+        [HtmlAttributeName(KeyName)]
+        public string Key { get; set; }
+
+        /// <summary>
+        /// Additional options for the cache.
+        /// </summary>
+        [HtmlAttributeName(DictionaryAttributePrefix = OptionValuesPrefix)]
+        public IDictionary<string, string> OptionValues
+        {
+            get
+            {
+                if (_optionValues == null)
+                {
+                    _optionValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                return _optionValues;
+            }
+            set
+            {
+                _optionValues = value;
+            }
+        }
 
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
@@ -160,23 +181,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             if (Enabled)
             {
                 var key = GenerateKey(context);
-                if (!MemoryCache.TryGetValue(key, out result))
-                {
-                    // Create an entry link scope and flow it so that any tokens related to the cache entries
-                    // created within this scope get copied to this scope.
-                    using (var link = MemoryCache.CreateLinkingScope())
-                    {
-                        var content = await output.GetChildContentAsync();
+                var cacheContext = CreateCacheContext();
 
-                        var stringBuilder = new StringBuilder();
-                        using (var writer = new StringWriter(stringBuilder))
-                        {
-                            content.WriteTo(writer, HtmlEncoder);
-                        }
+                result = await Cache.GetValueAsync(key, cacheContext);
 
-                        result = new StringBuilderHtmlContent(stringBuilder);
-                        MemoryCache.Set(key, result, GetMemoryCacheEntryOptions(link));
-                    }
+                if (result == null)
+                {                    
+                    // The cache implementation might rewrite the result using the encoder or intercept 
+                    // its cache tokens
+                    result = await Cache.SetAsync(key, async () => await output.GetChildContentAsync(), cacheContext);
                 }
             }
 
@@ -193,12 +206,35 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
+        private HtmlFragmentCacheContext CreateCacheContext()
+        {
+            var cacheContext = new HtmlFragmentCacheContext(HtmlEncoder)
+            {
+                ExpiresAfter = ExpiresAfter,
+                ExpiresOn = ExpiresOn,
+                ExpiresSliding = ExpiresSliding
+            };
+
+            if (_optionValues != null)
+            {
+                foreach (var pair in _optionValues)
+                {
+                    cacheContext.Options.Add(pair);
+                }
+            }
+
+            return cacheContext;
+        }
+
         // Internal for unit testing
         internal string GenerateKey(TagHelperContext context)
         {
             var builder = new StringBuilder(CacheKeyPrefix);
+
+            // Use the distributed key as the dicriminator if specified to 
+            // ensure all nodes get the same key
             builder.Append(CacheKeyTokenSeparator)
-                   .Append(context.UniqueId);
+                   .Append(Key ?? context.UniqueId);
 
             var request = ViewContext.HttpContext.Request;
 
@@ -234,33 +270,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
-        // Internal for unit testing
-        internal MemoryCacheEntryOptions GetMemoryCacheEntryOptions(IEntryLink entryLink)
-        {
-            var options = new MemoryCacheEntryOptions();
-            if (ExpiresOn != null)
-            {
-                options.SetAbsoluteExpiration(ExpiresOn.Value);
-            }
-
-            if (ExpiresAfter != null)
-            {
-                options.SetAbsoluteExpiration(ExpiresAfter.Value);
-            }
-
-            if (ExpiresSliding != null)
-            {
-                options.SetSlidingExpiration(ExpiresSliding.Value);
-            }
-
-            if (Priority != null)
-            {
-                options.SetPriority(Priority.Value);
-            }
-
-            options.AddEntryLink(entryLink);
-            return options;
-        }
 
         private static void AddStringCollectionKey(
             StringBuilder builder,
@@ -386,31 +395,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return trimmedValues;
-        }
-
-        private class StringBuilderHtmlContent : IHtmlContent
-        {
-            private readonly StringBuilder _builder;
-
-            public StringBuilderHtmlContent(StringBuilder builder)
-            {
-                _builder = builder;
-            }
-
-            public void WriteTo(TextWriter writer, HtmlEncoder encoder)
-            {
-                var htmlTextWriter = writer as HtmlTextWriter;
-                if (htmlTextWriter != null)
-                {
-                    htmlTextWriter.Write(this);
-                    return;
-                }
-
-                for (var i = 0; i < _builder.Length; i++)
-                {
-                    writer.Write(_builder[i]);
-                }
-            }
         }
     }
 }

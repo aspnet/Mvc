@@ -131,7 +131,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
             services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
 
-            // Consumed by the Cache tag helper to cache results across the lifetime of the application.
+            // Consumed by the default IChunkTreeCache
             services.TryAddSingleton<IMemoryCache, MemoryCache>();
         }
     }
