@@ -233,17 +233,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Use the distributed key as the dicriminator if specified to 
             // ensure all nodes get the same key
-            builder.Append(CacheKeyTokenSeparator)
-                   .Append(Key ?? context.UniqueId);
+            builder
+                .Append(CacheKeyTokenSeparator)
+                .Append(Key ?? context.UniqueId);
 
             var request = ViewContext.HttpContext.Request;
 
             if (!string.IsNullOrEmpty(VaryBy))
             {
-                builder.Append(CacheKeyTokenSeparator)
-                       .Append(nameof(VaryBy))
-                       .Append(CacheKeyTokenSeparator)
-                       .Append(VaryBy);
+                builder
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(nameof(VaryBy))
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(VaryBy);
             }
 
             AddStringCollectionKey(builder, nameof(VaryByCookie), VaryByCookie, request.Cookies, (c, key) => c[key]);
@@ -253,10 +255,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (VaryByUser)
             {
-                builder.Append(CacheKeyTokenSeparator)
-                       .Append(nameof(VaryByUser))
-                       .Append(CacheKeyTokenSeparator)
-                       .Append(ViewContext.HttpContext.User?.Identity?.Name);
+                builder
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(nameof(VaryByUser))
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(ViewContext.HttpContext.User?.Identity?.Name);
             }
 
             // The key is typically too long to be useful, so we use a cryptographic hash
@@ -280,9 +283,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             if (!string.IsNullOrEmpty(value))
             {
                 // keyName(param1=value1|param2=value2)
-                builder.Append(CacheKeyTokenSeparator)
-                       .Append(keyName)
-                       .Append("(");
+                builder
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(keyName)
+                    .Append("(");
 
                 var values = Tokenize(value);
 
@@ -290,10 +294,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 for (var i = 0; i < values.Count; i++)
                 {
                     var item = values[i];
-                    builder.Append(item)
-                           .Append(CacheKeyTokenSeparator)
-                           .Append(sourceCollection[item])
-                           .Append(CacheKeyTokenSeparator);
+                    builder
+                        .Append(item)
+                        .Append(CacheKeyTokenSeparator)
+                        .Append(sourceCollection[item])
+                        .Append(CacheKeyTokenSeparator);
                 }
 
                 if (values.Count > 0)
@@ -316,9 +321,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             if (!string.IsNullOrEmpty(value))
             {
                 // keyName(param1=value1|param2=value2)
-                builder.Append(CacheKeyTokenSeparator)
-                       .Append(keyName)
-                       .Append("(");
+                builder
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(keyName)
+                    .Append("(");
 
                 var values = Tokenize(value);
 
@@ -327,10 +333,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 {
                     var item = values[i];
 
-                    builder.Append(item)
-                           .Append(CacheKeyTokenSeparator)
-                           .Append(accessor(sourceCollection, item))
-                           .Append(CacheKeyTokenSeparator);
+                    builder
+                        .Append(item)
+                        .Append(CacheKeyTokenSeparator)
+                        .Append(accessor(sourceCollection, item))
+                        .Append(CacheKeyTokenSeparator);
                 }
 
                 if (values.Count > 0)
@@ -349,9 +356,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (!string.IsNullOrEmpty(VaryByRoute))
             {
-                builder.Append(CacheKeyTokenSeparator)
-                       .Append(nameof(VaryByRoute))
-                       .Append("(");
+                builder
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(nameof(VaryByRoute))
+                    .Append("(");
 
                 var varyByRoutes = Tokenize(VaryByRoute);
                 for (var i = 0; i < varyByRoutes.Count; i++)
@@ -359,10 +367,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     var route = varyByRoutes[i];
                     tokenFound = true;
 
-                    builder.Append(route)
-                           .Append(CacheKeyTokenSeparator)
-                           .Append(ViewContext.RouteData.Values[route])
-                           .Append(CacheKeyTokenSeparator);
+                    builder
+                        .Append(route)
+                        .Append(CacheKeyTokenSeparator)
+                        .Append(ViewContext.RouteData.Values[route])
+                        .Append(CacheKeyTokenSeparator);
                 }
 
                 if (tokenFound)
