@@ -9,15 +9,20 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 {
     /// <summary>
     /// This implementation of <see cref="IHtmlFragmentCache"/> is able to switch from 
-    /// <see cref="IMemoryCache"/> to <see cref="IDistributedCache"/> registered
-    /// services using the <code>options-distributed</code> attribute.
+    /// <see cref="IMemoryCache"/> to <see cref="IDistributedCache"/>
     /// </summary>
+    /// <remarks>
+    /// This service accepts the following options:
+    /// - <code>options-distributed</code> with <code>true</code> to store the cache entry
+    /// in the <see cref="IDistributedCache"/> service.
+    /// - <code>options-priority</code> with a value from <see cref="CacheItemPriority"/> that
+    /// can only be used for <see cref="IMemoryCache"/>.
+    /// </remarks>
     public class HybridHtmlFragmentCache : IHtmlFragmentCache
     {
         private const string PriorityOptionName = "priority";
@@ -37,6 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             _distributedCache = distributedCache;
         }
 
+        /// <inheritdoc />
         public Task<IHtmlContent> SetAsync(string key, Func<Task<IHtmlContent>> renderContent, HtmlFragmentCacheContext context)
         {
             // is the distributed option set?
@@ -50,6 +56,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             }
         }
 
+        /// <summary>
+        /// Stores the fragment using the <see cref="IMemoryCache"/> service.
+        /// </summary>
         private async Task<IHtmlContent> SetMemoryAsync(string key, Func<Task<IHtmlContent>> renderContent, HtmlFragmentCacheContext context)
         {
             var options = new MemoryCacheEntryOptions();
@@ -69,6 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                 options.SetSlidingExpiration(context.ExpiresSliding.Value);
             }
 
+            // If the priority option is defined, use it
             if (context.HasOptions && context.Options.ContainsKey(PriorityOptionName))
             {
                 CacheItemPriority priority;
@@ -82,10 +92,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             // created within this scope get copied to this scope.
             using (var link = _memoryCache.CreateLinkingScope())
             {
+                // The content is lazily evaluated in order to enlist any nested cache token
+                // representing a cache dependency.
                 var content = await renderContent();
 
                 options.AddEntryLink(link);
 
+                // Serialize the html content as it could be buffered
                 var stringBuilder = new StringBuilder();
                 using (var writer = new StringWriter(stringBuilder))
                 {
@@ -98,6 +111,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             }
         }
 
+        /// <summary>
+        /// Stores the fragment using the <see cref="IDistributedCache"/> service.
+        /// </summary>
         private async Task<IHtmlContent> SetDistributedAsync(string key, Func<Task<IHtmlContent>> renderContent, HtmlFragmentCacheContext context, IDistributedCache cache)
         {
             var options = new DistributedCacheEntryOptions();
@@ -125,6 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                 content.WriteTo(writer, context.HtmlEncoder);
             }
 
+            // The content is stored using UTF8 encoding on the distributed cache service.
             var serialized = Encoding.UTF8.GetBytes(stringBuilder.ToString());
 
             await cache.SetAsync(key, serialized, options);
@@ -132,6 +149,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             return content;
         }
 
+        /// <inheritdoc />
         public Task<IHtmlContent> GetValueAsync(string key, HtmlFragmentCacheContext context)
         {
             // is the distributed option set?
@@ -148,16 +166,23 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                 }
                 else
                 {
+                    // no existing cache entry
                     return Task.FromResult<IHtmlContent>(null);
                 }
             }
         }
 
+        /// <summary>
+        /// Retrieves a cache entry from the <see cref="IMemoryCache"/> service.
+        /// </summary>
         private bool GetMemoryValue(string key, out IHtmlContent value)
         {
             return _memoryCache.TryGetValue(key, out value);
         }
 
+        /// <summary>
+        /// Retrieves a cache entry from the <see cref="IDistributedCache"/> service.
+        /// </summary>
         private async Task<IHtmlContent> GetDistributedValueAsync(string key, IDistributedCache cache)
         {
             var encoded = await cache.GetAsync(key);
@@ -171,6 +196,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             return new HtmlEncodedString(content);
         }
 
+        /// <summary>
+        /// Ensures the <see cref="IDistributedCache"/> service is necessary and registered 
+        /// or throw and exception otherwise.
+        /// </summary>
         private bool EnsureDistributedService(HtmlFragmentCacheContext context)
         {
             bool distributed;
