@@ -20,6 +20,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         public HtmlFragmentCacheContext(HtmlEncoder htmlEncoder)
         {
+            
+            if (htmlEncoder == null)
+            {
+                throw new ArgumentNullException(nameof(htmlEncoder));
+            }
+            
             HtmlEncoder = htmlEncoder;
         }
 

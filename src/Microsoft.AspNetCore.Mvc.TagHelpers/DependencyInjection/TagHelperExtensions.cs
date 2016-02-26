@@ -10,6 +10,9 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class TagHelperServicesExtensions
     {
+        /// <summary>
+        ///  Adds MVC cache tag helper services to the application.
+        /// </summary>
         public static IMvcCoreBuilder AddCacheTagHelper(this IMvcCoreBuilder builder)
         {
             if (builder == null)
