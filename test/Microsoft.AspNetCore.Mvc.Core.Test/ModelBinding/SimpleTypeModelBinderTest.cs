@@ -195,7 +195,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
         [InlineData("13", 13)]
         [InlineData("Value1", 1)]
         [InlineData("Value8, Value4", 12)]
-        public async Task BindModel_BindsFlagsEnumModels(string flagsEnumValue, int expected)
+        [InlineData(new[] { "0" }, 0)]
+        [InlineData(new[] { "1" }, 1)]
+        [InlineData(new[] { "13" }, 13)]
+        [InlineData(new[] { "Value1" }, 1)]
+        [InlineData(new[] { "Value8, Value4" }, 12)]
+        [InlineData(new[] { "Value8", "Value4" }, 12)]
+        public async Task BindModel_BindsFlagsEnumModels(object flagsEnumValue, int expected)
         {
             // Arrange
             var bindingContext = GetBindingContext(typeof(FlagsEnum));

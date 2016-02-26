@@ -1,6 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,10 +14,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -928,15 +927,35 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             else if (valueAsArray != null)
             {
-                // case 3: destination type is single element but source is array, so extract first element + convert
+                // case 3: destination type is single element but source is array
                 if (valueAsArray.Length > 0)
                 {
+                    // case 3(a): destination is a flags enum
+                    var destinationTypeInfo = UnwrapNullableType(destinationType).GetTypeInfo();
+                    if (destinationTypeInfo.IsEnum && destinationTypeInfo.IsDefined(typeof(FlagsAttribute), inherit: false))
+                    {
+                        unchecked
+                        {
+                            long intermediateResult = 0;
+                            for (var i = 0; i < valueAsArray.Length; i++)
+                            {
+                                var converted = ConvertSimpleType(valueAsArray.GetValue(i), destinationType, culture);
+                                if (converted != null)
+                                {
+                                    intermediateResult |= Convert.ToInt64(converted);
+                                }
+                            }
+                            return Enum.ToObject(destinationType, intermediateResult);
+                        }
+                    }
+
+                    // case 3(b): extract first element and convert it
                     value = valueAsArray.GetValue(0);
                     return ConvertSimpleType(value, destinationType, culture);
                 }
                 else
                 {
-                    // case 3(a): source is empty array, so can't perform conversion
+                    // case 3(c): source is empty array, so can't perform conversion
                     return null;
                 }
             }

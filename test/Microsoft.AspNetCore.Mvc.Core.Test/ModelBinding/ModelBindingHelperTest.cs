@@ -1201,18 +1201,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Theory]
-        [InlineData(new object[] { new object[] { 1, 2 }, new[] { FlagsEnum.Value1, FlagsEnum.Value2 } })]
-        [InlineData(new object[] { new[] { "Value1", "Value2" }, new[] { FlagsEnum.Value1, FlagsEnum.Value2 } })]
-        [InlineData(new object[] { new object[] { 5, 2 }, new[] { FlagsEnum.Value1 | FlagsEnum.Value4, FlagsEnum.Value2 } })]
-        public void ConvertTo_ConvertsFlagsEnumArrays(object value, FlagsEnum[] expected)
+        [InlineData(new object[] { new object[] { 1, 2 }, new[] { FlagsEnumInt.Value1, FlagsEnumInt.Value2 } })]
+        [InlineData(new object[] { new[] { "Value1", "Value2" }, new[] { FlagsEnumInt.Value1, FlagsEnumInt.Value2 } })]
+        [InlineData(new object[] { new object[] { 5, 2 }, new[] { FlagsEnumInt.Value1 | FlagsEnumInt.Value4, FlagsEnumInt.Value2 } })]
+        public void ConvertTo_ConvertsFlagsEnumArrays(object value, FlagsEnumInt[] expected)
         {
             // Arrange
 
             // Act
-            var outValue = ModelBindingHelper.ConvertTo(value, typeof(FlagsEnum[]));
+            var outValue = ModelBindingHelper.ConvertTo(value, typeof(FlagsEnumInt[]));
 
             // Assert
-            var result = Assert.IsType<FlagsEnum[]>(outValue);
+            var result = Assert.IsType<FlagsEnumInt[]>(outValue);
             Assert.Equal(2, result.Length);
             Assert.Equal(expected[0], result[0]);
             Assert.Equal(expected[1], result[1]);
@@ -1347,21 +1347,53 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Equal(expectedMessage, ex.Message);
         }
 
+        public static TheoryData<Type, object, object> ConvertTo_ConvertsEnumFlags_Data
+        {
+            get
+            {
+                var data = new TheoryData<Type, object, object>();
+                var types = new[]
+                {
+                    typeof(FlagsEnumInt),
+                    typeof(FlagsEnumUint),
+                    typeof(FlagsEnumByte),
+                    typeof(FlagsEnumSbyte),
+                    typeof(FlagsEnumShort),
+                    typeof(FlagsEnumUshort),
+                    typeof(FlagsEnumLong),
+                    typeof(FlagsEnumUlong),
+                };
+                
+                foreach (var type in types)
+                {
+                    data.Add(type, 2, Enum.ToObject(type, 2));
+                    data.Add(type, 5, Enum.ToObject(type, 5));
+                    data.Add(type, 15, Enum.ToObject(type, 15));
+                    data.Add(type, 16, Enum.ToObject(type, 16));
+                    data.Add(type, 0, Enum.ToObject(type, 0));
+                    data.Add(type, null, Enum.ToObject(type, 0));
+                    data.Add(type, "Value1,Value2", Enum.ToObject(type, 3));
+                    data.Add(type, "Value1,Value2,value4, value8", Enum.ToObject(type, 15));
+                    data.Add(type, new[] { 0 }, Enum.ToObject(type, 0));
+                    data.Add(type, new[] { 15 }, Enum.ToObject(type, 15));
+                    data.Add(type, new[] { 1, 2, 4, 8 }, Enum.ToObject(type, 15));
+                    data.Add(type, new[] { "Value1,Value2,value4, value8" }, Enum.ToObject(type, 15));
+                    data.Add(type, new[] { "Value1,Value2", "value4, value8" }, Enum.ToObject(type, 15));
+                    data.Add(type, new[] { "Value1", "Value2", "value4", "value8" }, Enum.ToObject(type, 15));
+                }
+
+                return data;
+            }
+        }
+
         [Theory]
-        [InlineData(new object[] { 2, FlagsEnum.Value2 })]
-        [InlineData(new object[] { 5, FlagsEnum.Value1 | FlagsEnum.Value4 })]
-        [InlineData(new object[] { 15, FlagsEnum.Value1 | FlagsEnum.Value2 | FlagsEnum.Value4 | FlagsEnum.Value8 })]
-        [InlineData(new object[] { 16, (FlagsEnum)16 })]
-        [InlineData(new object[] { 0, (FlagsEnum)0 })]
-        [InlineData(new object[] { null, (FlagsEnum)0 })]
-        [InlineData(new object[] { "Value1,Value2", (FlagsEnum)3 })]
-        [InlineData(new object[] { "Value1,Value2,value4, value8", (FlagsEnum)15 })]
-        public void ConvertTo_ConvertsEnumFlags(object value, object expected)
+        [MemberData(nameof(ConvertTo_ConvertsEnumFlags_Data))]
+        public void ConvertTo_ConvertsEnumFlags(Type type, object value, object expected)
         {
             // Arrange
 
             // Act
-            var outValue = ModelBindingHelper.ConvertTo<FlagsEnum>(value);
+            var outValue = ModelBindingHelper.ConvertTo(value, type);
 
             // Assert
             Assert.Equal(expected, outValue);
@@ -1400,7 +1432,70 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Flags]
-        public enum FlagsEnum
+        public enum FlagsEnumInt : int
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumUint : uint
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumByte : byte
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumSbyte : sbyte
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumShort : short
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumUshort : ushort
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumLong : long
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4,
+            Value8 = 8
+        }
+
+        [Flags]
+        public enum FlagsEnumUlong : ulong
         {
             Value1 = 1,
             Value2 = 2,
