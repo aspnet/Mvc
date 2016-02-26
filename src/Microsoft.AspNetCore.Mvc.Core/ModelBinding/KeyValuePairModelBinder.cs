@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Core;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -17,9 +17,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(bindingContext));
             }
 
-            ModelBindingHelper.ValidateBindingContext(bindingContext,
-                                                      typeof(KeyValuePair<TKey, TValue>),
-                                                      allowNullModel: true);
+            if (bindingContext.ModelType != typeof(KeyValuePair<TKey, TValue>))
+            {
+                var message = Resources.FormatModelBinderUtil_ModelTypeIsWrong(
+                    bindingContext.ModelType,
+                    typeof(KeyValuePair<TKey, TValue>));
+                throw new ArgumentException(message, nameof(bindingContext));
+            }
 
             var keyResult = await TryBindStrongModel<TKey>(bindingContext, "Key");
             var valueResult = await TryBindStrongModel<TValue>(bindingContext, "Value");
