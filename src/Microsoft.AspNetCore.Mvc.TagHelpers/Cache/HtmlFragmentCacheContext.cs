@@ -7,10 +7,17 @@ using System.Text.Encodings.Web;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 {
+    /// <summary>
+    /// Context object for html fragment caching.
+    /// </summary>
     public class HtmlFragmentCacheContext
     {
         private IDictionary<string, string> _options;
 
+        /// <summary>
+        /// Creates a new <see cref="HtmlFragmentCacheContext"/>.
+        /// </summary>
+        /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         public HtmlFragmentCacheContext(HtmlEncoder htmlEncoder)
         {
             HtmlEncoder = htmlEncoder;

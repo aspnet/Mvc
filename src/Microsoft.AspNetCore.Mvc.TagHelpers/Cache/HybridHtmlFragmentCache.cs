@@ -31,11 +31,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _distributedCache;
 
+        /// <summary>
+        /// Creates a new <see cref="HybridHtmlFragmentCache"/>.
+        /// </summary>
+        /// <param name="memoryCache">The <see cref="IMemoryCache"/>.</param>
         public HybridHtmlFragmentCache(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="HybridHtmlFragmentCache"/>.
+        /// </summary>
+        /// <param name="memoryCache">The <see cref="IMemoryCache"/>.</param>
+        /// <param name="distributedCache">The <see cref="IDistributedCache"/>.</param>
         public HybridHtmlFragmentCache(IMemoryCache memoryCache, IDistributedCache distributedCache)
         {
             _memoryCache = memoryCache;
