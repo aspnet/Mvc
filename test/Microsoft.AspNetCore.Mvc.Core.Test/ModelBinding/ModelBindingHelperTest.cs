@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -12,10 +13,8 @@ using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Test;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.AspNetCore.Routing;
 using Moq;
 using Xunit;
 
@@ -1018,7 +1017,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ConvertToReturnsNullIfTrimmedValueIsEmptyString()
+        public void ConvertToReturnsNull_IfConvertingNullToArrayType()
         {
             // Arrange
 
@@ -1245,21 +1244,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ConvertToThrowsIfNoConverterExists()
-        {
-            // Arrange
-            var destinationType = typeof(MyClassWithoutConverter);
-
-            // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(
-                () => ModelBindingHelper.ConvertTo("x", destinationType));
-            Assert.Equal("The parameter conversion from type 'System.String' to type " +
-                        $"'{typeof(MyClassWithoutConverter).FullName}' " +
-                        "failed because no type converter can convert between these types.",
-                         ex.Message);
-        }
-
-        [Fact]
         public void ConvertToUsesProvidedCulture()
         {
             // Arrange
@@ -1308,43 +1292,80 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
+        // None of the types here have converters from MyClassWithoutConverter.
         [Theory]
         [InlineData(typeof(TimeSpan))]
         [InlineData(typeof(DateTime))]
         [InlineData(typeof(DateTimeOffset))]
         [InlineData(typeof(Guid))]
         [InlineData(typeof(IntEnum))]
-        public void ConvertTo_Throws_IfValueIsNotStringData(Type destinationType)
+        public void ConvertTo_Throws_IfValueIsNotConvertible(Type destinationType)
         {
             // Arrange
+            var expectedMessage = $"The parameter conversion from type '{typeof(MyClassWithoutConverter)}' to type " +
+                $"'{destinationType}' failed because no type converter can convert between these types.";
 
-            // Act
+            // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(
                 () => ModelBindingHelper.ConvertTo(new MyClassWithoutConverter(), destinationType));
-
-            // Assert
-            var expectedMessage = string.Format("The parameter conversion from type '{0}' to type '{1}' " +
-                                                "failed because no type converter can convert between these types.",
-                                                typeof(MyClassWithoutConverter), destinationType);
             Assert.Equal(expectedMessage, ex.Message);
         }
 
+        // String does not have a converter to MyClassWithoutConverter.
         [Fact]
         public void ConvertTo_Throws_IfDestinationTypeIsNotConvertible()
         {
             // Arrange
             var value = "Hello world";
             var destinationType = typeof(MyClassWithoutConverter);
+            var expectedMessage = $"The parameter conversion from type '{value.GetType()}' to type " +
+                $"'{typeof(MyClassWithoutConverter)}' failed because no type converter can convert between these types.";
 
-            // Act
+            // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(
                 () => ModelBindingHelper.ConvertTo(value, destinationType));
+            Assert.Equal(expectedMessage, ex.Message);
+        }
+
+        // Happens very rarely in practice since conversion is almost-always from strings or string arrays.
+        [Theory]
+        [InlineData(typeof(MyClassWithoutConverter))]
+        [InlineData(typeof(MySubClassWithoutConverter))]
+        public void ConvertTo_ReturnsValue_IfCompatible(Type destinationType)
+        {
+            // Arrange
+            var value = new MySubClassWithoutConverter();
+
+            // Act
+            var result = ModelBindingHelper.ConvertTo(value, destinationType);
 
             // Assert
-            var expectedMessage = string.Format("The parameter conversion from type '{0}' to type '{1}' " +
-                                                "failed because no type converter can convert between these types.",
-                                                value.GetType(), typeof(MyClassWithoutConverter));
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.Same(value, result);
+        }
+
+        [Theory]
+        [InlineData(typeof(MyClassWithoutConverter[]))]
+        [InlineData(typeof(MySubClassWithoutConverter[]))]
+        public void ConvertTo_ReusesArrayElements_IfCompatible(Type destinationType)
+        {
+            // Arrange
+            var value = new MyClassWithoutConverter[]
+            {
+                new MySubClassWithoutConverter(),
+                new MySubClassWithoutConverter(),
+                new MySubClassWithoutConverter(),
+            };
+
+            // Act
+            var result = ModelBindingHelper.ConvertTo(value, destinationType);
+
+            // Assert
+            Assert.IsType(destinationType, result);
+            Assert.Collection(
+                result as IEnumerable<MyClassWithoutConverter>,
+                element => { Assert.Same(value[0], element); },
+                element => { Assert.Same(value[1], element); },
+                element => { Assert.Same(value[2], element); });
         }
 
         [Theory]
@@ -1367,8 +1388,105 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Equal(expected, outValue);
         }
 
+        [Theory]
+        [InlineData(typeof(IEnumerable<int>))]
+        [InlineData(typeof(IReadOnlyCollection<int>))]
+        [InlineData(typeof(IReadOnlyList<int>))]
+        [InlineData(typeof(ICollection<int>))]
+        [InlineData(typeof(IList<int>))]
+        [InlineData(typeof(List<int>))]
+        public void CreateCompatibleCollection_ReturnsList(Type destinationType)
+        {
+            // Arrange & Act
+            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+
+            // Assert
+            Assert.IsType<List<int>>(result);
+        }
+
+        [Fact]
+        public void CreateCompatibleCollection_SetsCapacity()
+        {
+            // Arrange & Act
+            var result = ModelBindingHelper.CreateCompatibleCollection<int>(typeof(IList<int>), capacity: 23);
+
+            // Assert
+            var list = Assert.IsType<List<int>>(result);
+            Assert.Equal(23, list.Capacity);
+        }
+
+        [Theory]
+        [InlineData(typeof(Collection<int>))]
+        [InlineData(typeof(IntList))]
+        [InlineData(typeof(LinkedList<int>))]
+        public void CreateCompatibleCollection_ActivatesCollection(Type destinationType)
+        {
+            // Arrange & Act
+            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+
+            // Assert
+            Assert.IsType(destinationType, result);
+        }
+
+        [Theory]
+        [InlineData(typeof(Collection<string>))]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(List<long>))]
+        [InlineData(typeof(MyModel))]
+        public void CreateCompatibleCollection_ReturnsNull_IfDestinationTypeIsNotCompatible(Type destinationType)
+        {
+            // Arrange & Act
+            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Theory]
+        [InlineData(typeof(AbstractIntList))]
+        [InlineData(typeof(ISet<int>))]
+        [InlineData(typeof(ListWithInternalConstructor<int>))]
+        [InlineData(typeof(ListWithThrowingConstructor<int>))]
+        public void CreateCompatibleCollection_ReturnsNull_IfDestinationTypeCannotBeActivated(Type destinationType)
+        {
+            // Arrange & Act
+            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+
+            // Assert (also, above statement does not throw)
+            Assert.Null(result);
+        }
+
         private class MyClassWithoutConverter
         {
+        }
+
+        private class MySubClassWithoutConverter : MyClassWithoutConverter
+        {
+        }
+
+        private abstract class AbstractIntList : List<int>
+        {
+        }
+
+        private class IntList : List<int>
+        {
+        }
+
+        private class ListWithInternalConstructor<T> : List<T>
+        {
+            internal ListWithInternalConstructor()
+                : base()
+            {
+            }
+        }
+
+        private class ListWithThrowingConstructor<T> : List<T>
+        {
+            public ListWithThrowingConstructor()
+                : base()
+            {
+                throw new RankException("No, don't do this.");
+            }
         }
 
         private enum IntEnum

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 #if NETSTANDARD1_3
 using System.Reflection;
 #endif
@@ -45,30 +44,40 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // Property name can be null if the model metadata represents a type (rather than a property or parameter).
             var headerName = bindingContext.FieldName;
-            object model = null;
+
+            object model;
             if (bindingContext.ModelType == typeof(string))
             {
                 string value = request.Headers[headerName];
-                if (value != null)
-                {
-                    model = value;
-                }
+                model = value;
             }
             else if (typeof(IEnumerable<string>).IsAssignableFrom(bindingContext.ModelType))
             {
-                var values = request.Headers.GetCommaSeparatedValues(headerName);
-                if (values.Length > 0)
+                if (bindingContext.ModelMetadata.IsReadOnly &&
+                    (bindingContext.ModelType == typeof(string[]) || bindingContext.Model == null))
                 {
-                    model = ModelBindingHelper.ConvertValuesToCollectionType(
-                        bindingContext.ModelType,
-                        values);
+                    // Silently fail and stop other model binders running if a new collection is needed (perhaps
+                    // because target type is an array) but can't assign it to the property.
+                    model = null;
                 }
+                else
+                {
+                    var values = request.Headers.GetCommaSeparatedValues(headerName);
+                    model = GetCompatibleCollection(bindingContext, values);
+                }
+            }
+            else
+            {
+                // An unsupported datatype.
+                model = null;
             }
 
             if (model == null)
             {
+                // Silently fail if unable to create an instance or use the current instance. Also reach here in the
+                // typeof(string) case if the header does not exist in the request and in the
+                // typeof(IEnumerable<string>) case if the header does not exist and this is not a top-level object.
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return TaskCache.CompletedTask;
             }
             else
             {
@@ -78,8 +87,53 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     request.Headers[headerName]);
 
                 bindingContext.Result = ModelBindingResult.Success(bindingContext.ModelName, model);
-                return TaskCache.CompletedTask;
             }
+
+            return TaskCache.CompletedTask;
+        }
+
+        private static object GetCompatibleCollection(ModelBindingContext bindingContext, string[] values)
+        {
+            // Almost-always success if IsTopLevelObject.
+            if (!bindingContext.IsTopLevelObject && values.Length == 0)
+            {
+                return null;
+            }
+
+            if (bindingContext.ModelType.IsAssignableFrom(typeof(string[])))
+            {
+                // Array we already have is compatible.
+                return values;
+            }
+
+            ICollection<string> collection;
+            if (bindingContext.Model == null)
+            {
+                // Note this call may return null if the model type cannot be activated.
+                collection = ModelBindingHelper.CreateCompatibleCollection<string>(
+                    bindingContext.ModelType,
+                    values.Length);
+            }
+            else
+            {
+                // Note this cast may fail if the runtime model implements IEnumerable<IFormFile> but not
+                // ICollection<IFormFile>. Give up in then: Assuming we're not in an odd corner case where
+                // the property is settable and its declared type is assignable from List<IFormFile>.
+                collection = bindingContext.Model as ICollection<string>;
+                collection?.Clear();
+            }
+
+            if (collection == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                collection.Add(values[i]);
+            }
+
+            return collection;
         }
     }
 }

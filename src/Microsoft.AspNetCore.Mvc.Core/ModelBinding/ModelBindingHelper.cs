@@ -748,46 +748,51 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return (model is TModel) ? (TModel)model : default(TModel);
         }
 
-        public static object ConvertValuesToCollectionType<T>(Type modelType, IList<T> values)
+        /// <summary>
+        /// Creates an <see cref="ICollection{T}"/> instance compatible with <paramref name="modelType"/>.
+        /// </summary>
+        /// <typeparam name="T">The element type of the created <see cref="ICollection{T}"/>.</typeparam>
+        /// <param name="modelType">The destination type to which the return value may be assigned.</param>
+        /// <param name="capacity">
+        /// Capacity for use when creating a <see cref="List{T}"/> instance. If <c>null</c>, <see cref="List{T}"/>
+        /// instances are created with the default capacity. Not used when creating another type.
+        /// </param>
+        /// <returns>An <see cref="ICollection{T}"/> instance compatible with <paramref name="modelType"/>.</returns>
+        /// <remarks>
+        /// Do not call this method if <paramref name="modelType"/> is an array. A List{T} may be a fine intermediary
+        /// but caller must special-case read-only properties even if ModelBindingContext.Model is non-null.
+        /// </remarks>
+        public static ICollection<T> CreateCompatibleCollection<T>(Type modelType, int? capacity)
         {
             // There's a limited set of collection types we can support here.
             //
-            // For the simple cases - choose a T[] or List<T> if the destination type supports
-            // it.
+            // For the simple cases: Choose List<T> if the destination type supports it.
             //
-            // For more complex cases, if the destination type is a class and implements ICollection<T>
-            // then activate it and add the values.
+            // For more complex cases: If the destination type is a class that implements ICollection<T>, then activate
+            // an instance and return that.
             //
             // Otherwise just give up.
-            if (typeof(List<T>).IsAssignableFrom(modelType))
+            if (modelType.IsAssignableFrom(typeof(List<T>)))
             {
-                return new List<T>(values);
+                // This case handles properties of type IEnumerable<T>, ICollection<T> and more.
+                return capacity.HasValue ? new List<T>(capacity.Value) : new List<T>();
             }
-            else if (typeof(T[]).IsAssignableFrom(modelType))
-            {
-                return values.ToArray();
-            }
-            else if (
-                modelType.GetTypeInfo().IsClass &&
+
+            if (modelType.GetTypeInfo().IsClass &&
                 !modelType.GetTypeInfo().IsAbstract &&
                 typeof(ICollection<T>).IsAssignableFrom(modelType))
             {
-                var result = (ICollection<T>)Activator.CreateInstance(modelType);
-                foreach (var value in values)
+                try
                 {
-                    result.Add(value);
+                    return (ICollection<T>)Activator.CreateInstance(modelType);
                 }
+                catch
+                {
+                    // Ignore any errors attempting to create the model.
+                }
+            }
 
-                return result;
-            }
-            else if (typeof(IEnumerable<T>).IsAssignableFrom(modelType))
-            {
-                return values;
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
 
         /// <summary>
@@ -860,7 +865,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return type.GetTypeInfo().IsValueType ? Activator.CreateInstance(type) : null;
             }
 
-            if (value.GetType().IsAssignableFrom(type))
+            if (type.IsAssignableFrom(value.GetType()))
             {
                 return value;
             }
@@ -917,7 +922,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static object ConvertSimpleType(object value, Type destinationType, CultureInfo culture)
         {
-            if (value == null || value.GetType().IsAssignableFrom(destinationType))
+            if (value == null || destinationType.IsAssignableFrom(value.GetType()))
             {
                 return value;
             }
