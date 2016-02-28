@@ -749,39 +749,117 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         /// <summary>
-        /// Creates an <see cref="ICollection{T}"/> instance compatible with <paramref name="modelType"/>.
+        /// Gets an indication whether <see cref="GetCompatibleCollection{T}"/> is likely to return a usable
+        /// non-<c>null</c> value.
         /// </summary>
-        /// <typeparam name="T">The element type of the created <see cref="ICollection{T}"/>.</typeparam>
-        /// <param name="modelType">The destination type to which the return value may be assigned.</param>
+        /// <typeparam name="T">The element type of the <see cref="ICollection{T}"/> required.</typeparam>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
+        /// <returns>
+        /// <c>true</c> if <see cref="GetCompatibleCollection{T}"/> is likely to return a usable non-<c>null</c>
+        /// value; <c>false</c> otherwise.
+        /// </returns>
+        /// <remarks>"Usable" in this context means the property can be set or its value reused.</remarks>
+        public static bool CanGetCompatibleCollection<T>(ModelBindingContext bindingContext)
+        {
+            var model = bindingContext.Model;
+            var modelType = bindingContext.ModelType;
+            var writeable = !bindingContext.ModelMetadata.IsReadOnly;
+            if (typeof(T).IsAssignableFrom(modelType))
+            {
+                // Scalar case. Existing model is not relevant and property must always be set. Will use a List<T>
+                // intermediate and set property to first element, if any.
+                return writeable;
+            }
+
+            if (modelType == typeof(T[]))
+            {
+                // Can't change the length of an existing array or replace it. Will use a List<T> intermediate and set
+                // property to an array created from that.
+                return writeable;
+            }
+
+            if (!typeof(IEnumerable<T>).IsAssignableFrom(modelType))
+            {
+                // Not a supported collection.
+                return false;
+            }
+
+            if (model == null)
+            {
+                // Must override the non-existent collection.
+                if (modelType.IsAssignableFrom(typeof(List<T>)))
+                {
+                    return writeable;
+                }
+
+                // Will we be able to activate an instance and use that?
+                return writeable &&
+                    modelType.GetTypeInfo().IsClass &&
+                    !modelType.GetTypeInfo().IsAbstract &&
+                    typeof(ICollection<T>).IsAssignableFrom(modelType);
+            }
+
+            var collection = model as ICollection<T>;
+            if (collection != null && !collection.IsReadOnly)
+            {
+                // Can use the existing collection.
+                return true;
+            }
+
+            // Fallback for the corner case where the model implements IEnumerable<T> but not ICollection<T>.
+            //   public IEnumerable<T> Property { get; set; } = new T[0];
+            return writeable && modelType.IsAssignableFrom(typeof(List<T>));
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ICollection{T}"/> instance compatible with <paramref name="bindingContext"/>'s
+        /// <see cref="ModelBindingContext.ModelType"/>.
+        /// </summary>
+        /// <typeparam name="T">The element type of the <see cref="ICollection{T}"/> required.</typeparam>
+        /// <param name="bindingContext">The <see cref="ModelBindingContext"/>.</param>
         /// <param name="capacity">
         /// Capacity for use when creating a <see cref="List{T}"/> instance. If <c>null</c>, <see cref="List{T}"/>
         /// instances are created with the default capacity. Not used when creating another type.
         /// </param>
-        /// <returns>An <see cref="ICollection{T}"/> instance compatible with <paramref name="modelType"/>.</returns>
+        /// <returns>
+        /// An <see cref="ICollection{T}"/> instance compatible with <paramref name="bindingContext"/>'s
+        /// <see cref="ModelBindingContext.ModelType"/>.
+        /// </returns>
         /// <remarks>
-        /// Do not call this method if <paramref name="modelType"/> is an array. A List{T} may be a fine intermediary
-        /// but caller must special-case read-only properties even if ModelBindingContext.Model is non-null.
+        /// Should not be called if <see cref="CanGetCompatibleCollection{T}"/> returned <c>false</c>. Even if that
+        /// method returned <c>true</c>, may return <c>null</c> if the <see cref="ModelBindingContext.ModelType"/>
+        /// cannot be activated.
         /// </remarks>
-        public static ICollection<T> CreateCompatibleCollection<T>(Type modelType, int? capacity)
+        public static ICollection<T> GetCompatibleCollection<T>(ModelBindingContext bindingContext, int? capacity)
         {
-            // There's a limited set of collection types we can support here.
+            var model = bindingContext.Model;
+            var modelType = bindingContext.ModelType;
+
+            // There's a limited set of collection types we can create here.
             //
-            // For the simple cases: Choose List<T> if the destination type supports it.
+            // For the simple cases: Choose List<T> if the destination type supports it (at least as an intermediary).
             //
             // For more complex cases: If the destination type is a class that implements ICollection<T>, then activate
             // an instance and return that.
             //
             // Otherwise just give up.
-            if (modelType.IsAssignableFrom(typeof(List<T>)))
+            if (typeof(T).IsAssignableFrom(modelType))
             {
-                // This case handles properties of type IEnumerable<T>, ICollection<T> and more.
-                return capacity.HasValue ? new List<T>(capacity.Value) : new List<T>();
+                return CreateList<T>(capacity);
             }
 
-            if (modelType.GetTypeInfo().IsClass &&
-                !modelType.GetTypeInfo().IsAbstract &&
-                typeof(ICollection<T>).IsAssignableFrom(modelType))
+            if (modelType == typeof(T[]))
             {
+                return CreateList<T>(capacity);
+            }
+
+            if (model == null)
+            {
+                if (modelType.IsAssignableFrom(typeof(List<T>)))
+                {
+                    return CreateList<T>(capacity);
+                }
+
                 try
                 {
                     return (ICollection<T>)Activator.CreateInstance(modelType);
@@ -789,10 +867,31 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 catch
                 {
                     // Ignore any errors attempting to create the model.
+                    return null;
                 }
             }
 
-            return null;
+            // Can existing collection be reused?
+            var collection = model as ICollection<T>;
+            if (collection == null || collection.IsReadOnly)
+            {
+                collection = null;
+                if (modelType.IsAssignableFrom(typeof(List<T>)))
+                {
+                    return CreateList<T>(capacity);
+                }
+            }
+            else
+            {
+                collection.Clear();
+            }
+
+            return collection;
+        }
+
+        private static List<T> CreateList<T>(int? capacity)
+        {
+            return capacity.HasValue ? new List<T>(capacity.Value) : new List<T>();
         }
 
         /// <summary>

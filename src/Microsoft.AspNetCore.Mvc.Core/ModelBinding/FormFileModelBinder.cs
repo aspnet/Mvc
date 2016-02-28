@@ -33,15 +33,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // using Task.FromResult. If you need to make changes of this nature, profile
             // allocations afterwards and look for Task<ModelBindingResult>.
 
-            if (bindingContext.ModelType != typeof(IFormFile) &&
-                !typeof(IEnumerable<IFormFile>).IsAssignableFrom(bindingContext.ModelType))
+            var modelType = bindingContext.ModelType;
+            if (modelType != typeof(IFormFile) && !typeof(IEnumerable<IFormFile>).IsAssignableFrom(modelType))
             {
                 // Not a type this model binder supports. Let other binders run.
                 return TaskCache.CompletedTask;
             }
 
-            ICollection<IFormFile> postedFiles = CreateCompatibleCollection(bindingContext);
-            if (postedFiles == null)
+            var createFileCollection = modelType == typeof(IFormFileCollection) &&
+                !bindingContext.ModelMetadata.IsReadOnly;
+            if (!createFileCollection && !ModelBindingHelper.CanGetCompatibleCollection<IFormFile>(bindingContext))
             {
                 // Silently fail and stop other model binders running if unable to create an instance or use the
                 // current instance.
@@ -49,64 +50,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return TaskCache.CompletedTask;
             }
 
-            return BindModelCoreAsync(bindingContext, postedFiles);
-        }
-
-        private static ICollection<IFormFile> CreateCompatibleCollection(ModelBindingContext bindingContext)
-        {
-
-            ICollection<IFormFile> collection;
-            if (bindingContext.ModelType == typeof(IFormFile))
+            ICollection<IFormFile> postedFiles;
+            if (createFileCollection)
             {
-                // Create an intermediate list. Will throw it away later.
-                collection = new List<IFormFile>();
-            }
-            else if (bindingContext.ModelType == typeof(IFormFile[]))
-            {
-                if (bindingContext.ModelMetadata.IsReadOnly)
-                {
-                    // Can't change the length of an existing array or replace it.
-                    return null;
-                }
-
-                // Use a List<IFormFile> for now. Will create an array later.
-                collection = new List<IFormFile>();
+                postedFiles = new List<IFormFile>();
             }
             else
             {
-                if (bindingContext.Model == null)
+                postedFiles = ModelBindingHelper.GetCompatibleCollection<IFormFile>(bindingContext, capacity: null);
+                if (postedFiles == null)
                 {
-                    if (bindingContext.ModelMetadata.IsReadOnly)
-                    {
-                        // Need a new collection instance but unable to assign it to the property.
-                        return null;
-                    }
-
-                    if (bindingContext.ModelType == typeof(IFormFileCollection))
-                    {
-                        // Special-case creating a custom IFormFileCollection if the property is settable and
-                        // currently null. Use a List<IFormFile> for now. Will create a FileCollection later.
-                        collection = new List<IFormFile>();
-                    }
-                    else
-                    {
-                        // Note this call may return null if the model type cannot be activated.
-                        collection = ModelBindingHelper.CreateCompatibleCollection<IFormFile>(
-                            bindingContext.ModelType,
-                            capacity: null);
-                    }
-                }
-                else
-                {
-                    // Note this cast may fail if the runtime model implements IEnumerable<IFormFile> but not
-                    // ICollection<IFormFile>. Give up in then: Assuming we're not in an odd corner case where the
-                    // property is settable and its declared type is actually assignable from List<IFormFile>.
-                    collection = bindingContext.Model as ICollection<IFormFile>;
-                    collection?.Clear();
+                    // Silently fail and stop other model binders running if unable to activate an instance.
+                    bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
+                    return TaskCache.CompletedTask;
                 }
             }
 
-            return collection;
+            return BindModelCoreAsync(bindingContext, postedFiles);
         }
 
         private async Task BindModelCoreAsync(ModelBindingContext bindingContext, ICollection<IFormFile> postedFiles)
@@ -145,12 +105,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
 
                 // Perform any final type mangling needed.
-                if (bindingContext.ModelType == typeof(IFormFile[]))
+                var modelType = bindingContext.ModelType;
+                if (modelType == typeof(IFormFile[]))
                 {
                     Debug.Assert(postedFiles is List<IFormFile>);
                     value = ((List<IFormFile>)postedFiles).ToArray();
                 }
-                else if (bindingContext.Model == null && bindingContext.ModelType == typeof(IFormFileCollection))
+                else if (modelType == typeof(IFormFileCollection))
                 {
                     Debug.Assert(postedFiles is List<IFormFile>);
                     value = new FileCollection((List<IFormFile>)postedFiles);

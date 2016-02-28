@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 #if NETSTANDARD1_3
 using System.Reflection;
 #endif
@@ -40,25 +39,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             var request = bindingContext.OperationBindingContext.HttpContext.Request;
-            var modelMetadata = bindingContext.ModelMetadata;
 
             // Property name can be null if the model metadata represents a type (rather than a property or parameter).
             var headerName = bindingContext.FieldName;
 
             object model;
-            if (bindingContext.ModelType == typeof(string))
+            if (ModelBindingHelper.CanGetCompatibleCollection<string>(bindingContext))
             {
-                string value = request.Headers[headerName];
-                model = value;
-            }
-            else if (typeof(IEnumerable<string>).IsAssignableFrom(bindingContext.ModelType))
-            {
-                if (bindingContext.ModelMetadata.IsReadOnly &&
-                    (bindingContext.ModelType == typeof(string[]) || bindingContext.Model == null))
+                if (bindingContext.ModelType == typeof(string))
                 {
-                    // Silently fail and stop other model binders running if a new collection is needed (perhaps
-                    // because target type is an array) but can't assign it to the property.
-                    model = null;
+                    string value = request.Headers[headerName];
+                    model = value;
                 }
                 else
                 {
@@ -68,7 +59,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             else
             {
-                // An unsupported datatype.
+                // An unsupported datatype or a new collection is needed (perhaps because target type is an array) but
+                // can't assign it to the property.
                 model = null;
             }
 
@@ -106,23 +98,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return values;
             }
 
-            ICollection<string> collection;
-            if (bindingContext.Model == null)
-            {
-                // Note this call may return null if the model type cannot be activated.
-                collection = ModelBindingHelper.CreateCompatibleCollection<string>(
-                    bindingContext.ModelType,
-                    values.Length);
-            }
-            else
-            {
-                // Note this cast may fail if the runtime model implements IEnumerable<IFormFile> but not
-                // ICollection<IFormFile>. Give up in then: Assuming we're not in an odd corner case where
-                // the property is settable and its declared type is assignable from List<IFormFile>.
-                collection = bindingContext.Model as ICollection<string>;
-                collection?.Clear();
-            }
-
+            // Note this call may return null if the model type cannot be activated.
+            var collection = ModelBindingHelper.GetCompatibleCollection<string>(bindingContext, values.Length);
             if (collection == null)
             {
                 return null;

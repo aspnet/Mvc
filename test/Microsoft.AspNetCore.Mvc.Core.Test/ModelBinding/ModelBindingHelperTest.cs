@@ -549,10 +549,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 { "ExcludedProperty", "ExcludedPropertyValue" }
             };
 
-            Func<ModelBindingContext, string, bool> includePredicate =
-                (context, propertyName) =>
-                                string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
+                string.Equals(propertyName, "IncludedProperty", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(propertyName, "MyProperty", StringComparison.OrdinalIgnoreCase);
 
             var valueProvider = new TestValueProvider(values);
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -657,8 +656,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var binder = new StubModelBinder();
             var model = new MyModel();
-            Func<ModelBindingContext, string, bool> includePredicate =
-               (context, propertyName) => true;
+            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) => true;
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<ArgumentException>(
@@ -1389,26 +1387,74 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Theory]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(int[]))]
         [InlineData(typeof(IEnumerable<int>))]
         [InlineData(typeof(IReadOnlyCollection<int>))]
         [InlineData(typeof(IReadOnlyList<int>))]
         [InlineData(typeof(ICollection<int>))]
         [InlineData(typeof(IList<int>))]
         [InlineData(typeof(List<int>))]
-        public void CreateCompatibleCollection_ReturnsList(Type destinationType)
+        [InlineData(typeof(Collection<int>))]
+        [InlineData(typeof(IntList))]
+        [InlineData(typeof(LinkedList<int>))]
+        public void CanGetCompatibleCollection_ReturnsTrue(Type destinationType)
         {
-            // Arrange & Act
-            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.CanGetCompatibleCollection<int>(bindingContext);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Theory]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(int[]))]
+        [InlineData(typeof(IEnumerable<int>))]
+        [InlineData(typeof(IReadOnlyCollection<int>))]
+        [InlineData(typeof(IReadOnlyList<int>))]
+        [InlineData(typeof(ICollection<int>))]
+        [InlineData(typeof(IList<int>))]
+        [InlineData(typeof(List<int>))]
+        public void GetCompatibleCollection_ReturnsList(Type destinationType)
+        {
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
 
             // Assert
             Assert.IsType<List<int>>(result);
         }
 
-        [Fact]
-        public void CreateCompatibleCollection_SetsCapacity()
+        [Theory]
+        [InlineData(typeof(Collection<int>))]
+        [InlineData(typeof(IntList))]
+        [InlineData(typeof(LinkedList<int>))]
+        public void GetCompatibleCollection_ActivatesCollection(Type destinationType)
         {
-            // Arrange & Act
-            var result = ModelBindingHelper.CreateCompatibleCollection<int>(typeof(IList<int>), capacity: 23);
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+
+            // Assert
+            Assert.IsType(destinationType, result);
+        }
+
+        [Fact]
+        public void GetCompatibleCollection_SetsCapacity()
+        {
+            // Arrange
+            var bindingContext = GetBindingContext(typeof(IList<int>));
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: 23);
 
             // Assert
             var list = Assert.IsType<List<int>>(result);
@@ -1416,27 +1462,103 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Theory]
-        [InlineData(typeof(Collection<int>))]
-        [InlineData(typeof(IntList))]
-        [InlineData(typeof(LinkedList<int>))]
-        public void CreateCompatibleCollection_ActivatesCollection(Type destinationType)
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ArrayProperty))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ArrayPropertyWithValue))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerableProperty))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithArrayValue))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ListProperty))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ScalarProperty))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ScalarPropertyWithValue))]
+        public void CanGetCompatibleCollection_ReturnsFalse_IfReadOnly(string propertyName)
         {
-            // Arrange & Act
-            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+            // Arrange
+            var bindingContext = GetBindingContextForProperty(propertyName);
+
+            // Act
+            var result = ModelBindingHelper.CanGetCompatibleCollection<int>(bindingContext);
 
             // Assert
-            Assert.IsType(destinationType, result);
+            Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithArrayValueAndSetter))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithListValue))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ListPropertyWithValue))]
+        public void CanGetCompatibleCollection_ReturnsTrue_IfCollection(string propertyName)
+        {
+            // Arrange
+            var bindingContext = GetBindingContextForProperty(propertyName);
+
+            // Act
+            var result = ModelBindingHelper.CanGetCompatibleCollection<int>(bindingContext);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Theory]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithListValue))]
+        [InlineData(nameof(ModelWithReadOnlyAndSpecialCaseProperties.ListPropertyWithValue))]
+        public void GetCompatibleCollection_ReturnsExistingCollection(string propertyName)
+        {
+            // Arrange
+            var bindingContext = GetBindingContextForProperty(propertyName);
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+
+            // Assert
+            Assert.Same(bindingContext.Model, result);
+            var list = Assert.IsType<List<int>>(result);
+            Assert.Empty(list);
+        }
+
+        [Fact]
+        public void CanGetCompatibleCollection_ReturnsNewCollection()
+        {
+            // Arrange
+            var bindingContext = GetBindingContextForProperty(
+                nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithArrayValueAndSetter));
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+
+            // Assert
+            Assert.NotSame(bindingContext.Model, result);
+            var list = Assert.IsType<List<int>>(result);
+            Assert.Empty(list);
         }
 
         [Theory]
         [InlineData(typeof(Collection<string>))]
-        [InlineData(typeof(int))]
         [InlineData(typeof(List<long>))]
         [InlineData(typeof(MyModel))]
-        public void CreateCompatibleCollection_ReturnsNull_IfDestinationTypeIsNotCompatible(Type destinationType)
+        [InlineData(typeof(AbstractIntList))]
+        [InlineData(typeof(ISet<int>))]
+        public void CanGetCompatibleCollection_ReturnsFalse(Type destinationType)
         {
-            // Arrange & Act
-            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.CanGetCompatibleCollection<int>(bindingContext);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData(typeof(Collection<string>))]
+        [InlineData(typeof(List<long>))]
+        [InlineData(typeof(MyModel))]
+        public void GetCompatibleCollection_ReturnsNull_IfDestinationTypeIsNotCompatible(Type destinationType)
+        {
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
 
             // Assert
             Assert.Null(result);
@@ -1447,13 +1569,78 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [InlineData(typeof(ISet<int>))]
         [InlineData(typeof(ListWithInternalConstructor<int>))]
         [InlineData(typeof(ListWithThrowingConstructor<int>))]
-        public void CreateCompatibleCollection_ReturnsNull_IfDestinationTypeCannotBeActivated(Type destinationType)
+        public void GetCompatibleCollection_ReturnsNull_IfDestinationTypeCannotBeActivated(Type destinationType)
         {
-            // Arrange & Act
-            var result = ModelBindingHelper.CreateCompatibleCollection<int>(destinationType, capacity: null);
+            // Arrange
+            var bindingContext = GetBindingContext(destinationType);
+
+            // Act
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
 
             // Assert (also, above statement does not throw)
             Assert.Null(result);
+        }
+
+        private static DefaultModelBindingContext GetBindingContextForProperty(string propertyName)
+        {
+            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var modelMetadata = metadataProvider.GetMetadataForProperty(
+                typeof(ModelWithReadOnlyAndSpecialCaseProperties),
+                propertyName);
+            var bindingContext = GetBindingContext(metadataProvider, modelMetadata);
+
+            var container = new ModelWithReadOnlyAndSpecialCaseProperties();
+            bindingContext.Model = modelMetadata.PropertyGetter(container);
+
+            return bindingContext;
+        }
+
+        private static DefaultModelBindingContext GetBindingContext(Type modelType)
+        {
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var metadata = metadataProvider.GetMetadataForType(modelType);
+
+            return GetBindingContext(metadataProvider, metadata);
+        }
+
+        private static DefaultModelBindingContext GetBindingContext(
+            IModelMetadataProvider metadataProvider,
+            ModelMetadata metadata)
+        {
+            var bindingContext = new DefaultModelBindingContext
+            {
+                ModelMetadata = metadata,
+                OperationBindingContext = new OperationBindingContext
+                {
+                    MetadataProvider = metadataProvider,
+                },
+            };
+
+            return bindingContext;
+        }
+
+        private class ModelWithReadOnlyAndSpecialCaseProperties
+        {
+            public int[] ArrayProperty { get; }
+
+            public int[] ArrayPropertyWithValue { get; } = new int[4];
+
+            public IEnumerable<int> EnumerableProperty { get; }
+
+            public IEnumerable<int> EnumerablePropertyWithArrayValue { get; } = new int[4];
+
+            // Special case: Value cannot be used but property can be set.
+            public IEnumerable<int> EnumerablePropertyWithArrayValueAndSetter { get; set; } = new int[4];
+
+            public IEnumerable<int> EnumerablePropertyWithListValue { get; } = new List<int> { 23 };
+
+            public List<int> ListProperty { get; }
+
+            public List<int> ListPropertyWithValue { get; } = new List<int> { 23 };
+
+            public int ScalarProperty { get; }
+
+            public int ScalarPropertyWithValue { get; } = 23;
         }
 
         private class MyClassWithoutConverter
