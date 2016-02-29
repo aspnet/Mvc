@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             ViewBufferPage page;
             if (Pages.Count == 0)
             {
-                page = new ViewBufferPage(_bufferScope.GetSegment(_pageSize));
+                page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
                 Pages.Add(page);
             }
             else
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 page = Pages[Pages.Count - 1];
                 if (page.IsFull)
                 {
-                    page = new ViewBufferPage(_bufferScope.GetSegment(_pageSize));
+                    page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
                     Pages.Add(page);
                 }
             }

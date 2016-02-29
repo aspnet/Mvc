@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public IList<ViewBufferValue[]> ReturnedBuffers { get; } = new List<ViewBufferValue[]>();
 
-        public ViewBufferValue[] GetSegment(int size)
+        public ViewBufferValue[] GetPage(int size)
         {
             var buffer = new ViewBufferValue[size];
             CreatedBuffers.Add(buffer);

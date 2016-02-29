@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
-        public ViewBufferValue[] GetSegment(int size)
+        public ViewBufferValue[] GetPage(int size)
         {
             if (size <= 0)
             {
