@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </remarks>
         public void StartTagHelperWritingScope(HtmlEncoder encoder)
         {
-            var buffer = new ViewBuffer(BufferScope, Path, pageSize: 32);
+            var buffer = new ViewBuffer(BufferScope, Path, ViewBuffer.TagHelperPageSize);
             _tagHelperScopes.Push(new TagHelperScopeInfo(buffer, HtmlEncoder, ViewContext.Writer));
 
             // If passed an HtmlEncoder, override the property.

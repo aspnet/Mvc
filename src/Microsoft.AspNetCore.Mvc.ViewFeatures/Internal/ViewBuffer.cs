@@ -2,15 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
@@ -20,6 +17,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     [DebuggerDisplay("{DebuggerToString()}")]
     public class ViewBuffer : IHtmlContentBuilder
     {
+        public static readonly int PartialViewPageSize = 32;
+        public static readonly int TagHelperPageSize = 32;
+        public static readonly int ViewComponentPageSize = 32;
+        public static readonly int ViewPageSize = 256;
+
         private readonly IViewBufferScope _bufferScope;
         private readonly string _name;
         private readonly int _pageSize;

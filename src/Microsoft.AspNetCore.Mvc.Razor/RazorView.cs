@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
                 // If we get here, this is likely the top-level page (not a partial) - this means
                 // that context.Writer is wrapping the output stream. We need to buffer, so create a buffered writer.
-                var buffer = new ViewBuffer(_bufferScope, page.Path, pageSize: 256);
+                var buffer = new ViewBuffer(_bufferScope, page.Path, ViewBuffer.ViewPageSize);
                 writer = new ViewBufferTextWriter(buffer, context.Writer.Encoding, _htmlEncoder, context.Writer);
             }
 

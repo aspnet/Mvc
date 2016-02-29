@@ -505,7 +505,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(partialViewName));
             }
 
-            var viewBuffer = new ViewBuffer(_bufferScope, partialViewName, pageSize: 32);
+            var viewBuffer = new ViewBuffer(_bufferScope, partialViewName, ViewBuffer.PartialViewPageSize);
             using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
             {
                 await RenderPartialCoreAsync(partialViewName, model, viewData, writer);
