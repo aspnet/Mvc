@@ -316,7 +316,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             var htmlContent = value as IHtmlContent;
             if (htmlContent != null)
             {
-                writer.Write(htmlContent);
+                var bufferedWriter = writer as ViewBufferTestWriter;
+                if (bufferedWriter == null)
+                {
+                    htmlContent.WriteTo(writer, encoder);
+                }
+                else
+                {
+                    // Perf: This is the common case for IHtmlContent, ViewBufferTestWriter is inefficient
+                    // for writing character by character.
+                    bufferedWriter.Buffer.AppendHtml(htmlContent);
+                }
+
                 return;
             }
 

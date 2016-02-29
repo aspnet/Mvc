@@ -216,11 +216,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return;
             }
 
-            if (object.ReferenceEquals(this, destination))
-            {
-                return;
-            }
-
             for (var i = 0; i < Pages.Count; i++)
             {
                 var page = Pages[i];
@@ -249,11 +244,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void MoveTo(IHtmlContentBuilder destination)
         {
             if (Pages == null)
-            {
-                return;
-            }
-
-            if (object.ReferenceEquals(this, destination))
             {
                 return;
             }

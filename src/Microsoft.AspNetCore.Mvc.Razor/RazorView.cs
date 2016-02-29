@@ -99,11 +99,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             _bufferScope = context.HttpContext.RequestServices.GetRequiredService<IViewBufferScope>();
-            var bodyWriter = await RenderPageContentAsync(RazorPage, context, invokeViewStarts: true);
+            var bodyWriter = await RenderPageAsync(RazorPage, context, invokeViewStarts: true);
             await RenderLayoutAsync(context, bodyWriter);
         }
 
-        private async Task<ViewBufferTextWriter> RenderPageContentAsync(
+        private async Task<ViewBufferTextWriter> RenderPageAsync(
             IRazorPage page,
             ViewContext context,
             bool invokeViewStarts)
@@ -226,7 +226,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 previousPage.IsLayoutBeingRendered = true;
                 layoutPage.PreviousSectionWriters = previousPage.SectionWriters;
                 layoutPage.BodyContent = bodyWriter.Buffer;
-                bodyWriter = await RenderPageContentAsync(layoutPage, context, invokeViewStarts: false);
+                bodyWriter = await RenderPageAsync(layoutPage, context, invokeViewStarts: false);
 
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
