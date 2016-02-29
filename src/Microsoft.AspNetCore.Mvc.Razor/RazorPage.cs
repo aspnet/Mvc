@@ -353,7 +353,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             if (!string.IsNullOrEmpty(value))
             {
-                // Perf: Encode write away instead of writing it character-by-character.
+                // Perf: Encode right away instead of writing it character-by-character.
                 // character-by-character isn't efficient when using a writer backed by a ViewBuffer.
                 var encoded = encoder.Encode(value);
                 writer.Write(encoded);
