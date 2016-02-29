@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(buffer));
             }
 
-            if (index < 0)
+            if (index < 0 || index >= buffer.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
