@@ -210,12 +210,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                     actionDescriptors.Add(actionDescriptor);
 
-                    // If we're using an attribute route on the controller, then filter out any additional
-                    // metadata from the 'other' attribute routes.
                     AddActionFilters(actionDescriptor, action.Filters, controller.Filters, application.Filters);
 
-                    var controllerConstraints = controller.Selectors?[0].ActionConstraints
-                        .Where(c => !(c is IRouteTemplateProvider));
+                    // If we're using an attribute route on the controller, then filter out any additional
+                    // metadata from the 'other' attribute routes.
+                    IList<IActionConstraintMetadata> controllerConstraints = null;
+                    if (controller.Selectors.Count > 0)
+                    {
+                        controllerConstraints = controller.Selectors[0].ActionConstraints
+                            .Where(constraint => !(constraint is IRouteTemplateProvider)).ToList();
+                    }
+
                     AddActionConstraints(actionDescriptor, action, actionSelectorModel, controllerConstraints);
                 }
                 else if (controllerAttributeRoutes.Count > 0)
@@ -232,10 +237,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         actionDescriptors.Add(actionDescriptor);
 
-                        // If we're using an attribute route on the controller, then filter out any additional
-                        // metadata from the 'other' attribute routes.
                         AddActionFilters(actionDescriptor, action.Filters, controller.Filters, application.Filters);
 
+                        // If we're using an attribute route on the controller, then filter out any additional
+                        // metadata from the 'other' attribute routes.
                         var controllerConstraints = controllerSelectorModel.ActionConstraints
                             .Where(c => c == controllerAttributeRoute?.Attribute || !(c is IRouteTemplateProvider));
                         AddActionConstraints(actionDescriptor, action, actionSelectorModel, controllerConstraints);
@@ -250,16 +255,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         controllerAttributeRoute: null);
                     actionDescriptors.Add(actionDescriptor);
 
-                    IList<IActionConstraintMetadata> controllerActionConstraints = null;
+                    IList<IActionConstraintMetadata> controllerConstraints = null;
                     if (controller.Selectors.Count > 0)
                     {
-                        controllerActionConstraints = controller.Selectors[0].ActionConstraints;
+                        controllerConstraints = controller.Selectors[0].ActionConstraints;
                     }
 
                     // If there's no attribute route on the controller, then we can use all of the filters/constraints
                     // on the controller.
                     AddActionFilters(actionDescriptor, action.Filters, controller.Filters, application.Filters);
-                    AddActionConstraints(actionDescriptor, action, actionSelectorModel, controllerActionConstraints);
+                    AddActionConstraints(actionDescriptor, action, actionSelectorModel, controllerConstraints);
                 }
             }
 
