@@ -135,6 +135,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (encoder == null)
+            {
+                throw new ArgumentNullException(nameof(encoder));
+            }
+
             if (Pages == null)
             {
                 return;
@@ -172,6 +182,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <returns>A <see cref="Task"/> which will complete once content has been written.</returns>
         public async Task WriteToAsync(TextWriter writer, HtmlEncoder encoder)
         {
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            if (encoder == null)
+            {
+                throw new ArgumentNullException(nameof(encoder));
+            }
+
             if (Pages == null)
             {
                 return;
@@ -213,6 +233,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public void CopyTo(IHtmlContentBuilder destination)
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
             if (Pages == null)
             {
                 return;
@@ -245,11 +270,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public void MoveTo(IHtmlContentBuilder destination)
         {
+            if (destination == null)
+            {
+                throw new ArgumentNullException(nameof(destination));
+            }
+
             if (Pages == null)
             {
                 return;
             }
 
+            // Perf: We have an efficient implementation when the destination is another view buffer,
+            // we can just insert our pages as-is.
             var other = destination as ViewBuffer;
             if (other != null)
             {
@@ -299,8 +331,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                 var destinationPage = destination.Pages.Count == 0 ? null : destination.Pages[destination.Pages.Count - 1];
 
-                // If the other page is less or equal to than half full, let's copy it's to the current page if
-                // possible.
+                // If the source page is less or equal to than half full, let's copy it's content to the destination
+                // page if possible.
                 var isLessThanHalfFull = 2 * page.Count <= page.Capacity;
                 if (isLessThanHalfFull &&
                     destinationPage != null &&
@@ -316,12 +348,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                     destinationPage.Count += page.Count;
 
-                    // Now we can return this page, and it can be reused in the scope of this request.
+                    // Now we can return the source page, and it can be reused in the scope of this request.
+                    Array.Clear(page.Buffer, 0, page.Capacity);
                     _bufferScope.ReturnSegment(page.Buffer);
+                    
                 }
                 else
                 {
-                    // Otherwise, let's just take the the page from the other buffer.
+                    // Otherwise, let's just add the source page to the other buffer.
                     destination.Pages.Add(page);
                 }
 
