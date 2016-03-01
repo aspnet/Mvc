@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
         }
 
-        private class MyService : ICanHasViewContext
+        private class MyService : IViewContextAware
         {
             public ViewContext ViewContext { get; private set; }
 
