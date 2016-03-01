@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// Initializes a new instance of <see cref="MvcForm"/>.
         /// </summary>
         /// <param name="viewContext">The <see cref="ViewContext"/>.</param>
+        /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         public MvcForm(ViewContext viewContext, HtmlEncoder htmlEncoder)
         {
             if (viewContext == null)

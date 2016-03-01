@@ -197,6 +197,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             // looking for layout pages until they're no longer specified.
             var previousPage = RazorPage;
             var renderedLayouts = new List<IRazorPage>();
+
+            // This loop will execute Layout pages from the inside to the outside. With each
+            // iteration, bodyWriter is replaced with the aggregate of all the "body" content
+            // (including the layout page we just rendered).
             while (!string.IsNullOrEmpty(previousPage.Layout))
             {
                 if (!bodyWriter.IsBuffering)
@@ -231,6 +235,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 renderedLayouts.Add(layoutPage);
                 previousPage = layoutPage;
             }
+
+            // Now we've reached and rendered the outer-most layout page. Nothing left to execute.
 
             // Ensure all defined sections were rendered or RenderBody was invoked for page without defined sections.
             foreach (var layoutPage in renderedLayouts)

@@ -316,7 +316,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             for (var i = 0; i < Pages.Count; i++)
             {
                 var page = Pages[i];
-                Array.Clear(page.Buffer, 0, page.Capacity);
+                Array.Clear(page.Buffer, 0, page.Count);
                 _bufferScope.ReturnSegment(page.Buffer);
             }
 
@@ -349,7 +349,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     destinationPage.Count += page.Count;
 
                     // Now we can return the source page, and it can be reused in the scope of this request.
-                    Array.Clear(page.Buffer, 0, page.Capacity);
+                    Array.Clear(page.Buffer, 0, page.Count);
                     _bufferScope.ReturnSegment(page.Buffer);
                     
                 }
