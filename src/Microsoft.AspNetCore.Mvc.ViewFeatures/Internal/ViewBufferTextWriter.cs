@@ -23,6 +23,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     /// </summary>
     public class ViewBufferTextWriter : TextWriter
     {
+        private readonly TextWriter _inner;
+        private readonly HtmlEncoder _htmlEncoder;
+
         /// <summary>
         /// Creates a new instance of <see cref="ViewBufferTextWriter"/>.
         /// </summary>
@@ -77,8 +80,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             Buffer = buffer;
             Encoding = encoding;
-            HtmlEncoder = htmlEncoder;
-            Inner = inner;
+            _htmlEncoder = htmlEncoder;
+            _inner = inner;
         }
 
         /// <inheritdoc />
@@ -92,10 +95,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// </summary>
         public ViewBuffer Buffer { get; }
 
-        private TextWriter Inner { get; }
-
-        private HtmlEncoder HtmlEncoder { get; }
-
         /// <inheritdoc />
         public override void Write(char value)
         {
@@ -105,7 +104,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                Inner.Write(value);
+                _inner.Write(value);
             }
         }
 
@@ -133,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                Inner.Write(buffer, index, count);
+                _inner.Write(buffer, index, count);
             }
         }
 
@@ -151,7 +150,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                Inner.Write(value);
+                _inner.Write(value);
             }
         }
 
@@ -196,7 +195,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                value.WriteTo(Inner, HtmlEncoder);
+                value.WriteTo(_inner, _htmlEncoder);
             }
         }
 
@@ -217,7 +216,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                value.WriteTo(Inner, HtmlEncoder);
+                value.WriteTo(_inner, _htmlEncoder);
             }
         }
 
@@ -258,7 +257,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteAsync(value);
+                return _inner.WriteAsync(value);
             }
         }
 
@@ -286,7 +285,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteAsync(buffer, index, count);
+                return _inner.WriteAsync(buffer, index, count);
             }
         }
 
@@ -300,7 +299,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteAsync(value);
+                return _inner.WriteAsync(value);
             }
         }
 
@@ -313,7 +312,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                Inner.WriteLine();
+                _inner.WriteLine();
             }
         }
 
@@ -327,7 +326,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                Inner.WriteLine(value);
+                _inner.WriteLine(value);
             }
         }
 
@@ -342,7 +341,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteLineAsync(value);
+                return _inner.WriteLineAsync(value);
             }
         }
 
@@ -357,7 +356,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteLineAsync(value, start, offset);
+                return _inner.WriteLineAsync(value, start, offset);
             }
         }
 
@@ -372,7 +371,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteLineAsync(value);
+                return _inner.WriteLineAsync(value);
             }
         }
 
@@ -386,7 +385,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
             else
             {
-                return Inner.WriteLineAsync();
+                return _inner.WriteLineAsync();
             }
         }
 
@@ -397,7 +396,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// </summary>
         public override void Flush()
         {
-            if (Inner == null)
+            if (_inner == null)
             {
                 return;
             }
@@ -405,10 +404,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             if (IsBuffering)
             {
                 IsBuffering = false;
-                Buffer.WriteTo(Inner, HtmlEncoder);
+                Buffer.WriteTo(_inner, _htmlEncoder);
             }
 
-            Inner.Flush();
+            _inner.Flush();
         }
 
         /// <summary>
@@ -419,7 +418,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <returns>A <see cref="Task"/> that represents the asynchronous copy and flush operations.</returns>
         public override async Task FlushAsync()
         {
-            if (Inner == null)
+            if (_inner == null)
             {
                 return;
             }
@@ -427,10 +426,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             if (IsBuffering)
             {
                 IsBuffering = false;
-                await Buffer.WriteToAsync(Inner, HtmlEncoder);
+                await Buffer.WriteToAsync(_inner, _htmlEncoder);
             }
 
-            await Inner.FlushAsync();
+            await _inner.FlushAsync();
         }
     }
 }

@@ -36,11 +36,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
-        public ViewBufferValue[] GetPage(int size)
+        public ViewBufferValue[] GetPage(int pageSize)
         {
-            if (size <= 0)
+            if (pageSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(size));
+                throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
             if (_disposed)
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             try
             {
-                segment = _viewBufferPool.Rent(Math.Max(size, MinimumSize));
+                segment = _viewBufferPool.Rent(Math.Max(pageSize, MinimumSize));
                 _leased.Add(segment);
             }
             catch when (segment != null)
