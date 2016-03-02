@@ -26,8 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             // This method is optimized to use cached tasks when possible and avoid allocating
-            // using Task.FromResult. If you need to make changes of this nature, profile
-            // allocations afterwards and look for Task<ModelBindingResult>.
+            // using Task.FromResult or async state machines.
 
             var allowedBindingSource = bindingContext.BindingSource;
             if (allowedBindingSource == null ||
@@ -48,8 +47,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 if (bindingContext.ModelType == typeof(string))
                 {
-                    string value = request.Headers[headerName];
-                    model = value;
+                    var value = request.Headers[headerName];
+                    model = (string)value;
                 }
                 else
                 {

@@ -167,17 +167,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
             Assert.Null(result.Model);
         }
 
-        [Theory]
-        [InlineData(typeof(ISet<string>))]
-        [InlineData(typeof(ListWithInternalConstructor<string>))]
-        [InlineData(typeof(ListWithThrowingConstructor<string>))]
-        public async Task HeaderBinder_ReturnsFailedResult_ForCollectionsItCannotCreate(Type destinationType)
+        [Fact]
+        public async Task HeaderBinder_ReturnsFailedResult_ForCollectionsItCannotCreate()
         {
             // Arrange
             var header = "Accept";
             var headerValue = "application/json,text/json";
             var binder = new HeaderModelBinder();
-            var modelBindingContext = GetBindingContext(destinationType);
+            var modelBindingContext = GetBindingContext(typeof(ISet<string>));
 
             modelBindingContext.FieldName = header;
             modelBindingContext.OperationBindingContext.HttpContext.Request.Headers.Add(header, new[] { headerValue });
@@ -247,23 +244,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Test
 
         private class StringList : List<string>
         {
-        }
-
-        private class ListWithInternalConstructor<T> : List<T>
-        {
-            internal ListWithInternalConstructor()
-                : base()
-            {
-            }
-        }
-
-        private class ListWithThrowingConstructor<T> : List<T>
-        {
-            public ListWithThrowingConstructor()
-                : base()
-            {
-                throw new RankException("No, don't do this.");
-            }
         }
     }
 }

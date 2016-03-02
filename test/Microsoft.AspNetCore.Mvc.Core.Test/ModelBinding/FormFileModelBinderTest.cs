@@ -248,17 +248,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Null(result.Model);
         }
 
-        [Theory]
-        [InlineData(typeof(ISet<IFormFile>))]
-        [InlineData(typeof(ListWithInternalConstructor<IFormFile>))]
-        [InlineData(typeof(ListWithThrowingConstructor<IFormFile>))]
-        public async Task FormFileModelBinder_ReturnsFailedResult_ForCollectionsItCannotCreate(Type destinationType)
+        [Fact]
+        public async Task FormFileModelBinder_ReturnsFailedResult_ForCollectionsItCannotCreate()
         {
             // Arrange
             var binder = new FormFileModelBinder();
             var formFiles = GetTwoFiles();
             var httpContext = GetMockHttpContext(GetMockFormCollection(formFiles));
-            var bindingContext = GetBindingContext(destinationType, httpContext);
+            var bindingContext = GetBindingContext(typeof(ISet<IFormFile>), httpContext);
 
             // Act
             var result = await binder.BindModelResultAsync(bindingContext);
@@ -358,23 +355,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private class FileList : List<IFormFile>
         {
-        }
-
-        private class ListWithInternalConstructor<T> : List<T>
-        {
-            internal ListWithInternalConstructor()
-                : base()
-            {
-            }
-        }
-
-        private class ListWithThrowingConstructor<T> : List<T>
-        {
-            public ListWithThrowingConstructor()
-                : base()
-            {
-                throw new RankException("No, don't do this.");
-            }
         }
     }
 }

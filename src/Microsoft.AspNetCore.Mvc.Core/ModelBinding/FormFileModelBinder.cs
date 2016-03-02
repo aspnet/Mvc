@@ -30,8 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             // This method is optimized to use cached tasks when possible and avoid allocating
-            // using Task.FromResult. If you need to make changes of this nature, profile
-            // allocations afterwards and look for Task<ModelBindingResult>.
+            // using Task.FromResult or async state machines.
 
             var modelType = bindingContext.ModelType;
             if (modelType != typeof(IFormFile) && !typeof(IEnumerable<IFormFile>).IsAssignableFrom(modelType))
@@ -57,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
             else
             {
-                postedFiles = ModelBindingHelper.GetCompatibleCollection<IFormFile>(bindingContext, capacity: null);
+                postedFiles = ModelBindingHelper.GetCompatibleCollection<IFormFile>(bindingContext);
                 if (postedFiles == null)
                 {
                     // Silently fail and stop other model binders running if unable to activate an instance.

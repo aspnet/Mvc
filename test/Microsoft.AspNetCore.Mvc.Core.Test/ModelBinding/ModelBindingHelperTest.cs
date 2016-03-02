@@ -1425,7 +1425,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var bindingContext = GetBindingContext(destinationType);
 
             // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext);
 
             // Assert
             Assert.IsType<List<int>>(result);
@@ -1441,7 +1441,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var bindingContext = GetBindingContext(destinationType);
 
             // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext);
 
             // Assert
             Assert.IsType(destinationType, result);
@@ -1506,7 +1506,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var bindingContext = GetBindingContextForProperty(propertyName);
 
             // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext);
 
             // Assert
             Assert.Same(bindingContext.Model, result);
@@ -1522,7 +1522,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 nameof(ModelWithReadOnlyAndSpecialCaseProperties.EnumerablePropertyWithArrayValueAndSetter));
 
             // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
+            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext);
 
             // Assert
             Assert.NotSame(bindingContext.Model, result);
@@ -1546,39 +1546,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // Assert
             Assert.False(result);
-        }
-
-        [Theory]
-        [InlineData(typeof(Collection<string>))]
-        [InlineData(typeof(List<long>))]
-        [InlineData(typeof(MyModel))]
-        public void GetCompatibleCollection_ReturnsNull_IfDestinationTypeIsNotCompatible(Type destinationType)
-        {
-            // Arrange
-            var bindingContext = GetBindingContext(destinationType);
-
-            // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Theory]
-        [InlineData(typeof(AbstractIntList))]
-        [InlineData(typeof(ISet<int>))]
-        [InlineData(typeof(ListWithInternalConstructor<int>))]
-        [InlineData(typeof(ListWithThrowingConstructor<int>))]
-        public void GetCompatibleCollection_ReturnsNull_IfDestinationTypeCannotBeActivated(Type destinationType)
-        {
-            // Arrange
-            var bindingContext = GetBindingContext(destinationType);
-
-            // Act
-            var result = ModelBindingHelper.GetCompatibleCollection<int>(bindingContext, capacity: null);
-
-            // Assert (also, above statement does not throw)
-            Assert.Null(result);
         }
 
         private static DefaultModelBindingContext GetBindingContextForProperty(string propertyName)
@@ -1657,23 +1624,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private class IntList : List<int>
         {
-        }
-
-        private class ListWithInternalConstructor<T> : List<T>
-        {
-            internal ListWithInternalConstructor()
-                : base()
-            {
-            }
-        }
-
-        private class ListWithThrowingConstructor<T> : List<T>
-        {
-            public ListWithThrowingConstructor()
-                : base()
-            {
-                throw new RankException("No, don't do this.");
-            }
         }
 
         private enum IntEnum
