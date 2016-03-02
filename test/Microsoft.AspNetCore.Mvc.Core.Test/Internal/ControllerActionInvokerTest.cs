@@ -1977,6 +1977,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 actionDescriptor.MethodInfo = typeof(ControllerActionInvokerTest).GetMethod("ActionMethod");
             }
+            actionDescriptor.ControllerTypeInfo = typeof(ControllerActionInvokerTest).GetTypeInfo();
 
             var httpContext = new Mock<HttpContext>(MockBehavior.Loose);
 

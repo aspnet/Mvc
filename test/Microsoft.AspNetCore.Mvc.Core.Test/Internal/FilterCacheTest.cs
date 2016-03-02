@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -126,6 +127,42 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 filters2,
                 f => Assert.NotSame(filters1[0], f), // Created by factory (again)
                 f => Assert.Same(filters1[1], f)); // Cached
+        }
+
+        [Fact]
+        public void GetControllerActionMethodExecutor_CachesExecutor()
+        {
+            // Arrange
+            var services = CreateServices();
+            var cache = CreateCache(new DefaultFilterProvider());
+
+            var action = new ControllerActionDescriptor()
+            {
+                FilterDescriptors = new[]
+                {
+                    new FilterDescriptor(new TestFilterFactory() { IsReusable = false }, FilterScope.Action),
+                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
+                },
+                MethodInfo = typeof(FilterCache).GetMethod("GetControllerActionMethodExecutor"),
+                ControllerTypeInfo = typeof(FilterCache).GetTypeInfo()
+
+            };
+
+            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), action);
+
+            // Act - 1
+            var executor1 = cache.GetControllerActionMethodExecutor(context);
+
+            Assert.NotNull(executor1);
+
+            var filters1 = cache.GetFilters(context);
+
+            Assert.NotNull(filters1);
+
+            // Act - 2
+            var executor2 = cache.GetControllerActionMethodExecutor(context);
+
+            Assert.Same(executor1, executor2);
         }
 
         private class TestFilter : IFilterMetadata

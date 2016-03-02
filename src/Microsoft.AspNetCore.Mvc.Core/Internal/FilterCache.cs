@@ -1,11 +1,13 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
@@ -53,7 +55,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             CacheEntry entry;
             if (cache.Entries.TryGetValue(actionDescriptor, out entry))
             {
-                return GetFiltersFromEntry(entry, actionContext);
+                if (entry.Filters != null || entry.Items != null)
+                {
+                    return GetFiltersFromEntry(entry, actionContext);
+                }
             }
 
             var items = new List<FilterItem>(actionDescriptor.FilterDescriptors.Count);
@@ -86,8 +91,52 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 entry = new CacheEntry(items);
             }
 
-            cache.Entries.TryAdd(actionDescriptor, entry);
+            cache.Entries.AddOrUpdate(actionDescriptor,
+                                      entry,
+                                      (key, value) =>
+                                      {
+                                          return new CacheEntry(entry.Filters, entry.Items, value.ActionMethodExecutor);
+                                      });
             return filters;
+        }
+
+        public ObjectMethodExecutor GetControllerActionMethodExecutor(ActionContext actionContext)
+        {
+            if(actionContext == null)
+            {
+                throw new ArgumentNullException(nameof(actionContext));
+            }
+            var controllerContext = actionContext as ControllerContext;
+
+            if(controllerContext == null)
+            {
+                var actionContextType = actionContext.GetType();
+                var message = Resources.FormatTypeMustDeriveFromType(
+                    actionContextType.FullName,
+                    typeof(ControllerContext).FullName);
+                throw new ArgumentException(message, nameof(actionContextType));
+            }
+
+            var cache = CurrentCache;
+            var actionDescriptor = controllerContext.ActionDescriptor;
+
+            CacheEntry entry;
+            if (cache.Entries.TryGetValue(actionDescriptor, out entry))
+            {
+                if(entry.ActionMethodExecutor != null)
+                {
+                    return entry.ActionMethodExecutor;
+                }
+            }
+
+            var executor = new ObjectMethodExecutor(actionDescriptor.MethodInfo, actionDescriptor.ControllerTypeInfo);
+            cache.Entries.AddOrUpdate(actionDescriptor, 
+                                      new CacheEntry(executor), 
+                                      (key,value) =>
+                                        {
+                                            return new CacheEntry(value.Filters, value.Items, executor);
+                                        });
+            return executor;
         }
 
         private IFilterMetadata[] GetFiltersFromEntry(CacheEntry entry, ActionContext actionContext)
@@ -184,17 +233,35 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 Filters = filters;
                 Items = null;
+                ActionMethodExecutor = null;
             }
 
             public CacheEntry(List<FilterItem> items)
             {
                 Items = items;
                 Filters = null;
+                ActionMethodExecutor = null;
+            }
+
+            public CacheEntry(IFilterMetadata[] filters, List<FilterItem> items, ObjectMethodExecutor executor)
+            {
+                Items = items;
+                Filters = filters;
+                ActionMethodExecutor = executor;
+            }
+
+            public CacheEntry(ObjectMethodExecutor executor)
+            {
+                Items = null;
+                Filters = null;
+                ActionMethodExecutor = executor;
             }
 
             public IFilterMetadata[] Filters { get; }
 
             public List<FilterItem> Items { get; }
+
+            public ObjectMethodExecutor ActionMethodExecutor { get; }
         }
     }
 }
