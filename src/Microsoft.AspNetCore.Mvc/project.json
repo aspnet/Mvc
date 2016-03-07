@@ -11,7 +11,8 @@
     "nowarn": [
       "CS1591"
     ],
-    "xmlDoc": true
+    "xmlDoc": true,
+    "preserveCompilationContext": true
   },
   "dependencies": {
     "Microsoft.AspNetCore.Mvc.ApiExplorer": "1.0.0-*",
