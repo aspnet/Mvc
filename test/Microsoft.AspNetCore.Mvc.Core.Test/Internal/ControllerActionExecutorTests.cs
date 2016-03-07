@@ -32,24 +32,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private delegate dynamic ReturnTaskAsDynamicValue(int i, string s);
 
-        [Fact]
-        public async Task AsyncAction_WithVoidReturnType()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithVoidReturnType(bool usingExecutor)
         {
             // Arrange
             var methodWithVoidReturnType = new MethodWithVoidReturnType(TestController.VoidAction);
-
-            // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                                                        methodWithVoidReturnType.GetMethodInfo(),
-                                                        null,
-                                                        (IDictionary<string, object>)null);
-
+            var result = await ExecuteAction(usingExecutor, methodWithVoidReturnType, null, (IDictionary<string,object>)null);
             // Assert
             Assert.Same(null, result);
         }
 
-        [Fact]
-        public async Task AsyncAction_TaskReturnType()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_TaskReturnType(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -57,19 +55,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var actionParameters = new Dictionary<string, object> { { "i", inputParam1 }, { "s", inputParam2 } };
 
             var methodWithTaskReturnType = new MethodWithTaskReturnType(_controller.TaskAction);
-
-            // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                                                            methodWithTaskReturnType.GetMethodInfo(),
-                                                            _controller,
-                                                            actionParameters);
+            var result = await ExecuteAction(usingExecutor, methodWithTaskReturnType, _controller, actionParameters);
 
             // Assert
             Assert.Same(null, result);
         }
 
-        [Fact]
-        public async Task AsyncAction_TaskOfValueReturnType()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_TaskOfValueReturnType(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -79,17 +74,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var methodWithTaskOfIntReturnType = new MethodWithTaskOfIntReturnType(_controller.TaskValueTypeAction);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                                                        methodWithTaskOfIntReturnType.GetMethodInfo(),
-                                                        _controller,
-                                                        actionParameters);
-
+            var result = await ExecuteAction(usingExecutor, methodWithTaskOfIntReturnType, _controller, actionParameters);
             // Assert
             Assert.Equal(inputParam1, result);
         }
 
-        [Fact]
-        public async Task AsyncAction_TaskOfTaskOfValueReturnType()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_TaskOfTaskOfValueReturnType(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -99,17 +92,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var methodWithTaskOfTaskOfIntReturnType = new MethodWithTaskOfTaskOfIntReturnType(_controller.TaskOfTaskAction);
 
             // Act
-            var result = await (Task<int>)(await ControllerActionExecutor.ExecuteAsync(
-                                                                        methodWithTaskOfTaskOfIntReturnType.GetMethodInfo(),
-                                                                        _controller,
-                                                                        actionParameters));
+            var result = await (Task<int>)( await ExecuteAction(usingExecutor, methodWithTaskOfTaskOfIntReturnType, _controller, actionParameters));            
 
             // Assert
             Assert.Equal(inputParam1, result);
         }
 
-        [Fact]
-        public async Task AsyncAction_WithAsyncKeywordThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithAsyncKeywordThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -120,13 +112,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act and Assert
             await Assert.ThrowsAsync<NotImplementedException>(
-                    () => ControllerActionExecutor.ExecuteAsync(methodWithTaskOfIntReturnType.GetMethodInfo(),
+                    () => ExecuteAction(usingExecutor,methodWithTaskOfIntReturnType,
                                                                _controller,
                                                                actionParameters));
         }
 
-        [Fact]
-        public async Task AsyncAction_WithoutAsyncThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithoutAsyncThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -135,15 +129,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var methodWithTaskOfIntReturnType = new MethodWithTaskOfIntReturnType(_controller.TaskActionWithExceptionWithoutAsync);
 
-            // Act & Assert
+            // Act & Assert            
             await Assert.ThrowsAsync<NotImplementedException>(
-                        () => ControllerActionExecutor.ExecuteAsync(methodWithTaskOfIntReturnType.GetMethodInfo(),
+                        () => ExecuteAction(usingExecutor,methodWithTaskOfIntReturnType,
                                                                    _controller,
                                                                    actionParameters));
         }
 
-        [Fact]
-        public async Task AsyncAction_WithExceptionsAfterAwait()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithExceptionsAfterAwait(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -153,34 +149,39 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var methodWithTaskOfIntReturnType = new MethodWithTaskOfIntReturnType(_controller.TaskActionThrowAfterAwait);
             var expectedException = "Argument Exception";
 
-            // Act & Assert
+            // Act & Assert            
             var ex = await Assert.ThrowsAsync<ArgumentException>(
-                () => ControllerActionExecutor.ExecuteAsync(
-                    methodWithTaskOfIntReturnType.GetMethodInfo(),
+                () => ExecuteAction(
+                    usingExecutor,
+                    methodWithTaskOfIntReturnType,
                     _controller,
                     actionParameters));
             Assert.Equal(expectedException, ex.Message);
         }
 
-        [Fact]
-        public async Task SyncAction()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task SyncAction(bool usingExecutor)
         {
             // Arrange
             var inputString = "hello";
             var syncMethod = new SyncMethod(_controller.Echo);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                                                syncMethod.GetMethodInfo(),
+            var result = await ExecuteAction(
+                                                usingExecutor,
+                                                syncMethod,
                                                 _controller,
                                                 new Dictionary<string, object>() { { "input", inputString } });
-
             // Assert
             Assert.Equal(inputString, result);
         }
 
-        [Fact]
-        public async Task SyncAction_WithException()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task SyncAction_WithException(bool usingExecutor)
         {
             // Arrange
             var inputString = "hello";
@@ -188,21 +189,25 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act & Assert
             await Assert.ThrowsAsync<NotImplementedException>(
-                        () => ControllerActionExecutor.ExecuteAsync(
-                                                syncMethod.GetMethodInfo(),
+                        () => ExecuteAction(
+                                                usingExecutor,
+                                                syncMethod,
                                                 _controller,
                                                 new Dictionary<string, object>() { { "input", inputString } }));
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithArgumentDictionary_DefaultValueAttributeUsed()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task ExecuteAsync_WithArgumentDictionary_DefaultValueAttributeUsed(bool usingExecutor)
         {
             // Arrange
             var syncMethod = new SyncMethod(_controller.EchoWithDefaultValue);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                syncMethod.GetMethodInfo(),
+            var result = await ExecuteAction(
+                usingExecutor,
+                syncMethod,
                 _controller,
                 new Dictionary<string, object>());
 
@@ -210,31 +215,38 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal("hello", result);
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithArgumentArray_DefaultValueAttributeIgnored()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task ExecuteAsync_WithArgumentArray_DefaultValueAttributeIgnored(bool usingExecutor)
         {
             // Arrange
             var syncMethod = new SyncMethod(_controller.EchoWithDefaultValue);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                syncMethod.GetMethodInfo(),
+            var result = await ExecuteAction(
+                usingExecutor,
+                syncMethod,
                 _controller,
                 new object[] { null, });
+            
 
             // Assert
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithArgumentDictionary_DefaultParameterValueUsed()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task ExecuteAsync_WithArgumentDictionary_DefaultParameterValueUsed(bool usingExecutor)
         {
             // Arrange
             var syncMethod = new SyncMethod(_controller.EchoWithDefaultValueAndAttribute);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                syncMethod.GetMethodInfo(),
+            var result = await ExecuteAction(
+                usingExecutor,
+                syncMethod,
                 _controller,
                 new Dictionary<string, object>());
 
@@ -242,15 +254,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal("world", result);
         }
 
-        [Fact]
-        public async Task ExecuteAsync_WithArgumentDictionary_AnyValue_HasPrecedenceOverDefaults()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task ExecuteAsync_WithArgumentDictionary_AnyValue_HasPrecedenceOverDefaults(bool usingExecutor)
         {
             // Arrange
             var syncMethod = new SyncMethod(_controller.EchoWithDefaultValueAndAttribute);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                syncMethod.GetMethodInfo(),
+            var result = await ExecuteAction(
+                usingExecutor,
+                syncMethod,
                 _controller,
                 new Dictionary<string, object>() { { "input", null } });
 
@@ -258,8 +273,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Null(result);
         }
 
-        [Fact]
-        public async Task AsyncAction_WithCustomTaskReturnTypeThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithCustomTaskReturnTypeThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -276,15 +293,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => ControllerActionExecutor.ExecuteAsync(
-                    methodWithCutomTaskReturnType.GetMethodInfo(),
+                () => ExecuteAction(
+                    usingExecutor,
+                    methodWithCutomTaskReturnType,
                     _controller,
                     actionParameters));
             Assert.Equal(expectedException, ex.Message);
         }
 
-        [Fact]
-        public async Task AsyncAction_WithCustomTaskOfTReturnTypeThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithCustomTaskOfTReturnTypeThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -299,15 +319,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => ControllerActionExecutor.ExecuteAsync(
-                    methodWithCutomTaskOfTReturnType.GetMethodInfo(),
+                () => ExecuteAction(
+                    usingExecutor,
+                    methodWithCutomTaskOfTReturnType,
                     _controller,
                     actionParameters));
             Assert.Equal(expectedException, ex.Message);
         }
 
-        [Fact]
-        public async Task AsyncAction_ReturningUnwrappedTaskThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_ReturningUnwrappedTaskThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -325,15 +348,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => ControllerActionExecutor.ExecuteAsync(
-                    methodWithUnwrappedTask.GetMethodInfo(),
+                () => ExecuteAction(
+                    usingExecutor,
+                    methodWithUnwrappedTask,
                     _controller,
                     actionParameters));
             Assert.Equal(expectedException, ex.Message);
         }
 
-        [Fact]
-        public async Task AsyncAction_WithDynamicReturnTypeThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task AsyncAction_WithDynamicReturnTypeThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -348,15 +374,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act & Assert
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-               () => ControllerActionExecutor.ExecuteAsync(
-                    dynamicTaskMethod.GetMethodInfo(),
+               () => ExecuteAction(
+                    usingExecutor,
+                    dynamicTaskMethod,
                     _controller,
                     actionParameters));
             Assert.Equal(expectedException, ex.Message);
         }
 
-        [Fact]
-        public async Task ParametersInRandomOrder()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task ParametersInRandomOrder(bool usingExecutor)
         {
             // Arrange
             var inputParam1 = 1;
@@ -367,8 +396,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var methodWithTaskOfIntReturnType = new MethodWithTaskOfIntReturnType(_controller.TaskValueTypeAction);
 
             // Act
-            var result = await ControllerActionExecutor.ExecuteAsync(
-                                                        methodWithTaskOfIntReturnType.GetMethodInfo(),
+            var result = await             ExecuteAction(
+                                                        usingExecutor,
+                                                        methodWithTaskOfIntReturnType,
                                                         _controller,
                                                         actionParameters);
 
@@ -376,8 +406,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal(inputParam1, result);
         }
 
-        [Fact]
-        public async Task InvalidParameterValueThrows()
+        [Theory,
+         InlineData(true),
+         InlineData(false)]
+        public async Task InvalidParameterValueThrows(bool usingExecutor)
         {
             // Arrange
             var inputParam2 = "Second Parameter";
@@ -395,12 +427,67 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act & Assert
             // If it is an unrecognized derived type we throw an InvalidOperationException.
             var ex = await Assert.ThrowsAsync<ArgumentException>(
-                () => ControllerActionExecutor.ExecuteAsync(
-                        methodWithTaskOfIntReturnType.GetMethodInfo(),
+                () => ExecuteAction(
+                        usingExecutor,
+                        methodWithTaskOfIntReturnType,
                         _controller,
                         actionParameters));
 
             Assert.Equal(expectedException, ex.Message);
+        }
+
+        private async Task<object> ExecuteAction(bool usingExecutor, Delegate methodDelegate, TestController controller, IDictionary<string, object> actionParameters)
+        {
+            ObjectMethodExecutor executor = null;
+            if (usingExecutor)
+            {
+                executor = new ObjectMethodExecutor(methodDelegate.GetMethodInfo(), controller.GetType().GetTypeInfo());
+            }
+
+            object result;
+            if (usingExecutor)
+            {
+                result = await ControllerActionExecutor.ExecuteAsync(
+                                                        executor,
+                                                        controller,
+                                                        actionParameters);
+            }
+            else
+            {
+                result = await ControllerActionExecutor.ExecuteAsync(
+                                                        methodDelegate.GetMethodInfo(),
+                                                        controller,
+                                                        actionParameters);
+            }
+
+            return result;
+        }
+
+        private async Task<object> ExecuteAction(bool usingExecutor, Delegate methodDelegate, TestController controller, object[] actionParameters)
+        {
+            ObjectMethodExecutor executor = null;
+            if (usingExecutor)
+            {
+                executor = new ObjectMethodExecutor(methodDelegate.GetMethodInfo(), controller.GetType().GetTypeInfo());
+            }
+
+            object result;
+            if (usingExecutor)
+            {
+                result = await ControllerActionExecutor.ExecuteAsync(
+                                                        executor,
+                                                        controller,
+                                                        actionParameters);
+            }
+            else
+            {
+                result = await ControllerActionExecutor.ExecuteAsync(
+                                                        methodDelegate.GetMethodInfo(),
+                                                        controller,
+                                                        actionParameters);
+            }
+
+            return result;
         }
 
         public class TestController

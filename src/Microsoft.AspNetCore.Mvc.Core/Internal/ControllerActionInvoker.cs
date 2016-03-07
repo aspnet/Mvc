@@ -96,6 +96,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             var actionMethodInfo = _descriptor.MethodInfo;
+
+            var methodExecutor = GetControllerActionMethodExecutor();
+
             var arguments = ControllerActionExecutor.PrepareArguments(
                 actionExecutingContext.ActionArguments,
                 actionMethodInfo.GetParameters());
@@ -103,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Logger.ActionMethodExecuting(actionExecutingContext, arguments);
 
             var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
-                actionMethodInfo,
+                methodExecutor,
                 actionExecutingContext.Controller,
                 arguments);
 

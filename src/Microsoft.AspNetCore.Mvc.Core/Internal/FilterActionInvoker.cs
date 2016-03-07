@@ -182,6 +182,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return _filterCache.GetFilters(Context);
         }
 
+        protected ObjectMethodExecutor GetControllerActionMethodExecutor()
+        {
+            return _filterCache.GetControllerActionMethodExecutor(Context);
+        }
+
         private Task InvokeAllAuthorizationFiltersAsync()
         {
             _cursor.Reset();
