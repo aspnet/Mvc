@@ -676,22 +676,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public async Task EnsureRenderedBodyOrSections_SucceedsIfDefinedSectionsAreNotRendered_AndIgnored()
         {
             // Arrange
-            var path = "page-path";
-            var sectionName = "sectionA";
+            var sectionA = "sectionA";
+            var sectionB = "sectionB";
             var page = CreatePage(v =>
             {
+                v.Write(v.RenderSection(sectionA));
             });
-            page.Path = path;
-            page.BodyContent = new HtmlString("some content");
             page.PreviousSectionWriters = new Dictionary<string, RenderAsyncDelegate>
             {
-                { sectionName, _nullRenderAsyncDelegate }
+                { sectionA, writer => writer.WriteAsync(sectionA) },
+                { sectionB, writer => writer.WriteAsync(sectionB) }
             };
-            page.IgnoreSection(sectionName);
+            page.IgnoreSection(sectionB);
 
-            // Act & Assert (does not throw)
+            // Act
             await page.ExecuteAsync();
+
+            // Assert
             page.EnsureRenderedBodyOrSections();
+            Assert.Equal(sectionA, page.RenderedContent);
         }
 
         [Fact]

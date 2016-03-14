@@ -672,9 +672,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// <summary>
         /// In a Razor layout page, ignores rendering the portion of a content page that is not within a named section.
         /// </summary>
-        public void IgnoreBody()
+        /// <returns><see cref="HtmlString.Empty"/>.</returns>
+        public HtmlString IgnoreBody()
         {
             _ignoreBody = true;
+
+            return HtmlString.Empty;
         }
 
         /// <summary>
@@ -841,7 +844,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// In layout pages, ignores rendering the content of the section named <paramref name="sectionName"/>.
         /// </summary>
         /// <param name="sectionName">The section to ignore.</param>
-        public void IgnoreSection(string sectionName)
+        /// <returns><see cref="HtmlString.Empty"/>.</returns>
+        public HtmlString IgnoreSection(string sectionName)
         {
             if (sectionName == null)
             {
@@ -863,6 +867,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             _ignoredSections.Add(sectionName);
+
+            return HtmlString.Empty;
         }
 
         /// <summary>
