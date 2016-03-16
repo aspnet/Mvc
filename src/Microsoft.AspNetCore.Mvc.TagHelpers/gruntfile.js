@@ -20,6 +20,7 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-contrib-uglify");
+    grunt.loadNpmTasks('grunt-newer');
 
-    grunt.registerTask("default", [ "jshint", "uglify" ]);
+    grunt.registerTask("default", [ "newer:jshint", "newer:uglify" ]);
 };
