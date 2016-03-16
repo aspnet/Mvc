@@ -1635,10 +1635,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var httpContext = new DefaultHttpContext();
 
+            var binderFactory = new Mock<IModelBinderFactory>();
+            binderFactory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Returns(binder);
+
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext,
-                ModelBinders = new[] { binder, },
                 ValueProviders = new[] { valueProvider, },
                 ValidatorProviders = new[]
                 {
@@ -1648,11 +1652,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                         stringLocalizerFactory: null),
                 },
             };
-
+            
             var controller = new TestableController()
             {
                 ControllerContext = controllerContext,
                 MetadataProvider = metadataProvider,
+                ModelBinderFactory = binderFactory.Object,
                 ObjectValidator = new DefaultObjectValidator(metadataProvider, new ValidatorCache()),
             };
 
