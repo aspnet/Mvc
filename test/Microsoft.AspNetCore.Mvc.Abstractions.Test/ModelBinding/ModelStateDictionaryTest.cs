@@ -1084,7 +1084,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void GetEnumerable_ReturnsAllEntries()
+        public void GetEnumerable_ReturnsAllNonContainerNodes()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
@@ -1096,7 +1096,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             dictionary.Remove("Property2");
 
             // Act & Assert
-            Assert.Collection(dictionary,
+            Assert.Collection(
+                dictionary,
                 entry =>
                 {
                     Assert.Equal("Property1", entry.Key);
@@ -1246,7 +1247,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     Assert.Equal(ModelValidationState.Invalid, value.ValidationState);
                     Assert.Null(value.RawValue);
                     Assert.Null(value.AttemptedValue);
-                    Assert.Collection(value.Errors,
+                    Assert.Collection(
+                        value.Errors,
                         error => Assert.Equal("Property2[Property3] invalid.", error.ErrorMessage));
                 });
         }

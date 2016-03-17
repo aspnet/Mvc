@@ -42,13 +42,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         /// <param name="propertyName">The property name to lookup.</param>
         /// <returns>The <see cref="ModelStateEntry"/> if a sub-property was found; otherwise <c>null</c>.</returns>
-        /// <remarks>This includes entries with <see cref="IsContainerNode"/> with value <c>true</c>.</remarks>
+        /// <remarks>This method returns any existing entry, even those with <see cref="IsContainerNode"/> with value <c>true</c>..</remarks>
         public abstract ModelStateEntry GetModelStateForProperty(string propertyName);
 
         /// <summary>
         /// Gets the <see cref="ModelStateEntry"/> values for sub-properties.
         /// </summary>
-        /// <remarks>This includes entries with <see cref="IsContainerNode"/> with value <c>true</c>.</remarks>
+        /// <remarks>This method returns all existing entries, even those with <see cref="IsContainerNode"/> with value <c>true</c>.</remarks>
         public abstract IReadOnlyList<ModelStateEntry> Children { get; }
     }
 }

@@ -847,16 +847,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 {
                     var mid = low + ((high - low) / 2);
                     var midKey = ChildNodes[mid].SubKey;
-                    int result;
-                    if (midKey.Length < searchKey.Length)
-                    {
-                        result = -1;
-                    }
-                    else if (midKey.Length > searchKey.Length)
-                    {
-                        result = 1;
-                    }
-                    else
+                    var result = midKey.Length - searchKey.Length;
+                    if (result == 0)
                     {
                         result = string.Compare(
                             midKey.Buffer,
