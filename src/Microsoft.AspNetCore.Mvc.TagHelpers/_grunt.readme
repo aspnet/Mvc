@@ -1,0 +1,1 @@
+﻿To recreate minified js files, rename _gruntfile.js to gruntfile.js, and _package.json to package.json.
