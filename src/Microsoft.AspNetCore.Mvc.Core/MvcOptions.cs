@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -45,6 +46,11 @@ namespace Microsoft.AspNetCore.Mvc
         /// the <see cref="ApplicationModel"/> when discovering actions.
         /// </summary>
         public IList<IApplicationModelConvention> Conventions { get; }
+
+        /// <summary>
+        /// Gets a list of <see cref="ApplicationPart"/> instances that compose the application.
+        /// </summary>
+        public ApplicationPartCollection ApplicationParts { get; } = new ApplicationPartCollection();
 
         /// <summary>
         /// Gets a collection of <see cref="IFilterMetadata"/> which are used to construct filters that

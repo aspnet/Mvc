@@ -17,14 +17,30 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     /// <summary>
     /// Sets up default options for <see cref="MvcOptions"/>.
     /// </summary>
-    public class MvcCoreMvcOptionsSetup : ConfigureOptions<MvcOptions>
+    public class MvcCoreMvcOptionsSetup : IConfigureOptions<MvcOptions>
     {
-        public MvcCoreMvcOptionsSetup(IHttpRequestStreamReaderFactory readerFactory)
-            : base((options) => ConfigureMvc(options, readerFactory))
+        private readonly IHttpRequestStreamReaderFactory _readerFactory;
+        private readonly IAssemblyProvider _assemblyProvider;
+
+        public MvcCoreMvcOptionsSetup(
+            IHttpRequestStreamReaderFactory readerFactory,
+            IAssemblyProvider assemblyProvider)
         {
+            if (readerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(readerFactory));
+            }
+
+            if (assemblyProvider == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyProvider));
+            }
+
+            _readerFactory = readerFactory;
+            _assemblyProvider = assemblyProvider;
         }
 
-        public static void ConfigureMvc(MvcOptions options, IHttpRequestStreamReaderFactory readerFactory)
+        public void Configure(MvcOptions options)
         {
             // Set up default error messages
             var messageProvider = options.ModelBindingMessageProvider;
@@ -39,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Set up ModelBinding
             options.ModelBinders.Add(new BinderTypeBasedModelBinder());
             options.ModelBinders.Add(new ServicesModelBinder());
-            options.ModelBinders.Add(new BodyModelBinder(readerFactory));
+            options.ModelBinders.Add(new BodyModelBinder(_readerFactory));
             options.ModelBinders.Add(new HeaderModelBinder());
             options.ModelBinders.Add(new SimpleTypeModelBinder());
             options.ModelBinders.Add(new CancellationTokenModelBinder());
@@ -76,6 +92,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(CancellationToken)));
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(IFormFile)));
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(IFormCollection)));
+
+            // Setup application parts
+            foreach (var assembly in _assemblyProvider.CandidateAssemblies)
+            {
+                options.ApplicationParts.Register(assembly);
+            }
         }
     }
 }
