@@ -42,6 +42,11 @@
         "System.Threading.Tasks": { "type": "build" }
       }
     },
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Threading.Tasks": ""
+      }
+    },
     "netstandard1.5": {
       "imports": [
         "dotnet5.6",

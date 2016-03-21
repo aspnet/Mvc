@@ -52,6 +52,12 @@
   },
   "frameworks": {
     "net451": { },
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Reflection": "",
+        "System.Runtime": ""
+      }
+    },
     "netstandard1.3": {
       "imports": [
         "dotnet5.4",
