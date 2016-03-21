@@ -20,24 +20,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class MvcCoreMvcOptionsSetup : IConfigureOptions<MvcOptions>
     {
         private readonly IHttpRequestStreamReaderFactory _readerFactory;
-        private readonly IAssemblyProvider _assemblyProvider;
 
-        public MvcCoreMvcOptionsSetup(
-            IHttpRequestStreamReaderFactory readerFactory,
-            IAssemblyProvider assemblyProvider)
+        public MvcCoreMvcOptionsSetup(IHttpRequestStreamReaderFactory readerFactory)
         {
             if (readerFactory == null)
             {
                 throw new ArgumentNullException(nameof(readerFactory));
             }
 
-            if (assemblyProvider == null)
-            {
-                throw new ArgumentNullException(nameof(assemblyProvider));
-            }
-
             _readerFactory = readerFactory;
-            _assemblyProvider = assemblyProvider;
         }
 
         public void Configure(MvcOptions options)
@@ -92,12 +83,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(CancellationToken)));
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(IFormFile)));
             options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(IFormCollection)));
-
-            // Setup application parts
-            foreach (var assembly in _assemblyProvider.CandidateAssemblies)
-            {
-                options.ApplicationParts.Register(assembly);
-            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         public TestMvcOptions()
         {
             Value = new MvcOptions();
-            var optionsSetup = new MvcCoreMvcOptionsSetup(new TestHttpRequestStreamReaderFactory(), Mock.Of<IAssemblyProvider>());
+            var optionsSetup = new MvcCoreMvcOptionsSetup(new TestHttpRequestStreamReaderFactory());
             optionsSetup.Configure(Value);
 
             var collection = new ServiceCollection().AddOptions();

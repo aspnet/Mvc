@@ -48,11 +48,6 @@ namespace Microsoft.AspNetCore.Mvc
         public IList<IApplicationModelConvention> Conventions { get; }
 
         /// <summary>
-        /// Gets a list of <see cref="ApplicationPart"/> instances that compose the application.
-        /// </summary>
-        public ApplicationPartCollection ApplicationParts { get; } = new ApplicationPartCollection();
-
-        /// <summary>
         /// Gets a collection of <see cref="IFilterMetadata"/> which are used to construct filters that
         /// apply to all actions.
         /// </summary>

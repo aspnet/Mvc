@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -82,6 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             }
 
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(new ApplicationPartCollection());
             serviceCollection.AddMvc();
             serviceCollection.AddTransient<ILoggerFactory, LoggerFactory>();
 

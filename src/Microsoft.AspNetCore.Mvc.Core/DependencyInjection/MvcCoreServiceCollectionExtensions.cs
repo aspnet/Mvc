@@ -3,10 +3,13 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -39,10 +42,49 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
+            var collection = GetApplicationPartCollection(services);
+            services.TryAddSingleton(collection);
+
             ConfigureDefaultServices(services);
             AddMvcCoreServices(services);
 
-            return new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, collection);
+
+            return builder;
+        }
+
+        private static ApplicationPartCollection GetApplicationPartCollection(IServiceCollection services)
+        {
+            var collection = GetServiceFromCollection<ApplicationPartCollection>(services);
+            if (collection == null)
+            {
+                var environment = GetServiceFromCollection<IHostingEnvironment>(services);
+                if (environment == null)
+                {
+                    // Consider just returning an empty application part collection. Makes
+                    // tests easier and its not a condition we expect in production scenarios
+                    // where IHostingEnvironment will always be part of the ServiceCollection
+                    // we get passed in.
+                    throw new InvalidOperationException();
+                }
+
+                var assemblies = new DefaultAssemblyProvider(environment).CandidateAssemblies;
+                collection = new ApplicationPartCollection();
+
+                foreach (var assembly in assemblies)
+                {
+                    collection.Register(assembly);
+                }
+            }
+
+            return collection;
+        }
+
+        private static T GetServiceFromCollection<T>(IServiceCollection services)
+        {
+            return (T)services
+                .FirstOrDefault(d => d.ServiceType == typeof(T))
+                ?.ImplementationInstance;
         }
 
         /// <summary>

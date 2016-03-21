@@ -9,6 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -142,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Arrange & Act
             var options = GetOptions<MvcOptions>(services =>
             {
-                var builder = new MvcCoreBuilder(services);
+                var builder = new MvcCoreBuilder(services, new ApplicationPartCollection());
                 builder.AddXmlDataContractSerializerFormatters();
             });
 
@@ -232,6 +233,7 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceProvider GetServiceProvider(Action<IServiceCollection> action = null)
         {
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(new ApplicationPartCollection());
             serviceCollection.AddMvc();
             serviceCollection.AddTransient<ILoggerFactory, LoggerFactory>();
 
