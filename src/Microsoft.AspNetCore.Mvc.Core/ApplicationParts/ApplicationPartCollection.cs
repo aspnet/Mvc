@@ -69,6 +69,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             }
         }
 
+        public bool HasFeature<T>()
+        {
+            return _featureProviders.ContainsKey(typeof(T));
+        }
+
         private class RegisteredAssemblyPart : ApplicationPart
         {
             public RegisteredAssemblyPart(Assembly assembly)
