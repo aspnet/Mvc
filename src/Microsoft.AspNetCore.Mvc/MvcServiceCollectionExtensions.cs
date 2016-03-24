@@ -45,7 +45,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.AddCors();
 
-            return new MvcBuilder(builder.Services, builder.ApplicationParts);
+            return new MvcBuilder(builder.Services, builder.Manager);
         }
 
         /// <summary>

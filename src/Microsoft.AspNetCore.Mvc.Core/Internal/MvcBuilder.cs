@@ -16,27 +16,27 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// Initializes a new <see cref="MvcBuilder"/> instance.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-        /// <param name="applicationParts">The <see cref="ApplicationPartCollection"/> of the application.</param>
-        public MvcBuilder(IServiceCollection services, ApplicationPartCollection applicationParts)
+        /// <param name="manager">The <see cref="ApplicationPartManager"/> of the application.</param>
+        public MvcBuilder(IServiceCollection services, ApplicationPartManager manager)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (applicationParts == null)
+            if (manager == null)
             {
-                throw new ArgumentNullException(nameof(applicationParts));
+                throw new ArgumentNullException(nameof(manager));
             }
 
             Services = services;
-            ApplicationParts = applicationParts;
+            Manager = manager;
         }
 
         /// <inheritdoc />
         public IServiceCollection Services { get; }
 
         /// <inheritdoc />
-        public ApplicationPartCollection ApplicationParts { get; }
+        public ApplicationPartManager Manager { get; }
     }
 }

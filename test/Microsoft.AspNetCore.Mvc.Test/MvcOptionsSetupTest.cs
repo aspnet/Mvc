@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Arrange & Act
             var options = GetOptions<MvcOptions>(services =>
             {
-                var builder = new MvcCoreBuilder(services, new ApplicationPartCollection());
+                var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
                 builder.AddXmlDataContractSerializerFormatters();
             });
 
@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceProvider GetServiceProvider(Action<IServiceCollection> action = null)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new ApplicationPartCollection());
+            serviceCollection.AddSingleton(new ApplicationPartManager());
             serviceCollection.AddMvc();
             serviceCollection.AddTransient<ILoggerFactory, LoggerFactory>();
 

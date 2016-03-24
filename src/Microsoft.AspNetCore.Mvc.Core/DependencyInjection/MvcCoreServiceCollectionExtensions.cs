@@ -42,21 +42,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            var collection = GetApplicationPartCollection(services);
-            services.TryAddSingleton(collection);
+            var partManager = GetApplicationPartManager(services);
+            services.TryAddSingleton(partManager);
 
             ConfigureDefaultServices(services);
             AddMvcCoreServices(services);
 
-            var builder = new MvcCoreBuilder(services, collection);
+            var builder = new MvcCoreBuilder(services, partManager);
 
             return builder;
         }
 
-        private static ApplicationPartCollection GetApplicationPartCollection(IServiceCollection services)
+        private static ApplicationPartManager GetApplicationPartManager(IServiceCollection services)
         {
-            var collection = GetServiceFromCollection<ApplicationPartCollection>(services);
-            if (collection == null)
+            var manager = GetServiceFromCollection<ApplicationPartManager>(services);
+            if (manager == null)
             {
                 var environment = GetServiceFromCollection<IHostingEnvironment>(services);
                 if (environment == null)
@@ -69,15 +69,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
                 var assemblies = new DefaultAssemblyProvider(environment).CandidateAssemblies;
-                collection = new ApplicationPartCollection();
+                manager = new ApplicationPartManager();
 
                 foreach (var assembly in assemblies)
                 {
-                    collection.Register(assembly);
+                    manager.ApplicationParts.Add(new AssemblyPart(assembly));
                 }
             }
 
-            return collection;
+            return manager;
         }
 
         private static T GetServiceFromCollection<T>(IServiceCollection services)

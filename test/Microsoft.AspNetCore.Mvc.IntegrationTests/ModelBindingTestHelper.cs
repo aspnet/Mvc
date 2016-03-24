@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             }
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(new ApplicationPartCollection());
+            serviceCollection.AddSingleton(new ApplicationPartManager());
             serviceCollection.AddMvc();
             serviceCollection.AddTransient<ILoggerFactory, LoggerFactory>();
 

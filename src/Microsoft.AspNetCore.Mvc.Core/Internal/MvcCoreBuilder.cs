@@ -14,26 +14,31 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     /// </summary>
     public class MvcCoreBuilder : IMvcCoreBuilder
     {
+        /// <summary>
+        /// Initializes a new <see cref="MvcCoreBuilder"/> instance.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+        /// <param name="manager">The <see cref="ApplicationPartManager"/> of the application.</param>
         public MvcCoreBuilder(
             IServiceCollection services,
-            ApplicationPartCollection collection)
+            ApplicationPartManager manager)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (collection == null)
+            if (manager == null)
             {
-                throw new ArgumentNullException(nameof(collection));
+                throw new ArgumentNullException(nameof(manager));
             }
 
             Services = services;
-            ApplicationParts = collection;
+            Manager = manager;
         }
 
         /// <inheritdoc />
-        public ApplicationPartCollection ApplicationParts { get; }
+        public ApplicationPartManager Manager { get; }
 
         /// <inheritdoc />
         public IServiceCollection Services { get; }

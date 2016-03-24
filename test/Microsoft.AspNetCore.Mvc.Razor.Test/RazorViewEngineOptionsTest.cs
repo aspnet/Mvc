@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             var fileProvider = new TestFileProvider();
 
             // Act
-            var builder = new MvcBuilder(services, new ApplicationPartCollection());
+            var builder = new MvcBuilder(services, new ApplicationPartManager());
             builder.AddRazorOptions(options =>
             {
                 options.FileProviders.Add(fileProvider);

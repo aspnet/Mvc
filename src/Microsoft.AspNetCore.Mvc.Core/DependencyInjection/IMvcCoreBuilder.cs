@@ -18,6 +18,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Gets a list of <see cref="ApplicationPart"/> instances that compose the application.
         /// </summary>
-        ApplicationPartCollection ApplicationParts { get; }
+        ApplicationPartManager Manager { get; }
     }
 }

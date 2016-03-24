@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
@@ -87,9 +88,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             assemblyProvider.CandidateAssemblies.Add(startupAssembly);
             services.AddSingleton<IAssemblyProvider>(assemblyProvider);
 
-            var collection = new ApplicationPartCollection();
-            collection.Register(startupAssembly);
-            services.AddSingleton(collection);
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new AssemblyPart(startupAssembly));
+            services.AddSingleton(manager);
         }
 
         private class StaticAssemblyProvider : IAssemblyProvider
