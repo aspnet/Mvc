@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+
 namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
@@ -12,5 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Gets the <see cref="IServiceCollection"/> where MVC services are configured.
         /// </summary>
         IServiceCollection Services { get; }
+
+        /// <summary>
+        /// Gets a list of <see cref="ApplicationPart"/> instances that compose the application.
+        /// </summary>
+        ApplicationPartManager Manager { get; }
     }
 }

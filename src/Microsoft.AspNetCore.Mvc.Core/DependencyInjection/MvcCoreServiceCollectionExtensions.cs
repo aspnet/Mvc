@@ -3,10 +3,13 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -39,10 +42,49 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
+            var partManager = GetApplicationPartManager(services);
+            services.TryAddSingleton(partManager);
+
             ConfigureDefaultServices(services);
             AddMvcCoreServices(services);
 
-            return new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, partManager);
+
+            return builder;
+        }
+
+        private static ApplicationPartManager GetApplicationPartManager(IServiceCollection services)
+        {
+            var manager = GetServiceFromCollection<ApplicationPartManager>(services);
+            if (manager == null)
+            {
+                var environment = GetServiceFromCollection<IHostingEnvironment>(services);
+                if (environment == null)
+                {
+                    // Consider just returning an empty application part collection. Makes
+                    // tests easier and its not a condition we expect in production scenarios
+                    // where IHostingEnvironment will always be part of the ServiceCollection
+                    // we get passed in.
+                    throw new InvalidOperationException();
+                }
+
+                var assemblies = new DefaultAssemblyProvider(environment).CandidateAssemblies;
+                manager = new ApplicationPartManager();
+
+                foreach (var assembly in assemblies)
+                {
+                    manager.ApplicationParts.Add(new AssemblyPart(assembly));
+                }
+            }
+
+            return manager;
+        }
+
+        private static T GetServiceFromCollection<T>(IServiceCollection services)
+        {
+            return (T)services
+                .FirstOrDefault(d => d.ServiceType == typeof(T))
+                ?.ImplementationInstance;
         }
 
         /// <summary>

@@ -3,9 +3,12 @@
 
 using System;
 using System.IO;
+using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -28,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var services = new ServiceCollection();
-            var builder = new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
             builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = name;
@@ -56,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var services = new ServiceCollection();
-            var builder = new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
             builder.InitializeTagHelper<TestTagHelper>((h, _) => h.ViewContext = MakeViewContext(MakeHttpContext()));
             var httpContext = MakeHttpContext(services.BuildServiceProvider());
             var viewContext = MakeViewContext(httpContext);
@@ -75,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var services = new ServiceCollection();
-            var builder = new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
             builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = "Test 1";
@@ -104,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var services = new ServiceCollection();
-            var builder = new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
             builder.InitializeTagHelper<TestTagHelper>((h, vc) =>
             {
                 h.Name = "Test 1";

@@ -57,7 +57,7 @@ namespace System.Web.Http
             var controllerType = typeof(TestControllers.Blog).GetTypeInfo();
             var actions = results.Where(ad => ad.ControllerTypeInfo == controllerType).ToArray();
 
-            Assert.Empty(actions);
+            Assert.Equal(2,actions.Count());
         }
 
         [Fact]
