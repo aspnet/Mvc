@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
         private readonly IDistributedCacheTagHelperStorage _storage;
         private readonly IDistributedCacheTagHelperFormatter _formatter;
         private readonly HtmlEncoder _htmlEncoder;
-        private readonly ConcurrentDictionary<string, Task<IHtmlContent>> _workers;
+        private readonly ConcurrentDictionary<CacheTagKey, Task<IHtmlContent>> _workers;
 
         public DistributedCacheTagHelperService(
             IDistributedCacheTagHelperStorage storage,
@@ -34,11 +35,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             _storage = storage;
             _htmlEncoder = HtmlEncoder;
 
-            _workers = new ConcurrentDictionary<string, Task<IHtmlContent>>();
+            _workers = new ConcurrentDictionary<CacheTagKey, Task<IHtmlContent>>();
         }
 
         /// <inheritdoc />
-        public async Task<IHtmlContent> ProcessContentAsync(TagHelperOutput output, string key, DistributedCacheEntryOptions options)
+        public async Task<IHtmlContent> ProcessContentAsync(TagHelperOutput output, CacheTagKey key, DistributedCacheEntryOptions options)
         {
             IHtmlContent content = null;
 
@@ -55,8 +56,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 
                     try
                     {
-                        var value = await _storage.GetAsync(key);
-
+                        var serializedKey = Encoding.UTF8.GetBytes(key.GenerateKey());
+                        var storageKey = key.GenerateHashedKey();
+                        var value = await _storage.GetAsync(storageKey);
+                                                
                         if (value == null)
                         {
                             var processedContent = await output.GetChildContentAsync();
@@ -74,20 +77,62 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 
                             value = await _formatter.SerializeAsync(formattingContext);
 
-                            await _storage.SetAsync(key, value, options);
+                            
+                            using (var buffer = new MemoryStream())
+                            {
+                                // The stored content is 
+                                // - Length of the serialized cache key in bytes
+                                // - Cache Key
+                                // - Content
+
+                                var keyLength = BitConverter.GetBytes(serializedKey.Length);
+
+                                await buffer.WriteAsync(keyLength, 0, keyLength.Length);
+                                await buffer.WriteAsync(serializedKey, 0, serializedKey.Length);
+                                await buffer.WriteAsync(value, 0, value.Length);
+
+                                await _storage.SetAsync(storageKey, buffer.ToArray(), options);
+                            }
 
                             content = formattingContext.Html;
                         }
                         else
                         {
-                            content = await _formatter.DeserializeAsync(value);
-
-                            // If the deserialization fails, it can return null, for instance when the 
-                            // value is not in the expected format.
-                            if (content == null)
+                            // Extract the length of the serialized key
+                            byte[] contentBuffer = null;
+                            using (var buffer = new MemoryStream(value))
                             {
-                                content = await output.GetChildContentAsync();
+                                var keyLengthBuffer = new byte[sizeof(int)];
+                                await buffer.ReadAsync(keyLengthBuffer, 0, keyLengthBuffer.Length);
+
+                                var keyLength = BitConverter.ToInt32(keyLengthBuffer, 0);
+                                var serializedKeyBuffer = new byte[keyLength];
+                                await buffer.ReadAsync(serializedKeyBuffer, 0, serializedKeyBuffer.Length);
+
+                                // Ensure we are reading the expected key before continuing
+                                if (serializedKeyBuffer == serializedKey)
+                                {
+                                    contentBuffer = new byte[value.Length - keyLengthBuffer.Length - serializedKeyBuffer.Length];
+                                    await buffer.ReadAsync(contentBuffer, 0, contentBuffer.Length);
+                                }
                             }
+
+                            try
+                            {
+                                if (contentBuffer != null)
+                                {
+                                    content = await _formatter.DeserializeAsync(contentBuffer);
+                                }
+                            }
+                            finally
+                            {
+                                // If the deserialization fails, it can return null, for instance when the 
+                                // value is not in the expected format, or the keys have collisions.
+                                if (content == null)
+                                {
+                                    content = await output.GetChildContentAsync();
+                                }
+                            }                            
                         }
 
                         tcs.TrySetResult(content);

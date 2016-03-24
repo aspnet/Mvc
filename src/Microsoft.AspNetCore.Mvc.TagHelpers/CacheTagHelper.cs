@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// Prefix used by <see cref="CacheTagHelper"/> instances when creating entries in <see cref="MemoryCache"/>.
         /// </summary>
         public static readonly string CacheKeyPrefix = nameof(CacheTagHelper);
+
         private const string CachePriorityAttributeName = "priority";
 
         /// <summary>
@@ -63,14 +64,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (Enabled)
             {
-                var key = GenerateKey(context);
+                var cacheKey = CacheTagKey.From(this, context);
+
                 MemoryCacheEntryOptions options;
 
                 while (content == null)
                 {
                     Task<IHtmlContent> result = null;
 
-                    if (!MemoryCache.TryGetValue(key, out result))
+                    if (!MemoryCache.TryGetValue(cacheKey, out result))
                     {
                         var tokenSource = new CancellationTokenSource();
 
@@ -82,7 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                         var tcs = new TaskCompletionSource<IHtmlContent>();
 
-                        // The returned value is ignored, we only do this so that
+                        MemoryCache.Set(cacheKey, tcs.Task, options);
                         // the compiler doesn't complain about the returned task
                         // not being awaited
                         var localTcs = MemoryCache.Set(key, tcs.Task, options);
@@ -165,16 +167,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return options;
-        }
-
-        protected override string GetUniqueId(TagHelperContext context)
-        {
-            return context.UniqueId;
-        }
-
-        protected override string GetKeyPrefix(TagHelperContext context)
-        {
-            return CacheKeyPrefix;
         }
 
         private async Task<IHtmlContent> ProcessContentAsync(TagHelperOutput output)
