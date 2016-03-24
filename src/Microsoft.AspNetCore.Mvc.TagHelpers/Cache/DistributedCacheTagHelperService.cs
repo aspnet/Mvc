@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -87,9 +88,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 
                                 var keyLength = BitConverter.GetBytes(serializedKey.Length);
 
-                                await buffer.WriteAsync(keyLength, 0, keyLength.Length);
-                                await buffer.WriteAsync(serializedKey, 0, serializedKey.Length);
-                                await buffer.WriteAsync(value, 0, value.Length);
+                                buffer.Write(keyLength, 0, keyLength.Length);
+                                buffer.Write(serializedKey, 0, serializedKey.Length);
+                                buffer.Write(value, 0, value.Length);
 
                                 await _storage.SetAsync(storageKey, buffer.ToArray(), options);
                             }
@@ -110,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                                 await buffer.ReadAsync(serializedKeyBuffer, 0, serializedKeyBuffer.Length);
 
                                 // Ensure we are reading the expected key before continuing
-                                if (serializedKeyBuffer == serializedKey)
+                                if (serializedKeyBuffer.SequenceEqual(serializedKey))
                                 {
                                     contentBuffer = new byte[value.Length - keyLengthBuffer.Length - serializedKeyBuffer.Length];
                                     await buffer.ReadAsync(contentBuffer, 0, contentBuffer.Length);
