@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string VaryBy { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of a HTTP request header to vary the cached result by.
+        /// Gets or sets a comma-delimited set of HTTP request headers to vary the cached result by.
         /// </summary>
         [HtmlAttributeName(VaryByHeaderAttributeName)]
         public string VaryByHeader { get; set; }
