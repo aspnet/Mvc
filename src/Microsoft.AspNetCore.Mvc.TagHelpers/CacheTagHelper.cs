@@ -84,10 +84,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                         var tcs = new TaskCompletionSource<IHtmlContent>();
 
-                        MemoryCache.Set(cacheKey, tcs.Task, options);
+                        // The returned value is ignored, we only do this so that
                         // the compiler doesn't complain about the returned task
                         // not being awaited
-                        var localTcs = MemoryCache.Set(key, tcs.Task, options);
+                        var localTcs = MemoryCache.Set(cacheKey, tcs.Task, options);
 
                         try
                         {
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             // task so that the expiration options are are not impacted 
                             // by the time it took to compute it.
 
-                            using (var entry = MemoryCache.CreateEntry(key))
+                            using (var entry = MemoryCache.CreateEntry(cacheKey))
                             {
                                 // The result is processed inside an entry
                                 // such that the tokens are inherited.
