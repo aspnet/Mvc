@@ -5,11 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
@@ -43,61 +40,50 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         public static CacheTagKey From(CacheTagHelper tagHelper, TagHelperContext context)
         {
-            var httpContext = tagHelper.ViewContext.HttpContext;
-            var request = httpContext.Request;
-
             var cacheKey = new CacheTagKey();
 
             cacheKey._key = context.UniqueId;
             cacheKey._prefix = nameof(CacheTagHelper);
 
-            cacheKey._expiresAfter = tagHelper.ExpiresAfter;
-            cacheKey._expiresOn = tagHelper.ExpiresOn;
-            cacheKey._expiresSliding = tagHelper.ExpiresSliding;
-            cacheKey._varyBy = tagHelper.VaryBy;
-            cacheKey._cookies = ExtractCookies(tagHelper.VaryByCookie, request.Cookies);
-            cacheKey._headers = ExtractHeaders(tagHelper.VaryByHeader, request.Headers);
-            cacheKey._queries = ExtractQueries(tagHelper.VaryByQuery, request.Query);
-            cacheKey._routeValues = ExtractRoutes(tagHelper.VaryByRoute, tagHelper.ViewContext.RouteData.Values);
-            cacheKey._varyByUser = tagHelper.VaryByUser;
-
-            if (cacheKey._varyByUser)
-            {
-                cacheKey._username = httpContext.User?.Identity?.Name;
-            }
+            cacheKey.ReadProperties(tagHelper, context);
 
             return cacheKey;
         }
 
         public static CacheTagKey From(DistributedCacheTagHelper tagHelper, TagHelperContext context)
         {
-            var httpContext = tagHelper.ViewContext.HttpContext;
-            var request = httpContext.Request;
-
             var cacheKey = new CacheTagKey();
 
             cacheKey._key = tagHelper.Name;
             cacheKey._prefix = nameof(DistributedCacheTagHelper);
 
-            cacheKey._expiresAfter = tagHelper.ExpiresAfter;
-            cacheKey._expiresOn = tagHelper.ExpiresOn;
-            cacheKey._expiresSliding = tagHelper.ExpiresSliding;
-            cacheKey._varyBy = tagHelper.VaryBy;
-            cacheKey._cookies = ExtractCookies(tagHelper.VaryByCookie, request.Cookies);
-            cacheKey._headers = ExtractHeaders(tagHelper.VaryByHeader, request.Headers);
-            cacheKey._queries = ExtractQueries(tagHelper.VaryByQuery, request.Query);
-            cacheKey._routeValues = ExtractRoutes(tagHelper.VaryByRoute, tagHelper.ViewContext.RouteData.Values);
-            cacheKey._varyByUser = tagHelper.VaryByUser;
-
-            if (cacheKey._varyByUser)
-            {
-                cacheKey._username = httpContext.User?.Identity?.Name;
-            }
+            cacheKey.ReadProperties(tagHelper, context);
 
             return cacheKey;
         }
 
-        private static IList<KeyValuePair<string, string>> ExtractCookies(string keys, IRequestCookieCollection cookies)
+        private void ReadProperties(CacheTagHelperBase tagHelper, TagHelperContext context)
+        {
+            var httpContext = tagHelper.ViewContext.HttpContext;
+            var request = httpContext.Request;
+
+            _expiresAfter = tagHelper.ExpiresAfter;
+            _expiresOn = tagHelper.ExpiresOn;
+            _expiresSliding = tagHelper.ExpiresSliding;
+            _varyBy = tagHelper.VaryBy;
+            _cookies = ExtractCollection(tagHelper.VaryByCookie, request.Cookies, (c, key) => c[key]);
+            _headers = ExtractCollection(tagHelper.VaryByHeader, request.Headers, (c, key) => c[key]);
+            _queries = ExtractCollection(tagHelper.VaryByQuery, request.Query, (c, key) => c[key]);
+            _routeValues = ExtractCollection(tagHelper.VaryByRoute, tagHelper.ViewContext.RouteData.Values, (c, key) => c[key].ToString());
+            _varyByUser = tagHelper.VaryByUser;
+
+            if (_varyByUser)
+            {
+                _username = httpContext.User?.Identity?.Name;
+            }
+        }
+
+        private static IList<KeyValuePair<string, string>> ExtractCollection<T>(string keys, T collection, Func<T, string, string> accessor)
         {
             if (string.IsNullOrEmpty(keys))
             {
@@ -116,103 +102,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             for (var i = 0; i < values.Count; i++)
             {
                 var item = values[i];
-                var cookie = cookies[item];
-                if (!string.IsNullOrEmpty(cookie))
+                var value = accessor(collection, item);
+                if (!string.IsNullOrEmpty(value))
                 {
-                    result.Add(new KeyValuePair<string, string>(item, cookie));
+                    result.Add(new KeyValuePair<string, string>(item, value));
                 }
             }
 
             return result;
         }
-
-        private static IList<KeyValuePair<string, string>> ExtractHeaders(string keys, IHeaderDictionary headers)
-        {
-            if (string.IsNullOrEmpty(keys))
-            {
-                return null;
-            }
-
-            var values = Tokenize(keys);
-
-            if (values.Count == 0)
-            {
-                return null;
-            }
-
-            var result = new List<KeyValuePair<string, string>>();
-
-            for (var i = 0; i < values.Count; i++)
-            {
-                var item = values[i];
-                var header = headers[item];
-                if (!string.IsNullOrEmpty(header))
-                {
-                    result.Add(new KeyValuePair<string, string>(item, header));
-                }
-            }
-
-            return result;
-        }
-
-        private static IList<KeyValuePair<string, string>> ExtractQueries(string keys, IQueryCollection queries)
-        {
-            if (string.IsNullOrEmpty(keys))
-            {
-                return null;
-            }
-
-            var values = Tokenize(keys);
-
-            if (values.Count == 0)
-            {
-                return null;
-            }
-
-            var result = new List<KeyValuePair<string, string>>();
-
-            for (var i = 0; i < values.Count; i++)
-            {
-                var item = values[i];
-                var query = queries[item];
-                if (!string.IsNullOrEmpty(query))
-                {
-                    result.Add(new KeyValuePair<string, string>(item, query));
-                }
-            }
-
-            return result;
-        }
-
-        private static IList<KeyValuePair<string, string>> ExtractRoutes(string keys, RouteValueDictionary routeValues)
-        {
-            if (string.IsNullOrEmpty(keys))
-            {
-                return null;
-            }
-
-            var values = Tokenize(keys);
-
-            if (values.Count == 0)
-            {
-                return null;
-            }
-
-            var result = new List<KeyValuePair<string, string>>();
-
-            for (var i = 0; i < values.Count; i++)
-            {
-                var item = values[i];
-                var routeValue = routeValues[item];
-                if (routeValue != null)
-                {
-                    result.Add(new KeyValuePair<string, string>(item, routeValue.ToString()));
-                }
-            }
-
-            return result;
-        }
-
+        
         /// <summary>
         /// Creates a <see cref="string"/> representation of the key.
         /// </summary>
@@ -327,24 +226,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return trimmedValues;
         }
 
-        private static int ComputeValuesHashCode(
-            int hash,
+        private static void CombineCollectionHashCode(
+            HashCodeCombiner hashCodeCombiner,
             string collectionName,
             IList<KeyValuePair<string, string>> values)
         {
-            hash = hash * 23 + collectionName.GetHashCode();
-
             if (values != null)
             {
                 for (var i = 0; i < values.Count; i++)
                 {
                     var item = values[i];
-                    hash = hash * 23 + item.Key.GetHashCode();
-                    hash = hash * 23 + item.Value.GetHashCode();
+                    hashCodeCombiner.Add(item.Key);
+                    hashCodeCombiner.Add(item.Value);
                 }
             }
-
-            return hash;
         }
 
         public override int GetHashCode()
@@ -354,46 +249,42 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return _hashcode.Value;
             }
 
-            unchecked // Overflow is fine, just wrap
-            {
-                int hash = 17;
-                hash = hash * 23 + _key.GetHashCode();
-                hash = hash * 23 + _expiresAfter.GetHashCode();
-                hash = hash * 23 + _expiresOn.GetHashCode();
-                hash = hash * 23 + _expiresSliding.GetHashCode();
-                hash = hash * 23 + _varyBy.GetHashCode();
-                hash = hash * 23 + _username.GetHashCode();
+            var hashCodeCombiner = new HashCodeCombiner();
 
-                hash = ComputeValuesHashCode(hash, nameof(_cookies), _cookies);
-                hash = ComputeValuesHashCode(hash, nameof(_headers), _headers);
-                hash = ComputeValuesHashCode(hash, nameof(_queries), _queries);
-                hash = ComputeValuesHashCode(hash, nameof(_routeValues), _routeValues);
-
-                _hashcode = hash;
+            hashCodeCombiner.Add(_key);
+            hashCodeCombiner.Add(_expiresAfter);
+            hashCodeCombiner.Add(_expiresOn);
+            hashCodeCombiner.Add(_expiresSliding);
+            hashCodeCombiner.Add(_varyBy);
+            hashCodeCombiner.Add(_username);
                 
-                return hash;
-            }
+            CombineCollectionHashCode(hashCodeCombiner, nameof(_cookies), _cookies);
+            CombineCollectionHashCode(hashCodeCombiner, nameof(_headers), _headers);
+            CombineCollectionHashCode(hashCodeCombiner, nameof(_queries), _queries);
+            CombineCollectionHashCode(hashCodeCombiner, nameof(_routeValues), _routeValues);
+
+            return hashCodeCombiner;
         }
 
         public bool Equals(CacheTagKey other)
         {
-            if (other._key != _key ||
+            if (!string.Equals(other._key, _key) ||
                 other._expiresAfter != _expiresAfter ||
                 other._expiresOn != _expiresOn ||
                 other._expiresSliding != _expiresSliding ||
-                other._varyBy != _varyBy ||
+                !string.Equals(other._varyBy, _varyBy) ||
                 !AreSame(_cookies, other._cookies) ||
                 !AreSame(_headers, other._headers) ||
                 !AreSame(_queries, other._queries) ||
                 !AreSame(_routeValues, other._routeValues) ||
                 _varyByUser != other._varyByUser ||
-                _varyByUser && _username != other._username
+                (_varyByUser && !string.Equals(other._username, _username))
                 )
             {
                 return false;
             }
 
-            return false;
+            return true;
         }
 
         private static bool AreSame(IList<KeyValuePair<string, string>> values1, IList<KeyValuePair<string, string>> values2)

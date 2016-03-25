@@ -91,8 +91,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                                 buffer.Write(keyLength, 0, keyLength.Length);
                                 buffer.Write(serializedKey, 0, serializedKey.Length);
                                 buffer.Write(value, 0, value.Length);
+#if NETSTANDARD1_5
+                                ArraySegment<byte> bufferArray;
+                                buffer.TryGetBuffer(out bufferArray);
 
+                                await _storage.SetAsync(storageKey, bufferArray.Array, options);
+#else
                                 await _storage.SetAsync(storageKey, buffer.ToArray(), options);
+#endif
                             }
 
                             content = formattingContext.Html;
@@ -104,17 +110,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                             using (var buffer = new MemoryStream(value))
                             {
                                 var keyLengthBuffer = new byte[sizeof(int)];
-                                await buffer.ReadAsync(keyLengthBuffer, 0, keyLengthBuffer.Length);
+                                buffer.Read(keyLengthBuffer, 0, keyLengthBuffer.Length);
 
                                 var keyLength = BitConverter.ToInt32(keyLengthBuffer, 0);
                                 var serializedKeyBuffer = new byte[keyLength];
-                                await buffer.ReadAsync(serializedKeyBuffer, 0, serializedKeyBuffer.Length);
+                                buffer.Read(serializedKeyBuffer, 0, serializedKeyBuffer.Length);
 
                                 // Ensure we are reading the expected key before continuing
                                 if (serializedKeyBuffer.SequenceEqual(serializedKey))
                                 {
                                     contentBuffer = new byte[value.Length - keyLengthBuffer.Length - serializedKeyBuffer.Length];
-                                    await buffer.ReadAsync(contentBuffer, 0, contentBuffer.Length);
+                                    buffer.Read(contentBuffer, 0, contentBuffer.Length);
                                 }
                             }
 
