@@ -40,50 +40,50 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         public static CacheTagKey From(CacheTagHelper tagHelper, TagHelperContext context)
         {
-            var cacheKey = new CacheTagKey();
+            var cacheKey = FromCore(tagHelper, context);
 
             cacheKey._key = context.UniqueId;
             cacheKey._prefix = nameof(CacheTagHelper);
-
-            cacheKey.ReadProperties(tagHelper, context);
 
             return cacheKey;
         }
 
         public static CacheTagKey From(DistributedCacheTagHelper tagHelper, TagHelperContext context)
         {
-            var cacheKey = new CacheTagKey();
+            var cacheKey = FromCore(tagHelper, context);
 
             cacheKey._key = tagHelper.Name;
             cacheKey._prefix = nameof(DistributedCacheTagHelper);
 
-            cacheKey.ReadProperties(tagHelper, context);
+            return cacheKey;
+        }
+
+        private static CacheTagKey FromCore(CacheTagHelperBase tagHelper, TagHelperContext context)
+        {
+            var cacheKey = new CacheTagKey();
+
+            var httpContext = tagHelper.ViewContext.HttpContext;
+            var request = httpContext.Request;
+
+            cacheKey._expiresAfter = tagHelper.ExpiresAfter;
+            cacheKey._expiresOn = tagHelper.ExpiresOn;
+            cacheKey._expiresSliding = tagHelper.ExpiresSliding;
+            cacheKey._varyBy = tagHelper.VaryBy;
+            cacheKey._cookies = ExtractCollection(tagHelper.VaryByCookie, request.Cookies, (c, key) => c[key]);
+            cacheKey._headers = ExtractCollection(tagHelper.VaryByHeader, request.Headers, (c, key) => c[key]);
+            cacheKey._queries = ExtractCollection(tagHelper.VaryByQuery, request.Query, (c, key) => c[key]);
+            cacheKey._routeValues = ExtractCollection(tagHelper.VaryByRoute, tagHelper.ViewContext.RouteData.Values, (c, key) => c[key].ToString());
+            cacheKey._varyByUser = tagHelper.VaryByUser;
+
+            if (cacheKey._varyByUser)
+            {
+                cacheKey._username = httpContext.User?.Identity?.Name;
+            }
 
             return cacheKey;
         }
 
-        private void ReadProperties(CacheTagHelperBase tagHelper, TagHelperContext context)
-        {
-            var httpContext = tagHelper.ViewContext.HttpContext;
-            var request = httpContext.Request;
-
-            _expiresAfter = tagHelper.ExpiresAfter;
-            _expiresOn = tagHelper.ExpiresOn;
-            _expiresSliding = tagHelper.ExpiresSliding;
-            _varyBy = tagHelper.VaryBy;
-            _cookies = ExtractCollection(tagHelper.VaryByCookie, request.Cookies, (c, key) => c[key]);
-            _headers = ExtractCollection(tagHelper.VaryByHeader, request.Headers, (c, key) => c[key]);
-            _queries = ExtractCollection(tagHelper.VaryByQuery, request.Query, (c, key) => c[key]);
-            _routeValues = ExtractCollection(tagHelper.VaryByRoute, tagHelper.ViewContext.RouteData.Values, (c, key) => c[key].ToString());
-            _varyByUser = tagHelper.VaryByUser;
-
-            if (_varyByUser)
-            {
-                _username = httpContext.User?.Identity?.Name;
-            }
-        }
-
-        private static IList<KeyValuePair<string, string>> ExtractCollection<T>(string keys, T collection, Func<T, string, string> accessor)
+        private static IList<KeyValuePair<string, string>> ExtractCollection<TSourceCollection>(string keys, TSourceCollection collection, Func<TSourceCollection, string, string> accessor)
         {
             if (string.IsNullOrEmpty(keys))
             {
@@ -278,7 +278,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 !AreSame(_queries, other._queries) ||
                 !AreSame(_routeValues, other._routeValues) ||
                 _varyByUser != other._varyByUser ||
-                (_varyByUser && !string.Equals(other._username, _username))
+                (_varyByUser && !string.Equals(other._username, _username, StringComparison.Ordinal))
                 )
             {
                 return false;
@@ -294,20 +294,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return true;
             }
 
-            if (values1 == null || values2 == null)
-            {
-                return false;
-            }
-
-            if (values1.Count != values2.Count)
+            if (values1 == null || values2 == null || values1.Count != values2.Count)
             {
                 return false;
             }
 
             for (var i = 0; i < values1.Count; i++)
             {
-                if (values1[i].Key != values2[i].Key ||
-                    values1[i].Value != values2[i].Value)
+                if (!string.Equals(values1[i].Key, values2[i].Key, StringComparison.Ordinal) ||
+                    !string.Equals(values1[i].Value, values2[i].Value, StringComparison.Ordinal))
                 {
                     return false;
                 }
