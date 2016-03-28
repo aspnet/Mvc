@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// Prefix used by <see cref="CacheTagHelper"/> instances when creating entries in <see cref="MemoryCache"/>.
         /// </summary>
         public static readonly string CacheKeyPrefix = nameof(CacheTagHelper);
+
         private const string CachePriorityAttributeName = "priority";
 
         /// <summary>
@@ -63,14 +64,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (Enabled)
             {
-                var key = GenerateKey(context);
+                var cacheKey = CacheTagKey.From(this, context);
+
                 MemoryCacheEntryOptions options;
 
                 while (content == null)
                 {
                     Task<IHtmlContent> result = null;
 
-                    if (!MemoryCache.TryGetValue(key, out result))
+                    if (!MemoryCache.TryGetValue(cacheKey, out result))
                     {
                         var tokenSource = new CancellationTokenSource();
 
@@ -85,7 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         // The returned value is ignored, we only do this so that
                         // the compiler doesn't complain about the returned task
                         // not being awaited
-                        var localTcs = MemoryCache.Set(key, tcs.Task, options);
+                        var localTcs = MemoryCache.Set(cacheKey, tcs.Task, options);
 
                         try
                         {
@@ -93,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             // task so that the expiration options are are not impacted 
                             // by the time it took to compute it.
 
-                            using (var entry = MemoryCache.CreateEntry(key))
+                            using (var entry = MemoryCache.CreateEntry(cacheKey))
                             {
                                 // The result is processed inside an entry
                                 // such that the tokens are inherited.
@@ -165,16 +167,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return options;
-        }
-
-        protected override string GetUniqueId(TagHelperContext context)
-        {
-            return context.UniqueId;
-        }
-
-        protected override string GetKeyPrefix(TagHelperContext context)
-        {
-            return CacheKeyPrefix;
         }
 
         private async Task<IHtmlContent> ProcessContentAsync(TagHelperOutput output)
