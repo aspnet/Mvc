@@ -30,10 +30,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             if (!typeof(IModelBinder).GetTypeInfo().IsAssignableFrom(binderType.GetTypeInfo()))
             {
-                throw new InvalidOperationException(
+                throw new ArgumentException(
                     Resources.FormatBinderType_MustBeIModelBinder(
                         binderType.FullName,
-                        typeof(IModelBinder).FullName));
+                        typeof(IModelBinder).FullName),
+                    nameof(binderType));
             }
 
             _factory = ActivatorUtilities.CreateFactory(binderType, Type.EmptyTypes);

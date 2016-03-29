@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -62,11 +63,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var expected = $"The type '{typeof(Person).FullName}' must implement " +
                 $"'{typeof(IModelBinder).FullName}' to be used as a model binder.";
 
-            // Act
-            var ex = Assert.Throws<InvalidOperationException>(() => new BinderTypeModelBinder(typeof(Person)));
-
-            // Assert
-            Assert.Equal(expected, ex.Message);
+            // Act & Assert
+            ExceptionAssert.ThrowsArgument(
+                () => new BinderTypeModelBinder(typeof(Person)),
+                "binderType",
+                expected);
         }
 
         private static DefaultModelBindingContext GetBindingContext(Type modelType, Type binderType = null)
