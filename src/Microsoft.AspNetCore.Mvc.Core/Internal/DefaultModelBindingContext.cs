@@ -108,8 +108,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(modelName));
             }
 
-            var oldBindingSource = BindingSource;
-
             var scope = EnterNestedScope();
 
             // Only filter if the new BindingSource affects the value providers. Otherwise we want
