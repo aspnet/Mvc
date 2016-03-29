@@ -34,6 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
         // These aren't ICollection<> - we can handle them by creating a List<>
         [InlineData(typeof(IEnumerable<int>))]
+        [InlineData(typeof(IReadOnlyCollection<>))]
         [InlineData(typeof(IReadOnlyList<int>))]
 
         // These are ICollection<> - we can handle them by adding items to the existing collection or
@@ -72,11 +73,46 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             Assert.IsType<CollectionModelBinder<int>>(result);
         }
 
+        // These aren't ICollection<> - we can handle them by creating a List<> - but in this case
+        // we can't set the property so we can't bind.
+        [Theory]
+        [InlineData(nameof(ReadonlyProperties.Enumerable))]
+        [InlineData(typeof(IReadOnlyCollection<>))]
+        [InlineData(typeof(IReadOnlyList<int>))]
+        public void Create_ForNonICollectionTypes_ReadOnlyProperty_ReturnsNull(string propertyName)
+        {
+            // Arrange
+            var provider = new CollectionModelBinderProvider();
+
+            var metadataProvider = TestModelBinderProviderContext.CachedMetadataProvider;
+
+            var metadata = metadataProvider.GetMetadataForProperty(typeof(ReadonlyProperties), propertyName);
+            Assert.NotNull(metadata);
+            Assert.True(metadata.IsReadOnly);
+
+            var context = new TestModelBinderProviderContext(metadata, bindingInfo: null);
+
+            // Act
+            var result = provider.Create(context);
+
+            // Assert
+            Assert.Null(result);
+        }
+
         private class Person
         {
             public string Name { get; set; }
 
             public int Age { get; set; }
+        }
+
+        private class ReadonlyProperties
+        {
+            public IEnumerable<int> Enumerable { get; }
+
+            public IReadOnlyCollection<int> ReadOnlyCollection { get; }
+
+            public IReadOnlyList<int> ReadOnlyList { get; }
         }
     }
 }

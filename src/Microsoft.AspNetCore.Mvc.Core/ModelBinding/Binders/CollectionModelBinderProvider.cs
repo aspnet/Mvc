@@ -41,9 +41,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             // If the model type is IEnumerable<> then we need to know if we can assign a List<> to it, since
-            // that's what we would create.
+            // that's what we would create. (The cases handled here are IEnumerable<>, IReadOnlyColection<> and
+            // IReadOnlyList<>).
+            //
+            // We need to check IsReadOnly because we need to know if we can SET the property.
             var enumerableType = ClosedGenericMatcher.ExtractGenericInterface(modelType, typeof(IEnumerable<>));
-            if (enumerableType != null)
+            if (enumerableType != null && !context.Metadata.IsReadOnly)
             {
                 var listType = typeof(List<>).MakeGenericType(enumerableType.GenericTypeArguments);
                 if (modelType.GetTypeInfo().IsAssignableFrom(listType.GetTypeInfo()))
