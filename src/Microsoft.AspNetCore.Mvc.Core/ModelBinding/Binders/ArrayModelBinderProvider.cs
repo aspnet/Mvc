@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // existing value.
             if (context.Metadata.ModelType.IsArray && !context.Metadata.IsReadOnly)
             {
-                var elementType = context.Metadata.ModelType.GetElementType();
+                var elementType = context.Metadata.ElementMetadata.ModelType;
                 var elementBinder = context.CreateBinder(context.Metadata.ElementMetadata);
 
                 var binderType = typeof(ArrayModelBinder<>).MakeGenericType(elementType);
