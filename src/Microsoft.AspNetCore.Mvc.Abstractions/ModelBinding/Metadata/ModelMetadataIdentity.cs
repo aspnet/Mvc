@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             var hash = new HashCodeCombiner();
             hash.Add(ContainerType);
             hash.Add(ModelType);
-            hash.Add(Name);
+            hash.Add(Name, StringComparer.Ordinal);
             return hash;
         }
     }
