@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(typeof(Person));
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BinderType = typeof(NullModelBinder);
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<BinderTypeModelBinder>(result);
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 $"'{typeof(IModelBinder).FullName}' to be used as a model binder.";
 
             // Act
-            var ex = Assert.Throws<InvalidOperationException>(() => provider.Create(context));
+            var ex = Assert.Throws<InvalidOperationException>(() => provider.GetBinder(context));
 
             // Assert
             Assert.Equal(expected, ex.Message);

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     public class HeaderModelBinderProvider : IModelBinderProvider
     {
         /// <inheritdoc />
-        public IModelBinder Create(ModelBinderProviderContext context)
+        public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
             if (context == null)
             {

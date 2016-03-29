@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(modelType);
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(typeof(IFormCollection));
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<FormCollectionModelBinder>(result);

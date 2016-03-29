@@ -605,7 +605,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var provider = new Mock<IModelBinderProvider>();
             provider
-                .Setup(p => p.Create(It.IsAny<ModelBinderProviderContext>()))
+                .Setup(p => p.GetBinder(It.IsAny<ModelBinderProviderContext>()))
                 .Returns(binder);
 
             return TestModelBinderFactory.Create(provider.Object);

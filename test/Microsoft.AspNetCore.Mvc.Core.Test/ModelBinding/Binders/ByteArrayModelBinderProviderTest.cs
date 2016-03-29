@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         [Theory]
         [InlineData(typeof(object))]
         [InlineData(typeof(TestClass))]
-        [InlineData(typeof(IList<int>))]
+        [InlineData(typeof(IList<byte>))]
         [InlineData(typeof(int[]))]
         public void Create_ForNonByteArrayTypes_ReturnsNull(Type modelType)
         {
@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(modelType);
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(typeof(byte[]));
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<ByteArrayModelBinder>(result);

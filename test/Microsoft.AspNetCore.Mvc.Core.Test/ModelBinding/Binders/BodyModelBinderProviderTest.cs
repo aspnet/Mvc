@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = source;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = BindingSource.Body;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<BodyModelBinder>(result);

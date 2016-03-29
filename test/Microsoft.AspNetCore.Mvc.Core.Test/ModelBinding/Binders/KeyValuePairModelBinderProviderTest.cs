@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(modelType);
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -44,13 +44,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 }
                 else
                 {
-                    Assert.False(false, "Not the right model type");
+                    Assert.False(true, "Not the right model type");
                     return null;
                 }
             });
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<KeyValuePairModelBinder<string, int>>(result);

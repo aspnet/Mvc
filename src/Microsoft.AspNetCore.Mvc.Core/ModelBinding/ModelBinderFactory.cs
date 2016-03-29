@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -100,7 +101,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             }
 
-
             // OK this isn't a recursive case (yet) so "push" an entry on the stack and then ask the providers
             // to create the binder.
             stack.Add(new KeyValuePair<Key, PlaceholderBinder>(key, null));
@@ -110,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             for (var i = 0; i < _providers.Length; i++)
             {
                 var provider = _providers[i];
-                result = provider.Create(providerContext);
+                result = provider.GetBinder(providerContext);
                 if (result != null)
                 {
                     break;
@@ -122,8 +122,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 // Use a no-op binder if we're below the top level. At the top level, we throw.
                 result = NoOpBinder.Instance;
             }
-            
+
             // "pop"
+            Debug.Assert(stack.Count > 0);
             var delegatingBinder = stack[stack.Count - 1].Value;
             stack.RemoveAt(stack.Count - 1);
 

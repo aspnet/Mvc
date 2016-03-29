@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = source;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = BindingSource.Header;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<HeaderModelBinder>(result);
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = BindingSource.Header;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType<HeaderModelBinder>(result);
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             context.BindingInfo.BindingSource = BindingSource.Header;
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);

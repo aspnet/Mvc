@@ -419,6 +419,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             };
 
             var binder = CreateBinder(bindingContext.ModelMetadata);
+
             // Act
             var result = binder.CanBindPropertyPublic(bindingContext, metadata);
 
@@ -1361,7 +1362,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
         private class TestableComplexTypeModelBinderProvider : IModelBinderProvider
         {
-            public IModelBinder Create(ModelBinderProviderContext context)
+            public IModelBinder GetBinder(ModelBinderProviderContext context)
             {
                 if (context.Metadata.IsComplexType)
                 {

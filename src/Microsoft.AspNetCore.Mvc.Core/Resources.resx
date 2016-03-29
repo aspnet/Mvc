@@ -344,6 +344,6 @@
     <value>At least one authentication scheme must be specified.</value>
   </data>
   <data name="CouldNotCreateIModelBinder" xml:space="preserve">
-    <value>Could not create a model binder a model object of type '{0}'.</value>
+    <value>Could not create a model binder for model object of type '{0}'.</value>
   </data>
 </root>

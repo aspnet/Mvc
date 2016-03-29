@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // Assert
             Assert.Equal(
-                $"Could not create a model binder a model object of type '{typeof(string).FullName}'.",
+                $"Could not create a model binder for model object of type '{typeof(string).FullName}'.",
                 exception.Message);
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 _factory = factory;
             }
 
-            public IModelBinder Create(ModelBinderProviderContext context)
+            public IModelBinder GetBinder(ModelBinderProviderContext context)
             {
                 return _factory(context);
             }

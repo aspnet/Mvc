@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
     public class HttpRequestMessageModelBinderProvider : IModelBinderProvider
     {
         /// <inheritdoc />
-        public IModelBinder Create(ModelBinderProviderContext context)
+        public IModelBinder GetBinder(ModelBinderProviderContext context)
         {
             if (context.Metadata.ModelType == typeof(HttpRequestMessage))
             {

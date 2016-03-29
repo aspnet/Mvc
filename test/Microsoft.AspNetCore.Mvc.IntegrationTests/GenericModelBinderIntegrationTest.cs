@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
         private class AddressBinderProvider : IModelBinderProvider
         {
-            public IModelBinder Create(ModelBinderProviderContext context)
+            public IModelBinder GetBinder(ModelBinderProviderContext context)
             {
                 var allowedBindingSource = context.BindingInfo?.BindingSource;
                 if (allowedBindingSource?.CanAcceptDataFrom(BindAddressAttribute.Source) == true)

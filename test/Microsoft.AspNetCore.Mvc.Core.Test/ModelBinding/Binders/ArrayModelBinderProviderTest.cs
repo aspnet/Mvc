@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var context = new TestModelBinderProviderContext(modelType);
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.Null(result);
@@ -45,23 +45,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             });
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
             Assert.IsType(typeof(ArrayModelBinder<>).MakeGenericType(modelType.GetElementType()), result);
-        }
-
-        public static TheoryData<int[]> ArrayModelData
-        {
-            get
-            {
-                return new TheoryData<int[]>
-                {
-                    new int[0],
-                    new [] { 357 },
-                    new [] { 357, 357 },
-                };
-            }
         }
 
         [Fact]
@@ -87,10 +74,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             });
 
             // Act
-            var result = provider.Create(context);
+            var result = provider.GetBinder(context);
 
             // Assert
-            Assert.IsType(typeof(ArrayModelBinder<>).MakeGenericType(typeof(int)), result);
+            Assert.IsType<ArrayModelBinder<int>>(result);
         }
 
         private class TestClass

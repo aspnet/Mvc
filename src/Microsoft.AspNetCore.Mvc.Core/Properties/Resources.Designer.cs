@@ -1162,7 +1162,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("MustSpecifyAtLeastOneAuthenticationScheme"));
         }
         
-        /// Could not create a model binder a model object of type '{0}'.
+        /// Could not create a model binder for model object of type '{0}'.
         /// </summary>
         internal static string CouldNotCreateIModelBinder
         {
@@ -1170,7 +1170,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// Could not create a model binder a model object of type '{0}'.
+        /// Could not create a model binder for model object of type '{0}'.
         /// </summary>
         internal static string FormatCouldNotCreateIModelBinder(object p0)
         {

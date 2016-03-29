@@ -821,7 +821,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             var binderProvider = new Mock<IModelBinderProvider>();
             binderProvider
-                .Setup(p => p.Create(It.IsAny<ModelBinderProviderContext>()))
+                .Setup(p => p.GetBinder(It.IsAny<ModelBinderProviderContext>()))
                 .Returns(binder);
 
             return TestModelBinderFactory.Create(binderProvider.Object);
