@@ -1635,11 +1635,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var httpContext = new DefaultHttpContext();
 
-            var binderFactory = new Mock<IModelBinderFactory>();
-            binderFactory
-                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
-                .Returns(binder);
-
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext,
@@ -1652,7 +1647,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                         stringLocalizerFactory: null),
                 },
             };
-            
+
+            var binderFactory = new Mock<IModelBinderFactory>();
+            binderFactory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Returns(binder);
+
             var controller = new TestableController()
             {
                 ControllerContext = controllerContext,
