@@ -53,8 +53,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             await binder.BindModelAsync(bindingContext);
 
-            // A model binder was specified by metadata and this binder handles all such cases.
-            // Always tell the model binding system to skip other model binders i.e. return non-null.
             if (bindingContext.Result == null)
             {
                 bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
