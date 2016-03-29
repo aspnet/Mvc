@@ -4,7 +4,7 @@
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     /// <summary>
-    /// A context object for <see cref="IModelBinderProvider.Create(ModelBinderProviderContext)"/>.
+    /// A context object for <see cref="IModelBinderProvider.Create"/>.
     /// </summary>
     public abstract class ModelBinderProviderContext
     {
