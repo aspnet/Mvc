@@ -541,6 +541,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     BindingSource = modelMetadata.BindingSource,
                     PropertyBindingPredicateProvider = modelMetadata.PropertyBindingPredicateProvider,
                 },
+
+                // We're using the model metadata as the cache token here so that TryUpdateModelAsync calls
+                // for the same model type can share a binder. This won't overlap with normal model binding
+                // operations because they use the ParameterDescriptor for the token.
+                CacheToken = modelMetadata,
             };
             var binder = modelBinderFactory.CreateBinder(factoryContext);
 
