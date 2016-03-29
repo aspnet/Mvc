@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// </summary>
     public class ComplexTypeModelBinder : IModelBinder
     {
-        private readonly Dictionary<ModelMetadata, IModelBinder> _propertyBinders;
+        private readonly IDictionary<ModelMetadata, IModelBinder> _propertyBinders;
 
         /// <summary>
         /// Creates a new <see cref="ComplexTypeModelBinder"/>.
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 throw new ArgumentNullException(nameof(propertyBinders));
             }
 
-            _propertyBinders = new Dictionary<ModelMetadata, IModelBinder>(propertyBinders);
+            _propertyBinders = propertyBinders;
         }
 
         /// <inheritdoc />
@@ -148,13 +148,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// </returns>
         protected virtual Task BindProperty(ModelBindingContext bindingContext)
         {
-            IModelBinder binder;
-            if (_propertyBinders.TryGetValue(bindingContext.ModelMetadata, out binder))
-            {
-                return binder.BindModelAsync(bindingContext);
-            }
-
-            return TaskCache.CompletedTask;
+            var binder = _propertyBinders[bindingContext.ModelMetadata];
+            return binder.BindModelAsync(bindingContext);
         }
 
         internal bool CanCreateModel(ModelBindingContext bindingContext)
