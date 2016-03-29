@@ -86,8 +86,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     if (entry.Value == null)
                     {
                         // Recursion detected, create a DelegatingBinder.
-                        var binder = new DelegatingBinder();
-                        stack[i] = new KeyValuePair<Key, DelegatingBinder>(entry.Key, binder);
+                        var binder = new PlaceholderBinder();
+                        stack[i] = new KeyValuePair<Key, PlaceholderBinder>(entry.Key, binder);
                         return binder;
                     }
                     else
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // OK this isn't a recursive case (yet) so "push" an entry on the stack and then ask the providers
             // to create the binder.
-            stack.Add(new KeyValuePair<Key, DelegatingBinder>(key, null));
+            stack.Add(new KeyValuePair<Key, PlaceholderBinder>(key, null));
 
             IModelBinder result = null;
 
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 BindingInfo = factoryContext.BindingInfo;
 
                 MetadataProvider = _factory._metadataProvider;
-                Stack = new List<KeyValuePair<Key, DelegatingBinder>>();
+                Stack = new List<KeyValuePair<Key, PlaceholderBinder>>();
             }
 
             public DefaultModelBinderProviderContext(
@@ -175,7 +175,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             public override IModelMetadataProvider MetadataProvider { get; }
 
             // Not using a 'real' Stack<> because we want random access to modify the entries.
-            public List<KeyValuePair<Key, DelegatingBinder>> Stack { get; }
+            public List<KeyValuePair<Key, PlaceholderBinder>> Stack { get; }
 
             public override IModelBinder CreateBinder(ModelMetadata metadata)
             {

@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Internal
 {
-    public class DelegatingBinder : IModelBinder
+    // Used as a placeholder to break cycles while building a tree of model binders in ModelBinderFactory.
+    //
+    // When a cycle is detected by a call to Create(...), we create an instance of this class and return it
+    // to break the cycle. Later when the 'real' binder is created we set Inner to point to that.
+    public class PlaceholderBinder : IModelBinder
     {
-        public bool IsInUse { get; set; }
-
         public IModelBinder Inner { get; set; }
 
         public Task BindModelAsync(ModelBindingContext bindingContext)

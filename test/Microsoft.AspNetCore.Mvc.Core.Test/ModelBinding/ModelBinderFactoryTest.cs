@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             options.Value.ModelBinderProviders.Add(new TestModelBinderProvider(c =>
             {
                 Assert.Equal(typeof(Employee), c.Metadata.ModelType);
-                Assert.IsType<DelegatingBinder>(c.CreateBinder(c.Metadata.Properties[nameof(Employee.Manager)]));
+                Assert.IsType<PlaceholderBinder>(c.CreateBinder(c.Metadata.Properties[nameof(Employee.Manager)]));
                 return Mock.Of<IModelBinder>();
             }));
 
