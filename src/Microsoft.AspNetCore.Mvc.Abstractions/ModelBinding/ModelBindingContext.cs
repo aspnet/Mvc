@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -11,6 +12,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public abstract class ModelBindingContext
     {
+        /// <summary>
+        /// Represents the <see cref="Mvc.ActionContext"/> associated with this context.
+        /// </summary>
+        public abstract ActionContext ActionContext { get; set; }
+
         /// <summary>
         /// Gets or sets a model name which is explicitly set using an <see cref="IModelNameProvider"/>.
         /// </summary>
@@ -26,6 +32,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets the name of the current field being bound.
         /// </summary>
         public abstract string FieldName { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="Http.HttpContext"/> associated with this context.
+        /// </summary>
+        public virtual HttpContext HttpContext => ActionContext?.HttpContext;
 
         /// <summary>
         /// Gets or sets an indication that the current binder is handling the top-level object.
@@ -65,12 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <remarks>
         /// The <see cref="ModelMetadata"/> property must be set to access this property.
         /// </remarks>
-        public abstract Type ModelType { get; }
-
-        /// <summary>
-        /// Represents the <see cref="ModelBinding.OperationBindingContext"/> associated with this context.
-        /// </summary>
-        public abstract OperationBindingContext OperationBindingContext { get; set; }
+        public virtual Type ModelType => ModelMetadata.ModelType;
 
         /// <summary>
         /// Gets or sets a predicate which will be evaluated for each property to determine if the property

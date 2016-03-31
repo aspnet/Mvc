@@ -567,11 +567,10 @@ namespace System.Web.Http
         /// </param>
         public void Validate<TEntity>(TEntity entity, string keyPrefix)
         {
-            var validatidationState = new ValidationStateDictionary();
+            var validationState = new ValidationStateDictionary();
             ObjectValidator.Validate(
                 ControllerContext,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
-                validatidationState,
+                validationState,
                 keyPrefix,
                 entity);
         }
