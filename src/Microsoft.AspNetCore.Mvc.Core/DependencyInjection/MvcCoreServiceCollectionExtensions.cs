@@ -3,10 +3,13 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -18,7 +21,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -39,10 +41,54 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
+            var partManager = GetApplicationPartManager(services);
+            services.TryAddSingleton(partManager);
+
+            ConfigureDefaultFeatureProviders(partManager);
             ConfigureDefaultServices(services);
             AddMvcCoreServices(services);
 
-            return new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, partManager);
+
+            return builder;
+        }
+
+        private static void ConfigureDefaultFeatureProviders(ApplicationPartManager manager)
+        {
+            if (!manager.FeatureProviders.OfType<ControllerFeatureProvider>().Any())
+            {
+                manager.FeatureProviders.Add(new ControllerFeatureProvider());
+            }
+        }
+
+        private static ApplicationPartManager GetApplicationPartManager(IServiceCollection services)
+        {
+            var manager = GetServiceFromCollection<ApplicationPartManager>(services);
+            if (manager == null)
+            {
+                manager = new ApplicationPartManager();
+
+                var environment = GetServiceFromCollection<IHostingEnvironment>(services);
+                if (environment == null)
+                {
+                    return manager;
+                }
+
+                var assemblies = new DefaultAssemblyProvider(environment).CandidateAssemblies;
+                foreach (var assembly in assemblies)
+                {
+                    manager.ApplicationParts.Add(new AssemblyPart(assembly));
+                }
+            }
+
+            return manager;
+        }
+
+        private static T GetServiceFromCollection<T>(IServiceCollection services)
+        {
+            return (T)services
+                .FirstOrDefault(d => d.ServiceType == typeof(T))
+                ?.ImplementationInstance;
         }
 
         /// <summary>
@@ -88,7 +134,6 @@ namespace Microsoft.Extensions.DependencyInjection
             // These are consumed only when creating action descriptors, then they can be de-allocated
             services.TryAddTransient<IAssemblyProvider, DefaultAssemblyProvider>();
 
-            services.TryAddTransient<IControllerTypeProvider, DefaultControllerTypeProvider>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, DefaultApplicationModelProvider>());
             services.TryAddEnumerable(
