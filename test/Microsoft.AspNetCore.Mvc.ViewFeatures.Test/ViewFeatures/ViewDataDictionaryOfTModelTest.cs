@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData1.TemplateInfo);
             Assert.Same(model, viewData1.Model);
             Assert.NotNull(viewData1.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData1.ModelMetadata.ModelType);
+            Assert.Equal(typeof(object), viewData1.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData1.ModelMetadata);
             Assert.Equal(source.Count, viewData1.Count);
             Assert.Equal("bar", viewData1["foo"]);
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData2.TemplateInfo);
             Assert.Same(model, viewData2.Model);
             Assert.NotNull(viewData2.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData2.ModelMetadata.ModelType);
+            Assert.Equal(typeof(object), viewData2.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData2.ModelMetadata);
             Assert.Equal(source.Count, viewData2.Count);
             Assert.Equal("bar", viewData2["foo"]);
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void CopyConstructors_InitalizeModelAndModelMetadataBasedOnSource_ModelOfSubclass()
+        public void CopyConstructor_InitalizesModelAndModelMetadataBasedOnSource_ModelOfSubclass()
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -124,33 +124,50 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             source.TemplateInfo.HtmlFieldPrefix = "prefix";
 
             // Act
-            var viewData1 = new ViewDataDictionary<TestModel>(source);
-            var viewData2 = new ViewDataDictionary(source);
+            var viewData = new ViewDataDictionary(source);
 
             // Assert
-            Assert.NotNull(viewData1.ModelState);
-            Assert.NotNull(viewData1.TemplateInfo);
-            Assert.Equal("prefix", viewData1.TemplateInfo.HtmlFieldPrefix);
-            Assert.NotSame(source.TemplateInfo, viewData1.TemplateInfo);
-            Assert.Same(model, viewData1.Model);
-            Assert.NotNull(viewData1.ModelMetadata);
-            Assert.Equal(typeof(SupremeTestModel), viewData1.ModelMetadata.ModelType);
-            Assert.Same(source.ModelMetadata, viewData1.ModelMetadata);
-            Assert.Equal(source.Count, viewData1.Count);
-            Assert.Equal("bar", viewData1["foo"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData1.Data);
+            Assert.NotNull(viewData.ModelState);
+            Assert.NotNull(viewData.TemplateInfo);
+            Assert.Equal("prefix", viewData.TemplateInfo.HtmlFieldPrefix);
+            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
+            Assert.Same(model, viewData.Model);
+            Assert.NotNull(viewData.ModelMetadata);
+            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(source.Count, viewData.Count);
+            Assert.Equal("bar", viewData["foo"]);
+            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
+        }
 
-            Assert.NotNull(viewData2.ModelState);
-            Assert.NotNull(viewData2.TemplateInfo);
-            Assert.Equal("prefix", viewData2.TemplateInfo.HtmlFieldPrefix);
-            Assert.NotSame(source.TemplateInfo, viewData2.TemplateInfo);
-            Assert.Same(model, viewData2.Model);
-            Assert.NotNull(viewData2.ModelMetadata);
-            Assert.Equal(typeof(SupremeTestModel), viewData2.ModelMetadata.ModelType);
-            Assert.Same(source.ModelMetadata, viewData2.ModelMetadata);
-            Assert.Equal(source.Count, viewData2.Count);
-            Assert.Equal("bar", viewData2["foo"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData2.Data);
+        [Fact]
+        public void CopyConstructor_InitializesModelBasedOnSource_ModelMetadataBasedOnTModel()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var model = new SupremeTestModel();
+            var source = new ViewDataDictionary(metadataProvider)
+            {
+                Model = model,
+            };
+            source["foo"] = "bar";
+            source.TemplateInfo.HtmlFieldPrefix = "prefix";
+
+            // Act
+            var viewData = new ViewDataDictionary<TestModel>(source);
+
+            // Assert
+            Assert.NotNull(viewData.ModelState);
+            Assert.NotNull(viewData.TemplateInfo);
+            Assert.Equal("prefix", viewData.TemplateInfo.HtmlFieldPrefix);
+            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
+            Assert.Same(model, viewData.Model);
+            Assert.NotNull(viewData.ModelMetadata);
+            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
+            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(source.Count, viewData.Count);
+            Assert.Equal("bar", viewData["foo"]);
+            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
         }
 
         [Fact]
@@ -221,6 +238,48 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             exception = Assert.Throws<InvalidOperationException>(() => new ViewDataDictionary<string>(source, model: 24));
             Assert.Equal(expectedMessage, exception.Message);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(23)]
+        public void CopyConstructor_DoesNotChangeMetadata_WhenValueCompatible(int? model)
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var source = new ViewDataDictionary<int?>(metadataProvider)
+            {
+                Model = -48,
+            };
+
+            // Act
+            var viewData = new ViewDataDictionary<int?>(source, model);
+
+            // Assert
+            Assert.NotNull(viewData.ModelExplorer);
+            Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(int?), viewData.ModelMetadata.ModelType);
+            Assert.Equal(viewData.Model, viewData.ModelExplorer.Model);
+            Assert.Equal(model, viewData.Model);
+        }
+
+        [Fact]
+        public void CopyConstructor_UpdatesMetadata_WhenSwitchingToIncompatibleType()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var source = new ViewDataDictionary<string>(metadataProvider);
+
+            // Act
+            var viewData = new ViewDataDictionary<int?>(source);
+
+            // Assert
+            Assert.NotNull(viewData.ModelExplorer);
+            Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
+            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.NotEqual(source.ModelMetadata.ModelType, viewData.ModelMetadata.ModelType);
+            Assert.Equal(typeof(int?), viewData.ModelMetadata.ModelType);
         }
 
         [Fact]

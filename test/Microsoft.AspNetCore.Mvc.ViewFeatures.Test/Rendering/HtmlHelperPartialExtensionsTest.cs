@@ -372,7 +372,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Arrange
             var model = new TestModel();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
-            var expected = DefaultTemplatesUtilities.FormatOutput(helper, model);
+            var expected = DefaultTemplatesUtilities.FormatOutput(helper, typeof(object), model);
 
             // Act
             var actual = helper.Partial("some-partial", model);
@@ -388,7 +388,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var model = new TestModel();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
             var viewData = new ViewDataDictionary(helper.MetadataProvider);
-            var expected = DefaultTemplatesUtilities.FormatOutput(helper, model);
+            var expected = DefaultTemplatesUtilities.FormatOutput(helper, typeof(object), model);
 
             // Act
             var actual = helper.Partial("some-partial", viewData);

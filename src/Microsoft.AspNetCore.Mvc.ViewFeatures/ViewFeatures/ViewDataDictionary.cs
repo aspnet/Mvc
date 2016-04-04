@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Reflection;
 #endif
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
@@ -23,8 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class.
         /// </summary>
         /// <param name="metadataProvider">
-        /// <see cref = "IModelMetadataProvider" /> instance used to calculate
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> values.
+        /// <see cref="IModelMetadataProvider"/> instance used to create <see cref="ViewFeatures.ModelExplorer"/>
+        /// instances.
         /// </param>
         /// <param name="modelState"><see cref="ModelStateDictionary"/> instance for this scope.</param>
         /// <remarks>For use when creating a <see cref="ViewDataDictionary"/> for a new top-level scope.</remarks>
@@ -60,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <remarks>
         /// For use when the new instance's declared <see cref="Model"/> <see cref="Type"/> is unknown but its
         /// <see cref="Model"/> is known. In this case, <see cref="object"/> is the best possible guess about the
-        /// declared type when <paramref name="model"/> is <c>null</c>.
+        /// declared type.
         /// </remarks>
         public ViewDataDictionary(ViewDataDictionary source, object model)
             : this(source, model, declaredModelType: typeof(object))
@@ -71,8 +72,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class.
         /// </summary>
         /// <param name="metadataProvider">
-        /// <see cref="IModelMetadataProvider"/> instance used to calculate
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> values.
+        /// <see cref="IModelMetadataProvider"/> instance used to create <see cref="ViewFeatures.ModelExplorer"/>
+        /// instances.
         /// </param>
         /// <remarks>Internal for testing.</remarks>
         internal ViewDataDictionary(IModelMetadataProvider metadataProvider)
@@ -84,12 +85,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class.
         /// </summary>
         /// <param name="metadataProvider">
-        /// <see cref = "IModelMetadataProvider" /> instance used to calculate
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> values.
+        /// <see cref="IModelMetadataProvider"/> instance used to create <see cref="ViewFeatures.ModelExplorer"/>
+        /// instances.
         /// </param>
         /// <param name="declaredModelType">
-        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> when <see cref="Model"/> is <c>null</c>.
+        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set <see cref="ModelMetadata"/>.
         /// </param>
         /// <remarks>
         /// For use when creating a derived <see cref="ViewDataDictionary"/> for a new top-level scope.
@@ -105,17 +105,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class.
         /// </summary>
         /// <param name="metadataProvider">
-        /// <see cref = "IModelMetadataProvider" /> instance used to calculate
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> values.
+        /// <see cref="IModelMetadataProvider"/> instance used to create <see cref="ViewFeatures.ModelExplorer"/>
+        /// instances.
         /// </param>
         /// <param name="modelState"><see cref="ModelStateDictionary"/> instance for this scope.</param>
         /// <param name="declaredModelType">
-        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> when <see cref="Model"/> is <c>null</c>.
+        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set <see cref="ModelMetadata"/>.
         /// </param>
         /// <remarks>
         /// For use when creating a derived <see cref="ViewDataDictionary"/> for a new top-level scope.
         /// </remarks>
+        // This is the core constructor called when Model is unknown.
         protected ViewDataDictionary(
             IModelMetadataProvider metadataProvider,
             ModelStateDictionary modelState,
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(declaredModelType));
             }
 
-            // This is the core constructor called when Model is unknown. Base ModelMetadata on the declared type.
+            // Base ModelMetadata on the declared type.
             ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model: null);
         }
 
@@ -151,8 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </summary>
         /// <param name="source"><see cref="ViewDataDictionary"/> instance to copy initial values from.</param>
         /// <param name="declaredModelType">
-        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> when <see cref="Model"/> is <c>null</c>.
+        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set <see cref="ModelMetadata"/>.
         /// </param>
         /// <remarks>
         /// <para>
@@ -180,8 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <param name="source"><see cref="ViewDataDictionary"/> instance to copy initial values from.</param>
         /// <param name="model">Value for the <see cref="Model"/> property.</param>
         /// <param name="declaredModelType">
-        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set
-        /// <see cref="ViewDataDictionary.ModelMetadata"/> when <see cref="Model"/> is <c>null</c>.
+        /// <see cref="Type"/> of <see cref="Model"/> values expected. Used to set <see cref="ModelMetadata"/>.
         /// </param>
         /// <remarks>
         /// <para>
@@ -193,6 +191,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <paramref name="declaredModelType"/>.
         /// </para>
         /// </remarks>
+        // This is the core constructor called when Model is known.
         protected ViewDataDictionary(ViewDataDictionary source, object model, Type declaredModelType)
             : this(source._metadataProvider,
                    source.ModelState,
@@ -205,26 +204,51 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(source));
             }
 
-            // This is the core constructor called when Model is known.
-            var modelType = GetModelType(model);
-            var metadataModelType = source.ModelMetadata.UnderlyingOrModelType;
-            if (modelType == metadataModelType && model == source.ModelExplorer.Model)
+            // A non-null Model must always be assignable to both _declaredModelType and ModelMetadata.ModelType.
+            // ModelMetadata.ModelType should also be assignable to _declaredModelType. Though corner cases exist where
+            // a ViewDataDictionary instance might be expected to contain metadata for a _declaredModelType base class
+            // (e.g. a ViewDataDictionary<List<int>> holding information about an IEnumerable<int> property because an
+            // @model directive matched the runtime type though the view's name did not), we'll throw away the property
+            // metadata in those cases -- preserving invariant that ModelType can be assigned to _declaredModelType.
+            //
+            // More generally, since defensive copies to base VDD and VDD<object> abound, it's important to preserve
+            // metadata despite _declaredModelType changes.
+            if (source.ModelMetadata.MetadataKind == ModelMetadataKind.Type &&
+                source.ModelMetadata.ModelType != declaredModelType &&
+                declaredModelType != typeof(object))
             {
-                // Preserve any customizations made to source.ModelExplorer.ModelMetadata if the Type
-                // that will be calculated in SetModel() and source.Model match new instance's values.
+                // Base ModelMetadata on the declared type when there's no property information to preserve and the
+                // type changes to something besides typeof(object).
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
+            }
+            else if (!declaredModelType.IsAssignableFrom(source.ModelMetadata.ModelType))
+            {
+                // Base ModelMetadata on the declared type when switching to an incompatible type.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
+            }
+            else if (object.ReferenceEquals(model, source.ModelExplorer.Model))
+            {
+                // Source's ModelExplorer is already exactly correct.
                 ModelExplorer = source.ModelExplorer;
             }
-            else if (model == null)
+            else
             {
-                // Ensure ModelMetadata is never null though SetModel() isn't called below.
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, model: null);
+                ModelExplorer = new ModelExplorer(
+                    _metadataProvider,
+                    source.ModelExplorer.Container,
+                    source.ModelMetadata,
+                    model);
             }
 
-            // If we're constructing a ViewDataDictionary<TModel> where TModel is a non-Nullable value type,
-            // SetModel() will throw if we try to call it with null. We should not throw in that case.
+            // Ensure the given Model is compatible with _declaredModelType. Do not do this one of the following
+            // special cases:
+            // - Constructing a ViewDataDictionary<TModel> where TModel is a non-Nullable value type. This may for
+            // example occur when activating a RazorPage<int> and the container is null.
+            // - Constructing a ViewDataDictionary<object> immediately before overwriting ModelExplorer with correct
+            // information. See TemplateBuilder.Build().
             if (model != null)
             {
-                SetModel(model);
+                EnsureCompatible(model);
             }
         }
 
@@ -242,6 +266,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             TemplateInfo = templateInfo;
         }
 
+        /// <summary>
+        /// Gets or sets the current model.
+        /// </summary>
         public object Model
         {
             get
@@ -250,20 +277,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
             set
             {
-                // Reset ModelExplorer to ensure Model and ModelMetadata.Model remain equal.
+                // Reset ModelExplorer to ensure Model and ModelExplorer.Model remain equal.
                 SetModel(value);
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="ModelStateDictionary"/>.
+        /// </summary>
         public ModelStateDictionary ModelState { get; }
 
         /// <summary>
-        /// <see cref="ModelMetadata"/> for the current <see cref="Model"/> value or the declared <see cref="Type"/> if
-        /// <see cref="Model"/> is <c>null</c>.
+        /// Gets the <see cref="ModelBinding.ModelMetadata"/> for the declared <see cref="Type"/>.
         /// </summary>
         /// <remarks>
         /// Value is never <c>null</c> but may describe the <see cref="object"/> class in some cases. This may for
-        /// example occur in controllers if <see cref="Model"/> is <c>null</c>.
+        /// example occur in controllers.
         /// </remarks>
         public ModelMetadata ModelMetadata
         {
@@ -274,13 +303,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="ModelExplorer"/> for the <see cref="Model"/>.
+        /// Gets or sets the <see cref="ViewFeatures.ModelExplorer"/> for the <see cref="Model"/>.
         /// </summary>
         public ModelExplorer ModelExplorer { get; set; }
 
+        /// <summary>
+        /// Gets the <see cref="ViewFeatures.TemplateInfo"/>.
+        /// </summary>
         public TemplateInfo TemplateInfo { get; }
 
         #region IDictionary properties
+        /// <inheritdoc />
         // Do not just pass through to _data: Indexer should not throw a KeyNotFoundException.
         public object this[string index]
         {
@@ -296,21 +329,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
         }
 
+        /// <inheritdoc />
         public int Count
         {
             get { return _data.Count; }
         }
 
+        /// <inheritdoc />
         public bool IsReadOnly
         {
             get { return _data.IsReadOnly; }
         }
 
+        /// <inheritdoc />
         public ICollection<string> Keys
         {
             get { return _data.Keys; }
         }
 
+        /// <inheritdoc />
         public ICollection<object> Values
         {
             get { return _data.Values; }
@@ -360,6 +397,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return FormatValue(value, format);
         }
 
+        /// <summary>
+        /// Formats the given <paramref name="value"/> using given <paramref name="format"/>.
+        /// </summary>
+        /// <param name="value">The value to format.</param>
+        /// <param name="format">
+        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx).
+        /// </param>
+        /// <returns>The formatted <see cref="string"/>.</returns>
         public static string FormatValue(object value, string format)
         {
             if (value == null)
@@ -395,31 +440,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return ViewDataEvaluator.Eval(this, expression);
         }
 
-        // This method will execute before the derived type's instance constructor executes. Derived types must
-        // be aware of this and should plan accordingly. For example, the logic in SetModel() should be simple
-        // enough so as not to depend on the "this" pointer referencing a fully constructed object.
+        /// <summary>
+        /// Set <see cref="ModelExplorer"/> to ensure <see cref="Model"/> and <see cref="ModelExplorer.Model"/>
+        /// reflect the new <paramref name="value"/>.
+        /// </summary>
+        /// <param name="value">New <see cref="Model"/> value.</param>
         protected virtual void SetModel(object value)
         {
             EnsureCompatible(value);
 
-            // Reset or override ModelMetadata based on runtime value type. Fall back to declared type if value is
-            // null. When called from a constructor, current ModelExplorer may already be set to preserve
-            // customizations made in parent scope. But ModelExplorer is never null after instance is initialized.
-            var modelType = GetModelType(value);
-            Type metadataModelType = null;
-            if (ModelExplorer != null)
+            // Update ModelExplorer to reflect the new value. Preserve ModelMetadata to avoid losing property
+            // information or unexpectedly reflecting runtime information.
+            //
+            // Note EnsureCompatible() has already ensured ModelMetadata is correct.
+            if (object.ReferenceEquals(value, Model))
             {
-                metadataModelType = ModelMetadata.UnderlyingOrModelType;
-            }
-
-            if (metadataModelType != modelType)
-            {
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelType, value);
-            }
-            else if (object.ReferenceEquals(value, Model))
-            {
-                // The metadata already matches, and the model is literally the same, nothing
-                // to do here. This will likely occur when using one of the copy constructors.
+                // The metadata matches and the model is literally the same; nothing to do here.
             }
             else
             {
@@ -450,11 +486,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
         }
 
-        private Type GetModelType(object value)
-        {
-            return (value == null) ? _declaredModelType : value.GetType();
-        }
-
         private bool IsCompatibleWithDeclaredType(object value)
         {
             if (value == null)
@@ -469,6 +500,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         #region IDictionary methods
+        /// <inheritdoc />
         public void Add(string key, object value)
         {
             if (key == null)
@@ -479,6 +511,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             _data.Add(key, value);
         }
 
+        /// <inheritdoc />
         public bool ContainsKey(string key)
         {
             if (key == null)
@@ -489,6 +522,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return _data.ContainsKey(key);
         }
 
+        /// <inheritdoc />
         public bool Remove(string key)
         {
             if (key == null)
@@ -499,6 +533,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return _data.Remove(key);
         }
 
+        /// <inheritdoc />
         public bool TryGetValue(string key, out object value)
         {
             if (key == null)
@@ -509,21 +544,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return _data.TryGetValue(key, out value);
         }
 
+        /// <inheritdoc />
         public void Add(KeyValuePair<string, object> item)
         {
             _data.Add(item);
         }
 
+        /// <inheritdoc />
         public void Clear()
         {
             _data.Clear();
         }
 
+        /// <inheritdoc />
         public bool Contains(KeyValuePair<string, object> item)
         {
             return _data.Contains(item);
         }
 
+        /// <inheritdoc />
         public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
         {
             if (array == null)
@@ -534,16 +573,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             _data.CopyTo(array, arrayIndex);
         }
 
+        /// <inheritdoc />
         public bool Remove(KeyValuePair<string, object> item)
         {
             return _data.Remove(item);
         }
 
+        /// <inheritdoc />
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
         {
             return _data.GetEnumerator();
         }
 
+        /// <inheritdoc />
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _data.GetEnumerator();

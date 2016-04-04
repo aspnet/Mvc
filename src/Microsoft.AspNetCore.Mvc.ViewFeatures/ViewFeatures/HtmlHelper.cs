@@ -589,7 +589,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 // Determine which ViewData we should use to construct a new ViewData
                 var baseViewData = viewData ?? ViewData;
 
-                var newViewData = new ViewDataDictionary(baseViewData, model);
+                // Make an identical, defensive copy of the ViewDataDictionary to isolate changes.
+                ViewDataDictionary newViewData = new ViewDataDictionary(baseViewData);
+                if (!object.ReferenceEquals(model, baseViewData.Model))
+                {
+                    // Restart metadata from scratch since we know only the runtime type of the model. Of course an
+                    // @model directive in the partial view may give helpers in that view more information.
+                    newViewData.ModelExplorer = MetadataProvider.GetModelExplorerForType(typeof(object), model);
+                }
+
                 var viewContext = new ViewContext(ViewContext, view, newViewData, writer);
 
                 await viewEngineResult.View.RenderAsync(viewContext);

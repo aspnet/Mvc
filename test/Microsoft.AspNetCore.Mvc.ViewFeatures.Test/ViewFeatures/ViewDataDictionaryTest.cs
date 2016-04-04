@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -50,33 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void SetModelUsesPassedInModelMetadataProvider()
-        {
-            // Arrange
-            var metadataProvider = new Mock<IModelMetadataProvider>();
-            metadataProvider
-                .Setup(m => m.GetMetadataForType(typeof(object)))
-                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(object)))
-                .Verifiable();
-            metadataProvider
-                .Setup(m => m.GetMetadataForType(typeof(TestModel)))
-                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(TestModel)))
-                .Verifiable();
-            var modelState = new ModelStateDictionary();
-            var viewData = new TestViewDataDictionary(metadataProvider.Object, modelState);
-            var model = new TestModel();
-
-            // Act
-            viewData.SetModelPublic(model);
-
-            // Assert
-            Assert.NotNull(viewData.ModelMetadata);
-            metadataProvider.Verify();
-        }
-
-        // When SetModel is called, only GetMetadataForType from MetadataProvider is expected to be called.
-        [Fact]
-        public void SetModelCallsGetMetadataForTypeExactlyOnce()
+        public void Constructor_UsesModelMetadataProvider()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
@@ -84,9 +57,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 .Setup(m => m.GetMetadataForType(typeof(object)))
                 .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(object)))
                 .Verifiable();
+            var modelState = new ModelStateDictionary();
+
+            // Act
+            var viewData = new TestViewDataDictionary(metadataProvider.Object, modelState);
+
+            // Assert
+            Assert.NotNull(viewData.ModelMetadata);
+            metadataProvider.Verify(m => m.GetMetadataForType(typeof(object)), Times.Once());
+        }
+
+        [Fact]
+        public void SetModel_DoesNotUsePassedInModelMetadataProvider()
+        {
+            // Arrange
+            var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
             metadataProvider
-                .Setup(m => m.GetMetadataForType(typeof(TestModel)))
-                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(TestModel)))
+                .Setup(m => m.GetMetadataForType(typeof(object)))
+                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(object)))
                 .Verifiable();
             var modelState = new ModelStateDictionary();
             var viewData = new TestViewDataDictionary(metadataProvider.Object, modelState);
@@ -97,12 +85,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             // Assert
             Assert.NotNull(viewData.ModelMetadata);
-            // Verifies if the GetMetadataForType is called only once.
-            metadataProvider.Verify(
-                m => m.GetMetadataForType(typeof(object)), Times.Once());
-            // Verifies if GetMetadataForProperties and GetMetadataForProperty is not called.
-            metadataProvider.Verify(
-                m => m.GetMetadataForProperties(typeof(object)), Times.Never());
+
+            // Count is the same as in Constructor_UsesModelMetadataProvider().
+            metadataProvider.Verify(m => m.GetMetadataForType(typeof(object)), Times.Once());
         }
 
         public static TheoryData<object> SetModelData
@@ -149,7 +134,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var model = new TestModel();
             var source = new ViewDataDictionary(metadataProvider)
             {
-                Model = model
+                ModelExplorer = metadataProvider.GetModelExplorerForType(typeof(TestModel), model),
             };
             source["foo"] = "bar";
             source.TemplateInfo.HtmlFieldPrefix = "prefix";
@@ -194,8 +179,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
-            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
             Assert.Equal(source.Count, viewData.Count);
             Assert.Equal("value1", viewData["key1"]);
             Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
@@ -222,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
+            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
             Assert.Equal(source.Count, viewData.Count);
             Assert.Equal("value1", viewData["key1"]);
@@ -309,18 +294,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Theory]
-        [InlineData(typeof(int), "test string", typeof(string))]
-        [InlineData(typeof(string), 23, typeof(int))]
-        [InlineData(typeof(IEnumerable<string>), new object[] { "1", "2", "3", }, typeof(object[]))]
-        [InlineData(typeof(List<string>), new object[] { 1, 2, 3, }, typeof(object[]))]
-        public void CopyConstructors_OverrideSourceMetadata_IfModelNonNull(
-            Type sourceType,
-            object instance,
-            Type expectedType)
+        [InlineData(typeof(int), "test string")]
+        [InlineData(typeof(string), 23)]
+        [InlineData(typeof(IEnumerable<string>), new object[] { "1", "2", "3", })]
+        [InlineData(typeof(List<string>), new object[] { 1, 2, 3, })]
+        public void CopyConstructors_PreservesSourceMetadata_IfModelNonNull(Type sourceType, object instance)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
-            var source = new ViewDataDictionary(metadataProvider);
+            var source = new ViewDataDictionary(metadataProvider)
+            {
+                ModelExplorer = metadataProvider.GetModelExplorerForType(sourceType, model: null),
+            };
 
             // Act
             var viewData1 = new ViewDataDictionary(source)
@@ -331,10 +316,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             // Assert
             Assert.NotNull(viewData1.ModelMetadata);
-            Assert.Equal(expectedType, viewData1.ModelMetadata.ModelType);
+            Assert.Equal(sourceType, viewData1.ModelMetadata.ModelType);
 
             Assert.NotNull(viewData2.ModelMetadata);
-            Assert.Equal(expectedType, viewData2.ModelMetadata.ModelType);
+            Assert.Equal(sourceType, viewData2.ModelMetadata.ModelType);
         }
 
         [Fact]
@@ -360,6 +345,32 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal(5, viewData.ModelExplorer.Model);
             Assert.Same(originalMetadata, viewData.ModelMetadata);
             Assert.NotSame(originalExplorer, viewData.ModelExplorer);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(23)]
+        public void CopyConstructor_DoesNotChangeMetadata_WhenValueCompatible(int? model)
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var metadata = metadataProvider.GetMetadataForType(typeof(int?));
+            var explorer = new ModelExplorer(metadataProvider, metadata, model: -48);
+            var source = new ViewDataDictionary(metadataProvider)
+            {
+                ModelExplorer = explorer,
+            };
+
+            // Act
+            var viewData = new ViewDataDictionary(source, model);
+
+            // Assert
+            Assert.NotNull(viewData.ModelExplorer);
+            Assert.NotSame(explorer, viewData.ModelExplorer);
+            Assert.Same(metadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(int?), viewData.ModelMetadata.ModelType);
+            Assert.Equal(viewData.Model, viewData.ModelExplorer.Model);
+            Assert.Equal(model, viewData.Model);
         }
 
         [Fact]
