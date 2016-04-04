@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var modelState = new ModelStateDictionary();
 
             // Act
-            var viewData = new TestViewDataDictionary(metadataProvider.Object, modelState);
+            var viewData = new ViewDataDictionary(metadataProvider.Object, modelState);
 
             // Assert
             Assert.NotNull(viewData.ModelMetadata);
