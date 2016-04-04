@@ -590,7 +590,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 var baseViewData = viewData ?? ViewData;
 
                 // Make an identical, defensive copy of the ViewDataDictionary to isolate changes.
-                ViewDataDictionary newViewData = new ViewDataDictionary(baseViewData);
+                var newViewData = new ViewDataDictionary(baseViewData);
                 if (!object.ReferenceEquals(model, baseViewData.Model))
                 {
                     // Restart metadata from scratch since we know only the runtime type of the model. Of course an
