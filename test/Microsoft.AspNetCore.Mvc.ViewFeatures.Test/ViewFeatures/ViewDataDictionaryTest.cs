@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void SetModel_DoesNotUsePassedInModelMetadataProvider()
+        public void SetModel_DoesNotUseModelMetadataProvider()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
@@ -85,8 +85,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             // Assert
             Assert.NotNull(viewData.ModelMetadata);
-
-            // Count is the same as in Constructor_UsesModelMetadataProvider().
             metadataProvider.Verify(m => m.GetMetadataForType(typeof(object)), Times.Once());
         }
 

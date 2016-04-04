@@ -127,17 +127,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewData = new ViewDataDictionary(source);
 
             // Assert
-            Assert.NotNull(viewData.ModelState);
-            Assert.NotNull(viewData.TemplateInfo);
-            Assert.Equal("prefix", viewData.TemplateInfo.HtmlFieldPrefix);
-            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
             Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(source.Count, viewData.Count);
-            Assert.Equal("bar", viewData["foo"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
         }
 
         [Fact]
@@ -157,17 +150,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewData = new ViewDataDictionary<TestModel>(source);
 
             // Assert
-            Assert.NotNull(viewData.ModelState);
-            Assert.NotNull(viewData.TemplateInfo);
-            Assert.Equal("prefix", viewData.TemplateInfo.HtmlFieldPrefix);
-            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
             Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
             Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(source.Count, viewData.Count);
-            Assert.Equal("bar", viewData["foo"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
         }
 
         [Fact]
