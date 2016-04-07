@@ -42,9 +42,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </summary>
         /// <param name="source"><see cref="ViewDataDictionary"/> instance to copy initial values from.</param>
         /// <remarks>
+        /// <para>
         /// For use when copying a <see cref="ViewDataDictionary"/> instance and the declared <see cref="Model"/>
         /// <see cref="Type"/> will not change e.g. when copying from a <see cref="ViewDataDictionary{TModel}"/>
         /// instance to a base <see cref="ViewDataDictionary"/> instance.
+        /// </para>
+        /// <para>
+        /// This constructor should not be used in any context where <see cref="Model"/> may be set to a value
+        /// incompatible with the declared type of <paramref name="source"/>.
+        /// </para>
         /// </remarks>
         public ViewDataDictionary(ViewDataDictionary source)
             : this(source, source.Model, source._declaredModelType)
@@ -230,6 +236,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 // Source's ModelExplorer is already exactly correct.
                 ModelExplorer = source.ModelExplorer;
+            }
+            else if (model != null && !source.ModelMetadata.ModelType.IsAssignableFrom(model.GetType()))
+            {
+                // Base ModelMetadata on the declared type when new model has an incompatible type.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
             }
             else
             {
@@ -447,21 +458,37 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <param name="value">New <see cref="Model"/> value.</param>
         protected virtual void SetModel(object value)
         {
-            EnsureCompatible(value);
-
-            // Update ModelExplorer to reflect the new value. Preserve ModelMetadata to avoid losing property
-            // information or unexpectedly reflecting runtime information.
-            //
-            // Note EnsureCompatible() has already ensured ModelMetadata is correct.
+            // Update ModelExplorer to reflect the new value. When possible, preserve ModelMetadata to avoid losing
+            // property information or unexpectedly reflecting runtime information.
             if (object.ReferenceEquals(value, Model))
             {
-                // The metadata matches and the model is literally the same; nothing to do here.
+                // The metadata matches and the model is literally the same; usually nothing to do here.
+                if (value == null &&
+                    !ModelMetadata.IsReferenceOrNullableType &&
+                    _declaredModelType != ModelMetadata.ModelType)
+                {
+                    // Base ModelMetadata on the declared type when source VDD's Model was never set and it had a
+                    // non-Nullable value type (an unusual case). Though _declaredModelType might be another
+                    // non-Nullable value type, would otherwise need to duplicate logic behind
+                    // ModelMetadata.IsReferenceOrNullableType.
+                    ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, value);
+                }
+            }
+            else if (value != null && !ModelMetadata.ModelType.IsAssignableFrom(value.GetType()))
+            {
+                // Base ModelMetadata on the declared type when switching to an incompatible type. This should be
+                // possible only in cases where _declaredModelType==typeof(object), metadata was copied from another
+                // VDD, and user code can set the Model to a new type e.g. within a view component or a view that lacks
+                // an @model directive.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, value);
             }
             else
             {
                 // The metadata matches, but it's a new value.
                 ModelExplorer = new ModelExplorer(_metadataProvider, ModelExplorer.Container, ModelMetadata, value);
             }
+
+            EnsureCompatible(value);
         }
 
         // Throw if given value is incompatible with the declared Model Type.
@@ -486,6 +513,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
         }
 
+        // Call after updating the ModelExplorer because this uses both _declaredModelType and ModelMetadata. May
+        // otherwise get incorrect compatibility errors.
         private bool IsCompatibleWithDeclaredType(object value)
         {
             if (value == null)

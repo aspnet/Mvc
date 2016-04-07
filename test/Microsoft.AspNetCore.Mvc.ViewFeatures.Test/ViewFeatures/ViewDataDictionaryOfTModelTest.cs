@@ -207,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void CopyConstructors_ThrowInvalidOperation_IfModelIncompatible()
+        public void CopyConstructors_ThrowInvalidOperation_IfModelIncompatibleWithDeclaredType()
         {
             // Arrange
             var expectedMessage = "The model item passed into the ViewDataDictionary is of type 'System.Int32', " +
@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         [Theory]
         [InlineData(null)]
         [InlineData(23)]
-        public void CopyConstructor_DoesNotChangeMetadata_WhenValueCompatible(int? model)
+        public void CopyConstructor_DoesNotChangeMetadata_WhenValueCompatibleWithSourceMetadata(int? model)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void CopyConstructor_UpdatesMetadata_WhenSwitchingToIncompatibleType()
+        public void CopyConstructor_UpdatesMetadata_IfDeclaredTypeChangesIncompatibly()
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -315,7 +315,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void ModelSetters_ThrowInvalidOperation_IfModelIncompatible()
+        public void ModelSetters_ThrowInvalidOperation_IfModelIncompatibleWithDeclaredType()
         {
             // Arrange
             var expectedMessage = "The model item passed into the ViewDataDictionary is of type 'System.Int32', " +

@@ -7,12 +7,15 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -272,6 +275,48 @@ namespace Microsoft.AspNetCore.Mvc.Test
 
             // Assert
             Assert.Equal(input, result);
+        }
+
+        public static TheoryData<object> IncompatibleModelData
+        {
+            get
+            {
+                // Small grab bag of types with no common base except typeof(object).
+                return new TheoryData<object>
+                {
+                    null,
+                    true,
+                    43.78,
+                    "test string",
+                    new List<int>(),
+                    new List<string>(),
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(IncompatibleModelData))]
+        public void ViewDataModelSetter_DoesNotThrow(object model)
+        {
+            // Arrange
+            var activator = new ViewDataDictionaryControllerPropertyActivator(new EmptyModelMetadataProvider());
+            var actionContext = new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                new ControllerActionDescriptor());
+            var controllerContext = new ControllerContext(actionContext);
+            var controller = new TestableController();
+            activator.Activate(controllerContext, controller);
+
+            // Guard
+            Assert.NotNull(controller.ViewData);
+
+            // Act (does not throw)
+            controller.ViewData.Model = model;
+
+            // Assert
+            Assert.NotNull(controller.ViewData.ModelMetadata);
+            Assert.Equal(typeof(object), controller.ViewData.ModelMetadata.ModelType);
         }
 
         private static Controller GetController(IModelBinder binder, IValueProvider valueProvider)

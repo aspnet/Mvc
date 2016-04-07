@@ -6,11 +6,15 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "Views"
+  ],
   "dependencies": {
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-*",
+    "Microsoft.AspNetCore.IISPlatformHandler": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0"
+    "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-*"
   },
   "frameworks": {
     "net451": {},
@@ -20,7 +24,7 @@
         "portable-net451+win8"
       ],
       "dependencies": {
-          "NETStandard.Library": "1.5.0-*"
+        "NETStandard.Library": "1.5.0-*"
       }
     }
   }
