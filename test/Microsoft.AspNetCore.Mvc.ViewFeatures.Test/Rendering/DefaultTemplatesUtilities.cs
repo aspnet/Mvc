@@ -331,12 +331,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         public static string FormatOutput(IHtmlHelper helper, object model)
         {
-            return FormatOutput(helper, model.GetType(), model);
-        }
-
-        public static string FormatOutput(IHtmlHelper helper, Type type, object model)
-        {
-            var modelExplorer = helper.MetadataProvider.GetModelExplorerForType(type, model);
+            var modelExplorer = helper.MetadataProvider.GetModelExplorerForType(model.GetType(), model);
             return FormatOutput(modelExplorer);
         }
 

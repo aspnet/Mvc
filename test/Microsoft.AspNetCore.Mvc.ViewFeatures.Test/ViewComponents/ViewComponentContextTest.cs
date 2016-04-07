@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Http;
@@ -57,26 +58,28 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             Assert.Same(viewData.ModelMetadata, viewComponentContext.ViewData.ModelMetadata);
         }
 
-        public static TheoryData<object> IncompatibleModelData
+        public static TheoryData<object, Type> IncompatibleModelData
         {
             get
             {
-                // Small "anything but int" grab bag.
-                return new TheoryData<object>
+                // Small "anything but int" grab bag of instances and expected types.
+                return new TheoryData<object, Type>
                 {
-                    null,
-                    true,
-                    43.78,
-                    "test string",
-                    new List<int>(),
-                    new List<string>(),
+                    { null, typeof(object) },
+                    { true, typeof(bool) },
+                    { 43.78, typeof(double) },
+                    { "test string", typeof(string) },
+                    { new List<int>(), typeof(List<int>) },
+                    { new List<string>(), typeof(List<string>) },
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(IncompatibleModelData))]
-        public void ViewDataModelSetter_DoesNotThrow_IfValueIncompatibleWithSourceDeclaredType(object model)
+        public void ViewDataModelSetter_DoesNotThrow_IfValueIncompatibleWithSourceDeclaredType(
+            object model,
+            Type expectedType)
         {
             // Arrange
             var httpContext = new DefaultHttpContext();
@@ -103,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             viewComponentContext.ViewData.Model = model;
 
             // Assert
-            Assert.Equal(typeof(object), viewComponentContext.ViewData.ModelMetadata.ModelType);
+            Assert.Equal(expectedType, viewComponentContext.ViewData.ModelMetadata.ModelType);
         }
     }
 }

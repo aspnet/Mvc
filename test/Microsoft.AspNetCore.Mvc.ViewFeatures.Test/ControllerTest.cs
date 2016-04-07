@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
@@ -277,26 +276,26 @@ namespace Microsoft.AspNetCore.Mvc.Test
             Assert.Equal(input, result);
         }
 
-        public static TheoryData<object> IncompatibleModelData
+        public static TheoryData<object, Type> IncompatibleModelData
         {
             get
             {
-                // Small grab bag of types with no common base except typeof(object).
-                return new TheoryData<object>
+                // Small grab bag of instances and expected types with no common base except typeof(object).
+                return new TheoryData<object, Type>
                 {
-                    null,
-                    true,
-                    43.78,
-                    "test string",
-                    new List<int>(),
-                    new List<string>(),
+                    { null, typeof(object) },
+                    { true, typeof(bool) },
+                    { 43.78, typeof(double) },
+                    { "test string", typeof(string) },
+                    { new List<int>(), typeof(List<int>) },
+                    { new List<string>(), typeof(List<string>) },
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(IncompatibleModelData))]
-        public void ViewDataModelSetter_DoesNotThrow(object model)
+        public void ViewDataModelSetter_DoesNotThrow(object model, Type expectedType)
         {
             // Arrange
             var activator = new ViewDataDictionaryControllerPropertyActivator(new EmptyModelMetadataProvider());
@@ -316,7 +315,7 @@ namespace Microsoft.AspNetCore.Mvc.Test
 
             // Assert
             Assert.NotNull(controller.ViewData.ModelMetadata);
-            Assert.Equal(typeof(object), controller.ViewData.ModelMetadata.ModelType);
+            Assert.Equal(expectedType, controller.ViewData.ModelMetadata.ModelType);
         }
 
         private static Controller GetController(IModelBinder binder, IValueProvider valueProvider)

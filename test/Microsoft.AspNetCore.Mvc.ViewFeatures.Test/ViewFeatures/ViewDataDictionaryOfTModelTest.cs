@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData1.TemplateInfo);
             Assert.Same(model, viewData1.Model);
             Assert.NotNull(viewData1.ModelMetadata);
-            Assert.Equal(typeof(object), viewData1.ModelMetadata.ModelType);
+            Assert.Equal(typeof(TestModel), viewData1.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData1.ModelMetadata);
             Assert.Equal(source.Count, viewData1.Count);
             Assert.Equal("bar", viewData1["foo"]);
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData2.TemplateInfo);
             Assert.Same(model, viewData2.Model);
             Assert.NotNull(viewData2.ModelMetadata);
-            Assert.Equal(typeof(object), viewData2.ModelMetadata.ModelType);
+            Assert.Equal(typeof(TestModel), viewData2.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData2.ModelMetadata);
             Assert.Equal(source.Count, viewData2.Count);
             Assert.Equal("bar", viewData2["foo"]);
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Assert
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Equal(typeof(SupremeTestModel), viewData.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
         }
 
@@ -152,8 +152,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Assert
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
-            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(SupremeTestModel), viewData.ModelMetadata.ModelType);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
         }
 
         [Fact]

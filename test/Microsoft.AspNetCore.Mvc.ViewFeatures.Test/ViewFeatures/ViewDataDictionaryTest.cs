@@ -73,8 +73,32 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
             metadataProvider
+                .Setup(m => m.GetMetadataForType(typeof(TestModel)))
+                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(TestModel)))
+                .Verifiable();
+            var viewData = new TestViewDataDictionary(metadataProvider.Object, typeof(TestModel));
+            var model = new TestModel();
+
+            // Act
+            viewData.SetModelPublic(model);
+
+            // Assert
+            Assert.NotNull(viewData.ModelMetadata);
+            metadataProvider.Verify(m => m.GetMetadataForType(typeof(TestModel)), Times.Once());
+        }
+
+        [Fact]
+        public void SetModel_UsesModelMetadataProvider_IfSourceTypeIsObject()
+        {
+            // Arrange
+            var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
+            metadataProvider
                 .Setup(m => m.GetMetadataForType(typeof(object)))
                 .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(object)))
+                .Verifiable();
+            metadataProvider
+                .Setup(m => m.GetMetadataForType(typeof(TestModel)))
+                .Returns(new EmptyModelMetadataProvider().GetMetadataForType(typeof(TestModel)))
                 .Verifiable();
             var viewData = new TestViewDataDictionary(metadataProvider.Object);
             var model = new TestModel();
@@ -84,27 +108,35 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             // Assert
             Assert.NotNull(viewData.ModelMetadata);
+
+            // For the constructor.
             metadataProvider.Verify(m => m.GetMetadataForType(typeof(object)), Times.Once());
+
+            // For SetModel().
+            metadataProvider.Verify(m => m.GetMetadataForType(typeof(TestModel)), Times.Once());
         }
 
-        public static TheoryData<object> IncompatibleModelData
+        public static TheoryData<object, Type> IncompatibleModelData
         {
             get
             {
-                // Small "anything but TestModel" grab bag.
-                return new TheoryData<object>
+                // Small "anything but TestModel" grab bag of instances and expected types.
+                return new TheoryData<object, Type>
                 {
-                    23,
-                    "test string",
-                    new List<TestModel>(),
-                    new List<string>(),
+                    { true, typeof(bool) },
+                    { 23, typeof(int) },
+                    { 43.78, typeof(double) },
+                    { "test string", typeof(string) },
+                    { new List<int>(), typeof(List<int>) },
+                    { new List<string>(), typeof(List<string>) },
+                    { new List<TestModel>(), typeof(List<TestModel>) },
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(IncompatibleModelData))]
-        public void CopyConstructor_DoesNotThrow_IfModelIncompatibleWithDeclaredType(object model)
+        public void CopyConstructor_DoesNotThrow_IfModelIncompatibleWithDeclaredType(object model, Type expectedType)
         {
             // Arrange
             var source = new TestViewDataDictionary(new EmptyModelMetadataProvider(), typeof(TestModel));
@@ -117,12 +149,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
             Assert.NotNull(viewData.ModelMetadata);
             Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Equal(expectedType, viewData.ModelMetadata.ModelType);
         }
 
         [Theory]
         [MemberData(nameof(IncompatibleModelData))]
-        public void SetModel_Throws_IfModelIncompatibleWithDeclaredType(object model)
+        public void SetModel_Throws_IfModelIncompatibleWithDeclaredType(object model, Type expectedType)
         {
             // Arrange
             var viewData = new TestViewDataDictionary(new EmptyModelMetadataProvider(), typeof(TestModel));
@@ -224,8 +256,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
-            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
+            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
             Assert.Equal(source.Count, viewData.Count);
             Assert.Equal("value1", viewData["key1"]);
             Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
@@ -252,7 +284,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
             Assert.Same(model, viewData.Model);
             Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
             Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
             Assert.Equal(source.Count, viewData.Count);
             Assert.Equal("value1", viewData["key1"]);
@@ -356,13 +388,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Theory]
-        [InlineData(typeof(int), "test string")]
-        [InlineData(typeof(string), 23)]
-        [InlineData(typeof(IEnumerable<string>), new object[] { "1", "2", "3" })]
-        [InlineData(typeof(List<string>), new object[] { 1, 2, 3 })]
+        [InlineData(typeof(int), "test string", typeof(string))]
+        [InlineData(typeof(string), 23, typeof(int))]
+        [InlineData(typeof(IEnumerable<string>), new object[] { "1", "2", "3" }, typeof(object[]))]
+        [InlineData(typeof(List<string>), new object[] { 1, 2, 3 }, typeof(object[]))]
         public void CopyConstructors_UpdateModelMetadata_IfModelIncompatibleWithSourceMetadata(
             Type sourceType,
-            object model)
+            object model,
+            Type expectedType)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -382,11 +415,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Assert
             Assert.NotSame(source.ModelExplorer, viewData1.ModelExplorer);
             Assert.NotSame(source.ModelMetadata, viewData1.ModelMetadata);
-            Assert.Equal(typeof(object), viewData1.ModelMetadata.ModelType);
+            Assert.Equal(expectedType, viewData1.ModelMetadata.ModelType);
 
             Assert.NotSame(source.ModelExplorer, viewData2.ModelExplorer);
             Assert.NotSame(source.ModelMetadata, viewData2.ModelMetadata);
-            Assert.Equal(typeof(object), viewData1.ModelMetadata.ModelType);
+            Assert.Equal(expectedType, viewData1.ModelMetadata.ModelType);
         }
 
         [Theory]
@@ -489,7 +522,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.NotNull(viewData.ModelExplorer);
             Assert.NotNull(viewData.ModelMetadata);
             Assert.NotSame(explorer, viewData.ModelExplorer);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
+            Assert.Equal(typeof(bool), viewData.ModelMetadata.ModelType);
 
             var model = Assert.IsType<bool>(viewData.Model);
             Assert.True(model);

@@ -222,7 +222,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var modelType = model?.GetType();
             var modelOrDeclaredType = modelType ?? declaredModelType;
             if (source.ModelMetadata.MetadataKind == ModelMetadataKind.Type &&
-                modelOrDeclaredType != source.ModelMetadata.ModelType &&
+                source.ModelMetadata.ModelType == typeof(object) &&
                 modelOrDeclaredType != typeof(object))
             {
                 // Base ModelMetadata on new type when there's no property information to preserve and type changes to
@@ -466,8 +466,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // property information.
             var modelType = value?.GetType();
             if (ModelMetadata.MetadataKind == ModelMetadataKind.Type &&
+                ModelMetadata.ModelType == typeof(object) &&
                 modelType != null &&
-                modelType != ModelMetadata.ModelType &&
                 modelType != typeof(object))
             {
                 // Base ModelMetadata on new type when there's no property information to preserve and type changes to
@@ -477,8 +477,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             else if (modelType != null && !ModelMetadata.ModelType.IsAssignableFrom(modelType))
             {
                 // Base ModelMetadata on new type when new model is incompatible with the existing metadata. The most
-                // common case would be _declaredModelType==typeof(object), metadata was copied from another VDD, and
-                // user code sets the Model to a new type e.g. within a view component or a view that lacks an @model
+                // common case is _declaredModelType==typeof(object), metadata was copied from another VDD, and user
+                // code sets the Model to a new type e.g. within a view component or a view that lacks an @model
                 // directive.
                 ModelExplorer = _metadataProvider.GetModelExplorerForType(modelType, value);
             }
