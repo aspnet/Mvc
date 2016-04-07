@@ -211,39 +211,42 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             // A non-null Model must always be assignable to both _declaredModelType and ModelMetadata.ModelType.
-            // ModelMetadata.ModelType should also be assignable to _declaredModelType. Though corner cases exist where
-            // a ViewDataDictionary instance might be expected to contain metadata for a _declaredModelType base class
-            // (e.g. a ViewDataDictionary<List<int>> holding information about an IEnumerable<int> property because an
+            //
+            // ModelMetadata.ModelType should also be assignable to _declaredModelType. Though corner cases exist such
+            // as a ViewDataDictionary<List<int>> holding information about an IEnumerable<int> property (because an
             // @model directive matched the runtime type though the view's name did not), we'll throw away the property
             // metadata in those cases -- preserving invariant that ModelType can be assigned to _declaredModelType.
             //
             // More generally, since defensive copies to base VDD and VDD<object> abound, it's important to preserve
             // metadata despite _declaredModelType changes.
+            var modelType = model?.GetType();
+            var modelOrDeclaredType = modelType ?? declaredModelType;
             if (source.ModelMetadata.MetadataKind == ModelMetadataKind.Type &&
-                source.ModelMetadata.ModelType != declaredModelType &&
-                declaredModelType != typeof(object))
+                modelOrDeclaredType != source.ModelMetadata.ModelType &&
+                modelOrDeclaredType != typeof(object))
             {
-                // Base ModelMetadata on the declared type when there's no property information to preserve and the
-                // type changes to something besides typeof(object).
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
+                // Base ModelMetadata on new type when there's no property information to preserve and type changes to
+                // something besides typeof(object).
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelOrDeclaredType, model);
             }
             else if (!declaredModelType.IsAssignableFrom(source.ModelMetadata.ModelType))
             {
-                // Base ModelMetadata on the declared type when switching to an incompatible type.
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
+                // Base ModelMetadata on new type when existing metadata is incompatible with the new declared type.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelOrDeclaredType, model);
+            }
+            else if (modelType != null && !source.ModelMetadata.ModelType.IsAssignableFrom(modelType))
+            {
+                // Base ModelMetadata on new type when new model is incompatible with the existing metadata.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelType, model);
             }
             else if (object.ReferenceEquals(model, source.ModelExplorer.Model))
             {
                 // Source's ModelExplorer is already exactly correct.
                 ModelExplorer = source.ModelExplorer;
             }
-            else if (model != null && !source.ModelMetadata.ModelType.IsAssignableFrom(model.GetType()))
-            {
-                // Base ModelMetadata on the declared type when new model has an incompatible type.
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(declaredModelType, model);
-            }
             else
             {
+                // The existing metadata is compatible with the value and declared type but it's a new value.
                 ModelExplorer = new ModelExplorer(
                     _metadataProvider,
                     source.ModelExplorer.Container,
@@ -299,7 +302,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public ModelStateDictionary ModelState { get; }
 
         /// <summary>
-        /// Gets the <see cref="ModelBinding.ModelMetadata"/> for the declared <see cref="Type"/>.
+        /// Gets the <see cref="ModelBinding.ModelMetadata"/> for an expression, the <see cref="Model"/> (if
+        /// non-<c>null</c>), or the declared <see cref="Type"/>.
         /// </summary>
         /// <remarks>
         /// Value is never <c>null</c> but may describe the <see cref="object"/> class in some cases. This may for
@@ -459,32 +463,42 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual void SetModel(object value)
         {
             // Update ModelExplorer to reflect the new value. When possible, preserve ModelMetadata to avoid losing
-            // property information or unexpectedly reflecting runtime information.
-            if (object.ReferenceEquals(value, Model))
+            // property information.
+            var modelType = value?.GetType();
+            if (ModelMetadata.MetadataKind == ModelMetadataKind.Type &&
+                modelType != null &&
+                modelType != ModelMetadata.ModelType &&
+                modelType != typeof(object))
+            {
+                // Base ModelMetadata on new type when there's no property information to preserve and type changes to
+                // something besides typeof(object).
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelType, value);
+            }
+            else if (modelType != null && !ModelMetadata.ModelType.IsAssignableFrom(modelType))
+            {
+                // Base ModelMetadata on new type when new model is incompatible with the existing metadata. The most
+                // common case would be _declaredModelType==typeof(object), metadata was copied from another VDD, and
+                // user code sets the Model to a new type e.g. within a view component or a view that lacks an @model
+                // directive.
+                ModelExplorer = _metadataProvider.GetModelExplorerForType(modelType, value);
+            }
+            else if (object.ReferenceEquals(value, Model))
             {
                 // The metadata matches and the model is literally the same; usually nothing to do here.
                 if (value == null &&
                     !ModelMetadata.IsReferenceOrNullableType &&
                     _declaredModelType != ModelMetadata.ModelType)
                 {
-                    // Base ModelMetadata on the declared type when source VDD's Model was never set and it had a
-                    // non-Nullable value type (an unusual case). Though _declaredModelType might be another
-                    // non-Nullable value type, would otherwise need to duplicate logic behind
-                    // ModelMetadata.IsReferenceOrNullableType.
+                    // Base ModelMetadata on declared type when setting Model to null, source VDD's Model was never
+                    // set, and source VDD had a non-Nullable value type. Though _declaredModelType might also be a
+                    // non-Nullable value type, would need to duplicate logic behind
+                    // ModelMetadata.IsReferenceOrNullableType to avoid this allocation in the error case.
                     ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, value);
                 }
             }
-            else if (value != null && !ModelMetadata.ModelType.IsAssignableFrom(value.GetType()))
-            {
-                // Base ModelMetadata on the declared type when switching to an incompatible type. This should be
-                // possible only in cases where _declaredModelType==typeof(object), metadata was copied from another
-                // VDD, and user code can set the Model to a new type e.g. within a view component or a view that lacks
-                // an @model directive.
-                ModelExplorer = _metadataProvider.GetModelExplorerForType(_declaredModelType, value);
-            }
             else
             {
-                // The metadata matches, but it's a new value.
+                // The existing metadata is compatible with the value but it's a new value.
                 ModelExplorer = new ModelExplorer(_metadataProvider, ModelExplorer.Container, ModelMetadata, value);
             }
 
