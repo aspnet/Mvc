@@ -47,6 +47,7 @@ namespace HtmlGenerationWebSite
             var host = new WebHostBuilder()
                 .UseDefaultHostingConfiguration(args)
                 .UseStartup<Startup>()
+                .UseIISPlatformHandlerUrl()
                 .UseKestrel()
                 .Build();
 
