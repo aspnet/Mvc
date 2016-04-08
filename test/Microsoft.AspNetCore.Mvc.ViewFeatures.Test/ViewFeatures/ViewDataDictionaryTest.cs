@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void Constructor_UsesModelMetadataProvider()
+        public void Constructor_GetsNewModelMetadata()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void SetModel_DoesNotUseModelMetadataProvider_IfTypeCompatible()
+        public void SetModel_DoesNotGetNewModelMetadata_IfTypeCompatible()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         [Fact]
-        public void SetModel_UsesModelMetadataProvider_IfSourceTypeIsObject()
+        public void SetModel_GetsNewModelMetadata_IfSourceTypeIsObject()
         {
             // Arrange
             var metadataProvider = new Mock<IModelMetadataProvider>(MockBehavior.Strict);
@@ -132,24 +132,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     { new List<TestModel>(), typeof(List<TestModel>) },
                 };
             }
-        }
-
-        [Theory]
-        [MemberData(nameof(IncompatibleModelData))]
-        public void CopyConstructor_DoesNotThrow_IfModelIncompatibleWithDeclaredType(object model, Type expectedType)
-        {
-            // Arrange
-            var source = new TestViewDataDictionary(new EmptyModelMetadataProvider(), typeof(TestModel));
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model);
-
-            // Assert
-            Assert.NotNull(viewData.ModelExplorer);
-            Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
-            Assert.NotNull(viewData.ModelMetadata);
-            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(expectedType, viewData.ModelMetadata.ModelType);
         }
 
         [Theory]
@@ -233,105 +215,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
         }
 
-        [Fact]
-        public void CopyConstructorUsesPassedInModel_DifferentModels()
-        {
-            // Arrange
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var model = new TestModel();
-            var source = new ViewDataDictionary(metadataProvider)
-            {
-                Model = "string model"
-            };
-            source["key1"] = "value1";
-            source.TemplateInfo.HtmlFieldPrefix = "prefix";
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model);
-
-            // Assert
-            Assert.NotNull(viewData.ModelState);
-            Assert.NotNull(viewData.TemplateInfo);
-            Assert.Equal("prefix", viewData.TemplateInfo.HtmlFieldPrefix);
-            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
-            Assert.Same(model, viewData.Model);
-            Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
-            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(source.Count, viewData.Count);
-            Assert.Equal("value1", viewData["key1"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
-        }
-
-        [Fact]
-        public void CopyConstructorUsesPassedInModel_SameModel()
-        {
-            // Arrange
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var model = new TestModel();
-            var source = new ViewDataDictionary(metadataProvider)
-            {
-                Model = model
-            };
-            source["key1"] = "value1";
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model);
-
-            // Assert
-            Assert.NotNull(viewData.ModelState);
-            Assert.NotNull(viewData.TemplateInfo);
-            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
-            Assert.Same(model, viewData.Model);
-            Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(TestModel), viewData.ModelMetadata.ModelType);
-            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(source.Count, viewData.Count);
-            Assert.Equal("value1", viewData["key1"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
-        }
-
-        [Fact]
-        public void CopyConstructorDoesNotThrowOnNullModel()
-        {
-            // Arrange
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var source = new ViewDataDictionary(metadataProvider);
-            source["key1"] = "value1";
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model: null);
-
-            // Assert
-            Assert.NotNull(viewData.ModelState);
-            Assert.NotNull(viewData.TemplateInfo);
-            Assert.NotSame(source.TemplateInfo, viewData.TemplateInfo);
-            Assert.Null(viewData.Model);
-            Assert.NotNull(viewData.ModelMetadata);
-            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
-            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(source.Count, viewData.Count);
-            Assert.Equal("value1", viewData["key1"]);
-            Assert.IsType<CopyOnWriteDictionary<string, object>>(viewData.Data);
-        }
-
-        [Fact]
-        public void CopyConstructor_FromValueType_DoesNotThrowOnNullModel()
-        {
-            // Arrange
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var source = new TestViewDataDictionary(metadataProvider, typeof(int));
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model: null);
-
-            // Assert
-            Assert.Null(viewData.Model);
-            Assert.NotNull(viewData.ModelMetadata);
-            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
-            Assert.Equal(typeof(int), viewData.ModelMetadata.ModelType);
-        }
-
         public static TheoryData<Type, object> CopyModelMetadataData
         {
             get
@@ -354,7 +237,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         [Theory]
         [MemberData(nameof(CopyModelMetadataData))]
-        public void CopyConstructors_CopyModelMetadata(Type type, object instance)
+        public void CopyConstructor_CopiesModelMetadata(Type type, object instance)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -364,27 +247,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             };
 
             // Act
-            var viewData1 = new ViewDataDictionary(source);
-            var viewData2 = new ViewDataDictionary(source, model: instance);
+            var viewData = new ViewDataDictionary(source);
 
             // Assert
-            Assert.Same(source.ModelMetadata, viewData1.ModelMetadata);
-            Assert.Same(source.ModelMetadata, viewData2.ModelMetadata);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
         }
 
         [Fact]
-        public void CopyConstructors_CopyModelMetadata_ForTypeObject()
+        public void CopyConstructor_CopiesModelMetadata_ForTypeObject()
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
             var source = new ViewDataDictionary(metadataProvider);
 
             // Act
-            var viewData1 = new ViewDataDictionary(source);
-            var viewData2 = new ViewDataDictionary(source, model: null);
+            var viewData = new ViewDataDictionary(source);
 
             // Assert
-            Assert.Same(viewData1.ModelMetadata, viewData2.ModelMetadata);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(typeof(object), viewData.ModelMetadata.ModelType);
         }
 
         [Theory]
@@ -392,7 +273,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         [InlineData(typeof(string), 23, typeof(int))]
         [InlineData(typeof(IEnumerable<string>), new object[] { "1", "2", "3" }, typeof(object[]))]
         [InlineData(typeof(List<string>), new object[] { 1, 2, 3 }, typeof(object[]))]
-        public void CopyConstructors_UpdateModelMetadata_IfModelIncompatibleWithSourceMetadata(
+        public void ModelSetter_UpdatesModelMetadata_IfModelIncompatibleWithSourceMetadata(
             Type sourceType,
             object model,
             Type expectedType)
@@ -404,29 +285,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 ModelExplorer = metadataProvider.GetModelExplorerForType(sourceType, model: null),
             };
             var sourceMetadata = source.ModelMetadata;
+            var viewData = new ViewDataDictionary(source);
 
             // Act
-            var viewData1 = new ViewDataDictionary(source)
-            {
-                Model = model,
-            };
-            var viewData2 = new ViewDataDictionary(source, model: model);
+            viewData.Model = model;
 
             // Assert
-            Assert.NotSame(source.ModelExplorer, viewData1.ModelExplorer);
-            Assert.NotSame(source.ModelMetadata, viewData1.ModelMetadata);
-            Assert.Equal(expectedType, viewData1.ModelMetadata.ModelType);
-
-            Assert.NotSame(source.ModelExplorer, viewData2.ModelExplorer);
-            Assert.NotSame(source.ModelMetadata, viewData2.ModelMetadata);
-            Assert.Equal(expectedType, viewData1.ModelMetadata.ModelType);
+            Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
+            Assert.NotSame(source.ModelMetadata, viewData.ModelMetadata);
+            Assert.Equal(expectedType, viewData.ModelMetadata.ModelType);
         }
 
         [Theory]
         [InlineData(typeof(int), 23)]
         [InlineData(typeof(string), "test string")]
         [InlineData(typeof(IEnumerable<string>), new string[] { "1", "2", "3" })]
-        public void CopyConstructors_PreservesSourceMetadata_IfModelNonNull(Type sourceType, object model)
+        public void ModelSetter_PreservesSourceMetadata_IfModelCompatible(Type sourceType, object model)
         {
             // Arrange
             var metadataProvider = new EmptyModelMetadataProvider();
@@ -434,20 +308,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 ModelExplorer = metadataProvider.GetModelExplorerForType(sourceType, model: null),
             };
+            var viewData = new ViewDataDictionary(source);
 
             // Act
-            var viewData1 = new ViewDataDictionary(source)
-            {
-                Model = model,
-            };
-            var viewData2 = new ViewDataDictionary(source, model: model);
+            viewData.Model = model;
 
             // Assert
-            Assert.NotSame(source.ModelExplorer, viewData1.ModelExplorer);
-            Assert.Same(source.ModelMetadata, viewData1.ModelMetadata);
-
-            Assert.NotSame(source.ModelExplorer, viewData2.ModelExplorer);
-            Assert.Same(source.ModelMetadata, viewData2.ModelMetadata);
+            Assert.NotSame(source.ModelExplorer, viewData.ModelExplorer);
+            Assert.Same(source.ModelMetadata, viewData.ModelMetadata);
         }
 
         [Fact]
@@ -473,32 +341,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal(5, viewData.ModelExplorer.Model);
             Assert.Same(originalMetadata, viewData.ModelMetadata);
             Assert.NotSame(originalExplorer, viewData.ModelExplorer);
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData(23)]
-        public void CopyConstructor_DoesNotChangeMetadata_WhenValueCompatible(int? model)
-        {
-            // Arrange
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var metadata = metadataProvider.GetMetadataForType(typeof(int?));
-            var explorer = new ModelExplorer(metadataProvider, metadata, model: -48);
-            var source = new ViewDataDictionary(metadataProvider)
-            {
-                ModelExplorer = explorer,
-            };
-
-            // Act
-            var viewData = new ViewDataDictionary(source, model);
-
-            // Assert
-            Assert.NotNull(viewData.ModelExplorer);
-            Assert.NotSame(explorer, viewData.ModelExplorer);
-            Assert.Same(metadata, viewData.ModelMetadata);
-            Assert.Equal(typeof(int?), viewData.ModelMetadata.ModelType);
-            Assert.Equal(viewData.Model, viewData.ModelExplorer.Model);
-            Assert.Equal(model, viewData.Model);
         }
 
         [Theory]
@@ -818,7 +660,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Arrange
             var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider());
             var model = new object();
-            viewData = new ViewDataDictionary(viewData, model);
+            viewData.Model = model;
 
             // Act
             var result = viewData.Eval(expression);

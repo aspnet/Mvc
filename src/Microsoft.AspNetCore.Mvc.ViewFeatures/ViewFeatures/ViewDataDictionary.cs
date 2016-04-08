@@ -58,23 +58,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class based in part on an existing
-        /// instance. This constructor is careful to avoid exceptions <see cref="SetModel"/> may throw when
-        /// <paramref name="model"/> is <c>null</c>.
-        /// </summary>
-        /// <param name="source"><see cref="ViewDataDictionary"/> instance to copy initial values from.</param>
-        /// <param name="model">Value for the <see cref="Model"/> property.</param>
-        /// <remarks>
-        /// For use when the new instance's declared <see cref="Model"/> <see cref="Type"/> is unknown but its
-        /// <see cref="Model"/> is known. In this case, <see cref="object"/> is the best possible guess about the
-        /// declared type.
-        /// </remarks>
-        public ViewDataDictionary(ViewDataDictionary source, object model)
-            : this(source, model, declaredModelType: typeof(object))
-        {
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ViewDataDictionary"/> class.
         /// </summary>
         /// <param name="metadataProvider">
