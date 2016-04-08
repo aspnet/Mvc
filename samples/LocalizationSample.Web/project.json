@@ -3,6 +3,10 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "wwwroot",
+    "Views"
+  ],
   "dependencies": {
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc": "1.0.0-*",
@@ -10,7 +14,7 @@
     "Microsoft.NETCore.Platforms": "1.0.1-*"
   },
   "frameworks": {
-    "net451": {},
+    "net451": { },
     "netstandardapp1.5": {
       "imports": [
         "dnxcore50",

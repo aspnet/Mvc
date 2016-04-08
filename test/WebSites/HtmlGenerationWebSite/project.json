@@ -3,6 +3,10 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "wwwroot",
+    "Views"
+  ],
   "dependencies": {
     "Microsoft.AspNetCore.Mvc": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",

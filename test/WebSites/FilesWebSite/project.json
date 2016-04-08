@@ -3,6 +3,9 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "wwwroot"
+  ],
   "resource": "EmbeddedResources/**",
   "dependencies": {
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
@@ -13,14 +16,14 @@
     "Microsoft.Extensions.FileProviders.Embedded": "1.0.0-*"
   },
   "frameworks": {
-    "net451": {},
+    "net451": { },
     "netstandardapp1.5": {
       "imports": [
         "dnxcore50",
         "portable-net451+win8"
       ],
       "dependencies": {
-          "NETStandard.Library": "1.5.0-*"
+        "NETStandard.Library": "1.5.0-*"
       }
     }
   },

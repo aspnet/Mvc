@@ -10,7 +10,7 @@
     "Microsoft.NETCore.Platforms": "1.0.1-*"
   },
   "frameworks": {
-    "net451": {},
+    "net451": { },
     "netstandardapp1.5": {
       "imports": [
         "dnxcore50",
@@ -23,6 +23,7 @@
   },
   "content": [
     "Views",
-    "web.config"
+    "web.config",
+    "wwwroot"
   ]
 }

@@ -25,6 +25,7 @@
   },
   "content": [
     "Views",
-    "web.config"
+    "web.config",
+    "wwwroot"
   ]
 }
