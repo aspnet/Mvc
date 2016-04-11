@@ -57,7 +57,7 @@
     "net451": { },
     "netstandard1.5": {
       "imports": [
-        "portable-dnxcore50+net45+win8+wp8+wpa81"
+        "portable-net451+win8"
       ],
       "dependencies": {
         "System.Text.Encoding": "4.0.11-*"

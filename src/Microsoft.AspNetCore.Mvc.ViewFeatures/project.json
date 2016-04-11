@@ -55,7 +55,7 @@
         "System.Runtime.Serialization.Primitives": "4.1.1-*"
       },
       "imports": [
-        "portable-dnxcore50+net45+win8+wp8+wpa81"
+        "portable-net451+win8"
       ]
     }
   }

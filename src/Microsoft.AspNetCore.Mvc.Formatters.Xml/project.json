@@ -38,7 +38,7 @@
     },
     "netstandard1.5": {
       "imports": [
-        "portable-dnxcore50+net45+win8+wp8+wpa81"
+        "portable-net451+win8"
       ],
       "dependencies": {
         "System.Runtime.Serialization.Xml": "4.1.1-*",
