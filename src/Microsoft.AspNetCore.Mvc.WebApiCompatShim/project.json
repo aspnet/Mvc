@@ -38,7 +38,7 @@
     },
     "netstandard1.5": {
       "imports": [
-        "portable-net451+win8"
+        "portable-dnxcore50+net45+win8+wp8+wpa81"
       ],
       "dependencies": {
         "System.Net.Http": "4.0.1-*",

@@ -32,7 +32,7 @@
     "net451": { },
     "netstandard1.5": {
       "imports": [
-        "portable-net451+win8"
+        "portable-dnxcore50+net45+win8+wp8+wpa81"
       ]
     }
   }

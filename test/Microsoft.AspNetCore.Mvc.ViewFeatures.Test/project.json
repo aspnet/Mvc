@@ -25,7 +25,7 @@
     "netstandardapp1.5": {
       "imports": [
         "dnxcore50",
-        "portable-net451+win8"
+        "portable-dnxcore50+net45+win8+wp8+wpa81"
       ],
       "dependencies": {
         "moq.netcore": "4.4.0-beta8",
