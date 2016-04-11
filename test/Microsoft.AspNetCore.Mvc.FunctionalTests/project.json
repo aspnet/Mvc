@@ -63,7 +63,8 @@
       },
       "imports": [
         "dnxcore50",
-        "portable-net451+win8"
+        "portable-net451+win8",
+        "netstandardapp1.5"
       ]
     },
     "net451": { }
