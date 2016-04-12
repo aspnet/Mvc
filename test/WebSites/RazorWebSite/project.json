@@ -28,7 +28,7 @@
     "netcoreapp1.0": {
       "compilationOptions": {
         "define": [
-          "NETSTANDARDAPP1_5_CUSTOM_DEFINE"
+          "NETCOREAPP1_0_CUSTOM_DEFINE"
         ]
       },
       "imports": [

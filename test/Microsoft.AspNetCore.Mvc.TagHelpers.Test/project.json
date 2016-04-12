@@ -18,9 +18,10 @@
   },
   "testRunner": "xunit",
   "frameworks": {
-    "netstandardapp1.5": {
+    "netcoreapp1.0": {
       "imports": [
         "dnxcore50",
+        "netstandardapp1.5",
         "portable-net451+win8"
       ],
       "dependencies": {
