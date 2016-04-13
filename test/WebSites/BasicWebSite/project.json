@@ -3,10 +3,6 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
-  "content": [
-    "wwwroot",
-    "Views"
-  ],
   "dependencies": {
     "Microsoft.AspNetCore.Mvc": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-*",
@@ -32,5 +28,13 @@
   "content": [
     "Views",
     "web.config"
-  ]
+  ],
+  "tools": {
+    "dotnet-razor-tooling": {
+      "version": "1.0.0-*",
+      "imports": [
+        "net45"
+      ]
+    }
+  }
 }

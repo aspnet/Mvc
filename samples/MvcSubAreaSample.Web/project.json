@@ -28,5 +28,13 @@
     "Views",
     "web.config",
     "wwwroot"
-  ]
+  ],
+  "tools": {
+    "dotnet-razor-tooling": {
+      "version": "1.0.0-*",
+      "imports": [
+        "net45"
+      ]
+    }
+  }
 }
