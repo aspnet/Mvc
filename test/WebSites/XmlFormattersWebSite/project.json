@@ -19,7 +19,10 @@
         "portable-net451+win8"
       ],
       "dependencies": {
-        "NETStandard.Library": "1.5.0-*",
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0-*"
+        },
         "System.Linq.Queryable": "4.0.1-*"
       }
     }
