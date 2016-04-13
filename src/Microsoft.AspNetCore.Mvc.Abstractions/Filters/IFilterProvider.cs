@@ -4,7 +4,8 @@
 namespace Microsoft.AspNetCore.Mvc.Filters
 {
     /// <summary>
-    /// A <see cref="FilterItem"/> provider.
+    /// A <see cref="FilterItem"/> provider. Implementations should update <see cref="FilterProviderContext.Results"/>
+    /// to make executable filters available.
     /// </summary>
     public interface IFilterProvider
     {

@@ -41,7 +41,8 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
         /// <summary>
         /// Gets or sets the <see cref="FilterItem"/>s, initially created from <see cref="FilterDescriptor"/>s or a
-        /// cache entry.
+        /// cache entry. <see cref="IFilterProvider"/>s should set <see cref="FilterItem.Filter"/> on existing items or
+        /// add new <see cref="FilterItem"/>s to make executable filters available.
         /// </summary>
         public IList<FilterItem> Results { get; set; }
     }

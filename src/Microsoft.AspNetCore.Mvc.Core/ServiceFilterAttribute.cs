@@ -12,7 +12,15 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// A filter that finds another filter in an <see cref="IServiceProvider"/>.
     /// </summary>
-    /// <remarks>Primarily used in <see cref="M:FilterCollection.AddService"/> calls.</remarks>
+    /// <remarks>
+    /// <para>
+    /// Primarily used in <see cref="M:FilterCollection.AddService"/> calls.
+    /// </para>
+    /// <para>
+    /// Similar to the <see cref="TypeFilterAttribute"/> in that both use constructor injection. Use
+    /// <see cref="TypeFilterAttribute"/> instead if the filter is not itself a service.
+    /// </para>
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     [DebuggerDisplay("ServiceFilter: Type={ServiceType} Order={Order}")]
     public class ServiceFilterAttribute : Attribute, IFilterFactory, IOrderedFilter

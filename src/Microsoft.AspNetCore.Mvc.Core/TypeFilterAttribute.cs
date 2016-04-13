@@ -10,9 +10,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// A filter that activates another filter of type <see cref="ImplementationType"/>.
+    /// A filter that creates another filter of type <see cref="ImplementationType"/>.
     /// </summary>
-    /// <remarks>Primarily used in <see cref="M:FilterCollection.Add"/> calls.</remarks>
+    /// <remarks>
+    /// <para>
+    /// Primarily used in <see cref="M:FilterCollection.Add"/> calls.
+    /// </para>
+    /// <para>
+    /// Similar to the <see cref="ServiceFilterAttribute"/> in that both use constructor injection. Use
+    /// <see cref="ServiceFilterAttribute"/> if the filter is itself a service.
+    /// </para>
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     [DebuggerDisplay("TypeFilter: Type={ImplementationType} Order={Order}")]
     public class TypeFilterAttribute : Attribute, IFilterFactory, IOrderedFilter
@@ -36,10 +44,14 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets or sets the non-service arguments to pass to the <see cref="ImplementationType"/> constructor.
         /// </summary>
+        /// <remarks>
+        /// Service arguments are found in the dependency injection container i.e. this filter supports constructor
+        /// injection in addition to passing the given <see cref="Arguments"/>.
+        /// </remarks>
         public object[] Arguments { get; set; }
 
         /// <summary>
-        /// Gets the <see cref="Type"/> of filter to activate.
+        /// Gets the <see cref="Type"/> of filter to create.
         /// </summary>
         public Type ImplementationType { get; }
 

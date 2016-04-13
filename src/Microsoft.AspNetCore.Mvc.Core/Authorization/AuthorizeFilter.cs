@@ -14,7 +14,8 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 {
     /// <summary>
     /// An implementation of <see cref="IAsyncAuthorizationFilter"/> which applies a specific
-    /// <see cref="AuthorizationPolicy"/>.
+    /// <see cref="AuthorizationPolicy"/>. MVC recognizes the <see cref="AuthorizeAttribute"/> and adds an instance of
+    /// this filter to the associated action or controller.
     /// </summary>
     public class AuthorizeFilter : IAsyncAuthorizationFilter
     {
