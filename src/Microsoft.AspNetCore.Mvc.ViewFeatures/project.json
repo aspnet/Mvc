@@ -1,5 +1,5 @@
 {
-  "description": "ASP.NET Core MVC view rendering features. Contains common types used in most MVC applications as well as view rendering features such as view engines, views, view components, and HTML helpers.\r\nCommonly used types:Microsoft.AspNetCore.Mvc.Controller\r\nMicrosoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute\r\nMicrosoft.AspNetCore.Mvc.ViewComponent",
+  "description": "ASP.NET Core MVC view rendering features. Contains common types used in most MVC applications as well as view rendering features such as view engines, views, view components, and HTML helpers.\r\nCommonly used types:\r\nMicrosoft.AspNetCore.Mvc.Controller\r\nMicrosoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute\r\nMicrosoft.AspNetCore.Mvc.ViewComponent",
   "tags": [
     "aspnetcore",
     "aspnetcoremvc"

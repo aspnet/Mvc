@@ -1,5 +1,5 @@
 {
-  "description": "ASP.NET Core MVC features that enable globalization and localization of applications.\r\nCommonly used types:\r\nMicrosoft.AspNetCore.Mvc.Localization.IHtmlLocalizer\r\nMicrosoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>",
+  "description": "ASP.NET Core MVC features that enable globalization and localization of applications.\r\nCommonly used types:\r\nMicrosoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>\r\nMicrosoft.AspNetCore.Mvc.Localization.IViewLocalizer",
   "tags": [
     "aspnetcore",
     "aspnetcoremvc",
