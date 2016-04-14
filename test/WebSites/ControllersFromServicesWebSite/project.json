@@ -5,6 +5,7 @@
   },
   "content": [
     "wwwroot",
+    "web.config",
     "Views"
   ],
   "dependencies": {
@@ -28,10 +29,6 @@
       }
     }
   },
-  "content": [
-    "Views",
-    "web.config"
-  ],
   "tools": {
     "dotnet-razor-tooling": {
       "version": "1.0.0-*",

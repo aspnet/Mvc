@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     public class MvcSampleFixture<TStartup> : MvcTestFixture<TStartup>
     {
         public MvcSampleFixture()
-            : base(Path.Combine("..", "..", "..", "..", "..", "..", "samples"))
+            : base(Path.Combine("..", "..", "..", "..", "..", "samples"))
         {
         }
     }
