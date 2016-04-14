@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -20,6 +20,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 {
     public class RazorPageCreateModelExpressionTest
     {
+        public static TheoryData IdentityExpressions
+        {
+            get
+            {
+                return new TheoryData<Func<IdentityRazorPage, ModelExpression>, string>
+                {
+                    // m => m
+                    { page => page.CreateModelExpression1(), string.Empty },
+                    // m => Model
+                    { page => page.CreateModelExpression2(), string.Empty },
+                    // m => ViewData.Model (ExpressionHelper can only special-case a leftmost Model node)
+                    { page => page.CreateModelExpression3(), "ViewData.Model" },
+                };
+            }
+        }
+
         public static TheoryData<Expression<Func<RazorPageCreateModelExpressionModel, int>>, string> IntExpressions
         {
             get
@@ -51,13 +67,40 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Theory]
+        [MemberData(nameof(IdentityExpressions))]
+        public void CreateModelExpression_ReturnsExpectedMetadata_IdentityExpressions(
+            Func<IdentityRazorPage, ModelExpression> createModelExpression,
+            string expectedName)
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var modelExplorer = viewContext.ViewData.ModelExplorer.GetExplorerForProperty(
+                nameof(RazorPageCreateModelExpressionModel.Name));
+            var viewData = new ViewDataDictionary<string>(viewContext.ViewData)
+            {
+                ModelExplorer = modelExplorer,
+            };
+            viewContext.ViewData = viewData;
+
+            var page = CreateIdentityPage(viewContext);
+
+            // Act
+            var modelExpression = createModelExpression(page);
+
+            // Assert
+            Assert.NotNull(modelExpression);
+            Assert.Equal(expectedName, modelExpression.Name);
+            Assert.Same(modelExplorer, modelExpression.ModelExplorer);
+        }
+
+        [Theory]
         [MemberData(nameof(IntExpressions))]
         public void CreateModelExpression_ReturnsExpectedMetadata_IntExpressions(
             Expression<Func<RazorPageCreateModelExpressionModel, int>> expression,
             string expectedName)
         {
             // Arrange
-            var viewContext = CreateViewContext(model: null);
+            var viewContext = CreateViewContext();
             var page = CreatePage(viewContext);
 
             // Act
@@ -77,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             string expectedName)
         {
             // Arrange
-            var viewContext = CreateViewContext(model: null);
+            var viewContext = CreateViewContext();
             var page = CreatePage(viewContext);
 
             // Act
@@ -90,6 +133,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             Assert.Equal(expectedName, result.Name);
         }
 
+        private static IdentityRazorPage CreateIdentityPage(ViewContext viewContext)
+        {
+            return new IdentityRazorPage
+            {
+                ViewContext = viewContext,
+                ViewData = (ViewDataDictionary<string>)viewContext.ViewData,
+            };
+        }
+
         private static TestRazorPage CreatePage(ViewContext viewContext)
         {
             return new TestRazorPage
@@ -99,42 +151,50 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             };
         }
 
-        private static ViewContext CreateViewContext(RazorPageCreateModelExpressionModel model)
+        private static ViewContext CreateViewContext()
         {
-            return CreateViewContext(model, new TestModelMetadataProvider());
-        }
+            var provider = new TestModelMetadataProvider();
+            var viewData = new ViewDataDictionary<RazorPageCreateModelExpressionModel>(provider);
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IModelMetadataProvider>(provider);
+            serviceCollection.AddSingleton<ExpressionTextCache, ExpressionTextCache>();
 
-        private static ViewContext CreateViewContext(
-            RazorPageCreateModelExpressionModel model,
-            IModelMetadataProvider provider)
-        {
-            var viewData = new ViewDataDictionary<RazorPageCreateModelExpressionModel>(provider)
+            var httpContext = new DefaultHttpContext
             {
-                Model = model,
+                RequestServices = serviceCollection.BuildServiceProvider(),
             };
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider
-                .Setup(real => real.GetService(typeof(IModelMetadataProvider)))
-                .Returns(provider);
-            serviceProvider
-                .Setup(real => real.GetService(typeof(ExpressionTextCache)))
-                .Returns(new ExpressionTextCache());
-
-            var httpContext = new Mock<HttpContext>();
-            httpContext
-                .SetupGet(real => real.RequestServices)
-                .Returns(serviceProvider.Object);
-
-            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             return new ViewContext(
                 actionContext,
-                view: Mock.Of<IView>(),
-                viewData: viewData,
-                tempData: Mock.Of<ITempDataDictionary>(),
-                writer: new StringWriter(),
-                htmlHelperOptions: new HtmlHelperOptions());
+                NullView.Instance,
+                viewData,
+                Mock.Of<ITempDataDictionary>(),
+                new StringWriter(),
+                new HtmlHelperOptions());
+        }
+
+        public class IdentityRazorPage : RazorPage<string>
+        {
+            public ModelExpression CreateModelExpression1()
+            {
+                return CreateModelExpression(m => m);
+            }
+
+            public ModelExpression CreateModelExpression2()
+            {
+                return CreateModelExpression(m => Model);
+            }
+
+            public ModelExpression CreateModelExpression3()
+            {
+                return CreateModelExpression(m => ViewData.Model);
+            }
+
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class TestRazorPage : RazorPage<RazorPageCreateModelExpressionModel>
