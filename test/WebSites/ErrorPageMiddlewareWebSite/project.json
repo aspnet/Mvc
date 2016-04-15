@@ -4,7 +4,7 @@
     "preserveCompilationContext": true
   },
   "content": [
-    "wwwroot",
+    "web.config",
     "Views"
   ],
   "dependencies": {
@@ -27,9 +27,5 @@
         "NETStandard.Library": "1.5.0-*"
       }
     }
-  },
-  "content": [
-    "Views",
-    "web.config"
-  ]
+  }
 }

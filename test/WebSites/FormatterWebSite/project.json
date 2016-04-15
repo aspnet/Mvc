@@ -4,7 +4,7 @@
     "preserveCompilationContext": true
   },
   "content": [
-    "wwwroot"
+    "web.config"
   ],
   "dependencies": {
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
@@ -26,8 +26,5 @@
         "NETStandard.Library": "1.5.0-*"
       }
     }
-  },
-  "content": [
-    "web.config"
-  ]
+  }
 }
