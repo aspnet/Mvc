@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
@@ -30,8 +31,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     { page => page.CreateModelExpression1(), string.Empty },
                     // m => Model
                     { page => page.CreateModelExpression2(), string.Empty },
-                    // m => ViewData.Model (ExpressionHelper can only special-case a leftmost Model node)
-                    { page => page.CreateModelExpression3(), "ViewData.Model" },
+                };
+            }
+        }
+
+        public static TheoryData NotQuiteIdentityExpressions
+        {
+            get
+            {
+                return new TheoryData<Func<NotQuiteIdentityRazorPage, ModelExpression>, string, Type>
+                {
+                    // m => m.Model
+                    { page => page.CreateModelExpression1(), "Model", typeof(RecursiveModel) },
+                    // m => ViewData.Model
+                    { page => page.CreateModelExpression2(), "ViewData.Model", typeof(RecursiveModel) },
+                    // m => ViewContext.ViewData.Model
+                    // This property has type object because ViewData is not exposed as ViewDataDictionary<TModel>.
+                    { page => page.CreateModelExpression3(), "ViewContext.ViewData.Model", typeof(object) },
                 };
             }
         }
@@ -94,6 +110,34 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         [Theory]
+        [MemberData(nameof(NotQuiteIdentityExpressions))]
+        public void CreateModelExpression_ReturnsExpectedMetadata_NotQuiteIdentityExpressions(
+            Func<NotQuiteIdentityRazorPage, ModelExpression> createModelExpression,
+            string expectedName,
+            Type expectedType)
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var viewData = new ViewDataDictionary<RecursiveModel>(viewContext.ViewData);
+            viewContext.ViewData = viewData;
+            var modelExplorer = viewData.ModelExplorer;
+
+            var page = CreateNotQuiteIdentityPage(viewContext);
+
+            // Act
+            var modelExpression = createModelExpression(page);
+
+            // Assert
+            Assert.NotNull(modelExpression);
+            Assert.Equal(expectedName, modelExpression.Name);
+            Assert.NotNull(modelExpression.ModelExplorer);
+            Assert.NotSame(modelExplorer, modelExpression.ModelExplorer);
+            Assert.NotNull(modelExpression.Metadata);
+            Assert.Equal(ModelMetadataKind.Property, modelExpression.Metadata.MetadataKind);
+            Assert.Equal(expectedType, modelExpression.Metadata.ModelType);
+        }
+
+        [Theory]
         [MemberData(nameof(IntExpressions))]
         public void CreateModelExpression_ReturnsExpectedMetadata_IntExpressions(
             Expression<Func<RazorPageCreateModelExpressionModel, int>> expression,
@@ -142,6 +186,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             };
         }
 
+        public static NotQuiteIdentityRazorPage CreateNotQuiteIdentityPage(ViewContext viewContext)
+        {
+            return new NotQuiteIdentityRazorPage
+            {
+                ViewContext = viewContext,
+                ViewData = (ViewDataDictionary<RecursiveModel>)viewContext.ViewData,
+            };
+        }
+
         private static TestRazorPage CreatePage(ViewContext viewContext)
         {
             return new TestRazorPage
@@ -186,9 +239,27 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 return CreateModelExpression(m => Model);
             }
 
-            public ModelExpression CreateModelExpression3()
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class NotQuiteIdentityRazorPage : RazorPage<RecursiveModel>
+        {
+            public ModelExpression CreateModelExpression1()
+            {
+                return CreateModelExpression(m => m.Model);
+            }
+
+            public ModelExpression CreateModelExpression2()
             {
                 return CreateModelExpression(m => ViewData.Model);
+            }
+
+            public ModelExpression CreateModelExpression3()
+            {
+                return CreateModelExpression(m => ViewContext.ViewData.Model);
             }
 
             public override Task ExecuteAsync()
@@ -203,6 +274,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             {
                 throw new NotImplementedException();
             }
+        }
+
+        public class RecursiveModel
+        {
+            public RecursiveModel Model { get; set; }
         }
 
         public class RazorPageCreateModelExpressionModel
