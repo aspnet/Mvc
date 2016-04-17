@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
     /// <summary>
-    /// An <see cref="TextInputFormatter"/> for JSON content.
+    /// A <see cref="TextInputFormatter"/> for JSON content.
     /// </summary>
     public class JsonInputFormatter : TextInputFormatter
     {
@@ -23,29 +23,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         private readonly ObjectPoolProvider _objectPoolProvider;
         private ObjectPool<JsonSerializer> _jsonSerializerPool;
         private JsonSerializerSettings _serializerSettings;
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="JsonInputFormatter"/>.
-        /// </summary>
-        /// <param name="logger">The <see cref="ILogger"/>.</param>
-        public JsonInputFormatter(ILogger logger)
-            : this(logger, SerializerSettingsProvider.CreateSerializerSettings())
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="JsonInputFormatter"/>.
-        /// </summary>
-        /// <param name="logger">The <see cref="ILogger"/>.</param>
-        /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/>.</param>
-        public JsonInputFormatter(ILogger logger, JsonSerializerSettings serializerSettings)
-            : this(
-                  logger,
-                  serializerSettings,
-                  ArrayPool<char>.Shared,
-                  new DefaultObjectPoolProvider())
-        {
-        }
 
         /// <summary>
         /// Initializes a new instance of <see cref="JsonInputFormatter"/>.

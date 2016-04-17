@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -21,8 +22,11 @@ namespace FormatterWebSite.Controllers
                 Name = "John Williams"
             };
 
-            var jsonFormatter = new JsonOutputFormatter();
-            jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
+            var settings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+            };
+            var jsonFormatter = new JsonOutputFormatter(settings, ArrayPool<char>.Shared);
 
             var objectResult = new ObjectResult(user);
             objectResult.Formatters.Add(jsonFormatter);

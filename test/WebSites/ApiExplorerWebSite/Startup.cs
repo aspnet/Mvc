@@ -24,9 +24,23 @@ namespace ApiExplorerWebSite
                 options.Conventions.Add(new ApiExplorerVisibilityDisabledConvention(
                     typeof(ApiExplorerVisbilityDisabledByConventionController)));
 
+                JsonOutputFormatter jsonOutputFormatter = null;
+                for (var i = 0; i < options.OutputFormatters.Count; i++)
+                {
+                    var formatter = options.OutputFormatters[i];
+                    jsonOutputFormatter = formatter as JsonOutputFormatter;
+                    if (jsonOutputFormatter != null)
+                    {
+                        break;
+                    }
+                }
+
                 options.OutputFormatters.Clear();
-                options.OutputFormatters.Add(new JsonOutputFormatter());
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                if (jsonOutputFormatter != null)
+                {
+                    options.OutputFormatters.Add(jsonOutputFormatter);
+                }
             });
 
             services.AddSingleton<ApiExplorerDataFilter>();

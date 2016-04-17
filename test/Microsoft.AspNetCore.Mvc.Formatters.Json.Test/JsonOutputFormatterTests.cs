@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         {
             // Arrange
             // Act
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
 
             // Assert
             Assert.NotNull(jsonFormatter.SerializerSettings);
@@ -43,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             // Act
             var serializerSettings = new JsonSerializerSettings();
             var logger = GetLogger();
-            var jsonFormatter = new JsonInputFormatter(logger, serializerSettings);
+            var jsonFormatter = new JsonOutputFormatter(serializerSettings, ArrayPool<char>.Shared);
 
             // Assert
             Assert.Same(serializerSettings, jsonFormatter.SerializerSettings);
@@ -60,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 Formatting = Formatting.Indented
             });
 
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
             var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
@@ -87,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 person,
                 SerializerSettingsProvider.CreateSerializerSettings());
 
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
 
             // This will create a serializer - which gets cached.
             var outputFormatterContext1 = GetOutputFormatterContext(person, typeof(User));
@@ -123,7 +124,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 Formatting = Formatting.Indented
             });
 
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
 
             // This will create a serializer - which gets cached.
             var outputFormatterContext1 = GetOutputFormatterContext(person, typeof(User));
@@ -162,7 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 Formatting = Formatting.Indented
             });
 
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             jsonFormatter.SerializerSettings = new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -189,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         {
             // Arrange
             var beforeMessage = "Hello World";
-            var formatter = new JsonOutputFormatter();
+            var formatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             var before = new JValue(beforeMessage);
             var memStream = new MemoryStream();
             var outputFormatterContext = GetOutputFormatterContext(
@@ -246,7 +247,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             bool isDefaultEncoding)
         {
             // Arrange
-            var formatter = new JsonOutputFormatter();
+            var formatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             var formattedContent = "\"" + content + "\"";
             var mediaType = MediaTypeHeaderValue.Parse(string.Format("application/json; charset={0}", encodingAsString));
             var encoding = CreateOrGetSupportedEncoding(formatter, encodingAsString, isDefaultEncoding);

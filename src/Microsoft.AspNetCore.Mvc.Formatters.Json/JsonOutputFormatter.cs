@@ -7,13 +7,12 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
     /// <summary>
-    /// An output formatter that specializes in writing JSON content.
+    /// A <see cref="TextOutputFormatter"/> for JSON content.
     /// </summary>
     public class JsonOutputFormatter : TextOutputFormatter
     {
@@ -25,16 +24,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         // the serializer and invalidate it when the settings change.
         private JsonSerializer _serializer;
 
-        public JsonOutputFormatter()
-            : this(SerializerSettingsProvider.CreateSerializerSettings(), ArrayPool<char>.Shared)
-        {
-        }
-
-        public JsonOutputFormatter(JsonSerializerSettings serializerSettings)
-            : this(serializerSettings, ArrayPool<char>.Shared)
-        {
-        }
-
+        /// <summary>
+        /// Initializes a new <see cref="JsonOutputFormatter"/> instance.
+        /// </summary>
+        /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/>.</param>
+        /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
         public JsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool)
         {
             if (serializerSettings == null)
@@ -157,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 WriteObject(writer, context.Object);
 
                 // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
-                // buffers. This is better than just letting dispose handle it (which would result in a synchronous 
+                // buffers. This is better than just letting dispose handle it (which would result in a synchronous
                 // write).
                 await writer.FlushAsync();
             }

@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Newtonsoft.Json;
 
 namespace FiltersWebSite.Controllers
 {
@@ -31,7 +33,9 @@ namespace FiltersWebSite.Controllers
 
             public ShortCircuitWithFormatterAttribute()
             {
-                _formatters = new IOutputFormatter[] { new JsonOutputFormatter() };
+                _formatters = new IOutputFormatter[] { new JsonOutputFormatter(
+                    new JsonSerializerSettings(),
+                    ArrayPool<char>.Shared) };
             }
 
             public void OnResourceExecuted(ResourceExecutedContext context)

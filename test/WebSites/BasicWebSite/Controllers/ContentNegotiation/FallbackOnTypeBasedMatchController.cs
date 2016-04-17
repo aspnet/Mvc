@@ -4,13 +4,29 @@
 using BasicWebSite.Formatters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace BasicWebSite.Controllers.ContentNegotiation
 {
     public class FallbackOnTypeBasedMatchController : Controller
     {
+        private readonly IOptions<MvcOptions> _mvcOptions;
+        private readonly JsonOutputFormatter _jsonOutputFormatter;
+
+        public FallbackOnTypeBasedMatchController(IOptions<MvcOptions> mvcOptions)
+        {
+            _mvcOptions = mvcOptions;
+
+            for (var i = 0; i < mvcOptions.Value.OutputFormatters.Count; i++)
+            {
+                _jsonOutputFormatter = mvcOptions.Value.OutputFormatters[i] as JsonOutputFormatter;
+                if (_jsonOutputFormatter != null)
+                {
+                    break;
+                }
+            }
+        }
+
         public int UseTheFallback_WithDefaultFormatters(int input)
         {
             return input;
@@ -25,7 +41,7 @@ namespace BasicWebSite.Controllers.ContentNegotiation
             // JsonOutputFormatter cannot write in the first attempt because it does not support the
             // request content type.
             objectResult.Formatters.Add(new PlainTextFormatter());
-            objectResult.Formatters.Add(new JsonOutputFormatter());
+            objectResult.Formatters.Add(_jsonOutputFormatter);
 
             return objectResult;
         }
@@ -46,17 +62,16 @@ namespace BasicWebSite.Controllers.ContentNegotiation
             var objectResult = new ObjectResult(input);
             objectResult.Formatters.Add(new HttpNotAcceptableOutputFormatter());
             objectResult.Formatters.Add(new PlainTextFormatter());
-            objectResult.Formatters.Add(new JsonOutputFormatter());
+            objectResult.Formatters.Add(_jsonOutputFormatter);
+
             return objectResult;
         }
 
         public IActionResult OverrideTheFallback_WithDefaultFormatters(int input)
         {
             var objectResult = new ObjectResult(input);
-            var optionsAccessor = HttpContext.RequestServices
-                .GetRequiredService<IOptions<MvcOptions>>();
             objectResult.Formatters.Add(new HttpNotAcceptableOutputFormatter());
-            foreach (var formatter in optionsAccessor.Value.OutputFormatters)
+            foreach (var formatter in _mvcOptions.Value.OutputFormatters)
             {
                 objectResult.Formatters.Add(formatter);
             }
