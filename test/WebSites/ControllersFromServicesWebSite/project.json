@@ -3,6 +3,11 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "wwwroot",
+    "web.config",
+    "Views"
+  ],
   "dependencies": {
     "ControllersFromServicesClassLibrary": "1.0.0",
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
@@ -12,19 +17,24 @@
     "Microsoft.AspNetCore.StaticFiles": "1.0.0-*"
   },
   "frameworks": {
-    "net451": {},
-    "netstandardapp1.5": {
+    "net451": { },
+    "netcoreapp1.0": {
       "imports": [
         "dnxcore50",
-        "portable-net451+win8"
+        "portable-net451+win8",
+        "netstandardapp1.5"
       ],
       "dependencies": {
-          "NETStandard.Library": "1.5.0-*"
+        "NETStandard.Library": "1.5.0-*"
       }
     }
   },
-  "content": [
-    "Views",
-    "web.config"
-  ]
+  "tools": {
+    "dotnet-razor-tooling": {
+      "version": "1.0.0-*",
+      "imports": [
+        "net45"
+      ]
+    }
+  }
 }

@@ -23,7 +23,11 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         private readonly TestServer _server;
 
         public MvcTestFixture()
+#if NET451
             : this(Path.Combine("..", "..", "..", "..", "..", "WebSites"))
+#else
+            : this(Path.Combine("..", "..", "..", "..", "WebSites"))
+#endif
         {
         }
 
@@ -32,6 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // RequestLocalizationOptions saves the current culture when constructed, potentially changing response
             // localization i.e. RequestLocalizationMiddleware behavior. Ensure the saved culture
             // (DefaultRequestCulture) is consistent regardless of system configuration or personal preferences.
+
             using (new CultureReplacer())
             {
                 var builder = new WebHostBuilder()

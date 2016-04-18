@@ -3,6 +3,11 @@
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
+  "content": [
+    "Views",
+    "Shared-Views",
+    "web.config"
+  ],
   "dependencies": {
     "Microsoft.AspNetCore.Localization": "1.0.0-*",
     "Microsoft.AspNetCore.Mvc": "1.0.0-*",
@@ -20,23 +25,20 @@
         ]
       }
     },
-    "netstandardapp1.5": {
+    "netcoreapp1.0": {
       "compilationOptions": {
         "define": [
-          "NETSTANDARDAPP1_5_CUSTOM_DEFINE"
+          "NETCOREAPP1_0_CUSTOM_DEFINE"
         ]
       },
       "imports": [
         "dnxcore50",
-        "portable-net451+win8"
+        "portable-net451+win8",
+        "netstandardapp1.5"
       ],
       "dependencies": {
-          "NETStandard.Library": "1.5.0-*"
+        "NETStandard.Library": "1.5.0-*"
       }
     }
-  },
-  "content": [
-    "Views",
-    "web.config"
-  ]
+  }
 }
