@@ -73,6 +73,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private IModelBinder CreateBinderCore(DefaultModelBinderProviderContext providerContext, object token)
         {
+            if (!providerContext.Metadata.IsBindingAllowed)
+            {
+                return NoOpBinder.Instance;
+            }
+
             // A non-null token will usually be passed in at the the top level (ParameterDescriptor likely).
             // This prevents us from treating a parameter the same as a collection-element - which could
             // happen looking at just model metadata.
