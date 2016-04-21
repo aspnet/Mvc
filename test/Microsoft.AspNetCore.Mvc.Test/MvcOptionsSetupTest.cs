@@ -158,6 +158,7 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Collection(providers,
                 provider => Assert.IsType<DefaultBindingMetadataProvider>(provider),
                 provider => Assert.IsType<DefaultValidationMetadataProvider>(provider),
+                provider => Assert.IsType<ExcludeBindingMetadataProvider>(provider),
                 provider =>
                 {
                     var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
