@@ -538,42 +538,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal(new[] { "line 1", "line 2" }, entry.RawValue);
         }
 
-        [Theory]
-        [MemberData(nameof(PersonStoreData))]
-        public async Task BindParameter_WithBindNever_IsNotBound(Dictionary<string, StringValues> personStore)
-        {
-            // Arrange
-            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
-            var parameter = new ParameterDescriptor()
-            {
-                Name = "Parameter1",
-                BindingInfo = new BindingInfo(),
-                ParameterType = typeof(AnonymousPerson),
-            };
-
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(request =>
-            {
-                request.Form = new FormCollection(personStore);
-            });
-            var modelState = operationContext.ActionContext.ModelState;
-
-            // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
-
-            // Assert
-            // ModelBindingResult
-            Assert.True(modelBindingResult.IsModelSet);
-
-            // Model
-            var boundPerson = Assert.IsType<AnonymousPerson>(modelBindingResult.Model);
-            Assert.NotNull(boundPerson);
-            Assert.Null(boundPerson.Name);
-
-            // ModelState
-            Assert.True(modelState.IsValid);
-        }
-
         private class Person
         {
             public Address Address { get; set; }
@@ -586,14 +550,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string[] Lines { get; set; }
 
             public int Zip { get; set; }
-        }
-
-        private class AnonymousPerson
-        {
-            public Address Address { get; set; }
-
-            [BindNever]
-            public string Name { get; set; }
         }
     }
 }
