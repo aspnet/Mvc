@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void IsBindingAllowed_LeftAlone_ForNonTypeMetadata(bool initialValue)
+        public void IsBindingAllowed_LeftAlone_WhenTypeDoesntMatch(bool initialValue)
         {
             // Arrange
             var provider = new ExcludeBindingMetadataProvider(typeof(string));
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void IsBindingAllowed_IsFalse_ForMatchingTypeMetadata(bool initialValue)
+        public void IsBindingAllowed_IsFalse_WhenTypeMatches(bool initialValue)
         {
             // Arrange
             var provider = new ExcludeBindingMetadataProvider(typeof(int));
@@ -57,35 +57,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
             // Assert
             Assert.False(context.BindingMetadata.IsBindingAllowed);
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void IsBindingAllowed_LeftAlone_ForMatchedTypeBindingRequiredAttribute(bool initialValue)
-        {
-            // Arrange
-            var provider = new ExcludeBindingMetadataProvider(typeof(int));
-
-            var attributes = new object[]
-            {
-                new BindRequiredAttribute()
-            };
-
-            var key = ModelMetadataIdentity.ForProperty(
-                typeof(int),
-                nameof(Person.Age),
-                typeof(Person));
-
-            var context = new BindingMetadataProviderContext(key, new ModelAttributes(attributes, new object[0]));
-
-            context.BindingMetadata.IsBindingAllowed = initialValue;
-
-            // Act
-            provider.CreateBindingMetadata(context);
-
-            // Assert
-            Assert.Equal(initialValue, context.BindingMetadata.IsBindingAllowed);
         }
 
         private class Person

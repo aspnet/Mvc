@@ -73,9 +73,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             options.ValueProviderFactories.Add(new JQueryFormValueProviderFactory());
 
             // Set up metadata providers
+            options.ModelMetadataDetailsProviders.Add(new ExcludeBindingMetadataProvider(typeof(Type)));
             options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider(messageProvider));
             options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
-            options.ModelMetadataDetailsProviders.Add(new ExcludeBindingMetadataProvider(typeof(Type)));
 
             // Set up validators
             options.ModelValidatorProviders.Add(new DefaultModelValidatorProvider());

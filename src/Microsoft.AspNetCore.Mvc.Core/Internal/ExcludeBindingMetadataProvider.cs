@@ -49,26 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return;
             }
 
-            if (context.Key.MetadataKind == ModelMetadataKind.Property)
-            {
-                // BindingBehavior can fall back to attributes on the Container Type, but we should ignore
-                // attributes on the Property Type.
-                var bindingBehavior = context.PropertyAttributes.OfType<BindingBehaviorAttribute>().FirstOrDefault();
-                if (bindingBehavior == null)
-                {
-                    bindingBehavior =
-                        context.Key.ContainerType.GetTypeInfo()
-                        .GetCustomAttributes(typeof(BindingBehaviorAttribute), inherit: true)
-                        .OfType<BindingBehaviorAttribute>()
-                        .FirstOrDefault();
-                }
-
-                // Don't force the value if there is a specific attribute on it
-                if (bindingBehavior == null)
-                {
-                    context.BindingMetadata.IsBindingAllowed = false;
-                }
-            }
+            context.BindingMetadata.IsBindingAllowed = false;
         }
     }
 }
