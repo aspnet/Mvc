@@ -56,22 +56,28 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return entry;
             }
 
-            var executor = ObjectMethodExecutor.Create(actionDescriptor.MethodInfo, actionDescriptor.ControllerTypeInfo);
+            var executor = ObjectMethodExecutor.Create(
+                actionDescriptor.MethodInfo,
+                actionDescriptor.ControllerTypeInfo);
 
-            var items = new List<FilterItem>(actionDescriptor.FilterDescriptors.Count);
+            var staticallyDefinedFilterItems = new List<FilterItem>(actionDescriptor.FilterDescriptors.Count);
             for (var i = 0; i < actionDescriptor.FilterDescriptors.Count; i++)
             {
-                items.Add(new FilterItem(actionDescriptor.FilterDescriptors[i]));
+                staticallyDefinedFilterItems.Add(new FilterItem(actionDescriptor.FilterDescriptors[i]));
             }
 
-            ExecuteProviders(controllerContext, items);
+            var finalFilterItems = new List<FilterItem>(staticallyDefinedFilterItems);
+            ExecuteProviders(controllerContext, finalFilterItems);
 
-            var filters = ExtractFilters(items);
+            var filters = ExtractFilters(finalFilterItems);
 
+            // Cache the filter items based on the following criteria
+            // 1. Are created statically (ex: via filter attributes, added to global filter list etc.)
+            // 2. Are re-usable
             var allFiltersCached = true;
-            for (var i = 0; i < items.Count; i++)
+            for (var i = 0; i < staticallyDefinedFilterItems.Count; i++)
             {
-                var item = items[i];
+                var item = staticallyDefinedFilterItems[i];
                 if (!item.IsReusable)
                 {
                     item.Filter = null;
@@ -85,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
             else
             {
-                entry = new Entry(null, items, executor);
+                entry = new Entry(null, staticallyDefinedFilterItems, executor);
             }
 
             cache.Entries.TryAdd(actionDescriptor, entry);
@@ -186,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 Version = version;
             }
 
-            public ConcurrentDictionary<ActionDescriptor, Entry> Entries { get; } = 
+            public ConcurrentDictionary<ActionDescriptor, Entry> Entries { get; } =
                 new ConcurrentDictionary<ActionDescriptor, Entry>();
 
             public int Version { get; }

@@ -186,8 +186,80 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Same(executor1, executor2);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void GetFilters_FiltersFromFilterProviders_AreNeverCached(bool reusable)
+        {
+            // Arrange
+            var services = CreateServices();
+            var cache = CreateCache(
+                new DefaultFilterProvider(),
+                new TestFilterProvider(
+                    providerExecuting: (providerContext) =>
+                    {
+                        var filter = new TestFilter(providerContext.ActionContext.HttpContext.Items["name"] as string);
+                        providerContext.Results.Add(
+                            new FilterItem(new FilterDescriptor(filter, FilterScope.Global), filter)
+                            {
+                                IsReusable = reusable
+                            });
+                    },
+                    providerExecuted: null));
+
+            var action = new ControllerActionDescriptor()
+            {
+                FilterDescriptors = new[]
+                {
+                    new FilterDescriptor(new TestFilterFactory() { IsReusable = false }, FilterScope.Action),
+                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
+                },
+                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
+                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
+                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
+            };
+
+            var context = new ControllerContext(new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                action));
+            context.HttpContext.Items.Add("name", "foo");
+
+            // Act - 1
+            var filters1 = cache.GetFilters(context);
+
+            // Assert - 1
+            Assert.Collection(
+                filters1,
+                f => Assert.NotSame(action.FilterDescriptors[0].Filter, f), // Created by factory
+                f => Assert.Same(action.FilterDescriptors[1].Filter, f),    // Copied by provider
+                f => Assert.Equal("foo", ((TestFilter)filters1[2]).Data));  // Created by provider
+
+            // Act - 2
+            context.HttpContext.Items["name"] = "bar";
+            var filters2 = cache.GetFilters(context);
+
+            Assert.NotSame(filters1, filters2);
+
+            Assert.Collection(
+                filters2,
+                f => Assert.NotSame(filters1[0], f),                        // Created by factory (again)
+                f => Assert.Same(action.FilterDescriptors[1].Filter, f),    // Cached
+                f => Assert.Equal("bar", ((TestFilter)filters2[2]).Data));  // Created by provider (again)
+        }
+
         private class TestFilter : IFilterMetadata
         {
+            public TestFilter()
+            {
+            }
+
+            public TestFilter(string data)
+            {
+                Data = data;
+            }
+
+            public string Data { get; }
         }
 
         private class TestFilterFactory : IFilterFactory
@@ -197,6 +269,34 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
             {
                 return new TestFilter();
+            }
+        }
+
+        private class TestFilterProvider : IFilterProvider
+        {
+            private readonly Action<FilterProviderContext> _providerExecuting;
+            private readonly Action<FilterProviderContext> _providerExecuted;
+
+            public TestFilterProvider(
+                Action<FilterProviderContext> providerExecuting,
+                Action<FilterProviderContext> providerExecuted,
+                int order = 0)
+            {
+                _providerExecuting = providerExecuting;
+                _providerExecuted = providerExecuted;
+                Order = order;
+            }
+
+            public int Order { get; }
+
+            public void OnProvidersExecuting(FilterProviderContext context)
+            {
+                _providerExecuting?.Invoke(context);
+            }
+
+            public void OnProvidersExecuted(FilterProviderContext context)
+            {
+                _providerExecuted?.Invoke(context);
             }
         }
 
