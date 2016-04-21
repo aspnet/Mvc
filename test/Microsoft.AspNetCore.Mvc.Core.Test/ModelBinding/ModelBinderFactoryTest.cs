@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CreateBinder_Throws_WhenBinderNotCreated()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
             var options = new TestOptionsManager<MvcOptions>();
             var factory = new ModelBinderFactory(metadataProvider, options);
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CreateBinder_CreatesNoOpBinder_WhenPropertyDoesntHaveABinder()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
 
             // There isn't a provider that can handle WidgetId.
@@ -67,9 +67,46 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
+        public void CreateBinder_CreatesNoOpBinder_WhenPropertyBindingIsNotAllowed()
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForProperty<Widget>(nameof(Widget.Id))
+                .BindingDetails(m => m.IsBindingAllowed = false);
+
+            var modelBinder = Mock.Of<IModelBinder>();
+
+            var options = new TestOptionsManager<MvcOptions>();
+            options.Value.ModelBinderProviders.Add(new TestModelBinderProvider(c =>
+            {
+                if (c.Metadata.ModelType == typeof(WidgetId))
+                {
+                    return modelBinder;
+                }
+
+                return null;
+            }));
+
+            var factory = new ModelBinderFactory(metadataProvider, options);
+
+            var context = new ModelBinderFactoryContext()
+            {
+                Metadata = metadataProvider.GetMetadataForProperty(typeof(Widget), nameof(Widget.Id)),
+            };
+
+            // Act
+            var result = factory.CreateBinder(context);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.NotEqual(result, modelBinder);
+        }
+
+        [Fact]
         public void CreateBinder_NestedProperties()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
 
             var options = new TestOptionsManager<MvcOptions>();
@@ -105,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CreateBinder_BreaksCycles()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
 
             var callCount = 0;
@@ -142,7 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CreateBinder_DoesNotCache_WhenTokenIsNull()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
 
             var options = new TestOptionsManager<MvcOptions>();
@@ -170,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         [Fact]
         public void CreateBinder_Caches_WhenTokenIsNotNull()
         {
-            // Arrange 
+            // Arrange
             var metadataProvider = new TestModelMetadataProvider();
 
             var options = new TestOptionsManager<MvcOptions>();
