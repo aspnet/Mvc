@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace ActionConstraintSample.Web
 {
-    public class CountrySpecificAttribute : RouteConstraintAttribute, IActionConstraint
+    public class CountrySpecificAttribute : RouteValueAttribute, IActionConstraint
     {
         private readonly string _countryCode;
         public CountrySpecificAttribute(string countryCode)
-            : base("country", countryCode, blockNonAttributedActions: false)
+            : base("country", countryCode)
         {
             _countryCode = countryCode;
         }
