@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Moq;
@@ -101,8 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // Assert
             Assert.NotNull(result);
-            Assert.NotEqual(result, modelBinder);
-            Assert.Contains("NoOpBinder", result.GetType().FullName);
+            Assert.IsType<NoOpBinder>(result);
         }
 
         [Fact]

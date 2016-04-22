@@ -193,17 +193,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private class NoOpBinder : IModelBinder
-        {
-            public static readonly IModelBinder Instance = new NoOpBinder();
-
-            public Task BindModelAsync(ModelBindingContext bindingContext)
-            {
-                bindingContext.Result = ModelBindingResult.Failed(bindingContext.ModelName);
-                return TaskCache.CompletedTask;
-            }
-        }
-
         private struct Key : IEquatable<Key>
         {
             private readonly ModelMetadata _metadata;
