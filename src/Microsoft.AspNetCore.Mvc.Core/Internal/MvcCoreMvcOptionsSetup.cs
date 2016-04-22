@@ -78,6 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Don't bind the Type class by default as it's expensive. A user can override this behavior
             // by altering the collection of providers.
             options.ModelMetadataDetailsProviders.Add(new ExcludeBindingMetadataProvider(typeof(Type)));
+
             options.ModelMetadataDetailsProviders.Add(new DefaultBindingMetadataProvider(messageProvider));
             options.ModelMetadataDetailsProviders.Add(new DefaultValidationMetadataProvider());
 
