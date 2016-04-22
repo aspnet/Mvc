@@ -50,6 +50,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(actionContext));
             }
 
+            if (valueProvider == null)
+            {
+                throw new ArgumentNullException(nameof(valueProvider));
+            }
+
             if (metadata == null)
             {
                 throw new ArgumentNullException(nameof(metadata));
@@ -115,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // to preserve the currrent state.
             if (modelMetadata.BindingSource != null && !modelMetadata.BindingSource.IsGreedy)
             {
-                ValueProvider = FilterValueProvider(_originalValueProvider, modelMetadata.BindingSource);
+                ValueProvider = FilterValueProvider(OriginalValueProvider, modelMetadata.BindingSource);
             }
 
             Model = model;

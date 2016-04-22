@@ -15,6 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Represents the <see cref="Mvc.ActionContext"/> associated with this context.
         /// </summary>
+        /// <remarks>
+        /// The property setter is provided for unit testing purposes only.
+        /// </remarks>
         public abstract ActionContext ActionContext { get; set; }
 
         /// <summary>
@@ -68,6 +71,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets the <see cref="ModelStateDictionary"/> used to capture <see cref="ModelState"/> values
         /// for properties in the object graph of the model when binding.
         /// </summary>
+        /// <remarks>
+        /// The property setter is provided for unit testing purposes only.
+        /// </remarks>
         public abstract ModelStateDictionary ModelState { get; set; }
 
         /// <summary>
@@ -88,6 +94,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets or sets the <see cref="ValidationStateDictionary"/>. Used for tracking validation state to
         /// customize validation behavior for a model object.
         /// </summary>
+        /// <remarks>
+        /// The property setter is provided for unit testing purposes only.
+        /// </remarks>
         public abstract ValidationStateDictionary ValidationState { get; set; }
 
         /// <summary>

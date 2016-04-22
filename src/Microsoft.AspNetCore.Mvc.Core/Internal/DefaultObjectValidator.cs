@@ -54,11 +54,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(actionContext));
             }
 
-            if (validationState == null)
-            {
-                throw new ArgumentNullException(nameof(validationState));
-            }
-
             var visitor = new ValidationVisitor(
                 actionContext,
                 _validatorProvider,

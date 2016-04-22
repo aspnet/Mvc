@@ -188,7 +188,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             }));
             services.TryAddSingleton<IModelBinderFactory, ModelBinderFactory>();
-            services.TryAdd(ServiceDescriptor.Singleton<IObjectModelValidator>(s =>
+            services.TryAddSingleton<IObjectModelValidator>(s =>
             {
                 var options = s.GetRequiredService<IOptions<MvcOptions>>().Value;
                 var metadataProvider = s.GetRequiredService<IModelMetadataProvider>();

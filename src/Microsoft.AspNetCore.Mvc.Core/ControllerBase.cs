@@ -1415,7 +1415,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             ObjectValidator.Validate(
                 ControllerContext,
-                validationState: new ValidationStateDictionary(),
+                validationState: null
                 prefix: prefix ?? string.Empty,
                 model: model);
             return ModelState.IsValid;
