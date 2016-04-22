@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Moq;
 using Xunit;
@@ -75,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .ForProperty<Widget>(nameof(Widget.Id))
                 .BindingDetails(m => m.IsBindingAllowed = false);
 
-            var modelBinder = Mock.Of<IModelBinder>();
+            var modelBinder = new ByteArrayModelBinder();
 
             var options = new TestOptionsManager<MvcOptions>();
             options.Value.ModelBinderProviders.Add(new TestModelBinderProvider(c =>
@@ -101,6 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Assert
             Assert.NotNull(result);
             Assert.NotEqual(result, modelBinder);
+            Assert.Contains("NoOpBinder", result.GetType().FullName);
         }
 
         [Fact]

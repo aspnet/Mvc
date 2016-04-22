@@ -20,14 +20,15 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         public async Task BindParameter_WithTypeProperty_IsNotBound()
         {
             // Arrange
-            var options = new TestOptionsManager<MvcOptions>();
+            var options = new MvcOptions();
             var setup = new MvcCoreMvcOptionsSetup(new TestHttpRequestStreamReaderFactory());
 
             // Adding a custom model binder for Type to ensure it doesn't get called
-            options.Value.ModelBinderProviders.Insert(0, new TypeModelBinderProvider());
-            setup.Configure(options.Value);
+            options.ModelBinderProviders.Insert(0, new TypeModelBinderProvider());
 
-            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder(options.Value);
+            setup.Configure(options);
+
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder(options);
             var parameter = new ParameterDescriptor()
             {
                 Name = "Parameter1",
