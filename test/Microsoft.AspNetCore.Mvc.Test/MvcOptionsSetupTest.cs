@@ -156,9 +156,9 @@ namespace Microsoft.AspNetCore.Mvc
             // Assert
             var providers = options.ModelMetadataDetailsProviders;
             Assert.Collection(providers,
+                provider => Assert.IsType<ExcludeBindingMetadataProvider>(provider),
                 provider => Assert.IsType<DefaultBindingMetadataProvider>(provider),
                 provider => Assert.IsType<DefaultValidationMetadataProvider>(provider),
-                provider => Assert.IsType<ExcludeBindingMetadataProvider>(provider),
                 provider =>
                 {
                     var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
