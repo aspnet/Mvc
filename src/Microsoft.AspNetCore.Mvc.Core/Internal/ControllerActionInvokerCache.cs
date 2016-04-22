@@ -45,10 +45,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public EntryInfo GetCacheEntryInfo(ControllerContext controllerContext)
+        public ControllerActionInvokerState GetState(ControllerContext controllerContext)
         {
             // Filter instances from statically defined filter descriptors + from filter providers
-            IFilterMetadata[] allFilters;
+            IFilterMetadata[] filters;
 
             var cache = CurrentCache;
             var actionDescriptor = controllerContext.ActionDescriptor;
@@ -56,9 +56,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Entry cacheEntry;
             if (cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
             {
-                allFilters = GetAllFilters(controllerContext, cacheEntry.FilterItems);
+                filters = GetFilters(controllerContext, cacheEntry.FilterItems);
 
-                return new EntryInfo(allFilters, cacheEntry);
+                return new ControllerActionInvokerState(filters, cacheEntry.ActionMethodExecutor);
             }
 
             var executor = ObjectMethodExecutor.Create(
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 staticFilterItems.Add(new FilterItem(actionDescriptor.FilterDescriptors[i]));
             }
 
-            allFilters = GetAllFilters(controllerContext, staticFilterItems);
+            filters = GetFilters(controllerContext, staticFilterItems);
 
             // Cache the filter items based on the following criteria
             // 1. Are created statically (ex: via filter attributes, added to global filter list etc.)
@@ -87,10 +87,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             cacheEntry = new Entry(staticFilterItems, executor);
             cache.Entries.TryAdd(actionDescriptor, cacheEntry);
 
-            return new EntryInfo(allFilters, cacheEntry);
+            return new ControllerActionInvokerState(filters, cacheEntry.ActionMethodExecutor);
         }
 
-        private IFilterMetadata[] GetAllFilters(ActionContext actionContext, List<FilterItem> staticFilterItems)
+        private IFilterMetadata[] GetFilters(ActionContext actionContext, List<FilterItem> staticFilterItems)
         {
             // Create a separate collection as we want to hold onto the statically defined filter items
             // in order to cache them
@@ -153,7 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public int Version { get; }
         }
 
-        public struct Entry
+        private struct Entry
         {
             public Entry(List<FilterItem> items, ObjectMethodExecutor executor)
             {
@@ -166,19 +166,19 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public ObjectMethodExecutor ActionMethodExecutor { get; }
         }
 
-        public struct EntryInfo
+        public struct ControllerActionInvokerState
         {
-            public EntryInfo(
-                IFilterMetadata[] allFilters,
-                Entry cacheEntry)
+            public ControllerActionInvokerState(
+                IFilterMetadata[] filters,
+                ObjectMethodExecutor actionMethodExecutor)
             {
-                AllFilters = allFilters;
-                CacheEntry = cacheEntry;
+                Filters = filters;
+                ActionMethodExecutor = actionMethodExecutor;
             }
 
-            public IFilterMetadata[] AllFilters { get; }
+            public IFilterMetadata[] Filters { get; }
 
-            public Entry CacheEntry { get; set; }
+            public ObjectMethodExecutor ActionMethodExecutor { get; set; }
         }
     }
 }

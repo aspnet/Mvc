@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 new[] { new DefaultFilterProvider() });
 
             // Act - 1
-            var request1Filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            var request1Filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 1
             Assert.Collection(
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 f => Assert.Same(staticFilter2, f));
 
             // Act - 2
-            var request2Filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            var request2Filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 2
             Assert.Collection(
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var filterDescriptors = controllerContext.ActionDescriptor.FilterDescriptors;
 
             // Act - 1
-            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            var filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 1
             Assert.Equal(2, filters.Length);
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Same(staticFilter, filters[1]); // Cached and the same statically created filter instance
 
             // Act - 2
-            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 2
             Assert.Collection(
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var filterDescriptors = controllerContext.ActionDescriptor.FilterDescriptors;
 
             // Act - 1
-            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            var filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 1
             Assert.Equal(2, filters.Length);
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Same(staticFilter, filters[1]); // Cached and the same statically created filter instance
 
             // Act - 2
-            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 2
             Assert.Collection(
@@ -128,11 +128,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 new[] { new DefaultFilterProvider() });
 
             // Act
-            var cacheEntry1 = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext);
-            var cacheEntry2 = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext);
+            var cacheEntry1 = controllerActionInvokerCache.GetState(controllerContext);
+            var cacheEntry2 = controllerActionInvokerCache.GetState(controllerContext);
 
             // Assert
-            Assert.Same(cacheEntry1.CacheEntry.ActionMethodExecutor, cacheEntry2.CacheEntry.ActionMethodExecutor);
+            Assert.Same(cacheEntry1.ActionMethodExecutor, cacheEntry2.ActionMethodExecutor);
         }
 
         [Theory]
@@ -165,7 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act - 1
             controllerContext.HttpContext.Items["name"] = "foo";
-            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            var filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert - 1
             Assert.Equal(3, filters.Length);
@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act - 2
             controllerContext.HttpContext.Items["name"] = "bar";
-            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
+            filters = controllerActionInvokerCache.GetState(controllerContext).Filters;
 
             // Assert -2
             Assert.Equal(3, filters.Length);
