@@ -123,9 +123,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public virtual async Task InvokeAsync()
         {
-            var cacheEntry = _controllerActionInvokerCache.GetCacheEntry(Context);
-            _filters = _controllerActionInvokerCache.GetFiltersFromEntry(cacheEntry, Context);
-            _controllerActionMethodExecutor = cacheEntry.ActionMethodExecutor;
+            var cacheEntryInfo = _controllerActionInvokerCache.GetCacheEntryInfo(Context);
+            _filters = cacheEntryInfo.AllFilters;
+            _controllerActionMethodExecutor = cacheEntryInfo.CacheEntry.ActionMethodExecutor;
             _cursor = new FilterCursor(_filters);
 
             Context.ModelState.MaxAllowedErrors = _maxModelValidationErrors;

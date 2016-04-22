@@ -6,8 +6,8 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -18,184 +18,130 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public void GetFilters_CachesAllFilters()
         {
             // Arrange
-            var services = CreateServices();
-            var cache = CreateCache(new DefaultFilterProvider());
-
-            var action = new ControllerActionDescriptor()
-            {
-                FilterDescriptors = new[]
+            var staticFilter1 = new TestFilter();
+            var staticFilter2 = new TestFilter();
+            var controllerContext = CreateControllerContext(new[]
                 {
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                },
-                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
-                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
-                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
-            };
-
-            var context = new ControllerContext(new ActionContext(
-                new DefaultHttpContext(),
-                new RouteData(),
-                action));
+                    new FilterDescriptor(staticFilter1, FilterScope.Action),
+                    new FilterDescriptor(staticFilter2, FilterScope.Action),
+                });
+            var controllerActionInvokerCache = CreateControllerActionInvokerCache(
+                controllerContext,
+                new[] { new DefaultFilterProvider() });
 
             // Act - 1
-            var filters1 = cache.GetFilters(context);
+            var request1Filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
             // Assert - 1
             Assert.Collection(
-                filters1,
-                f => Assert.Same(action.FilterDescriptors[0].Filter, f), // Copied by provider
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f)); // Copied by provider
+                request1Filters,
+                f => Assert.Same(staticFilter1, f),
+                f => Assert.Same(staticFilter2, f));
 
             // Act - 2
-            var filters2 = cache.GetFilters(context);
+            var request2Filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
-            Assert.Same(filters1, filters2);
-
+            // Assert - 2
             Assert.Collection(
-                filters2,
-                f => Assert.Same(action.FilterDescriptors[0].Filter, f), // Cached
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f)); // Cached
+                request2Filters,
+                f => Assert.Same(staticFilter1, f),
+                f => Assert.Same(staticFilter2, f));
         }
 
         [Fact]
         public void GetFilters_CachesFilterFromFactory()
         {
             // Arrange
-            var services = CreateServices();
-            var cache = CreateCache(new DefaultFilterProvider());
-
-            var action = new ControllerActionDescriptor()
-            {
-                FilterDescriptors = new[]
+            var staticFilter = new TestFilter();
+            var controllerContext = CreateControllerContext(new[]
                 {
                     new FilterDescriptor(new TestFilterFactory() { IsReusable = true }, FilterScope.Action),
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                },
-                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
-                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
-                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
-            };
-
-            var context = new ControllerContext(new ActionContext(
-                new DefaultHttpContext(),
-                new RouteData(),
-                action));
+                    new FilterDescriptor(staticFilter, FilterScope.Action),
+                });
+            var controllerActionInvokerCache = CreateControllerActionInvokerCache(
+                controllerContext,
+                new[] { new DefaultFilterProvider() });
+            var filterDescriptors = controllerContext.ActionDescriptor.FilterDescriptors;
 
             // Act - 1
-            var filters1 = cache.GetFilters(context);
+            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
             // Assert - 1
-            Assert.Collection(
-                filters1,
-                f => Assert.NotSame(action.FilterDescriptors[0].Filter, f), // Created by factory
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f)); // Copied by provider
+            Assert.Equal(2, filters.Length);
+            var request1Filter1 = Assert.IsType<TestFilter>(filters[0]); // Created by factory
+            Assert.Same(staticFilter, filters[1]); // Cached and the same statically created filter instance
 
             // Act - 2
-            var filters2 = cache.GetFilters(context);
+            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
-            Assert.Same(filters1, filters2);
-
+            // Assert - 2
             Assert.Collection(
-                filters2,
-                f => Assert.Same(filters1[0], f), // Cached
-                f => Assert.Same(filters1[1], f)); // Cached
+                filters,
+                f => Assert.Same(request1Filter1, f), // Cached
+                f => Assert.Same(staticFilter, f)); // Cached and the same statically created filter instance
         }
 
         [Fact]
         public void GetFilters_DoesNotCacheFiltersWithIsReusableFalse()
         {
             // Arrange
-            var services = CreateServices();
-            var cache = CreateCache(new DefaultFilterProvider());
-
-            var action = new ControllerActionDescriptor()
-            {
-                FilterDescriptors = new[]
+            var staticFilter = new TestFilter();
+            var controllerContext = CreateControllerContext(new[]
                 {
                     new FilterDescriptor(new TestFilterFactory() { IsReusable = false }, FilterScope.Action),
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                },
-                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
-                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
-                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
-            };
-
-            var context = new ControllerContext(new ActionContext(
-                new DefaultHttpContext(),
-                new RouteData(),
-                action));
+                    new FilterDescriptor(staticFilter, FilterScope.Action),
+                });
+            var controllerActionInvokerCache = CreateControllerActionInvokerCache(
+                controllerContext,
+                new[] { new DefaultFilterProvider() });
+            var filterDescriptors = controllerContext.ActionDescriptor.FilterDescriptors;
 
             // Act - 1
-            var filters1 = cache.GetFilters(context);
+            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
             // Assert - 1
-            Assert.Collection(
-                filters1,
-                f => Assert.NotSame(action.FilterDescriptors[0].Filter, f), // Created by factory
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f)); // Copied by provider
+            Assert.Equal(2, filters.Length);
+            var request1Filter1 = Assert.IsType<TestFilter>(filters[0]); // Created by factory
+            Assert.Same(staticFilter, filters[1]); // Cached and the same statically created filter instance
 
             // Act - 2
-            var filters2 = cache.GetFilters(context);
+            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
-            Assert.NotSame(filters1, filters2);
-
+            // Assert - 2
             Assert.Collection(
-                filters2,
-                f => Assert.NotSame(filters1[0], f), // Created by factory (again)
-                f => Assert.Same(filters1[1], f)); // Cached
+                filters,
+                f => Assert.NotSame(request1Filter1, f), // Created by factory again
+                f => Assert.Same(staticFilter, f)); // Cached and the same statically created filter instance
         }
 
         [Fact]
-        public void GetControllerActionMethodExecutor_CachesExecutor()
+        public void GetControllerActionMethodExecutor_CachesActionMethodExecutor()
         {
             // Arrange
-            var services = CreateServices();
-            var cache = CreateCache(new DefaultFilterProvider());
-
-            var action = new ControllerActionDescriptor()
-            {
-                FilterDescriptors = new[]
+            var filter = new TestFilter();
+            var controllerContext = CreateControllerContext(new[]
                 {
-                    new FilterDescriptor(new TestFilterFactory() { IsReusable = false }, FilterScope.Action),
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                },
-                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
-                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
-                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
+                    new FilterDescriptor(filter, FilterScope.Action)
+                });
+            var controllerActionInvokerCache = CreateControllerActionInvokerCache(
+                controllerContext,
+                new[] { new DefaultFilterProvider() });
 
-            };
+            // Act
+            var cacheEntry1 = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext);
+            var cacheEntry2 = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext);
 
-            var context = new ControllerContext(
-                new ActionContext(new DefaultHttpContext(),
-                new RouteData(),
-                action));
-
-            // Act - 1
-            var executor1 = cache.GetControllerActionMethodExecutor(context);
-
-            Assert.NotNull(executor1);
-
-            var filters1 = cache.GetFilters(context);
-
-            Assert.NotNull(filters1);
-
-            // Act - 2
-            var executor2 = cache.GetControllerActionMethodExecutor(context);
-
-            Assert.Same(executor1, executor2);
+            // Assert
+            Assert.Same(cacheEntry1.CacheEntry.ActionMethodExecutor, cacheEntry2.CacheEntry.ActionMethodExecutor);
         }
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public void GetFilters_FiltersFromFilterProviders_AreNeverCached(bool reusable)
+        public void GetFilters_FiltersAddedByFilterProviders_AreNeverCached(bool reusable)
         {
             // Arrange
-            var services = CreateServices();
-            var cache = CreateCache(
-                new DefaultFilterProvider(),
-                new TestFilterProvider(
+            var customFilterProvider = new TestFilterProvider(
                     providerExecuting: (providerContext) =>
                     {
                         var filter = new TestFilter(providerContext.ActionContext.HttpContext.Items["name"] as string);
@@ -205,47 +151,41 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                 IsReusable = reusable
                             });
                     },
-                    providerExecuted: null));
-
-            var action = new ControllerActionDescriptor()
-            {
-                FilterDescriptors = new[]
+                    providerExecuted: null);
+            var staticFilter = new TestFilter();
+            var controllerContext = CreateControllerContext(new[]
                 {
                     new FilterDescriptor(new TestFilterFactory() { IsReusable = false }, FilterScope.Action),
-                    new FilterDescriptor(new TestFilter(), FilterScope.Action),
-                },
-                MethodInfo = typeof(ControllerActionInvokerCache).GetMethod(
-                    nameof(ControllerActionInvokerCache.GetControllerActionMethodExecutor)),
-                ControllerTypeInfo = typeof(ControllerActionInvokerCache).GetTypeInfo()
-            };
-
-            var context = new ControllerContext(new ActionContext(
-                new DefaultHttpContext(),
-                new RouteData(),
-                action));
-            context.HttpContext.Items.Add("name", "foo");
+                    new FilterDescriptor(staticFilter, FilterScope.Action),
+                });
+            var controllerActionInvokerCache = CreateControllerActionInvokerCache(
+                controllerContext,
+                new IFilterProvider[] { new DefaultFilterProvider(), customFilterProvider });
+            var filterDescriptors = controllerContext.ActionDescriptor.FilterDescriptors;
 
             // Act - 1
-            var filters1 = cache.GetFilters(context);
+            controllerContext.HttpContext.Items["name"] = "foo";
+            var filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
             // Assert - 1
-            Assert.Collection(
-                filters1,
-                f => Assert.NotSame(action.FilterDescriptors[0].Filter, f), // Created by factory
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f),    // Copied by provider
-                f => Assert.Equal("foo", ((TestFilter)filters1[2]).Data));  // Created by provider
+            Assert.Equal(3, filters.Length);
+            var request1Filter1 = Assert.IsType<TestFilter>(filters[0]); // Created by factory
+            Assert.Same(staticFilter, filters[1]); // Cached and the same statically created filter instance
+            var request1Filter3 = Assert.IsType<TestFilter>(filters[2]); // Created by custom filter provider
+            Assert.Equal("foo", request1Filter3.Data);
 
             // Act - 2
-            context.HttpContext.Items["name"] = "bar";
-            var filters2 = cache.GetFilters(context);
+            controllerContext.HttpContext.Items["name"] = "bar";
+            filters = controllerActionInvokerCache.GetCacheEntryInfo(controllerContext).AllFilters;
 
-            Assert.NotSame(filters1, filters2);
-
-            Assert.Collection(
-                filters2,
-                f => Assert.NotSame(filters1[0], f),                        // Created by factory (again)
-                f => Assert.Same(action.FilterDescriptors[1].Filter, f),    // Cached
-                f => Assert.Equal("bar", ((TestFilter)filters2[2]).Data));  // Created by provider (again)
+            // Assert -2
+            Assert.Equal(3, filters.Length);
+            var request2Filter1 = Assert.IsType<TestFilter>(filters[0]);
+            Assert.NotSame(request1Filter1, request2Filter1); // Created by factory
+            Assert.Same(staticFilter, filters[1]);   // Cached and the same statically created filter instance
+            var request2Filter3 = Assert.IsType<TestFilter>(filters[2]);
+            Assert.NotSame(request1Filter3, request2Filter3); // Created by custom filter provider again
+            Assert.Equal("bar", request2Filter3.Data);
         }
 
         private class TestFilter : IFilterMetadata
@@ -264,11 +204,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private class TestFilterFactory : IFilterFactory
         {
+            private TestFilter testFilter;
+
             public bool IsReusable { get; set; }
 
             public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
             {
-                return new TestFilter();
+                if (IsReusable)
+                {
+                    if (testFilter == null)
+                    {
+                        testFilter = new TestFilter();
+                    }
+                    return testFilter;
+                }
+                else
+                {
+                    return new TestFilter();
+                }
             }
         }
 
@@ -300,16 +253,43 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private static IServiceProvider CreateServices()
+        private class TestController
         {
-            return new ServiceCollection().BuildServiceProvider();
+            public void Index()
+            {
+            }
         }
 
-        private static ControllerActionInvokerCache CreateCache(params IFilterProvider[] providers)
+        private class CustomActionDescriptorCollectionProvider : IActionDescriptorCollectionProvider
         {
-            var services = CreateServices();
-            var descriptorProvider = new ActionDescriptorCollectionProvider(services);
-            return new ControllerActionInvokerCache(descriptorProvider, providers);
+            public CustomActionDescriptorCollectionProvider(ControllerActionDescriptor[] actionDescriptors)
+            {
+                ActionDescriptors = new ActionDescriptorCollection(actionDescriptors, version: 1);
+            }
+
+            public ActionDescriptorCollection ActionDescriptors { get; }
+        }
+
+        private static ControllerActionInvokerCache CreateControllerActionInvokerCache(
+            ControllerContext controllerContext,
+            IFilterProvider[] filterProviders)
+        {
+            var descriptorProvider = new CustomActionDescriptorCollectionProvider(
+                new[] { controllerContext.ActionDescriptor });
+            return new ControllerActionInvokerCache(descriptorProvider, filterProviders);
+        }
+
+        private static ControllerContext CreateControllerContext(FilterDescriptor[] filterDescriptors)
+        {
+            var actionDescriptor = new ControllerActionDescriptor()
+            {
+                FilterDescriptors = filterDescriptors,
+                MethodInfo = typeof(TestController).GetMethod(nameof(TestController.Index)),
+                ControllerTypeInfo = typeof(TestController).GetTypeInfo()
+            };
+
+            var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), actionDescriptor);
+            return new ControllerContext(actionContext);
         }
     }
 }

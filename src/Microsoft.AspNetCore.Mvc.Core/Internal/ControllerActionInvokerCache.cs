@@ -45,102 +45,59 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public Entry GetCacheEntry(ControllerContext controllerContext)
+        public EntryInfo GetCacheEntryInfo(ControllerContext controllerContext)
         {
+            // Filter instances from statically defined filter descriptors + from filter providers
+            IFilterMetadata[] allFilters;
+
             var cache = CurrentCache;
             var actionDescriptor = controllerContext.ActionDescriptor;
 
-            Entry entry;
-            if (cache.Entries.TryGetValue(actionDescriptor, out entry))
+            Entry cacheEntry;
+            if (cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
             {
-                return entry;
+                allFilters = GetAllFilters(controllerContext, cacheEntry.FilterItems);
+
+                return new EntryInfo(allFilters, cacheEntry);
             }
 
             var executor = ObjectMethodExecutor.Create(
                 actionDescriptor.MethodInfo,
                 actionDescriptor.ControllerTypeInfo);
 
-            var staticallyDefinedFilterItems = new List<FilterItem>(actionDescriptor.FilterDescriptors.Count);
+            var staticFilterItems = new List<FilterItem>(actionDescriptor.FilterDescriptors.Count);
             for (var i = 0; i < actionDescriptor.FilterDescriptors.Count; i++)
             {
-                staticallyDefinedFilterItems.Add(new FilterItem(actionDescriptor.FilterDescriptors[i]));
+                staticFilterItems.Add(new FilterItem(actionDescriptor.FilterDescriptors[i]));
             }
 
-            var finalFilterItems = new List<FilterItem>(staticallyDefinedFilterItems);
-            ExecuteProviders(controllerContext, finalFilterItems);
-
-            var filters = ExtractFilters(finalFilterItems);
+            allFilters = GetAllFilters(controllerContext, staticFilterItems);
 
             // Cache the filter items based on the following criteria
             // 1. Are created statically (ex: via filter attributes, added to global filter list etc.)
             // 2. Are re-usable
-            var allFiltersCached = true;
-            for (var i = 0; i < staticallyDefinedFilterItems.Count; i++)
+            for (var i = 0; i < staticFilterItems.Count; i++)
             {
-                var item = staticallyDefinedFilterItems[i];
+                var item = staticFilterItems[i];
                 if (!item.IsReusable)
                 {
                     item.Filter = null;
-                    allFiltersCached = false;
                 }
             }
+            cacheEntry = new Entry(staticFilterItems, executor);
+            cache.Entries.TryAdd(actionDescriptor, cacheEntry);
 
-            if (allFiltersCached)
-            {
-                entry = new Entry(filters, null, executor);
-            }
-            else
-            {
-                entry = new Entry(null, staticallyDefinedFilterItems, executor);
-            }
-
-            cache.Entries.TryAdd(actionDescriptor, entry);
-            return entry;
+            return new EntryInfo(allFilters, cacheEntry);
         }
 
-        public IFilterMetadata[] GetFilters(ControllerContext controllerContext)
+        private IFilterMetadata[] GetAllFilters(ActionContext actionContext, List<FilterItem> staticFilterItems)
         {
-            var entry = GetCacheEntry(controllerContext);
-            return GetFiltersFromEntry(entry, controllerContext);
-        }
+            // Create a separate collection as we want to hold onto the statically defined filter items
+            // in order to cache them
+            var filterItems = new List<FilterItem>(staticFilterItems);
 
-        public ObjectMethodExecutor GetControllerActionMethodExecutor(ControllerContext controllerContext)
-        {
-            var entry = GetCacheEntry(controllerContext);
-            return entry.ActionMethodExecutor;
-        }
-
-        public IFilterMetadata[] GetFiltersFromEntry(Entry entry, ActionContext actionContext)
-        {
-            Debug.Assert(entry.Filters != null || entry.FilterItems != null);
-
-            if (entry.Filters != null)
-            {
-                return entry.Filters;
-            }
-
-            var items = new List<FilterItem>(entry.FilterItems.Count);
-            for (var i = 0; i < entry.FilterItems.Count; i++)
-            {
-                var item = entry.FilterItems[i];
-                if (item.IsReusable)
-                {
-                    items.Add(item);
-                }
-                else
-                {
-                    items.Add(new FilterItem(item.Descriptor));
-                }
-            }
-
-            ExecuteProviders(actionContext, items);
-
-            return ExtractFilters(items);
-        }
-
-        private void ExecuteProviders(ActionContext actionContext, List<FilterItem> items)
-        {
-            var context = new FilterProviderContext(actionContext, items);
+            // Execute providers
+            var context = new FilterProviderContext(actionContext, filterItems);
 
             for (var i = 0; i < _filterProviders.Length; i++)
             {
@@ -151,14 +108,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 _filterProviders[i].OnProvidersExecuted(context);
             }
-        }
 
-        private IFilterMetadata[] ExtractFilters(List<FilterItem> items)
-        {
+            // Extract filter instances from statically defined filters and filter providers
             var count = 0;
-            for (var i = 0; i < items.Count; i++)
+            for (var i = 0; i < filterItems.Count; i++)
             {
-                if (items[i].Filter != null)
+                if (filterItems[i].Filter != null)
                 {
                     count++;
                 }
@@ -172,9 +127,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var filters = new IFilterMetadata[count];
                 var filterIndex = 0;
-                for (int i = 0; i < items.Count; i++)
+                for (int i = 0; i < filterItems.Count; i++)
                 {
-                    var filter = items[i].Filter;
+                    var filter = filterItems[i].Filter;
                     if (filter != null)
                     {
                         filters[filterIndex++] = filter;
@@ -200,17 +155,30 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public struct Entry
         {
-            public Entry(IFilterMetadata[] filters, List<FilterItem> items, ObjectMethodExecutor executor)
+            public Entry(List<FilterItem> items, ObjectMethodExecutor executor)
             {
                 FilterItems = items;
-                Filters = filters;
                 ActionMethodExecutor = executor;
             }
-            public IFilterMetadata[] Filters { get; }
 
             public List<FilterItem> FilterItems { get; }
 
             public ObjectMethodExecutor ActionMethodExecutor { get; }
+        }
+
+        public struct EntryInfo
+        {
+            public EntryInfo(
+                IFilterMetadata[] allFilters,
+                Entry cacheEntry)
+            {
+                AllFilters = allFilters;
+                CacheEntry = cacheEntry;
+            }
+
+            public IFilterMetadata[] AllFilters { get; }
+
+            public Entry CacheEntry { get; set; }
         }
     }
 }
