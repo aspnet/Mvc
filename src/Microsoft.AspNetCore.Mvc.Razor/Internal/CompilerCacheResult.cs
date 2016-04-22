@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Primitives;
 
@@ -40,6 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             CompilationResult = compilationResult;
             Success = true;
             ExpirationTokens = expirationTokens;
+            PageCreate = Expression.Lambda<Func<object>>(Expression.New(compilationResult.CompiledType)).Compile();
         }
 
         /// <summary>
@@ -58,6 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             CompilationResult = default(CompilationResult);
             Success = false;
             ExpirationTokens = expirationTokens;
+            PageCreate = null;
         }
 
         /// <summary>
@@ -75,5 +78,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// Gets a value that determines if the view was successfully found and compiled.
         /// </summary>
         public bool Success { get; }
+
+        /// <summary>
+        /// Gets a Func to create the view.
+        /// </summary>
+        /// <remarks>This property is not available when <see cref="Success"/> is <c>false</c>.</remarks>
+        public Func<object> PageCreate { get; }
     }
 }
