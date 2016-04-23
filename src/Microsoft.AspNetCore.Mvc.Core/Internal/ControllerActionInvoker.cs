@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Internal;
@@ -29,7 +28,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ControllerActionInvokerCache controllerActionInvokerCache,
             IControllerFactory controllerFactory,
             ControllerActionDescriptor descriptor,
-            IReadOnlyList<IInputFormatter> inputFormatters,
             IControllerArgumentBinder argumentBinder,
             IReadOnlyList<IValueProviderFactory> valueProviderFactories,
             ILogger logger,
@@ -38,7 +36,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             : base(
                   actionContext,
                   controllerActionInvokerCache,
-                  inputFormatters,
                   valueProviderFactories,
                   logger,
                   diagnosticSource,
@@ -82,34 +79,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             _controllerFactory.ReleaseController(Context, instance);
         }
-
-        protected override async Task<IActionResult> InvokeActionAsync(ActionExecutingContext actionExecutingContext)
+        
+        protected override async Task<IActionResult> InvokeActionAsync(IDictionary<string, object> arguments)
         {
-            if (actionExecutingContext == null)
+            if (arguments == null)
             {
-                throw new ArgumentNullException(nameof(actionExecutingContext));
+                throw new ArgumentNullException(nameof(arguments));
             }
 
             var actionMethodInfo = _descriptor.MethodInfo;
 
             var methodExecutor = GetControllerActionMethodExecutor();
 
-            var arguments = ControllerActionExecutor.PrepareArguments(
-                actionExecutingContext.ActionArguments,
-                actionMethodInfo.GetParameters());
+            var orderedArguments = ControllerActionExecutor.PrepareArguments(arguments, actionMethodInfo.GetParameters());
 
-            Logger.ActionMethodExecuting(actionExecutingContext, arguments);
+            Logger.ActionMethodExecuting(Context, orderedArguments);
 
             var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
                 methodExecutor,
-                actionExecutingContext.Controller,
+                Instance,
                 arguments);
 
             var actionResult = CreateActionResult(
                 actionMethodInfo.ReturnType,
                 actionReturnValue);
 
-            Logger.ActionMethodExecuted(actionExecutingContext, actionResult);
+            Logger.ActionMethodExecuted(Context, actionResult);
 
             return actionResult;
         }
