@@ -341,12 +341,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public void Constructor_UsesSerializerSettings()
         {
             // Arrange
-            var logger = GetLogger();
+            var serializerSettings = new JsonSerializerSettings();
 
             // Act
-            var serializerSettings = new JsonSerializerSettings();
-            var jsonFormatter =
-                new JsonInputFormatter(logger, serializerSettings, ArrayPool<char>.Shared, _objectPoolProvider);
+            var jsonFormatter = new TestableJsonInputFormatter(serializerSettings);
 
             // Assert
             Assert.Same(serializerSettings, jsonFormatter.SerializerSettings);
@@ -397,7 +395,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 MaxDepth = 2,
                 DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,
             };
-            var formatter = new TestableJsonInputFormatter(GetLogger(), settings);
+            var formatter = new TestableJsonInputFormatter(settings);
 
             // Act
             var actual = formatter.CreateJsonSerializer();
@@ -410,10 +408,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
         private class TestableJsonInputFormatter : JsonInputFormatter
         {
-            public TestableJsonInputFormatter(ILogger logger, JsonSerializerSettings settings)
-                : base(logger, settings, ArrayPool<char>.Shared, _objectPoolProvider)
+            public TestableJsonInputFormatter(JsonSerializerSettings settings)
+                : base(GetLogger(), settings, ArrayPool<char>.Shared, _objectPoolProvider)
             {
             }
+
+            public new JsonSerializerSettings SerializerSettings => base.SerializerSettings;
 
             public new JsonSerializer CreateJsonSerializer() => base.CreateJsonSerializer();
         }

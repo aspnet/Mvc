@@ -2,11 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Buffers;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace FiltersWebSite.Controllers
 {
@@ -29,26 +30,16 @@ namespace FiltersWebSite.Controllers
 
         private class ShortCircuitWithFormatterAttribute : Attribute, IResourceFilter
         {
-            private IOutputFormatter[] _formatters;
-
-            public ShortCircuitWithFormatterAttribute()
-            {
-                _formatters = new IOutputFormatter[] { new JsonOutputFormatter(
-                    new JsonSerializerSettings(),
-                    ArrayPool<char>.Shared) };
-            }
-
             public void OnResourceExecuted(ResourceExecutedContext context)
             {
             }
 
             public void OnResourceExecuting(ResourceExecutingContext context)
             {
+                var mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>();
+                var formatter = mvcOptions.Value.OutputFormatters.OfType<JsonOutputFormatter>().First();
                 var result = new ObjectResult("someValue");
-                foreach (var formatter in _formatters)
-                {
-                    result.Formatters.Add(formatter);
-                }
+                result.Formatters.Add(formatter);
 
                 context.Result = result;
             }

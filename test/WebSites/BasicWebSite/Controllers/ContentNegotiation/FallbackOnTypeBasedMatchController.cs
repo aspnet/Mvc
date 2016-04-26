@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using BasicWebSite.Formatters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -16,15 +17,7 @@ namespace BasicWebSite.Controllers.ContentNegotiation
         public FallbackOnTypeBasedMatchController(IOptions<MvcOptions> mvcOptions)
         {
             _mvcOptions = mvcOptions;
-
-            for (var i = 0; i < mvcOptions.Value.OutputFormatters.Count; i++)
-            {
-                _jsonOutputFormatter = mvcOptions.Value.OutputFormatters[i] as JsonOutputFormatter;
-                if (_jsonOutputFormatter != null)
-                {
-                    break;
-                }
-            }
+            _jsonOutputFormatter = mvcOptions.Value.OutputFormatters.OfType<JsonOutputFormatter>().First();
         }
 
         public int UseTheFallback_WithDefaultFormatters(int input)

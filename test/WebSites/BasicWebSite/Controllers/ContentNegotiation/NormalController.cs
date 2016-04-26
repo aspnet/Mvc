@@ -7,54 +7,25 @@ using BasicWebSite.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Newtonsoft.Json;
 
 namespace BasicWebSite.Controllers.ContentNegotiation
 {
     public class NormalController : Controller
     {
-        private JsonOutputFormatter _indentingFormatter;
+        private static readonly JsonSerializerSettings _indentedSettings;
+        private readonly JsonOutputFormatter _indentingFormatter;
 
-        public NormalController(IOptions<MvcJsonOptions> jsonOptions, ArrayPool<char> charPool)
+        static NormalController()
         {
-            var defaultSettings = jsonOptions.Value.SerializerSettings;
-            var settings = new JsonSerializerSettings
-            {
-                Binder = defaultSettings.Binder,
-                CheckAdditionalContent = defaultSettings.CheckAdditionalContent,
-                ConstructorHandling = defaultSettings.ConstructorHandling,
-                Context = defaultSettings.Context,
-                ContractResolver = defaultSettings.ContractResolver,
-                Converters = defaultSettings.Converters,
-                Culture = defaultSettings.Culture,
-                DateFormatHandling = defaultSettings.DateFormatHandling,
-                DateFormatString = defaultSettings.DateFormatString,
-                DateParseHandling = defaultSettings.DateParseHandling,
-                DateTimeZoneHandling = defaultSettings.DateTimeZoneHandling,
-                DefaultValueHandling = defaultSettings.DefaultValueHandling,
-                EqualityComparer = defaultSettings.EqualityComparer,
-                Error = defaultSettings.Error,
-                FloatFormatHandling = defaultSettings.FloatFormatHandling,
-                FloatParseHandling = defaultSettings.FloatParseHandling,
-                // Just one change from the global defaults.
-                Formatting = Formatting.Indented,
-                MaxDepth = defaultSettings.MaxDepth,
-                MetadataPropertyHandling = defaultSettings.MetadataPropertyHandling,
-                MissingMemberHandling = defaultSettings.MissingMemberHandling,
-                NullValueHandling = defaultSettings.NullValueHandling,
-                ObjectCreationHandling = defaultSettings.ObjectCreationHandling,
-                PreserveReferencesHandling = defaultSettings.PreserveReferencesHandling,
-                ReferenceLoopHandling = defaultSettings.ReferenceLoopHandling,
-                // ReferenceResolver property is obsolete; use only ReferenceResolverProvider.
-                ReferenceResolverProvider = defaultSettings.ReferenceResolverProvider,
-                StringEscapeHandling = defaultSettings.StringEscapeHandling,
-                TraceWriter = defaultSettings.TraceWriter,
-                TypeNameAssemblyFormat = defaultSettings.TypeNameAssemblyFormat,
-                TypeNameHandling = defaultSettings.TypeNameHandling,
-            };
+            _indentedSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            _indentedSettings.Formatting = Formatting.Indented;
+        }
 
-            _indentingFormatter = new JsonOutputFormatter(settings, charPool);
+        public NormalController(ArrayPool<char> charPool)
+        {
+            _indentingFormatter = new JsonOutputFormatter(_indentedSettings, charPool);
         }
 
         public override void OnActionExecuted(ActionExecutedContext context)

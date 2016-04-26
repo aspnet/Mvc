@@ -18,8 +18,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
     {
         private readonly IArrayPool<char> _charPool;
 
-        private JsonSerializerSettings _serializerSettings;
-
         // Perf: JsonSerializers are relatively expensive to create, and are thread safe. We cache
         // the serializer and invalidate it when the settings change.
         private JsonSerializer _serializer;
@@ -41,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(charPool));
             }
 
-            _serializerSettings = serializerSettings;
+            SerializerSettings = serializerSettings;
             _charPool = new JsonArrayPool<char>(charPool);
 
             SupportedEncodings.Add(Encoding.UTF8);
@@ -51,31 +49,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="JsonSerializerSettings"/> used to configure the <see cref="JsonSerializer"/>.
+        /// Gets the <see cref="JsonSerializerSettings"/> used to configure the <see cref="JsonSerializer"/>.
         /// </summary>
         /// <remarks>
         /// Any modifications to the <see cref="JsonSerializerSettings"/> object after this
         /// <see cref="JsonOutputFormatter"/> has been used will have no effect.
         /// </remarks>
-        public JsonSerializerSettings SerializerSettings
-        {
-            get
-            {
-                return _serializerSettings;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _serializerSettings = value;
-
-                // If the settings change, then invalidate the cached serializer.
-                _serializer = null;
-            }
-        }
+        protected JsonSerializerSettings SerializerSettings { get; }
 
         /// <summary>
         /// Writes the given <paramref name="value"/> as JSON using the given

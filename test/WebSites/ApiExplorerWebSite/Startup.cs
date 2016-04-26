@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -24,23 +25,11 @@ namespace ApiExplorerWebSite
                 options.Conventions.Add(new ApiExplorerVisibilityDisabledConvention(
                     typeof(ApiExplorerVisbilityDisabledByConventionController)));
 
-                JsonOutputFormatter jsonOutputFormatter = null;
-                for (var i = 0; i < options.OutputFormatters.Count; i++)
-                {
-                    var formatter = options.OutputFormatters[i];
-                    jsonOutputFormatter = formatter as JsonOutputFormatter;
-                    if (jsonOutputFormatter != null)
-                    {
-                        break;
-                    }
-                }
+                var jsonOutputFormatter = options.OutputFormatters.OfType<JsonOutputFormatter>().First();
 
                 options.OutputFormatters.Clear();
+                options.OutputFormatters.Add(jsonOutputFormatter);
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
-                if (jsonOutputFormatter != null)
-                {
-                    options.OutputFormatters.Add(jsonOutputFormatter);
-                }
             });
 
             services.AddSingleton<ApiExplorerDataFilter>();
