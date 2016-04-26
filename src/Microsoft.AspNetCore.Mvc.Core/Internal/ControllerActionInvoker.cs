@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private readonly ControllerActionDescriptor _descriptor;
         private readonly IControllerFactory _controllerFactory;
-        private readonly IControllerActionArgumentBinder _argumentBinder;
+        private readonly IControllerArgumentBinder _argumentBinder;
 
         public ControllerActionInvoker(
             ActionContext actionContext,
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             IControllerFactory controllerFactory,
             ControllerActionDescriptor descriptor,
             IReadOnlyList<IInputFormatter> inputFormatters,
-            IControllerActionArgumentBinder argumentBinder,
+            IControllerArgumentBinder argumentBinder,
             IReadOnlyList<IValueProviderFactory> valueProviderFactories,
             ILogger logger,
             DiagnosticSource diagnosticSource,
@@ -114,9 +114,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return actionResult;
         }
 
-        protected override Task<IDictionary<string, object>> BindActionArgumentsAsync()
+        protected override Task BindActionArgumentsAsync(IDictionary<string, object> arguments)
         {
-            return _argumentBinder.BindActionArgumentsAsync(Context, Instance);
+            if (arguments == null)
+            {
+                throw new ArgumentNullException(nameof(arguments));
+            }
+
+            return _argumentBinder.BindArgumentsAsync(Context, Instance, arguments);
         }
 
         // Marking as internal for Unit Testing purposes.

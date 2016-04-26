@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class ControllerActionInvokerProvider : IActionInvokerProvider
     {
-        private readonly IControllerActionArgumentBinder _argumentBinder;
+        private readonly IControllerArgumentBinder _argumentBinder;
         private readonly IControllerFactory _controllerFactory;
         private readonly ControllerActionInvokerCache _controllerActionInvokerCache;
         private readonly IReadOnlyList<IInputFormatter> _inputFormatters;
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public ControllerActionInvokerProvider(
             IControllerFactory controllerFactory,
             ControllerActionInvokerCache controllerActionInvokerCache,
-            IControllerActionArgumentBinder argumentBinder,
+            IControllerArgumentBinder argumentBinder,
             IOptions<MvcOptions> optionsAccessor,
             ILoggerFactory loggerFactory,
             DiagnosticSource diagnosticSource)
