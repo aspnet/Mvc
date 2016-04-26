@@ -1085,19 +1085,23 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             }
         }
 
-        private Task<bool> TryUpdateModel(
+        private async Task<bool> TryUpdateModel(
             object model,
             string prefix,
             ModelBindingTestContext testContext)
         {
-            return ModelBindingHelper.TryUpdateModelAsync(
+            var valueProvider = await CompositeValueProvider.CreateAsync(
+                testContext,
+                testContext.ValueProviderFactories);
+
+            return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 model.GetType(),
                 prefix,
                 testContext,
                 testContext.MetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
-                new CompositeValueProvider(testContext.ValueProviders),
+                valueProvider,
                 ModelBindingTestHelper.GetObjectValidator(testContext.MetadataProvider));
         }
     }

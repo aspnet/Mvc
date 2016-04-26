@@ -71,13 +71,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(diagnosticSource));
             }
 
-            Context = new ControllerContext(actionContext);
 
             _controllerActionInvokerCache = controllerActionInvokerCache;
             _valueProviderFactories = valueProviderFactories;
             Logger = logger;
             _diagnosticSource = diagnosticSource;
             _maxModelValidationErrors = maxModelValidationErrors;
+
+            Context = new ControllerContext(actionContext);
+            Context.ModelState.MaxAllowedErrors = _maxModelValidationErrors;
+            Context.ValueProviderFactories = new List<IValueProviderFactory>(_valueProviderFactories);
         }
 
         protected ControllerContext Context { get; }
@@ -109,8 +112,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _filters = controllerActionInvokerState.Filters;
             _controllerActionMethodExecutor = controllerActionInvokerState.ActionMethodExecutor;
             _cursor = new FilterCursor(_filters);
-
-            Context.ModelState.MaxAllowedErrors = _maxModelValidationErrors;
 
             await InvokeAllAuthorizationFiltersAsync();
 
@@ -326,18 +327,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
                 else
                 {
-                    // We've reached the end of resource filters, so move to setting up state to invoke model
-                    // binding.
-                    var valueProviders = new List<IValueProvider>();
-                    var factoryContext = new ValueProviderFactoryContext(Context);
-
-                    for (var i = 0; i < _valueProviderFactories.Count; i++)
-                    {
-                        var factory = _valueProviderFactories[i];
-                        await factory.CreateValueProviderAsync(factoryContext);
-                    }
-                    Context.ValueProviders = factoryContext.ValueProviders;
-
                     // >> ExceptionFilters >> Model Binding >> ActionFilters >> Action
                     await InvokeAllExceptionFiltersAsync();
 
