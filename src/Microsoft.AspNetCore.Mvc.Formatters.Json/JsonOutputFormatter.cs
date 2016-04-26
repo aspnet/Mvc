@@ -25,7 +25,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <summary>
         /// Initializes a new <see cref="JsonOutputFormatter"/> instance.
         /// </summary>
-        /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/>.</param>
+        /// <param name="serializerSettings">
+        /// The <see cref="JsonSerializerSettings"/>. Should be either the application-wide settings
+        /// (<see cref="MvcJsonOptions.SerializerSettings"/>) or an instance
+        /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
+        /// </param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
         public JsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool)
         {

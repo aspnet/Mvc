@@ -7,7 +7,6 @@ using BasicWebSite.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Newtonsoft.Json;
 
 namespace BasicWebSite.Controllers.ContentNegotiation
@@ -19,7 +18,7 @@ namespace BasicWebSite.Controllers.ContentNegotiation
 
         static NormalController()
         {
-            _indentedSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            _indentedSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
             _indentedSettings.Formatting = Formatting.Indented;
         }
 

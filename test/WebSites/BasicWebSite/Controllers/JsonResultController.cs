@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters.Json;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -14,7 +14,7 @@ namespace BasicWebSite.Controllers
 
         static JsonResultController()
         {
-            _customSerializerSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            _customSerializerSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
             _customSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
         }
 

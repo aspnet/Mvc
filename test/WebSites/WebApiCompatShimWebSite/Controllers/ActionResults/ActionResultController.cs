@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Web.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters.Json;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 
 namespace WebApiCompatShimWebSite
@@ -18,7 +18,7 @@ namespace WebApiCompatShimWebSite
 
         static ActionResultController()
         {
-            _indentedSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            _indentedSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
             _indentedSettings.Formatting = Formatting.Indented;
         }
 

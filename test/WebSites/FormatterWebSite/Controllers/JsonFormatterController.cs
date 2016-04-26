@@ -5,7 +5,6 @@ using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Newtonsoft.Json;
 
 namespace FormatterWebSite.Controllers
@@ -17,7 +16,7 @@ namespace FormatterWebSite.Controllers
 
         static JsonFormatterController()
         {
-            _indentedSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            _indentedSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
             _indentedSettings.Formatting = Formatting.Indented;
         }
 

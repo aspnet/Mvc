@@ -23,8 +23,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Initializes a new <see cref="JsonPatchInputFormatter"/> instance.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"/>.</param>
-        /// <param name="serializerSettings">The <see cref="JsonSerializerSettings"/>.</param>
-        /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
+        /// <param name="serializerSettings">
+        /// The <see cref="JsonSerializerSettings"/>. Should be either the application-wide settings
+        /// (<see cref="MvcJsonOptions.SerializerSettings"/>) or an instance
+        /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
+        /// </param>/// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
         /// <param name="objectPoolProvider">The <see cref="ObjectPoolProvider"/>.</param>
         public JsonPatchInputFormatter(
             ILogger logger,
