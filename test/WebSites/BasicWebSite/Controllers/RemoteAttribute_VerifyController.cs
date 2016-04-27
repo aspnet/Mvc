@@ -17,21 +17,20 @@ namespace BasicWebSite.Controllers
             string value;
             if (userId1 != null)
             {
-
                 name = nameof(RemoteAttributeUser.UserId1);
                 value = userId1;
             }
             else if (userId2 != null)
             {
 
-                name = nameof(RemoteAttributeUser.UserId1);
-                value = userId1;
+                name = nameof(RemoteAttributeUser.UserId2);
+                value = userId2;
             }
             else if (userId5 != null)
             {
 
-                name = nameof(RemoteAttributeUser.UserId1);
-                value = userId1;
+                name = nameof(RemoteAttributeUser.UserId5);
+                value = userId5;
             }
             else
             {
