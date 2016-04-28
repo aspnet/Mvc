@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Primitives;
 
@@ -37,9 +38,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 throw new ArgumentNullException(nameof(expirationTokens));
             }
 
-            CompilationResult = compilationResult;
-            Success = true;
             ExpirationTokens = expirationTokens;
+            PageCreator = Expression.Lambda<Func<object>>(Expression.New(compilationResult.CompiledType)).Compile();
         }
 
         /// <summary>
@@ -55,16 +55,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 throw new ArgumentNullException(nameof(expirationTokens));
             }
 
-            CompilationResult = default(CompilationResult);
-            Success = false;
             ExpirationTokens = expirationTokens;
+            PageCreator = null;
         }
-
-        /// <summary>
-        /// The <see cref="Compilation.CompilationResult"/>.
-        /// </summary>
-        /// <remarks>This property is not available when <see cref="Success"/> is <c>false</c>.</remarks>
-        public CompilationResult CompilationResult { get; }
 
         /// <summary>
         /// <see cref="IChangeToken"/> instances that indicate when this result has expired.
@@ -74,6 +67,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// <summary>
         /// Gets a value that determines if the view was successfully found and compiled.
         /// </summary>
-        public bool Success { get; }
+        public bool Success => PageCreator != null;
+
+        /// <summary>
+        /// Gets a delegate that creates an instance of the <see cref="CompilationResult.CompiledType"/>.
+        /// </summary>
+        public Func<object> PageCreator { get; }
+
     }
 }

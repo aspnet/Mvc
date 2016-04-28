@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var result = CompilerCache.GetOrAdd(relativePath, _compileDelegate);
             if (result.Success)
             {
-                var pageFactory = GetPageFactory(result.CompilationResult.CompiledType, relativePath);
+                var pageFactory = GetPageFactory(result.PageCreator, relativePath);
                 return new RazorPageFactoryResult(pageFactory, result.ExpirationTokens);
             }
             else
@@ -74,18 +74,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// <summary>
         /// Creates a factory for <see cref="IRazorPage"/>.
         /// </summary>
-        /// <param name="compiledType">The <see cref="Type"/> to produce an instance of <see cref="IRazorPage"/>
+        /// <param name="pageCreator">The <see cref="Func{Object}"/> to produce an instance of <see cref="IRazorPage"/>
         /// from.</param>
         /// <param name="relativePath">The application relative path of the page.</param>
-        /// <returns>A factory for <paramref name="compiledType"/>.</returns>
-        protected virtual Func<IRazorPage> GetPageFactory(Type compiledType, string relativePath)
+        /// <returns>A factory for <see cref="IRazorPage"/>.</returns>
+        protected virtual Func<IRazorPage> GetPageFactory(Func<object> pageCreator, string relativePath)
         {
             return () =>
             {
-                var page = (IRazorPage)Activator.CreateInstance(compiledType);
+                var page = (IRazorPage)pageCreator();
                 page.Path = relativePath;
                 return page;
             };
         }
+
     }
 }
