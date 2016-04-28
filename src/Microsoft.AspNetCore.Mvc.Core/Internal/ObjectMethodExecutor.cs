@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private ActionExecutorAsync _executorAsync;
         private ActionExecutor _executor;
+        private Func<object>[] _parameterObjectCreators;
 
         private static readonly MethodInfo _convertOfTMethod =
             typeof(ObjectMethodExecutor).GetRuntimeMethods().Single(methodInfo => methodInfo.Name == nameof(ObjectMethodExecutor.Convert));
@@ -65,6 +66,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public object Execute(object target, object[] parameters)
         {
             return _executor(target, parameters);
+        }
+
+        public object CreateParameterObject(int index)
+        {
+            var parameters = MethodInfo.GetParameters();
+            var parameterInfo = parameters[index];
+
+            if (_parameterObjectCreators == null)
+            {
+                _parameterObjectCreators = new Func<object>[parameters.Length];
+            }
+
+            if (_parameterObjectCreators[index] == null)
+            {
+                var newExpression = Expression.New(parameterInfo.ParameterType);
+                var boxingExpression = Expression.Convert(newExpression, typeof(object));
+                _parameterObjectCreators[index] = Expression.Lambda<Func<object>>(boxingExpression).Compile();
+            }
+
+            return _parameterObjectCreators[index]();
         }
 
         private static ActionExecutor GetExecutor(MethodInfo methodInfo, TypeInfo targetTypeInfo)
