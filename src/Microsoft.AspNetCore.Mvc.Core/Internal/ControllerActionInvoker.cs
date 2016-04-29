@@ -100,14 +100,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             Logger.ActionMethodExecuting(actionExecutingContext, arguments);
 
-            var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
+            //var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
+            //    methodExecutor,
+            //    actionExecutingContext.Controller,
+            //    arguments);
+
+            //var actionResult = CreateActionResult(
+            //    actionMethodInfo.ReturnType,
+            //    actionReturnValue);
+
+            await ControllerActionExecutor.ExecuteVoidAsync(
                 methodExecutor,
                 actionExecutingContext.Controller,
                 arguments);
 
-            var actionResult = CreateActionResult(
-                actionMethodInfo.ReturnType,
-                actionReturnValue);
+            var actionResult = new EmptyResult();
 
             Logger.ActionMethodExecuted(actionExecutingContext, actionResult);
 
@@ -154,6 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 DeclaredType = actualReturnType
             };
         }
+
 
         private static Type GetTaskInnerTypeOrNull(Type type)
         {

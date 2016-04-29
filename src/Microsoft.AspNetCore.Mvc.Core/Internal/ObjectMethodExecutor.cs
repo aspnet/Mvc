@@ -15,6 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class ObjectMethodExecutor
     {
         private ActionExecutorAsync _executorAsync;
+        private ActionVoidExecutorAsync _executorVoidAsync;
         private ActionExecutor _executor;
 
         private static readonly MethodInfo _convertOfTMethod =
@@ -43,6 +44,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private delegate Task<object> ActionExecutorAsync(object target, object[] parameters);
 
+        private delegate Task ActionVoidExecutorAsync(object target, object[] parameters);
+
         private delegate object ActionExecutor(object target, object[] parameters);
 
         private delegate void VoidActionExecutor(object target, object[] parameters);
@@ -54,12 +57,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var executor = new ObjectMethodExecutor(methodInfo);
             executor._executor = GetExecutor(methodInfo, targetTypeInfo);
             executor._executorAsync = GetExecutorAsync(methodInfo, targetTypeInfo);
+            executor._executorVoidAsync = GetExecutorVoidAsync(methodInfo, targetTypeInfo);
             return executor;
         }
 
         public Task<object> ExecuteAsync(object target, object[] parameters)
         {
             return _executorAsync(target, parameters);
+        }
+
+        public Task ExecuteVoidAsync(object target, object[] parameters)
+        {
+            return _executorVoidAsync(target, parameters);
         }
 
         public object Execute(object target, object[] parameters)
@@ -152,6 +161,48 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // must coerce methodCall to match ActionExecutorAsync signature
                 var coerceMethodCall = GetCoerceMethodCallExpression(methodCall, methodInfo);
                 var lambda = Expression.Lambda<ActionExecutorAsync>(coerceMethodCall, targetParameter, parametersParameter);
+                return lambda.Compile();
+            }
+        }
+
+        private static ActionVoidExecutorAsync GetExecutorVoidAsync(MethodInfo methodInfo, TypeInfo targetTypeInfo)
+        {
+            // Parameters to executor
+            var targetParameter = Expression.Parameter(typeof(object), "target");
+            var parametersParameter = Expression.Parameter(typeof(object[]), "parameters");
+
+            // Build parameter list
+            var parameters = new List<Expression>();
+            var paramInfos = methodInfo.GetParameters();
+            for (int i = 0; i < paramInfos.Length; i++)
+            {
+                var paramInfo = paramInfos[i];
+                var valueObj = Expression.ArrayIndex(parametersParameter, Expression.Constant(i));
+                var valueCast = Expression.Convert(valueObj, paramInfo.ParameterType);
+
+                // valueCast is "(Ti) parameters[i]"
+                parameters.Add(valueCast);
+            }
+
+            // Call method
+            var instanceCast = Expression.Convert(targetParameter, targetTypeInfo.AsType());
+            var methodCall = Expression.Call(instanceCast, methodInfo, parameters);
+
+            // methodCall is "((Ttarget) target) method((T0) parameters[0], (T1) parameters[1], ...)"
+            // Create function
+            if (methodCall.Type == typeof(void))
+            {
+                var lambda = Expression.Lambda<VoidActionExecutor>(methodCall, targetParameter, parametersParameter);
+                var voidExecutor = lambda.Compile();
+                //return WrapVoidActionAsync(voidExecutor);
+                return null;
+            }
+            else
+            {
+                // must coerce methodCall to match ActionExecutorAsync signature
+                //var coerceMethodCall = GetCoerceMethodCallExpression(methodCall, methodInfo);
+                //var lambda = Expression.Lambda<ActionExecutorAsync>(coerceMethodCall, targetParameter, parametersParameter);
+                var lambda = Expression.Lambda<ActionVoidExecutorAsync>(methodCall, targetParameter, parametersParameter);
                 return lambda.Compile();
             }
         }

@@ -28,6 +28,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return actionMethodExecutor.ExecuteAsync(instance, orderedActionArguments);
         }
 
+        public static Task ExecuteVoidAsync(
+            ObjectMethodExecutor actionMethodExecutor,
+            object instance,
+            object[] orderedActionArguments)
+        {
+            return actionMethodExecutor.ExecuteVoidAsync(instance, orderedActionArguments);
+        }
+
         public static object[] PrepareArguments(
             IDictionary<string, object> actionParameters,
             ParameterInfo[] declaredParameterInfos)
