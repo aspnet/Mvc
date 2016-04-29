@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Primitives;
 
@@ -18,9 +20,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
         /// <see cref="Compilation.CompilationResult"/>.
         /// </summary>
+        /// <param name="relativePath">Application relative path to the view file.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
-        public CompilerCacheResult(CompilationResult compilationResult)
-            : this(compilationResult, new IChangeToken[0])
+        public CompilerCacheResult(string relativePath, CompilationResult compilationResult)
+            : this(relativePath, compilationResult, new IChangeToken[0])
         {
         }
 
@@ -28,10 +31,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
         /// <see cref="Compilation.CompilationResult"/>.
         /// </summary>
+        /// <param name="relativePath">Application relative path to the view file.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
         /// <param name="expirationTokens">One or more <see cref="IChangeToken"/> instances that indicate when
         /// this result has expired.</param>
-        public CompilerCacheResult(CompilationResult compilationResult, IList<IChangeToken> expirationTokens)
+        public CompilerCacheResult(string relativePath, CompilationResult compilationResult, IList<IChangeToken> expirationTokens)
         {
             if (expirationTokens == null)
             {
@@ -39,7 +43,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
 
             ExpirationTokens = expirationTokens;
-            PageCreator = Expression.Lambda<Func<object>>(Expression.New(compilationResult.CompiledType)).Compile();
+            var compiledType = compilationResult.CompiledType;
+
+            var newExpression = Expression.New(compiledType);
+
+            var pathProperty = compiledType.GetProperty(nameof(IRazorPage.Path)) ?? 
+                (MemberInfo)compiledType.GetField(nameof(IRazorPage.Path));
+            Debug.Assert(pathProperty != null);
+
+            var propertyBindExpression = Expression.Bind(pathProperty, Expression.Constant(relativePath));
+            var objectInitializeExpression = Expression.MemberInit(newExpression, propertyBindExpression);
+            PageFactory =  Expression
+                .Lambda<Func<IRazorPage>>(objectInitializeExpression)
+                .Compile();
         }
 
         /// <summary>
@@ -56,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
 
             ExpirationTokens = expirationTokens;
-            PageCreator = null;
+            PageFactory = null;
         }
 
         /// <summary>
@@ -67,12 +83,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// <summary>
         /// Gets a value that determines if the view was successfully found and compiled.
         /// </summary>
-        public bool Success => PageCreator != null;
+        public bool Success => PageFactory != null;
 
         /// <summary>
-        /// Gets a delegate that creates an instance of the <see cref="CompilationResult.CompiledType"/>.
+        /// Gets a delegate that creates an instance of the <see cref="IRazorPage"/>.
         /// </summary>
-        public Func<object> PageCreator { get; }
+        public Func<IRazorPage> PageFactory { get; }
 
     }
 }
