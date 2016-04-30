@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _validator = validator;
         }
 
-        public Task<IDictionary<string, object>> BindActionArgumentsAsync(
+        public virtual Task<IDictionary<string, object>> BindActionArgumentsAsync(
             ControllerContext controllerContext,
             object controller)
         {
@@ -97,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return actionArguments;
         }
 
-        public async Task<ModelBindingResult?> BindModelAsync(
+        public virtual async Task<ModelBindingResult?> BindModelAsync(
             ParameterDescriptor parameter,
             ControllerContext controllerContext)
         {
