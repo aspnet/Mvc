@@ -100,21 +100,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             Logger.ActionMethodExecuting(actionExecutingContext, arguments);
 
-            //var actionReturnValue = await ControllerActionExecutor.ExecuteAsync(
-            //    methodExecutor,
-            //    actionExecutingContext.Controller,
-            //    arguments);
-
-            //var actionResult = CreateActionResult(
-            //    actionMethodInfo.ReturnType,
-            //    actionReturnValue);
-
-            await ControllerActionExecutor.ExecuteVoidAsync(
+            var actionResult = await ControllerActionExecutor.ExecuteAsync<IActionResult>(
                 methodExecutor,
                 actionExecutingContext.Controller,
-                arguments);
-
-            var actionResult = new EmptyResult();
+                arguments,
+                CreateActionResult);
 
             Logger.ActionMethodExecuted(actionExecutingContext, actionResult);
 
@@ -127,8 +117,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         // Marking as internal for Unit Testing purposes.
-        internal static IActionResult CreateActionResult(Type declaredReturnType, object actionReturnValue)
+        internal static IActionResult CreateActionResult(ObjectMethodExecutor actionMethodExecutor, object actionReturnValue)
         {
+            var declaredReturnType = actionMethodExecutor.MethodInfo.ReturnType;
             if (declaredReturnType == null)
             {
                 throw new ArgumentNullException(nameof(declaredReturnType));
@@ -148,7 +139,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             // Unwrap potential Task<T> types.
-            var actualReturnType = GetTaskInnerTypeOrNull(declaredReturnType) ?? declaredReturnType;
+            var actualReturnType = actionMethodExecutor.TaskInnerType ?? declaredReturnType;
             if (actionReturnValue == null &&
                 typeof(IActionResult).IsAssignableFrom(actualReturnType))
             {
@@ -160,14 +151,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 DeclaredType = actualReturnType
             };
-        }
-
-
-        private static Type GetTaskInnerTypeOrNull(Type type)
-        {
-            var genericType = ClosedGenericMatcher.ExtractGenericInterface(type, typeof(Task<>));
-
-            return genericType?.GenericTypeArguments[0];
         }
     }
 }

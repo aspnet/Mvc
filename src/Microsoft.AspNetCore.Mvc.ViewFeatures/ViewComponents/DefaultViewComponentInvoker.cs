@@ -110,9 +110,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
                 _logger.ViewComponentExecuting(context, arguments);
 
                 var startTimestamp = _logger.IsEnabled(LogLevel.Debug) ? Stopwatch.GetTimestamp() : 0;
-                var result = await ControllerActionExecutor.ExecuteAsync(methodExecutor, component, arguments);
 
-                var viewComponentResult = CoerceToViewComponentResult(result);
+                var viewComponentResult = await ControllerActionExecutor.ExecuteAsync<IViewComponentResult>(
+                    methodExecutor,
+                    component,
+                    arguments,
+                    CoerceToViewComponentResult);
+                
                 _logger.ViewComponentExecuted(context, startTimestamp, viewComponentResult);
                 _diagnosticSource.AfterViewComponent(context, viewComponentResult, component);
 
@@ -148,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
                     _viewComponentFactory.ReleaseViewComponent(context, component);
                 }
 
-                var viewComponentResult = CoerceToViewComponentResult(result);
+                var viewComponentResult = CoerceToViewComponentResult(methodExecutor, result);
                 _logger.ViewComponentExecuted(context, startTimestamp, viewComponentResult);
                 _diagnosticSource.AfterViewComponent(context, viewComponentResult, component);
 
@@ -158,7 +162,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             }
         }
 
-        private static IViewComponentResult CoerceToViewComponentResult(object value)
+        private static IViewComponentResult CoerceToViewComponentResult(ObjectMethodExecutor actionMethodExecutor, object value)
         {
             if (value == null)
             {
