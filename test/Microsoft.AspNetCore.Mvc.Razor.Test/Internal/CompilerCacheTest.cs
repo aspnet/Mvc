@@ -50,8 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
             var cache = new CompilerCache(fileProvider);
-            var type = typeof(TestView);
-            var expected = new CompilationResult(type);
+            var expected = new CompilationResult(typeof(TestView));
 
             // Act
             var result = cache.GetOrAdd(ViewPath, _ => expected);
@@ -74,8 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(viewPath, "some content");
             var cache = new CompilerCache(fileProvider);
-            var type = typeof(TestView);
-            var expected = new CompilationResult(type);
+            var expected = new CompilationResult(typeof(TestView));
 
             // Act - 1
             var result1 = cache.GetOrAdd(@"Areas\Finances\Views\Home\Index.cshtml", _ => expected);
@@ -98,8 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(ViewPath, "some content");
             var cache = new CompilerCache(fileProvider);
-            var type = typeof(TestView);
-            var expected = new CompilationResult(type);
+            var expected = new CompilationResult(typeof(TestView));
 
             // Act 1
             var result1 = cache.GetOrAdd(ViewPath, _ => expected);
@@ -195,8 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = mockFileProvider.Object;
             fileProvider.AddFile(ViewPath, "some content");
             var cache = new CompilerCache(fileProvider);
-            var type = typeof(TestView);
-            var expected = new CompilationResult(type);
+            var expected = new CompilationResult(typeof(TestView));
 
             // Act 1
             var result1 = cache.GetOrAdd(ViewPath, _ => expected);

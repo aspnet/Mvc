@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
@@ -20,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
         /// <see cref="Compilation.CompilationResult"/>.
         /// </summary>
-        /// <param name="relativePath">Application relative path to the view file.</param>
+        /// <param name="relativePath">Path of the view file relative to the application base.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
         public CompilerCacheResult(string relativePath, CompilationResult compilationResult)
             : this(relativePath, compilationResult, new IChangeToken[0])
@@ -31,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
         /// <see cref="Compilation.CompilationResult"/>.
         /// </summary>
-        /// <param name="relativePath">Application relative path to the view file.</param>
+        /// <param name="relativePath">Path of the view file relative to the application base.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
         /// <param name="expirationTokens">One or more <see cref="IChangeToken"/> instances that indicate when
         /// this result has expired.</param>
@@ -47,9 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             var newExpression = Expression.New(compiledType);
 
-            var pathProperty = compiledType.GetProperty(nameof(IRazorPage.Path)) ?? 
-                (MemberInfo)compiledType.GetField(nameof(IRazorPage.Path));
-            Debug.Assert(pathProperty != null);
+            var pathProperty = compiledType.GetProperty(nameof(IRazorPage.Path));
 
             var propertyBindExpression = Expression.Bind(pathProperty, Expression.Constant(relativePath));
             var objectInitializeExpression = Expression.MemberInit(newExpression, propertyBindExpression);
