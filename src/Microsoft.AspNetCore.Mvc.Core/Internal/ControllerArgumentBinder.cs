@@ -85,9 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ControllerContext controllerContext,
             ControllerActionDescriptor actionDescriptor)
         {
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                controllerContext,
-                controllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(controllerContext);
 
             var actionArguments = await PopulateArgumentsAsync(
                 controllerContext,
@@ -101,9 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             object controller,
             ControllerActionDescriptor actionDescriptor)
         {
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                controllerContext,
-                controllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(controllerContext);
 
             var controllerProperties = await PopulateArgumentsAsync(
                 controllerContext,
@@ -132,9 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(controllerContext));
             }
 
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                controllerContext,
-                controllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(controllerContext);
 
             return await BindModelAsync(parameter, controllerContext, valueProvider);
         }
@@ -298,7 +292,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             for (var i = 0; i < parameters.Count; i++)
             {
                 var parameter = parameters[i];
-                var modelBindingResult = await BindModelAsync(parameter, controllerContext);
+                var modelBindingResult = await BindModelAsync(parameter, controllerContext, valueProvider);
                 if (modelBindingResult != null && modelBindingResult.Value.IsModelSet)
                 {
                     arguments[parameter.Name] = modelBindingResult.Value.Model;

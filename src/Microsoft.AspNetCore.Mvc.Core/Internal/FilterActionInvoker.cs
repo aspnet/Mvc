@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public abstract class FilterActionInvoker : IActionInvoker
     {
         private readonly ControllerActionInvokerCache _controllerActionInvokerCache;
-        private readonly IReadOnlyList<IValueProviderFactory> _valueProviderFactories;
+
         private readonly DiagnosticSource _diagnosticSource;
         private readonly int _maxModelValidationErrors;
 
@@ -73,14 +73,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
 
             _controllerActionInvokerCache = controllerActionInvokerCache;
-            _valueProviderFactories = valueProviderFactories;
             Logger = logger;
             _diagnosticSource = diagnosticSource;
             _maxModelValidationErrors = maxModelValidationErrors;
 
             Context = new ControllerContext(actionContext);
             Context.ModelState.MaxAllowedErrors = _maxModelValidationErrors;
-            Context.ValueProviderFactories = new List<IValueProviderFactory>(_valueProviderFactories);
+
+            // PERF: These are rarely going to be changed, so let's go copy-on-write.
+            Context.ValueProviderFactories = new CopyOnWriteList<IValueProviderFactory>(valueProviderFactories);
         }
 
         protected ControllerContext Context { get; }

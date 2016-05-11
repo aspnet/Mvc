@@ -1079,9 +1079,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(prefix));
             }
 
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                ControllerContext,
-                ControllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
             return await TryUpdateModelAsync(model, prefix, valueProvider);
         }
 
@@ -1155,9 +1153,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(includeExpressions));
             }
 
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                ControllerContext,
-                ControllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
             return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
@@ -1196,9 +1192,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(propertyFilter));
             }
 
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                ControllerContext,
-                ControllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
             return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
@@ -1326,9 +1320,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(modelType));
             }
 
-            var valueProvider = await CompositeValueProvider.CreateAsync(
-                ControllerContext, 
-                ControllerContext.ValueProviderFactories);
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
             return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 modelType,
