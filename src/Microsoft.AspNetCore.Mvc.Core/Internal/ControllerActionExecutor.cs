@@ -28,6 +28,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return actionMethodExecutor.ExecuteAsync(instance, orderedActionArguments);
         }
 
+        public static async Task<TResult> ExecuteAsync<TResult>(
+            ObjectMethodExecutor actionMethodExecutor,
+            object instance,
+            object[] orderedActionArguments,
+            Func<ObjectMethodExecutor, object, TResult> createActionResult
+            )
+        {
+            var returnType = actionMethodExecutor.MethodInfo.ReturnType;
+
+            if (actionMethodExecutor.CanExecuteInSync)
+            {
+                var result = actionMethodExecutor.Execute(instance, orderedActionArguments);
+                if (returnType == typeof(Task))
+                {
+                    await (Task)result;
+                }
+
+                return createActionResult(actionMethodExecutor, result);
+            }
+            else
+            {
+                var result = await actionMethodExecutor.ExecuteAsync(instance, orderedActionArguments);
+                return createActionResult(actionMethodExecutor, result);
+            }
+        }
+
         public static object[] PrepareArguments(
             IDictionary<string, object> actionParameters,
             ParameterInfo[] declaredParameterInfos)
