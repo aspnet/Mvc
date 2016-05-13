@@ -939,6 +939,37 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             Assert.Equal(expected, builder.ToString());
         }
 
+        [Theory]
+        [InlineData(null, null, null, "/", null, "/")]
+        [InlineData(null, null, null, "/", null, "/")]
+        [InlineData(null, null, null, "/Hello", null, "/Hello" )]
+        [InlineData(null, null, null, "/Hello", null, "/Hello")]
+        [InlineData("/", null, null, "", null, "/")]
+        [InlineData("/hello/", null, null, "/world", null, "/hello/world")]
+        [InlineData("/hello/", "https", "myhost", "/world", "fragment-value", "https://myhost/hello/world#fragment-value")]
+        public void GenerateUrl_FastAndSlowPathsReturnsExpected(
+            string appBase,
+            string protocol,
+            string host,
+            string virtualPath,
+            string fragment,
+            string expected)
+        {
+            // Arrage
+            var router = Mock.Of<IRouter>();
+            var pathData = new VirtualPathData(router, virtualPath)
+            {
+                VirtualPath = virtualPath
+            };
+            var urlHelper = CreateUrlHelper(appBase, router);
+
+            // Act
+            var url = urlHelper.GenerateUrl(protocol, host, pathData, fragment);
+
+            // Assert
+            Assert.Equal(expected, url);
+        }
+
         private static HttpContext CreateHttpContext(
             IServiceProvider services,
             string appRoot)

@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// <param name="pathData">The <see cref="VirtualPathData"/>.</param>
         /// <param name="fragment">The URL fragment.</param>
         /// <returns>The generated URL.</returns>
-        protected virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
+        internal virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
         {
             if (pathData == null)
             {
@@ -232,6 +232,15 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             // VirtualPathData.VirtualPath returns string.Empty instead of null.
             Debug.Assert(pathData.VirtualPath != null);
+
+            // Perf: In most of the common cases, GenerateUrl is called with a null protocol, host and fragment. 
+            // In such cases, we might not need to build any URL as the url generated is mostly same as the virtual path available in pathData.
+            // For such common cases, this FastGenerateUrl method saves a string allocation per GenerateUrl call.
+            string url;
+            if (TryFastGenerateUrl(protocol, host, pathData, fragment, out url))
+            {
+                return url;
+            }
 
             var builder = GetStringBuilder();
             try
@@ -265,6 +274,34 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 // Clear the StringBuilder so that it can reused for the next call.
                 builder.Clear();
             }
+        }
+
+        private bool TryFastGenerateUrl(
+            string protocol, 
+            string host, 
+            VirtualPathData pathData, 
+            string fragment,
+            out string url)
+        {
+            var pathBase = HttpContext.Request.PathBase;
+            url = null;
+
+            if (string.IsNullOrEmpty(protocol) 
+                && string.IsNullOrEmpty(host) 
+                && string.IsNullOrEmpty(fragment)
+                && !pathBase.HasValue)
+            {
+                if (pathData.VirtualPath.Length == 0)
+                {
+                    url = "/";
+                }
+                else if (pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
+                {
+                    url = pathData.VirtualPath;
+                }
+            }
+
+            return (url != null);
         }
     }
 }
