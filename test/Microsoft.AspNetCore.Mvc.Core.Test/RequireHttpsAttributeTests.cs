@@ -104,6 +104,51 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
+        [MemberData(nameof(RedirectToHttpEndpointTestData))]
+        public void OnAuthorization_RedirectsToHttpsEndpointPermanent_ForNonHttpsGetRequests(
+            string host,
+            string pathBase,
+            string path,
+            string queryString,
+            string expectedUrl)
+        {
+            // Arrange
+            var requestContext = new DefaultHttpContext();
+            requestContext.RequestServices = CreateServices();
+            requestContext.Request.Scheme = "http";
+            requestContext.Request.Method = "GET";
+            requestContext.Request.Host = HostString.FromUriComponent(host);
+
+            if (pathBase != null)
+            {
+                requestContext.Request.PathBase = new PathString(pathBase);
+            }
+
+            if (path != null)
+            {
+                requestContext.Request.Path = new PathString(path);
+            }
+
+            if (queryString != null)
+            {
+                requestContext.Request.QueryString = new QueryString(queryString);
+            }
+
+            var authContext = CreateAuthorizationContext(requestContext);
+            var attr = new RequireHttpsAttribute(permanent: true);
+
+            // Act
+            attr.OnAuthorization(authContext);
+
+            // Assert
+            Assert.NotNull(authContext.Result);
+            var result = Assert.IsType<RedirectResult>(authContext.Result);
+
+            Assert.True(result.Permanent);
+            Assert.Equal(expectedUrl, result.Url);
+        }
+
+        [Theory]
         [InlineData("POST")]
         [InlineData("PUT")]
         [InlineData("PATCH")]

@@ -15,6 +15,18 @@ namespace Microsoft.AspNetCore.Mvc
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class RequireHttpsAttribute : Attribute, IAuthorizationFilter, IOrderedFilter
     {
+
+        private readonly bool _permanentRedirect;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RequireHttpsAttribute" /> class.
+        /// </summary>
+        /// <param name="permanent"> Should the redirection generated be permanent. </param>
+        public RequireHttpsAttribute(bool permanent = false)
+        {
+            _permanentRedirect = permanent;
+        }
+
         /// <inheritdoc />
         public int Order { get; set; }
 
@@ -84,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc
                     request.QueryString.ToUriComponent());
 
                 // redirect to HTTPS version of page
-                filterContext.Result = new RedirectResult(newUrl, permanent: false);
+                filterContext.Result = new RedirectResult(newUrl, permanent: _permanentRedirect);
             }
         }
     }
