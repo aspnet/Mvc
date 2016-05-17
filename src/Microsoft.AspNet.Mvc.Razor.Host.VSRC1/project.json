@@ -19,7 +19,7 @@
   "frameworks": {
     "net451": {
       "dependencies": {
-        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final"
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc2-final"
       }
     }
   },

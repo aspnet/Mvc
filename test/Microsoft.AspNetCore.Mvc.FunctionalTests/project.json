@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "dotnet-test-xunit": "1.0.0-*",
-    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
     "ActionConstraintSample.Web": "1.0.0",
     "ApiExplorerWebSite": "1.0.0",
     "ApplicationModelWebSite": "1.0.0",
@@ -29,16 +29,16 @@
     "InlineConstraintSample.Web": "1.0.0",
     "JsonPatchSample.Web": "1.0.0",
     "LocalizationSample.Web": "1.0.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-rc2-final",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "version": "1.0.0-*",
       "type": "build"
     },
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
-    "Microsoft.AspNetCore.TestHost": "1.0.0-*",
-    "Microsoft.AspNetCore.WebUtilities": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
+    "Microsoft.AspNetCore.TestHost": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.WebUtilities": "1.0.0-rc2-final",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-final",
     "Microsoft.Extensions.Logging.Testing": "1.0.0-*",
     "MvcSandbox": "1.0.0",
     "MvcSubAreaSample.Web": "1.0.0",
@@ -58,12 +58,12 @@
     "netcoreapp1.0": {
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.0-*",
+          "version": "1.0.0-rc2-3002702",
           "type": "platform"
         },
         "Microsoft.Dnx.Compilation.CSharp.Common": "1.0.0-*",
         "Microsoft.Dnx.Compilation.CSharp.Abstractions": "1.0.0-*",
-        "System.Diagnostics.Process": "4.1.0-*"
+        "System.Diagnostics.Process": "4.1.0-rc2-24027"
       },
       "imports": [
         "dnxcore50",

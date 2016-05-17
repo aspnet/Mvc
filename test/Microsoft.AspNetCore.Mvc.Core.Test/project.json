@@ -6,10 +6,10 @@
   },
   "dependencies": {
     "dotnet-test-xunit": "1.0.0-*",
-    "Microsoft.NETCore.Platforms": "1.0.1-*",
-    "Microsoft.AspNetCore.Http": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
+    "Microsoft.AspNetCore.Http": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-rc2-final",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "version": "1.0.0-*",
       "type": "build"
@@ -19,10 +19,10 @@
       "type": "build"
     },
     "Microsoft.AspNetCore.Testing": "1.0.0-*",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
-    "Microsoft.Extensions.DiagnosticAdapter": "1.0.0-*",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-final",
+    "Microsoft.Extensions.DiagnosticAdapter": "1.0.0-rc2-final",
     "Microsoft.Extensions.Logging.Testing": "1.0.0-*",
-    "Microsoft.Extensions.Logging": "1.0.0-*"
+    "Microsoft.Extensions.Logging": "1.0.0-rc2-final"
   },
   "testRunner": "xunit",
   "frameworks": {
@@ -33,12 +33,12 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.0-*",
+          "version": "1.0.0-rc2-3002702",
           "type": "platform"
         },
         "moq.netcore": "4.4.0-beta8",
-        "System.Diagnostics.Process": "4.1.0-*",
-        "System.Diagnostics.TraceSource": "4.0.0-*"
+        "System.Diagnostics.Process": "4.1.0-rc2-24027",
+        "System.Diagnostics.TraceSource": "4.0.0-rc2-24027"
       }
     },
     "net451": {

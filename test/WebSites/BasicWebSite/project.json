@@ -4,18 +4,18 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.NETCore.Platforms": "1.0.1-*",
-    "Microsoft.AspNetCore.Mvc": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027",
+    "Microsoft.AspNetCore.Mvc": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.0-rc2-final",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
-      "version": "1.0.0-*"
+      "version": "1.0.0-preview1-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-*",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-*",
-    "Microsoft.AspNetCore.Session": "1.0.0-*",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.0-*"
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.Session": "1.0.0-rc2-final",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0-rc2-final"
   },
   "frameworks": {
     "net451": {},
@@ -26,7 +26,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.0-*",
+          "version": "1.0.0-rc2-3002702",
           "type": "platform"
         }
       }
