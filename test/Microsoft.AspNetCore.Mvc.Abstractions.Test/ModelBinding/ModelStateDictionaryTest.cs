@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Equal(0, dictionary.Count);
             Assert.Equal(0, dictionary.ErrorCount);
             Assert.Empty(dictionary);
-        	Assert.Equal(ModelValidationState.Valid, dictionary.ValidationState);
+            Assert.Equal(ModelValidationState.Valid, dictionary.ValidationState);
         }
 
         [Fact]
