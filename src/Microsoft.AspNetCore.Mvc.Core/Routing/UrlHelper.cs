@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// <param name="pathData">The <see cref="VirtualPathData"/>.</param>
         /// <param name="fragment">The URL fragment.</param>
         /// <returns>The generated URL.</returns>
-        internal virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
+        protected virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
         {
             if (pathData == null)
             {
@@ -294,14 +294,16 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 if (pathData.VirtualPath.Length == 0)
                 {
                     url = "/";
+                    return true;
                 }
                 else if (pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
                 {
                     url = pathData.VirtualPath;
+                    return true;
                 }
             }
 
-            return (url != null);
+            return false;
         }
     }
 }
