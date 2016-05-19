@@ -165,7 +165,6 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
 
             // Assert
             Assert.NotNull(exception);
-            Assert.Equal("Input string was not in a correct format.", exception.Message);
         }
 
         [Fact]

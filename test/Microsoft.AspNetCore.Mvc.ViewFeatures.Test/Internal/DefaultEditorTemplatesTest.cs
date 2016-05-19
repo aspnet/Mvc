@@ -731,10 +731,11 @@ Environment.NewLine;
         public void Editor_AppliesNonDefaultEditFormat(string dataTypeName, Html5DateRenderingMode renderingMode)
         {
             // Arrange
+            var requiredMessage = GetRequiredExceptionMessage("DateTimeOffset");
             // Mono issue - https://github.com/aspnet/External/issues/19
             var expectedInput = PlatformNormalizer.NormalizeContent(
                 "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
-                "data-val-required=\"HtmlEncode[[The DateTimeOffset field is required.]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
+                $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
                 dataTypeName +
                 "]]\" value=\"HtmlEncode[[Formatted as 2000-01-02T03:04:05.0600000+00:00]]\" />");
@@ -898,6 +899,11 @@ Environment.NewLine;
             // Act & Assert
             html.Editor(expression: string.Empty, templateName: null, htmlFieldName: null, additionalViewData: null);
             viewEngine.Verify();
+        }
+
+        private static string GetRequiredExceptionMessage(string parameterName)
+        {
+            return new RequiredAttribute().FormatErrorMessage(parameterName);
         }
 
         private class OrderedModel

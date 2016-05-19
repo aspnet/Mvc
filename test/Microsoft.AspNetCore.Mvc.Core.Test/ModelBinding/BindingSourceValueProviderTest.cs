@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.Core;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -13,10 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void BindingSourceValueProvider_ThrowsOnNonGreedySource()
         {
             // Arrange
-            var expected =
-                "The provided binding source 'Test Source' is a greedy data source. " +
-                "'BindingSourceValueProvider' does not support greedy data sources." + Environment.NewLine +
-                "Parameter name: bindingSource";
+            var expected = Resources.FormatBindingSource_CannotBeGreedy("Test Source", "BindingSourceValueProvider");
 
             var bindingSource = new BindingSource(
                 "Test",
@@ -27,18 +25,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(
                 () => new TestableBindingSourceValueProvider(bindingSource));
-            Assert.Equal(expected, exception.Message);
+            Assert.StartsWith(expected, exception.Message);
         }
 
         [Fact]
         public void BindingSourceValueProvider_ThrowsOnCompositeSource()
         {
             // Arrange
-            var expected =
-                "The provided binding source 'Test Source' is a composite. " +
-                "'BindingSourceValueProvider' requires that the source must represent a single type of input." + 
-                Environment.NewLine +
-                "Parameter name: bindingSource";
+            var expected = Resources.FormatBindingSource_CannotBeComposite("Test Source", "BindingSourceValueProvider");
 
             var bindingSource = CompositeBindingSource.Create(
                 bindingSources: new BindingSource[] { BindingSource.Query, BindingSource.Form },
@@ -47,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(
                 () => new TestableBindingSourceValueProvider(bindingSource));
-            Assert.Equal(expected, exception.Message);
+            Assert.StartsWith(expected, exception.Message);
         }
 
         [Fact]

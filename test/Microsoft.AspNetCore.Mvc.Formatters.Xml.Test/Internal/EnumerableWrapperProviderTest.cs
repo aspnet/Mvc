@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Xunit;
+using Microsoft.AspNetCore.Testing;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
 {
@@ -79,17 +80,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         [InlineData(typeof(PersonList))]
         public void ThrowsArugmentExceptionFor_ConcreteEnumerableOfT(Type declaredType)
         {
-            // Arrange
-            var expectedMessage =
-                "The type must be an interface and must be or derive from 'IEnumerable`1'." +
-                $"{Environment.NewLine}Parameter name: sourceEnumerableOfT";
-
             // Act and Assert
             var ex = Assert.Throws<ArgumentException>(() => new EnumerableWrapperProvider(
                                                                             declaredType,
                                                                             elementWrapperProvider: null));
 
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.Equal("sourceEnumerableOfT", ex.ParamName);
         }
     }
 }

@@ -131,10 +131,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             var name = string.Empty;
             var value = string.Empty;
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+            var expectedMessage = "The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
+            var expected = new ArgumentException(expectedMessage, "expression").Message;
 
             // Act and Assert
             ExceptionAssert.ThrowsArgument(
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Arrange
             // Mono issue - https://github.com/aspnet/External/issues/19
             var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{GetRequiredMessage("Property2")}]]"" " +
                 @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />");
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
 
@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Arrange
             // Mono issue - https://github.com/aspnet/External/issues/19
             var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{GetRequiredMessage("Property2")}]]"" " +
                 @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />");
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
 
@@ -412,6 +412,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        private static string GetRequiredMessage(string parameterName)
+        {
+            return new RequiredAttribute().FormatErrorMessage(parameterName);
         }
 
         private static ViewDataDictionary<PasswordModel> GetViewDataWithNullModelAndNonEmptyViewData()

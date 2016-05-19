@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -76,10 +77,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model: null);
 
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
-                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+            var expected = new ArgumentException("The name of an HTML field cannot be null or empty. Instead use " +
+                "methods Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.",
+                "expression").Message;
 
             // Act and assert
             var ex = Assert.Throws<ArgumentException>(
@@ -102,10 +103,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model: null);
 
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
-                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+            var expected = new ArgumentException(
+                "The name of an HTML field cannot be null or empty. Instead use methods " +
+                    "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                    "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.",
+                "expression").Message;
 
             // Act and assert
             var ex = Assert.Throws<ArgumentException>(
@@ -131,10 +133,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model: null);
 
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
-                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+            var expected = new ArgumentException(
+                "The name of an HTML field cannot be null or empty. Instead use methods " +
+                    "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                    "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.",
+                "expression").Message;
 
             // Act and assert
             var ex = Assert.Throws<ArgumentException>(
@@ -159,10 +162,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model: null);
 
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+            var expected = new ArgumentException("The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.",
+                "expression").Message;
 
             // Act and assert
             var ex = Assert.Throws<ArgumentException>(

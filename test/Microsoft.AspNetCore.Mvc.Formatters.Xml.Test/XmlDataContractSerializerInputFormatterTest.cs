@@ -301,9 +301,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             // Arrange
             var expectedException = TestPlatformHelper.IsMono ? typeof(SerializationException) :
                                                                 typeof(XmlException);
-            var expectedMessage = TestPlatformHelper.IsMono ?
-                "Expected element 'TestLevelTwo' in namespace '', but found Element node 'DummyClass' in namespace ''" :
-                "The expected encoding 'utf-8' does not match the actual encoding 'utf-16LE'.";
             var inpStart = Encoding.Unicode.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-16\"?>" +
                 "<DummyClass><SampleInt>");
             byte[] inp = { 192, 193 };
@@ -319,7 +316,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 
             // Act
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
-            Assert.Equal(expectedMessage, ex.Message);
+            if (TestPlatformHelper.IsMono)
+            {
+                Assert.Contains("TestLevelTwo", ex.Message);
+                Assert.Contains("DummyClass", ex.Message);
+            }
+            else
+            {
+                Assert.Contains("utf-16LE", ex.Message);
+                Assert.Contains("utf-8", ex.Message);
+            }
         }
 
         [ConditionalFact]
@@ -330,9 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             // Arrange
             var expectedException = TestPlatformHelper.IsMono ? typeof(SerializationException) :
                                                                 typeof(XmlException);
-            var expectedMessage = TestPlatformHelper.IsMono ?
-                "Expected element 'TestLevelTwo' in namespace '', but found Element node 'DummyClass' in namespace ''" :
-                "The expected encoding 'utf-16LE' does not match the actual encoding 'utf-8'.";
+
             var inputBytes = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass><SampleInt>1000</SampleInt></DummyClass>");
 
@@ -352,7 +356,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 
             // Act
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
-            Assert.Equal(expectedMessage, ex.Message);
+            if (TestPlatformHelper.IsMono)
+            {
+                Assert.Contains("TestLevelTwo", ex.Message);
+                Assert.Contains("DummyClass", ex.Message);
+            }
+            else
+            {
+                Assert.Contains("utf-16LE", ex.Message);
+                Assert.Contains("utf-8", ex.Message);
+            }
         }
 
         [ConditionalFact]
