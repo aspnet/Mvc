@@ -112,15 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             {
                 await binder.BindModelAsync(bindingContext);
 
-                var result = bindingContext.Result;
-                if (result != null && result.Value.IsModelSet)
-                {
-                    return result.Value;
-                }
-                else
-                {
-                    return ModelBindingResult.Failed();
-                }
+                return bindingContext.Result;
             }
         }
     }
