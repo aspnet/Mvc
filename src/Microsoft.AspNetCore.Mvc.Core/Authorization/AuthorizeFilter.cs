@@ -76,8 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
 
             // Note: Default Anonymous User is new ClaimsPrincipal(new ClaimsIdentity())
-            if (httpContext.User == null ||
-                !await authService.AuthorizeAsync(httpContext.User, context, Policy))
+            if (!await authService.AuthorizeAsync(httpContext.User, context, Policy))
             {
                 context.Result = new ChallengeResult(Policy.AuthenticationSchemes.ToArray());
             }
