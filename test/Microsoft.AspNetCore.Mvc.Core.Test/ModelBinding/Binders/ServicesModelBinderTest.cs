@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             // Assert
             Assert.True(bindingContext.Result.IsModelSet);
-            Assert.NotNull(bindingContext.Result.Model);
 
             var entry = bindingContext.ValidationState[bindingContext.Result.Model];
             Assert.True(entry.SuppressValidation);

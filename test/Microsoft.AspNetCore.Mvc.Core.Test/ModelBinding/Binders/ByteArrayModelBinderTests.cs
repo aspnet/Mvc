@@ -27,7 +27,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(bindingContext.Result);
             Assert.False(bindingContext.Result.IsModelSet);
             Assert.Null(bindingContext.Result.Model);
 
@@ -52,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(bindingContext.Result);
+            Assert.True(bindingContext.Result.IsModelSet);
             var bytes = Assert.IsType<byte[]>(bindingContext.Result.Model);
             Assert.Equal(new byte[] { 23, 43, 53 }, bytes);
         }

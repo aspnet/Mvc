@@ -450,7 +450,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Internal
 
             await binder.BindModelAsync(modelBindingContext);
             var modelBindingResult = modelBindingContext.Result;
-            if (modelBindingResult != null && modelBindingResult.IsModelSet)
+            if (modelBindingResult.IsModelSet)
             {
                 objectModelValidator.Validate(
                     actionContext,

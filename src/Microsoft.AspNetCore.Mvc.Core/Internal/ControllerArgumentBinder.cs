@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var parameter = parameters[i];
 
                 var result = await BindModelAsync(parameter, controllerContext, valueProvider);
-                if (result != null && result.IsModelSet)
+                if (result.IsModelSet)
                 {
                     arguments[parameter.Name] = result.Model;
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var property = properties[i];
 
                 var result = await BindModelAsync(property, controllerContext, valueProvider);
-                if (result != null && result.IsModelSet)
+                if (result.IsModelSet)
                 {
                     var propertyHelper = FindPropertyHelper(propertyHelpers, property);
                     if (propertyHelper != null)
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             await binder.BindModelAsync(modelBindingContext);
 
             var modelBindingResult = modelBindingContext.Result;
-            if (modelBindingResult != null && modelBindingResult.IsModelSet)
+            if (modelBindingResult.IsModelSet)
             {
                 _validator.Validate(
                     controllerContext,

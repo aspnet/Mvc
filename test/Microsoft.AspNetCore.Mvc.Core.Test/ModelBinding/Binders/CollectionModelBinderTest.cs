@@ -189,7 +189,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             // Assert
             Assert.True(bindingContext.Result.IsModelSet);
-            Assert.NotNull(bindingContext.Result.Model);
 
             var model = Assert.IsType<List<int>>(bindingContext.Result.Model);
             Assert.Empty(model);

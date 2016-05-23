@@ -45,7 +45,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Assert
             mockInputFormatter.Verify(v => v.CanRead(It.IsAny<InputFormatterContext>()), Times.Once);
             mockInputFormatter.Verify(v => v.ReadAsync(It.IsAny<InputFormatterContext>()), Times.Once);
-            Assert.NotNull(bindingContext.Result);
             Assert.True(bindingContext.Result.IsModelSet);
         }
 
@@ -113,7 +112,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.NotNull(bindingContext.Result);
             Assert.False(bindingContext.Result.IsModelSet);
         }
 
