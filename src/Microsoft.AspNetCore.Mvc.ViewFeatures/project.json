@@ -47,7 +47,7 @@
       "type": "build"
     },
     "Microsoft.Extensions.WebEncoders": "1.0.0-*",
-    "Newtonsoft.Json": "8.0.3",
+    "Newtonsoft.Json": "8.0.4-beta1",
     "System.Buffers": "4.0.0-*"
   },
   "frameworks": {
@@ -55,10 +55,7 @@
     "netstandard1.5": {
       "dependencies": {
         "System.Runtime.Serialization.Primitives": "4.1.1-*"
-      },
-      "imports": [
-        "portable-net451+win8"
-      ]
+      }
     }
   }
 }
