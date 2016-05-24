@@ -152,7 +152,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 _factory = factory;
                 Metadata = factoryContext.Metadata;
-                BindingInfo = factoryContext.BindingInfo;
+                BindingInfo = new BindingInfo
+                {
+                    BinderModelName = factoryContext.BindingInfo?.BinderModelName ?? Metadata.BinderModelName,
+                    BinderType = factoryContext.BindingInfo?.BinderType ?? Metadata.BinderType,
+                    BindingSource = factoryContext.BindingInfo?.BindingSource ?? Metadata.BindingSource,
+                    PropertyFilterProvider =
+                        factoryContext.BindingInfo?.PropertyFilterProvider ?? Metadata.PropertyFilterProvider,
+                };
 
                 MetadataProvider = _factory._metadataProvider;
                 Stack = new List<KeyValuePair<Key, PlaceholderBinder>>();

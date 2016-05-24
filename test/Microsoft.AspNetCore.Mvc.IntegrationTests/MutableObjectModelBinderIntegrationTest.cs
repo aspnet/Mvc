@@ -1932,6 +1932,187 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
         }
 
+        private class Person12
+        {
+            public Address12 Address { get; set; }
+        }
+
+        [ModelBinder(Name = "HomeAddress")]
+        private class Address12
+        {
+            public string Street { get; set; }
+        }
+
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task ModelNameOnPropertyType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Person12),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request => request.QueryString = new QueryString("?HomeAddress.Street=someStreet"));
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var person = Assert.IsType<Person12>(modelBindingResult.Model);
+            Assert.NotNull(person.Address);
+            Assert.Equal("someStreet", person.Address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Equal("HomeAddress.Street", kvp.Key);
+            var entry = kvp.Value;
+            Assert.NotNull(entry);
+            Assert.Empty(entry.Errors);
+            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
+        }
+
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task ModelNameOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Address12),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request => request.QueryString = new QueryString("?HomeAddress.Street=someStreet"));
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var address = Assert.IsType<Address12>(modelBindingResult.Model);
+            Assert.Equal("someStreet", address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Equal("HomeAddress.Street", kvp.Key);
+            var entry = kvp.Value;
+            Assert.NotNull(entry);
+            Assert.Empty(entry.Errors);
+            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
+        }
+
+        private class Person13
+        {
+            public Address13 Address { get; set; }
+        }
+
+        [Bind("Street")]
+        private class Address13
+        {
+            public int Number { get; set; }
+
+            public string Street { get; set; }
+
+            public string City { get; set; }
+
+            public string State { get; set; }
+        }
+
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task BindAttributeOnPropertyType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Person13),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request => request.QueryString = new QueryString(
+                    "?Address.Number=23&Address.Street=someStreet&Address.City=Redmond&Address.State=WA"));
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var person = Assert.IsType<Person13>(modelBindingResult.Model);
+            Assert.NotNull(person.Address);
+            Assert.Null(person.Address.City);
+            Assert.Equal(0, person.Address.Number);
+            Assert.Null(person.Address.State);
+            Assert.Equal("someStreet", person.Address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Equal("Address.Street", kvp.Key);
+            var entry = kvp.Value;
+            Assert.NotNull(entry);
+            Assert.Empty(entry.Errors);
+            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
+        }
+
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task BindAttributeOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Address13),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request => request.QueryString = new QueryString("?Number=23&Street=someStreet&City=Redmond&State=WA"));
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var address = Assert.IsType<Address13>(modelBindingResult.Model);
+            Assert.Null(address.City);
+            Assert.Equal(0, address.Number);
+            Assert.Null(address.State);
+            Assert.Equal("someStreet", address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Equal("Street", kvp.Key);
+            var entry = kvp.Value;
+            Assert.NotNull(entry);
+            Assert.Empty(entry.Errors);
+            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
+        }
+
         private static void SetJsonBodyContent(HttpRequest request, string content)
         {
             var stream = new MemoryStream(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false).GetBytes(content));

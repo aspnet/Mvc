@@ -163,10 +163,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 parameter.BindingInfo,
                 parameter.Name);
 
-            if (parameter.BindingInfo?.BinderModelName != null)
+            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
+            if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
-                modelBindingContext.ModelName = parameter.BindingInfo.BinderModelName;
+                modelBindingContext.ModelName = parameterModelName;
             }
             else if (modelBindingContext.ValueProvider.ContainsPrefix(parameter.Name))
             {

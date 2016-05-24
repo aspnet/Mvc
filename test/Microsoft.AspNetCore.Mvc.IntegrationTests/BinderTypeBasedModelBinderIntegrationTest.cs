@@ -134,6 +134,55 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
+        public static TheoryData<BindingInfo> NullAndEmptyBindingInfo
+        {
+            get
+            {
+                return new TheoryData<BindingInfo>
+                {
+                    null,
+                    new BindingInfo(),
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(NullAndEmptyBindingInfo))]
+        public async Task BinderTypeOnParameterType_WithData_EmptyPrefix_GetsBound(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "Parameter1",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Address),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext();
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            // ModelBindingResult
+            Assert.True(modelBindingResult.IsModelSet);
+
+            // Model
+            var address = Assert.IsType<Address>(modelBindingResult.Model);
+            Assert.Equal("SomeStreet", address.Street);
+
+            // ModelState
+            Assert.True(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Equal("Street", kvp.Key);
+            var entry = kvp.Value;
+            Assert.NotNull(entry);
+            Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
+            Assert.NotNull(entry.RawValue); // Value is set by test model binder, no need to validate it.
+        }
+
         [Fact]
         public async Task BindProperty_WithData_EmptyPrefix_GetsBound()
         {
