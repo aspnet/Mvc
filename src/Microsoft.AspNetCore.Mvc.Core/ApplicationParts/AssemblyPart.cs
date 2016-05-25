@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
 
@@ -47,7 +46,25 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = DependencyContext.Load(Assembly);
             if (dependencyContext != null)
             {
-                return dependencyContext.CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
+                var referencePaths = new List<string>();
+                var compileLibraries = dependencyContext.CompileLibraries;
+
+                try
+                {
+                    for (var i = 0; i < compileLibraries.Count; i++)
+                    {
+                        var compileLibrary = compileLibraries[i];
+                        referencePaths.AddRange(compileLibrary.ResolveReferencePaths());
+                    }
+
+                    return referencePaths;
+                }
+                catch
+                {
+                    // ResolveReferencePaths might fail if an assembly has been compiled with preserveCompilationContext
+                    // but is loaded at runtime (e.g. Assembly.Load) without the application referencing the assembly.
+                    // Ignore the DependencyContext in this case and specifically reference the assembly.
+                }
             }
 
             // If an application has been compiled without preserveCompilationContext, return the path to the assembly
