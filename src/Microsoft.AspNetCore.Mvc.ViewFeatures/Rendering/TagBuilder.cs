@@ -196,8 +196,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 foreach (var attribute in Attributes)
                 {
                     var key = attribute.Key;
+                    var value = attribute.Value ?? string.Empty;
                     if (string.Equals(key, "id", StringComparison.OrdinalIgnoreCase) &&
-                        string.IsNullOrEmpty(attribute.Value))
+                        string.IsNullOrEmpty(value))
                     {
                         continue;
                     }
@@ -205,7 +206,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                     writer.Write(" ");
                     writer.Write(key);
                     writer.Write("=\"");
-                    encoder.Encode(writer, attribute.Value);
+                    encoder.Encode(writer, value);
                     writer.Write("\"");
                 }
             }
