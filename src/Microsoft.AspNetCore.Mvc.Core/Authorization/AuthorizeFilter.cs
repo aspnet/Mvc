@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -29,14 +30,44 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             {
                 throw new ArgumentNullException(nameof(policy));
             }
-
             Policy = policy;
         }
 
         /// <summary>
-        /// Gets the authorization policy to be used.
+        /// Initialize a new <see cref="AuthorizeFilter"/> instance.
         /// </summary>
-        public AuthorizationPolicy Policy { get; }
+        /// <param name="policyProvider"></param>
+        /// <param name="authorizeData"></param>
+        public AuthorizeFilter(IAuthorizationPolicyProvider policyProvider, IEnumerable<IAuthorizeData> authorizeData)
+        {
+            if (policyProvider == null)
+            {
+                throw new ArgumentNullException(nameof(policyProvider));
+            }
+            if (authorizeData == null)
+            {
+                throw new ArgumentNullException(nameof(authorizeData));
+            }
+
+            PolicyProvider = policyProvider;
+            AuthorizeData = authorizeData;
+        }
+
+        /// <summary>
+        /// The <see cref="IAuthorizationPolicyProvider"/> to use to resolve policy names.
+        /// </summary>
+        public IAuthorizationPolicyProvider PolicyProvider { get; }
+
+        /// <summary>
+        /// The <see cref="IAuthorizeData"/> to combine into an <see cref="IAuthorizeData"/>.
+        /// </summary>
+        public IEnumerable<IAuthorizeData> AuthorizeData { get; }
+
+        /// <summary>
+        /// Gets the authorization policy to be used.  If null, the policy will be constructed via
+        /// AuthorizePolicy.CombineAsync(PolicyProvider, AuthorizeData)
+        /// </summary>
+        public AuthorizationPolicy Policy { get; private set; }
 
         /// <inheritdoc />
         public virtual async Task OnAuthorizationAsync(AuthorizationFilterContext context)
@@ -44,6 +75,12 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
+            }
+
+            Policy = Policy ?? await AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
+            if (Policy == null)
+            {
+                return;
             }
 
             // Build a ClaimsPrincipal with the Policy's required authentication types
