@@ -77,17 +77,17 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 throw new ArgumentNullException(nameof(context));
             }
 
-            Policy = Policy ?? await AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
-            if (Policy == null)
+            var effectivePolicy = Policy ?? await AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
+            if (effectivePolicy == null)
             {
                 return;
             }
 
             // Build a ClaimsPrincipal with the Policy's required authentication types
-            if (Policy.AuthenticationSchemes != null && Policy.AuthenticationSchemes.Any())
+            if (effectivePolicy.AuthenticationSchemes != null && effectivePolicy.AuthenticationSchemes.Any())
             {
                 ClaimsPrincipal newPrincipal = null;
-                foreach (var scheme in Policy.AuthenticationSchemes)
+                foreach (var scheme in effectivePolicy.AuthenticationSchemes)
                 {
                     var result = await context.HttpContext.Authentication.AuthenticateAsync(scheme);
                     if (result != null)
@@ -113,9 +113,9 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             var authService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
 
             // Note: Default Anonymous User is new ClaimsPrincipal(new ClaimsIdentity())
-            if (!await authService.AuthorizeAsync(httpContext.User, context, Policy))
+            if (!await authService.AuthorizeAsync(httpContext.User, context, effectivePolicy))
             {
-                context.Result = new ChallengeResult(Policy.AuthenticationSchemes.ToArray());
+                context.Result = new ChallengeResult(effectivePolicy.AuthenticationSchemes.ToArray());
             }
         }
     }
