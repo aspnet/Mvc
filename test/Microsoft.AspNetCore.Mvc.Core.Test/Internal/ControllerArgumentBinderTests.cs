@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Moq;
@@ -571,6 +572,122 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Null(controller.NullCollectionProperty);                                     // Skipped
             Assert.Null(controller.UntouchedProperty);                                          // Not bound
             Assert.Equal("Hello", controller.StringProperty);
+        }
+
+        public static TheoryData BindingInfoData
+        {
+            get
+            {
+                var propertyFilterProvider = Mock.Of<IPropertyFilterProvider>();
+
+                var emptyBindingInfo = new BindingInfo();
+                var halfBindingInfo = new BindingInfo
+                {
+                    BinderModelName = "expected name",
+                    BinderType = typeof(Person),
+                };
+                var fullBindingInfo = new BindingInfo
+                {
+                    BinderModelName = "expected name",
+                    BinderType = typeof(Person),
+                    BindingSource = BindingSource.Services,
+                    PropertyFilterProvider = propertyFilterProvider,
+                };
+
+                var emptyBindingMetadata = new BindingMetadata();
+                var differentBindingMetadata = new BindingMetadata
+                {
+                    BinderModelName = "not the expected name",
+                    BinderType = typeof(TestController),
+                    BindingSource = BindingSource.ModelBinding,
+                    PropertyFilterProvider = Mock.Of<IPropertyFilterProvider>(),
+                };
+                var secondHalfBindingMetadata = new BindingMetadata
+                {
+                    BindingSource = BindingSource.Services,
+                    PropertyFilterProvider = propertyFilterProvider,
+                };
+                var fullBindingMetadata = new BindingMetadata
+                {
+                    BinderModelName = "expected name",
+                    BinderType = typeof(Person),
+                    BindingSource = BindingSource.Services,
+                    PropertyFilterProvider = propertyFilterProvider,
+                };
+
+                return new TheoryData<BindingInfo, BindingMetadata, BindingInfo>
+                {
+                    { emptyBindingInfo, emptyBindingMetadata, emptyBindingInfo },
+                    { fullBindingInfo, emptyBindingMetadata, fullBindingInfo },
+                    { emptyBindingInfo, fullBindingMetadata, fullBindingInfo },
+                    // Resulting BindingInfo combines two inputs
+                    { halfBindingInfo, secondHalfBindingMetadata, fullBindingInfo },
+                    // Parameter information has precedence over type metadata
+                    { fullBindingInfo, differentBindingMetadata, fullBindingInfo },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(BindingInfoData))]
+        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata(
+            BindingInfo parameterBindingInfo,
+            BindingMetadata bindingMetadata,
+            BindingInfo expectedInfo)
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForType<Person>().BindingDetails(binding =>
+            {
+                binding.BinderModelName = bindingMetadata.BinderModelName;
+                binding.BinderType = bindingMetadata.BinderType;
+                binding.BindingSource = bindingMetadata.BindingSource;
+                if (bindingMetadata.PropertyFilterProvider != null)
+                {
+                    binding.PropertyFilterProvider = bindingMetadata.PropertyFilterProvider;
+                }
+            });
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
+            var binder = new Mock<IModelBinder>();
+            binder
+                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback((ModelBindingContext context) =>
+                {
+                })
+                .Returns(TaskCache.CompletedTask);
+
+            var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
+            factory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Callback((ModelBinderFactoryContext context) =>
+                {
+                    Assert.Same(metadata, context.Metadata);
+
+                    Assert.NotNull(context.BindingInfo);
+                    Assert.Equal(expectedInfo.BinderModelName, context.BindingInfo.BinderModelName, StringComparer.Ordinal);
+                    Assert.Equal(expectedInfo.BinderType, context.BindingInfo.BinderType);
+                    Assert.Equal(expectedInfo.BindingSource, context.BindingInfo.BindingSource);
+                    Assert.Same(expectedInfo.PropertyFilterProvider, context.BindingInfo.PropertyFilterProvider);
+                })
+                .Returns(binder.Object);
+
+            var argumentBinder = GetArgumentBinder(factory.Object);
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                BindingInfo = parameterBindingInfo,
+                Name = "",
+                ParameterType = typeof(Person),
+            };
+
+            var controllerContext = GetControllerContext();
+            controllerContext.ActionDescriptor.Parameters.Add(parameterDescriptor);
+
+            // Act
+            var result = await argumentBinder.BindModelAsync(parameterDescriptor, controllerContext);
+
+            // Assert
+            Assert.Equal(ModelBindingResult.Failed(), result);
         }
 
         private static ControllerContext GetControllerContext(ControllerActionDescriptor descriptor = null)

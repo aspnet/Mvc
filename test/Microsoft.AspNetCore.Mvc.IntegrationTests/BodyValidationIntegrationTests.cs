@@ -701,6 +701,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
+        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with a class somewhere in the type hierarchy of an action parameter.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -709,8 +712,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         {
             // Arrange
             var inputText = "{ \"Street\" : \"someStreet\" }";
-
-            // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass.
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForProperty<Person6>(nameof(Person6.Address))
@@ -746,6 +747,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Empty(modelState);
         }
 
+        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with an action parameter's type.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -754,8 +758,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         {
             // Arrange
             var inputText = "{ \"Street\" : \"someStreet\" }";
-
-            // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass.
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider
                 .ForType<Address6>()

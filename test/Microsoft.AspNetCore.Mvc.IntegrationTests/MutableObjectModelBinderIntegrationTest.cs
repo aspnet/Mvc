@@ -1943,6 +1943,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
+        // Make sure the metadata is honored when a [ModelBinder] attribute is associated with a class somewhere in the
+        // type hierarchy of an action parameter. This should behave identically to such an attribute on a property in
+        // the type hierarchy.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -1980,6 +1983,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
         }
 
+        // Make sure the metadata is honored when a [ModelBinder] attribute is associated with an action parameter's
+        // type. This should behave identically to such an attribute on an action parameter.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -2033,6 +2038,10 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string State { get; set; }
         }
 
+        // Make sure the metadata is honored when a [Bind] attribute is associated with a class somewhere in the type
+        // hierarchy of an action parameter. This should behave identically to such an attribute on a property in the
+        // type hierarchy. (Test is similar to ModelNameOnPropertyType_WithData_Succeeds() but covers implementing
+        // IPropertyFilterProvider, not IModelNameProvider.)
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -2074,6 +2083,10 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal(ModelValidationState.Valid, entry.ValidationState);
         }
 
+        // Make sure the metadata is honored when a [Bind] attribute is associated with an action parameter's type.
+        // This should behave identically to such an attribute on an action parameter. (Test is similar
+        // to ModelNameOnParameterType_WithData_Succeeds() but covers implementing IPropertyFilterProvider, not
+        // IModelNameProvider.)
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),

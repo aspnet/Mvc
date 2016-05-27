@@ -189,6 +189,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public JsonOutputFormatter Service { get; set; }
         }
 
+        // [FromServices] cannot be associated with a type. But a [FromServices] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with a type somewhere in the type hierarchy of an action parameter.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
@@ -226,11 +229,14 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Empty(modelState);
         }
 
+        // [FromServices] cannot be associated with a type. But a [FromServices] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with an action parameter's type.
         [Theory]
         [MemberData(
             nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
             MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
-        public async Task FromserviesOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        public async Task FromServicesOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
         {
             // Arrange
             // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass on a custom service.
