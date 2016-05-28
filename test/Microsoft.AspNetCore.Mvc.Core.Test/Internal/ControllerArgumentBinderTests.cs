@@ -574,120 +574,133 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal("Hello", controller.StringProperty);
         }
 
-        public static TheoryData BindingInfoData
+        public static TheoryData BindModelAsyncData
         {
             get
             {
-                var propertyFilterProvider = Mock.Of<IPropertyFilterProvider>();
-
                 var emptyBindingInfo = new BindingInfo();
-                var halfBindingInfo = new BindingInfo
+                var bindingInfoWithName = new BindingInfo
                 {
-                    BinderModelName = "expected name",
+                    BinderModelName = "bindingInfoName",
                     BinderType = typeof(Person),
-                };
-                var fullBindingInfo = new BindingInfo
-                {
-                    BinderModelName = "expected name",
-                    BinderType = typeof(Person),
-                    BindingSource = BindingSource.Services,
-                    PropertyFilterProvider = propertyFilterProvider,
                 };
 
-                var emptyBindingMetadata = new BindingMetadata();
-                var differentBindingMetadata = new BindingMetadata
+                // parameterBindingInfo, metadataBinderModelName, parameterName, expectedBinderModelName
+                return new TheoryData<BindingInfo, string, string, string>
                 {
-                    BinderModelName = "not the expected name",
-                    BinderType = typeof(TestController),
-                    BindingSource = BindingSource.ModelBinding,
-                    PropertyFilterProvider = Mock.Of<IPropertyFilterProvider>(),
-                };
-                var secondHalfBindingMetadata = new BindingMetadata
-                {
-                    BindingSource = BindingSource.Services,
-                    PropertyFilterProvider = propertyFilterProvider,
-                };
-                var fullBindingMetadata = new BindingMetadata
-                {
-                    BinderModelName = "expected name",
-                    BinderType = typeof(Person),
-                    BindingSource = BindingSource.Services,
-                    PropertyFilterProvider = propertyFilterProvider,
-                };
-
-                return new TheoryData<BindingInfo, BindingMetadata, BindingInfo>
-                {
-                    { emptyBindingInfo, emptyBindingMetadata, emptyBindingInfo },
-                    { fullBindingInfo, emptyBindingMetadata, fullBindingInfo },
-                    { emptyBindingInfo, fullBindingMetadata, fullBindingInfo },
-                    // Resulting BindingInfo combines two inputs
-                    { halfBindingInfo, secondHalfBindingMetadata, fullBindingInfo },
-                    // Parameter information has precedence over type metadata
-                    { fullBindingInfo, differentBindingMetadata, fullBindingInfo },
+                    // If the parameter name is not a prefix match, it is ignored. But name is required to create a
+                    // ModelBindingContext.
+                    { null, null, "parameterName", string.Empty },
+                    { emptyBindingInfo, null, "parameterName", string.Empty },
+                    { bindingInfoWithName, null, "parameterName", "bindingInfoName" },
+                    { null, "modelBinderName", "parameterName", "modelBinderName" },
+                    { null, null, "parameterName", string.Empty },
+                    // Parameter's BindingInfo has highest precedence
+                    { bindingInfoWithName, "modelBinderName", "parameterName", "bindingInfoName" },
                 };
             }
         }
 
         [Theory]
-        [MemberData(nameof(BindingInfoData))]
-        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata(
+        [MemberData(nameof(BindModelAsyncData))]
+        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata_IfPrefixDoesNotMatch(
             BindingInfo parameterBindingInfo,
-            BindingMetadata bindingMetadata,
-            BindingInfo expectedInfo)
+            string metadataBinderModelName,
+            string parameterName,
+            string expectedModelName)
         {
             // Arrange
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType<Person>().BindingDetails(binding =>
             {
-                binding.BinderModelName = bindingMetadata.BinderModelName;
-                binding.BinderType = bindingMetadata.BinderType;
-                binding.BindingSource = bindingMetadata.BindingSource;
-                if (bindingMetadata.PropertyFilterProvider != null)
-                {
-                    binding.PropertyFilterProvider = bindingMetadata.PropertyFilterProvider;
-                }
+                binding.BinderModelName = metadataBinderModelName;
             });
 
             var metadata = metadataProvider.GetMetadataForType(typeof(Person));
-            var binder = new Mock<IModelBinder>();
-            binder
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
                 .Callback((ModelBindingContext context) =>
                 {
+                    Assert.Equal(expectedModelName, context.ModelName, StringComparer.Ordinal);
                 })
                 .Returns(TaskCache.CompletedTask);
+
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                BindingInfo = parameterBindingInfo,
+                Name = parameterName,
+                ParameterType = typeof(Person),
+            };
 
             var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
             factory
                 .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
                 .Callback((ModelBinderFactoryContext context) =>
                 {
-                    Assert.Same(metadata, context.Metadata);
-
-                    Assert.NotNull(context.BindingInfo);
-                    Assert.Equal(expectedInfo.BinderModelName, context.BindingInfo.BinderModelName, StringComparer.Ordinal);
-                    Assert.Equal(expectedInfo.BinderType, context.BindingInfo.BinderType);
-                    Assert.Equal(expectedInfo.BindingSource, context.BindingInfo.BindingSource);
-                    Assert.Same(expectedInfo.PropertyFilterProvider, context.BindingInfo.PropertyFilterProvider);
+                    // Confirm expected data is passed through to ModelBindingFactory.
+                    Assert.Same(parameterDescriptor.BindingInfo, context.BindingInfo);
+                    Assert.Same(parameterDescriptor, context.CacheToken);
+                    Assert.Equal(metadata, context.Metadata);
                 })
-                .Returns(binder.Object);
+                .Returns(modelBinder.Object);
 
-            var argumentBinder = GetArgumentBinder(factory.Object);
-            var parameterDescriptor = new ParameterDescriptor
-            {
-                BindingInfo = parameterBindingInfo,
-                Name = "",
-                ParameterType = typeof(Person),
-            };
-
+            var argumentBinder = new ControllerArgumentBinder(metadataProvider, factory.Object, CreateMockValidator());
             var controllerContext = GetControllerContext();
             controllerContext.ActionDescriptor.Parameters.Add(parameterDescriptor);
 
-            // Act
-            var result = await argumentBinder.BindModelAsync(parameterDescriptor, controllerContext);
+            // Act & Assert
+            await argumentBinder.BindModelAsync(parameterDescriptor, controllerContext);
+        }
 
-            // Assert
-            Assert.Equal(ModelBindingResult.Failed(), result);
+        [Fact]
+        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata_IfPrefixMatches()
+        {
+            // Arrange
+            var expectedModelName = "expectedName";
+
+            var metadataProvider = new TestModelMetadataProvider();
+            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback((ModelBindingContext context) =>
+                {
+                    Assert.Equal(expectedModelName, context.ModelName, StringComparer.Ordinal);
+                })
+                .Returns(TaskCache.CompletedTask);
+
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                Name = expectedModelName,
+                ParameterType = typeof(Person),
+            };
+
+            var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
+            factory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Callback((ModelBinderFactoryContext context) =>
+                {
+                    // Confirm expected data is passed through to ModelBindingFactory.
+                    Assert.Null(context.BindingInfo);
+                    Assert.Same(parameterDescriptor, context.CacheToken);
+                    Assert.Equal(metadata, context.Metadata);
+                })
+                .Returns(modelBinder.Object);
+
+            var argumentBinder = new ControllerArgumentBinder(metadataProvider, factory.Object, CreateMockValidator());
+            var valueProvider = new SimpleValueProvider
+            {
+                { expectedModelName, new object() },
+            };
+            var valueProviderFactory = new SimpleValueProviderFactory(valueProvider);
+
+            var controllerContext = GetControllerContext();
+            controllerContext.ActionDescriptor.Parameters.Add(parameterDescriptor);
+            controllerContext.ValueProviderFactories.Insert(0, valueProviderFactory);
+
+            // Act & Assert
+            await argumentBinder.BindModelAsync(parameterDescriptor, controllerContext);
         }
 
         private static ControllerContext GetControllerContext(ControllerActionDescriptor descriptor = null)

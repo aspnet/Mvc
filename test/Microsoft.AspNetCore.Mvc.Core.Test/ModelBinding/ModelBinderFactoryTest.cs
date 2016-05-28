@@ -277,6 +277,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     PropertyFilterProvider = propertyFilterProvider,
                 };
 
+                // parameterBindingInfo, bindingMetadata, expectedInfo
                 return new TheoryData<BindingInfo, BindingMetadata, BindingInfo>
                 {
                     { emptyBindingInfo, emptyBindingMetadata, emptyBindingInfo },
@@ -310,9 +311,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             });
 
-            var binder = Mock.Of<IModelBinder>();
-            var options = new TestOptionsManager<MvcOptions>();
-            options.Value.ModelBinderProviders.Add(new TestModelBinderProvider(context =>
+            var modelBinder = Mock.Of<IModelBinder>();
+            var modelBinderProvider = new TestModelBinderProvider(context =>
             {
                 Assert.Equal(typeof(Employee), context.Metadata.ModelType);
 
@@ -322,8 +322,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 Assert.Equal(expectedInfo.BindingSource, context.BindingInfo.BindingSource);
                 Assert.Same(expectedInfo.PropertyFilterProvider, context.BindingInfo.PropertyFilterProvider);
 
-                return binder;
-            }));
+                return modelBinder;
+            });
+
+            var options = new TestOptionsManager<MvcOptions>();
+            options.Value.ModelBinderProviders.Insert(0, modelBinderProvider);
 
             var factory = new ModelBinderFactory(metadataProvider, options);
             var factoryContext = new ModelBinderFactoryContext
@@ -332,11 +335,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 Metadata = metadataProvider.GetMetadataForType(typeof(Employee)),
             };
 
-            // Act
+            // Act & Assert
             var result = factory.CreateBinder(factoryContext);
 
-            // Assert
-            Assert.Same(binder, result);
+            // Confirm our IModelBinderProvider was called.
+            Assert.Same(modelBinder, result);
         }
 
         private class Widget

@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
-        // Make sure the metadata is honored when a [ModelBinder] attribute is associated with an property in the type
+        // Make sure the metadata is honored when a [ModelBinder] attribute is associated with a property in the type
         // hierarchy of an action parameter. (Tests such as BindProperty_WithData_EmptyPrefix_GetsBound cover
         // associating [ModelBinder] with a class somewhere in the type hierarchy of an action parameter.)
         [Theory]
