@@ -36,8 +36,8 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         /// <summary>
         /// Initialize a new <see cref="AuthorizeFilter"/> instance.
         /// </summary>
-        /// <param name="policyProvider"></param>
-        /// <param name="authorizeData"></param>
+        /// <param name="policyProvider">The <see cref="IAuthorizationPolicyProvider"/> to use to resolve policy names.</param>
+        /// <param name="authorizeData">The <see cref="IAuthorizeData"/> to combine into an <see cref="IAuthorizeData"/>.</param>
         public AuthorizeFilter(IAuthorizationPolicyProvider policyProvider, IEnumerable<IAuthorizeData> authorizeData)
         {
             if (policyProvider == null)
