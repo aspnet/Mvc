@@ -39,8 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _actionConstraintCache = actionConstraintCache;
         }
 
-        /// <inheritdoc />
-        public ActionDescriptor Select(RouteContext context)
+        public IReadOnlyList<ActionDescriptor> SelectCandidates(RouteContext context)
         {
             if (context == null)
             {
@@ -48,14 +47,27 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             var tree = _decisionTreeProvider.DecisionTree;
-            var matchingRouteValues = tree.Select(context.RouteData.Values);
+            return tree.Select(context.RouteData.Values);
+        }
+
+        public ActionDescriptor SelectBestCandidate(RouteContext context, IReadOnlyList<ActionDescriptor> candidates1)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (candidates1 == null)
+            {
+                throw new ArgumentNullException(nameof(candidates1));
+            }
 
             var candidates = new List<ActionSelectorCandidate>();
 
             // Perf: Avoid allocations
-            for (var i = 0; i < matchingRouteValues.Count; i++)
+            for (var i = 0; i < candidates1.Count; i++)
             {
-                var action = matchingRouteValues[i];
+                var action = candidates1[i];
                 var constraints = _actionConstraintCache.GetActionConstraints(context.HttpContext, action);
                 candidates.Add(new ActionSelectorCandidate(action, constraints));
             }

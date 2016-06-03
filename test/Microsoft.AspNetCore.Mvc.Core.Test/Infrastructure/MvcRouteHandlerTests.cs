@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -28,8 +29,8 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             var mockActionSelector = new Mock<IActionSelector>();
             mockActionSelector
-                .Setup(a => a.Select(It.IsAny<RouteContext>()))
-                .Returns<ActionDescriptor>(null);
+                .Setup(a => a.SelectCandidates(It.IsAny<RouteContext>()))
+                .Returns(new ActionDescriptor[0]);
 
             var context = CreateRouteContext();
 
@@ -49,6 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
+<<<<<<< 53b890aab5c55b7573c2492abb397ef32afd08a6
         public async Task RouteHandler_RemovesRouteGroupFromRouteValues()
         {
             // Arrange
@@ -99,7 +101,12 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             if (actionSelector == null)
             {
                 var mockActionSelector = new Mock<IActionSelector>();
-                mockActionSelector.Setup(a => a.Select(It.IsAny<RouteContext>()))
+                mockActionSelector
+                    .Setup(a => a.SelectCandidates(It.IsAny<RouteContext>()))
+                    .Returns(new ActionDescriptor[] { actionDescriptor });
+
+                mockActionSelector
+                    .Setup(a => a.SelectBestCandidate(It.IsAny<RouteContext>(), It.IsAny<IReadOnlyList<ActionDescriptor>>()))
                     .Returns(actionDescriptor);
                 actionSelector = mockActionSelector.Object;
             }

@@ -8,11 +8,8 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
     public class DefaultActionSelectorTests
     {
         [Fact]
-        public void Select_AmbiguousActions_LogIsCorrect()
+        public void SelectBestCandidate_AmbiguousActions_LogIsCorrect()
         {
             // Arrange
             var sink = new TestSink();
@@ -44,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 $"ambiguity. Matching actions: {actionNames}";
 
             // Act
-            Assert.Throws<AmbiguousActionException>(() => { selector.Select(routeContext); });
+            Assert.Throws<AmbiguousActionException>(() => { selector.SelectBestCandidate(routeContext, actions); });
 
             // Assert
             Assert.Empty(sink.Scopes);
@@ -53,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void Select_PrefersActionWithConstraints()
+        public void SelectBestCandidate_PrefersActionWithConstraints()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -76,14 +73,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void Select_ConstraintsRejectAll()
+        public void SelectBestCandidate_ConstraintsRejectAll()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -108,14 +105,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void Select_ConstraintsRejectAll_DifferentStages()
+        public void SelectBestCandidate_ConstraintsRejectAll_DifferentStages()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -142,14 +139,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void Select_ActionConstraintFactory()
+        public void SelectBestCandidate_ActionConstraintFactory()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -174,14 +171,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void Select_ActionConstraintFactory_ReturnsNull()
+        public void SelectBestCandidate_ActionConstraintFactory_ReturnsNull()
         {
             // Arrange
             var nullConstraint = new ActionDescriptor()
@@ -200,7 +197,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, nullConstraint);
@@ -208,7 +205,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // There's a custom constraint provider registered that only understands BooleanConstraintMarker
         [Fact]
-        public void Select_CustomProvider()
+        public void SelectBestCandidate_CustomProvider()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -230,7 +227,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
@@ -238,7 +235,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void Select_ConstraintsInOrder()
+        public void SelectBestCandidate_ConstraintsInOrder()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -263,7 +260,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
@@ -271,7 +268,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void Select_ConstraintsInOrder_MultipleStages()
+        public void SelectBestCandidate_ConstraintsInOrder_MultipleStages()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -300,14 +297,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void Select_Fallback_ToActionWithoutConstraints()
+        public void SelectBestCandidate_Fallback_ToActionWithoutConstraints()
         {
             // Arrange
             var nomatch1 = new ActionDescriptor()
@@ -338,14 +335,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void Select_Ambiguous()
+        public void SelectBestCandidate_Ambiguous()
         {
             // Arrange
             var expectedMessage =
@@ -359,7 +356,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             {
                 CreateAction(area: null, controller: "Store", action: "Buy"),
                 CreateAction(area: null, controller: "Store", action: "Buy"),
-                CreateAction(area: null, controller: "Store", action: "Cart"),
             };
 
             actions[0].DisplayName = "Ambiguous1";
@@ -374,7 +370,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             // Act
             var ex = Assert.Throws<AmbiguousActionException>(() =>
             {
-                selector.Select(context);
+                selector.SelectBestCandidate(context, actions);
             });
 
             // Assert
@@ -528,12 +524,13 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 new DefaultActionConstraintProvider(),
             };
 
-            var defaultActionSelector = new ActionSelector(
+            var actionSelector = new ActionSelector(
                 decisionTreeProvider,
                 GetActionConstraintCache(actionConstraintProviders),
                 NullLoggerFactory.Instance);
 
-            return (ControllerActionDescriptor)defaultActionSelector.Select(context);
+            var candidates = actionSelector.SelectCandidates(context);
+            return (ControllerActionDescriptor)actionSelector.SelectBestCandidate(context, candidates);
         }
 
         private ControllerActionDescriptorProvider GetActionDescriptorProvider()

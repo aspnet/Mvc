@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Tree;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -64,25 +63,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var actionDescriptor = _actionSelector.Select(context);
-            if (actionDescriptor == null)
+            var candidates = _actionSelector.SelectCandidates(context);
+            if (candidates == null || candidates.Count == 0)
             {
                 _logger.NoActionsMatched();
                 return TaskCache.CompletedTask;
             }
 
-            if (actionDescriptor.RouteValueDefaults != null)
+            var actionDescriptor = _actionSelector.SelectBestCandidate(context, candidates);
+            if (actionDescriptor == null)
             {
-                foreach (var kvp in actionDescriptor.RouteValueDefaults)
-                {
-                    if (!context.RouteData.Values.ContainsKey(kvp.Key))
-                    {
-                        context.RouteData.Values.Add(kvp.Key, kvp.Value);
-                    }
-                }
-
-                // Removing RouteGroup from RouteValues to simulate the result of conventional routing
-                context.RouteData.Values.Remove(TreeRouter.RouteGroupKey);
+                _logger.NoActionsMatched();
+                return TaskCache.CompletedTask;
             }
 
             context.Handler = async (c) =>
