@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static IEnumerable<IGrouping<RouteInfo, ActionDescriptor>> GroupRouteInfos(List<RouteInfo> routeInfos)
         {
-            return routeInfos.GroupBy(ri => ri, ri => ri.ActionDescriptor, RouteInfoEqualityComparer.Instance);
+            return routeInfos.GroupBy(r => r, r => r.ActionDescriptor, RouteInfoEqualityComparer.Instance);
         }
 
         private static List<RouteInfo> GetRouteInfos(IReadOnlyList<ActionDescriptor> actions)

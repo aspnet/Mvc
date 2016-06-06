@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return TaskCache.CompletedTask;
             }
 
-            context.Handler = async (c) =>
+            context.Handler = (c) =>
             {
                 var routeData = c.GetRouteData();
 
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             actionDescriptor.DisplayName));
                 }
 
-                await invoker.InvokeAsync();
+                return invoker.InvokeAsync();
             };
 
             return TaskCache.CompletedTask;

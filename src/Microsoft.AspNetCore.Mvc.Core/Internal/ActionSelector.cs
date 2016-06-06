@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 candidates.Add(new ActionSelectorCandidate(action, constraints));
             }
 
-            var matches = EvaluateActionConstraints(context, candidates, startingOrder: null);
+            var matches = EvaluateActionConstraintsCore(context, candidates, startingOrder: null);
 
             List<ActionDescriptor> results = null;
             if (matches != null)
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return results;
         }
 
-        private IReadOnlyList<ActionSelectorCandidate> EvaluateActionConstraints(
+        private IReadOnlyList<ActionSelectorCandidate> EvaluateActionConstraintsCore(
             RouteContext context,
             IReadOnlyList<ActionSelectorCandidate> candidates,
             int? startingOrder)
@@ -217,7 +217,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // If we have matches with constraints, those are 'better' so try to keep processing those
             if (actionsWithConstraint.Count > 0)
             {
-                var matches = EvaluateActionConstraints(context, actionsWithConstraint, order);
+                var matches = EvaluateActionConstraintsCore(context, actionsWithConstraint, order);
                 if (matches?.Count > 0)
                 {
                     return matches;
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
             else
             {
-                return EvaluateActionConstraints(context, actionsWithoutConstraint, order);
+                return EvaluateActionConstraintsCore(context, actionsWithoutConstraint, order);
             }
         }
     }

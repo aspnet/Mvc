@@ -25,7 +25,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return new AttributeRoute(
                 services.GetRequiredService<IActionDescriptorCollectionProvider>(),
                 services,
-                (_) => new MvcAttributeRouteHandler(_));
+                actions => 
+                {
+                    var handler = services.GetRequiredService<MvcAttributeRouteHandler>();
+                    handler.Actions = actions;
+                    return handler;
+                });
         }
     }
 }
