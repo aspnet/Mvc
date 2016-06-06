@@ -50,45 +50,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return tree.Select(context.RouteData.Values);
         }
 
-        public ActionDescriptor SelectBestCandidate(RouteContext context, IReadOnlyList<ActionDescriptor> candidates1)
+        public ActionDescriptor SelectBestCandidate(RouteContext context, IReadOnlyList<ActionDescriptor> candidates)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (candidates1 == null)
+            if (candidates == null)
             {
-                throw new ArgumentNullException(nameof(candidates1));
+                throw new ArgumentNullException(nameof(candidates));
             }
 
-            var candidates = new List<ActionSelectorCandidate>();
+            var matches = EvaluateActionConstraints(context, candidates);
 
-            // Perf: Avoid allocations
-            for (var i = 0; i < candidates1.Count; i++)
-            {
-                var action = candidates1[i];
-                var constraints = _actionConstraintCache.GetActionConstraints(context.HttpContext, action);
-                candidates.Add(new ActionSelectorCandidate(action, constraints));
-            }
-
-            var matchingActionConstraints =
-                EvaluateActionConstraints(context, candidates, startingOrder: null);
-
-            List<ActionDescriptor> matchingActions = null;
-            if (matchingActionConstraints != null)
-            {
-                matchingActions = new List<ActionDescriptor>(matchingActionConstraints.Count);
-                // Perf: Avoid allocations
-                for (var i = 0; i < matchingActionConstraints.Count; i++)
-                {
-                    var candidate = matchingActionConstraints[i];
-                    matchingActions.Add(candidate.Action);
-                }
-            }
-
-            var finalMatches = SelectBestActions(matchingActions);
-
+            var finalMatches = SelectBestActions(matches);
             if (finalMatches == null || finalMatches.Count == 0)
             {
                 return null;
@@ -123,6 +99,37 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         protected virtual IReadOnlyList<ActionDescriptor> SelectBestActions(IReadOnlyList<ActionDescriptor> actions)
         {
             return actions;
+        }
+
+        private IReadOnlyList<ActionDescriptor> EvaluateActionConstraints(
+            RouteContext context,
+            IReadOnlyList<ActionDescriptor> actions)
+        {
+            var candidates = new List<ActionSelectorCandidate>();
+
+            // Perf: Avoid allocations
+            for (var i = 0; i < actions.Count; i++)
+            {
+                var action = actions[i];
+                var constraints = _actionConstraintCache.GetActionConstraints(context.HttpContext, action);
+                candidates.Add(new ActionSelectorCandidate(action, constraints));
+            }
+
+            var matches = EvaluateActionConstraints(context, candidates, startingOrder: null);
+
+            List<ActionDescriptor> results = null;
+            if (matches != null)
+            {
+                results = new List<ActionDescriptor>(matches.Count);
+                // Perf: Avoid allocations
+                for (var i = 0; i < matches.Count; i++)
+                {
+                    var candidate = matches[i];
+                    results.Add(candidate.Action);
+                }
+            }
+
+            return results;
         }
 
         private IReadOnlyList<ActionSelectorCandidate> EvaluateActionConstraints(

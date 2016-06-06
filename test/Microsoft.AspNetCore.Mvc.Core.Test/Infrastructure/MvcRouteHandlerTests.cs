@@ -49,40 +49,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             Assert.Equal(expectedMessage, sink.Writes[0].State?.ToString());
         }
 
-        [Fact]
-<<<<<<< 53b890aab5c55b7573c2492abb397ef32afd08a6
-        public async Task RouteHandler_RemovesRouteGroupFromRouteValues()
-        {
-            // Arrange
-            var invoker = new Mock<IActionInvoker>();
-            invoker
-                .Setup(i => i.InvokeAsync())
-                .Returns(Task.FromResult(true));
-
-            var invokerFactory = new Mock<IActionInvokerFactory>();
-            invokerFactory
-                .Setup(f => f.CreateInvoker(It.IsAny<ActionContext>()))
-                .Returns<ActionContext>((c) =>
-                {
-                    return invoker.Object;
-                });
-
-            var context = CreateRouteContext();
-            var handler = CreateMvcRouteHandler(invokerFactory: invokerFactory.Object);
-
-            var originalRouteData = context.RouteData;
-            originalRouteData.Values.Add(TreeRouter.RouteGroupKey, "/Home/Test");
-
-            // Act
-            await handler.RouteAsync(context);
-
-            // Assert
-            Assert.Same(originalRouteData, context.RouteData);
-
-
-            Assert.False(context.RouteData.Values.ContainsKey(TreeRouter.RouteGroupKey));
-        }
-
         private MvcRouteHandler CreateMvcRouteHandler(
             ActionDescriptor actionDescriptor = null,
             IActionSelector actionSelector = null,

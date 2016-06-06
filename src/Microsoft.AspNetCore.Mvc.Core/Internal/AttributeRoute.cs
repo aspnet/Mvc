@@ -94,6 +94,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     defaults.Add(kvp.Key, kvp.Value);
                 }
 
+                // We use the `NullRouter` as the route handler because we don't need to do anything for link
+                // generations. The TreeRouter does it all for us.
                 builder.MapOutbound(
                     NullRouter.Instance,
                     routeInfo.RouteTemplate, 
