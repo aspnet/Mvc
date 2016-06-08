@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Xunit;
@@ -220,11 +221,14 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task JsonHelper_RendersJson()
         {
             // Arrange
-            var json = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
-            {
-                Id = 9000,
-                Name = "John <b>Smith</b>"
-            });
+            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
+            var json = JsonConvert.SerializeObject(
+                new BasicWebSite.Models.Person
+                {
+                    Id = 9000,
+                    Name = "John <b>Smith</b>"
+                },
+                settings);
 
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
@@ -244,17 +248,21 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelperWithSettings_RendersJson()
+        public async Task JsonHelperWithSettings_RendersPascalCaseJson()
         {
             // Arrange
+            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
+            settings.ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new DefaultNamingStrategy(),
+            };
             var json = JsonConvert.SerializeObject(
                 new BasicWebSite.Models.Person()
                 {
                     Id = 9000,
                     Name = "John <b>Smith</b>"
                 },
-                new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
+                settings);
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
@@ -262,7 +270,40 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 json);
 
             // Act
-            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView");
+            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView?snakeCase=false");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public async Task JsonHelperWithSettings_RendersSnakeCaseJson()
+        {
+            // Arrange
+            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
+            settings.ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new SnakeCaseNamingStrategy(),
+            };
+            var json = JsonConvert.SerializeObject(
+                new BasicWebSite.Models.Person()
+                {
+                    Id = 9000,
+                    Name = "John <b>Smith</b>"
+                },
+                settings);
+            var expectedBody = string.Format(
+                @"<script type=""text/javascript"">
+    var json = {0};
+</script>",
+                json);
+
+            // Act
+            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView?snakeCase=true");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
