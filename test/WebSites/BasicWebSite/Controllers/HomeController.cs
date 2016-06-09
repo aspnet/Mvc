@@ -65,8 +65,8 @@ namespace BasicWebSite.Controllers
         {
             Person person = new Person
             {
-                Id = 9000,
-                Name = "John <b>Smith</b>"
+                id = 9000,
+                FullName = "John <b>Smith</b>"
             };
 
             return View(person);
@@ -76,8 +76,8 @@ namespace BasicWebSite.Controllers
         {
             Person person = new Person
             {
-                Id = 9000,
-                Name = "John <b>Smith</b>"
+                id = 9000,
+                FullName = "John <b>Smith</b>"
             };
             ViewData["naming"] = snakeCase ? (NamingStrategy)new SnakeCaseNamingStrategy() : new DefaultNamingStrategy();
 

@@ -218,18 +218,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelper_RendersJson()
+        public async Task JsonHelper_RendersJson_WithCamelCaseNames()
         {
             // Arrange
-            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-            var json = JsonConvert.SerializeObject(
-                new BasicWebSite.Models.Person
-                {
-                    Id = 9000,
-                    Name = "John <b>Smith</b>"
-                },
-                settings);
-
+            var json = "{\"id\":9000,\"fullName\":\"John <b>Smith</b>\"}";
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
@@ -248,21 +240,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelperWithSettings_RendersPascalCaseJson()
+        public async Task JsonHelperWithSettings_RendersJson_WithNamesUnchanged()
         {
             // Arrange
-            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new DefaultNamingStrategy(),
-            };
-            var json = JsonConvert.SerializeObject(
-                new BasicWebSite.Models.Person()
-                {
-                    Id = 9000,
-                    Name = "John <b>Smith</b>"
-                },
-                settings);
+            var json = "{\"id\":9000,\"FullName\":\"John <b>Smith</b>\"}";
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
@@ -281,21 +262,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelperWithSettings_RendersSnakeCaseJson()
+        public async Task JsonHelperWithSettings_RendersJson_WithSnakeCaseNames()
         {
             // Arrange
-            var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-            settings.ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new SnakeCaseNamingStrategy(),
-            };
-            var json = JsonConvert.SerializeObject(
-                new BasicWebSite.Models.Person()
-                {
-                    Id = 9000,
-                    Name = "John <b>Smith</b>"
-                },
-                settings);
+            var json = "{\"id\":9000,\"full_name\":\"John <b>Smith</b>\"}";
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
