@@ -112,6 +112,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             Assert.Equal(expected, ex.Message);
         }
 
+        [Theory]
+        [InlineData("Name")]
+        [InlineData("Ambiguous.Name")]
+        public void SelectComponent_AmbiguityDueToDerivation(string name)
+        {
+            var selector = CreateSelector();
+            var expected =
+                $"The view component name '{name}' matched multiple types:" + Environment.NewLine +
+                $"Type: '{typeof(ViewComponentContainer.AmbiguousBase)}' - " +
+                "Name: 'Ambiguous.Name'" + Environment.NewLine +
+                $"Type: '{typeof(ViewComponentContainer.DerivedAmbiguous)}' - " +
+                "Name: 'Ambiguous.Name'";
+
+            // Act
+            var ex = Assert.Throws<InvalidOperationException>(() => selector.SelectComponent(name));
+
+            // Assert
+            Assert.Equal(expected, ex.Message);
+        }
+
         [Fact]
         public void SelectComponent_FullNameToAvoidAmbiguity()
         {
@@ -123,6 +143,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
 
             // Assert
             Assert.Same(typeof(ViewComponentContainer.Ambiguous1).GetTypeInfo(), result.TypeInfo);
+        }
+
+        [Fact]
+        public void SelectComponent_OverrideNameToAvoidAmbiguity()
+        {
+            // Arrange
+            var selector = CreateSelector();
+
+            // Act
+            var result = selector.SelectComponent("NonAmbiguousName");
+
+            // Assert
+            Assert.Same(typeof(ViewComponentContainer.DerivedAmbiguousWithOverriddenName).GetTypeInfo(), result.TypeInfo);
         }
 
         [Theory]
@@ -186,6 +219,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             public class FullNameInAttribute
             {
                 public string Invoke() => "Hello";
+            }
+
+            [ViewComponent(Name = "Ambiguous.Name")]
+            public class AmbiguousBase
+            {
+                public string Invoke() => "Hello";
+            }
+
+            public class DerivedAmbiguous : AmbiguousBase
+            {
+            }
+
+            [ViewComponent(Name = "NonAmbiguousName")]
+            public class DerivedAmbiguousWithOverriddenName : AmbiguousBase
+            {
             }
         }
         // This will only consider types nested inside this class as ViewComponent classes
