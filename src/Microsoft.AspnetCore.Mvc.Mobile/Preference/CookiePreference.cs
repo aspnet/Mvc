@@ -1,35 +1,36 @@
 ﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers
 {
+    using Abstractions;
     using AspNetCore.Http;
 
-    public class CookieDevice : IDeviceResolver, IDeviceStore
+    public class CookiePreference : IDevicePreference
     {
         private const string DevicePreferenceCookieKey = "ASP_DEVICE_PREFERENCE";
         private const string MobilePreferenceKey = "MOBILE";
         private const string TabletPreferenceKey = "TABLET";
         private const string NormalPreferenceKey = "NORMAL";
 
-        private readonly DeviceOptions _options;
+        private readonly IDeviceFactory _deviceFactory;
 
-        public CookieDevice(DeviceOptions options)
+        public CookiePreference(IDeviceFactory deviceFactory)
         {
-            _options = options;
+            _deviceFactory = deviceFactory;
         }
 
         public int Priority => 1;
 
-        public IDevice ResolveDevice(HttpContext context)
+        public IDevice LoadPreference(HttpContext context)
         {
             if (context.Request.Cookies.ContainsKey(DevicePreferenceCookieKey))
             {
                 switch (context.Request.Cookies[DevicePreferenceCookieKey])
                 {
                     case MobilePreferenceKey:
-                        return new LiteDevice(DeviceType.Mobile, _options.MobileCode);
+                        return _deviceFactory.Mobile();
                     case TabletPreferenceKey:
-                        return new LiteDevice(DeviceType.Mobile, _options.TabletCode);
+                        return _deviceFactory.Tablet();
                     case NormalPreferenceKey:
-                        return new LiteDevice(DeviceType.Normal);
+                        return _deviceFactory.Normal();
                 }
             }
 
@@ -52,9 +53,6 @@
             }
         }
 
-        public void ResetStore(HttpContext context)
-        {
-            context.Response.Cookies.Delete(DevicePreferenceCookieKey);
-        }
+        public void ResetStore(HttpContext context) => context.Response.Cookies.Delete(DevicePreferenceCookieKey);
     }
 }

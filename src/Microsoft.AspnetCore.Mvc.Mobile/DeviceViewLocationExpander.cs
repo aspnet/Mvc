@@ -1,11 +1,10 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile
 {
     using System;
     using System.Collections.Generic;
+    using Abstractions;
     using AspNetCore.Mvc.Razor;
     using AspNetCore.Mvc.Razor.Internal;
-    using Preference;
-    using Resolvers;
 
     public class DeviceViewLocationExpander : IViewLocationExpander
     {

@@ -1,9 +1,10 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile
 {
     public enum DeviceType 
     {
         Normal,
         Mobile,
-        Tablet
+        Tablet,
+        Other
     }
 }

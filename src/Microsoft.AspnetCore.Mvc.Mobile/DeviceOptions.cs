@@ -1,4 +1,4 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile
 {
     using System.Collections.Generic;
 

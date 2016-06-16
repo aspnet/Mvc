@@ -1,7 +1,6 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Preference
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Abstractions
 {
     using AspNetCore.Http;
-    using Device;
 
     public interface ISitePreferenceRepository
     {

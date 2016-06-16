@@ -1,6 +1,7 @@
 ﻿namespace Microsoft.AspnetCore.Mvc.Mobile
 {
     using System.Threading.Tasks;
+    using Abstractions;
     using AspNetCore.Builder;
     using AspNetCore.Http;
     using AspNetCore.Mvc.Razor;
@@ -8,6 +9,7 @@
     using Device;
     using Device.Resolvers;
     using Extensions.DependencyInjection;
+    using Extensions.DependencyInjection.Extensions;
     using Preference;
 
     public static class Configuration
@@ -23,16 +25,22 @@
             return app;
         }
 
-        public static IServiceCollection AddDeviceDetector(this IServiceCollection services)
-        {
-            services.AddScoped<IDeviceResolver, CookieDevice>();
-            services.AddScoped<IDeviceResolver, CookieDevice>();
-            services.AddScoped<IDeviceResolver, UrlDevice>();
+        public static IServiceCollection AddDeviceDetector(this IServiceCollection services) => services.AddDeviceDetector<DefaultDeviceFactory>();
 
-            services.AddScoped<DeviceViewLocationExpander>();
-            services.AddScoped<DeviceOptions>();
+        public static IServiceCollection AddDeviceDetector<TDeviceFactory>(this IServiceCollection services) where TDeviceFactory : class, IDeviceFactory
+        {
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IDeviceFactory, TDeviceFactory>();
+            services.AddTransient<IDevicePreference, CookiePreference>();
+            services.AddTransient<IDevicePreference, UrlPreference>();
+            services.AddTransient<IDevicePreference, CookiePreference>();
+
+            services.AddTransient<IDeviceResolver, AgentResolver>();
+            services.AddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
+
+            services.AddTransient<DeviceOptions>();
             services.AddScoped<IDeviceAccessor, DeviceAccessor>();
-            services.AddScoped<IDeviceResolver, AgentDevice>();
+            services.AddTransient<DeviceViewLocationExpander>();
             services.Configure<RazorViewEngineOptions>(
                 options =>
                 {
@@ -41,13 +49,12 @@
 
             return services;
         }
-        public static IServiceCollection AddDeviceSwitcher(this IServiceCollection services)
+
+        public static IServiceCollection AddDeviceSwitcher<TPreference>(this IServiceCollection services, SwitcherOptions options = null) where TPreference : IDevicePreference
         {
             services.AddDeviceDetector();
-            services.AddScoped<IDeviceStore, CookieDevice>();
-            services.AddScoped<PreferenceSwitcher>();
-            services.AddScoped<SwitcherOptions>();
-            services.AddScoped<ISitePreferenceRepository, SitePreferenceRepository>();
+            services.AddSingleton<PreferenceSwitcher>();
+            services.AddSingleton(_ => options ?? new SwitcherOptions(services.BuildServiceProvider().GetService<TPreference>()));
             return services;
         }
     }

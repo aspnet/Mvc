@@ -1,5 +1,7 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile
 {
+    using Abstractions;
+
     public class LiteDevice : IDevice
     {
         private readonly DeviceType _deviceType;

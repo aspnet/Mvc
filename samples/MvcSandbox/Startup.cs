@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 namespace MvcSandbox
 {
     using Microsoft.AspnetCore.Mvc.Mobile;
+    using Microsoft.AspnetCore.Mvc.Mobile.Abstractions;
+    using Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers;
     using Microsoft.AspnetCore.Mvc.Mobile.Preference;
 
     public class Startup
@@ -19,7 +21,7 @@ namespace MvcSandbox
         {
             services.AddMvc();
             services.AddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
-            services.AddDeviceSwitcher();
+            services.AddDeviceSwitcher<CookiePreference>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
