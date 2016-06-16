@@ -5,8 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MvcSandbox.Controllers
 {
+    using Microsoft.AspnetCore.Mvc.Mobile.Abstractions;
+
     public class HomeController : Controller
     {
+        private readonly IDeviceAccessor _device;
+
+        public HomeController(IDeviceAccessor device)
+        {
+            _device = device;
+        }
+
         public IActionResult Index()
         {
             return View();

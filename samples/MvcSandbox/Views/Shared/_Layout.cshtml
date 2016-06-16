@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MvcSandbox</title>
-    <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.5/css/bootstrap.min.css"/>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -21,10 +21,16 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+					<li><a href="/choose/mobile">mobile</a></li>
+					<li><a href="/choose/tablet">tablet</a></li>
+					<li><a href="/choose/normal">normal</a></li>
+					<li><a href="/choose/reset">reset</a></li>
                 </ul>
             </div>
         </div>
     </div>
+	<br/>
+	<br />
     <div class="container body-content">
         @RenderBody()
         <hr />
