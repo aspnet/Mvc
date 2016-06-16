@@ -9,12 +9,17 @@ using Microsoft.Extensions.Logging;
 
 namespace MvcSandbox
 {
+    using Microsoft.AspnetCore.Mvc.Mobile;
+    using Microsoft.AspnetCore.Mvc.Mobile.Preference;
+
     public class Startup
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
+            services.AddDeviceSwitcher();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -25,9 +30,16 @@ namespace MvcSandbox
             loggerFactory.AddConsole();
             app.UseMvc(routes =>
             {
+                routes.MapDeviceSwitcher();
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
+                routes.MapRoute(
+                    name: "mobile_default",
+                    template: "m/{controller=Home}/{action=Index}/{id?}");
+                routes.MapRoute(
+                    name: "tablet_default",
+                    template: "t/{controller=Home}/{action=Index}/{id?}");
             });
         }
 
