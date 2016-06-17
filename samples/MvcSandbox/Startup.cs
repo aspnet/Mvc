@@ -11,7 +11,6 @@ namespace MvcSandbox
 {
     using Microsoft.AspnetCore.Mvc.Mobile;
     using Microsoft.AspnetCore.Mvc.Mobile.Abstractions;
-    using Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers;
     using Microsoft.AspnetCore.Mvc.Mobile.Preference;
 
     public class Startup

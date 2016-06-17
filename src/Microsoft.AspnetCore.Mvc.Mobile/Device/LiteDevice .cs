@@ -1,4 +1,4 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
 {
     using Abstractions;
 

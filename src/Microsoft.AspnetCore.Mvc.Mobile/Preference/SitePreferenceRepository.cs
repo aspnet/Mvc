@@ -5,15 +5,15 @@
     using Abstractions;
     using AspNetCore.Http;
     using Device;
-    using Device.Resolvers;
+    using Extensions.Options;
 
     public class SitePreferenceRepository : ISitePreferenceRepository
     {
         private readonly IEnumerable<IDevicePreference> _preferences;
-        private readonly SwitcherOptions _options;
+        private readonly IOptions<SwitcherOptions> _options;
         private readonly IDeviceResolver _deviceResolver;
 
-        public SitePreferenceRepository(IEnumerable<IDevicePreference> preferences, SwitcherOptions options, IDeviceResolver deviceResolver)
+        public SitePreferenceRepository(IEnumerable<IDevicePreference> preferences, IOptions<SwitcherOptions> options, IDeviceResolver deviceResolver)
         {
             _preferences = preferences;
             _options = options;
@@ -26,8 +26,8 @@
                     .Select(t => t.LoadPreference(context))
                     .FirstOrDefault(t => t != null) ?? _deviceResolver.ResolveDevice(context);
 
-        public void ResetPreference(HttpContext context) => _options.Preference.ResetStore(context);
+        public void ResetPreference(HttpContext context) => _options.Value.Preference.ResetStore(context);
 
-        public void SavePreference(HttpContext context, IDevice device) => _options.Preference.StoreDevice(context, device);
+        public void SavePreference(HttpContext context, IDevice device) => _options.Value.Preference.StoreDevice(context, device);
     }
 }

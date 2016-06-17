@@ -1,16 +1,17 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Preference
 {
     using Abstractions;
     using AspNetCore.Http;
     using AspNetCore.Http.Extensions;
+    using Extensions.Options;
 
     public class UrlPreference : IDevicePreference
     {
-        private readonly DeviceOptions _options;
+        private readonly IOptions<DeviceOptions> _options;
         private readonly IDeviceFactory _deviceFactory;
         private readonly IDeviceRedirector _deviceRedirector;
 
-        public UrlPreference(DeviceOptions options, IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
+        public UrlPreference(IOptions<DeviceOptions> options, IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
         {
             _options = options;
             _deviceFactory = deviceFactory;
@@ -23,12 +24,12 @@
         {
             var url = context.Request.GetDisplayUrl();
 
-            if (url.Contains($"/{_options.MobileCode}/") || url.Contains($"/{_options.MobileCode}."))
+            if (url.Contains($"/{_options.Value.MobileCode}/") || url.Contains($"/{_options.Value.MobileCode}."))
             {
                 return _deviceFactory.Mobile();
             }
 
-            if (url.Contains($"/{_options.TabletCode}/") || url.Contains($"/{_options.MobileCode}."))
+            if (url.Contains($"/{_options.Value.TabletCode}/") || url.Contains($"/{_options.Value.MobileCode}."))
             {
                 return _deviceFactory.Tablet();
             }

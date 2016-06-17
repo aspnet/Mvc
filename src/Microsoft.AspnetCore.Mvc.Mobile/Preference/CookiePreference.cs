@@ -1,4 +1,4 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Preference
 {
     using Abstractions;
     using AspNetCore.Http;
@@ -23,17 +23,16 @@
 
         public IDevice LoadPreference(HttpContext context)
         {
-            if (context.Request.Cookies.ContainsKey(DevicePreferenceCookieKey))
+            if (!context.Request.Cookies.ContainsKey(DevicePreferenceCookieKey)) return null;
+
+            switch (context.Request.Cookies[DevicePreferenceCookieKey])
             {
-                switch (context.Request.Cookies[DevicePreferenceCookieKey])
-                {
-                    case MobilePreferenceKey:
-                        return _deviceFactory.Mobile();
-                    case TabletPreferenceKey:
-                        return _deviceFactory.Tablet();
-                    case NormalPreferenceKey:
-                        return _deviceFactory.Normal();
-                }
+                case MobilePreferenceKey:
+                    return _deviceFactory.Mobile();
+                case TabletPreferenceKey:
+                    return _deviceFactory.Tablet();
+                case NormalPreferenceKey:
+                    return _deviceFactory.Normal();
             }
 
             return null;

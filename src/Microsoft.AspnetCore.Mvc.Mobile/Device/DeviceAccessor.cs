@@ -3,7 +3,6 @@
     using Abstractions;
     using AspNetCore.Http;
     using Preference;
-    using Resolvers;
 
     public class DeviceAccessor : IDeviceAccessor
     {

@@ -1,13 +1,14 @@
-﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device.Resolvers
+﻿namespace Microsoft.AspnetCore.Mvc.Mobile.Device
 {
     using System.Collections.Generic;
     using System.Linq;
     using Abstractions;
     using AspNetCore.Http;
+    using Extensions.Options;
 
     public class AgentResolver : IDeviceResolver
     {
-        private readonly DeviceOptions _options;
+        private readonly IOptions<DeviceOptions> _options;
         private readonly IDeviceFactory _deviceFactory;
 
         private static readonly string[] KnownMobileUserAgentPrefixes =
@@ -34,7 +35,7 @@
 
         private static readonly string[] KnownTabletUserAgentKeywords = { "ipad", "playbook", "hp-tablet", "kindle" };
 
-        public AgentResolver(DeviceOptions options, IDeviceFactory deviceFactory)
+        public AgentResolver(IOptions<DeviceOptions> options, IDeviceFactory deviceFactory)
         {
             _options = options;
             _deviceFactory = deviceFactory;
@@ -90,12 +91,12 @@
         }
 
         protected virtual IEnumerable<string> NormalUserAgentKeywords
-            => _options.NormalUserAgentKeywords;
+            => _options.Value.NormalUserAgentKeywords;
         protected virtual IEnumerable<string> MobileUserAgentPrefixes
-            => KnownMobileUserAgentPrefixes.Concat(_options.MobileUserAgentPrefixes);
+            => KnownMobileUserAgentPrefixes.Concat(_options.Value.MobileUserAgentPrefixes);
         protected virtual IEnumerable<string> MobileUserAgentKeywords
-            => KnownMobileUserAgentKeywords.Concat(_options.MobileUserAgentKeywords);
+            => KnownMobileUserAgentKeywords.Concat(_options.Value.MobileUserAgentKeywords);
         protected virtual IEnumerable<string> TabletUserAgentKeywords
-            => KnownTabletUserAgentKeywords.Concat(_options.TabletUserAgentKeywords);
+            => KnownTabletUserAgentKeywords.Concat(_options.Value.TabletUserAgentKeywords);
     }
 }

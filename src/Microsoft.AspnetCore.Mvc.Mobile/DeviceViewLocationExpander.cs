@@ -5,19 +5,20 @@
     using Abstractions;
     using AspNetCore.Mvc.Razor;
     using AspNetCore.Mvc.Razor.Internal;
+    using Extensions.Options;
 
     public class DeviceViewLocationExpander : IViewLocationExpander
     {
         private const string ValueKey = "device";
         private readonly ISitePreferenceRepository _deviceResolver;
-        private readonly DeviceOptions _options;
+        private readonly IOptions<DeviceOptions>_options;
 
         /// <summary>
         /// Instantiates a new <see cref="DefaultTagHelperActivator" /> instance.
         /// </summary>
         /// <param name="options">The <see cref="DeviceOptions" />.</param>
         /// <param name="deviceResolver">The device resolver.</param>
-        public DeviceViewLocationExpander(DeviceOptions options, ISitePreferenceRepository deviceResolver)
+        public DeviceViewLocationExpander(IOptions<DeviceOptions> options, ISitePreferenceRepository deviceResolver)
         {
             _options = options;
             _deviceResolver = deviceResolver;
@@ -65,7 +66,7 @@
         {
             foreach (var location in viewLocations)
             {
-                if (_options.Format == DeviceLocationExpanderFormat.SubFolder)
+                if (_options.Value.Format == DeviceLocationExpanderFormat.SubFolder)
                 {
                     yield return location.Replace("{0}", deviceCode + "/{0}");
                 }

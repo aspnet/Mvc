@@ -4,14 +4,15 @@
     using Abstractions;
     using AspNetCore.Http;
     using AspNetCore.Routing;
+    using Extensions.Options;
 
     public class PreferenceSwitcher
     {
-        private readonly SwitcherOptions _options;
+        private readonly IOptions<SwitcherOptions>_options;
         private readonly IDeviceFactory _deviceFactory;
         private readonly ISitePreferenceRepository _repository;
 
-        public PreferenceSwitcher(SwitcherOptions options, ISitePreferenceRepository repository, IDeviceFactory deviceFactory)
+        public PreferenceSwitcher(IOptions<SwitcherOptions> options, ISitePreferenceRepository repository, IDeviceFactory deviceFactory)
         {
             _options = options;
             _repository = repository;
@@ -25,19 +26,19 @@
                 var device = context.GetRouteValue("device").ToString();
                 if (!string.IsNullOrWhiteSpace(device))
                 {
-                    if (device == _options.MobileKey)
+                    if (device == _options.Value.MobileKey)
                     {
                         _repository.SavePreference(context, _deviceFactory.Mobile());
                     }
-                    else if (device == _options.TabletKey)
+                    else if (device == _options.Value.TabletKey)
                     {
                         _repository.SavePreference(context, _deviceFactory.Tablet());
                     }
-                    else if (device == _options.NormalKey)
+                    else if (device == _options.Value.NormalKey)
                     {
                         _repository.SavePreference(context, _deviceFactory.Normal());
                     }
-                    else if (device == _options.ResetKey)
+                    else if (device == _options.Value.ResetKey)
                     {
                         _repository.ResetPreference(context);
                     }
