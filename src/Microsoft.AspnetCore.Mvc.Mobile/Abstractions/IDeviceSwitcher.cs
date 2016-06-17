@@ -2,7 +2,7 @@
 {
     using AspNetCore.Http;
 
-    public interface IDevicePreference
+    public interface IDeviceSwitcher
     {
         int Priority { get; }
         IDevice LoadPreference(HttpContext context);

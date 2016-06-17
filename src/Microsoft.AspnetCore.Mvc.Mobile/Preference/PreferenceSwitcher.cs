@@ -19,7 +19,7 @@
             _deviceFactory = deviceFactory;
         }
 
-        public Task Handle(HttpContext context)
+        public virtual Task Handle(HttpContext context)
         {
             return Task.Run(() =>
             {

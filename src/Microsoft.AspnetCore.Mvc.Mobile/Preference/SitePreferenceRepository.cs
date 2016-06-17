@@ -9,25 +9,25 @@
 
     public class SitePreferenceRepository : ISitePreferenceRepository
     {
-        private readonly IEnumerable<IDevicePreference> _preferences;
+        private readonly IEnumerable<IDeviceSwitcher> _switchers;
         private readonly IOptions<SwitcherOptions> _options;
         private readonly IDeviceResolver _deviceResolver;
 
-        public SitePreferenceRepository(IEnumerable<IDevicePreference> preferences, IOptions<SwitcherOptions> options, IDeviceResolver deviceResolver)
+        public SitePreferenceRepository(IEnumerable<IDeviceSwitcher> switchers, IOptions<SwitcherOptions> options, IDeviceResolver deviceResolver)
         {
-            _preferences = preferences;
+            _switchers = switchers;
             _options = options;
             _deviceResolver = deviceResolver;
         }
 
         public IDevice LoadPreference(HttpContext context)
-            => _preferences
+            => _switchers
                     .OrderByDescending(t => t.Priority)
                     .Select(t => t.LoadPreference(context))
                     .FirstOrDefault(t => t != null) ?? _deviceResolver.ResolveDevice(context);
 
-        public void ResetPreference(HttpContext context) => _options.Value.Preference.ResetStore(context);
+        public void ResetPreference(HttpContext context) => _options.Value.DefaultSwitcher.ResetStore(context);
 
-        public void SavePreference(HttpContext context, IDevice device) => _options.Value.Preference.StoreDevice(context, device);
+        public void SavePreference(HttpContext context, IDevice device) => _options.Value.DefaultSwitcher.StoreDevice(context, device);
     }
 }

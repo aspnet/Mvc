@@ -5,13 +5,13 @@
     using AspNetCore.Http.Extensions;
     using Extensions.Options;
 
-    public class UrlPreference : IDevicePreference
+    public class UrlSwitcher : IDeviceSwitcher
     {
         private readonly IOptions<DeviceOptions> _options;
         private readonly IDeviceFactory _deviceFactory;
         private readonly IDeviceRedirector _deviceRedirector;
 
-        public UrlPreference(IOptions<DeviceOptions> options, IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
+        public UrlSwitcher(IOptions<DeviceOptions> options, IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
         {
             _options = options;
             _deviceFactory = deviceFactory;

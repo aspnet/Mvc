@@ -9,7 +9,7 @@
         public string TabletKey { get; set; } = "tablet";
         public string NormalKey { get; set; } = "normal";
         public string ResetKey { get; set; } = "reset";
-        public IDevicePreference Preference { get; set; }
-        public string SwithUrl { get; set; } = "choose";
+        public IDeviceSwitcher DefaultSwitcher { get; set; }
+        public string SwitchUrl { get; set; } = "choose";
     }
 }

@@ -16,17 +16,13 @@
     public static class Configuration
     {
         public static IRouteBuilder MapDeviceSwitcher(this IRouteBuilder route)
-        {
-            route.MapGet(
-                route.ServiceProvider.GetService<IOptions<SwitcherOptions>>().Value.SwithUrl + "/{device}",
-                route.ServiceProvider.GetService<PreferenceSwitcher>().Handle);
-            return route;
-        }
+            => route.MapDeviceSwitcher<PreferenceSwitcher>();
 
-        public static IApplicationBuilder UseDeviceDetector(this IApplicationBuilder app)
-        {
-            return app;
-        }
+        public static IRouteBuilder MapDeviceSwitcher<TSwitcher>(this IRouteBuilder route)
+            where TSwitcher : PreferenceSwitcher
+            => route.MapGet(
+                route.ServiceProvider.GetService<IOptions<SwitcherOptions>>().Value.SwitchUrl + "/{device}",
+                route.ServiceProvider.GetRequiredService<TSwitcher>().Handle);
 
         public static IServiceCollection AddDeviceDetector(this IServiceCollection services,
             Action<DeviceOptions> device = null)
@@ -39,8 +35,8 @@
             services.AddOptions();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.TryAddTransient<IDeviceFactory, TDeviceFactory>();
-            services.AddTransient<IDevicePreference, CookiePreference>();
-            services.AddTransient<IDevicePreference, UrlPreference>();
+            services.AddTransient<IDeviceSwitcher, CookieSwitcher>();
+            services.AddTransient<IDeviceSwitcher, UrlSwitcher>();
 
             services.TryAddTransient<IDeviceResolver, AgentResolver>();
             services.TryAddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
@@ -63,20 +59,20 @@
             this IServiceCollection services,
             Action<SwitcherOptions> switcher = null,
             Action<DeviceOptions> device = null)
-            => services.AddDeviceSwitcher<CookiePreference>(switcher, device);
+            => services.AddDeviceSwitcher<CookieSwitcher>(switcher, device);
 
         public static IServiceCollection AddDeviceSwitcher<TPreference>(
             this IServiceCollection services,
             Action<SwitcherOptions> switcher = null,
             Action<DeviceOptions> device = null)
-            where TPreference : class, IDevicePreference
+            where TPreference : class, IDeviceSwitcher
             => services.AddDeviceSwitcher<TPreference, DeviceRedirector>(switcher, device);
 
         public static IServiceCollection AddDeviceSwitcher<TPreference, TRedirector>(
             this IServiceCollection services,
             Action<SwitcherOptions> switcher = null,
             Action<DeviceOptions> device = null)
-            where TPreference : class, IDevicePreference
+            where TPreference : class, IDeviceSwitcher
             where TRedirector : class, IDeviceRedirector
             => services.AddDeviceSwitcher<TPreference, TRedirector, DefaultDeviceFactory>(switcher, device);
 
@@ -85,7 +81,7 @@
             this IServiceCollection services,
             Action<SwitcherOptions> switcher = null,
             Action<DeviceOptions> device = null)
-            where TPreference : class, IDevicePreference
+            where TPreference : class, IDeviceSwitcher
             where TRedirector : class, IDeviceRedirector
             where TDeviceFactory : class, IDeviceFactory
         {
@@ -93,10 +89,12 @@
             services.TryAddTransient<IDeviceRedirector, TRedirector>();
             services.TryAddTransient<TPreference>();
             services.TryAddTransient<PreferenceSwitcher>();
-            services.Configure(switcher ?? (options =>
-            {
-                options.Preference = services.BuildServiceProvider().GetRequiredService<TPreference>();
-            }));
+            services.Configure(switcher ??
+                               (options =>
+                               {
+                                   options.DefaultSwitcher =
+                                       services.BuildServiceProvider().GetRequiredService<TPreference>();
+                               }));
 
             return services;
         }

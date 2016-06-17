@@ -3,7 +3,7 @@
     using Abstractions;
     using AspNetCore.Http;
 
-    public class CookiePreference : IDevicePreference
+    public class CookieSwitcher : IDeviceSwitcher
     {
         private const string DevicePreferenceCookieKey = "ASP_DEVICE_PREFERENCE";
         private const string MobilePreferenceKey = "MOBILE";
@@ -13,7 +13,7 @@
         private readonly IDeviceFactory _deviceFactory;
         private readonly IDeviceRedirector _deviceRedirector;
 
-        public CookiePreference(IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
+        public CookieSwitcher(IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
         {
             _deviceFactory = deviceFactory;
             _deviceRedirector = deviceRedirector;

@@ -20,7 +20,7 @@ namespace MvcSandbox
         {
             services.AddMvc();
             services.AddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
-            services.AddDeviceSwitcher<CookiePreference>();
+            services.AddDeviceSwitcher<UrlSwitcher>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

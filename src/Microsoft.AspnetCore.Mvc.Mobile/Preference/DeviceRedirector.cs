@@ -28,17 +28,17 @@
             context.Response.Redirect(DeviceUrl(ResetUrl(new Uri(referrerUrl).AbsolutePath), code));
         }
 
-        private string DeviceUrl(string resetUrl, string code)
+        protected virtual string DeviceUrl(string resetUrl, string code)
             => $"/{code}{resetUrl}".Replace("//", "/");
 
-        private string ResetUrl(string referrerUrl)
+        protected virtual string ResetUrl(string referrerUrl)
         {
             var url =
                 referrerUrl
-                    .Replace($"/{_switcherOptions.Value.SwithUrl}/{_switcherOptions.Value.NormalKey}", "")
-                    .Replace($"/{_switcherOptions.Value.SwithUrl}/{_switcherOptions.Value.MobileKey}", "")
-                    .Replace($"/{_switcherOptions.Value.SwithUrl}/{_switcherOptions.Value.TabletKey}", "")
-                    .Replace($"/{_switcherOptions.Value.SwithUrl}/{_switcherOptions.Value.ResetKey}", "")
+                    .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.NormalKey}", "")
+                    .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.MobileKey}", "")
+                    .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.TabletKey}", "")
+                    .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.ResetKey}", "")
                     .Replace($"/{_options.Value.TabletCode}/", "/")
                     .Replace($"/{_options.Value.MobileCode}/", "/");
 
