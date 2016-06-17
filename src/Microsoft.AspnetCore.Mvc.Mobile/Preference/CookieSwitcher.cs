@@ -5,10 +5,10 @@
 
     public class CookieSwitcher : IDeviceSwitcher
     {
-        private const string DevicePreferenceCookieKey = "ASP_DEVICE_PREFERENCE";
-        private const string MobilePreferenceKey = "MOBILE";
-        private const string TabletPreferenceKey = "TABLET";
-        private const string NormalPreferenceKey = "NORMAL";
+        private const string DevicePreferenceCookieKey = ".Aspnet.Device.Preference";
+        private const string MobilePreferenceKey = "Mobile";
+        private const string TabletPreferenceKey = "Tablet";
+        private const string NormalPreferenceKey = "Normal";
 
         private readonly IDeviceFactory _deviceFactory;
         private readonly IDeviceRedirector _deviceRedirector;

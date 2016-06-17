@@ -25,24 +25,20 @@
                 referrerUrl = context.Request.Headers["Referer"];
             }
 
-            context.Response.Redirect(DeviceUrl(ResetUrl(new Uri(referrerUrl).AbsolutePath), code));
+            context.Response.Redirect(DeviceUrl(ResetUrl(referrerUrl), code));
         }
 
         protected virtual string DeviceUrl(string resetUrl, string code)
-            => $"/{code}{resetUrl}".Replace("//", "/");
+            => resetUrl.Replace("//", string.IsNullOrWhiteSpace(code) ? "//" : $"//{code}.");
 
         protected virtual string ResetUrl(string referrerUrl)
-        {
-            var url =
-                referrerUrl
+            => referrerUrl
                     .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.NormalKey}", "")
                     .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.MobileKey}", "")
                     .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.TabletKey}", "")
                     .Replace($"/{_switcherOptions.Value.SwitchUrl}/{_switcherOptions.Value.ResetKey}", "")
-                    .Replace($"/{_options.Value.TabletCode}/", "/")
-                    .Replace($"/{_options.Value.MobileCode}/", "/");
+                    .Replace($"//{_options.Value.TabletCode}.", "//")
+                    .Replace($"//{_options.Value.MobileCode}.", "//");
 
-            return string.IsNullOrWhiteSpace(url) ? "/" : url;
-        }
     }
 }

@@ -24,12 +24,12 @@
         {
             var url = context.Request.GetDisplayUrl();
 
-            if (url.Contains($"/{_options.Value.MobileCode}/") || url.Contains($"/{_options.Value.MobileCode}."))
+            if (url.Contains($"//{_options.Value.MobileCode}."))
             {
                 return _deviceFactory.Mobile();
             }
 
-            if (url.Contains($"/{_options.Value.TabletCode}/") || url.Contains($"/{_options.Value.MobileCode}."))
+            if (url.Contains($"//{_options.Value.TabletCode}."))
             {
                 return _deviceFactory.Tablet();
             }
