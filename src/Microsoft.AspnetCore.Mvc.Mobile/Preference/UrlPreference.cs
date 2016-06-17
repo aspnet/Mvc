@@ -8,11 +8,13 @@
     {
         private readonly DeviceOptions _options;
         private readonly IDeviceFactory _deviceFactory;
+        private readonly IDeviceRedirector _deviceRedirector;
 
-        public UrlPreference(DeviceOptions options, IDeviceFactory deviceFactory)
+        public UrlPreference(DeviceOptions options, IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
         {
             _options = options;
             _deviceFactory = deviceFactory;
+            _deviceRedirector = deviceRedirector;
         }
 
         public int Priority => 2;
@@ -35,12 +37,9 @@
         }
 
         public void StoreDevice(HttpContext context, IDevice device)
-        {
-        }
+            => _deviceRedirector.RedirectToDevice(context, device.DeviceCode);
 
         public void ResetStore(HttpContext context)
-        {
-
-        }
+            => _deviceRedirector.RedirectToDevice(context);
     }
 }

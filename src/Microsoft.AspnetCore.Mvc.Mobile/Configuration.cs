@@ -33,7 +33,6 @@
             services.AddTransient<IDeviceFactory, TDeviceFactory>();
             services.AddTransient<IDevicePreference, CookiePreference>();
             services.AddTransient<IDevicePreference, UrlPreference>();
-            services.AddTransient<IDevicePreference, CookiePreference>();
 
             services.AddTransient<IDeviceResolver, AgentResolver>();
             services.AddTransient<ISitePreferenceRepository, SitePreferenceRepository>();
@@ -50,11 +49,12 @@
             return services;
         }
 
-        public static IServiceCollection AddDeviceSwitcher<TPreference>(this IServiceCollection services, SwitcherOptions options = null) where TPreference : IDevicePreference
+        public static IServiceCollection AddDeviceSwitcher<TPreference>(this IServiceCollection services, SwitcherOptions options = null) where TPreference : class, IDevicePreference
         {
             services.AddDeviceDetector();
+            services.TryAddTransient<TPreference>();
             services.AddSingleton<PreferenceSwitcher>();
-            services.AddSingleton(_ => options ?? new SwitcherOptions(services.BuildServiceProvider().GetService<TPreference>()));
+            services.AddSingleton(_ => options ?? new SwitcherOptions(services.BuildServiceProvider().GetRequiredService<TPreference>()));
             return services;
         }
     }

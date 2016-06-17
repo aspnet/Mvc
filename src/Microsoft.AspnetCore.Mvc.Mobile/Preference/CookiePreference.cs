@@ -11,10 +11,12 @@
         private const string NormalPreferenceKey = "NORMAL";
 
         private readonly IDeviceFactory _deviceFactory;
+        private readonly IDeviceRedirector _deviceRedirector;
 
-        public CookiePreference(IDeviceFactory deviceFactory)
+        public CookiePreference(IDeviceFactory deviceFactory, IDeviceRedirector deviceRedirector)
         {
             _deviceFactory = deviceFactory;
+            _deviceRedirector = deviceRedirector;
         }
 
         public int Priority => 1;
@@ -51,8 +53,15 @@
             {
                 context.Response.Cookies.Append(DevicePreferenceCookieKey, NormalPreferenceKey);
             }
+
+            _deviceRedirector.RedirectToDevice(context);
         }
 
-        public void ResetStore(HttpContext context) => context.Response.Cookies.Delete(DevicePreferenceCookieKey);
+        public void ResetStore(HttpContext context)
+        {
+            context.Response.Cookies.Delete(DevicePreferenceCookieKey);
+
+            _deviceRedirector.RedirectToDevice(context);
+        }
     }
 }

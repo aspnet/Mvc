@@ -4,20 +4,17 @@
     using Abstractions;
     using AspNetCore.Http;
     using AspNetCore.Routing;
-    using Device;
 
     public class PreferenceSwitcher
     {
-        private readonly DeviceOptions _deviceOptions;
         private readonly SwitcherOptions _options;
         private readonly IDeviceFactory _deviceFactory;
         private readonly ISitePreferenceRepository _repository;
 
-        public PreferenceSwitcher(SwitcherOptions options, ISitePreferenceRepository repository, DeviceOptions deviceOptions, IDeviceFactory deviceFactory)
+        public PreferenceSwitcher(SwitcherOptions options, ISitePreferenceRepository repository, IDeviceFactory deviceFactory)
         {
             _options = options;
             _repository = repository;
-            _deviceOptions = deviceOptions;
             _deviceFactory = deviceFactory;
         }
 
@@ -40,13 +37,11 @@
                     {
                         _repository.SavePreference(context, _deviceFactory.Normal());
                     }
-                    else
+                    else if (device == _options.ResetKey)
                     {
                         _repository.ResetPreference(context);
                     }
                 }
-
-                context.Response.Redirect("/");
             });
         }
     }
