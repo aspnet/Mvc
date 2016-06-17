@@ -89,12 +89,13 @@
             services.TryAddTransient<IDeviceRedirector, TRedirector>();
             services.TryAddTransient<TPreference>();
             services.TryAddTransient<PreferenceSwitcher>();
-            services.Configure(switcher ??
-                               (options =>
-                               {
-                                   options.DefaultSwitcher =
-                                       services.BuildServiceProvider().GetRequiredService<TPreference>();
-                               }));
+            services.Configure(
+                switcher ??
+                (options =>
+                {
+                    options.DefaultSwitcher =
+                        services.BuildServiceProvider().GetRequiredService<TPreference>();
+                }));
 
             return services;
         }
