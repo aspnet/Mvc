@@ -97,7 +97,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
         {
             // Arrange
             var selector = CreateSelector();
-
             var expected =
                 "The view component name 'Ambiguous' matched multiple types:" + Environment.NewLine +
                 $"Type: '{typeof(ViewComponentContainer.Ambiguous1)}' - " +
@@ -117,6 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
         [InlineData("Ambiguous.Name")]
         public void SelectComponent_AmbiguityDueToDerivation(string name)
         {
+            // Arrange
             var selector = CreateSelector();
             var expected =
                 $"The view component name '{name}' matched multiple types:" + Environment.NewLine +
@@ -176,7 +176,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
         private IViewComponentSelector CreateSelector()
         {
             var provider = new DefaultViewComponentDescriptorCollectionProvider(
-                    new FilteredViewComponentDescriptorProvider());
+                new FilteredViewComponentDescriptorProvider());
+
             return new DefaultViewComponentSelector(provider);
         }
 
@@ -244,12 +245,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             {
             }
 
+            // For error messages in tests above, ensure the TestApplicationPart returns types in a consistent order.
             public FilteredViewComponentDescriptorProvider(params Type[] allowedTypes)
-                : base(GetApplicationPartManager(allowedTypes.Select(t => t.GetTypeInfo())))
+                : base(GetApplicationPartManager(allowedTypes.OrderBy(type => type.Name, StringComparer.Ordinal)))
             {
             }
 
-            private static ApplicationPartManager GetApplicationPartManager(IEnumerable<TypeInfo> types)
+            private static ApplicationPartManager GetApplicationPartManager(IEnumerable<Type> types)
             {
                 var manager = new ApplicationPartManager();
                 manager.ApplicationParts.Add(new TestApplicationPart(types));
