@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
     {
         [Fact]
         [ReplaceCulture]
-        public void AddValidation_WithMaxLength_AddsAttributes_Localize()
+        public void AddValidation_WithMaxLengthAndMinLength_AddsAttributes_Localize()
         {
             // Arrange
             var provider = TestModelMetadataProvider.CreateDefaultProvider();
