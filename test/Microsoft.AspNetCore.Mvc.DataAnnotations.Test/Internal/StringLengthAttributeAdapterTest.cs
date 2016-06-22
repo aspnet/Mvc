@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var metadata = provider.GetMetadataForProperty(typeof(string), "Length");
 
             var attribute = new StringLengthAttribute(8);
-            attribute.ErrorMessage = "Property must not be longer than '{1}' characters.";
+            attribute.ErrorMessage = "Property must not be longer than '{1}' characters and not shorter than '{2}' characters.";
 
-            var expectedMessage = "Property must not be longer than '8' characters.";
+            var expectedMessage = "Property must not be longer than '8' characters and not shorter than '0' characters.";
 
             var stringLocalizer = new Mock<IStringLocalizer>();
             var expectedProperties = new object[] { "Length", 8, 0 };
