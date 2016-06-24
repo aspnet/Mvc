@@ -41,9 +41,6 @@ namespace Microsoft.AspNetCore.Mvc
 
             if (model != null)
             {
-                Assert.IsType(model.GetType(), viewResult.Model);
-                Assert.NotNull(viewResult.Model);
-
                 Assert.IsType(model.GetType(), viewResult.ViewData.Model);
                 Assert.NotNull(viewResult.ViewData.Model);
             }
@@ -74,9 +71,6 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 Assert.IsType(model.GetType(), viewResult.ViewData.Model);
                 Assert.NotNull(viewResult.ViewData.Model);
-
-                Assert.IsType(model.GetType(), viewResult.Model);
-                Assert.NotNull(viewResult.Model);
             }
         }
 
