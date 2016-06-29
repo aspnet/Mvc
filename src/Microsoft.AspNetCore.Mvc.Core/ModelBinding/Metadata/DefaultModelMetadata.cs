@@ -33,7 +33,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
         /// <param name="details">The <see cref="DefaultMetadataDetails"/>.</param>
-        /// <remarks>Use other constructor overload. This is provided for back compatibility and a few tests.</remarks>
         public DefaultModelMetadata(
             IModelMetadataProvider provider,
             ICompositeMetadataDetailsProvider detailsProvider,
@@ -107,8 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 {
                     var context = new BindingMetadataProviderContext(Identity, _details.ModelAttributes);
 
-                    // Provide a unique ModelBindingMessageProvider instance based on the one passed to the constructor
-                    // (from MvcOptions).
+                    // Provide a unique ModelBindingMessageProvider instance so providers' customizations are per-type.
                     context.BindingMetadata.ModelBindingMessageProvider =
                         new ModelBindingMessageProvider(_messageProvider);
 

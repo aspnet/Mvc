@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// Creates a new <see cref="DefaultModelMetadataProvider"/>.
         /// </summary>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
-        /// <remarks>Use other constructor overload. This is provided for back compatibility and a few tests.</remarks>
         public DefaultModelMetadataProvider(ICompositeMetadataDetailsProvider detailsProvider)
             : this(detailsProvider, new ModelBindingMessageProvider())
         {
