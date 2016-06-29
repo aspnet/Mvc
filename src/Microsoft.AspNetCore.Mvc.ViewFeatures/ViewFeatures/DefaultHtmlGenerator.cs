@@ -1286,7 +1286,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// Adds placeholder attribute to the <paramref name="tagBuilder" />.
+        /// Adds a placeholder attribute to the <paramref name="tagBuilder" />.
         /// </summary>
         /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
         /// <param name="tagBuilder">A <see cref="TagBuilder"/> instance.</param>
