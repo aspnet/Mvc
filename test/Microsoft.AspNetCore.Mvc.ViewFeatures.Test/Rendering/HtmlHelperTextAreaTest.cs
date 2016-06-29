@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Mvc.TestCommon;
+using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Rendering
@@ -17,10 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
-            var result = HtmlContentUtilities.HtmlContentToString(helper.TextAreaFor(m => m.Property1));
+            var textArea = helper.TextAreaFor(m => m.Property1);
 
             // Assert 
-            Assert.True(result.Contains(@"placeholder=""HtmlEncode[[placeholder]]"""));
+            var result = HtmlContentUtilities.HtmlContentToString(textArea);
+            Assert.Contains(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -31,9 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
-            var result = HtmlContentUtilities.HtmlContentToString(helper.TextAreaFor(m => m.Property1));
-            
-            Assert.False(result.Contains(@"placeholder=""HtmlEncode[[placeholder]]"""));
+            var textArea = helper.TextAreaFor(m => m.Property1);
+
+            // Assert 
+            var result = HtmlContentUtilities.HtmlContentToString(textArea);
+            Assert.DoesNotContain(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
 
         private class TextAreaModelWithAPlaceholder
