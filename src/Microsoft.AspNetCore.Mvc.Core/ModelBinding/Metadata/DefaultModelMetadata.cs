@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         private readonly IModelMetadataProvider _provider;
         private readonly ICompositeMetadataDetailsProvider _detailsProvider;
         private readonly DefaultMetadataDetails _details;
+        private readonly ModelBindingMessageProvider _messageProvider;
 
         private ReadOnlyDictionary<object, object> _additionalValues;
         private ModelMetadata _elementMetadata;
@@ -32,10 +33,27 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
         /// <param name="details">The <see cref="DefaultMetadataDetails"/>.</param>
+        /// <remarks>Use other constructor overload. This is provided for back compatibility and a few tests.</remarks>
         public DefaultModelMetadata(
             IModelMetadataProvider provider,
             ICompositeMetadataDetailsProvider detailsProvider,
             DefaultMetadataDetails details)
+            : this(provider, detailsProvider, details, new ModelBindingMessageProvider())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DefaultModelMetadata"/>.
+        /// </summary>
+        /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
+        /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
+        /// <param name="details">The <see cref="DefaultMetadataDetails"/>.</param>
+        /// <param name="messageProvider">The <see cref="Metadata.ModelBindingMessageProvider"/>.</param>
+        public DefaultModelMetadata(
+            IModelMetadataProvider provider,
+            ICompositeMetadataDetailsProvider detailsProvider,
+            DefaultMetadataDetails details,
+            ModelBindingMessageProvider messageProvider)
             : base(details.Key)
         {
             if (provider == null)
@@ -53,9 +71,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 throw new ArgumentNullException(nameof(details));
             }
 
+            if (messageProvider == null)
+            {
+                throw new ArgumentNullException(nameof(messageProvider));
+            }
+
             _provider = provider;
             _detailsProvider = detailsProvider;
             _details = details;
+            _messageProvider = messageProvider;
         }
 
         /// <summary>
@@ -82,6 +106,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 if (_details.BindingMetadata == null)
                 {
                     var context = new BindingMetadataProviderContext(Identity, _details.ModelAttributes);
+
+                    // Provide a unique ModelBindingMessageProvider instance based on the one passed to the constructor
+                    // (from MvcOptions).
+                    context.BindingMetadata.ModelBindingMessageProvider =
+                        new ModelBindingMessageProvider(_messageProvider);
+
                     _detailsProvider.CreateBindingMetadata(context);
                     _details.BindingMetadata = context.BindingMetadata;
                 }
