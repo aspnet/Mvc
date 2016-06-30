@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         private readonly TypeCache _typeCache = new TypeCache();
         private readonly Func<ModelMetadataIdentity, ModelMetadataCacheEntry> _cacheEntryFactory;
         private readonly ModelMetadataCacheEntry _metadataCacheEntryForObjectType;
-        private readonly ModelBindingMessageProvider _messageProvider;
 
         /// <summary>
         /// Creates a new <see cref="DefaultModelMetadataProvider"/>.
@@ -43,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
         private DefaultModelMetadataProvider(
             ICompositeMetadataDetailsProvider detailsProvider,
-            ModelBindingMessageProvider messageProvider)
+            ModelBindingMessageProvider modelBindingMessageProvider)
         {
             if (detailsProvider == null)
             {
@@ -51,8 +50,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             }
 
             DetailsProvider = detailsProvider;
+            ModelBindingMessageProvider = modelBindingMessageProvider;
+
             _cacheEntryFactory = CreateCacheEntry;
-            _messageProvider = messageProvider;
             _metadataCacheEntryForObjectType = GetMetadataCacheEntryForObjectType();
         }
 
@@ -60,6 +60,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// Gets the <see cref="ICompositeMetadataDetailsProvider"/>.
         /// </summary>
         protected ICompositeMetadataDetailsProvider DetailsProvider { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Metadata.ModelBindingMessageProvider"/>.
+        /// </summary>
+        /// <value>Same as <see cref="MvcOptions.ModelBindingMessageProvider"/> in all production scenarios.</value>
+        protected ModelBindingMessageProvider ModelBindingMessageProvider { get; }
 
         /// <inheritdoc />
         public virtual IEnumerable<ModelMetadata> GetMetadataForProperties(Type modelType)
@@ -158,7 +164,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// </remarks>
         protected virtual ModelMetadata CreateModelMetadata(DefaultMetadataDetails entry)
         {
-            return new DefaultModelMetadata(this, DetailsProvider, entry, _messageProvider);
+            return new DefaultModelMetadata(this, DetailsProvider, entry, ModelBindingMessageProvider);
         }
 
         /// <summary>

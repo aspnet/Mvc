@@ -16,7 +16,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         private readonly IModelMetadataProvider _provider;
         private readonly ICompositeMetadataDetailsProvider _detailsProvider;
         private readonly DefaultMetadataDetails _details;
-        private readonly ModelBindingMessageProvider _messageProvider;
+
+        // Default message provider for all DefaultModelMetadata instances; cloned before exposing to
+        // IBindingMetadataProvider instances to ensure customizations are not accidentally shared.
+        private readonly ModelBindingMessageProvider _modelBindingMessageProvider;
 
         private ReadOnlyDictionary<object, object> _additionalValues;
         private ModelMetadata _elementMetadata;
@@ -47,12 +50,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// <param name="provider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
         /// <param name="details">The <see cref="DefaultMetadataDetails"/>.</param>
-        /// <param name="messageProvider">The <see cref="Metadata.ModelBindingMessageProvider"/>.</param>
+        /// <param name="modelBindingMessageProvider">The <see cref="Metadata.ModelBindingMessageProvider"/>.</param>
         public DefaultModelMetadata(
             IModelMetadataProvider provider,
             ICompositeMetadataDetailsProvider detailsProvider,
             DefaultMetadataDetails details,
-            ModelBindingMessageProvider messageProvider)
+            ModelBindingMessageProvider modelBindingMessageProvider)
             : base(details.Key)
         {
             if (provider == null)
@@ -70,15 +73,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 throw new ArgumentNullException(nameof(details));
             }
 
-            if (messageProvider == null)
+            if (modelBindingMessageProvider == null)
             {
-                throw new ArgumentNullException(nameof(messageProvider));
+                throw new ArgumentNullException(nameof(modelBindingMessageProvider));
             }
 
             _provider = provider;
             _detailsProvider = detailsProvider;
             _details = details;
-            _messageProvider = messageProvider;
+            _modelBindingMessageProvider = modelBindingMessageProvider;
         }
 
         /// <summary>
@@ -108,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
                     // Provide a unique ModelBindingMessageProvider instance so providers' customizations are per-type.
                     context.BindingMetadata.ModelBindingMessageProvider =
-                        new ModelBindingMessageProvider(_messageProvider);
+                        new ModelBindingMessageProvider(_modelBindingMessageProvider);
 
                     _detailsProvider.CreateBindingMetadata(context);
                     _details.BindingMetadata = context.BindingMetadata;
