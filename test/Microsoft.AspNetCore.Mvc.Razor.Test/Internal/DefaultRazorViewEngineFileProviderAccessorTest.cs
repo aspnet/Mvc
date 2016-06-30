@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -12,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     public class DefaultRazorViewEngineFileProviderAccessorTest
     {
         [Fact]
-        public void FileProvider_ReturnsInstanceIfExactlyOneFileProviderIsSpecified()
+        public void FileProvider_ReturnsInstance_IfExactlyOneFileProviderIsRegistered()
         {
             // Arrange
             var fileProvider = new TestFileProvider();
@@ -30,27 +29,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         [Fact]
-        public void Constructor_ThrowsIfNoInstancesAreRegistered()
+        public void FileProvider_ReturnsNullFileProvider_IfNoInstancesAreRegistered()
         {
             // Arrange
-            var expected =
-                $"'{typeof(RazorViewEngineOptions).FullName}.{nameof(RazorViewEngineOptions.FileProviders)}' must " +
-                $"not be empty. At least one '{typeof(IFileProvider).FullName}' is required to locate a view for " +
-                "rendering." + Environment.NewLine +
-                "Parameter name: optionsAccessor";
             var options = new RazorViewEngineOptions();
             var optionsAccessor = new Mock<IOptions<RazorViewEngineOptions>>();
             optionsAccessor.SetupGet(o => o.Value).Returns(options);
+            var fileProviderAccessor = new DefaultRazorViewEngineFileProviderAccessor(optionsAccessor.Object);
 
-            // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(
-                "optionsAccessor",
-                () => new DefaultRazorViewEngineFileProviderAccessor(optionsAccessor.Object));
-            Assert.Equal(expected, exception.Message);
+            // Act
+            var actual = fileProviderAccessor.FileProvider;
+
+            // Assert
+            Assert.IsType<NullFileProvider>(actual);
         }
 
         [Fact]
-        public void FileProvider_ReturnsCompositeFileProviderIfMoreThanOneInstanceIsRegistered()
+        public void FileProvider_ReturnsCompositeFileProvider_IfMoreThanOneInstanceIsRegistered()
         {
             // Arrange
             var options = new RazorViewEngineOptions();

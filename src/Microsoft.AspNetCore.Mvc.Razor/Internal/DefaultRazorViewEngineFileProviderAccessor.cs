@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
@@ -21,11 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProviders = optionsAccessor.Value.FileProviders;
             if (fileProviders.Count == 0)
             {
-                var message = Resources.FormatFileProvidersAreRequired(
-                    typeof(RazorViewEngineOptions).FullName,
-                    nameof(RazorViewEngineOptions.FileProviders),
-                    typeof(IFileProvider).FullName);
-                throw new ArgumentException(message, nameof(optionsAccessor));
+                FileProvider = new NullFileProvider();
             }
             else if (fileProviders.Count == 1)
             {
