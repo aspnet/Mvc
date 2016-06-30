@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,22 +10,26 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
+namespace Microsoft.AspNetCore.Mvc
 {
-    public class ViewResultTest
+    // These tests cover the logic included in PartialViewResult.ExecuteResultAsync - see PartialViewResultExecutorTest
+    // and ViewExecutorTest for more comprehensive tests.
+    public class PartialViewResultTest
     {
         [Fact]
         public void Model_ExposesViewDataModel()
         {
             // Arrange
             var customModel = new object();
-            var viewResult = new ViewResult
+            var viewResult = new PartialViewResult
             {
                 ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider())
                 {
@@ -51,15 +55,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
             viewEngine
-                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ true))
+                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, new[] { "Location1", "Location2" }))
                 .Verifiable();
+
             viewEngine
-                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ true))
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, Enumerable.Empty<string>()))
                 .Verifiable();
 
-            var viewResult = new ViewResult
+            var viewResult = new PartialViewResult
             {
                 ViewEngine = viewEngine.Object,
                 ViewName = viewName,
@@ -88,16 +93,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
             viewEngine
-                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ true))
+                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, Enumerable.Empty<string>()))
                 .Verifiable();
 
             viewEngine
-                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ true))
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, new[] { "Location1", "Location2" }))
                 .Verifiable();
 
-            var viewResult = new ViewResult
+            var viewResult = new PartialViewResult
             {
                 ViewEngine = viewEngine.Object,
                 ViewName = viewName,
@@ -128,15 +133,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
             viewEngine
-                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ true))
+                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, new[] { "Location1", "Location2" }))
                 .Verifiable();
+
             viewEngine
-                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ true))
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, new[] { "Location3", "Location4" }))
                 .Verifiable();
 
-            var viewResult = new ViewResult
+            var viewResult = new PartialViewResult
             {
                 ViewEngine = viewEngine.Object,
                 ViewName = viewName,
@@ -172,20 +178,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Used by logging
             view
                 .SetupGet(v => v.Path)
-                .Returns("myview.cshtml");
+                .Returns($"{viewName}.cshtml");
 
             var viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
             viewEngine
-                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ true))
+                .Setup(v => v.GetView(/*executingFilePath*/ null, viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.NotFound(viewName, Enumerable.Empty<string>()))
                 .Verifiable();
 
             viewEngine
-                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ true))
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), viewName, /*isMainPage*/ false))
                 .Returns(ViewEngineResult.Found(viewName, view.Object))
                 .Verifiable();
 
-            var viewResult = new ViewResult
+            var viewResult = new PartialViewResult
             {
                 ViewName = viewName,
                 ViewEngine = viewEngine.Object,
@@ -201,13 +207,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             viewEngine.Verify();
         }
 
-        private ActionContext GetActionContext() => new ActionContext(GetHttpContext(), new RouteData(), new ActionDescriptor());
+        private ActionContext GetActionContext()
+        {
+            return new ActionContext(GetHttpContext(), new RouteData(), new ActionDescriptor());
+        }
 
         private HttpContext GetHttpContext()
         {
             var options = new TestOptionsManager<MvcViewOptions>();
 
-            var viewExecutor = new ViewResultExecutor(
+            var viewExecutor = new PartialViewResultExecutor(
                 options,
                 new TestHttpResponseStreamWriterFactory(),
                 new CompositeViewEngine(options),
