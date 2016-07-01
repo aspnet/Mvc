@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <see cref="UrlActionContext.Host"/> are non-<c>null</c>.
         /// </summary>
         /// <param name="actionContext">The context object for the generated URLs for an action method.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         string Action(UrlActionContext actionContext);
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <see cref="UrlActionContext.Protocol"/> and <see cref="UrlActionContext.Host"/> are non-<c>null</c>.
         /// </summary>
         /// <param name="routeContext">The context object for the generated URLs for a route.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         string RouteUrl(UrlRouteContext routeContext);
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="routeName">The name of the route that is used to generate URL.</param>
         /// <param name="values">An object that contains route values.</param>
-        /// <returns>The absolute URL.</returns>
+        /// <returns>The generated absolute URL.</returns>
         string Link(string routeName, object values);
     }
 }

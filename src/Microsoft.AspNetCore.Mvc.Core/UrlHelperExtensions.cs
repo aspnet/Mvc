@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Generates a URL with an absolute path for an action method.
         /// </summary>
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(this IUrlHelper helper)
         {
             if (helper == null)
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="action">The name of the action method.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(this IUrlHelper helper, string action)
         {
             if (helper == null)
@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="action">The name of the action method.</param>
         /// <param name="values">An object that contains route values.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(this IUrlHelper helper, string action, object values)
         {
             if (helper == null)
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="action">The name of the action method.</param>
         /// <param name="controller">The name of the controller.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(this IUrlHelper helper, string action, string controller)
         {
             if (helper == null)
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="action">The name of the action method.</param>
         /// <param name="controller">The name of the controller.</param>
         /// <param name="values">An object that contains route values.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(this IUrlHelper helper, string action, string controller, object values)
         {
             if (helper == null)
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="controller">The name of the controller.</param>
         /// <param name="values">An object that contains route values.</param>
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(
             this IUrlHelper helper,
             string action,
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="values">An object that contains route values.</param>
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
         /// <param name="host">The host name for the URL.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(
             this IUrlHelper helper,
             string action,
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
         /// <param name="host">The host name for the URL.</param>
         /// <param name="fragment">The fragment for the URL.</param>
-        /// <returns>The URL with an absolute path for an action method.</returns>
+        /// <returns>The generated URL.</returns>
         public static string Action(
             this IUrlHelper helper,
             string action,
@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="values">An object that contains route values.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(this IUrlHelper helper, object values)
         {
             if (helper == null)
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="routeName">The name of the route that is used to generate URL.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(this IUrlHelper helper, string routeName)
         {
             if (helper == null)
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
         /// <param name="routeName">The name of the route that is used to generate URL.</param>
         /// <param name="values">An object that contains route values.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(this IUrlHelper helper, string routeName, object values)
         {
             if (helper == null)
@@ -255,7 +255,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="routeName">The name of the route that is used to generate URL.</param>
         /// <param name="values">An object that contains route values.</param>
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(
             this IUrlHelper helper,
             string routeName,
@@ -281,7 +281,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="values">An object that contains route values.</param>
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
         /// <param name="host">The host name for the URL.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(
             this IUrlHelper helper,
             string routeName,
@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
         /// <param name="host">The host name for the URL.</param>
         /// <param name="fragment">The fragment for the URL.</param>
-        /// <returns>The URL with an absolute path.</returns>
+        /// <returns>The generated URL.</returns>
         public static string RouteUrl(
             this IUrlHelper helper,
             string routeName,

@@ -42,17 +42,19 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         public ActionContext ActionContext { get; }
 
         /// <summary>
-        /// Gets the <see cref="RouteValueDictionary"/>.
+        /// Gets the <see cref="RouteValueDictionary"/> associated with the current request. Used to provide values not
+        /// available elsewhere.
         /// </summary>
         protected RouteValueDictionary AmbientValues => ActionContext.RouteData.Values;
 
         /// <summary>
-        /// Gets the <see cref="Http.HttpContext"/>
+        /// Gets the <see cref="Http.HttpContext"/> associated with the current request.
         /// </summary>
         protected HttpContext HttpContext => ActionContext.HttpContext;
 
         /// <summary>
-        /// Gets the <see cref="IRouter"/>.
+        /// Gets the top-level <see cref="IRouter"/> associated with the current request. Generally an
+        /// <see cref="IRouteCollection"/> implementation.
         /// </summary>
         protected IRouter Router => ActionContext.RouteData.Routers[0];
 
@@ -130,7 +132,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// </summary>
         /// <param name="routeName">The name of the route that is used to generate the <see cref="VirtualPathData"/>.
         /// </param>
-        /// <param name="values">The <see cref="RouteValueDictionary"/>.</param>
+        /// <param name="values">
+        /// The <see cref="RouteValueDictionary"/>. The <see cref="Router"/> uses these values, in combination with
+        /// <see cref="AmbientValues"/>, to generate the URL.
+        /// </param>
         /// <returns>The <see cref="VirtualPathData"/>.</returns>
         protected virtual VirtualPathData GetVirtualPathData(string routeName, RouteValueDictionary values)
         {
