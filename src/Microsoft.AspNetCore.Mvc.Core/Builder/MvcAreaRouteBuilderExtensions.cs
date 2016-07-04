@@ -128,10 +128,10 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             var defaultsDictionary = new RouteValueDictionary(defaults);
-            defaultsDictionary["area"] = areaName;
+            defaultsDictionary["area"] = defaultsDictionary.ContainsKey("area") ? (defaultsDictionary["area"]?? areaName) : areaName;
 
             var constraintsDictionary = new RouteValueDictionary(constraints);
-            constraintsDictionary["area"] = areaName;
+            constraintsDictionary["area"] = constraintsDictionary.ContainsKey("area") ? (constraintsDictionary["area"]??areaName) : areaName;
 
             routeBuilder.MapRoute(name, template, defaultsDictionary, constraintsDictionary, dataTokens);
             return routeBuilder;

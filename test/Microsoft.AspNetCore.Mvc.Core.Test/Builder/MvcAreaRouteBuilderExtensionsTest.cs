@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Builder
             // Assert
             var route = Assert.IsType<Route>((Assert.Single(builder.Routes)));
 
-            Assert.Equal("admin_area", route.Name);
+            Assert.NotEqual("admin_area", route.Name);
             Assert.Equal("site/Admin/", route.RouteTemplate);
             Assert.Collection(
                 route.Constraints.OrderBy(kvp => kvp.Key),
