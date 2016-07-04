@@ -43,7 +43,7 @@ namespace RoutingWebSite
                    "flightRoute",
                    "adminRoute",
                    "{area:exists}/{controller}/{action}",
-                   null,
+                   new { controller = "Home", action = "Index" },
                    new { area = "Travel" }
                );
 
