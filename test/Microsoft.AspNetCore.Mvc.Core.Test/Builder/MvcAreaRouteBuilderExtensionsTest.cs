@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.IsType<RegexRouteConstraint>(kvp.Value);
+                    Assert.IsType<IntRouteConstraint>(kvp.Value);
                 });
             Assert.Collection(
                 route.DataTokens.OrderBy(kvp => kvp.Key),
