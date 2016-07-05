@@ -230,7 +230,9 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var attribute = new RemoteAttribute(routeName: "default");
-            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
+            var expected = new ArgumentException(
+                "Value cannot be null or empty.",
+                "property").Message;
 
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(
@@ -244,7 +246,9 @@ namespace Microsoft.AspNetCore.Mvc
         public void FormatPropertyForClientValidation_WithInvalidPropertyName_Throws(string property)
         {
             // Arrange
-            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
+            var expected = new ArgumentException(
+                "Value cannot be null or empty.",
+                "property").Message;
 
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(

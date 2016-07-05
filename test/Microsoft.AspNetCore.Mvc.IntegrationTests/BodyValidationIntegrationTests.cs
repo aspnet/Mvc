@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.IntegrationTests
@@ -127,21 +128,16 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(boundPerson);
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
-            Assert.Equal("CompanyName cannot be null or empty.", modelStateErrors["CompanyName"]);
-            Assert.Equal("The field Price must be between 20 and 100.", modelStateErrors["Price"]);
+            Assert.Contains("CompanyName", modelStateErrors["CompanyName"]);
+
+            Assert.Contains("Price", modelStateErrors["Price"]);
+            Assert.Contains("20", modelStateErrors["Price"]);
+            Assert.Contains("100", modelStateErrors["Price"]);
             // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Category field is required."),
-                modelStateErrors["Category"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Contact Us field is required."),
-                modelStateErrors["Contact"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Detail2 field is required."),
-                modelStateErrors["ProductDetails.Detail2"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Detail3 field is required."),
-                modelStateErrors["ProductDetails.Detail3"]);
+            Assert.Contains("Category", modelStateErrors["Category"]);
+            Assert.Contains("Contact Us", modelStateErrors["Contact"]);
+            Assert.Contains("Detail2", modelStateErrors["ProductDetails.Detail2"]);
+            Assert.Contains("Detail3", modelStateErrors["ProductDetails.Detail3"]);
         }
 
         [Fact]
@@ -179,9 +175,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(boundPerson);
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The ProductDetails field is required."),
-                modelStateErrors["ProductDetails"]);
+            Assert.Contains("ProductDetails", modelStateErrors["ProductDetails"]);
         }
 
         [Fact]
@@ -297,10 +291,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
             Assert.Equal(2, modelStateErrors.Count);
-            Assert.Equal("The field Price must be between 100 and 200.", modelStateErrors["Price"]);
-            Assert.Equal(
-                "The field Contact must be a string with a maximum length of 10.",
-                modelStateErrors["Contact"]);
+            Assert.Contains("Price", modelStateErrors["Price"]);
+            Assert.Contains("100", modelStateErrors["Price"]);
+            Assert.Contains("200", modelStateErrors["Price"]);
+
+            Assert.Contains("Contact", modelStateErrors["Contact"]);
+            Assert.Contains("10", modelStateErrors["Contact"]);
         }
 
         [Fact]
@@ -391,7 +387,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
             var error = Assert.Single(modelState[key].Errors);
             // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Address field is required."), error.ErrorMessage);
+            Assert.Contains("Address", error.ErrorMessage);
         }
 
         [Fact]
@@ -637,8 +633,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var street = entry.Value;
             Assert.Equal(ModelValidationState.Invalid, street.ValidationState);
             var error = Assert.Single(street.Errors);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Street field is required."), error.ErrorMessage);
+            Assert.Contains("Street", error.ErrorMessage);
         }
 
         private class Person3

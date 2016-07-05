@@ -413,10 +413,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             {
                 { "class", "some-class"}
             };
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+            var expected = new ArgumentException("The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.", "expression").Message;
 
             // Act and Assert
             ExceptionAssert.ThrowsArgument(
@@ -449,9 +448,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenGeneratesUnobtrusiveValidation()
         {
             // Arrange
+            var requiredMessage = new RequiredAttribute().FormatErrorMessage("Property2");
             // Mono issue - https://github.com/aspnet/External/issues/19
             var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{requiredMessage}]]"" " +
                 @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[hidden]]"" value="""" />");
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
 
@@ -713,9 +713,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenFor_GeneratesUnobtrusiveValidationAttributes()
         {
             // Arrange
+            var attritbute = new RequiredAttribute();
+            var requiredMessage = attritbute.FormatErrorMessage("Property2");
             // Mono issue - https://github.com/aspnet/External/issues/19
             var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{requiredMessage}]]"" " +
                 @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[hidden]]"" value="""" />");
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
 

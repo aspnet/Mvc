@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
@@ -43,13 +44,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
             // Arrange
             var wrapperProvider = new SerializableErrorWrapperProvider();
             var person = new Person() { Id = 10, Name = "John" };
-            var expectedMessage = string.Format("The object to be wrapped must be of type '{0}'" +
-                                    $" but was of type 'Person'.{Environment.NewLine}Parameter name: original",
-                                    typeof(SerializableErrorWrapper).Name);
+            var serializableName = typeof(SerializableErrorWrapper).Name;
 
             // Act and Assert
             var exception = Assert.Throws<ArgumentException>(() => wrapperProvider.Wrap(person));
-            Assert.Equal(expectedMessage, exception.Message);
+            Assert.Equal("original", exception.ParamName);
+            Assert.Contains("'Person'", exception.Message);
         }
     }
 }

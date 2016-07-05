@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -675,7 +676,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal("Addresses[Key1].Street", kvp.Key);
             var entry = kvp.Value;
             var error = Assert.Single(entry.Errors);
-            Assert.Equal("The field Street must be a string with a maximum length of 3.", error.ErrorMessage);
+            Assert.Contains("Street", error.ErrorMessage);
+            Assert.Contains("3", error.ErrorMessage);
         }
 
         [Theory]
@@ -714,7 +716,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
             var entry = Assert.Single(modelState).Value;
             var error = Assert.Single(entry.Errors);
-            Assert.Equal("The field Street must be a string with a maximum length of 3.", error.ErrorMessage);
+            Assert.Contains("Street", error.ErrorMessage);
+            Assert.Contains("3", error.ErrorMessage);
         }
 
         // parameter type, form content, expected type

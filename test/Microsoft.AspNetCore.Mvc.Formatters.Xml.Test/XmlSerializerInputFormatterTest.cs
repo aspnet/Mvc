@@ -1,6 +1,5 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 #if NET451
 using System;
 using System.Collections.Generic;
@@ -304,11 +303,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         public async Task ReadAsync_FallsbackToUTF8_WhenCharSet_NotInContentType()
         {
             // Arrange
-            var expectedException = TestPlatformHelper.IsMono ? typeof(InvalidOperationException) :
-                                                                typeof(XmlException);
-            var expectedMessage = TestPlatformHelper.IsMono ?
-                "There is an error in XML document." :
-                "The expected encoding 'utf-8' does not match the actual encoding 'utf-16LE'.";
+            var expectedException = typeof(XmlException);
 
             var inpStart = Encoding.Unicode.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-16\"?>" +
                 "<DummyClass><SampleInt>");
@@ -325,18 +320,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 
             // Act and Assert
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.Contains("utf-8", ex.Message);
+            Assert.Contains("utf-16LE", ex.Message);
         }
 
         [Fact]
         public async Task ReadAsync_UsesContentTypeCharSet_ToReadStream()
         {
             // Arrange
-            var expectedException = TestPlatformHelper.IsMono ? typeof(InvalidOperationException) :
-                                                                typeof(XmlException);
-            var expectedMessage = TestPlatformHelper.IsMono ?
-                "There is an error in XML document." :
-                "The expected encoding 'utf-16LE' does not match the actual encoding 'utf-8'.";
+            var expectedException = typeof(XmlException);
 
             var inputBytes = Encoding.UTF8.GetBytes("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<DummyClass><SampleInt>1000</SampleInt></DummyClass>");
@@ -357,7 +349,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 
             // Act and Assert
             var ex = await Assert.ThrowsAsync(expectedException, () => formatter.ReadAsync(context));
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.Contains("utf-16LE", ex.Message);
+            Assert.Contains("utf-8", ex.Message);
         }
 
         [Fact]

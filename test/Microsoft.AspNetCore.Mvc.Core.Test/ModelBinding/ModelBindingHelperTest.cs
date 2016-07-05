@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -49,8 +50,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public async Task TryUpdateModel_ReturnsFalse_IfModelValidationFails()
         {
             // Arrange
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            var expectedMessage = PlatformNormalizer.NormalizeContent("The MyProperty field is required.");
             var binderProviders = new IModelBinderProvider[]
             {
                 new SimpleTypeModelBinderProvider(),
@@ -86,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Assert
             Assert.False(result);
             var error = Assert.Single(modelState["MyProperty"].Errors);
-            Assert.Equal(expectedMessage, error.ErrorMessage);
+            Assert.Contains("MyProperty", error.ErrorMessage);
         }
 
         [Fact]
@@ -625,13 +624,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     Mock.Of<IValueProvider>(),
                     new Mock<IObjectModelValidator>(MockBehavior.Strict).Object,
                     propertyFilter));
-
-            var expectedMessage = string.Format("The model's runtime type '{0}' is not assignable to the type '{1}'." +
-                Environment.NewLine +
-                "Parameter name: modelType",
-                model.GetType().FullName,
-                typeof(User).FullName);
-            Assert.Equal(expectedMessage, exception.Message);
+            var expectedMessage = Resources.FormatModelType_WrongType(model.GetType().FullName, typeof(User).FullName);
+            Assert.StartsWith(expectedMessage, exception.Message);
         }
 
         [Theory]

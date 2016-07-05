@@ -373,10 +373,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             string ignoredHtml)
         {
             // Arrange
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+            var expected = new ArgumentException("The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.",
+                "expression").Message;
             var helper = DefaultTemplatesUtilities.GetHtmlHelper();
 
             // Act & Assert

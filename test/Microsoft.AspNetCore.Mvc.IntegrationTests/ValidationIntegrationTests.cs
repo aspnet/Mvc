@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Testing;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -112,7 +113,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 modelState,
                 e => string.Equals(e.Key, "AccountId", StringComparison.OrdinalIgnoreCase)).Value;
             var error = Assert.Single(entry.Errors);
-            Assert.Equal("The field AccountId must be between 25 and 50.", error.ErrorMessage);
+            Assert.Contains("AccountId", error.ErrorMessage);
+            Assert.Contains("25", error.ErrorMessage);
+            Assert.Contains("50", error.ErrorMessage);
         }
 
         [Theory]
@@ -1495,8 +1498,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         private static void AssertRequiredError(string key, ModelError error)
         {
             // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent(
-                string.Format("The {0} field is required.", key)), error.ErrorMessage);
+            Assert.Contains(key, error.ErrorMessage);
             Assert.Null(error.Exception);
         }
     }

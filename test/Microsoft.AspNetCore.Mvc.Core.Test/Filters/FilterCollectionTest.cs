@@ -3,6 +3,7 @@
 
 using System;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.Core;
 
 namespace Microsoft.AspNetCore.Mvc.Filters
 {
@@ -42,16 +43,16 @@ namespace Microsoft.AspNetCore.Mvc.Filters
             // Arrange
             var collection = new FilterCollection();
 
-            var expectedMessage =
-                $"The type '{typeof(NonFilter).FullName}' must derive from " +
-                $"'{typeof(IFilterMetadata).FullName}'." + Environment.NewLine +
-                "Parameter name: filterType";
+            var expectedMessage = Resources.FormatTypeMustDeriveFromType(
+                typeof(NonFilter).FullName,
+                typeof(IFilterMetadata).FullName);
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => { collection.Add(typeof(NonFilter)); });
 
             // Assert
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.StartsWith(expectedMessage, ex.Message);
+            Assert.Equal("filterType", ex.ParamName);
         }
 
         [Fact]
@@ -88,16 +89,16 @@ namespace Microsoft.AspNetCore.Mvc.Filters
             // Arrange
             var collection = new FilterCollection();
 
-            var expectedMessage =
-                $"The type '{typeof(NonFilter).FullName}' must derive from " +
-                $"'{typeof(IFilterMetadata).FullName}'." + Environment.NewLine +
-                "Parameter name: filterType";
+            var expectedMessage = Resources.FormatTypeMustDeriveFromType(
+                typeof(NonFilter).FullName,
+                typeof(IFilterMetadata).FullName);
 
             // Act & Assert
             var ex = Assert.Throws<ArgumentException>(() => { collection.AddService(typeof(NonFilter)); });
 
             // Assert
-            Assert.Equal(expectedMessage, ex.Message);
+            Assert.StartsWith(expectedMessage, ex.Message);
+            Assert.Equal("filterType", ex.ParamName);
         }
 
         private class MyFilter : IFilterMetadata, IOrderedFilter

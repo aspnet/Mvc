@@ -65,13 +65,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             // Arrange
             var options = new FormatterMappings();
             var format = "";
-            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: format";
 
             // Act and assert
             var exception = Assert.Throws<ArgumentException>(() => options.SetMediaTypeMappingForFormat(
                 format,
                 MediaTypeHeaderValue.Parse("application/xml")));
-            Assert.Equal(expected, exception.Message);
+            Assert.Equal("format", exception.ParamName);
         }
 
 

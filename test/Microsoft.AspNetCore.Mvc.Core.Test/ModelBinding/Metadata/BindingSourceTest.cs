@@ -3,6 +3,7 @@
 
 using System;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.Core;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
@@ -12,11 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void BindingSource_CanAcceptDataFrom_ThrowsOnComposite()
         {
             // Arrange
-            var expected =
-                "The provided binding source 'Test Source' is a composite. " +
-                "'CanAcceptDataFrom' requires that the source must represent a single type of input." +
-                Environment.NewLine +
-                "Parameter name: bindingSource";
+            var expected = Resources.FormatBindingSource_CannotBeComposite("Test Source", "CanAcceptDataFrom");
 
             var bindingSource = CompositeBindingSource.Create(
                 bindingSources: new BindingSource[] { BindingSource.Query, BindingSource.Form },
@@ -25,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(
                 () => BindingSource.Query.CanAcceptDataFrom(bindingSource));
-            Assert.Equal(expected, exception.Message);
+            Assert.StartsWith(expected, exception.Message);
         }
 
         [Fact]
