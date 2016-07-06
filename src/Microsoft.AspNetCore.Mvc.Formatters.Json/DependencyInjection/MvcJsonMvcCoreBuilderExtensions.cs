@@ -47,6 +47,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
+        public static IMvcCoreBuilder AddJsonOptions(
+           this IMvcCoreBuilder builder,
+           Action<MvcJsonOptions> setupAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (setupAction == null)
+            {
+                throw new ArgumentNullException(nameof(setupAction));
+            }
+
+            builder.Services.Configure<MvcJsonOptions>(setupAction);
+            return builder;
+        }
+
         // Internal for testing.
         internal static void AddJsonFormatterServices(IServiceCollection services)
         {
