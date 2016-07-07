@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         [Fact]
-        public void MapAreaRoute_NotReplaceValuesForAreaIfAlredyPresentInContraintOrDefault()
+        public void MapAreaRoute_NotReplaceValuesForAreaIfAlredyPresentInConstraintsOrDefaults()
         {
             // Arrange
             var builder = CreateRouteBuilder();
