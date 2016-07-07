@@ -185,7 +185,7 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         [Fact]
-        public void MapAreaRoute_ReplacesValuesForArea()
+        public void MapAreaRoute_NotReplaceValuesForAreaIfAlredyPresentInContraintOrDefault()
         {
             // Arrange
             var builder = CreateRouteBuilder();
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.NotEqual(kvp.Value, "admin");
+                    Assert.Equal(kvp.Value, "Home");
                 });
         }
 

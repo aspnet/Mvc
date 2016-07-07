@@ -26,19 +26,6 @@ namespace RoutingWebSite
 
             app.UseMvc(routes =>
             {
-                //routes.MapRoute(
-                //    "areaRoute",
-                //    "{area:exists}/{controller}/{action}",
-                //    new { controller = "Home", action = "Index" });
-
-                //routes.MapAreaRoute(
-                //    "areaRoute",
-                //    "adminRoute",
-                //    "{area:exists}/{controller}/{action}",
-                //    null,
-                //    new { area = "Admin" }
-                //);
-
                 routes.MapAreaRoute(
                    "flightRoute",
                    "adminRoute",
