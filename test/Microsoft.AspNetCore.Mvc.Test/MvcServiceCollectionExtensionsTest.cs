@@ -229,18 +229,10 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void AddMvcCore_ConfigureJsonOption()
+        public void AddMvcCore_CheckAdded_MvcJsonOption()
         {
-            // Arrange
             var services = new ServiceCollection();
-            
-            var expected = new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented
-            };
-            
-            // Act
+           
             services.AddMvcCore().
                 AddJsonOptions((options) =>
             {
@@ -248,11 +240,8 @@ namespace Microsoft.AspNetCore.Mvc
                 options.SerializerSettings.Formatting = Formatting.Indented;
             });
 
-
             // Assert
-            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(IConfigureOptions<MvcJsonOptions>)).ServiceType.GenericTypeArguments.First();
-            
-            Assert.Same(expected, descriptor);
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(IConfigureOptions<MvcJsonOptions>));
         }
 
         private IEnumerable<Type> SingleRegistrationServiceTypes
