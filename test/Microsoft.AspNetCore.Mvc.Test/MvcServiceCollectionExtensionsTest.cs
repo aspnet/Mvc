@@ -30,9 +30,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc
 {

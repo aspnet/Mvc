@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
         /// <param name="setupAction">The <see cref="MvcJsonOptions"/> which need to be configured.</param>
-        /// <returns></returns>
+        /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
         public static IMvcCoreBuilder AddJsonOptions(
            this IMvcCoreBuilder builder,
            Action<MvcJsonOptions> setupAction)
