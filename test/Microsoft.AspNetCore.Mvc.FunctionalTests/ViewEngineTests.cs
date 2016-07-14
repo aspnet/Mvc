@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Testing;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -120,25 +119,23 @@ partial-contentcomponent-content";
             Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
-        public static IEnumerable<object[]> RazorViewEngine_UsesAllExpandedPathsToLookForViewsData
+        public static TheoryData<string, string> RazorViewEngine_UsesAllExpandedPathsToLookForViewsData
         {
             get
             {
                 var expected1 = @"expander-index
 gb-partial";
-                yield return new[] { "en-GB", expected1 };
-
                 var expected2 = @"fr-index
 fr-partial";
-                yield return new[] { "fr", expected2 };
-
-                if (!TestPlatformHelper.IsMono)
-                {
-                    // https://github.com/aspnet/Mvc/issues/2759
-                    var expected3 = @"expander-index
+                var expected3 = @"expander-index
 expander-partial";
-                    yield return new[] { "!-invalid-!", expected3 };
-                }
+
+                return new TheoryData<string, string>
+                {
+                    { "en-GB", expected1 },
+                    { "fr", expected2 },
+                    { "!-invalid-!", expected3 },
+                };
             }
         }
 
@@ -261,26 +258,23 @@ index-content";
             Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
         }
 
-        public static IEnumerable<object[]> RazorViewEngine_UsesExpandersForLayoutsData
+        public static TheoryData<string, string> RazorViewEngine_UsesExpandersForLayoutsData
         {
             get
             {
                 var expected1 =
  @"<language-layout>View With Layout
 </language-layout>";
-
-                yield return new[] { "en-GB", expected1 };
-
-                if (!TestPlatformHelper.IsMono)
-                {
-                    // https://github.com/aspnet/Mvc/issues/2759
-                    yield return new[] { "!-invalid-!", expected1 };
-                }
-
                 var expected2 =
 @"<fr-language-layout>View With Layout
 </fr-language-layout>";
-                yield return new[] { "fr", expected2 };
+
+                return new TheoryData<string, string>
+                {
+                    { "en-GB", expected1 },
+                    { "!-invalid-!", expected1 },
+                    { "fr", expected2 },
+                };
             }
         }
 

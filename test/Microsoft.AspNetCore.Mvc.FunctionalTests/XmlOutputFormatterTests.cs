@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
-using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -20,9 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public HttpClient Client { get; }
 
-        [ConditionalFact]
-        // Mono.Xml2.XmlTextReader.ReadText is unable to read the XML. This is fixed in mono 4.3.0.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task XmlDataContractSerializerOutputFormatterIsCalled()
         {
             // Arrange
@@ -63,9 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 await response.Content.ReadAsStringAsync());
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task XmlSerializerFailsAndDataContractSerializerIsCalled()
         {
             // Arrange
@@ -107,9 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 await response.Content.ReadAsStringAsync());
         }
 
-        [ConditionalFact]
-        // Mono.Xml2.XmlTextReader.ReadText is unable to read the XML. This is fixed in mono 4.3.0.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task XmlDataContractSerializerOutputFormatter_WhenDerivedClassIsReturned()
         {
             // Arrange

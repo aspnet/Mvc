@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -37,9 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(sampleInputInt.ToString(), await response.Content.ReadAsStringAsync());
         }
 
-        [ConditionalFact]
-        // Mono.Xml2.XmlTextReader.ReadText is unable to read the XML. This is fixed in mono 4.3.0.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ThrowsOnInvalidInput_AndAddsToModelState()
         {
             // Arrange

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Http.Formatting.Mocks;
 using System.Net.Http.Headers;
 using System.Text;
-using Microsoft.AspNetCore.Testing;
 using Microsoft.TestCommon;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -393,8 +392,7 @@ namespace System.Net.Http.Formatting
             _request.Headers.Add("x-requested-with", "XMLHttpRequest");
 
             // Act
-            // Mono issue - https://github.com/aspnet/External/issues/27
-            var type = TestPlatformHelper.IsMono ? typeof(string) : typeof(JToken);
+            var type = typeof(JToken);
             var result = _negotiator.Negotiate(type, _request, new MediaTypeFormatterCollection());
 
             Assert.Equal("application/json", result.MediaType.MediaType);

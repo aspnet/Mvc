@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
@@ -51,9 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             Assert.Equal(new HttpMethod("OPTIONS"), request.Method);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/24
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void HttpRequestMessage_CopiesHeader()
         {
             // Arrange

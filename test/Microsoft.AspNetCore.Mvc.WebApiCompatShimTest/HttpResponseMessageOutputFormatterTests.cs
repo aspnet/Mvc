@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.WebApiCompatShim;
-using Microsoft.AspNetCore.Testing.xunit;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -39,9 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShimTest
             streamContent.Protected().Verify("Dispose", Times.Once(), true);
         }
 
-        [ConditionalFact]
-        // Issue - https://github.com/aspnet/External/issues/20
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ExplicitlySet_ChunkedEncodingFlag_IsIgnored()
         {
             // Arrange
@@ -63,9 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShimTest
             Assert.NotNull(httpContext.Response.ContentLength);
         }
 
-        [ConditionalFact]
-        // Issue - https://github.com/aspnet/External/issues/20
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ExplicitlySet_ChunkedEncodingHeader_IsIgnored()
         {
             // Arrange
@@ -88,9 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShimTest
             Assert.NotNull(httpContext.Response.ContentLength);
         }
 
-        [ConditionalFact]
-        // Issue - https://github.com/aspnet/External/issues/20
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ExplicitlySet_MultipleEncodings_ChunkedNotIgnored()
         {
             // Arrange
@@ -115,9 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShimTest
             Assert.NotNull(httpContext.Response.ContentLength);
         }
 
-        [ConditionalFact]
-        // Issue - https://github.com/aspnet/External/issues/20
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task ExplicitlySet_MultipleEncodingsUsingChunkedFlag_ChunkedNotIgnored()
         {
             // Arrange

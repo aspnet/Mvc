@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
-using Microsoft.AspNetCore.Testing.xunit;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Moq;
@@ -92,9 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [MemberData(nameof(BasicTypeValues))]
         public async Task WriteAsync_CanWriteBasicTypes(object input, string expectedOutput)
         {
@@ -113,9 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void XmlDataContractSerializer_CachesSerializerForType()
         {
             // Arrange
@@ -133,9 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(1, formatter.createSerializerCalledCount);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void DefaultConstructor_ExpectedWriterSettings_Created()
         {
             // Arrange and Act
@@ -149,9 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.False(writerSettings.CheckCharacters);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task SuppliedWriterSettings_TakeAffect()
         {
             // Arrange
@@ -177,9 +168,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesSimpleTypes()
         {
             // Arrange
@@ -202,9 +191,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesComplexTypes()
         {
             // Arrange
@@ -237,9 +224,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesOnModifiedWriterSettings()
         {
             // Arrange
@@ -268,9 +253,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesUTF16Output()
         {
             // Arrange
@@ -298,9 +281,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesIndentedOutput()
         {
             // Arrange
@@ -324,9 +305,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_VerifyBodyIsNotClosedAfterOutputIsWritten()
         {
             // Arrange
@@ -342,9 +321,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.True(body.CanRead);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_DoesntFlushOutputStream()
         {
             // Arrange
@@ -373,9 +350,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [MemberData(nameof(TypesForCanWriteResult))]
         public void CanWriteResult_ReturnsExpectedOutput(object input, Type declaredType, bool expectedOutput)
         {
@@ -401,9 +376,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [MemberData(nameof(TypesForGetSupportedContentTypes))]
         public void GetSupportedContentTypes_ReturnsSupportedTypes(Type type, object expectedOutput)
         {
@@ -427,9 +400,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         }
 
 #if !NETCOREAPP1_0
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_ThrowsWhenNotConfiguredWithKnownTypes()
         {
             // Arrange
@@ -465,9 +436,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         }
 #endif
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_ThrowsWhenNotConfiguredWithPreserveReferences()
         {
             // Arrange
@@ -483,9 +452,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 async () => await formatter.WriteAsync(outputFormatterContext));
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesWhenConfiguredWithRootName()
         {
             // Arrange
@@ -526,9 +493,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesWhenConfiguredWithKnownTypes()
         {
             // Arrange
@@ -572,9 +537,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             XmlAssert.Equal(expectedOutput, content);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public async Task WriteAsync_WritesWhenConfiguredWithPreserveReferences()
         {
             // Arrange
