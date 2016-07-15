@@ -192,12 +192,17 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void OnAuthorization_RedirectsToHttpsEndpoint_WithSpecifiedStatusCode(bool permanent)
+        [InlineData(true, null)]
+        [InlineData(false, null)]
+        [InlineData(null, true)]
+        [InlineData(null, false)]
+        [InlineData(null, null)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public void OnAuthorization_RedirectsToHttpsEndpoint_WithSpecifiedStatusCodeAndrequireHttpsPermanentOption(bool? permanent, bool? requireHttpsPermanent)
         {
             var requestContext = new DefaultHttpContext();
-            requestContext.RequestServices = CreateServices();
+            requestContext.RequestServices = CreateServices(null, requireHttpsPermanent);
             requestContext.Request.Scheme = "http";
             requestContext.Request.Method = "GET";
             
@@ -209,9 +214,16 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             var result = Assert.IsType<RedirectResult>(authContext.Result);
-            Assert.Equal(permanent, result.Permanent);
+            if (!permanent.HasValue && !requireHttpsPermanent.HasValue)
+            {
+                Assert.Equal(default(bool), result.Permanent);
+            }
+            else
+            {
+                Assert.Equal(permanent.HasValue ? permanent.Value : requireHttpsPermanent.Value, result.Permanent);
+            }
         }
-
+        
         private class CustomRequireHttpsAttribute : RequireHttpsAttribute
         {
             protected override void HandleNonHttpsRequest(AuthorizationFilterContext filterContext)
@@ -226,10 +238,11 @@ namespace Microsoft.AspNetCore.Mvc
             return new AuthorizationFilterContext(actionContext, new IFilterMetadata[0]);
         }
 
-        private static IServiceProvider CreateServices(int? sslPort = null)
+        private static IServiceProvider CreateServices(int? sslPort = null, bool? requireHttpsPermanent = null)
         {
             var options = new TestOptionsManager<MvcOptions>();
             options.Value.SslPort = sslPort;
+            options.Value.RequireHttpsPermanent = requireHttpsPermanent;
 
             var services = new ServiceCollection();
             services.AddSingleton<IOptions<MvcOptions>>(options);

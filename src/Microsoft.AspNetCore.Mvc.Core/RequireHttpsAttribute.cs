@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Specifies whether a permanent redirect, <c>301 Moved Permanently</c>,
         /// should be used instead of a temporary redirect, <c>302 Found</c>.
         /// </summary>
-        public bool Permanent { get; set; }
+        public bool? Permanent { get; set; }
 
         /// <inheritdoc />
         public int Order { get; set; }
@@ -82,6 +82,13 @@ namespace Microsoft.AspNetCore.Mvc
                     host = new HostString(host.Host);
                 }
 
+                if (!Permanent.HasValue)
+                {
+                    //if MvcOption.requireHttpsPermanent is not null use it, otherwise use default(bool)
+                    Permanent = optionsAccessor.Value.RequireHttpsPermanent.HasValue ? optionsAccessor.Value.RequireHttpsPermanent.Value : default(bool);
+                }
+
+
                 var newUrl = string.Concat(
                     "https://",
                     host.ToUriComponent(),
@@ -90,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc
                     request.QueryString.ToUriComponent());
 
                 // redirect to HTTPS version of page
-                filterContext.Result = new RedirectResult(newUrl, Permanent);
+                filterContext.Result = new RedirectResult(newUrl, Permanent.Value);
             }
         }
     }
