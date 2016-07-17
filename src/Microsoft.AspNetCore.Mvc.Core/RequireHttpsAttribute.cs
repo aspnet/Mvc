@@ -25,6 +25,23 @@ namespace Microsoft.AspNetCore.Mvc
         public int Order { get; set; }
 
         /// <summary>
+        /// Initializes an instance of <see cref="RequireHttpsAttribute"/>.
+        /// </summary>
+        public RequireHttpsAttribute()
+        {
+            this.Permanent = null;
+        }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="RequireHttpsAttribute"/>.
+        /// </summary>
+        /// <param name="Permanent">The <see cref="RequireHttpsAttribute.Permanent"/>.</param>
+        public RequireHttpsAttribute(bool Permanent)
+        {
+            this.Permanent = Permanent;
+        }
+
+        /// <summary>
         /// Called early in the filter pipeline to confirm request is authorized. Confirms requests are received over
         /// HTTPS. Takes no action for HTTPS requests. Otherwise if it was a GET request, sets
         /// <see cref="AuthorizationFilterContext.Result"/> to a result which will redirect the client to the HTTPS
