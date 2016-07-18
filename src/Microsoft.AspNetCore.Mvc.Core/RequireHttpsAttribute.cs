@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Specifies whether a permanent redirect, <c>301 Moved Permanently</c>,
         /// should be used instead of a temporary redirect, <c>302 Found</c>.
         /// </summary>
-        public bool? Permanent {
+        public bool Permanent {
             get { return _permanent ?? false; }
             set { _permanent = value; }
         }
