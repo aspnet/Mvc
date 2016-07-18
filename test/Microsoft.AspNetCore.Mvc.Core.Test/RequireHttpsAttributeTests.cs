@@ -192,7 +192,6 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        
         [InlineData(null, true)]
         [InlineData(null, false)]
         [InlineData(true, false)]
@@ -205,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc
             requestContext.Request.Method = "GET";
             
             var authContext = CreateAuthorizationContext(requestContext);
-            var attr = new RequireHttpsAttribute() ;
+            var attr = new RequireHttpsAttribute();
             if (permanent.HasValue)
             {
                 attr.Permanent = permanent.Value; 
@@ -216,11 +215,9 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             var result = Assert.IsType<RedirectResult>(authContext.Result);
-            
             Assert.Equal(permanent ?? requireHttpsPermanent, result.Permanent);
-            
         }
-        
+
         private class CustomRequireHttpsAttribute : RequireHttpsAttribute
         {
             protected override void HandleNonHttpsRequest(AuthorizationFilterContext filterContext)

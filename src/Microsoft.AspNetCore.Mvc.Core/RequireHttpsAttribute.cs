@@ -21,14 +21,15 @@ namespace Microsoft.AspNetCore.Mvc
         /// Specifies whether a permanent redirect, <c>301 Moved Permanently</c>,
         /// should be used instead of a temporary redirect, <c>302 Found</c>.
         /// </summary>
-        public bool Permanent {
+        public bool Permanent
+        {
             get { return _permanent ?? false; }
             set { _permanent = value; }
         }
 
         /// <inheritdoc />
         public int Order { get; set; }
-        
+
         /// <summary>
         /// Called early in the filter pipeline to confirm request is authorized. Confirms requests are received over
         /// HTTPS. Takes no action for HTTPS requests. Otherwise if it was a GET request, sets
@@ -89,7 +90,6 @@ namespace Microsoft.AspNetCore.Mvc
 
                 //i use MvcOption.requireHttpsPermanent value if Permanent parameter is null
                 _permanent = _permanent ?? optionsAccessor.Value.RequireHttpsPermanent;
-
 
                 var newUrl = string.Concat(
                     "https://",
