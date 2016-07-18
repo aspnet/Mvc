@@ -15,32 +15,26 @@ namespace Microsoft.AspNetCore.Mvc
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class RequireHttpsAttribute : Attribute, IAuthorizationFilter, IOrderedFilter
     {
+        private bool? _permanent = null;
+
         /// <summary>
         /// Specifies whether a permanent redirect, <c>301 Moved Permanently</c>,
         /// should be used instead of a temporary redirect, <c>302 Found</c>.
         /// </summary>
-        public bool? Permanent { get; set; }
+        public bool Permanent {
+            get
+            {
+                return _permanent ?? false;
+            }
+            set
+            {
+                _permanent = value;
+            }
+        }
 
         /// <inheritdoc />
         public int Order { get; set; }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="RequireHttpsAttribute"/>.
-        /// </summary>
-        public RequireHttpsAttribute()
-        {
-            this.Permanent = null;
-        }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="RequireHttpsAttribute"/>.
-        /// </summary>
-        /// <param name="Permanent">The <see cref="RequireHttpsAttribute.Permanent"/>.</param>
-        public RequireHttpsAttribute(bool Permanent)
-        {
-            this.Permanent = Permanent;
-        }
-
+        
         /// <summary>
         /// Called early in the filter pipeline to confirm request is authorized. Confirms requests are received over
         /// HTTPS. Takes no action for HTTPS requests. Otherwise if it was a GET request, sets
@@ -99,11 +93,8 @@ namespace Microsoft.AspNetCore.Mvc
                     host = new HostString(host.Host);
                 }
 
-                if (!Permanent.HasValue)
-                {
-                    //if MvcOption.requireHttpsPermanent is not null use it, otherwise use default(bool)
-                    Permanent = optionsAccessor.Value.RequireHttpsPermanent.HasValue ? optionsAccessor.Value.RequireHttpsPermanent.Value : default(bool);
-                }
+                //i use MvcOption.requireHttpsPermanent value if Permanent parameter is null
+                _permanent = _permanent ?? optionsAccessor.Value.RequireHttpsPermanent;
 
 
                 var newUrl = string.Concat(
@@ -114,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc
                     request.QueryString.ToUriComponent());
 
                 // redirect to HTTPS version of page
-                filterContext.Result = new RedirectResult(newUrl, Permanent.Value);
+                filterContext.Result = new RedirectResult(newUrl, _permanent.Value);
             }
         }
     }

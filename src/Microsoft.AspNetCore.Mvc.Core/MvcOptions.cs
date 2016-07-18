@@ -144,7 +144,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets or sets the default value for Permanent property of <see cref="RequireHttpsAttribute"/>.
         /// </summary>
-        public bool? RequireHttpsPermanent { get; set; }
+        public bool RequireHttpsPermanent { get; set; }
 
     }
 }

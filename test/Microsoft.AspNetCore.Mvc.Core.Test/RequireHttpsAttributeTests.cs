@@ -192,14 +192,12 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        [InlineData(true, null)]
-        [InlineData(false, null)]
+        
         [InlineData(null, true)]
         [InlineData(null, false)]
-        [InlineData(null, null)]
         [InlineData(true, false)]
         [InlineData(false, true)]
-        public void OnAuthorization_RedirectsToHttpsEndpoint_WithSpecifiedStatusCodeAndrequireHttpsPermanentOption(bool? permanent, bool? requireHttpsPermanent)
+        public void OnAuthorization_RedirectsToHttpsEndpoint_WithSpecifiedStatusCodeAndrequireHttpsPermanentOption(bool? permanent, bool requireHttpsPermanent)
         {
             var requestContext = new DefaultHttpContext();
             requestContext.RequestServices = CreateServices(null, requireHttpsPermanent);
@@ -207,21 +205,20 @@ namespace Microsoft.AspNetCore.Mvc
             requestContext.Request.Method = "GET";
             
             var authContext = CreateAuthorizationContext(requestContext);
-            var attr = new RequireHttpsAttribute { Permanent = permanent };
+            var attr = new RequireHttpsAttribute() ;
+            if (permanent.HasValue)
+            {
+                attr.Permanent = permanent.Value; 
+            };
 
             // Act
             attr.OnAuthorization(authContext);
 
             // Assert
             var result = Assert.IsType<RedirectResult>(authContext.Result);
-            if (!permanent.HasValue && !requireHttpsPermanent.HasValue)
-            {
-                Assert.Equal(default(bool), result.Permanent);
-            }
-            else
-            {
-                Assert.Equal(permanent.HasValue ? permanent.Value : requireHttpsPermanent.Value, result.Permanent);
-            }
+            
+            Assert.Equal(permanent ?? requireHttpsPermanent, result.Permanent);
+            
         }
         
         private class CustomRequireHttpsAttribute : RequireHttpsAttribute
@@ -238,7 +235,7 @@ namespace Microsoft.AspNetCore.Mvc
             return new AuthorizationFilterContext(actionContext, new IFilterMetadata[0]);
         }
 
-        private static IServiceProvider CreateServices(int? sslPort = null, bool? requireHttpsPermanent = null)
+        private static IServiceProvider CreateServices(int? sslPort = null, bool requireHttpsPermanent = false)
         {
             var options = new TestOptionsManager<MvcOptions>();
             options.Value.SslPort = sslPort;
