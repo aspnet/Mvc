@@ -652,6 +652,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal(expectedAntiforgeryHtmlField, antiforgeryField);
         }
 
+        // This test covers use of the helper within literal <form> tags when tag helpers are not enabled e.g.
+        // <form action="/Home/Create">
+        //     @Html.AntiForgeryToken()
+        // </form>
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
