@@ -280,4 +280,10 @@
   <data name="ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated" xml:space="preserve">
     <value>The type '{0}' cannot be activated by '{1}' because it is either a value type, an interface, an abstract class or an open generic type.</value>
   </data>
+  <data name="CreateModelExpression_NullModelMetadata" xml:space="preserve">
+    <value>The {0} was unable to provide metadata for expression '{1}'.</value>
+  </data>
+  <data name="ViewEnginesAreRequired" xml:space="preserve">
+    <value>'{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.</value>
+  </data>
 </root>

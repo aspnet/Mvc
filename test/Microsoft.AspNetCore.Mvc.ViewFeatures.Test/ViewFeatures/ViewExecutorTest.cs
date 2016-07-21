@@ -8,9 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TestCommon;
@@ -366,7 +364,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 new TestHttpResponseStreamWriterFactory(),
                 new Mock<ICompositeViewEngine>(MockBehavior.Strict).Object,
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
-                diagnosticSource);
+                diagnosticSource,
+                new EmptyModelMetadataProvider());
         }
     }
 }

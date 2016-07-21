@@ -3,7 +3,7 @@
 
 using System.Net.Http;
 using System.Net.Http.Formatting;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -28,13 +28,13 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             options.Filters.Add(new HttpResponseExceptionActionFilter());
 
             // Add a model binder to be able to bind HttpRequestMessage
-            options.ModelBinders.Insert(0, new HttpRequestMessageModelBinder());
+            options.ModelBinderProviders.Insert(0, new HttpRequestMessageModelBinderProvider());
 
             // Add a formatter to write out an HttpResponseMessage to the response
             options.OutputFormatters.Insert(0, new HttpResponseMessageOutputFormatter());
 
-            options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(HttpRequestMessage)));
-            options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(HttpResponseMessage)));
+            options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(HttpRequestMessage)));
+            options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(HttpResponseMessage)));
         }
 
         public void Configure(WebApiCompatShimOptions options)

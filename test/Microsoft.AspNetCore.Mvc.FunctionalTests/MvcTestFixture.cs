@@ -6,13 +6,12 @@ using System.IO;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
@@ -21,19 +20,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         private readonly TestServer _server;
 
         public MvcTestFixture()
-            : this(Path.Combine("..", "..", "..", "..", "..", "WebSites"))
+            : this(Path.Combine("test", "WebSites"))
         {
         }
 
-        protected MvcTestFixture(string relativePath)
+        protected MvcTestFixture(string solutionRelativePath)
         {
             // RequestLocalizationOptions saves the current culture when constructed, potentially changing response
             // localization i.e. RequestLocalizationMiddleware behavior. Ensure the saved culture
             // (DefaultRequestCulture) is consistent regardless of system configuration or personal preferences.
             using (new CultureReplacer())
             {
+                var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
+                var contentRoot = SolutionPathUtility.GetProjectPath(solutionRelativePath, startupAssembly);
+
                 var builder = new WebHostBuilder()
-                    .UseContentRoot(GetApplicationPath(relativePath))
+                    .UseContentRoot(contentRoot)
                     .ConfigureServices(InitializeServices)
                     .UseStartup(typeof(TStartup));
 
@@ -52,22 +54,18 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             _server.Dispose();
         }
 
-        private static string GetApplicationPath(string relativePath)
-        {
-            var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
-            var applicationName = startupAssembly.GetName().Name;
-            var applicationBasePath = PlatformServices.Default.Application.ApplicationBasePath;
-            return Path.GetFullPath(Path.Combine(applicationBasePath, relativePath, applicationName));
-        }
-
         protected virtual void InitializeServices(IServiceCollection services)
         {
             var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
 
-            // Inject a custom assembly provider. Overrides AddMvc() because that uses TryAdd().
-            var assemblyProvider = new StaticAssemblyProvider();
-            assemblyProvider.CandidateAssemblies.Add(startupAssembly);
-            services.AddSingleton<IAssemblyProvider>(assemblyProvider);
+            // Inject a custom application part manager. Overrides AddMvcCore() because that uses TryAdd().
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new AssemblyPart(startupAssembly));
+
+            manager.FeatureProviders.Add(new ControllerFeatureProvider());
+            manager.FeatureProviders.Add(new ViewComponentFeatureProvider());
+
+            services.AddSingleton(manager);
         }
     }
 }

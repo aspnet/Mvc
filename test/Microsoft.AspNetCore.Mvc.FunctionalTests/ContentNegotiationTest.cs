@@ -44,8 +44,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             // Arrange
             var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = $"{{{Environment.NewLine}  \"Name\": \"My name\",{Environment.NewLine}" +
-                $"  \"Address\": \"My address\"{Environment.NewLine}}}";
+            var expectedBody = $"{{{Environment.NewLine}  \"name\": \"My name\",{Environment.NewLine}" +
+                $"  \"address\": \"My address\"{Environment.NewLine}}}";
 
             // Act
             var response = await Client.GetAsync("http://localhost/Normal/MultipleAllowedContentTypes");
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             // Arrange
             var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedOutput = "{\"Name\":\"John\",\"Address\":\"One Microsoft Way\"}";
+            var expectedOutput = "{\"name\":\"John\",\"address\":\"One Microsoft Way\"}";
             var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 "http://localhost/ContentNegotiation/UserInfo_ProducesWithTypeOnly");
@@ -287,7 +287,7 @@ END:VCARD
         {
             // Arrange
             var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "{\"MethodName\":\"Produces_WithNonObjectResult\"}";
+            var expectedBody = "{\"methodName\":\"Produces_WithNonObjectResult\"}";
 
             // Act
             var response = await Client.GetAsync("http://localhost/ProducesJson/Produces_WithNonObjectResult");
@@ -322,29 +322,6 @@ END:VCARD
                 var body = await response.Content.ReadAsStringAsync();
                 Assert.Equal(expectedBody, body);
             }
-        }
-
-        [Theory]
-        [InlineData("UseTheFallback_WithDefaultFormatters")]
-        [InlineData("UseTheFallback_UsingCustomFormatters")]
-        public async Task NoMatchOn_RequestContentType_FallsBackOnTypeBasedMatch_MatchFound(string actionName)
-        {
-            // Arrange
-            var expectedContentType = MediaTypeHeaderValue.Parse("application/json;charset=utf-8");
-            var expectedBody = "1234";
-            var targetUri = "http://localhost/FallbackOnTypeBasedMatch/" + actionName + "/?input=1234";
-            var content = new StringContent("1234", Encoding.UTF8, "application/custom");
-            var request = new HttpRequestMessage(HttpMethod.Post, targetUri);
-            request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/custom1"));
-            request.Content = content;
-
-            // Act
-            var response = await Client.SendAsync(request);
-
-            // Assert
-            Assert.Equal(expectedContentType, response.Content.Headers.ContentType);
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expectedBody, body);
         }
 
         [Theory]
@@ -386,25 +363,6 @@ END:VCARD
             Assert.Equal("application/json", response.Content.Headers.ContentType.MediaType);
             var actualBody = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello World!", actualBody);
-        }
-
-        [Theory]
-        [InlineData("OverrideTheFallback_WithDefaultFormatters")]
-        [InlineData("OverrideTheFallback_UsingCustomFormatters")]
-        public async Task NoMatchOn_RequestContentType_SkipTypeMatchByAddingACustomFormatter(string actionName)
-        {
-            // Arrange
-            var targetUri = "http://localhost/FallbackOnTypeBasedMatch/" + actionName + "/?input=1234";
-            var content = new StringContent("1234", Encoding.UTF8, "application/custom");
-            var request = new HttpRequestMessage(HttpMethod.Post, targetUri);
-            request.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/custom1"));
-            request.Content = content;
-
-            // Act
-            var response = await Client.SendAsync(request);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         }
 
         [Fact]

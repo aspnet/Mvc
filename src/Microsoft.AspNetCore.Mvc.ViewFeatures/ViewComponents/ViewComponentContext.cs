@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             ViewContext = new ViewContext(
                 viewContext,
                 viewContext.View,
-                new ViewDataDictionary(viewContext.ViewData),
+                new ViewDataDictionary<object>(viewContext.ViewData),
                 writer);
         }
 
@@ -121,6 +121,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
         /// This is an alias for <c>ViewContext.ViewData</c>.
         /// </remarks>
         public ViewDataDictionary ViewData => ViewContext.ViewData;
+
+        /// <summary>
+        /// Gets the <see cref="ITempDataDictionary"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is an alias for <c>ViewContext.TempData</c>.
+        /// </remarks>
+        public ITempDataDictionary TempData => ViewContext.TempData;
 
         /// <summary>
         /// Gets the <see cref="TextWriter"/> for output.

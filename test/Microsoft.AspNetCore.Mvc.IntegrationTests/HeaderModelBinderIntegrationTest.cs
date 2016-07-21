@@ -43,11 +43,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             // Do not add any headers.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext();
-            var modelState = operationContext.ActionContext.ModelState;
+            var testContext = ModelBindingTestHelper.GetTestContext();
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
 
@@ -63,8 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var key = Assert.Single(modelState.Keys);
             Assert.Equal("CustomParameter.Address.Header", key);
             var error = Assert.Single(modelState[key].Errors);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Street field is required."), error.ErrorMessage);
+            Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Street"), error.ErrorMessage);
         }
 
         [Fact]
@@ -82,12 +81,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => request.Headers.Add("Header", new[] { "someValue" }));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
 
@@ -124,12 +123,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => request.Headers.Add("Header", new[] { "someValue" }));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
 
@@ -170,13 +169,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ListContainer1),
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => request.Headers.Add("Header", new[] { "someValue" }));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var result = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -218,13 +216,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ListContainer2),
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => request.Headers.Add("Header", new[] { "someValue" }));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var result = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -280,14 +277,14 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             Action<HttpRequest> action = r => r.Headers.Add("CustomParameter", new[] { value });
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(action);
+            var testContext = ModelBindingTestHelper.GetTestContext(action);
 
             // Do not add any headers.
-            var httpContext = operationContext.HttpContext;
-            var modelState = operationContext.ActionContext.ModelState;
+            var httpContext = testContext.HttpContext;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
 

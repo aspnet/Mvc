@@ -7,14 +7,14 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -183,53 +183,6 @@ namespace Microsoft.AspNetCore.Mvc.Test
             Assert.Same(data, actualJsonResult.Value);
         }
 
-        [Fact]
-        public void Controller_Json_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.Json(input);
-
-            // Assert
-            Assert.IsType<JsonResult>(result);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
-        }
-
-        [Fact]
-        public void Controller_JsonWithParameterValueAndSerializerSettings_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-            var serializerSettings = new JsonSerializerSettings();
-
-            // Act
-            var result = controller.Json(input, serializerSettings);
-
-            // Assert
-            Assert.IsType<JsonResult>(result);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
-        }
-
         // These tests share code with the ActionFilterAttribute tests because the various filter
         // implementations need to behave the same way.
         [Fact]
@@ -276,6 +229,48 @@ namespace Microsoft.AspNetCore.Mvc.Test
             Assert.Equal(input, result);
         }
 
+        public static TheoryData<object, Type> IncompatibleModelData
+        {
+            get
+            {
+                // Small grab bag of instances and expected types with no common base except typeof(object).
+                return new TheoryData<object, Type>
+                {
+                    { null, typeof(object) },
+                    { true, typeof(bool) },
+                    { 43.78, typeof(double) },
+                    { "test string", typeof(string) },
+                    { new List<int>(), typeof(List<int>) },
+                    { new List<string>(), typeof(List<string>) },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(IncompatibleModelData))]
+        public void ViewDataModelSetter_DoesNotThrow(object model, Type expectedType)
+        {
+            // Arrange
+            var activator = new ViewDataDictionaryControllerPropertyActivator(new EmptyModelMetadataProvider());
+            var actionContext = new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                new ControllerActionDescriptor());
+            var controllerContext = new ControllerContext(actionContext);
+            var controller = new TestableController();
+            activator.Activate(controllerContext, controller);
+
+            // Guard
+            Assert.NotNull(controller.ViewData);
+
+            // Act (does not throw)
+            controller.ViewData.Model = model;
+
+            // Assert
+            Assert.NotNull(controller.ViewData.ModelMetadata);
+            Assert.Equal(expectedType, controller.ViewData.ModelMetadata.ModelType);
+        }
+
         private static Controller GetController(IModelBinder binder, IValueProvider valueProvider)
         {
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -284,25 +279,26 @@ namespace Microsoft.AspNetCore.Mvc.Test
             var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
             var tempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
 
+            var valiatorProviders = new[]
+            {
+                new DataAnnotationsModelValidatorProvider(
+                    new ValidationAttributeAdapterProvider(),
+                    new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                    stringLocalizerFactory: null),
+            };
+
+            valueProvider = valueProvider ?? new SimpleValueProvider();
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext,
-                ModelBinders = new[] { binder, },
-                ValueProviders = new[] { valueProvider, },
-                ValidatorProviders = new[]
-                {
-                    new DataAnnotationsModelValidatorProvider(
-                        new ValidationAttributeAdapterProvider(),
-                        new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
-                        stringLocalizerFactory: null),
-                },
+                ValueProviderFactories = new[] { new SimpleValueProviderFactory(valueProvider), },
             };
 
             var controller = new TestableController()
             {
                 ControllerContext = controllerContext,
                 MetadataProvider = metadataProvider,
-                ObjectValidator = new DefaultObjectValidator(metadataProvider, new ValidatorCache()),
+                ObjectValidator = new DefaultObjectValidator(metadataProvider, valiatorProviders),
                 TempData = tempData,
                 ViewData = viewData,
             };

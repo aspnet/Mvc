@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Logging;
@@ -29,9 +29,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [Fact]
         public void Creates_SerializerSettings_ByDefault()
         {
-            // Arrange
-            // Act
-            var jsonFormatter = new JsonOutputFormatter();
+            // Arrange & Act
+            var jsonFormatter = new TestableJsonOutputFormatter(new JsonSerializerSettings());
 
             // Assert
             Assert.NotNull(jsonFormatter.SerializerSettings);
@@ -43,28 +42,26 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             // Arrange
             // Act
             var serializerSettings = new JsonSerializerSettings();
-            var logger = GetLogger();
-            var jsonFormatter = new JsonInputFormatter(logger, serializerSettings);
+            var jsonFormatter = new TestableJsonOutputFormatter(serializerSettings);
 
             // Assert
             Assert.Same(serializerSettings, jsonFormatter.SerializerSettings);
         }
 
         [Fact]
-        public async Task ChangesTo_DefaultSerializerSettings_TakesEffect()
+        public async Task ChangesTo_SerializerSettings_AffectSerialization()
         {
             // Arrange
-            var person = new User() { Name = "John", Age = 35 };
-            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
+            var person = new User() { FullName = "John", age = 35 };
+            var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
+
+            var settings = new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented
-            });
-
-            var jsonFormatter = new JsonOutputFormatter();
-            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            jsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
-            var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
+                Formatting = Formatting.Indented,
+            };
+            var expectedOutput = JsonConvert.SerializeObject(person, settings);
+            var jsonFormatter = new JsonOutputFormatter(settings, ArrayPool<char>.Shared);
 
             // Act
             await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext, Encoding.UTF8);
@@ -80,15 +77,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         [Fact]
-        public async Task ChangesTo_DefaultSerializerSettings_AfterSerialization_NoEffect()
+        public async Task ChangesTo_SerializerSettings_AfterSerialization_DoNotAffectSerialization()
         {
             // Arrange
-            var person = new User() { Name = "John", Age = 35 };
-            var expectedOutput = JsonConvert.SerializeObject(
-                person,
-                SerializerSettingsProvider.CreateSerializerSettings());
+            var person = new User() { FullName = "John", age = 35 };
+            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings());
 
-            var jsonFormatter = new JsonOutputFormatter();
+            var jsonFormatter = new TestableJsonOutputFormatter(new JsonSerializerSettings());
 
             // This will create a serializer - which gets cached.
             var outputFormatterContext1 = GetOutputFormatterContext(person, typeof(User));
@@ -113,76 +108,170 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.Equal(expectedOutput, content);
         }
 
-        [Fact]
-        public async Task ReplaceSerializerSettings_AfterSerialization_TakesEffect()
+        public static TheoryData<NamingStrategy, string> NamingStrategy_AffectsSerializationData
         {
-            // Arrange
-            var person = new User() { Name = "John", Age = 35 };
-            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
+            get
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented
-            });
-
-            var jsonFormatter = new JsonOutputFormatter();
-
-            // This will create a serializer - which gets cached.
-            var outputFormatterContext1 = GetOutputFormatterContext(person, typeof(User));
-            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext1, Encoding.UTF8);
-
-            // This results in a new serializer being created.
-            jsonFormatter.SerializerSettings = new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented,
-            };
-
-            var outputFormatterContext2 = GetOutputFormatterContext(person, typeof(User));
-
-            // Act
-            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext2, Encoding.UTF8);
-
-            // Assert
-            var body = outputFormatterContext2.HttpContext.Response.Body;
-
-            Assert.NotNull(body);
-            body.Position = 0;
-
-            var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
-            Assert.Equal(expectedOutput, content);
+                return new TheoryData<NamingStrategy, string>
+                {
+                    { new CamelCaseNamingStrategy(), "{\"fullName\":\"John\",\"age\":35}" },
+                    { new DefaultNamingStrategy(), "{\"FullName\":\"John\",\"age\":35}" },
+                    { new SnakeCaseNamingStrategy(), "{\"full_name\":\"John\",\"age\":35}" },
+                };
+            }
         }
 
-        [Fact]
-        public async Task CustomSerializerSettingsObject_TakesEffect()
+        [Theory]
+        [MemberData(nameof(NamingStrategy_AffectsSerializationData))]
+        public async Task NamingStrategy_AffectsSerialization(NamingStrategy strategy, string expected)
         {
             // Arrange
-            var person = new User() { Name = "John", Age = 35 };
-            var expectedOutput = JsonConvert.SerializeObject(person, new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented
-            });
+            var user = new User { FullName = "John", age = 35 };
+            var context = GetOutputFormatterContext(user, typeof(User));
 
-            var jsonFormatter = new JsonOutputFormatter();
-            jsonFormatter.SerializerSettings = new JsonSerializerSettings()
+            var settings = new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Formatting.Indented
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = strategy,
+                },
             };
-
-            var outputFormatterContext = GetOutputFormatterContext(person, typeof(User));
+            var formatter = new TestableJsonOutputFormatter(settings);
 
             // Act
-            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext, Encoding.UTF8);
+            await formatter.WriteResponseBodyAsync(context, Encoding.UTF8);
 
             // Assert
-            var body = outputFormatterContext.HttpContext.Response.Body;
+            var body = context.HttpContext.Response.Body;
 
             Assert.NotNull(body);
             body.Position = 0;
 
             var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
-            Assert.Equal(expectedOutput, content);
+            Assert.Equal(expected, content);
+        }
+
+        public static TheoryData<NamingStrategy> NamingStrategy_DoesNotAffectSerializationData
+        {
+            get
+            {
+                return new TheoryData<NamingStrategy>
+                {
+                    { new CamelCaseNamingStrategy() },
+                    { new DefaultNamingStrategy() },
+                    { new SnakeCaseNamingStrategy() },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(NamingStrategy_DoesNotAffectSerializationData))]
+        public async Task NamingStrategy_DoesNotAffectDictionarySerialization(NamingStrategy strategy)
+        {
+            // Arrange
+            var dictionary = new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                { "id", 12 },
+                { "Id", 12 },
+                { "fullName", 12 },
+                { "full-name", 12 },
+                { "FullName", 12 },
+                { "full_Name", 12 },
+            };
+            var expected = "{\"id\":12,\"Id\":12,\"fullName\":12,\"full-name\":12,\"FullName\":12,\"full_Name\":12}";
+            var context = GetOutputFormatterContext(dictionary, typeof(Dictionary<string, int>));
+
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = strategy,
+                },
+            };
+            var formatter = new TestableJsonOutputFormatter(settings);
+
+            // Act
+            await formatter.WriteResponseBodyAsync(context, Encoding.UTF8);
+
+            // Assert
+            var body = context.HttpContext.Response.Body;
+
+            Assert.NotNull(body);
+            body.Position = 0;
+
+            var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expected, content);
+        }
+
+        [Theory]
+        [MemberData(nameof(NamingStrategy_DoesNotAffectSerializationData))]
+        public async Task NamingStrategy_DoesNotAffectSerialization_WithJsonProperty(NamingStrategy strategy)
+        {
+            // Arrange
+            var user = new UserWithJsonProperty
+            {
+                Name = "Joe",
+                AnotherName = "Joe",
+                ThirdName = "Joe",
+            };
+            var expected = "{\"ThisIsTheFullName\":\"Joe\",\"another_name\":\"Joe\",\"ThisIsTheThirdName\":\"Joe\"}";
+            var context = GetOutputFormatterContext(user, typeof(UserWithJsonProperty));
+
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = strategy,
+                },
+            };
+            var formatter = new TestableJsonOutputFormatter(settings);
+
+            // Act
+            await formatter.WriteResponseBodyAsync(context, Encoding.UTF8);
+
+            // Assert
+            var body = context.HttpContext.Response.Body;
+
+            Assert.NotNull(body);
+            body.Position = 0;
+
+            var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expected, content);
+        }
+
+        [Theory]
+        [MemberData(nameof(NamingStrategy_DoesNotAffectSerializationData))]
+        public async Task NamingStrategy_DoesNotAffectSerialization_WithJsonObject(NamingStrategy strategy)
+        {
+            // Arrange
+            var user = new UserWithJsonObject
+            {
+                age = 35,
+                FullName = "John",
+            };
+            var expected = "{\"age\":35,\"full_name\":\"John\"}";
+            var context = GetOutputFormatterContext(user, typeof(UserWithJsonProperty));
+
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = strategy,
+                },
+            };
+            var formatter = new TestableJsonOutputFormatter(settings);
+
+            // Act
+            await formatter.WriteResponseBodyAsync(context, Encoding.UTF8);
+
+            // Assert
+            var body = context.HttpContext.Response.Body;
+
+            Assert.NotNull(body);
+            body.Position = 0;
+
+            var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expected, content);
         }
 
         [Fact]
@@ -190,7 +279,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         {
             // Arrange
             var beforeMessage = "Hello World";
-            var formatter = new JsonOutputFormatter();
+            var formatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             var before = new JValue(beforeMessage);
             var memStream = new MemoryStream();
             var outputFormatterContext = GetOutputFormatterContext(
@@ -219,14 +308,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-8", "utf-8", true },
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-16", "utf-16", true },
                     { "This is a test 激光這兩個字是甚麼意思 string written using utf-32", "utf-32", false },
-#if !NETSTANDARDAPP1_5
+#if !NETCOREAPP1_0
                     // CoreCLR does not like shift_jis as an encoding.
                     { "This is a test 激光這兩個字是甚麼意思 string written using shift_jis", "shift_jis", false },
 #endif
                     { "This is a test æøå string written using iso-8859-1", "iso-8859-1", false },
                 };
 
-#if !NETSTANDARDAPP1_5
+#if !NETCOREAPP1_0
                 // CoreCLR does not like iso-2022-kr as an encoding.
                 if (!TestPlatformHelper.IsMono)
                 {
@@ -247,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             bool isDefaultEncoding)
         {
             // Arrange
-            var formatter = new JsonOutputFormatter();
+            var formatter = new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared);
             var formattedContent = "\"" + content + "\"";
             var mediaType = MediaTypeHeaderValue.Parse(string.Format("application/json; charset={0}", encodingAsString));
             var encoding = CreateOrGetSupportedEncoding(formatter, encodingAsString, isDefaultEncoding);
@@ -335,11 +424,42 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             return new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
         }
 
+        private class TestableJsonOutputFormatter : JsonOutputFormatter
+        {
+            public TestableJsonOutputFormatter(JsonSerializerSettings serializerSettings)
+                : base(serializerSettings, ArrayPool<char>.Shared)
+            {
+            }
+
+            public new JsonSerializerSettings SerializerSettings => base.SerializerSettings;
+        }
+
         private sealed class User
         {
+            public string FullName { get; set; }
+
+            public int age { get; set; }
+        }
+
+        private class UserWithJsonProperty
+        {
+            [JsonProperty("ThisIsTheFullName")]
             public string Name { get; set; }
 
-            public int Age { get; set; }
+            [JsonProperty(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+            public string AnotherName { get; set; }
+
+            // NamingStrategyType should be ignored with an explicit name.
+            [JsonProperty("ThisIsTheThirdName", NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+            public string ThirdName { get; set; }
+        }
+
+        [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+        private class UserWithJsonObject
+        {
+            public int age { get; set; }
+
+            public string FullName { get; set; }
         }
     }
 }

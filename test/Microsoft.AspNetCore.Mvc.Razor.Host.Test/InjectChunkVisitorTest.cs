@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.Chunks.Generators;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.Parser.SyntaxTree;
+using Microsoft.AspNetCore.Razor.Runtime.TagHelpers;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -71,22 +72,22 @@ public MyType2 @MyPropertyName2 { get; private set; }
         {
             // Arrange
             var expected = string.Join(Environment.NewLine,
-@"[Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]",
-@"public",
+"[Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]",
+"public",
 @"#line 1 """"",
-@"MyType1 MyPropertyName1",
+"MyType1 MyPropertyName1",
 "",
-@"#line default",
-@"#line hidden",
-@"{ get; private set; }",
-@"[Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]",
-@"public",
+"#line default",
+"#line hidden",
+"{ get; private set; }",
+"[Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]",
+"public",
 @"#line 1 """"",
-@"MyType2 @MyPropertyName2",
+"MyType2 @MyPropertyName2",
 "",
-@"#line default",
-@"#line hidden",
-@"{ get; private set; }",
+"#line default",
+"#line hidden",
+"{ get; private set; }",
 "");
             var writer = new CSharpCodeWriter();
             var context = CreateContext();
@@ -149,7 +150,7 @@ MyType1
             var chunkTreeCache = new DefaultChunkTreeCache(new TestFileProvider());
             return new CodeGeneratorContext(
                 new ChunkGeneratorContext(
-                    new MvcRazorHost(chunkTreeCache),
+                    new MvcRazorHost(chunkTreeCache, new TagHelperDescriptorResolver(designTime: false)),
                     "MyClass",
                     "MyNamespace",
                     string.Empty,

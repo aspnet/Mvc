@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NETSTANDARD1_5
+#if NETSTANDARD1_6
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -68,12 +68,12 @@ namespace System.Net.Http
         /// <summary>
         /// HTTP X-Requested-With header field name
         /// </summary>
-        public const string HttpRequestedWithHeader = @"x-requested-with";
+        public const string HttpRequestedWithHeader = "x-requested-with";
 
         /// <summary>
         /// HTTP X-Requested-With header field value
         /// </summary>
-        public const string HttpRequestedWithHeaderValue = @"XMLHttpRequest";
+        public const string HttpRequestedWithHeaderValue = "XMLHttpRequest";
 
         /// <summary>
         /// HTTP Host header field name

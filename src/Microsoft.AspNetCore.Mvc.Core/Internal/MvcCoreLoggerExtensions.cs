@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -40,7 +41,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private static readonly Action<ILogger, object, Exception> _actionFilterShortCircuit;
         private static readonly Action<ILogger, object, Exception> _exceptionFilterShortCircuit;
 
-        private static readonly Action<ILogger, string[], Exception> _resultExecuting;
+        private static readonly Action<ILogger, string[], Exception> _forbidResultExecuting;
+        private static readonly Action<ILogger, string, ClaimsPrincipal, Exception> _signInResultExecuting;
+        private static readonly Action<ILogger, string[], Exception> _signOutResultExecuting;
 
         private static readonly Action<ILogger, int, Exception> _httpStatusCodeResultExecuting;
 
@@ -50,7 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private static readonly Action<ILogger, string, Exception> _noFormatter;
         private static readonly Action<ILogger, IOutputFormatter, string, Exception> _formatterSelected;
         private static readonly Action<ILogger, string, Exception> _skippedContentNegotiation;
-        private static readonly Action<ILogger, string, Exception> _noAcceptForNegotiation;
+        private static readonly Action<ILogger, Exception> _noAcceptForNegotiation;
         private static readonly Action<ILogger, IEnumerable<MediaTypeSegmentWithQuality>, Exception> _noFormatterFromNegotiation;
 
         private static readonly Action<ILogger, string, Exception> _redirectResultExecuting;
@@ -84,12 +87,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _actionMethodExecuting = LoggerMessage.Define<string, string[], ModelValidationState>(
                 LogLevel.Information,
                 1,
-                "Executing action method {ActionName} with arguments ({Arguments}) - ModelState is {ValidationState}'");
+                "Executing action method {ActionName} with arguments ({Arguments}) - ModelState is {ValidationState}");
 
             _actionMethodExecuted = LoggerMessage.Define<string, string>(
                 LogLevel.Debug,
                 2,
-                "Executed action method {ActionName}, returned result {ActionResult}.'");
+                "Executed action method {ActionName}, returned result {ActionResult}.");
 
             _ambiguousActions = LoggerMessage.Define<string>(
                 LogLevel.Error,
@@ -126,10 +129,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 4,
                 "Request was short circuited at exception filter '{ExceptionFilter}'.");
 
-            _resultExecuting = LoggerMessage.Define<string[]>(
+            _forbidResultExecuting = LoggerMessage.Define<string[]>(
                 LogLevel.Information,
                 eventId: 1,
                 formatString: $"Executing {nameof(ForbidResult)} with authentication schemes ({{Schemes}}).");
+
+            _signInResultExecuting = LoggerMessage.Define<string, ClaimsPrincipal>(
+                LogLevel.Information,
+                eventId: 1,
+                formatString: $"Executing {nameof(SignInResult)} with authentication scheme ({{Scheme}}) and the following principal: {{Principal}}.");
+
+            _signOutResultExecuting = LoggerMessage.Define<string[]>(
+                LogLevel.Information,
+                eventId: 1,
+                formatString: $"Executing {nameof(SignOutResult)} with authentication schemes ({{Schemes}}).");
 
             _httpStatusCodeResultExecuting = LoggerMessage.Define<int>(
                 LogLevel.Information,
@@ -161,7 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 3,
                 "Skipped content negotiation as content type '{ContentType}' is explicitly set for the response.");
 
-            _noAcceptForNegotiation = LoggerMessage.Define<string>(
+            _noAcceptForNegotiation = LoggerMessage.Define(
                 LogLevel.Debug,
                 4,
                 "No information found on request to perform content negotiation.");
@@ -189,7 +202,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
         {
-            return logger.BeginScopeImpl(new ActionLogScope(action));
+            return logger.BeginScope(new ActionLogScope(action));
         }
 
         public static void ExecutingAction(this ILogger logger, ActionDescriptor action)
@@ -200,12 +213,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void ExecutedAction(this ILogger logger, ActionDescriptor action, long startTimestamp)
         {
             // Don't log if logging wasn't enabled at start of request as time will be wildly wrong.
-            if (startTimestamp != 0)
+            if (logger.IsEnabled(LogLevel.Information))
             {
-                var currentTimestamp = Stopwatch.GetTimestamp();
-                var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
+                if (startTimestamp != 0)
+                {
+                    var currentTimestamp = Stopwatch.GetTimestamp();
+                    var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
 
-                _actionExecuted(logger, action.DisplayName, elapsed.TotalMilliseconds, null);
+                    _actionExecuted(logger, action.DisplayName, elapsed.TotalMilliseconds, null);
+                }
             }
         }
 
@@ -216,7 +232,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ChallengeResultExecuting(this ILogger logger, IList<string> schemes)
         {
-            _challengeResultExecuting(logger, schemes.ToArray(), null);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                _challengeResultExecuting(logger, schemes.ToArray(), null);
+            }
         }
 
         public static void ContentResultExecuting(this ILogger logger, string contentType)
@@ -252,8 +271,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ActionMethodExecuted(this ILogger logger, ActionExecutingContext context, IActionResult result)
         {
-            var actionName = context.ActionDescriptor.DisplayName;
-            _actionMethodExecuted(logger, actionName, Convert.ToString(result), null);
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var actionName = context.ActionDescriptor.DisplayName;
+                _actionMethodExecuted(logger, actionName, Convert.ToString(result), null);
+            }
         }
 
         public static void AmbiguousActions(this ILogger logger, string actionNames)
@@ -305,7 +327,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ForbidResultExecuting(this ILogger logger, IList<string> authenticationSchemes)
         {
-            _resultExecuting(logger, authenticationSchemes.ToArray(), null);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                _forbidResultExecuting(logger, authenticationSchemes.ToArray(), null);
+            }
+        }
+
+        public static void SignInResultExecuting(this ILogger logger, string authenticationScheme, ClaimsPrincipal principal)
+        {
+            _signInResultExecuting(logger, authenticationScheme, principal, null);
+        }
+
+        public static void SignOutResultExecuting(this ILogger logger, IList<string> authenticationSchemes)
+        {
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                _signOutResultExecuting(logger, authenticationSchemes.ToArray(), null);
+            }
         }
 
         public static void HttpStatusCodeResultExecuting(this ILogger logger, int statusCode)
@@ -320,14 +358,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ObjectResultExecuting(this ILogger logger, object value)
         {
-            _objectResultExecuting(logger, Convert.ToString(value), null);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                _objectResultExecuting(logger, Convert.ToString(value), null);
+            }
         }
 
         public static void NoFormatter(
             this ILogger logger,
             OutputFormatterWriteContext formatterContext)
         {
-            _noFormatter(logger, Convert.ToString(formatterContext.ContentType), null);
+            if (logger.IsEnabled(LogLevel.Warning))
+            {
+                _noFormatter(logger, Convert.ToString(formatterContext.ContentType), null);
+            }
         }
 
         public static void FormatterSelected(
@@ -335,8 +379,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             IOutputFormatter outputFormatter,
             OutputFormatterWriteContext context)
         {
-            var contentType = Convert.ToString(context.ContentType);
-            _formatterSelected(logger, outputFormatter, contentType, null);
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var contentType = Convert.ToString(context.ContentType);
+                _formatterSelected(logger, outputFormatter, contentType, null);
+            }
         }
 
         public static void SkippedContentNegotiation(this ILogger logger, string contentType)
@@ -346,7 +393,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void NoAcceptForNegotiation(this ILogger logger)
         {
-            _noAcceptForNegotiation(logger, null, null);
+            _noAcceptForNegotiation(logger, null);
         }
 
         public static void NoFormatterFromNegotiation(this ILogger logger, IList<MediaTypeSegmentWithQuality> acceptTypes)

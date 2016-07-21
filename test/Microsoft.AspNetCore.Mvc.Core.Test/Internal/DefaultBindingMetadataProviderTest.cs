@@ -1,8 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Xunit;
 
@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -118,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForType(typeof(string)),
                 new ModelAttributes(attributes));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -164,7 +164,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -187,7 +187,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -210,7 +210,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(int), "Length", typeof(string)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -300,7 +300,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindRequiredOnClass)),
                 new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -318,7 +318,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindNeverOnClass)),
                 new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(InheritedBindNeverOnClass)),
                 new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -359,7 +359,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindNeverOnClass)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -382,7 +382,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindNeverOnClass)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -405,7 +405,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(InheritedBindNeverOnClass)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -428,7 +428,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindRequiredOnClass)),
                 new ModelAttributes(propertyAttributes, typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -447,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ModelMetadataIdentity.ForProperty(typeof(string), "Property", typeof(BindRequiredOverridesInheritedBindNever)),
                 new ModelAttributes(propertyAttributes: new object[0], typeAttributes: new object[0]));
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -476,7 +476,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             context.BindingMetadata.IsBindingAllowed = initialValue;
             context.BindingMetadata.IsBindingRequired = initialValue;
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -507,7 +507,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             context.BindingMetadata.IsBindingAllowed = initialValue;
             context.BindingMetadata.IsBindingRequired = initialValue;
 
-            var provider = new DefaultBindingMetadataProvider(CreateMessageProvider());
+            var provider = new DefaultBindingMetadataProvider();
 
             // Act
             provider.CreateBindingMetadata(context);
@@ -515,20 +515,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             Assert.Equal(initialValue, context.BindingMetadata.IsBindingAllowed);
             Assert.Equal(initialValue, context.BindingMetadata.IsBindingRequired);
-        }
-
-        private static ModelBindingMessageProvider CreateMessageProvider()
-        {
-            return new ModelBindingMessageProvider
-            {
-                MissingBindRequiredValueAccessor = Resources.FormatModelBinding_MissingBindRequiredMember,
-                MissingKeyOrValueAccessor = Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent,
-                ValueMustNotBeNullAccessor = Resources.FormatModelBinding_NullValueNotValid,
-                AttemptedValueIsInvalidAccessor = Resources.FormatModelState_AttemptedValueIsInvalid,
-                UnknownValueIsInvalidAccessor = Resources.FormatModelState_UnknownValueIsInvalid,
-                ValueIsInvalidAccessor = Resources.FormatHtmlGeneration_ValueIsInvalid,
-                ValueMustBeANumberAccessor = Resources.FormatHtmlGeneration_ValueMustBeNumber,
-            };
         }
 
         [BindNever]

@@ -3,8 +3,7 @@
 
 using System;
 using System.Reflection;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
@@ -182,7 +181,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
             var exception = Assert.Throws<InvalidOperationException>(() => factory.CreateController(context));
             Assert.Equal(
                 $"Unable to resolve service for type '{typeof(TestService).FullName}' while attempting to activate " +
-                $"'{typeof(ControllerThatCannotBeActivated).FullName}'.", 
+                $"'{typeof(ControllerThatCannotBeActivated).FullName}'.",
                 exception.Message);
         }
 
@@ -206,12 +205,17 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
         {
             var metadataProvider = new EmptyModelMetadataProvider();
             var services = new Mock<IServiceProvider>();
-            services.Setup(s => s.GetService(typeof(IUrlHelper)))
-                    .Returns(Mock.Of<IUrlHelper>());
-            services.Setup(s => s.GetService(typeof(IModelMetadataProvider)))
-                    .Returns(metadataProvider);
-            services.Setup(s => s.GetService(typeof(IObjectModelValidator)))
-                    .Returns(new DefaultObjectValidator(metadataProvider, new ValidatorCache()));
+            services
+                .Setup(s => s.GetService(typeof(IUrlHelper)))
+                .Returns(Mock.Of<IUrlHelper>());
+            services
+                .Setup(s => s.GetService(typeof(IModelMetadataProvider)))
+                .Returns(metadataProvider);
+            services
+                .Setup(s => s.GetService(typeof(IObjectModelValidator)))
+                .Returns(new DefaultObjectValidator(
+                    metadataProvider,
+                    TestModelValidatorProvider.CreateDefaultProvider().ValidatorProviders));
             return services.Object;
         }
 

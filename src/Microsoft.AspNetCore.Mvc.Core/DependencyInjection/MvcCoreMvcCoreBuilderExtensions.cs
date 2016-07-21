@@ -2,15 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -96,70 +97,72 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Register the specified <paramref name="controllerTypes"/> as services and as a source for controller
-        /// discovery.
+        /// Registers discovered controllers as services in the <see cref="IServiceCollection"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
-        /// <param name="controllerTypes">A sequence of controller <see cref="Type"/>s to register.</param>
         /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
-        public static IMvcCoreBuilder AddControllersAsServices(
-           this IMvcCoreBuilder builder,
-           params Type[] controllerTypes)
+        public static IMvcCoreBuilder AddControllersAsServices(this IMvcCoreBuilder builder)
         {
-            return builder.AddControllersAsServices(controllerTypes.AsEnumerable());
-        }
+            var feature = new ControllerFeature();
+            builder.PartManager.PopulateFeature(feature);
 
-        /// <summary>
-        /// Register the specified <paramref name="controllerTypes"/> as services and as a source for controller
-        /// discovery.
-        /// </summary>
-        /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
-        /// <param name="controllerTypes">A sequence of controller <see cref="Type"/>s to register.</param>
-        /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
-        public static IMvcCoreBuilder AddControllersAsServices(
-           this IMvcCoreBuilder builder,
-           IEnumerable<Type> controllerTypes)
-        {
-            if (builder == null)
+            foreach (var controller in feature.Controllers.Select(c => c.AsType()))
             {
-                throw new ArgumentNullException(nameof(builder));
+                builder.Services.TryAddTransient(controller, controller);
             }
 
-            ControllersAsServices.AddControllersAsServices(builder.Services, controllerTypes);
+            builder.Services.Replace(ServiceDescriptor.Transient<IControllerActivator, ServiceBasedControllerActivator>());
+
             return builder;
         }
 
         /// <summary>
-        /// Registers controller types from the specified <paramref name="controllerAssemblies"/> as services and as a source
-        /// for controller discovery.
+        /// Adds an <see cref="ApplicationPart"/> to the list of <see cref="ApplicationPartManager.ApplicationParts"/> on the
+        /// <see cref="IMvcCoreBuilder.PartManager"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
-        /// <param name="controllerAssemblies">Assemblies to scan.</param>
+        /// <param name="assembly">The <see cref="Assembly"/> of the <see cref="ApplicationPart"/>.</param>
         /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
-        public static IMvcCoreBuilder AddControllersAsServices(
-            this IMvcCoreBuilder builder,
-            params Assembly[] controllerAssemblies)
-        {
-            return builder.AddControllersAsServices(controllerAssemblies.AsEnumerable());
-        }
-
-        /// <summary>
-        /// Registers controller types from the specified <paramref name="controllerAssemblies"/> as services and as a source
-        /// for controller discovery.
-        /// </summary>
-        /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
-        /// <param name="controllerAssemblies">Assemblies to scan.</param>
-        /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
-        public static IMvcCoreBuilder AddControllersAsServices(
-            this IMvcCoreBuilder builder,
-            IEnumerable<Assembly> controllerAssemblies)
+        public static IMvcCoreBuilder AddApplicationPart(this IMvcCoreBuilder builder, Assembly assembly)
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            ControllersAsServices.AddControllersAsServices(builder.Services, controllerAssemblies);
+            if (assembly == null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
+
+            builder.ConfigureApplicationPartManager(manager => manager.ApplicationParts.Add(new AssemblyPart(assembly)));
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="ApplicationPartManager"/> of the <see cref="IMvcCoreBuilder.PartManager"/> using
+        /// the given <see cref="Action{ApplicationPartManager}"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
+        /// <param name="setupAction">The <see cref="Action{ApplicationPartManager}"/></param>
+        /// <returns>The <see cref="IMvcCoreBuilder"/>.</returns>
+        public static IMvcCoreBuilder ConfigureApplicationPartManager(
+            this IMvcCoreBuilder builder,
+            Action<ApplicationPartManager> setupAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (setupAction == null)
+            {
+                throw new ArgumentNullException(nameof(setupAction));
+            }
+
+            setupAction(builder.PartManager);
+
             return builder;
         }
     }

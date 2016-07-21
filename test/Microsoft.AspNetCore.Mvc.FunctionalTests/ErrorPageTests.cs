@@ -4,10 +4,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-#if !NETSTANDARDAPP1_5
-using Microsoft.AspNetCore.Testing.xunit;
-#endif
+using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -17,6 +16,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     /// </summary>
     public class ErrorPageTests : IClassFixture<MvcTestFixture<ErrorPageMiddlewareWebSite.Startup>>
     {
+        private static readonly string PreserveCompilationContextMessage = HtmlEncoder.Default.Encode(
+            "One or more compilation references are missing. Possible causes include a missing " +
+            "'preserveCompilationContext' property under 'buildOptions' in the application's project.json.");
         public ErrorPageTests(MvcTestFixture<ErrorPageMiddlewareWebSite.Startup> fixture)
         {
             Client = fixture.Client;
@@ -24,24 +26,39 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public HttpClient Client { get; }
 
-#if NETSTANDARDAPP1_5
-        [Theory]
-#else
-        [ConditionalTheory]
-        [OSSkipCondition(OperatingSystems.MacOSX, SkipReason = "aspnet/Mvc#3587")]
-#endif
-        [InlineData("CompilationFailure", "Cannot implicitly convert type &#x27;int&#x27; to &#x27;string&#x27;")]
-        [InlineData("ParserError", "The code block is missing a closing &quot;}&quot; character.  Make sure you " +
-                                    "have a matching &quot;}&quot; character for all the &quot;{&quot; characters " +
-                                    "within this block, and that none of the &quot;}&quot; characters are being " +
-                                    "interpreted as markup.")]
-        public async Task CompilationFailuresAreListedByErrorPageMiddleware(string action, string expected)
+        [Fact]
+        public async Task CompilationFailuresAreListedByErrorPageMiddleware()
         {
             // Arrange
+            var action = "CompilationFailure";
+            var expected = "Cannot implicitly convert type &#x27;int&#x27; to &#x27;string&#x27;";
             var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
 
             // Act
             var response = await Client.GetAsync("http://localhost/" + action);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Contains($"/Views/ErrorPageMiddleware/{action}.cshtml", content);
+            Assert.Contains(expected, content);
+            Assert.DoesNotContain(PreserveCompilationContextMessage, content);
+        }
+
+        [Fact]
+        public async Task ParseFailuresAreListedByErrorPageMiddleware()
+        {
+            // Arrange
+            var action = "ParserError";
+            var expected = "The code block is missing a closing &quot;}&quot; character.  Make sure you " +
+            "have a matching &quot;}&quot; character for all the &quot;{&quot; characters " +
+            "within this block, and that none of the &quot;}&quot; characters are being " +
+            "interpreted as markup.";
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
+
+            // Act
+            var response = await Client.GetAsync(action);
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
@@ -67,6 +84,35 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
             var content = await response.Content.ReadAsStringAsync();
             Assert.Contains("/Views/ErrorFromViewImports/_ViewImports.cshtml", content);
+            Assert.Contains(expectedMessage, content);
+            Assert.Contains(PreserveCompilationContextMessage, content);
+        }
+
+        [Fact]
+        public async Task RuntimeErrorAreListedByErrorPageMiddleware()
+        {
+            // The desktop CLR does not correctly read the stack trace from portable PDBs. However generating full pdbs
+            // is only supported on machines with CLSID_CorSymWriter available. On desktop, we'll skip this test on 
+            // machines without this component.
+#if NET451
+            if (!SymbolsUtility.SupportsFullPdbGeneration())
+            {
+                return;
+            }
+#endif
+
+            // Arrange
+            var expectedMessage = HtmlEncoder.Default.Encode("throw new Exception(\"Error from view\");");
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
+
+            // Act
+            var response = await Client.GetAsync("http://localhost/RuntimeError");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Contains("/Views/ErrorPageMiddleware/RuntimeError.cshtml", content);
             Assert.Contains(expectedMessage, content);
         }
     }

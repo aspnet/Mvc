@@ -2,23 +2,29 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -66,14 +72,28 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
         private static TestRazorPage CreateTestRazorPage()
         {
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var serviceProvider = new Mock<IServiceProvider>();
             var typeActivator = new TypeActivatorCache();
+            var tagHelperActivator = new DefaultTagHelperActivator(typeActivator);
             var myService = new MyService();
             serviceProvider.Setup(mock => mock.GetService(typeof(MyService)))
                            .Returns(myService);
+            serviceProvider.Setup(mock => mock.GetService(typeof(ITagHelperFactory)))
+                .Returns(new DefaultTagHelperFactory(tagHelperActivator));
             serviceProvider.Setup(mock => mock.GetService(typeof(ITagHelperActivator)))
-                           .Returns(new DefaultTagHelperActivator());
+                           .Returns(tagHelperActivator);
             serviceProvider.Setup(mock => mock.GetService(typeof(ITypeActivatorCache)))
                            .Returns(typeActivator);
             serviceProvider.Setup(mock => mock.GetService(It.Is<Type>(serviceType =>

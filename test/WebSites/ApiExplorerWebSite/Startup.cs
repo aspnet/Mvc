@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -23,8 +25,10 @@ namespace ApiExplorerWebSite
                 options.Conventions.Add(new ApiExplorerVisibilityDisabledConvention(
                     typeof(ApiExplorerVisbilityDisabledByConventionController)));
 
+                var jsonOutputFormatter = options.OutputFormatters.OfType<JsonOutputFormatter>().First();
+
                 options.OutputFormatters.Clear();
-                options.OutputFormatters.Add(new JsonOutputFormatter());
+                options.OutputFormatters.Add(jsonOutputFormatter);
                 options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
             });
 
@@ -45,8 +49,9 @@ namespace ApiExplorerWebSite
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .UseDefaultHostingConfiguration(args)
-                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseKestrel()
+                .UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();
 
@@ -54,3 +59,4 @@ namespace ApiExplorerWebSite
         }
     }
 }
+

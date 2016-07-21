@@ -4,7 +4,7 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Xunit;
@@ -14,20 +14,18 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
     public class HttpRequestMessageModelBinderTest
     {
         [Fact]
-        public async Task BindModelAsync_ReturnsNonEmptyResult_ForHttpRequestMessageType()
+        public async Task BindModelAsync_BindsHttpRequestMessage()
         {
             // Arrange
             var binder = new HttpRequestMessageModelBinder();
             var bindingContext = GetBindingContext(typeof(HttpRequestMessage));
-            var expectedModel = bindingContext.OperationBindingContext.HttpContext.GetHttpRequestMessage();
+            var expectedModel = bindingContext.HttpContext.GetHttpRequestMessage();
 
             // Act
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.True(bindingContext.Result.HasValue);
-
-            var result = bindingContext.Result.Value;
+            var result = bindingContext.Result;
             Assert.True(result.IsModelSet);
             Assert.Same(expectedModel, result.Model);
 
@@ -37,42 +35,21 @@ namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
             Assert.Null(entry.Metadata);
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(object))]
-        [InlineData(typeof(HttpRequestMessageModelBinderTest))]
-        public async Task BindModelAsync_ReturnsNull_ForNonHttpRequestMessageType(Type type)
-        {
-            // Arrange
-            var binder = new HttpRequestMessageModelBinder();
-            var bindingContext = GetBindingContext(type);
-
-            // Act
-            await binder.BindModelAsync(bindingContext);
-
-            // Assert
-            Assert.False(bindingContext.Result.HasValue);
-        }
-
         private static DefaultModelBindingContext GetBindingContext(Type modelType)
         {
             var metadataProvider = new EmptyModelMetadataProvider();
             DefaultModelBindingContext bindingContext = new DefaultModelBindingContext
             {
+                ActionContext = new ActionContext()
+                {
+                    HttpContext = new DefaultHttpContext(),
+                },
                 ModelMetadata = metadataProvider.GetMetadataForType(modelType),
                 ModelName = "someName",
-                OperationBindingContext = new OperationBindingContext
-                {
-                    ActionContext = new ActionContext()
-                    {
-                        HttpContext = new DefaultHttpContext(),
-                    },
-                    MetadataProvider = metadataProvider,
-                },
                 ValidationState = new ValidationStateDictionary(),
             };
 
-            bindingContext.OperationBindingContext.HttpContext.Request.Method = "GET";
+            bindingContext.HttpContext.Request.Method = "GET";
 
             return bindingContext;
         }

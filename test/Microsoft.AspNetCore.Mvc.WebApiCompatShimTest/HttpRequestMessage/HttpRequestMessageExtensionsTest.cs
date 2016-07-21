@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.WebApiCompatShim;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Options;
@@ -24,10 +23,7 @@ namespace System.Net.Http
             var ex = Assert.Throws<FormatException>(
                 () => request.CreateResponse(HttpStatusCode.OK, CreateValue(), "foo/bar; param=value"));
 
-            Assert.Equal(
-                TestPlatformHelper.IsMono ?
-                "Invalid format." :
-                "The format of value 'foo/bar; param=value' is invalid.", ex.Message);
+            Assert.Contains("foo/bar; param=value", ex.Message);
         }
 
         [Fact]
@@ -282,7 +278,7 @@ namespace System.Net.Http
             Assert.Equal("bin/baz", response.Content.Headers.ContentType.MediaType);
         }
 
-#if !NETSTANDARDAPP1_5
+#if !NETCOREAPP1_0
         // API doesn't exist in CoreCLR.
         [Fact]
         public void CreateErrorResponseRangeNotSatisfiable_SetsCorrectStatusCodeAndContentRangeHeader()

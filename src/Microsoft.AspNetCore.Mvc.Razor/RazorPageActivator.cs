@@ -4,8 +4,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -29,13 +30,31 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
         private readonly IModelMetadataProvider _metadataProvider;
 
+        // Value accessors for common singleton properties activated in a RazorPage.
+        private Func<ViewContext, object> _urlHelperAccessor;
+        private Func<ViewContext, object> _jsonHelperAccessor;
+        private Func<ViewContext, object> _diagnosticSourceAccessor;
+        private Func<ViewContext, object> _htmlEncoderAccessor;
+        private Func<ViewContext, object> _modelExpressionProviderAccessor;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.
         /// </summary>
-        public RazorPageActivator(IModelMetadataProvider metadataProvider)
+        public RazorPageActivator(
+            IModelMetadataProvider metadataProvider,
+            IUrlHelperFactory urlHelperFactory,
+            IJsonHelper jsonHelper,
+            DiagnosticSource diagnosticSource,
+            HtmlEncoder htmlEncoder,
+            IModelExpressionProvider modelExpressionProvider)
         {
             _activationInfo = new ConcurrentDictionary<Type, PageActivationInfo>();
             _metadataProvider = metadataProvider;
+            _urlHelperAccessor = context => urlHelperFactory.GetUrlHelper(context);
+            _jsonHelperAccessor = context => jsonHelper;
+            _diagnosticSourceAccessor = context => diagnosticSource;
+            _htmlEncoderAccessor = context => htmlEncoder;
+            _modelExpressionProviderAccessor = context => modelExpressionProvider;
         }
 
         /// <inheritdoc />
@@ -66,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private ViewDataDictionary CreateViewDataDictionary(ViewContext context, PageActivationInfo activationInfo)
         {
             // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of
-            // ViewContext.ViewData is an incompatibile type.
+            // ViewContext.ViewData is an incompatible type.
             if (context.ViewData == null)
             {
                 // Create ViewDataDictionary<TModel>(IModelMetadataProvider, ModelStateDictionary).
@@ -160,12 +179,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 // W.r.t. specificity of above condition: Users are much more likely to inject their own
                 // IUrlHelperFactory than to create a class implementing IUrlHelper (or a sub-interface) and inject
                 // that. But the second scenario is supported. (Note the class must implement ICanHasViewContext.)
-                valueAccessor = context =>
-                {
-                    var serviceProvider = context.HttpContext.RequestServices;
-                    var factory = serviceProvider.GetRequiredService<IUrlHelperFactory>();
-                    return factory.GetUrlHelper(context);
-                };
+                valueAccessor = _urlHelperAccessor;
+            }
+            else if (property.PropertyType == typeof(IJsonHelper))
+            {
+                valueAccessor = _jsonHelperAccessor;
+            }
+            else if (property.PropertyType == typeof(DiagnosticSource))
+            {
+                valueAccessor = _diagnosticSourceAccessor;
+            }
+            else if (property.PropertyType == typeof(HtmlEncoder))
+            {
+                valueAccessor = _htmlEncoderAccessor;
+            }
+            else if (property.PropertyType == typeof(IModelExpressionProvider))
+            {
+                valueAccessor = _modelExpressionProviderAccessor;
             }
             else
             {

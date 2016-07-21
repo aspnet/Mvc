@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -22,10 +21,159 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
+    // Most of the in-depth testing for SelectCandidates is part of the descision tree tests.
+    // This is just basic coverage of the API in common scenarios.
     public class DefaultActionSelectorTests
     {
         [Fact]
-        public void Select_AmbiguousActions_LogIsCorrect()
+        public void SelectCandidates_SingleMatch()
+        {
+            var actions = new ActionDescriptor[]
+            {
+                new ActionDescriptor()
+                {
+                    DisplayName = "A1",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "Index" }
+                    },
+                },
+                new ActionDescriptor()
+                {
+                    DisplayName = "A2",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "About" }
+                    },
+                },
+            };
+
+            var selector = CreateSelector(actions);
+
+            var routeContext = CreateRouteContext("GET");
+            routeContext.RouteData.Values.Add("controller", "Home");
+            routeContext.RouteData.Values.Add("action", "Index");
+
+            // Act
+            var candidates = selector.SelectCandidates(routeContext);
+
+            // Assert
+            Assert.Collection(candidates, (a) => Assert.Same(actions[0], a));
+        }
+
+        [Fact]
+        public void SelectCandidates_MultipleMatches()
+        {
+            var actions = new ActionDescriptor[]
+            {
+                new ActionDescriptor()
+                {
+                    DisplayName = "A1",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "Index" }
+                    },
+                },
+                new ActionDescriptor()
+                {
+                    DisplayName = "A2",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "Index" }
+                    },
+                },
+            };
+
+            var selector = CreateSelector(actions);
+
+            var routeContext = CreateRouteContext("GET");
+            routeContext.RouteData.Values.Add("controller", "Home");
+            routeContext.RouteData.Values.Add("action", "Index");
+
+            // Act
+            var candidates = selector.SelectCandidates(routeContext);
+
+            // Assert
+            Assert.Equal(actions.ToArray(), candidates.ToArray());
+        }
+
+        [Fact]
+        public void SelectCandidates_NoMatch()
+        {
+            var actions = new ActionDescriptor[]
+            {
+                new ActionDescriptor()
+                {
+                    DisplayName = "A1",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "Index" }
+                    },
+                },
+                new ActionDescriptor()
+                {
+                    DisplayName = "A2",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "About" }
+                    },
+                },
+            };
+
+            var selector = CreateSelector(actions);
+
+            var routeContext = CreateRouteContext("GET");
+            routeContext.RouteData.Values.Add("controller", "Foo");
+            routeContext.RouteData.Values.Add("action", "Index");
+
+            // Act
+            var candidates = selector.SelectCandidates(routeContext);
+
+            // Assert
+            Assert.Empty(candidates);
+        }
+
+        [Fact]
+        public void SelectCandidates_NoMatch_ExcludesAttributeRoutedActions()
+        {
+            var actions = new ActionDescriptor[]
+            {
+                new ActionDescriptor()
+                {
+                    DisplayName = "A1",
+                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        { "controller", "Home" },
+                        { "action", "Index" }
+                    },
+                    AttributeRouteInfo = new AttributeRouteInfo()
+                    {
+                        Template = "/Home",
+                    }
+                },
+            };
+
+            var selector = CreateSelector(actions);
+
+            var routeContext = CreateRouteContext("GET");
+            routeContext.RouteData.Values.Add("controller", "Home");
+            routeContext.RouteData.Values.Add("action", "Index");
+
+            // Act
+            var candidates = selector.SelectCandidates(routeContext);
+
+            // Assert
+            Assert.Empty(candidates);
+        }
+
+        [Fact]
+        public void SelectBestCandidate_AmbiguousActions_LogIsCorrect()
         {
             // Arrange
             var sink = new TestSink();
@@ -44,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 $"ambiguity. Matching actions: {actionNames}";
 
             // Act
-            Assert.Throws<AmbiguousActionException>(() => { selector.Select(routeContext); });
+            Assert.Throws<AmbiguousActionException>(() => { selector.SelectBestCandidate(routeContext, actions); });
 
             // Assert
             Assert.Empty(sink.Scopes);
@@ -53,7 +201,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void Select_PrefersActionWithConstraints()
+        public void SelectBestCandidate_PrefersActionWithConstraints()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -76,14 +224,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void Select_ConstraintsRejectAll()
+        public void SelectBestCandidate_ConstraintsRejectAll()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -108,14 +256,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void Select_ConstraintsRejectAll_DifferentStages()
+        public void SelectBestCandidate_ConstraintsRejectAll_DifferentStages()
         {
             // Arrange
             var action1 = new ActionDescriptor()
@@ -142,14 +290,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Null(action);
         }
 
         [Fact]
-        public void Select_ActionConstraintFactory()
+        public void SelectBestCandidate_ActionConstraintFactory()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -174,14 +322,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
         }
 
         [Fact]
-        public void Select_ActionConstraintFactory_ReturnsNull()
+        public void SelectBestCandidate_ActionConstraintFactory_ReturnsNull()
         {
             // Arrange
             var nullConstraint = new ActionDescriptor()
@@ -200,7 +348,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, nullConstraint);
@@ -208,7 +356,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // There's a custom constraint provider registered that only understands BooleanConstraintMarker
         [Fact]
-        public void Select_CustomProvider()
+        public void SelectBestCandidate_CustomProvider()
         {
             // Arrange
             var actionWithConstraints = new ActionDescriptor()
@@ -230,7 +378,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, actionWithConstraints);
@@ -238,7 +386,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void Select_ConstraintsInOrder()
+        public void SelectBestCandidate_ConstraintsInOrder()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -263,7 +411,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
@@ -271,7 +419,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         // Due to ordering of stages, the first action will be better.
         [Fact]
-        public void Select_ConstraintsInOrder_MultipleStages()
+        public void SelectBestCandidate_ConstraintsInOrder_MultipleStages()
         {
             // Arrange
             var best = new ActionDescriptor()
@@ -300,14 +448,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void Select_Fallback_ToActionWithoutConstraints()
+        public void SelectBestCandidate_Fallback_ToActionWithoutConstraints()
         {
             // Arrange
             var nomatch1 = new ActionDescriptor()
@@ -338,14 +486,14 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var context = CreateRouteContext("POST");
 
             // Act
-            var action = selector.Select(context);
+            var action = selector.SelectBestCandidate(context, actions);
 
             // Assert
             Assert.Same(action, best);
         }
 
         [Fact]
-        public void Select_Ambiguous()
+        public void SelectBestCandidate_Ambiguous()
         {
             // Arrange
             var expectedMessage =
@@ -359,7 +507,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             {
                 CreateAction(area: null, controller: "Store", action: "Buy"),
                 CreateAction(area: null, controller: "Store", action: "Buy"),
-                CreateAction(area: null, controller: "Store", action: "Cart"),
             };
 
             actions[0].DisplayName = "Ambiguous1";
@@ -374,7 +521,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             // Act
             var ex = Assert.Throws<AmbiguousActionException>(() =>
             {
-                selector.Select(context);
+                selector.SelectBestCandidate(context, actions);
             });
 
             // Assert
@@ -398,7 +545,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var result = InvokeActionSelector(routeContext);
 
             // Assert
-            Assert.Equal("Patch", result.Name);
+            Assert.Equal("Patch", result.ActionName);
         }
 
         [Theory]
@@ -419,7 +566,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var result = InvokeActionSelector(routeContext);
 
             // Assert
-            Assert.Equal("Put", result.Name);
+            Assert.Equal("Put", result.ActionName);
         }
 
         [Theory]
@@ -451,7 +598,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             // Act
             var result = actionDescriptorProvider
                 .GetDescriptors()
-                .FirstOrDefault(x => x.ControllerName == "NonAction" && x.Name == actionName);
+                .FirstOrDefault(x => x.ControllerName == "NonAction" && x.ActionName == actionName);
 
             // Assert
             Assert.Null(result);
@@ -504,10 +651,10 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var result = InvokeActionSelector(routeContext);
 
             // Assert
-            Assert.Equal(actionName, result.Name);
+            Assert.Equal(actionName, result.ActionName);
         }
 
-        private ActionDescriptor InvokeActionSelector(RouteContext context)
+        private ControllerActionDescriptor InvokeActionSelector(RouteContext context)
         {
             var actionDescriptorProvider = GetActionDescriptorProvider();
 
@@ -528,12 +675,13 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 new DefaultActionConstraintProvider(),
             };
 
-            var defaultActionSelector = new ActionSelector(
+            var actionSelector = new ActionSelector(
                 decisionTreeProvider,
                 GetActionConstraintCache(actionConstraintProviders),
                 NullLoggerFactory.Instance);
 
-            return defaultActionSelector.Select(context);
+            var candidates = actionSelector.SelectCandidates(context);
+            return (ControllerActionDescriptor)actionSelector.SelectBestCandidate(context, candidates);
         }
 
         private ControllerActionDescriptorProvider GetActionDescriptorProvider()
@@ -545,15 +693,24 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             var options = new TestOptionsManager<MvcOptions>();
 
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypes);
+            var manager = GetApplicationManager(controllerTypes);
+
             var modelProvider = new DefaultApplicationModelProvider(options);
 
             var provider = new ControllerActionDescriptorProvider(
-                controllerTypeProvider,
+                manager,
                 new[] { modelProvider },
                 options);
 
             return provider;
+        }
+
+        private static ApplicationPartManager GetApplicationManager(List<TypeInfo> controllerTypes)
+        {
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new TestApplicationPart(controllerTypes));
+            manager.FeatureProviders.Add(new TestFeatureProvider());
+            return manager;
         }
 
         private static HttpContext GetHttpContext(string httpMethod)
@@ -591,9 +748,9 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             return
                 actions
-                .Where(a => a.RouteConstraints.Any(c => c.RouteKey == "area" && comparer.Equals(c.RouteValue, area)))
-                .Where(a => a.RouteConstraints.Any(c => c.RouteKey == "controller" && comparer.Equals(c.RouteValue, controller)))
-                .Where(a => a.RouteConstraints.Any(c => c.RouteKey == "action" && comparer.Equals(c.RouteValue, action)));
+                .Where(a => a.RouteValues.Any(kvp => kvp.Key == "area" && comparer.Equals(kvp.Value, area)))
+                .Where(a => a.RouteValues.Any(kvp => kvp.Key == "controller" && comparer.Equals(kvp.Value, controller)))
+                .Where(a => a.RouteValues.Any(kvp => kvp.Key == "action" && comparer.Equals(kvp.Value, action)));
         }
 
         private static ActionSelector CreateSelector(IReadOnlyList<ActionDescriptor> actions, ILoggerFactory loggerFactory = null)
@@ -655,27 +812,15 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         private static ActionDescriptor CreateAction(string area, string controller, string action)
         {
-            var actionDescriptor = new ActionDescriptor()
+            var actionDescriptor = new ControllerActionDescriptor()
             {
-                Name = string.Format("Area: {0}, Controller: {1}, Action: {2}", area, controller, action),
-                RouteConstraints = new List<RouteDataActionConstraint>(),
+                ActionName = string.Format("Area: {0}, Controller: {1}, Action: {2}", area, controller, action),
                 Parameters = new List<ParameterDescriptor>(),
             };
 
-            actionDescriptor.RouteConstraints.Add(
-                area == null ?
-                new RouteDataActionConstraint("area", null) :
-                new RouteDataActionConstraint("area", area));
-
-            actionDescriptor.RouteConstraints.Add(
-                controller == null ?
-                new RouteDataActionConstraint("controller", null) :
-                new RouteDataActionConstraint("controller", controller));
-
-            actionDescriptor.RouteConstraints.Add(
-                action == null ?
-                new RouteDataActionConstraint("action", null) :
-                new RouteDataActionConstraint("action", action));
+            actionDescriptor.RouteValues.Add("area", area);
+            actionDescriptor.RouteValues.Add("controller", controller);
+            actionDescriptor.RouteValues.Add("action", action);
 
             return actionDescriptor;
         }

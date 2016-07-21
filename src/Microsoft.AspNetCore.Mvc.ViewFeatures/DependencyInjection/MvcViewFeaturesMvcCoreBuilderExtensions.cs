@@ -3,9 +3,12 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -26,8 +29,17 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.AddDataAnnotations();
+            AddViewComponentApplicationPartsProviders(builder.PartManager);
             AddViewServices(builder.Services);
             return builder;
+        }
+
+        private static void AddViewComponentApplicationPartsProviders(ApplicationPartManager manager)
+        {
+            if (!manager.FeatureProviders.OfType<ViewComponentFeatureProvider>().Any())
+            {
+                manager.FeatureProviders.Add(new ViewComponentFeatureProvider());
+            }
         }
 
         public static IMvcCoreBuilder AddViews(
@@ -103,6 +115,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient<IHtmlHelper, HtmlHelper>();
             services.TryAddTransient(typeof(IHtmlHelper<>), typeof(HtmlHelper<>));
             services.TryAddSingleton<IHtmlGenerator, DefaultHtmlGenerator>();
+            services.TryAddSingleton<ExpressionTextCache>();
+            services.TryAddSingleton<IModelExpressionProvider, ModelExpressionProvider>();
 
             //
             // JSON Helper
@@ -126,6 +140,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<
                 IViewComponentDescriptorCollectionProvider,
                 DefaultViewComponentDescriptorCollectionProvider>();
+            services.TryAddSingleton<ViewComponentResultExecutor>();
 
             services.TryAddSingleton<ViewComponentInvokerCache>();
             services.TryAddTransient<IViewComponentDescriptorProvider, DefaultViewComponentDescriptorProvider>();

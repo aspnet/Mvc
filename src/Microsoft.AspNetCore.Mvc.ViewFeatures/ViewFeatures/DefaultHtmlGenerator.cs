@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -155,6 +156,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
+            var formContext = viewContext.FormContext;
+            if (formContext.CanRenderAtEndOfForm)
+            {
+                // Inside a BeginForm/BeginRouteForm or a <form> tag helper. So, the antiforgery token might have
+                // already been created and appended to the 'end form' content (the AntiForgeryToken HTML helper does
+                // this) OR the <form> tag helper might have already generated an antiforgery token.
+                if (formContext.HasAntiforgeryToken)
+                {
+                    return HtmlString.Empty;
+                }
+
+                formContext.HasAntiforgeryToken = true;
+            }
+
             return _antiforgery.GetHtml(viewContext.HttpContext);
         }
 
@@ -249,7 +264,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 defaultMethod = true;
             }
-            else if (string.Equals(method, FormMethod.Post.ToString(), StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(method, "post", StringComparison.OrdinalIgnoreCase))
             {
                 defaultMethod = true;
             }
@@ -556,16 +571,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             modelExplorer = modelExplorer ??
                 ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-            if (currentValues != null)
-            {
-                selectList = UpdateSelectListItemsWithDefaultValue(modelExplorer, selectList, currentValues);
-            }
 
             // Convert each ListItem to an <option> tag and wrap them with <optgroup> if requested.
-            var listItemBuilder = GenerateGroupsAndOptions(optionLabel, selectList);
+            var listItemBuilder = GenerateGroupsAndOptions(optionLabel, selectList, currentValues);
 
             var tagBuilder = new TagBuilder("select");
-            tagBuilder.InnerHtml.SetContent(listItemBuilder);
+            tagBuilder.InnerHtml.SetHtmlContent(listItemBuilder);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes));
             tagBuilder.MergeAttribute("name", fullName, true /* replaceExisting */);
             tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
@@ -651,10 +662,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (columns > 0)
             {
-                tagBuilder.MergeAttribute("columns", columns.ToString(CultureInfo.InvariantCulture), true);
+                tagBuilder.MergeAttribute("cols", columns.ToString(CultureInfo.InvariantCulture), true);
             }
 
             tagBuilder.MergeAttribute("name", fullName, true);
+
+            AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             // If there are any errors for a named field, we add this CSS attribute.
@@ -1033,6 +1046,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </remarks>
         internal static TagBuilder GenerateOption(SelectListItem item, string text)
         {
+            return GenerateOption(item, text, item.Selected);
+        }
+
+        internal static TagBuilder GenerateOption(SelectListItem item, string text, bool selected)
+        {
             var tagBuilder = new TagBuilder("option");
             tagBuilder.InnerHtml.SetContent(text);
 
@@ -1041,7 +1059,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 tagBuilder.Attributes["value"] = item.Value;
             }
 
-            if (item.Selected)
+            if (selected)
             {
                 tagBuilder.Attributes["selected"] = "selected";
             }
@@ -1104,7 +1122,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             if (string.IsNullOrEmpty(method))
             {
                 // Occurs only when called from a tag helper.
-                method = FormMethod.Post.ToString().ToLowerInvariant();
+                method = "post";
             }
 
             // For tag helpers, htmlAttributes will be null; replaceExisting value does not matter.
@@ -1158,12 +1176,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var suppliedTypeString = tagBuilder.Attributes["type"];
             if (_placeholderInputTypes.Contains(suppliedTypeString))
             {
-                modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-                var placeholder = modelExplorer.Metadata.Placeholder;
-                if (!string.IsNullOrEmpty(placeholder))
-                {
-                    tagBuilder.MergeAttribute("placeholder", placeholder);
-                }
+                AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
             var valueParameter = FormatValue(value, format);
@@ -1274,6 +1287,27 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             tagBuilder.MergeAttribute("href", url);
 
             return tagBuilder;
+        }
+
+        /// <summary>
+        /// Adds a placeholder attribute to the <paramref name="tagBuilder" />.
+        /// </summary>
+        /// <param name="viewData">A <see cref="ViewDataDictionary"/> instance for the current scope.</param>
+        /// <param name="tagBuilder">A <see cref="TagBuilder"/> instance.</param>
+        /// <param name="modelExplorer">The <see cref="ModelExplorer"/> for the <paramref name="expression"/>.</param>
+        /// <param name="expression">Expression name, relative to the current model.</param>
+        protected virtual void AddPlaceholderAttribute(
+            ViewDataDictionary viewData,
+            TagBuilder tagBuilder,
+            ModelExplorer modelExplorer,
+            string expression)
+        {
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(expression, viewData, _metadataProvider);
+            var placeholder = modelExplorer.Metadata.Placeholder;
+            if (!string.IsNullOrEmpty(placeholder))
+            {
+                tagBuilder.MergeAttribute("placeholder", placeholder);
+            }
         }
 
         /// <summary>
@@ -1433,82 +1467,81 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return selectList;
         }
 
-        private static IEnumerable<SelectListItem> UpdateSelectListItemsWithDefaultValue(
-            ModelExplorer modelExplorer,
-            IEnumerable<SelectListItem> selectList,
-            ICollection<string> currentValues)
-        {
-            // Perform deep copy of selectList to avoid changing user's Selected property values.
-            var newSelectList = new List<SelectListItem>();
-            foreach (SelectListItem item in selectList)
-            {
-                var value = item.Value ?? item.Text;
-                var selected = currentValues.Contains(value);
-                var copy = new SelectListItem
-                {
-                    Disabled = item.Disabled,
-                    Group = item.Group,
-                    Selected = selected,
-                    Text = item.Text,
-                    Value = item.Value,
-                };
-
-                newSelectList.Add(copy);
-            }
-
-            return newSelectList;
-        }
-
         /// <inheritdoc />
         public IHtmlContent GenerateGroupsAndOptions(string optionLabel, IEnumerable<SelectListItem> selectList)
+        {
+            return GenerateGroupsAndOptions(optionLabel: optionLabel, selectList: selectList, currentValues: null);
+        }
+
+        private IHtmlContent GenerateGroupsAndOptions(
+            string optionLabel,
+            IEnumerable<SelectListItem> selectList,
+            ICollection<string> currentValues)
         {
             var listItemBuilder = new HtmlContentBuilder();
 
             // Make optionLabel the first item that gets rendered.
             if (optionLabel != null)
             {
-                listItemBuilder.AppendLine(GenerateOption(new SelectListItem()
-                {
-                    Text = optionLabel,
-                    Value = string.Empty,
-                    Selected = false,
-                }));
+                listItemBuilder.AppendLine(GenerateOption(
+                    new SelectListItem()
+                    {
+                        Text = optionLabel,
+                        Value = string.Empty,
+                        Selected = false,
+                    },
+                    currentValues: null));
+            }
+
+            var itemsList = selectList as IList<SelectListItem>;
+            if (itemsList == null)
+            {
+                itemsList = selectList.ToList();
             }
 
             // Group items in the SelectList if requested.
-            // Treat each item with Group == null as a member of a unique group
-            // so they are added according to the original order.
-            var groupedSelectList = selectList.GroupBy<SelectListItem, int>(
-                item => (item.Group == null) ? item.GetHashCode() : item.Group.GetHashCode());
-            foreach (var group in groupedSelectList)
+            // The worst case complexity of this algorithm is O(number of groups*n).
+            // If there aren't any groups, it is O(n) where n is number of items in the list.
+            var optionGenerated = new bool[itemsList.Count];
+            for (var i = 0; i < itemsList.Count; i++)
             {
-                var optGroup = group.First().Group;
-                if (optGroup != null)
+                if (!optionGenerated[i])
                 {
-                    var groupBuilder = new TagBuilder("optgroup");
-                    if (optGroup.Name != null)
+                    var item = itemsList[i];
+                    var optGroup = item.Group;
+                    if (optGroup != null)
                     {
-                        groupBuilder.MergeAttribute("label", optGroup.Name);
-                    }
+                        var groupBuilder = new TagBuilder("optgroup");
+                        if (optGroup.Name != null)
+                        {
+                            groupBuilder.MergeAttribute("label", optGroup.Name);
+                        }
 
-                    if (optGroup.Disabled)
-                    {
-                        groupBuilder.MergeAttribute("disabled", "disabled");
-                    }
+                        if (optGroup.Disabled)
+                        {
+                            groupBuilder.MergeAttribute("disabled", "disabled");
+                        }
 
-                    groupBuilder.InnerHtml.AppendLine();
-                    foreach (var item in group)
-                    {
-                        groupBuilder.InnerHtml.AppendLine(GenerateOption(item));
-                    }
+                        groupBuilder.InnerHtml.AppendLine();
 
-                    listItemBuilder.AppendLine(groupBuilder);
-                }
-                else
-                {
-                    foreach (var item in group)
+                        for (var j = i; j < itemsList.Count; j++)
+                        {
+                            var groupItem = itemsList[j];
+
+                            if (!optionGenerated[j] &&
+                                object.ReferenceEquals(optGroup, groupItem.Group))
+                            {
+                                groupBuilder.InnerHtml.AppendLine(GenerateOption(groupItem, currentValues));
+                                optionGenerated[j] = true;
+                            }
+                        }
+
+                        listItemBuilder.AppendLine(groupBuilder);
+                    }
+                    else
                     {
-                        listItemBuilder.AppendLine(GenerateOption(item));
+                        listItemBuilder.AppendLine(GenerateOption(item, currentValues));
+                        optionGenerated[i] = true;
                     }
                 }
             }
@@ -1516,9 +1549,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return listItemBuilder;
         }
 
-        private IHtmlContent GenerateOption(SelectListItem item)
+        private IHtmlContent GenerateOption(SelectListItem item, ICollection<string> currentValues)
         {
-            var tagBuilder = GenerateOption(item, item.Text);
+            var selected = item.Selected;
+            if (currentValues != null)
+            {
+                var value = item.Value ?? item.Text;
+                selected = currentValues.Contains(value);
+            }
+
+            var tagBuilder = GenerateOption(item, item.Text, selected);
             return tagBuilder;
         }
     }

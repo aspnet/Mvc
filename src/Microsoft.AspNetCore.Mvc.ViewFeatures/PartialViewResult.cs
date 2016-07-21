@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
@@ -24,9 +25,14 @@ namespace Microsoft.AspNetCore.Mvc
         /// Gets or sets the name of the partial view to render.
         /// </summary>
         /// <remarks>
-        /// When <c>null</c>, defaults to <see cref="Abstractions.ActionDescriptor.Name"/>.
+        /// When <c>null</c>, defaults to <see cref="ControllerActionDescriptor.ActionName"/>.
         /// </remarks>
         public string ViewName { get; set; }
+
+        /// <summary>
+        /// Gets the view data model.
+        /// </summary>
+        public object Model => ViewData?.Model;
 
         /// <summary>
         /// Gets or sets the <see cref="ViewDataDictionary"/> used for rendering the view for this result.

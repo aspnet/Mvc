@@ -4,7 +4,7 @@
 using System;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
@@ -229,13 +230,13 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var attribute = new RemoteAttribute(routeName: "default");
-            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
+            var expectedMessage = "Value cannot be null or empty.";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(
+            ExceptionAssert.ThrowsArgument(
+                () => attribute.FormatAdditionalFieldsForClientValidation(property),
                 "property",
-                () => attribute.FormatAdditionalFieldsForClientValidation(property));
-            Assert.Equal(expected, exception.Message);
+                expectedMessage);
         }
 
         [Theory]
@@ -243,13 +244,13 @@ namespace Microsoft.AspNetCore.Mvc
         public void FormatPropertyForClientValidation_WithInvalidPropertyName_Throws(string property)
         {
             // Arrange
-            var expected = "Value cannot be null or empty." + Environment.NewLine + "Parameter name: property";
+            var expected = "Value cannot be null or empty.";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(
+            ExceptionAssert.ThrowsArgument(
+                () => RemoteAttribute.FormatPropertyForClientValidation(property),
                 "property",
-                () => RemoteAttribute.FormatPropertyForClientValidation(property));
-            Assert.Equal(expected, exception.Message);
+                expected);
         }
 
         [Fact]
@@ -1038,8 +1039,10 @@ namespace Microsoft.AspNetCore.Mvc
         private static ServiceCollection GetServiceCollection(IStringLocalizerFactory localizerFactory)
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<ILoggerFactory>(new NullLoggerFactory());
-            serviceCollection.AddSingleton<UrlEncoder>(new UrlTestEncoder());
+            serviceCollection
+                .AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>()
+                .AddSingleton<ILoggerFactory>(new NullLoggerFactory())
+                .AddSingleton<UrlEncoder>(new UrlTestEncoder());
 
             serviceCollection.AddOptions();
             serviceCollection.AddRouting();

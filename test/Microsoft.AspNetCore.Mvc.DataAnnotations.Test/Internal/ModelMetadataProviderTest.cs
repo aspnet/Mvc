@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
     public class ModelMetadataProviderTest
     {
         [Fact]
-        public void ModelMetadataProvider_UsesPredicateOnType()
+        public void ModelMetadataProvider_UsesPropertyFilterProviderOnType()
         {
             // Arrange
             var type = typeof(User);
@@ -32,12 +32,12 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var metadata = provider.GetMetadataForType(type);
 
             // Assert
-            var predicate = metadata.PropertyBindingPredicateProvider.PropertyFilter;
+            var propertyFilter = metadata.PropertyFilterProvider.PropertyFilter;
 
             var matched = new HashSet<string>();
             foreach (var property in metadata.Properties)
             {
-                if (predicate(context, property.PropertyName))
+                if (propertyFilter(property))
                 {
                     matched.Add(property.PropertyName);
                 }
@@ -1046,37 +1046,28 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             private readonly object[] _attributes;
 
             public AttributeInjectModelMetadataProvider(object[] attributes)
-                : base(new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
-                    {
-                        new DefaultBindingMetadataProvider(CreateMessageProvider()),
-                        new DataAnnotationsMetadataProvider(),
-                    }))
+                : base(
+                      new DefaultCompositeMetadataDetailsProvider(new IMetadataDetailsProvider[]
+                      {
+                          new DefaultBindingMetadataProvider(),
+                          new DataAnnotationsMetadataProvider(),
+                      }),
+                      new TestOptionsManager<MvcOptions>())
             {
                 _attributes = attributes;
-            }
-
-            private static ModelBindingMessageProvider CreateMessageProvider()
-            {
-                return new ModelBindingMessageProvider
-                {
-                    MissingBindRequiredValueAccessor =
-                        name => $"A value for the '{ name }' property was not provided.",
-                    MissingKeyOrValueAccessor = () => $"A value is required.",
-                    ValueMustNotBeNullAccessor = value => $"The value '{ value }' is invalid.",
-                    AttemptedValueIsInvalidAccessor =
-                        (value, name) => $"The value '{ value }' is not valid for { name }.",
-                    UnknownValueIsInvalidAccessor = name => $"The supplied value is invalid for { name }.",
-                    ValueIsInvalidAccessor = value => $"The value '{ value }' is invalid.",
-                    ValueMustBeANumberAccessor = name => $"The field { name } must be a number.",
-                };
             }
 
             protected override DefaultMetadataDetails CreateTypeDetails(ModelMetadataIdentity key)
             {
                 var entry = base.CreateTypeDetails(key);
-                return new DefaultMetadataDetails(
-                    key,
-                    new ModelAttributes(_attributes.Concat(entry.ModelAttributes.TypeAttributes).ToArray()));
+                if (_attributes?.Length > 0)
+                {
+                    return new DefaultMetadataDetails(
+                        key,
+                        new ModelAttributes(_attributes.Concat(entry.ModelAttributes.TypeAttributes).ToArray()));
+                }
+
+                return entry;
             }
 
             protected override DefaultMetadataDetails[] CreatePropertyDetails(ModelMetadataIdentity key)

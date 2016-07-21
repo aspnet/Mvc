@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.Logging;
@@ -19,6 +21,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     /// </summary>
     public class PartialViewResultExecutor : ViewExecutor
     {
+        private const string ActionNameKey = "action";
+
         /// <summary>
         /// Creates a new <see cref="PartialViewResultExecutor"/>.
         /// </summary>
@@ -28,14 +32,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <param name="tempDataFactory">The <see cref="ITempDataDictionaryFactory"/>.</param>
         /// <param name="diagnosticSource">The <see cref="DiagnosticSource"/>.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        /// <param name="modelMetadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
         public PartialViewResultExecutor(
             IOptions<MvcViewOptions> viewOptions,
             IHttpResponseStreamWriterFactory writerFactory,
             ICompositeViewEngine viewEngine,
             ITempDataDictionaryFactory tempDataFactory,
             DiagnosticSource diagnosticSource,
-            ILoggerFactory loggerFactory)
-            : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource)
+            ILoggerFactory loggerFactory,
+            IModelMetadataProvider modelMetadataProvider)
+            : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticSource, modelMetadataProvider)
         {
             if (loggerFactory == null)
             {
@@ -69,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
 
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
-            var viewName = viewResult.ViewName ?? actionContext.ActionDescriptor.Name;
+            var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: false);
             var originalResult = result;
@@ -156,6 +162,37 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 viewResult.TempData,
                 viewResult.ContentType,
                 viewResult.StatusCode);
+        }
+
+        private static string GetActionName(ActionContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            object routeValue;
+            if (!context.RouteData.Values.TryGetValue(ActionNameKey, out routeValue))
+            {
+                return null;
+            }
+
+            var actionDescriptor = context.ActionDescriptor;
+            string normalizedValue = null;
+            string value;
+            if (actionDescriptor.RouteValues.TryGetValue(ActionNameKey, out value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                normalizedValue = value;
+            }
+
+            var stringRouteValue = routeValue?.ToString();
+            if (string.Equals(normalizedValue, stringRouteValue, StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedValue;
+            }
+
+            return stringRouteValue;
         }
     }
 }

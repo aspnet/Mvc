@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Routing;
@@ -35,15 +34,10 @@ namespace Microsoft.AspNetCore.Mvc
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal(viewName, viewResult.ViewName);
             Assert.NotNull(viewResult.ViewData);
+            Assert.Same(model, viewResult.Model);
             Assert.Same(model, viewResult.ViewData.Model);
             Assert.Same(controller.ViewData, viewResult.ViewData);
             Assert.Same(controller.TempData, viewResult.TempData);
-
-            if (model != null)
-            {
-                Assert.IsType(model.GetType(), viewResult.ViewData.Model);
-                Assert.NotNull(viewResult.ViewData.Model);
-            }
         }
 
         [Theory]
@@ -62,15 +56,10 @@ namespace Microsoft.AspNetCore.Mvc
             var viewResult = Assert.IsType<PartialViewResult>(result);
             Assert.Equal(viewName, viewResult.ViewName);
             Assert.NotNull(viewResult.ViewData);
+            Assert.Same(model, viewResult.Model);
             Assert.Same(model, viewResult.ViewData.Model);
             Assert.Same(controller.ViewData, viewResult.ViewData);
             Assert.Same(controller.TempData, viewResult.TempData);
-
-            if (model != null)
-            {
-                Assert.IsType(model.GetType(), viewResult.ViewData.Model);
-                Assert.NotNull(viewResult.ViewData.Model);
-            }
         }
 
         [Fact]

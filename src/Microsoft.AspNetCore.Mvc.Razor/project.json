@@ -1,11 +1,19 @@
 {
-  "description": "The Razor view engine for ASP.NET MVC.",
-  "version": "1.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
+  "description": "ASP.NET Core MVC Razor view engine for CSHTML files.",
+  "version": "1.1.0-*",
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/aspnet/mvc"
+    },
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc",
+      "cshtml",
+      "razor"
+    ]
   },
-  "compilationOptions": {
+  "buildOptions": {
     "warningsAsErrors": true,
     "keyFile": "../../tools/Key.snk",
     "nowarn": [
@@ -13,50 +21,33 @@
     ],
     "xmlDoc": true
   },
-  "compile": "../Microsoft.AspNetCore.Mvc.Core/DependencyContext/**/*.cs",
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc.Razor.Host": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.0-*",
-    "Microsoft.CodeAnalysis.CSharp": "1.1.0-rc1-20151109-01",
-    "Microsoft.Extensions.FileProviders.Composite": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Razor.Host": "1.1.0-*",
+    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.1.0-*",
+    "Microsoft.CodeAnalysis.CSharp": "1.3.0-*",
+    "Microsoft.Extensions.FileProviders.Composite": "1.1.0-*",
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyActivator.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
-    },
-    "System.Collections": "4.0.11-*",
-    "System.IO": "4.1.0-*",
-    "System.Reflection": "4.1.0-*",
-    "System.Threading": "4.0.11-*"
+    }
   },
   "frameworks": {
     "net451": {
-      "frameworkAssemblies": {
-        "System.Threading.Tasks": { "type": "build" }
-      }
+      "frameworkAssemblies": {}
     },
-    "netstandard1.5": {
-      "imports": [
-        "dotnet5.6",
-        "portable-net451+win8"
-      ],
+    "netstandard1.6": {
       "dependencies": {
         "System.Text.Encoding": "4.0.11-*",
-        "System.Threading.Tasks.Parallel": "4.0.1-*",
         "System.Runtime.Loader": "4.0.0-*"
       }
     }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+  }
 }

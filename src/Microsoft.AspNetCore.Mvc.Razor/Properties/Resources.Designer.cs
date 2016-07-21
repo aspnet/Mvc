@@ -187,22 +187,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
-        /// The {0} was unable to provide metadata for expression '{1}'.
-        /// </summary>
-        internal static string RazorPage_NullModelMetadata
-        {
-            get { return GetString("RazorPage_NullModelMetadata"); }
-        }
-
-        /// <summary>
-        /// The {0} was unable to provide metadata for expression '{1}'.
-        /// </summary>
-        internal static string FormatRazorPage_NullModelMetadata(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("RazorPage_NullModelMetadata"), p0, p1);
-        }
-
-        /// <summary>
         /// {0} invocation in '{1}' is invalid. {0} can only be called from a layout page.
         /// </summary>
         internal static string RazorPage_MethodCannotBeCalled
@@ -463,7 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
-        /// The Razor page '{0}' failed to compile. Ensure that your application's {1} sets the '{2}' compilation property.
+        /// One or more compilation references are missing. Possible causes include a missing '{0}' property under '{1}' in the application's {2}.
         /// </summary>
         internal static string Compilation_DependencyContextIsNotSpecified
         {
@@ -471,11 +455,59 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
-        /// The Razor page '{0}' failed to compile. Ensure that your application's {1} sets the '{2}' compilation property.
+        /// One or more compilation references are missing. Possible causes include a missing '{0}' property under '{1}' in the application's {2}.
         /// </summary>
         internal static string FormatCompilation_DependencyContextIsNotSpecified(object p0, object p1, object p2)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("Compilation_DependencyContextIsNotSpecified"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// '{0}' cannot be empty. These locations are required to locate a view for rendering.
+        /// </summary>
+        internal static string ViewLocationFormatsIsRequired
+        {
+            get { return GetString("ViewLocationFormatsIsRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}' cannot be empty. These locations are required to locate a view for rendering.
+        /// </summary>
+        internal static string FormatViewLocationFormatsIsRequired(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewLocationFormatsIsRequired"), p0);
+        }
+
+        /// <summary>
+        /// Nesting of TagHelper attribute writing scopes is not supported.
+        /// </summary>
+        internal static string RazorPage_NestingAttributeWritingScopesNotSupported
+        {
+            get { return GetString("RazorPage_NestingAttributeWritingScopesNotSupported"); }
+        }
+
+        /// <summary>
+        /// Nesting of TagHelper attribute writing scopes is not supported.
+        /// </summary>
+        internal static string FormatRazorPage_NestingAttributeWritingScopesNotSupported()
+        {
+            return GetString("RazorPage_NestingAttributeWritingScopesNotSupported");
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.
+        /// </summary>
+        internal static string FileProvidersAreRequired
+        {
+            get { return GetString("FileProvidersAreRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.
+        /// </summary>
+        internal static string FormatFileProvidersAreRequired(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FileProvidersAreRequired"), p0, p1, p2);
         }
 
         private static string GetString(string name, params string[] formatterNames)

@@ -1,4 +1,4 @@
-namespace Asp
+namespace AspNetCore
 {
 #line 1 "testfiles/input/inject.cshtml"
 using MyNamespace
@@ -29,6 +29,8 @@ using MyNamespace
 #line default
 #line hidden
         { get; private set; }
+        [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; }
         [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

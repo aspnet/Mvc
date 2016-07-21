@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -21,12 +20,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     /// Default implementation of <see cref="IRazorViewEngine"/>.
     /// </summary>
     /// <remarks>
-    /// For <c>ViewResults</c> returned from controllers, views should be located in <see cref="ViewLocationFormats"/>
-    /// by default. For the controllers in an area, views should exist in <see cref="AreaViewLocationFormats"/>.
+    /// For <c>ViewResults</c> returned from controllers, views should be located in
+    /// <see cref="RazorViewEngineOptions.ViewLocationFormats"/>
+    /// by default. For the controllers in an area, views should exist in
+    /// <see cref="RazorViewEngineOptions.AreaViewLocationFormats"/>.
     /// </remarks>
     public class RazorViewEngine : IRazorViewEngine
     {
-        private const string ViewExtension = ".cshtml";
+        public static readonly string ViewExtension = ".cshtml";
+
         private const string ControllerKey = "controller";
         private const string AreaKey = "area";
         private static readonly ViewLocationCacheItem[] EmptyViewStartLocationCacheItems =
@@ -34,10 +36,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private static readonly TimeSpan _cacheExpirationDuration = TimeSpan.FromMinutes(20);
 
         private readonly IRazorPageFactoryProvider _pageFactory;
-        private readonly IList<IViewLocationExpander> _viewLocationExpanders;
         private readonly IRazorPageActivator _pageActivator;
         private readonly HtmlEncoder _htmlEncoder;
         private readonly ILogger _logger;
+        private readonly RazorViewEngineOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorViewEngine" />.
@@ -49,9 +51,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             IOptions<RazorViewEngineOptions> optionsAccessor,
             ILoggerFactory loggerFactory)
         {
+            _options = optionsAccessor.Value;
+
+            if (_options.ViewLocationFormats.Count == 0)
+            {
+                throw new ArgumentException(
+                    Resources.FormatViewLocationFormatsIsRequired(nameof(RazorViewEngineOptions.ViewLocationFormats)),
+                    nameof(optionsAccessor));
+            }
+
+            if (_options.AreaViewLocationFormats.Count == 0)
+            {
+                throw new ArgumentException(
+                    Resources.FormatViewLocationFormatsIsRequired(nameof(RazorViewEngineOptions.AreaViewLocationFormats)),
+                    nameof(optionsAccessor));
+            }
+
             _pageFactory = pageFactory;
             _pageActivator = pageActivator;
-            _viewLocationExpanders = optionsAccessor.Value.ViewLocationExpanders;
             _htmlEncoder = htmlEncoder;
             _logger = loggerFactory.CreateLogger<RazorViewEngine>();
             ViewLookupCache = new MemoryCache(new MemoryCacheOptions
@@ -59,47 +76,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 CompactOnMemoryPressure = false
             });
         }
-
-        /// <summary>
-        /// Gets the locations where this instance of <see cref="RazorViewEngine"/> will search for views.
-        /// </summary>
-        /// <remarks>
-        /// The locations of the views returned from controllers that do not belong to an area.
-        /// Locations are composite format strings (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx),
-        /// which contains following indexes:
-        /// {0} - Action Name
-        /// {1} - Controller Name
-        /// The values for these locations are case-sensitive on case-sensitive file systems.
-        /// For example, the view for the <c>Test</c> action of <c>HomeController</c> should be located at
-        /// <c>/Views/Home/Test.cshtml</c>. Locations such as <c>/views/home/test.cshtml</c> would not be discovered
-        /// </remarks>
-        public virtual IEnumerable<string> ViewLocationFormats { get; } = new[]
-        {
-            "/Views/{1}/{0}" + ViewExtension,
-            "/Views/Shared/{0}" + ViewExtension,
-        };
-
-        /// <summary>
-        /// Gets the locations where this instance of <see cref="RazorViewEngine"/> will search for views within an
-        /// area.
-        /// </summary>
-        /// <remarks>
-        /// The locations of the views returned from controllers that belong to an area.
-        /// Locations are composite format strings (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx),
-        /// which contains following indexes:
-        /// {0} - Action Name
-        /// {1} - Controller Name
-        /// {2} - Area name
-        /// The values for these locations are case-sensitive on case-sensitive file systems.
-        /// For example, the view for the <c>Test</c> action of <c>HomeController</c> should be located at
-        /// <c>/Views/Home/Test.cshtml</c>. Locations such as <c>/views/home/test.cshtml</c> would not be discovered
-        /// </remarks>
-        public virtual IEnumerable<string> AreaViewLocationFormats { get; } = new[]
-        {
-            "/Areas/{2}/Views/{1}/{0}" + ViewExtension,
-            "/Areas/{2}/Views/Shared/{0}" + ViewExtension,
-            "/Views/Shared/{0}" + ViewExtension,
-        };
 
         /// <summary>
         /// A cache for results of view lookups.
@@ -115,8 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// <remarks>
         /// The casing of a route value in <see cref="ActionContext.RouteData"/> is determined by the client.
         /// This making constructing paths for view locations in a case sensitive file system unreliable. Using the
-        /// <see cref="Abstractions.ActionDescriptor.RouteValueDefaults"/> for attribute routes and
-        /// <see cref="Abstractions.ActionDescriptor.RouteConstraints"/> for traditional routes to get route values
+        /// <see cref="Abstractions.ActionDescriptor.RouteValues"/> to get route values
         /// produces consistently cased results.
         /// </remarks>
         public static string GetNormalizedRouteValue(ActionContext context, string key)
@@ -139,35 +114,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             var actionDescriptor = context.ActionDescriptor;
             string normalizedValue = null;
-            if (actionDescriptor.AttributeRouteInfo != null)
-            {
-                object match;
-                if (actionDescriptor.RouteValueDefaults.TryGetValue(key, out match))
-                {
-                    normalizedValue = match?.ToString();
-                }
-            }
-            else
-            {
-                // Perf: Avoid allocations
-                for (var i = 0; i < actionDescriptor.RouteConstraints.Count; i++)
-                {
-                    var constraint = actionDescriptor.RouteConstraints[i];
-                    if (string.Equals(constraint.RouteKey, key, StringComparison.Ordinal))
-                    {
-                        if (constraint.KeyHandling == RouteKeyHandling.DenyKey)
-                        {
-                            return null;
-                        }
-                        else
-                        {
-                            normalizedValue = constraint.RouteValue;
-                        }
 
-                        // Duplicate keys in RouteConstraints are not allowed.
-                        break;
-                    }
-                }
+            string value;
+            if (actionDescriptor.RouteValues.TryGetValue(key, out value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                normalizedValue = value;
             }
 
             var stringRouteValue = routeValue?.ToString();
@@ -324,15 +276,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 isMainPage);
             Dictionary<string, string> expanderValues = null;
 
-            if (_viewLocationExpanders.Count > 0)
+            if (_options.ViewLocationExpanders.Count > 0)
             {
                 expanderValues = new Dictionary<string, string>(StringComparer.Ordinal);
                 expanderContext.Values = expanderValues;
 
                 // Perf: Avoid allocations
-                for (var i = 0; i < _viewLocationExpanders.Count; i++)
+                for (var i = 0; i < _options.ViewLocationExpanders.Count; i++)
                 {
-                    _viewLocationExpanders[i].PopulateValues(expanderContext);
+                    _options.ViewLocationExpanders[i].PopulateValues(expanderContext);
                 }
             }
 
@@ -398,13 +350,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             ViewLocationCacheKey cacheKey)
         {
             // Only use the area view location formats if we have an area token.
-            var viewLocations = !string.IsNullOrEmpty(expanderContext.AreaName) ?
-                AreaViewLocationFormats :
-                ViewLocationFormats;
+            IEnumerable<string> viewLocations = !string.IsNullOrEmpty(expanderContext.AreaName) ?
+                _options.AreaViewLocationFormats :
+                _options.ViewLocationFormats;
 
-            for (var i = 0; i < _viewLocationExpanders.Count; i++)
+            for (var i = 0; i < _options.ViewLocationExpanders.Count; i++)
             {
-                viewLocations = _viewLocationExpanders[i].ExpandViewLocations(expanderContext, viewLocations);
+                viewLocations = _options.ViewLocationExpanders[i].ExpandViewLocations(expanderContext, viewLocations);
             }
 
             ViewLocationCacheResult cacheResult = null;

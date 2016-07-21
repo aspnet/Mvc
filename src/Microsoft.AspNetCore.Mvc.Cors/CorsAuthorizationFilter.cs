@@ -14,7 +14,7 @@ using Microsoft.Extensions.Primitives;
 namespace Microsoft.AspNetCore.Mvc.Cors
 {
     /// <summary>
-    /// A filter which applies the given <see cref="CorsPolicy"/> and adds appropriate response headers.
+    /// A filter that applies the given <see cref="CorsPolicy"/> and adds appropriate response headers.
     /// </summary>
     public class CorsAuthorizationFilter : ICorsAuthorizationFilter
     {
@@ -68,6 +68,13 @@ namespace Microsoft.AspNetCore.Mvc.Cors
             if (request.Headers.ContainsKey(CorsConstants.Origin))
             {
                 var policy = await _corsPolicyProvider.GetPolicyAsync(httpContext, PolicyName);
+
+                if (policy == null)
+                {
+                    throw new InvalidOperationException(
+                        Resources.FormatCorsAuthorizationFilter_MissingCorsPolicy(PolicyName));
+                }
+
                 var result = _corsService.EvaluatePolicy(context.HttpContext, policy);
                 _corsService.ApplyResult(result, context.HttpContext.Response);
 
@@ -90,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Cors
 
         private bool IsClosestToAction(IEnumerable<IFilterMetadata> filters)
         {
-            // If there are multiple ICorsAuthorizationFilter which are defined at the class and
+            // If there are multiple ICorsAuthorizationFilter that are defined at the class and
             // at the action level, the one closest to the action overrides the others.
             // Since filterdescriptor collection is ordered (the last filter is the one closest to the action),
             // we apply this constraint only if there is no ICorsAuthorizationFilter after this.

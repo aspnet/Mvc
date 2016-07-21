@@ -2,20 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -30,19 +21,9 @@ namespace Microsoft.AspNetCore.Mvc
         public object Arguments { get; set; }
 
         /// <summary>
-        /// Gets or sets the Content-Type header for the response.
-        /// </summary>
-        public string ContentType { get; set; }
-
-        /// <summary>
         /// Gets or sets the HTTP status code.
         /// </summary>
         public int? StatusCode { get; set; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="ITempDataDictionary"/> for this result.
-        /// </summary>
-        public ITempDataDictionary TempData { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the view component to invoke. Will be ignored if <see cref="ViewComponentType"/>
@@ -56,9 +37,19 @@ namespace Microsoft.AspNetCore.Mvc
         public Type ViewComponentType { get; set; }
 
         /// <summary>
+        /// Get the view data model.
+        /// </summary>
+        public object Model => ViewData?.Model;
+
+        /// <summary>
         /// Gets or sets the <see cref="ViewDataDictionary"/> for this result.
         /// </summary>
         public ViewDataDictionary ViewData { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="ITempDataDictionary"/> for this result.
+        /// </summary>
+        public ITempDataDictionary TempData { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="IViewEngine"/> used to locate views.
@@ -67,84 +58,22 @@ namespace Microsoft.AspNetCore.Mvc
         /// <c>ActionContext.HttpContext.RequestServices</c> is used.</remarks>
         public IViewEngine ViewEngine { get; set; }
 
+        /// <summary>
+        /// Gets or sets the Content-Type header for the response.
+        /// </summary>
+        public string ContentType { get; set; }
+
         /// <inheritdoc />
-        public override async Task ExecuteResultAsync(ActionContext context)
+        public override Task ExecuteResultAsync(ActionContext context)
         {
-            var response = context.HttpContext.Response;
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var services = context.HttpContext.RequestServices;
-
-            var htmlHelperOptions = services.GetRequiredService<IOptions<MvcViewOptions>>().Value.HtmlHelperOptions;
-            var viewComponentHelper = services.GetRequiredService<IViewComponentHelper>();
-
-            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<ViewComponentResult>();
-            var htmlEncoder = services.GetRequiredService<HtmlEncoder>();
-
-            var viewData = ViewData;
-            if (viewData == null)
-            {
-                var modelMetadataProvider = services.GetRequiredService<IModelMetadataProvider>();
-                viewData = new ViewDataDictionary(modelMetadataProvider, context.ModelState);
-            }
-
-            var tempData = TempData;
-            if (tempData == null)
-            {
-                var factory = services.GetRequiredService<ITempDataDictionaryFactory>();
-                tempData = factory.GetTempData(context.HttpContext);
-            }
-
-            string resolvedContentType = null;
-            Encoding resolvedContentTypeEncoding = null;
-            ResponseContentTypeHelper.ResolveContentTypeAndEncoding(
-                ContentType,
-                response.ContentType,
-                ViewExecutor.DefaultContentType,
-                out resolvedContentType,
-                out resolvedContentTypeEncoding);
-
-            response.ContentType = resolvedContentType;
-
-            if (StatusCode != null)
-            {
-                response.StatusCode = StatusCode.Value;
-            }
-
-            using (var writer = new HttpResponseStreamWriter(response.Body, resolvedContentTypeEncoding))
-            {
-                var viewContext = new ViewContext(
-                    context,
-                    NullView.Instance,
-                    viewData,
-                    tempData,
-                    writer,
-                    htmlHelperOptions);
-
-                (viewComponentHelper as IViewContextAware)?.Contextualize(viewContext);
-                var result = await GetViewComponentResult(viewComponentHelper, logger);
-
-                result.WriteTo(writer, htmlEncoder);
-            }
-        }
-
-        private Task<IHtmlContent> GetViewComponentResult(IViewComponentHelper viewComponentHelper, ILogger logger)
-        {
-            if (ViewComponentType == null && ViewComponentName == null)
-            {
-                throw new InvalidOperationException(Resources.FormatViewComponentResult_NameOrTypeMustBeSet(
-                    nameof(ViewComponentName),
-                    nameof(ViewComponentType)));
-            }
-            else if (ViewComponentType == null)
-            {
-                logger.ViewComponentResultExecuting(ViewComponentName);
-                return viewComponentHelper.InvokeAsync(ViewComponentName, Arguments);
-            }
-            else
-            {
-                logger.ViewComponentResultExecuting(ViewComponentType);
-                return viewComponentHelper.InvokeAsync(ViewComponentType, Arguments);
-            }
+            var executor = services.GetRequiredService<ViewComponentResultExecutor>();
+            return executor.ExecuteAsync(context, this);
         }
     }
 }

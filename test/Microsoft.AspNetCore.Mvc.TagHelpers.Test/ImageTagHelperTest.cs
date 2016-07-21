@@ -8,7 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -142,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal(expectedOutput.TagName, output.TagName);
             Assert.Equal(4, output.Attributes.Count);
 
-            for(int i=0; i < expectedOutput.Attributes.Count; i++)
+            for (var i = 0; i < expectedOutput.Attributes.Count; i++)
             {
                 var expectedAtribute = expectedOutput.Attributes[i];
                 var actualAttribute = output.Attributes[i];
@@ -180,7 +181,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             helper.Process(context, output);
 
             // Assert
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal("img", output.TagName);
             Assert.Equal(2, output.Attributes.Count);
             var srcAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("src"));
@@ -216,7 +217,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             helper.Process(context, output);
 
             // Assert
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal("img", output.TagName);
             Assert.Equal(2, output.Attributes.Count);
             var srcAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("src"));
@@ -251,7 +252,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Act
             helper.Process(context, output);
             // Assert
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal("img", output.TagName);
             Assert.Equal(2, output.Attributes.Count);
             var srcAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("src"));

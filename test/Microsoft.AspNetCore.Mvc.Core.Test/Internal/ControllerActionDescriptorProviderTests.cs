@@ -9,10 +9,9 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing.Tree;
@@ -31,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act
             var descriptors = provider.GetDescriptors();
-            var actionNames = descriptors.Select(ad => ad.Name);
+            var actionNames = descriptors.Select(ad => ad.ActionName);
 
             // Assert
             Assert.Equal(new[] { "GetPerson", "ShowPeople", }, actionNames);
@@ -46,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Act
             var descriptors = provider.GetDescriptors();
-            var descriptor = descriptors.Single(ad => ad.Name == nameof(PersonController.GetPerson));
+            var descriptor = descriptors.Single(ad => ad.ActionName == nameof(PersonController.GetPerson));
 
             // Assert
             Assert.Equal($"{controllerTypeInfo.FullName}.{nameof(PersonController.GetPerson)} ({controllerTypeInfo.Assembly.GetName().Name})", descriptor.DisplayName);
@@ -93,7 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptor = Assert.Single(descriptors);
 
             // Assert
-            Assert.Equal("OnlyPost", descriptor.Name);
+            Assert.Equal("OnlyPost", descriptor.ActionName);
 
             var constraint = Assert.IsType<HttpMethodActionConstraint>(Assert.Single(descriptor.ActionConstraints));
             Assert.Equal(new string[] { "POST" }, constraint.HttpMethods);
@@ -124,8 +123,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 typeof(ActionParametersController).GetTypeInfo());
 
             // Assert
-            var main = Assert.Single(descriptors,
-                d => d.Name.Equals(nameof(ActionParametersController.RequiredInt)));
+            var main = Assert.Single(descriptors.Cast<ControllerActionDescriptor>(),
+                d => d.ActionName.Equals(nameof(ActionParametersController.RequiredInt)));
 
             Assert.NotNull(main.Parameters);
             var id = Assert.Single(main.Parameters);
@@ -143,8 +142,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 typeof(ActionParametersController).GetTypeInfo());
 
             // Assert
-            var main = Assert.Single(descriptors,
-                d => d.Name.Equals(nameof(ActionParametersController.MultipleParameters)));
+            var main = Assert.Single(descriptors.Cast<ControllerActionDescriptor>(),
+                d => d.ActionName.Equals(nameof(ActionParametersController.MultipleParameters)));
 
             Assert.NotNull(main.Parameters);
             var id = Assert.Single(main.Parameters, p => p.Name == "id");
@@ -168,8 +167,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 typeof(ActionParametersController).GetTypeInfo());
 
             // Assert
-            var main = Assert.Single(descriptors,
-                d => d.Name.Equals(nameof(ActionParametersController.DifferentCasing)));
+            var main = Assert.Single(descriptors.Cast<ControllerActionDescriptor>(),
+                d => d.ActionName.Equals(nameof(ActionParametersController.DifferentCasing)));
 
             Assert.NotNull(main.Parameters);
             var id = Assert.Single(main.Parameters, p => p.Name == "id");
@@ -201,8 +200,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 typeof(ActionParametersController).GetTypeInfo());
 
             // Assert
-            var fromBody = Assert.Single(descriptors,
-                d => d.Name.Equals(actionName));
+            var fromBody = Assert.Single(descriptors.Cast<ControllerActionDescriptor>(),
+                d => d.ActionName.Equals(actionName));
 
             Assert.NotNull(fromBody.Parameters);
             var entity = Assert.Single(fromBody.Parameters);
@@ -222,8 +221,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 typeof(ActionParametersController).GetTypeInfo());
 
             // Assert
-            var notFromBody = Assert.Single(descriptors,
-                d => d.Name.Equals(actionName));
+            var notFromBody = Assert.Single(descriptors.Cast<ControllerActionDescriptor>(),
+                d => d.ActionName.Equals(actionName));
 
             Assert.NotNull(notFromBody.Parameters);
             var entity = Assert.Single(notFromBody.Parameters);
@@ -243,17 +242,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             var action = Assert.Single(descriptors);
 
-            Assert.NotNull(action.RouteConstraints);
+            Assert.NotNull(action.RouteValues);
 
-            var controller = Assert.Single(action.RouteConstraints,
-                rc => rc.RouteKey.Equals("controller"));
-            Assert.Equal(RouteKeyHandling.RequireKey, controller.KeyHandling);
-            Assert.Equal("ConventionallyRouted", controller.RouteValue);
+            var controller = Assert.Single(action.RouteValues, kvp => kvp.Key.Equals("controller"));
+            Assert.Equal("ConventionallyRouted", controller.Value);
 
-            var actionConstraint = Assert.Single(action.RouteConstraints,
-                rc => rc.RouteKey.Equals("action"));
-            Assert.Equal(RouteKeyHandling.RequireKey, actionConstraint.KeyHandling);
-            Assert.Equal(nameof(ConventionallyRoutedController.ConventionalAction), actionConstraint.RouteValue);
+            var actionConstraint = Assert.Single(action.RouteValues, kvp => kvp.Key.Equals("action"));
+            Assert.Equal(nameof(ConventionallyRoutedController.ConventionalAction), actionConstraint.Value);
         }
 
         [Fact]
@@ -266,132 +261,65 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             var action = Assert.Single(descriptors);
 
-            var routeconstraint = Assert.Single(action.RouteConstraints);
-            Assert.Equal(RouteKeyHandling.RequireKey, routeconstraint.KeyHandling);
-            Assert.Equal(TreeRouter.RouteGroupKey, routeconstraint.RouteKey);
-
-            var controller = Assert.Single(action.RouteValueDefaults,
-                rc => rc.Key.Equals("controller"));
+            var controller = Assert.Single(action.RouteValues, kvp => kvp.Key.Equals("controller"));
             Assert.Equal("AttributeRouted", controller.Value);
 
-            var actionConstraint = Assert.Single(action.RouteValueDefaults,
-                rc => rc.Key.Equals("action"));
+            var actionConstraint = Assert.Single(action.RouteValues, kvp => kvp.Key.Equals("action"));
             Assert.Equal(nameof(AttributeRoutedController.AttributeRoutedAction), actionConstraint.Value);
         }
 
         [Fact]
-        public void GetDescriptors_WithRouteDataConstraint_WithBlockNonAttributedActions()
+        public void GetDescriptors_WithRouteValueAttribute()
         {
             // Arrange & Act
             var descriptors = GetDescriptors(
                 typeof(HttpMethodController).GetTypeInfo(),
-                typeof(BlockNonAttributedActionsController).GetTypeInfo()).ToArray();
+                typeof(RouteValueController).GetTypeInfo()).ToArray();
 
-            var descriptorWithoutConstraint = Assert.Single(
+            var descriptorWithoutValue = Assert.Single(
                 descriptors,
-                ad => ad.RouteConstraints.Any(
-                    c => c.RouteKey == "key" && c.KeyHandling == RouteKeyHandling.DenyKey));
+                ad => ad.RouteValues.Any(kvp => kvp.Key == "key" && string.IsNullOrEmpty(kvp.Value)));
 
-            var descriptorWithConstraint = Assert.Single(
+            var descriptorWithValue = Assert.Single(
                 descriptors,
-                ad => ad.RouteConstraints.Any(
-                    c =>
-                        c.KeyHandling == RouteKeyHandling.RequireKey &&
-                        c.RouteKey == "key" &&
-                        c.RouteValue == "value"));
+                ad => ad.RouteValues.Any(kvp => kvp.Key == "key" && kvp.Value == "value"));
 
             // Assert
             Assert.Equal(2, descriptors.Length);
 
-            Assert.Equal(3, descriptorWithConstraint.RouteConstraints.Count);
+            Assert.Equal(3, descriptorWithValue.RouteValues.Count);
             Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
+                descriptorWithValue.RouteValues,
                 c =>
-                    c.RouteKey == "controller" &&
-                    c.RouteValue == "BlockNonAttributedActions");
+                    c.Key == "controller" &&
+                    c.Value == "RouteValue");
             Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
+                descriptorWithValue.RouteValues,
                 c =>
-                    c.RouteKey == "action" &&
-                    c.RouteValue == "Edit");
+                    c.Key == "action" &&
+                    c.Value == "Edit");
             Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
+                descriptorWithValue.RouteValues,
                 c =>
-                    c.RouteKey == "key" &&
-                    c.RouteValue == "value" &&
-                    c.KeyHandling == RouteKeyHandling.RequireKey);
+                    c.Key == "key" &&
+                    c.Value == "value");
 
-            Assert.Equal(3, descriptorWithoutConstraint.RouteConstraints.Count);
+            Assert.Equal(3, descriptorWithoutValue.RouteValues.Count);
             Assert.Single(
-                descriptorWithoutConstraint.RouteConstraints,
+                descriptorWithoutValue.RouteValues,
                 c =>
-                    c.RouteKey == "controller" &&
-                    c.RouteValue == "HttpMethod");
+                    c.Key == "controller" &&
+                    c.Value == "HttpMethod");
             Assert.Single(
-                descriptorWithoutConstraint.RouteConstraints,
+                descriptorWithoutValue.RouteValues,
                 c =>
-                    c.RouteKey == "action" &&
-                    c.RouteValue == "OnlyPost");
+                    c.Key == "action" &&
+                    c.Value == "OnlyPost");
             Assert.Single(
-                descriptorWithoutConstraint.RouteConstraints,
+                descriptorWithoutValue.RouteValues,
                 c =>
-                    c.RouteKey == "key" &&
-                    c.RouteValue == string.Empty &&
-                    c.KeyHandling == RouteKeyHandling.DenyKey);
-        }
-
-        [Fact]
-        public void GetDescriptors_WithRouteDataConstraint_WithoutBlockNonAttributedActions()
-        {
-            // Arrange & Act
-            var descriptors = GetDescriptors(
-                typeof(HttpMethodController).GetTypeInfo(),
-                typeof(DontBlockNonAttributedActionsController).GetTypeInfo()).ToArray();
-
-            var descriptorWithConstraint = Assert.Single(
-                descriptors,
-                ad => ad.RouteConstraints.Any(
-                    c =>
-                        c.KeyHandling == RouteKeyHandling.RequireKey &&
-                        c.RouteKey == "key" &&
-                        c.RouteValue == "value"));
-
-            var descriptorWithoutConstraint = Assert.Single(
-                descriptors,
-                ad => !ad.RouteConstraints.Any(c => c.RouteKey == "key"));
-
-            // Assert
-            Assert.Equal(2, descriptors.Length);
-
-            Assert.Equal(3, descriptorWithConstraint.RouteConstraints.Count);
-            Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
-                c =>
-                    c.RouteKey == "controller" &&
-                    c.RouteValue == "DontBlockNonAttributedActions");
-            Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
-                c =>
-                    c.RouteKey == "action" &&
-                    c.RouteValue == "Create");
-            Assert.Single(
-                descriptorWithConstraint.RouteConstraints,
-                c =>
-                    c.RouteKey == "key" &&
-                    c.RouteValue == "value" &&
-                    c.KeyHandling == RouteKeyHandling.RequireKey);
-
-            Assert.Equal(2, descriptorWithoutConstraint.RouteConstraints.Count);
-            Assert.Single(
-                descriptorWithoutConstraint.RouteConstraints,
-                c =>
-                    c.RouteKey == "controller" &&
-                    c.RouteValue == "HttpMethod");
-            Assert.Single(
-                descriptorWithoutConstraint.RouteConstraints,
-                c =>
-                    c.RouteKey == "action" &&
-                    c.RouteValue == "OnlyPost");
+                    c.Key == "key" &&
+                    c.Value == string.Empty);
         }
 
         [Fact]
@@ -540,12 +468,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var actions = descriptors.Where(d => d.Name == "MultipleHttpGet");
+            var actions = descriptors.Where(d => d.ActionName == "MultipleHttpGet");
             Assert.Equal(4, actions.Count());
 
             foreach (var action in actions)
             {
-                Assert.Equal("MultipleHttpGet", action.Name);
+                Assert.Equal("MultipleHttpGet", action.ActionName);
                 Assert.Equal("MultiRouteAttributes", action.ControllerName);
             }
 
@@ -565,7 +493,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var actions = descriptors.Where(d => d.Name == nameof(MultiRouteAttributesController.AcceptVerbs));
+            var actions = descriptors.Where(d => d.ActionName == nameof(MultiRouteAttributesController.AcceptVerbs));
             Assert.Equal(2, actions.Count());
 
             foreach (var action in actions)
@@ -593,7 +521,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var action = Assert.Single(descriptors, d => d.Name == "AcceptVerbsOverride");
+            var action = Assert.Single(descriptors, d => d.ActionName == "AcceptVerbsOverride");
 
             Assert.Equal("MultiRouteAttributes", action.ControllerName);
 
@@ -617,7 +545,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var actions = descriptors.Where(d => d.Name == "AcceptVerbsRouteAttributeAndHttpPut");
+            var actions = descriptors.Where(d => d.ActionName == "AcceptVerbsRouteAttributeAndHttpPut");
             Assert.Equal(4, actions.Count());
 
             foreach (var action in actions)
@@ -656,7 +584,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var actions = descriptors.Where(d => d.Name == "AcceptVerbsRouteAttributeWithTemplateAndHttpPut");
+            var actions = descriptors.Where(d => d.ActionName == "AcceptVerbsRouteAttributeWithTemplateAndHttpPut");
             Assert.Equal(6, actions.Count());
 
             foreach (var action in actions)
@@ -703,10 +631,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var actions = provider.GetDescriptors();
 
             // Assert
-            var controllerAndAction = Assert.Single(actions, a => a.Name.Equals(firstActionName));
+            var controllerAndAction = Assert.Single(actions, a => a.ActionName.Equals(firstActionName));
             Assert.NotNull(controllerAndAction.AttributeRouteInfo);
 
-            var controllerActionAndOverride = Assert.Single(actions, a => a.Name.Equals(secondActionName));
+            var controllerActionAndOverride = Assert.Single(actions, a => a.ActionName.Equals(secondActionName));
             Assert.NotNull(controllerActionAndOverride.AttributeRouteInfo);
 
             Assert.Equal(
@@ -726,7 +654,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var descriptors = provider.GetDescriptors();
 
             // Assert
-            var actions = descriptors.Where(d => d.Name.Equals(actionName));
+            var actions = descriptors.Where(d => d.ActionName.Equals(actionName));
             Assert.Equal(5, actions.Count());
 
             foreach (var method in new[] { "GET", "POST", "PUT", "PATCH", "DELETE" })
@@ -774,6 +702,49 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             VerifyMultiLineError(expectedMessage, exception.Message, unorderedStart: 1, unorderedLineCount: 2);
         }
 
+        // Verify that the expected exception and error message is thrown even when the user builds the model 
+        // incorrectly.
+        [Fact]
+        public void AttributeRouting_ThrowsIfAttributeRoutedAndNonAttributedActions_OnTheSameMethod_UsingCustomConvention()
+        {
+            // Arrange
+            var controllerTypeInfo = typeof(UserController).GetTypeInfo();
+            var manager = GetApplicationManager(new[] { controllerTypeInfo });
+            var options = new TestOptionsManager<MvcOptions>();
+            options.Value.Conventions.Add(new TestRoutingConvention());
+            var modelProvider = new DefaultApplicationModelProvider(options);
+            var provider = new ControllerActionDescriptorProvider(
+                manager,
+                new[] { modelProvider },
+                options);
+            var assemblyName = controllerTypeInfo.Assembly.GetName().Name;
+            var expectedMessage =
+                "The following errors occurred with attribute routing information:"
+                + Environment.NewLine
+                + Environment.NewLine
+                + "Error 1:"
+                + Environment.NewLine
+                + $"A method '{controllerTypeInfo.FullName}.GetUser ({assemblyName})'" +
+                " must not define attribute routed actions and non attribute routed actions at the same time:"
+                + Environment.NewLine +
+                $"Action: '{controllerTypeInfo.FullName}.GetUser ({assemblyName})' " +
+                "- Route Template: '(none)' - " +
+                "HTTP Verbs: ''"
+                + Environment.NewLine
+                + $"Action: '{controllerTypeInfo.FullName}.GetUser ({assemblyName})' " +
+                "- Route Template: 'Microsoft/AspNetCore/Mvc/Internal/User/GetUser/{id?}' - " +
+                "HTTP Verbs: ''" + Environment.NewLine +
+                Environment.NewLine +
+                "Use 'AcceptVerbsAttribute' to create a single route that allows multiple HTTP verbs and defines a " +
+                "route, or set a route template in all attributes that constrain HTTP verbs.";
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() => provider.GetDescriptors());
+
+            // Assert
+            VerifyMultiLineError(expectedMessage, exception.Message, unorderedStart: 1, unorderedLineCount: 2);
+        }
+
         [Fact]
         public void AttributeRouting_RouteOnControllerAndAction_CreatesActionDescriptorWithoutHttpConstraints()
         {
@@ -786,7 +757,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             var action = Assert.Single(actions);
 
-            Assert.Equal("Action", action.Name);
+            Assert.Equal("Action", action.ActionName);
             Assert.Equal("OnlyRoute", action.ControllerName);
 
             Assert.NotNull(action.AttributeRouteInfo);
@@ -869,7 +840,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var actions = provider.GetDescriptors();
 
             // Assert
-            var getActions = actions.Where(a => a.Name.Equals(getActionName));
+            var getActions = actions.Where(a => a.ActionName.Equals(getActionName));
             Assert.Equal(2, getActions.Count());
 
             foreach (var getAction in getActions)
@@ -879,7 +850,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 Assert.Equal("Products_Get", getAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
             }
 
-            var editAction = Assert.Single(actions, a => a.Name.Equals(editActionName));
+            var editAction = Assert.Single(actions, a => a.ActionName.Equals(editActionName));
             Assert.NotNull(editAction.AttributeRouteInfo);
             Assert.Equal("Products/Edit", editAction.AttributeRouteInfo.Template, StringComparer.OrdinalIgnoreCase);
             Assert.Equal("Products_Edit", editAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
@@ -897,7 +868,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var actions = provider.GetDescriptors();
 
             // Assert
-            var getActions = actions.Where(a => a.Name.Equals(getActionName));
+            var getActions = actions.Where(a => a.ActionName.Equals(getActionName));
             Assert.Equal(2, getActions.Count());
 
             foreach (var getAction in getActions)
@@ -911,7 +882,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     getAction.AttributeRouteInfo.Name, StringComparer.OrdinalIgnoreCase);
             }
 
-            var editAction = Assert.Single(actions, a => a.Name.Equals(editActionName));
+            var editAction = Assert.Single(actions, a => a.ActionName.Equals(editActionName));
             Assert.NotNull(editAction.AttributeRouteInfo);
             Assert.Equal(
                 "ControllerActionRouteNameTemplates/Edit",
@@ -944,30 +915,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void AttributeRouting_RouteGroupConstraint_IsAddedOnceForNonAttributeRoutes()
-        {
-            // Arrange
-            var provider = GetProvider(
-                typeof(ConventionalAndAttributeRoutedActionsWithAreaController).GetTypeInfo(),
-                typeof(ConstrainedController).GetTypeInfo());
-
-            // Act
-            var actionDescriptors = provider.GetDescriptors();
-
-            // Assert
-            Assert.NotNull(actionDescriptors);
-            Assert.Equal(4, actionDescriptors.Count());
-
-            foreach (var actionDescriptor in actionDescriptors.Where(ad => ad.AttributeRouteInfo == null))
-            {
-                Assert.Equal(6, actionDescriptor.RouteConstraints.Count);
-                var routeGroupConstraint = Assert.Single(actionDescriptor.RouteConstraints,
-                    rc => rc.RouteKey.Equals(TreeRouter.RouteGroupKey));
-                Assert.Equal(RouteKeyHandling.DenyKey, routeGroupConstraint.KeyHandling);
-            }
-        }
-
-        [Fact]
         public void AttributeRouting_AddsDefaultRouteValues_ForAttributeRoutedActions()
         {
             // Arrange
@@ -982,30 +929,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.NotNull(actionDescriptors);
             Assert.Equal(4, actionDescriptors.Count());
 
-            var indexAction = Assert.Single(actionDescriptors, ad => ad.Name.Equals("Index"));
+            var indexAction = Assert.Single(actionDescriptors, ad => ad.ActionName.Equals("Index"));
 
-            Assert.Equal(1, indexAction.RouteConstraints.Count);
+            Assert.Equal(5, indexAction.RouteValues.Count);
 
-            var routeGroupConstraint = Assert.Single(indexAction.RouteConstraints, rc => rc.RouteKey.Equals(TreeRouter.RouteGroupKey));
-            Assert.Equal(RouteKeyHandling.RequireKey, routeGroupConstraint.KeyHandling);
-            Assert.NotNull(routeGroupConstraint.RouteValue);
-
-            Assert.Equal(5, indexAction.RouteValueDefaults.Count);
-
-            var controllerDefault = Assert.Single(indexAction.RouteValueDefaults, rd => rd.Key.Equals("controller", StringComparison.OrdinalIgnoreCase));
+            var controllerDefault = Assert.Single(indexAction.RouteValues, rd => rd.Key.Equals("controller", StringComparison.OrdinalIgnoreCase));
             Assert.Equal("ConventionalAndAttributeRoutedActionsWithArea", controllerDefault.Value);
 
-            var actionDefault = Assert.Single(indexAction.RouteValueDefaults, rd => rd.Key.Equals("action", StringComparison.OrdinalIgnoreCase));
+            var actionDefault = Assert.Single(indexAction.RouteValues, rd => rd.Key.Equals("action", StringComparison.OrdinalIgnoreCase));
             Assert.Equal("Index", actionDefault.Value);
 
-            var areaDefault = Assert.Single(indexAction.RouteValueDefaults, rd => rd.Key.Equals("area", StringComparison.OrdinalIgnoreCase));
+            var areaDefault = Assert.Single(indexAction.RouteValues, rd => rd.Key.Equals("area", StringComparison.OrdinalIgnoreCase));
             Assert.Equal("Home", areaDefault.Value);
 
-            var myRouteConstraintDefault = Assert.Single(indexAction.RouteValueDefaults, rd => rd.Key.Equals("key", StringComparison.OrdinalIgnoreCase));
-            Assert.Null(myRouteConstraintDefault.Value);
+            var mvRouteValueDefault = Assert.Single(indexAction.RouteValues, rd => rd.Key.Equals("key", StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(string.Empty, mvRouteValueDefault.Value);
 
-            var anotherRouteConstraint = Assert.Single(indexAction.RouteValueDefaults, rd => rd.Key.Equals("second", StringComparison.OrdinalIgnoreCase));
-            Assert.Null(anotherRouteConstraint.Value);
+            var anotherRouteValue = Assert.Single(indexAction.RouteValues, rd => rd.Key.Equals("second", StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(string.Empty, anotherRouteValue.Value);
         }
 
         [Fact]
@@ -1020,29 +961,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             var action = Assert.Single(actions);
             Assert.Equal("stub/ThisIsAnAction", action.AttributeRouteInfo.Template);
-        }
-
-        // Token replacement happens before we 'group' routes. So two route templates
-        // that are equivalent after token replacement go to the same 'group'.
-        [Fact]
-        public void AttributeRouting_TokenReplacement_BeforeGroupId()
-        {
-            // Arrange
-            var provider = GetProvider(typeof(SameGroupIdController).GetTypeInfo());
-
-            // Act
-            var actions = provider.GetDescriptors().ToArray();
-
-            var groupIds = actions.Select(
-                a => a.RouteConstraints
-                    .Where(rc => rc.RouteKey == TreeRouter.RouteGroupKey)
-                    .Select(rc => rc.RouteValue)
-                    .Single())
-                .ToArray();
-
-            // Assert
-            Assert.Equal(2, groupIds.Length);
-            Assert.Equal(groupIds[0], groupIds[1]);
         }
 
         // Parameters are validated later. This action uses the forbidden {action} and {controller}
@@ -1086,10 +1004,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             Assert.Equal(2, actions.Count());
 
-            var action = Assert.Single(actions, a => a.Name == "Edit");
+            var action = Assert.Single(actions, a => a.ActionName == "Edit");
             Assert.NotNull(action.GetProperty<ApiDescriptionActionData>());
 
-            action = Assert.Single(actions, a => a.Name == "Create");
+            action = Assert.Single(actions, a => a.ActionName == "Create");
             Assert.Null(action.GetProperty<ApiDescriptionActionData>());
         }
 
@@ -1166,10 +1084,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             Assert.Equal(2, actions.Count());
 
-            var action = Assert.Single(actions, a => a.Name == "Edit");
+            var action = Assert.Single(actions, a => a.ActionName == "Edit");
             Assert.Equal("Blog", action.GetProperty<ApiDescriptionActionData>().GroupName);
 
-            action = Assert.Single(actions, a => a.Name == "Create");
+            action = Assert.Single(actions, a => a.ActionName == "Create");
             Assert.Equal("Store", action.GetProperty<ApiDescriptionActionData>().GroupName);
         }
 
@@ -1359,7 +1277,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(typeof(MultipleRouteProviderOnActionAndControllerController).GetTypeInfo());
 
             // Act
-            var actions = provider.GetDescriptors().Where(a => a.Name == actionName);
+            var actions = provider.GetDescriptors().Where(a => a.ActionName == actionName);
 
             // Assert
             Assert.Equal(2, actions.Count());
@@ -1386,7 +1304,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(typeof(MultipleRouteProviderOnActionAndControllerController).GetTypeInfo());
 
             // Act
-            var actions = provider.GetDescriptors().Where(a => a.Name == actionName);
+            var actions = provider.GetDescriptors().Where(a => a.ActionName == actionName);
 
             // Assert
             Assert.Equal(4, actions.Count());
@@ -1425,7 +1343,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(typeof(MultipleRouteProviderOnActionAndControllerController).GetTypeInfo());
 
             // Act
-            var actions = provider.GetDescriptors().Where(a => a.Name == actionName);
+            var actions = provider.GetDescriptors().Where(a => a.ActionName == actionName);
 
             // Assert
             Assert.Equal(1, actions.Count());
@@ -1449,11 +1367,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
             }
 
-            var controllerTypeProvider = new StaticControllerTypeProvider(new[] { controllerTypeInfo });
+            var manager = GetApplicationManager(new[] { controllerTypeInfo });
+
             var modelProvider = new DefaultApplicationModelProvider(options);
 
             var provider = new ControllerActionDescriptorProvider(
-                controllerTypeProvider,
+                manager,
                 new[] { modelProvider },
                 options);
 
@@ -1465,11 +1384,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var options = new TestOptionsManager<MvcOptions>();
 
-            var controllerTypeProvider = new StaticControllerTypeProvider(controllerTypeInfos);
+            var manager = GetApplicationManager(controllerTypeInfos);
             var modelProvider = new DefaultApplicationModelProvider(options);
 
             var provider = new ControllerActionDescriptorProvider(
-                controllerTypeProvider,
+                manager,
                 new[] { modelProvider },
                 options);
 
@@ -1483,15 +1402,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var options = new TestOptionsManager<MvcOptions>();
             options.Value.Conventions.Add(convention);
 
-            var controllerTypeProvider = new StaticControllerTypeProvider(new[] { controllerTypeInfo });
+            var manager = GetApplicationManager(new[] { controllerTypeInfo });
+
             var modelProvider = new DefaultApplicationModelProvider(options);
 
             var provider = new ControllerActionDescriptorProvider(
-                controllerTypeProvider,
+                manager,
                 new[] { modelProvider },
                 options);
 
             return provider;
+        }
+
+        private static ApplicationPartManager GetApplicationManager(IEnumerable<TypeInfo> controllerTypes)
+        {
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new TestApplicationPart(controllerTypes));
+            manager.FeatureProviders.Add(new TestFeatureProvider());
+            return manager;
         }
 
         private IEnumerable<ActionDescriptor> GetDescriptors(params TypeInfo[] controllerTypeInfos)
@@ -1573,34 +1501,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             { }
         }
 
-        private class MyRouteConstraintAttribute : RouteConstraintAttribute
+        private class MyRouteValueAttribute : RouteValueAttribute
         {
-            public MyRouteConstraintAttribute(bool blockNonAttributedActions)
-                : base("key", "value", blockNonAttributedActions)
+            public MyRouteValueAttribute()
+                : base("key", "value")
             {
             }
         }
 
-        private class MySecondRouteConstraintAttribute : RouteConstraintAttribute
+        private class MySecondRouteValueAttribute : RouteValueAttribute
         {
-            public MySecondRouteConstraintAttribute(bool blockNonAttributedActions)
-                : base("second", "value", blockNonAttributedActions)
+            public MySecondRouteValueAttribute()
+                : base("second", "value")
             {
             }
         }
 
-        [MyRouteConstraint(blockNonAttributedActions: true)]
-        private class BlockNonAttributedActionsController
+        [MyRouteValue]
+        private class RouteValueController
         {
             public void Edit()
-            {
-            }
-        }
-
-        [MyRouteConstraint(blockNonAttributedActions: false)]
-        private class DontBlockNonAttributedActionsController
-        {
-            public void Create()
             {
             }
         }
@@ -1625,7 +1545,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Route("api/Token/[key]/[controller]")]
-        [MyRouteConstraint(false)]
+        [MyRouteValue]
         private class TokenReplacementController
         {
             [HttpGet("stub/[action]")]
@@ -1828,8 +1748,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public void DifferentHttpMethods() { }
         }
 
-        [MyRouteConstraint(blockNonAttributedActions: true)]
-        [MySecondRouteConstraint(blockNonAttributedActions: true)]
+        [MyRouteValue]
+        [MySecondRouteValue]
         private class ConstrainedController
         {
             public void ConstrainedNonAttributedAction() { }
@@ -2050,6 +1970,37 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public void Apply(ApplicationModel application)
             {
                 application.ApiExplorer.IsVisible = _isVisible;
+            }
+        }
+
+        private class TestRoutingConvention : IApplicationModelConvention
+        {
+            public void Apply(ApplicationModel application)
+            {
+                foreach (var controller in application.Controllers)
+                {
+                    var hasAttributeRouteModels = controller.Selectors
+                        .Any(selector => selector.AttributeRouteModel != null);
+                    if (!hasAttributeRouteModels)
+                    {
+                        var template = controller.ControllerType.Namespace.Replace('.', '/')
+                            + "/[controller]/[action]/{id?}";
+                        var attributeRouteModel = new AttributeRouteModel()
+                        {
+                            Template = template
+                        };
+
+                        controller.Selectors.Add(new SelectorModel { AttributeRouteModel = attributeRouteModel });
+                    }
+                }
+            }
+        }
+
+        private class UserController : Controller
+        {
+            public string GetUser(int id)
+            {
+                return string.Format("User {0} retrieved successfully", id);
             }
         }
     }

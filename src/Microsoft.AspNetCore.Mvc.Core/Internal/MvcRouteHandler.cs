@@ -4,26 +4,46 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Tree;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class MvcRouteHandler : IRouter
     {
-        private bool _servicesRetrieved;
-
         private IActionContextAccessor _actionContextAccessor;
         private IActionInvokerFactory _actionInvokerFactory;
         private IActionSelector _actionSelector;
         private ILogger _logger;
         private DiagnosticSource _diagnosticSource;
+
+        public MvcRouteHandler(
+            IActionInvokerFactory actionInvokerFactory,
+            IActionSelector actionSelector,
+            DiagnosticSource diagnosticSource,
+            ILoggerFactory loggerFactory)
+            : this(actionInvokerFactory, actionSelector, diagnosticSource, loggerFactory, actionContextAccessor: null)
+        {
+        }
+
+        public MvcRouteHandler(
+            IActionInvokerFactory actionInvokerFactory,
+            IActionSelector actionSelector,
+            DiagnosticSource diagnosticSource,
+            ILoggerFactory loggerFactory,
+            IActionContextAccessor actionContextAccessor)
+        {
+            // The IActionContextAccessor is optional. We want to avoid the overhead of using CallContext
+            // if possible.
+            _actionContextAccessor = actionContextAccessor;
+
+            _actionInvokerFactory = actionInvokerFactory;
+            _actionSelector = actionSelector;
+            _diagnosticSource = diagnosticSource;
+            _logger = loggerFactory.CreateLogger<MvcRouteHandler>();
+        }
 
         public VirtualPathData GetVirtualPath(VirtualPathContext context)
         {
@@ -43,92 +63,42 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(context));
             }
 
-            EnsureServices(context.HttpContext);
+            var candidates = _actionSelector.SelectCandidates(context);
+            if (candidates == null || candidates.Count == 0)
+            {
+                _logger.NoActionsMatched();
+                return TaskCache.CompletedTask;
+            }
 
-            var actionDescriptor = _actionSelector.Select(context);
+            var actionDescriptor = _actionSelector.SelectBestCandidate(context, candidates);
             if (actionDescriptor == null)
             {
                 _logger.NoActionsMatched();
                 return TaskCache.CompletedTask;
             }
 
-            if (actionDescriptor.RouteValueDefaults != null)
+            context.Handler = (c) =>
             {
-                foreach (var kvp in actionDescriptor.RouteValueDefaults)
+                var routeData = c.GetRouteData();
+
+                var actionContext = new ActionContext(context.HttpContext, routeData, actionDescriptor);
+                if (_actionContextAccessor != null)
                 {
-                    if (!context.RouteData.Values.ContainsKey(kvp.Key))
-                    {
-                        context.RouteData.Values.Add(kvp.Key, kvp.Value);
-                    }
+                    _actionContextAccessor.ActionContext = actionContext;
                 }
 
-                // Removing RouteGroup from RouteValues to simulate the result of conventional routing
-                context.RouteData.Values.Remove(TreeRouter.RouteGroupKey);
-            }
+                var invoker = _actionInvokerFactory.CreateInvoker(actionContext);
+                if (invoker == null)
+                {
+                    throw new InvalidOperationException(
+                        Resources.FormatActionInvokerFactory_CouldNotCreateInvoker(
+                            actionDescriptor.DisplayName));
+                }
 
-            context.Handler = (c) => InvokeActionAsync(c, actionDescriptor);
+                return invoker.InvokeAsync();
+            };
+
             return TaskCache.CompletedTask;
-        }
-
-        private async Task InvokeActionAsync(HttpContext httpContext, ActionDescriptor actionDescriptor)
-        {
-            var routeData = httpContext.GetRouteData();
-            try
-            {
-                _diagnosticSource.BeforeAction(actionDescriptor, httpContext, routeData);
-
-                using (_logger.ActionScope(actionDescriptor))
-                {
-                    _logger.ExecutingAction(actionDescriptor);
-
-                    var startTimestamp = _logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
-
-                    var actionContext = new ActionContext(httpContext, routeData, actionDescriptor);
-                    if (_actionContextAccessor != null)
-                    {
-                        _actionContextAccessor.ActionContext = actionContext;
-                    }
-
-                    var invoker = _actionInvokerFactory.CreateInvoker(actionContext);
-                    if (invoker == null)
-                    {
-                        throw new InvalidOperationException(
-                            Resources.FormatActionInvokerFactory_CouldNotCreateInvoker(
-                                actionDescriptor.DisplayName));
-                    }
-
-                    await invoker.InvokeAsync();
-
-                    _logger.ExecutedAction(actionDescriptor, startTimestamp);
-                }
-            }
-            finally
-            {
-                _diagnosticSource.AfterAction(actionDescriptor, httpContext, routeData);
-            }
-        }
-
-        private void EnsureServices(HttpContext context)
-        {
-            if (_servicesRetrieved)
-            {
-                return;
-            }
-
-            var services = context.RequestServices;
-
-            // The IActionContextAccessor is optional. We want to avoid the overhead of using CallContext
-            // if possible.
-            _actionContextAccessor = services.GetService<IActionContextAccessor>();
-
-            _actionInvokerFactory = services.GetRequiredService<IActionInvokerFactory>();
-            _actionSelector = services.GetRequiredService<IActionSelector>();
-            _diagnosticSource = services.GetRequiredService<DiagnosticSource>();
-
-            var factory = services.GetRequiredService<ILoggerFactory>();
-            _logger = factory.CreateLogger<MvcRouteHandler>();
-
-            _servicesRetrieved = true;
         }
     }
 }

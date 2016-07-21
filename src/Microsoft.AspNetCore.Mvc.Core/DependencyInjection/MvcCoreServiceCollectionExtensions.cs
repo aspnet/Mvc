@@ -3,10 +3,13 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -18,7 +21,6 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -39,10 +41,54 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
+            var partManager = GetApplicationPartManager(services);
+            services.TryAddSingleton(partManager);
+
+            ConfigureDefaultFeatureProviders(partManager);
             ConfigureDefaultServices(services);
             AddMvcCoreServices(services);
 
-            return new MvcCoreBuilder(services);
+            var builder = new MvcCoreBuilder(services, partManager);
+
+            return builder;
+        }
+
+        private static void ConfigureDefaultFeatureProviders(ApplicationPartManager manager)
+        {
+            if (!manager.FeatureProviders.OfType<ControllerFeatureProvider>().Any())
+            {
+                manager.FeatureProviders.Add(new ControllerFeatureProvider());
+            }
+        }
+
+        private static ApplicationPartManager GetApplicationPartManager(IServiceCollection services)
+        {
+            var manager = GetServiceFromCollection<ApplicationPartManager>(services);
+            if (manager == null)
+            {
+                manager = new ApplicationPartManager();
+
+                var environment = GetServiceFromCollection<IHostingEnvironment>(services);
+                if (string.IsNullOrEmpty(environment?.ApplicationName))
+                {
+                    return manager;
+                }
+
+                var parts = DefaultAssemblyPartDiscoveryProvider.DiscoverAssemblyParts(environment.ApplicationName);
+                foreach (var part in parts)
+                {
+                    manager.ApplicationParts.Add(part);
+                }
+            }
+
+            return manager;
+        }
+
+        private static T GetServiceFromCollection<T>(IServiceCollection services)
+        {
+            return (T)services
+                .FirstOrDefault(d => d.ServiceType == typeof(T))
+                ?.ImplementationInstance;
         }
 
         /// <summary>
@@ -86,9 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // Action Discovery
             //
             // These are consumed only when creating action descriptors, then they can be de-allocated
-            services.TryAddTransient<IAssemblyProvider, DefaultAssemblyProvider>();
 
-            services.TryAddTransient<IControllerTypeProvider, DefaultControllerTypeProvider>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, DefaultApplicationModelProvider>());
             services.TryAddEnumerable(
@@ -128,23 +172,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 ServiceDescriptor.Transient<IActionInvokerProvider, ControllerActionInvokerProvider>());
 
             // These are stateless
-            services.TryAddSingleton<IControllerActionArgumentBinder, ControllerArgumentBinder>();
+            services.TryAddSingleton<IControllerArgumentBinder, DefaultControllerArgumentBinder>();
             services.TryAddSingleton<ControllerActionInvokerCache>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IFilterProvider, DefaultFilterProvider>());
 
             //
-            // ModelBinding, Validation and Formatting
+            // ModelBinding, Validation
             //
             // The DefaultModelMetadataProvider does significant caching and should be a singleton.
             services.TryAddSingleton<IModelMetadataProvider, DefaultModelMetadataProvider>();
-            services.TryAdd(ServiceDescriptor.Transient<ICompositeMetadataDetailsProvider>(serviceProvider =>
+            services.TryAdd(ServiceDescriptor.Transient<ICompositeMetadataDetailsProvider>(s =>
             {
-                var options = serviceProvider.GetRequiredService<IOptions<MvcOptions>>().Value;
+                var options = s.GetRequiredService<IOptions<MvcOptions>>().Value;
                 return new DefaultCompositeMetadataDetailsProvider(options.ModelMetadataDetailsProviders);
             }));
-            services.TryAddSingleton<IObjectModelValidator, DefaultObjectValidator>();
-            services.TryAddSingleton<ValidatorCache>();
+            services.TryAddSingleton<IModelBinderFactory, ModelBinderFactory>();
+            services.TryAddSingleton<IObjectModelValidator>(s =>
+            {
+                var options = s.GetRequiredService<IOptions<MvcOptions>>().Value;
+                var metadataProvider = s.GetRequiredService<IModelMetadataProvider>();
+                return new DefaultObjectValidator(metadataProvider, options.ModelValidatorProviders);
+            });
             services.TryAddSingleton<ClientValidatorCache>();
 
             //
@@ -158,6 +207,21 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton(ArrayPool<byte>.Shared);
             services.TryAddSingleton(ArrayPool<char>.Shared);
             services.TryAddSingleton<ObjectResultExecutor>();
+            services.TryAddSingleton<PhysicalFileResultExecutor>();
+            services.TryAddSingleton<VirtualFileResultExecutor>();
+            services.TryAddSingleton<FileStreamResultExecutor>();
+            services.TryAddSingleton<FileContentResultExecutor>();
+            services.TryAddSingleton<RedirectResultExecutor>();
+            services.TryAddSingleton<LocalRedirectResultExecutor>();
+            services.TryAddSingleton<RedirectToActionResultExecutor>();
+            services.TryAddSingleton<RedirectToRouteResultExecutor>();
+            services.TryAddSingleton<ContentResultExecutor>();
+
+            //
+            // Route Handlers
+            //
+            services.TryAddSingleton<MvcRouteHandler>(); // Only one per app
+            services.TryAddTransient<MvcAttributeRouteHandler>(); // Many per app
         }
 
         private static void ConfigureDefaultServices(IServiceCollection services)

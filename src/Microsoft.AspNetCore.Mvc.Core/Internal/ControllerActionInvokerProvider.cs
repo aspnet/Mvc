@@ -7,9 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -17,12 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class ControllerActionInvokerProvider : IActionInvokerProvider
     {
-        private readonly IControllerActionArgumentBinder _argumentBinder;
+        private readonly IControllerArgumentBinder _argumentBinder;
         private readonly IControllerFactory _controllerFactory;
         private readonly ControllerActionInvokerCache _controllerActionInvokerCache;
-        private readonly IReadOnlyList<IInputFormatter> _inputFormatters;
-        private readonly IReadOnlyList<IModelBinder> _modelBinders;
-        private readonly IReadOnlyList<IModelValidatorProvider> _modelValidatorProviders;
         private readonly IReadOnlyList<IValueProviderFactory> _valueProviderFactories;
         private readonly int _maxModelValidationErrors;
         private readonly ILogger _logger;
@@ -31,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public ControllerActionInvokerProvider(
             IControllerFactory controllerFactory,
             ControllerActionInvokerCache controllerActionInvokerCache,
-            IControllerActionArgumentBinder argumentBinder,
+            IControllerArgumentBinder argumentBinder,
             IOptions<MvcOptions> optionsAccessor,
             ILoggerFactory loggerFactory,
             DiagnosticSource diagnosticSource)
@@ -39,9 +34,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _controllerFactory = controllerFactory;
             _controllerActionInvokerCache = controllerActionInvokerCache;
             _argumentBinder = argumentBinder;
-            _inputFormatters = optionsAccessor.Value.InputFormatters.ToArray();
-            _modelBinders = optionsAccessor.Value.ModelBinders.ToArray();
-            _modelValidatorProviders = optionsAccessor.Value.ModelValidatorProviders.ToArray();
             _valueProviderFactories = optionsAccessor.Value.ValueProviderFactories.ToArray();
             _maxModelValidationErrors = optionsAccessor.Value.MaxModelValidationErrors;
             _logger = loggerFactory.CreateLogger<ControllerActionInvoker>();
@@ -66,17 +58,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             if (actionDescriptor != null)
             {
                 context.Result = new ControllerActionInvoker(
-                    context.ActionContext,
                     _controllerActionInvokerCache,
                     _controllerFactory,
-                    actionDescriptor,
-                    _inputFormatters,
                     _argumentBinder,
-                    _modelBinders,
-                    _modelValidatorProviders,
-                    _valueProviderFactories,
                     _logger,
                     _diagnosticSource,
+                    context.ActionContext,
+                    _valueProviderFactories,
                     _maxModelValidationErrors);
             }
         }

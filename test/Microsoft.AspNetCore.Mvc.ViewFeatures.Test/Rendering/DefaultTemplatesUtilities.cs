@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
@@ -243,6 +243,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper);
 
+            var expressionTextCache = new ExpressionTextCache();
+
             if (htmlGenerator == null)
             {
                 htmlGenerator = new DefaultHtmlGenerator(
@@ -284,7 +286,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 provider,
                 new TestViewBufferScope(),
                 new HtmlTestEncoder(),
-                UrlEncoder.Default);
+                UrlEncoder.Default,
+                expressionTextCache);
 
             var viewContext = new ViewContext(
                 actionContext,
@@ -299,12 +302,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             htmlHelper.Contextualize(viewContext);
 
             return htmlHelper;
-        }
-
-        public static string FormatOutput(IHtmlHelper helper, object model)
-        {
-            var modelExplorer = helper.MetadataProvider.GetModelExplorerForType(model.GetType(), model);
-            return FormatOutput(modelExplorer);
         }
 
         private static ICompositeViewEngine CreateViewEngine()
@@ -330,6 +327,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 .Verifiable();
 
             return viewEngine.Object;
+        }
+
+        public static string FormatOutput(IHtmlHelper helper, object model)
+        {
+            var modelExplorer = helper.MetadataProvider.GetModelExplorerForType(model.GetType(), model);
+            return FormatOutput(modelExplorer);
         }
 
         private static string FormatOutput(ModelExplorer modelExplorer)

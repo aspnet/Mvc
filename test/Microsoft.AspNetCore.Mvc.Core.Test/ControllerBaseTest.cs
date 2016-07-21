@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -451,32 +450,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void Created_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-            var uri = new Uri("/test/url", UriKind.Relative);
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.Created(uri, input);
-
-            // Assert
-            Assert.IsType<CreatedResult>(result);
-            Assert.Equal(StatusCodes.Status201Created, result.StatusCode);
-            Assert.Equal(uri.OriginalString, result.Location);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
-        }
-
-        [Fact]
         public void CreatedAtAction_WithParameterActionName_SetsResultActionName()
         {
             // Arrange
@@ -537,31 +510,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void CreatedAtAction_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.CreatedAtAction("SampleAction", input);
-
-            // Assert
-            Assert.IsType<CreatedAtActionResult>(result);
-            Assert.Equal(StatusCodes.Status201Created, result.StatusCode);
-            Assert.Equal("SampleAction", result.ActionName);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
-        }
-
-        [Fact]
         public void CreatedAtRoute_WithParameterRouteName_SetsResultSameRouteName()
         {
             // Arrange
@@ -616,31 +564,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             Assert.Equal(StatusCodes.Status201Created, result.StatusCode);
             Assert.Same(routeName, result.RouteName);
             Assert.Equal(expected, result.RouteValues);
-        }
-
-        [Fact]
-        public void CreatedAtRoute_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.CreatedAtRoute("SampleRoute", input);
-
-            // Assert
-            Assert.IsType<CreatedAtRouteResult>(result);
-            Assert.Equal(StatusCodes.Status201Created, result.StatusCode);
-            Assert.Equal("SampleRoute", result.RouteName);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
         }
 
         [Fact]
@@ -738,7 +661,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         {
             // Arrange
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
 
             var controller = new TestableController();
             controller.ControllerContext.HttpContext = mockHttpContext.Object;
@@ -753,9 +675,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             Assert.Same(fileStream, result.FileStream);
             Assert.Equal("application/pdf", result.ContentType.ToString());
             Assert.Equal("someDownloadName", result.FileDownloadName);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
         }
 
         [Fact]
@@ -802,30 +721,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void HttpNotFound_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.NotFound(input);
-
-            // Assert
-            Assert.IsType<NotFoundObjectResult>(result);
-            Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
-        }
-
-        [Fact]
         public void Ok_SetsStatusCode()
         {
             // Arrange
@@ -837,30 +732,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Assert
             Assert.IsType<OkResult>(result);
             Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
-        }
-
-        [Fact]
-        public void Ok_WithIDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.Ok(input);
-
-            // Assert
-            Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
         }
 
         [Fact]
@@ -891,30 +762,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
             Assert.Equal(obj, result.Value);
-        }
-
-        [Fact]
-        public void BadRequest_IDisposableObject_RegistersForDispose()
-        {
-            // Arrange
-            var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()));
-
-            var controller = new TestableController();
-            controller.ControllerContext.HttpContext = mockHttpContext.Object;
-
-            var input = new DisposableObject();
-
-            // Act
-            var result = controller.BadRequest(input);
-
-            // Assert
-            Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
-            Assert.Same(input, result.Value);
-            mockHttpContext.Verify(
-                x => x.Response.RegisterForDispose(It.IsAny<IDisposable>()),
-                Times.Once());
         }
 
         [Fact]
@@ -1152,8 +999,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
                 // Include and exclude should be null, resulting in property
                 // being included.
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
             });
 
             var controller = GetController(binder, valueProvider);
@@ -1180,8 +1027,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
                 // Include and exclude should be null, resulting in property
                 // being included.
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
             });
 
             var controller = GetController(binder, valueProvider);
@@ -1207,8 +1054,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
                       // Include and exclude should be null, resulting in property
                       // being included.
-                      Assert.True(context.PropertyFilter(context, "Property1"));
-                      Assert.True(context.PropertyFilter(context, "Property2"));
+                      Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                      Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
                   });
 
             var controller = GetController(binder, valueProvider: null);
@@ -1222,64 +1069,65 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModel_PredicateOverload_UsesPassedArguments()
+        public async Task TryUpdateModel_PropertyFilterOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
 
-            Func<ModelBindingContext, string, bool> includePredicate = (context, propertyName) =>
-                string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+            Func<ModelMetadata, bool> propertyFilter = (m) =>
+                string.Equals(m.PropertyName, "Include1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(m.PropertyName, "Include2", StringComparison.OrdinalIgnoreCase);
 
             var valueProvider = Mock.Of<IValueProvider>();
             var binder = new StubModelBinder(context =>
             {
                 Assert.Same(valueProvider, Assert.IsType<CompositeValueProvider>(context.ValueProvider)[0]);
 
-                Assert.True(context.PropertyFilter(context, "include1"));
-                Assert.True(context.PropertyFilter(context, "include2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include2"]));
 
-                Assert.False(context.PropertyFilter(context, "exclude1"));
-                Assert.False(context.PropertyFilter(context, "exclude2"));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude1"]));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude2"]));
+
             });
 
             var controller = GetController(binder, valueProvider);
             var model = new MyModel();
 
             // Act
-            await controller.TryUpdateModelAsync(model, modelName, includePredicate);
+            await controller.TryUpdateModelAsync(model, modelName, propertyFilter);
 
             // Assert
             Assert.NotEqual(0, binder.BindModelCount);
         }
 
         [Fact]
-        public async Task TryUpdateModel_PredicateWithValueProviderOverload_UsesPassedArguments()
+        public async Task TryUpdateModel_PropertyFilterWithValueProviderOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
 
-            Func<ModelBindingContext, string, bool> includePredicate =
-               (context, propertyName) => string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
-                                          string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+            Func<ModelMetadata, bool> propertyFilter = (m) => 
+                string.Equals(m.PropertyName, "Include1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(m.PropertyName, "Include2", StringComparison.OrdinalIgnoreCase);
 
             var valueProvider = Mock.Of<IValueProvider>();
             var binder = new StubModelBinder(context =>
             {
                 Assert.Same(valueProvider, context.ValueProvider);
 
-                Assert.True(context.PropertyFilter(context, "include1"));
-                Assert.True(context.PropertyFilter(context, "include2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include2"]));
 
-                Assert.False(context.PropertyFilter(context, "exclude1"));
-                Assert.False(context.PropertyFilter(context, "exclude2"));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude1"]));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude2"]));
             });
             var controller = GetController(binder, valueProvider: null);
 
             var model = new MyModel();
 
             // Act
-            await controller.TryUpdateModelAsync(model, modelName, valueProvider, includePredicate);
+            await controller.TryUpdateModelAsync(model, modelName, valueProvider, propertyFilter);
 
             // Assert
             Assert.NotEqual(0, binder.BindModelCount);
@@ -1299,14 +1147,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var binder = new StubModelBinder(context =>
             {
                 Assert.Same(
-                          valueProvider.Object,
-                          Assert.IsType<CompositeValueProvider>(context.ValueProvider)[0]);
+                    valueProvider.Object,
+                    Assert.IsType<CompositeValueProvider>(context.ValueProvider)[0]);
 
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
 
-                Assert.False(context.PropertyFilter(context, "exclude1"));
-                Assert.False(context.PropertyFilter(context, "exclude2"));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude1"]));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude2"]));
             });
 
 
@@ -1336,11 +1184,11 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             {
                 Assert.Same(valueProvider.Object, context.ValueProvider);
 
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
 
-                Assert.False(context.PropertyFilter(context, "exclude1"));
-                Assert.False(context.PropertyFilter(context, "exclude2"));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude1"]));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude2"]));
             });
 
             var controller = GetController(binder, valueProvider: null);
@@ -1354,14 +1202,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task TryUpdateModelNonGeneric_PredicateWithValueProviderOverload_UsesPassedArguments()
+        public async Task TryUpdateModelNonGeneric_PropertyFilterWithValueProviderOverload_UsesPassedArguments()
         {
             // Arrange
             var modelName = "mymodel";
 
-            Func<ModelBindingContext, string, bool> includePredicate =
-               (context, propertyName) => string.Equals(propertyName, "include1", StringComparison.OrdinalIgnoreCase) ||
-                                          string.Equals(propertyName, "include2", StringComparison.OrdinalIgnoreCase);
+            Func<ModelMetadata, bool> propertyFilter = (m) => 
+                string.Equals(m.PropertyName, "Include1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(m.PropertyName, "Include2", StringComparison.OrdinalIgnoreCase);
 
             var valueProvider = Mock.Of<IValueProvider>();
 
@@ -1369,11 +1217,11 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             {
                 Assert.Same(valueProvider, context.ValueProvider);
 
-                Assert.True(context.PropertyFilter(context, "include1"));
-                Assert.True(context.PropertyFilter(context, "include2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Include2"]));
 
-                Assert.False(context.PropertyFilter(context, "exclude1"));
-                Assert.False(context.PropertyFilter(context, "exclude2"));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude1"]));
+                Assert.False(context.PropertyFilter(context.ModelMetadata.Properties["Exclude2"]));
             });
 
             var controller = GetController(binder, valueProvider: null);
@@ -1381,7 +1229,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var model = new MyModel();
 
             // Act
-            await controller.TryUpdateModelAsync(model, model.GetType(), modelName, valueProvider, includePredicate);
+            await controller.TryUpdateModelAsync(model, model.GetType(), modelName, valueProvider, propertyFilter);
 
             // Assert
             Assert.NotEqual(0, binder.BindModelCount);
@@ -1401,8 +1249,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
                 // Include and exclude should be null, resulting in property
                 // being included.
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
             });
 
             var controller = GetController(binder, valueProvider);
@@ -1429,8 +1277,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
                 // Include and exclude should be null, resulting in property
                 // being included.
-                Assert.True(context.PropertyFilter(context, "Property1"));
-                Assert.True(context.PropertyFilter(context, "Property2"));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property1"]));
+                Assert.True(context.PropertyFilter(context.ModelMetadata.Properties["Property2"]));
             });
 
             var controller = GetController(binder, valueProvider);
@@ -1525,10 +1373,9 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Arrange
             var binder = new StubModelBinder();
             var controller = GetController(binder, valueProvider: null);
-            controller.ControllerContext.ValidatorProviders = new List<IModelValidatorProvider>()
-            {
-                Mock.Of<IModelValidatorProvider>(),
-            };
+            controller.ObjectValidator = new DefaultObjectValidator(
+                controller.MetadataProvider,
+                new[] { Mock.Of<IModelValidatorProvider>() });
 
             var model = new TryValidateModelModel();
 
@@ -1562,10 +1409,9 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             var binder = new StubModelBinder();
             var controller = GetController(binder, valueProvider: null);
-            controller.ControllerContext.ValidatorProviders = new List<IModelValidatorProvider>()
-            {
-                provider.Object,
-            };
+            controller.ObjectValidator = new DefaultObjectValidator(
+                controller.MetadataProvider,
+                new[] { provider.Object });
 
             // Act
             var result = controller.TryValidateModel(model, "Prefix");
@@ -1599,10 +1445,9 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             var binder = new StubModelBinder();
             var controller = GetController(binder, valueProvider: null);
-            controller.ControllerContext.ValidatorProviders = new List<IModelValidatorProvider>()
-            {
-                provider.Object,
-            };
+            controller.ObjectValidator = new DefaultObjectValidator(
+                controller.MetadataProvider, 
+                new[] { provider.Object });
 
             // Act
             var result = controller.TryValidateModel(model);
@@ -1635,25 +1480,32 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var httpContext = new DefaultHttpContext();
 
+            var validatorProviders = new[]
+            {
+                new DataAnnotationsModelValidatorProvider(
+                    new ValidationAttributeAdapterProvider(),
+                    new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
+                    stringLocalizerFactory: null),
+            };
+
+            valueProvider = valueProvider ?? new SimpleValueProvider();
             var controllerContext = new ControllerContext()
             {
                 HttpContext = httpContext,
-                ModelBinders = new[] { binder, },
-                ValueProviders = new[] { valueProvider, },
-                ValidatorProviders = new[]
-                {
-                    new DataAnnotationsModelValidatorProvider(
-                        new ValidationAttributeAdapterProvider(),
-                        new TestOptionsManager<MvcDataAnnotationsLocalizationOptions>(),
-                        stringLocalizerFactory: null),
-                },
+                ValueProviderFactories = new[] { new SimpleValueProviderFactory(valueProvider), },
             };
+
+            var binderFactory = new Mock<IModelBinderFactory>();
+            binderFactory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Returns(binder);
 
             var controller = new TestableController()
             {
                 ControllerContext = controllerContext,
                 MetadataProvider = metadataProvider,
-                ObjectValidator = new DefaultObjectValidator(metadataProvider, new ValidatorCache()),
+                ModelBinderFactory = binderFactory.Object,
+                ObjectValidator = new DefaultObjectValidator(metadataProvider, validatorProviders),
             };
 
             return controller;
@@ -1663,6 +1515,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         {
             public string Property1 { get; set; }
             public string Property2 { get; set; }
+
+            public string Include1 { get; set; }
+            public string Include2 { get; set; }
+
+            public string Exclude1 { get; set; }
+            public string Exclude2 { get; set; }
         }
 
         private class MyDerivedModel : MyModel

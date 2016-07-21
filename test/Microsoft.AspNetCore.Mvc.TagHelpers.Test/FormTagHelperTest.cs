@@ -8,7 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -93,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("action"));
             Assert.Equal("home/index", attribute.Value);
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
@@ -156,7 +157,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(expectedAttribute, attribute);
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 
@@ -223,11 +224,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await formTagHelper.ProcessAsync(context, output);
 
             Assert.Equal("form", output.TagName);
-            Assert.Equal(TagMode.StartTagAndEndTag ,output.TagMode);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(expectedAttribute, attribute);
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
             generator.Verify();
         }
@@ -279,7 +280,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
         }
 
@@ -335,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
         }
 
@@ -391,7 +392,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
         }
 
@@ -448,7 +449,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
         }
 
@@ -501,7 +502,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Empty(output.Attributes);
             Assert.Empty(output.PreElement.GetContent());
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
             Assert.Empty(output.PostElement.GetContent());
         }
@@ -554,7 +555,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var attribute = Assert.Single(output.Attributes);
             Assert.Equal(new TagHelperAttribute("aCTiON", "my-action"), attribute);
             Assert.Empty(output.PreContent.GetContent());
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
         }
 

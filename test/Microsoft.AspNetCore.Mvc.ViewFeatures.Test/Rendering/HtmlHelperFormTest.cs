@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -395,7 +396,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm())
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -434,50 +434,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm(FormMethod.Post, antiforgery: null, htmlAttributes: null))
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
-            }
-
-            Assert.Equal(
-                "<form><antiforgery></antiforgery></form>",
-                writer.GetStringBuilder().ToString());
-        }
-
-        // This is an integration for the implicit antiforgery token added by BeginForm.
-        [Fact]
-        public void BeginForm_EndForm_RendersAntiforgeryToken_WithExplicitCallToAntiforgery()
-        {
-            // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
-            htmlGenerator
-                .Setup(g => g.GenerateForm(
-                    It.IsAny<ViewContext>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<object>(),
-                    It.IsAny<string>(),
-                    It.IsAny<object>()))
-                .Returns(new TagBuilder("form"));
-
-            htmlGenerator
-                .Setup(g => g.GenerateAntiforgery(It.IsAny<ViewContext>()))
-                .Returns(new TagBuilder("antiforgery"));
-
-            var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(s => s.GetService(typeof(HtmlEncoder))).Returns(new HtmlTestEncoder());
-            var viewContext = htmlHelper.ViewContext;
-            viewContext.HttpContext.RequestServices = serviceProvider.Object;
-
-            var writer = viewContext.Writer as StringWriter;
-            Assert.NotNull(writer);
-
-            // Act & Assert
-            using (var form = htmlHelper.BeginForm())
-            {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
-
-                // This call will no-op
-                Assert.Same(HtmlString.Empty, htmlHelper.AntiForgeryToken());
             }
 
             Assert.Equal(
@@ -517,7 +473,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm(FormMethod.Post, antiforgery: false, htmlAttributes: null))
             {
-                Assert.False(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -556,7 +511,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm(FormMethod.Get, antiforgery: null, htmlAttributes: null))
             {
-                Assert.False(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -597,7 +551,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm(method, antiforgery: true, htmlAttributes: null))
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -637,8 +590,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginForm(FormMethod.Post, antiforgery: false, htmlAttributes: null))
             {
-                Assert.False(viewContext.FormContext.HasAntiforgeryToken);
-
                 // This call will ouput a token.
                 Assert.Equal("antiforgery", Assert.IsType<TagBuilder>(htmlHelper.AntiForgeryToken()).TagName);
             }
@@ -679,7 +630,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act & Assert
             using (var form = htmlHelper.BeginRouteForm(routeValues: null))
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -722,7 +672,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 antiforgery: null,
                 htmlAttributes: null))
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -766,7 +715,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 antiforgery: false,
                 htmlAttributes: null))
             {
-                Assert.False(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -809,7 +757,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 antiforgery: null,
                 htmlAttributes: null))
             {
-                Assert.False(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(
@@ -854,7 +801,6 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 antiforgery: true,
                 htmlAttributes: null))
             {
-                Assert.True(viewContext.FormContext.HasAntiforgeryToken);
             }
 
             Assert.Equal(

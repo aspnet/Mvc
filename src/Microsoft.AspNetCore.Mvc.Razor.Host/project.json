@@ -1,11 +1,19 @@
 {
-  "description": "Design time hosting infrastructure for the ASP.NET MVC Razor view engine.",
-  "version": "1.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
+  "description": "ASP.NET Core MVC design time hosting infrastructure for the Razor view engine.",
+  "version": "1.1.0-*",
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/aspnet/mvc"
+    },
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc",
+      "cshtml",
+      "razor"
+    ]
   },
-  "compilationOptions": {
+  "buildOptions": {
     "warningsAsErrors": true,
     "keyFile": "../../tools/Key.snk",
     "nowarn": [
@@ -14,31 +22,23 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Razor.Runtime": "1.0.0-*",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0-*",
-    "Microsoft.Extensions.FileProviders.Physical": "1.0.0-*",
+    "Microsoft.AspNetCore.Razor.Runtime": "1.1.0-*",
+    "Microsoft.Extensions.Caching.Memory": "1.1.0-*",
+    "Microsoft.Extensions.FileProviders.Physical": "1.1.0-*",
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     }
   },
   "frameworks": {
-    "net451": { },
-    "netstandard1.5": {
+    "net451": {},
+    "netstandard1.6": {
       "dependencies": {
         "System.Collections.Concurrent": "4.0.12-*",
-        "System.ComponentModel.TypeConverter": "4.0.1-*",
+        "System.ComponentModel.TypeConverter": "4.1.0-*",
         "System.Reflection.Extensions": "4.0.1-*",
         "System.Text.Encoding.Extensions": "4.0.11-*"
-      },
-      "imports": [
-        "dotnet5.6"
-      ]
+      }
     }
-  },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ]
+  }
 }

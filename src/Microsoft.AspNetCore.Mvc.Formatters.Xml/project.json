@@ -1,11 +1,18 @@
 {
-  "description": "Contains DataContractSerializer and XmlSerializer based input and output formatters",
-  "version": "1.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
+  "description": "ASP.NET Core MVC formatters for XML input and output using DataContractSerializer and XmlSerializer.",
+  "version": "1.1.0-*",
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/aspnet/mvc"
+    },
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc",
+      "xml"
+    ]
   },
-  "compilationOptions": {
+  "buildOptions": {
     "warningsAsErrors": true,
     "keyFile": "../../tools/Key.snk",
     "nowarn": [
@@ -14,13 +21,13 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc.Core": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Core": "1.1.0-*",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     }
   },
@@ -31,13 +38,9 @@
         "System.Xml": ""
       }
     },
-    "netstandard1.5": {
-      "imports": [
-        "dotnet5.6",
-        "portable-net451+win8"
-      ],
+    "netstandard1.6": {
       "dependencies": {
-        "System.Runtime.Serialization.Xml": "4.1.0-*",
+        "System.Runtime.Serialization.Xml": "4.1.1-*",
         "System.Xml.XmlSerializer": "4.0.11-*"
       }
     }

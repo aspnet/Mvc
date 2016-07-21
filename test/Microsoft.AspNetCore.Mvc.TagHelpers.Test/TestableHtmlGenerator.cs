@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -65,8 +65,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             IHtmlGenerator htmlGenerator,
             IModelMetadataProvider metadataProvider)
         {
-            var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
-            var viewData = new ViewDataDictionary(metadataProvider)
+            return GetViewContext(model, htmlGenerator, metadataProvider, modelState: new ModelStateDictionary());
+        }
+
+        public static ViewContext GetViewContext(
+            object model,
+            IHtmlGenerator htmlGenerator,
+            IModelMetadataProvider metadataProvider,
+            ModelStateDictionary modelState)
+        {
+            var actionContext = new ActionContext(
+                new DefaultHttpContext(),
+                new RouteData(),
+                new ActionDescriptor(),
+                modelState);
+            var viewData = new ViewDataDictionary(metadataProvider, modelState)
             {
                 Model = model,
             };

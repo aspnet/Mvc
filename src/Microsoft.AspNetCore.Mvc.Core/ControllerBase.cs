@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
@@ -23,10 +24,12 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// A base class for an MVC controller without view support.
     /// </summary>
+    [Controller]
     public abstract class ControllerBase
     {
         private ControllerContext _controllerContext;
         private IModelMetadataProvider _metadataProvider;
+        private IModelBinderFactory _modelBinderFactory;
         private IObjectModelValidator _objectValidator;
         private IUrlHelper _url;
 
@@ -138,6 +141,31 @@ namespace Microsoft.AspNetCore.Mvc
                 }
 
                 _metadataProvider = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the <see cref="IModelBinderFactory"/>.
+        /// </summary>
+        public IModelBinderFactory ModelBinderFactory
+        {
+            get
+            {
+                if (_modelBinderFactory == null)
+                {
+                    _modelBinderFactory = HttpContext?.RequestServices?.GetRequiredService<IModelBinderFactory>();
+                }
+
+                return _modelBinderFactory;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _modelBinderFactory = value;
             }
         }
 
@@ -320,12 +348,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual OkObjectResult Ok(object value)
         {
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new OkObjectResult(value);
         }
 
@@ -647,11 +669,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual FileStreamResult File(Stream fileStream, string contentType, string fileDownloadName)
         {
-            if (fileStream != null)
-            {
-                Response.RegisterForDispose(fileStream);
-            }
-
             return new FileStreamResult(fileStream, contentType) { FileDownloadName = fileDownloadName };
         }
 
@@ -741,12 +758,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual NotFoundObjectResult NotFound(object value)
         {
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new NotFoundObjectResult(value);
         }
 
@@ -767,12 +778,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual BadRequestObjectResult BadRequest(object error)
         {
-            var disposableValue = error as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new BadRequestObjectResult(error);
         }
 
@@ -805,12 +810,6 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new CreatedResult(uri, value);
         }
 
@@ -826,12 +825,6 @@ namespace Microsoft.AspNetCore.Mvc
             if (uri == null)
             {
                 throw new ArgumentNullException(nameof(uri));
-            }
-
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
             }
 
             return new CreatedResult(uri, value);
@@ -877,12 +870,6 @@ namespace Microsoft.AspNetCore.Mvc
             object routeValues,
             object value)
         {
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new CreatedAtActionResult(actionName, controllerName, routeValues, value);
         }
 
@@ -920,12 +907,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual CreatedAtRouteResult CreatedAtRoute(string routeName, object routeValues, object value)
         {
-            var disposableValue = value as IDisposable;
-            if (disposableValue != null)
-            {
-                Response.RegisterForDispose(disposableValue);
-            }
-
             return new CreatedAtRouteResult(routeName, routeValues, value);
         }
 
@@ -938,21 +919,12 @@ namespace Microsoft.AspNetCore.Mvc
             => new ChallengeResult();
 
         /// <summary>
-        /// Creates a <see cref="ChallengeResult"/> with the specified authentication scheme.
-        /// </summary>
-        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
-        /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
-        [NonAction]
-        public virtual ChallengeResult Challenge(string authenticationScheme)
-            => new ChallengeResult(authenticationScheme);
-
-        /// <summary>
         /// Creates a <see cref="ChallengeResult"/> with the specified authentication schemes.
         /// </summary>
         /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
-        public virtual ChallengeResult Challenge(IList<string> authenticationSchemes)
+        public virtual ChallengeResult Challenge(params string[] authenticationSchemes)
             => new ChallengeResult(authenticationSchemes);
 
         /// <summary>
@@ -966,29 +938,17 @@ namespace Microsoft.AspNetCore.Mvc
             => new ChallengeResult(properties);
 
         /// <summary>
-        /// Creates a <see cref="ChallengeResult"/> with the specified specified authentication scheme and
-        /// <paramref name="properties" />.
-        /// </summary>
-        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
-        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
-        /// challenge.</param>
-        /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
-        [NonAction]
-        public virtual ChallengeResult Challenge(string authenticationScheme, AuthenticationProperties properties)
-            => new ChallengeResult(authenticationScheme, properties);
-
-        /// <summary>
         /// Creates a <see cref="ChallengeResult"/> with the specified specified authentication schemes and
         /// <paramref name="properties" />.
         /// </summary>
-        /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
+        /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         [NonAction]
         public virtual ChallengeResult Challenge(
-            IList<string> authenticationSchemes,
-            AuthenticationProperties properties)
+            AuthenticationProperties properties,
+            params string[] authenticationSchemes)
             => new ChallengeResult(authenticationSchemes, properties);
 
         /// <summary>
@@ -1000,21 +960,12 @@ namespace Microsoft.AspNetCore.Mvc
             => new ForbidResult();
 
         /// <summary>
-        /// Creates a <see cref="ForbidResult"/> with the specified authentication scheme.
-        /// </summary>
-        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
-        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
-        [NonAction]
-        public virtual ForbidResult Forbid(string authenticationScheme)
-            => new ForbidResult(authenticationScheme);
-
-        /// <summary>
         /// Creates a <see cref="ForbidResult"/> with the specified authentication schemes.
         /// </summary>
         /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbidResult Forbid(IList<string> authenticationSchemes)
+        public virtual ForbidResult Forbid(params string[] authenticationSchemes)
             => new ForbidResult(authenticationSchemes);
 
         /// <summary>
@@ -1028,28 +979,61 @@ namespace Microsoft.AspNetCore.Mvc
             => new ForbidResult(properties);
 
         /// <summary>
-        /// Creates a <see cref="ForbidResult"/> with the specified specified authentication scheme and
-        /// <paramref name="properties" />.
-        /// </summary>
-        /// <param name="authenticationScheme">The authentication scheme to challenge.</param>
-        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
-        /// challenge.</param>
-        /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
-        [NonAction]
-        public virtual ForbidResult Forbid(string authenticationScheme, AuthenticationProperties properties)
-            => new ForbidResult(authenticationScheme, properties);
-
-        /// <summary>
         /// Creates a <see cref="ForbidResult"/> with the specified specified authentication schemes and
         /// <paramref name="properties" />.
         /// </summary>
-        /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
+        /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ForbidResult"/> for the response.</returns>
         [NonAction]
-        public virtual ForbidResult Forbid(IList<string> authenticationSchemes, AuthenticationProperties properties)
+        public virtual ForbidResult Forbid(AuthenticationProperties properties, params string[] authenticationSchemes)
             => new ForbidResult(authenticationSchemes, properties);
+
+        /// <summary>
+        /// Creates a <see cref="SignInResult"/> with the specified authentication scheme.
+        /// </summary>
+        /// <param name="principal">The <see cref="ClaimsPrincipal"/> containing the user claims.</param>
+        /// <param name="authenticationScheme">The authentication scheme to use for the sign-in operation.</param>
+        /// <returns>The created <see cref="SignInResult"/> for the response.</returns>
+        [NonAction]
+        public virtual SignInResult SignIn(ClaimsPrincipal principal, string authenticationScheme)
+            => new SignInResult(authenticationScheme, principal);
+
+        /// <summary>
+        /// Creates a <see cref="SignInResult"/> with the specified specified authentication scheme and
+        /// <paramref name="properties" />.
+        /// </summary>
+        /// <param name="principal">The <see cref="ClaimsPrincipal"/> containing the user claims.</param>
+        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the sign-in operation.</param>
+        /// <param name="authenticationScheme">The authentication scheme to use for the sign-in operation.</param>
+        /// <returns>The created <see cref="SignInResult"/> for the response.</returns>
+        [NonAction]
+        public virtual SignInResult SignIn(
+            ClaimsPrincipal principal,
+            AuthenticationProperties properties,
+            string authenticationScheme)
+            => new SignInResult(authenticationScheme, principal, properties);
+
+        /// <summary>
+        /// Creates a <see cref="SignOutResult"/> with the specified authentication schemes.
+        /// </summary>
+        /// <param name="authenticationSchemes">The authentication schemes to use for the sign-out operation.</param>
+        /// <returns>The created <see cref="SignOutResult"/> for the response.</returns>
+        [NonAction]
+        public virtual SignOutResult SignOut(params string[] authenticationSchemes)
+            => new SignOutResult(authenticationSchemes);
+
+        /// <summary>
+        /// Creates a <see cref="SignOutResult"/> with the specified specified authentication schemes and
+        /// <paramref name="properties" />.
+        /// </summary>
+        /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the sign-out operation.</param>
+        /// <param name="authenticationSchemes">The authentication scheme to use for the sign-out operation.</param>
+        /// <returns>The created <see cref="SignOutResult"/> for the response.</returns>
+        [NonAction]
+        public virtual SignOutResult SignOut(AuthenticationProperties properties, params string[] authenticationSchemes)
+            => new SignOutResult(authenticationSchemes, properties);
 
         /// <summary>
         /// Updates the specified <paramref name="model"/> instance using values from the controller's current
@@ -1081,7 +1065,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public virtual Task<bool> TryUpdateModelAsync<TModel>(
+        public virtual async Task<bool> TryUpdateModelAsync<TModel>(
             TModel model,
             string prefix)
             where TModel : class
@@ -1096,7 +1080,8 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(prefix));
             }
 
-            return TryUpdateModelAsync(model, prefix, new CompositeValueProvider(ControllerContext.ValueProviders));
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
+            return await TryUpdateModelAsync(model, prefix, valueProvider);
         }
 
         /// <summary>
@@ -1136,11 +1121,9 @@ namespace Microsoft.AspNetCore.Mvc
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
+                ModelBinderFactory,
                 valueProvider,
-                ControllerContext.InputFormatters,
-                ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders));
+                ObjectValidator);
         }
 
         /// <summary>
@@ -1155,7 +1138,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// which need to be included for the current model.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public Task<bool> TryUpdateModelAsync<TModel>(
+        public async Task<bool> TryUpdateModelAsync<TModel>(
             TModel model,
             string prefix,
             params Expression<Func<TModel, object>>[] includeExpressions)
@@ -1171,16 +1154,15 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(includeExpressions));
             }
 
-            return ModelBindingHelper.TryUpdateModelAsync(
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
+            return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
-                new CompositeValueProvider(ControllerContext.ValueProviders),
-                ControllerContext.InputFormatters,
+                ModelBinderFactory,
+                valueProvider,
                 ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
                 includeExpressions);
         }
 
@@ -1192,13 +1174,13 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="model">The model instance to update.</param>
         /// <param name="prefix">The prefix to use when looking up values in the current <see cref="IValueProvider"/>.
         /// </param>
-        /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
+        /// <param name="propertyFilter">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public Task<bool> TryUpdateModelAsync<TModel>(
+        public async Task<bool> TryUpdateModelAsync<TModel>(
             TModel model,
             string prefix,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<ModelMetadata, bool> propertyFilter)
             where TModel : class
         {
             if (model == null)
@@ -1206,22 +1188,21 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(model));
             }
 
-            if (predicate == null)
+            if (propertyFilter == null)
             {
-                throw new ArgumentNullException(nameof(predicate));
+                throw new ArgumentNullException(nameof(propertyFilter));
             }
 
-            return ModelBindingHelper.TryUpdateModelAsync(
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
+            return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
-                new CompositeValueProvider(ControllerContext.ValueProviders),
-                ControllerContext.InputFormatters,
+                ModelBinderFactory,
+                valueProvider,
                 ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
-                predicate);
+                propertyFilter);
         }
 
         /// <summary>
@@ -1264,11 +1245,9 @@ namespace Microsoft.AspNetCore.Mvc
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
+                ModelBinderFactory,
                 valueProvider,
-                ControllerContext.InputFormatters,
                 ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
                 includeExpressions);
         }
 
@@ -1281,14 +1260,14 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="prefix">The prefix to use when looking up values in the <paramref name="valueProvider"/>.
         /// </param>
         /// <param name="valueProvider">The <see cref="IValueProvider"/> used for looking up values.</param>
-        /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
+        /// <param name="propertyFilter">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
         public Task<bool> TryUpdateModelAsync<TModel>(
             TModel model,
             string prefix,
             IValueProvider valueProvider,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<ModelMetadata, bool> propertyFilter)
             where TModel : class
         {
             if (model == null)
@@ -1301,9 +1280,9 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(valueProvider));
             }
 
-            if (predicate == null)
+            if (propertyFilter == null)
             {
-                throw new ArgumentNullException(nameof(predicate));
+                throw new ArgumentNullException(nameof(propertyFilter));
             }
 
             return ModelBindingHelper.TryUpdateModelAsync(
@@ -1311,12 +1290,10 @@ namespace Microsoft.AspNetCore.Mvc
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
+                ModelBinderFactory,
                 valueProvider,
-                ControllerContext.InputFormatters,
                 ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
-                predicate);
+                propertyFilter);
         }
 
         /// <summary>
@@ -1329,7 +1306,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
-        public virtual Task<bool> TryUpdateModelAsync(
+        public virtual async Task<bool> TryUpdateModelAsync(
             object model,
             Type modelType,
             string prefix)
@@ -1344,17 +1321,16 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(modelType));
             }
 
-            return ModelBindingHelper.TryUpdateModelAsync(
+            var valueProvider = await CompositeValueProvider.CreateAsync(ControllerContext);
+            return await ModelBindingHelper.TryUpdateModelAsync(
                 model,
                 modelType,
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
-                new CompositeValueProvider(ControllerContext.ValueProviders),
-                ControllerContext.InputFormatters,
-                ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders));
+                ModelBinderFactory,
+                valueProvider,
+                ObjectValidator);
         }
 
         /// <summary>
@@ -1366,7 +1342,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="prefix">The prefix to use when looking up values in the <paramref name="valueProvider"/>.
         /// </param>
         /// <param name="valueProvider">The <see cref="IValueProvider"/> used for looking up values.</param>
-        /// <param name="predicate">A predicate which can be used to filter properties at runtime.</param>
+        /// <param name="propertyFilter">A predicate which can be used to filter properties at runtime.</param>
         /// <returns>A <see cref="Task"/> that on completion returns <c>true</c> if the update is successful.</returns>
         [NonAction]
         public Task<bool> TryUpdateModelAsync(
@@ -1374,7 +1350,7 @@ namespace Microsoft.AspNetCore.Mvc
             Type modelType,
             string prefix,
             IValueProvider valueProvider,
-            Func<ModelBindingContext, string, bool> predicate)
+            Func<ModelMetadata, bool> propertyFilter)
         {
             if (model == null)
             {
@@ -1391,9 +1367,9 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(valueProvider));
             }
 
-            if (predicate == null)
+            if (propertyFilter == null)
             {
-                throw new ArgumentNullException(nameof(predicate));
+                throw new ArgumentNullException(nameof(propertyFilter));
             }
 
             return ModelBindingHelper.TryUpdateModelAsync(
@@ -1402,12 +1378,10 @@ namespace Microsoft.AspNetCore.Mvc
                 prefix,
                 ControllerContext,
                 MetadataProvider,
-                new CompositeModelBinder(ControllerContext.ModelBinders),
+                ModelBinderFactory,
                 valueProvider,
-                ControllerContext.InputFormatters,
                 ObjectValidator,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
-                predicate);
+                propertyFilter);
         }
 
         /// <summary>
@@ -1446,7 +1420,6 @@ namespace Microsoft.AspNetCore.Mvc
 
             ObjectValidator.Validate(
                 ControllerContext,
-                new CompositeModelValidatorProvider(ControllerContext.ValidatorProviders),
                 validationState: null,
                 prefix: prefix ?? string.Empty,
                 model: model);

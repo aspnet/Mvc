@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -403,7 +403,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Null(output.TagName);
             Assert.True(output.IsContentModified);
-            Assert.True(output.Content.IsEmpty);
+            Assert.True(output.Content.GetContent().Length == 0);
             Assert.True(output.PostElement.IsModified);
         }
 
@@ -560,7 +560,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.NotNull(output.TagName);
             Assert.False(output.IsContentModified);
             Assert.Empty(output.Attributes);
-            Assert.True(output.PostElement.IsEmpty);
+            Assert.True(output.PostElement.GetContent().Length == 0);
         }
 
         [Fact]
@@ -589,7 +589,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.NotNull(output.TagName);
             Assert.False(output.IsContentModified);
             Assert.Empty(output.Attributes);
-            Assert.True(output.PostElement.IsEmpty);
+            Assert.True(output.PostElement.GetContent().Length == 0);
         }
 
         [Fact]
@@ -646,12 +646,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             // Arrange
             var expectedContent =
-                "<link encoded=\"contains &quot;quotes&quot;\" href=\"HtmlEncode[[/css/site.css]]\" " +
+                "<link encoded='contains \"quotes\"' href=\"HtmlEncode[[/css/site.css]]\" " +
                 "literal=\"HtmlEncode[[all HTML encoded]]\" " +
-                "mixed=\"HtmlEncode[[HTML encoded]] and contains &quot;quotes&quot;\" />" +
-                "<link encoded=\"contains &quot;quotes&quot;\" href=\"HtmlEncode[[/base.css]]\" " +
+                "mixed='HtmlEncode[[HTML encoded]] and contains \"quotes\"' />" +
+                "<link encoded='contains \"quotes\"' href=\"HtmlEncode[[/base.css]]\" " +
                 "literal=\"HtmlEncode[[all HTML encoded]]\" " +
-                "mixed=\"HtmlEncode[[HTML encoded]] and contains &quot;quotes&quot;\" />";
+                "mixed='HtmlEncode[[HTML encoded]] and contains \"quotes\"' />";
             var mixed = new DefaultTagHelperContent();
             mixed.Append("HTML encoded");
             mixed.AppendHtml(" and contains \"quotes\"");
@@ -659,18 +659,18 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList
                 {
                     { "asp-href-include", "**/*.css" },
-                    { "encoded", new HtmlString("contains \"quotes\"") },
+                    { new TagHelperAttribute("encoded", new HtmlString("contains \"quotes\""), HtmlAttributeValueStyle.SingleQuotes) },
                     { "href", "/css/site.css" },
                     { "literal", "all HTML encoded" },
-                    { "mixed", mixed },
+                    { new TagHelperAttribute("mixed", mixed, HtmlAttributeValueStyle.SingleQuotes) },
                 });
             var output = MakeTagHelperOutput(
                 "link",
                 attributes: new TagHelperAttributeList
                 {
-                    { "encoded", new HtmlString("contains \"quotes\"") },
+                    { new TagHelperAttribute("encoded", new HtmlString("contains \"quotes\""), HtmlAttributeValueStyle.SingleQuotes) },
                     { "literal", "all HTML encoded" },
-                    { "mixed", mixed },
+                    { new TagHelperAttribute("mixed", mixed, HtmlAttributeValueStyle.SingleQuotes) },
                 });
             var hostingEnvironment = MakeHostingEnvironment();
             var viewContext = MakeViewContext();
@@ -843,10 +843,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public void RenderLinkTags_FallbackHref_WithFileVersion_EncodesAsExpected()
         {
             // Arrange
-            var expectedContent = "<link encoded=\"contains &quot;quotes&quot;\" " +
+            var expectedContent = "<link encoded=\"contains \"quotes\"\" " +
                 "href=\"HtmlEncode[[/css/site.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\" " +
                 "literal=\"HtmlEncode[[all HTML encoded]]\" " +
-                "mixed=\"HtmlEncode[[HTML encoded]] and contains &quot;quotes&quot;\" />" +
+                "mixed=\"HtmlEncode[[HTML encoded]] and contains \"quotes\"\" />" +
                 Environment.NewLine +
                 "<meta name=\"x-stylesheet-fallback-test\" content=\"\" class=\"HtmlEncode[[hidden]]\" />" +
                 "<script>!function(a,b,c){var d,e=document,f=e.getElementsByTagName(\"SCRIPT\")," +
@@ -961,8 +961,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Equal("link", output.TagName);
             Assert.Equal("/css/site.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", output.Attributes["href"].Value);
-            Assert.Equal("<link rel=\"stylesheet\" href=\"HtmlEncode[[/base.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\" />",
-                output.PostElement.GetContent());
+            var content = HtmlContentUtilities.HtmlContentToString(output.PostElement, new HtmlTestEncoder());
+            Assert.Equal(
+                "<link rel=\"stylesheet\" href=\"HtmlEncode[[/base.css?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk]]\" />",
+                content);
         }
 
         private static ViewContext MakeViewContext(string requestPathBase = null)

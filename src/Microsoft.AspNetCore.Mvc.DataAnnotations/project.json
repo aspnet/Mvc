@@ -1,11 +1,17 @@
 {
-  "description": "Metadata and Validation using System.ComponentModel.DataAnnotations for the MVC runtime",
-  "version": "1.0.0-*",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/aspnet/mvc"
+  "description": "ASP.NET Core MVC metadata and validation system using System.ComponentModel.DataAnnotations.",
+  "version": "1.1.0-*",
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/aspnet/mvc"
+    },
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc"
+    ]
   },
-  "compilationOptions": {
+  "buildOptions": {
     "warningsAsErrors": true,
     "keyFile": "../../tools/Key.snk",
     "nowarn": [
@@ -14,16 +20,16 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc.Core": "1.0.0-*",
+    "Microsoft.AspNetCore.Mvc.Core": "1.1.0-*",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     },
     "Microsoft.Extensions.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     },
-    "Microsoft.Extensions.Localization": "1.0.0-*"
+    "Microsoft.Extensions.Localization": "1.1.0-*"
   },
   "frameworks": {
     "net451": {
@@ -31,11 +37,7 @@
         "System.ComponentModel.DataAnnotations": ""
       }
     },
-    "netstandard1.5": {
-      "imports": [
-        "dotnet5.6",
-        "portable-net451+win8"
-      ],
+    "netstandard1.6": {
       "dependencies": {
         "System.ComponentModel.Annotations": "4.1.0-*"
       }

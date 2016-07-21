@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
@@ -19,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc
     public class RedirectToActionResultTest
     {
         [Fact]
-        public async void RedirectToAction_Execute_PassesCorrectValuesToRedirect()
+        public async Task RedirectToAction_Execute_PassesCorrectValuesToRedirect()
         {
             // Arrange
             var expectedUrl = "SampleAction";
@@ -93,6 +94,8 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
+            services.AddSingleton<RedirectToActionResultExecutor>();
+            services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }

@@ -24,6 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     {
         private const string BaseType = "Microsoft.AspNetCore.Mvc.Razor.RazorPage";
         private const string HtmlHelperPropertyName = "Html";
+        private const string ModelExpressionProviderProperty = "ModelExpressionProvider";
+        private const string ViewDataProperty = "ViewData";
 
         private static readonly string[] _defaultNamespaces = new[]
         {
@@ -32,6 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             "System.Collections.Generic",
             "Microsoft.AspNetCore.Mvc",
             "Microsoft.AspNetCore.Mvc.Rendering",
+            "Microsoft.AspNetCore.Mvc.ViewFeatures",
         };
         private static readonly Chunk[] _defaultInheritedChunks = new Chunk[]
         {
@@ -39,6 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             new InjectChunk("Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper", "Json"),
             new InjectChunk("Microsoft.AspNetCore.Mvc.IViewComponentHelper", "Component"),
             new InjectChunk("Microsoft.AspNetCore.Mvc.IUrlHelper", "Url"),
+            new InjectChunk("Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider", ModelExpressionProviderProperty),
             new AddTagHelperChunk
             {
                 LookupText = "Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor"
@@ -66,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             _chunkTreeCache = chunkTreeCache;
 
             DefaultBaseClass = $"{BaseType}<{ChunkHelper.TModelToken}>";
-            DefaultNamespace = "Asp";
+            DefaultNamespace = "AspNetCore";
             // Enable instrumentation by default to allow precompiled views to work with BrowserLink.
             EnableInstrumentation = true;
             GeneratedClassContext = new GeneratedClassContext(
@@ -84,8 +88,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     ExecutionContextAddTagHelperAttributeMethodName =
                         nameof(TagHelperExecutionContext.AddTagHelperAttribute),
                     ExecutionContextAddHtmlAttributeMethodName = nameof(TagHelperExecutionContext.AddHtmlAttribute),
-                    ExecutionContextAddMinimizedHtmlAttributeMethodName =
-                        nameof(TagHelperExecutionContext.AddMinimizedHtmlAttribute),
                     ExecutionContextOutputPropertyName = nameof(TagHelperExecutionContext.Output),
 
                     RunnerTypeName = typeof(TagHelperRunner).FullName,
@@ -102,6 +104,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     FormatInvalidIndexerAssignmentMethodName = "InvalidTagHelperIndexerAssignment",
                     StartTagHelperWritingScopeMethodName = "StartTagHelperWritingScope",
                     EndTagHelperWritingScopeMethodName = "EndTagHelperWritingScope",
+                    BeginWriteTagHelperAttributeMethodName = "BeginWriteTagHelperAttribute",
+                    EndWriteTagHelperAttributeMethodName = "EndWriteTagHelperAttribute",
 
                     // Can't use nameof because IHtmlHelper is (also) not accessible here.
                     MarkAsHtmlEncodedMethodName = HtmlHelperPropertyName + ".Raw",
@@ -112,8 +116,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     TagHelperContentGetContentMethodName = nameof(TagHelperContent.GetContent),
                     TagHelperOutputIsContentModifiedPropertyName = nameof(TagHelperOutput.IsContentModified),
                     TagHelperOutputContentPropertyName = nameof(TagHelperOutput.Content),
-                    TagHelperOutputGetChildContentAsyncMethodName = nameof(TagHelperOutput.GetChildContentAsync)
-                })
+                    ExecutionContextSetOutputContentAsyncMethodName = nameof(TagHelperExecutionContext.SetOutputContentAsync),
+                    TagHelperAttributeValuePropertyName = nameof(TagHelperAttribute.Value),
+        })
             {
                 BeginContextMethodName = "BeginContext",
                 EndContextMethodName = "EndContext"
@@ -143,9 +148,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// Initializes a new instance of <see cref="MvcRazorHost"/> using the specified <paramref name="chunkTreeCache"/>.
         /// </summary>
         /// <param name="chunkTreeCache">An <see cref="IChunkTreeCache"/> rooted at the application base path.</param>
-        public MvcRazorHost(IChunkTreeCache chunkTreeCache)
+        /// <param name="resolver">The <see cref="ITagHelperDescriptorResolver"/> used to resolve tag helpers on razor views.</param>
+        public MvcRazorHost(IChunkTreeCache chunkTreeCache, ITagHelperDescriptorResolver resolver)
             : this(chunkTreeCache, new RazorPathNormalizer())
         {
+            TagHelperDescriptorResolver = resolver;
         }
 
         /// <inheritdoc />
@@ -204,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </summary>
         public virtual string ModelExpressionType
         {
-            get { return "Microsoft.AspNetCore.Mvc.Rendering.ModelExpression"; }
+            get { return "Microsoft.AspNetCore.Mvc.ViewFeatures.ModelExpression"; }
         }
 
         /// <summary>
@@ -213,6 +220,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public virtual string CreateModelExpressionMethod
         {
             get { return "CreateModelExpression"; }
+        }
+
+        /// <summary>
+        /// Gets the property name for <c>IModelExpressionProvider</c>.
+        /// </summary>
+        public virtual string ModelExpressionProvider
+        {
+            get { return ModelExpressionProviderProperty; }
+        }
+
+        /// <summary>
+        /// Gets the property name for <c>ViewDataDictionary</c>.
+        /// </summary>
+        public virtual string ViewDataPropertyName
+        {
+            get { return ViewDataProperty; }
         }
 
         // Internal for testing
@@ -271,7 +294,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             var inheritedChunkTrees = GetInheritedChunkTrees(sourceFileName);
-
             return new MvcRazorParser(razorParser, inheritedChunkTrees, DefaultInheritedChunks, ModelExpressionType);
         }
 
@@ -315,13 +337,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 new GeneratedTagHelperAttributeContext
                 {
                     ModelExpressionTypeName = ModelExpressionType,
-                    CreateModelExpressionMethodName = CreateModelExpressionMethod
+                    CreateModelExpressionMethodName = CreateModelExpressionMethod,
+                    ModelExpressionProviderPropertyName = ModelExpressionProviderProperty,
+                    ViewDataPropertyName = ViewDataProperty,
                 });
-        }
-
-        public void Dispose()
-        {
-            _chunkTreeCache.Dispose();
         }
 
         private IReadOnlyList<ChunkTree> GetInheritedChunkTrees(string sourceFileName)

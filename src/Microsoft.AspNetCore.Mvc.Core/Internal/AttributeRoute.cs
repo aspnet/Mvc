@@ -4,76 +4,49 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Internal;
 using Microsoft.AspNetCore.Routing.Template;
 using Microsoft.AspNetCore.Routing.Tree;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class AttributeRoute : IRouter
     {
-        private readonly IRouter _target;
         private readonly IActionDescriptorCollectionProvider _actionDescriptorCollectionProvider;
-        private readonly IInlineConstraintResolver _constraintResolver;
-        private readonly ObjectPool<UriBuildingContext> _contextPool;
-        private readonly UrlEncoder _urlEncoder;
-        private readonly ILoggerFactory _loggerFactory;
+        private readonly IServiceProvider _services;
+        private readonly Func<ActionDescriptor[], IRouter> _handlerFactory;
 
         private TreeRouter _router;
 
         public AttributeRoute(
-            IRouter target,
             IActionDescriptorCollectionProvider actionDescriptorCollectionProvider,
-            IInlineConstraintResolver constraintResolver,
-            ObjectPool<UriBuildingContext> contextPool,
-            UrlEncoder urlEncoder,
-            ILoggerFactory loggerFactory)
+            IServiceProvider services,
+            Func<ActionDescriptor[], IRouter> handlerFactory)
         {
-            if (target == null)
-            {
-                throw new ArgumentNullException(nameof(target));
-            }
-
             if (actionDescriptorCollectionProvider == null)
             {
                 throw new ArgumentNullException(nameof(actionDescriptorCollectionProvider));
             }
 
-            if (constraintResolver == null)
+            if (services == null)
             {
-                throw new ArgumentNullException(nameof(constraintResolver));
+                throw new ArgumentNullException(nameof(services));
             }
 
-            if (contextPool == null)
+            if (handlerFactory == null)
             {
-                throw new ArgumentNullException(nameof(contextPool));
+                _handlerFactory = handlerFactory;
             }
 
-            if (urlEncoder == null)
-            {
-                throw new ArgumentNullException(nameof(urlEncoder));
-            }
-
-            if (loggerFactory == null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _target = target;
             _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
-            _constraintResolver = constraintResolver;
-            _contextPool = contextPool;
-            _urlEncoder = urlEncoder;
-            _loggerFactory = loggerFactory;
+            _services = services;
+            _handlerFactory = handlerFactory;
         }
 
         /// <inheritdoc />
@@ -98,79 +71,66 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // it on startup.
             if (_router == null || _router.Version != actions.Version)
             {
-                _router = BuildRoute(actions);
+                var builder = _services.GetRequiredService<TreeRouteBuilder>();
+                AddEntries(builder, actions);
+                _router = builder.Build(actions.Version);
             }
 
             return _router;
         }
 
-        private TreeRouter BuildRoute(ActionDescriptorCollection actions)
+        // internal for testing
+        internal void AddEntries(TreeRouteBuilder builder, ActionDescriptorCollection actions)
         {
-            var routeBuilder = new TreeRouteBuilder(_target, _loggerFactory);
-            var routeInfos = GetRouteInfos(_constraintResolver, actions.Items);
+            var routeInfos = GetRouteInfos(actions.Items);
 
-            // We're creating one AttributeRouteGenerationEntry per action. This allows us to match the intended
+            // We're creating one TreeRouteLinkGenerationEntry per action. This allows us to match the intended
             // action by expected route values, and then use the TemplateBinder to generate the link.
             foreach (var routeInfo in routeInfos)
             {
-                routeBuilder.Add(new TreeRouteLinkGenerationEntry()
+                var defaults = new RouteValueDictionary();
+                foreach (var kvp in routeInfo.ActionDescriptor.RouteValues)
                 {
-                    Binder = new TemplateBinder(_urlEncoder, _contextPool, routeInfo.ParsedTemplate, routeInfo.Defaults),
-                    Defaults = routeInfo.Defaults,
-                    Constraints = routeInfo.Constraints,
-                    Order = routeInfo.Order,
-                    GenerationPrecedence = routeInfo.GenerationPrecedence,
-                    RequiredLinkValues = routeInfo.ActionDescriptor.RouteValueDefaults,
-                    RouteGroup = routeInfo.RouteGroup,
-                    Template = routeInfo.ParsedTemplate,
-                    Name = routeInfo.Name,
-                });
+                    defaults.Add(kvp.Key, kvp.Value);
+                }
+
+                // We use the `NullRouter` as the route handler because we don't need to do anything for link
+                // generations. The TreeRouter does it all for us.
+                builder.MapOutbound(
+                    NullRouter.Instance,
+                    routeInfo.RouteTemplate, 
+                    defaults,
+                    routeInfo.RouteName, 
+                    routeInfo.Order);
             }
 
             // We're creating one AttributeRouteMatchingEntry per group, so we need to identify the distinct set of
             // groups. It's guaranteed that all members of the group have the same template and precedence,
             // so we only need to hang on to a single instance of the RouteInfo for each group.
-            var distinctRouteInfosByGroup = GroupRouteInfosByGroupId(routeInfos);
-            foreach (var routeInfo in distinctRouteInfosByGroup)
+            var groups = GroupRouteInfos(routeInfos);
+            foreach (var group in groups)
             {
-                routeBuilder.Add(new TreeRouteMatchingEntry()
-                {
-                    Order = routeInfo.Order,
-                    Precedence = routeInfo.MatchPrecedence,
-                    Target = _target,
-                    RouteName = routeInfo.Name,
-                    RouteTemplate = TemplateParser.Parse(routeInfo.RouteTemplate),
-                    TemplateMatcher = new TemplateMatcher(
-                        routeInfo.ParsedTemplate,
-                        new RouteValueDictionary(StringComparer.OrdinalIgnoreCase)
-                        {
-                            { TreeRouter.RouteGroupKey, routeInfo.RouteGroup }
-                        }),
-                    Constraints = routeInfo.Constraints
-                });
-            }
+                var handler = _handlerFactory(group.ToArray());
 
-            return routeBuilder.Build(actions.Version);
+                // Note that because we only support 'inline' defaults, each routeInfo group also has the same
+                // set of defaults. 
+                //
+                // We then inject the route group as a default for the matcher so it gets passed back to MVC
+                // for use in action selection.
+                builder.MapInbound(
+                    handler,
+                    group.Key.RouteTemplate,
+                    group.Key.RouteName,
+                    group.Key.Order);
+            }
         }
 
-        private static IEnumerable<RouteInfo> GroupRouteInfosByGroupId(List<RouteInfo> routeInfos)
+        private static IEnumerable<IGrouping<RouteInfo, ActionDescriptor>> GroupRouteInfos(List<RouteInfo> routeInfos)
         {
-            var routeInfosByGroupId = new Dictionary<string, RouteInfo>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var routeInfo in routeInfos)
-            {
-                if (!routeInfosByGroupId.ContainsKey(routeInfo.RouteGroup))
-                {
-                    routeInfosByGroupId.Add(routeInfo.RouteGroup, routeInfo);
-                }
-            }
-
-            return routeInfosByGroupId.Values;
+            return routeInfos.GroupBy(r => r, r => r.ActionDescriptor, RouteInfoEqualityComparer.Instance);
         }
 
-        private static List<RouteInfo> GetRouteInfos(
-            IInlineConstraintResolver constraintResolver,
-            IReadOnlyList<ActionDescriptor> actions)
+        private static List<RouteInfo> GetRouteInfos(IReadOnlyList<ActionDescriptor> actions)
         {
             var routeInfos = new List<RouteInfo>();
             var errors = new List<RouteInfo>();
@@ -182,11 +142,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // of memory, so sharing is worthwhile.
             var templateCache = new Dictionary<string, RouteTemplate>(StringComparer.OrdinalIgnoreCase);
 
-            var attributeRoutedActions = actions.Where(a => a.AttributeRouteInfo != null &&
-                a.AttributeRouteInfo.Template != null);
+            var attributeRoutedActions = actions.Where(a => a.AttributeRouteInfo?.Template != null);
             foreach (var action in attributeRoutedActions)
             {
-                var routeInfo = GetRouteInfo(constraintResolver, templateCache, action);
+                var routeInfo = GetRouteInfo(templateCache, action);
                 if (routeInfo.ErrorMessage == null)
                 {
                     routeInfos.Add(routeInfo);
@@ -215,29 +174,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         private static RouteInfo GetRouteInfo(
-            IInlineConstraintResolver constraintResolver,
             Dictionary<string, RouteTemplate> templateCache,
             ActionDescriptor action)
         {
-            var constraint = action.RouteConstraints
-                .FirstOrDefault(c => c.RouteKey == TreeRouter.RouteGroupKey);
-            if (constraint == null ||
-                constraint.KeyHandling != RouteKeyHandling.RequireKey ||
-                constraint.RouteValue == null)
-            {
-                // This can happen if an ActionDescriptor has a route template, but doesn't have one of our
-                // special route group constraints. This is a good indication that the user is using a 3rd party
-                // routing system, or has customized their ADs in a way that we can no longer understand them.
-                //
-                // We just treat this case as an 'opt-out' of our attribute routing system.
-                return null;
-            }
-
             var routeInfo = new RouteInfo()
             {
                 ActionDescriptor = action,
-                RouteGroup = constraint.RouteValue,
-                RouteTemplate = action.AttributeRouteInfo.Template,
             };
 
             try
@@ -250,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     templateCache.Add(action.AttributeRouteInfo.Template, parsedTemplate);
                 }
 
-                routeInfo.ParsedTemplate = parsedTemplate;
+                routeInfo.RouteTemplate = parsedTemplate;
             }
             catch (Exception ex)
             {
@@ -258,14 +200,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return routeInfo;
             }
 
-            foreach (var kvp in action.RouteValueDefaults)
+            foreach (var kvp in action.RouteValues)
             {
-                foreach (var parameter in routeInfo.ParsedTemplate.Parameters)
+                foreach (var parameter in routeInfo.RouteTemplate.Parameters)
                 {
                     if (string.Equals(kvp.Key, parameter.Name, StringComparison.OrdinalIgnoreCase))
                     {
                         routeInfo.ErrorMessage = Resources.FormatAttributeRoute_CannotContainParameter(
-                            routeInfo.RouteTemplate,
+                            routeInfo.RouteTemplate.TemplateText,
                             kvp.Key,
                             kvp.Value);
 
@@ -275,40 +217,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             routeInfo.Order = action.AttributeRouteInfo.Order;
-
-            routeInfo.MatchPrecedence = RoutePrecedence.ComputeMatched(routeInfo.ParsedTemplate);
-            routeInfo.GenerationPrecedence = RoutePrecedence.ComputeGenerated(routeInfo.ParsedTemplate);
-
-            routeInfo.Name = action.AttributeRouteInfo.Name;
-
-            var constraintBuilder = new RouteConstraintBuilder(constraintResolver, routeInfo.RouteTemplate);
-
-            foreach (var parameter in routeInfo.ParsedTemplate.Parameters)
-            {
-                if (parameter.InlineConstraints != null)
-                {
-                    if (parameter.IsOptional)
-                    {
-                        constraintBuilder.SetOptional(parameter.Name);
-                    }
-
-                    foreach (var inlineConstraint in parameter.InlineConstraints)
-                    {
-                        constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Constraint);
-                    }
-                }
-            }
-
-            routeInfo.Constraints = constraintBuilder.Build();
-
-            routeInfo.Defaults = new RouteValueDictionary();
-            foreach (var parameter in routeInfo.ParsedTemplate.Parameters)
-            {
-                if (parameter.DefaultValue != null)
-                {
-                    routeInfo.Defaults.Add(parameter.Name, parameter.DefaultValue);
-                }
-            }
+            routeInfo.RouteName = action.AttributeRouteInfo.Name;
 
             return routeInfo;
         }
@@ -317,25 +226,70 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             public ActionDescriptor ActionDescriptor { get; set; }
 
-            public IDictionary<string, IRouteConstraint> Constraints { get; set; }
-
-            public RouteValueDictionary Defaults { get; set; }
-
             public string ErrorMessage { get; set; }
-
-            public RouteTemplate ParsedTemplate { get; set; }
-
+            
             public int Order { get; set; }
 
-            public decimal MatchPrecedence { get; set; }
+            public string RouteName { get; set; }
 
-            public decimal GenerationPrecedence { get; set; }
+            public RouteTemplate RouteTemplate { get; set; }
+        }
 
-            public string RouteGroup { get; set; }
+        private class RouteInfoEqualityComparer : IEqualityComparer<RouteInfo>
+        {
+            public static readonly RouteInfoEqualityComparer Instance = new RouteInfoEqualityComparer();
 
-            public string RouteTemplate { get; set; }
+            public bool Equals(RouteInfo x, RouteInfo y)
+            {
+                if (x == null && y == null)
+                {
+                    return true;
+                }
+                else if (x == null ^ y == null)
+                {
+                    return false;
+                }
+                else if (x.Order != y.Order)
+                {
+                    return false;
+                }
+                else
+                {
+                    return string.Equals(
+                        x.RouteTemplate.TemplateText,
+                        y.RouteTemplate.TemplateText,
+                        StringComparison.OrdinalIgnoreCase);
+                }
+            }
 
-            public string Name { get; set; }
+            public int GetHashCode(RouteInfo obj)
+            {
+                if (obj == null)
+                {
+                    return 0;
+                }
+
+                var hash = new HashCodeCombiner();
+                hash.Add(obj.Order);
+                hash.Add(obj.RouteTemplate.TemplateText, StringComparer.OrdinalIgnoreCase);
+                return hash;
+            }
+        }
+
+        // Used only to hook up link generation, and it doesn't need to do anything.
+        private class NullRouter : IRouter
+        {
+            public static readonly NullRouter Instance = new NullRouter();
+
+            public VirtualPathData GetVirtualPath(VirtualPathContext context)
+            {
+                return null;
+            }
+
+            public Task RouteAsync(RouteContext context)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

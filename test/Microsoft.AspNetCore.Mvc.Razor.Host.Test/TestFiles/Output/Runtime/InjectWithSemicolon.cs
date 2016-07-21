@@ -1,11 +1,12 @@
 #pragma checksum "TestFiles/Input/InjectWithSemicolon.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "fc807ec0dc76610bdca62f482fefd7f584348df9"
-namespace Asp
+namespace AspNetCore
 {
     using System;
     using System.Linq;
     using System.Collections.Generic;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.AspNetCore.Mvc.ViewFeatures;
     using System.Threading.Tasks;
 
     public class TestFiles_Input_InjectWithSemicolon_cshtml : Microsoft.AspNetCore.Mvc.Razor.RazorPage<MyModel>
@@ -23,6 +24,8 @@ namespace Asp
         public MyApp MyPropertyName2 { get; private set; }
         [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public MyService<MyModel> Html2 { get; private set; }
+        [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
         [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; }
         [Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]

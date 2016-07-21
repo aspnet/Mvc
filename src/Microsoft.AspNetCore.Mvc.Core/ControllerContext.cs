@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -16,10 +14,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class ControllerContext : ActionContext
     {
-        private FormatterCollection<IInputFormatter> _inputFormatters;
-        private IList<IModelBinder> _modelBinders;
-        private IList<IModelValidatorProvider> _validatorProviders;
-        private IList<IValueProvider> _valueProviders;
+        private IList<IValueProviderFactory> _valueProviderFactories;
 
         /// <summary>
         /// Creates a new <see cref="ControllerContext"/>.
@@ -57,18 +52,18 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Gets or sets the list of <see cref="IInputFormatter"/> instances for the current request.
+        /// Gets or sets the list of <see cref="IValueProviderFactory"/> instances for the current request.
         /// </summary>
-        public virtual FormatterCollection<IInputFormatter> InputFormatters
+        public virtual IList<IValueProviderFactory> ValueProviderFactories
         {
             get
             {
-                if (_inputFormatters == null)
+                if (_valueProviderFactories == null)
                 {
-                    _inputFormatters = new FormatterCollection<IInputFormatter>();
+                    _valueProviderFactories = new List<IValueProviderFactory>();
                 }
 
-                return _inputFormatters;
+                return _valueProviderFactories;
             }
             set
             {
@@ -77,82 +72,7 @@ namespace Microsoft.AspNetCore.Mvc
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _inputFormatters = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the list of <see cref="IModelBinder"/> instances for the current request.
-        /// </summary>
-        public virtual IList<IModelBinder> ModelBinders
-        {
-            get
-            {
-                if (_modelBinders == null)
-                {
-                    _modelBinders = new List<IModelBinder>();
-                }
-
-                return _modelBinders;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _modelBinders = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the list of <see cref="IModelValidatorProvider"/> instances for the current request.
-        /// </summary>
-        public virtual IList<IModelValidatorProvider> ValidatorProviders
-        {
-            get
-            {
-                if (_validatorProviders == null)
-                {
-                    _validatorProviders = new List<IModelValidatorProvider>();
-                }
-
-                return _validatorProviders;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _validatorProviders = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the list of <see cref="IValueProvider"/> instances for the current request.
-        /// </summary>
-        public virtual IList<IValueProvider> ValueProviders
-        {
-            get
-            {
-                if (_valueProviders == null)
-                {
-                    _valueProviders = new List<IValueProvider>();
-                }
-
-                return _valueProviders;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _valueProviders = value;
+                _valueProviderFactories = value;
             }
         }
     }

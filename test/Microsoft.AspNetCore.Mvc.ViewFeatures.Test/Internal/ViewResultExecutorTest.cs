@@ -4,8 +4,9 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Routing;
@@ -56,11 +57,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public void FindView_UsesActionDescriptorName_IfViewNameIsNull()
         {
             // Arrange
-            var context = GetActionContext();
-            var executor = GetViewExecutor();
-
             var viewName = "some-view-name";
-            context.ActionDescriptor.Name = viewName;
+            var context = GetActionContext(viewName);
+            var executor = GetViewExecutor();
 
             var viewResult = new ViewResult
             {
@@ -299,9 +298,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             Assert.Equal(404, context.HttpContext.Response.StatusCode);
         }
 
-        private ActionContext GetActionContext()
+        private ActionContext GetActionContext(string actionName = null)
         {
-            return new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
+            var routeData = new RouteData();
+            routeData.Values["action"] = actionName;
+
+            return new ActionContext(new DefaultHttpContext(), routeData, new ControllerActionDescriptor() { ActionName = actionName });
         }
 
         private ViewResultExecutor GetViewExecutor(DiagnosticListener diagnosticSource = null)
@@ -330,7 +332,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 new CompositeViewEngine(options),
                 new TempDataDictionaryFactory(new SessionStateTempDataProvider()),
                 diagnosticSource,
-                NullLoggerFactory.Instance);
+                NullLoggerFactory.Instance,
+                new EmptyModelMetadataProvider());
 
             return viewExecutor;
         }

@@ -32,8 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private readonly HashSet<string> _renderedSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Stack<TagHelperScopeInfo> _tagHelperScopes = new Stack<TagHelperScopeInfo>();
         private IUrlHelper _urlHelper;
-        private ITagHelperActivator _tagHelperActivator;
-        private ITypeActivatorCache _typeActivatorCache;
+        private ITagHelperFactory _tagHelperFactory;
         private bool _renderedBody;
         private AttributeInfo _attributeInfo;
         private TagHelperAttributeInfo _tagHelperAttributeInfo;
@@ -41,6 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private IViewBufferScope _bufferScope;
         private bool _ignoreBody;
         private HashSet<string> _ignoredSections;
+        private TextWriter _pageWriter;
 
         public RazorPage()
         {
@@ -122,31 +122,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// <inheritdoc />
         public abstract Task ExecuteAsync();
 
-        private ITagHelperActivator TagHelperActivator
+        private ITagHelperFactory TagHelperFactory
         {
             get
             {
-                if (_tagHelperActivator == null)
+                if (_tagHelperFactory == null)
                 {
                     var services = ViewContext.HttpContext.RequestServices;
-                    _tagHelperActivator = services.GetRequiredService<ITagHelperActivator>();
+                    _tagHelperFactory = services.GetRequiredService<ITagHelperFactory>();
                 }
 
-                return _tagHelperActivator;
-            }
-        }
-
-        private ITypeActivatorCache TypeActivatorCache
-        {
-            get
-            {
-                if (_typeActivatorCache == null)
-                {
-                    var services = ViewContext.HttpContext.RequestServices;
-                    _typeActivatorCache = services.GetRequiredService<ITypeActivatorCache>();
-                }
-
-                return _typeActivatorCache;
+                return _tagHelperFactory;
             }
         }
 
@@ -192,13 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </remarks>
         public TTagHelper CreateTagHelper<TTagHelper>() where TTagHelper : ITagHelper
         {
-            var tagHelper = TypeActivatorCache.CreateInstance<TTagHelper>(
-                ViewContext.HttpContext.RequestServices,
-                typeof(TTagHelper));
-
-            TagHelperActivator.Activate(tagHelper, ViewContext);
-
-            return tagHelper;
+            return TagHelperFactory.CreateTagHelper<TTagHelper>(ViewContext);
         }
 
         /// <summary>
@@ -250,6 +230,61 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             ViewContext.Writer = scopeInfo.Writer;
 
             return tagHelperContent;
+        }
+
+        /// <summary>
+        /// Starts a new scope for writing <see cref="ITagHelper"/> attribute values.
+        /// </summary>
+        /// <remarks>
+        /// All writes to the <see cref="Output"/> or <see cref="ViewContext.Writer"/> after calling this method will
+        /// be buffered until <see cref="EndWriteTagHelperAttribute"/> is called.
+        /// The content will be buffered using a shared <see cref="StringWriter"/> within this <see cref="RazorPage"/>
+        /// Nesting of <see cref="BeginWriteTagHelperAttribute"/> and <see cref="EndWriteTagHelperAttribute"/> method calls
+        /// is not supported.
+        /// </remarks>
+        public void BeginWriteTagHelperAttribute()
+        {
+            if (_pageWriter != null)
+            {
+                throw new InvalidOperationException(Resources.RazorPage_NestingAttributeWritingScopesNotSupported);
+            }
+
+            _pageWriter = ViewContext.Writer;
+
+            if (_valueBuffer == null)
+            {
+                _valueBuffer = new StringWriter();
+            }
+
+            // We need to replace the ViewContext's Writer to ensure that all content (including content written
+            // from HTML helpers) is redirected.
+            ViewContext.Writer = _valueBuffer;
+
+        }
+
+        /// <summary>
+        /// Ends the current writing scope that was started by calling <see cref="BeginWriteTagHelperAttribute"/>.
+        /// </summary>
+        /// <returns>The content buffered by the shared <see cref="StringWriter"/> of this <see cref="RazorPage"/>.</returns>
+        /// <remarks>
+        /// This method assumes that there will be no nesting of <see cref="BeginWriteTagHelperAttribute"/>
+        /// and <see cref="EndWriteTagHelperAttribute"/> method calls.
+        /// </remarks>
+        public string EndWriteTagHelperAttribute()
+        {
+            if (_pageWriter == null)
+            {
+                throw new InvalidOperationException(Resources.RazorPage_ThereIsNoActiveWritingScopeToEnd);
+            }
+
+            var content = _valueBuffer.ToString();
+            _valueBuffer.GetStringBuilder().Clear();
+
+            // Restore previous writer.
+            ViewContext.Writer = _pageWriter;
+            _pageWriter = null;
+
+            return content;
         }
 
         /// <summary>
@@ -537,9 +572,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void BeginAddHtmlAttributeValues(
             TagHelperExecutionContext executionContext,
             string attributeName,
-            int attributeValuesCount)
+            int attributeValuesCount,
+            HtmlAttributeValueStyle attributeValueStyle)
         {
-            _tagHelperAttributeInfo = new TagHelperAttributeInfo(executionContext, attributeName, attributeValuesCount);
+            _tagHelperAttributeInfo = new TagHelperAttributeInfo(
+                executionContext,
+                attributeName,
+                attributeValuesCount,
+                attributeValueStyle);
         }
 
         public void AddHtmlAttributeValue(
@@ -561,7 +601,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     // attribute was removed from TagHelperOutput.Attributes).
                     _tagHelperAttributeInfo.ExecutionContext.AddTagHelperAttribute(
                         _tagHelperAttributeInfo.Name,
-                        value?.ToString() ?? string.Empty);
+                        value?.ToString() ?? string.Empty,
+                        _tagHelperAttributeInfo.AttributeValueStyle);
                     _tagHelperAttributeInfo.Suppressed = true;
                     return;
                 }
@@ -569,7 +610,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 {
                     _tagHelperAttributeInfo.ExecutionContext.AddHtmlAttribute(
                         _tagHelperAttributeInfo.Name,
-                        _tagHelperAttributeInfo.Name);
+                        _tagHelperAttributeInfo.Name,
+                        _tagHelperAttributeInfo.AttributeValueStyle);
                     _tagHelperAttributeInfo.Suppressed = true;
                     return;
                 }
@@ -602,7 +644,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 var content = _valueBuffer == null ? HtmlString.Empty : new HtmlString(_valueBuffer.ToString());
                 _valueBuffer?.GetStringBuilder().Clear();
 
-                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, content);
+                executionContext.AddHtmlAttribute(_tagHelperAttributeInfo.Name, content, _tagHelperAttributeInfo.AttributeValueStyle);
             }
         }
 
@@ -1046,11 +1088,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             public TagHelperAttributeInfo(
                 TagHelperExecutionContext tagHelperExecutionContext,
                 string name,
-                int attributeValuesCount)
+                int attributeValuesCount,
+                HtmlAttributeValueStyle attributeValueStyle)
             {
                 ExecutionContext = tagHelperExecutionContext;
                 Name = name;
                 AttributeValuesCount = attributeValuesCount;
+                AttributeValueStyle = attributeValueStyle;
 
                 Suppressed = false;
             }
@@ -1060,6 +1104,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             public TagHelperExecutionContext ExecutionContext { get; }
 
             public int AttributeValuesCount { get; }
+
+            public HtmlAttributeValueStyle AttributeValueStyle { get; }
 
             public bool Suppressed { get; set; }
         }

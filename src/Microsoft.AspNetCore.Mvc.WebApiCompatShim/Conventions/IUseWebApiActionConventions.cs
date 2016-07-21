@@ -3,6 +3,9 @@
 
 namespace Microsoft.AspNetCore.Mvc.WebApiCompatShim
 {
+    /// <summary>
+    /// Indicates actions without attribute routes in a controller use ASP.NET Web API routing conventions.
+    /// </summary>
     public interface IUseWebApiActionConventions
     {
     }

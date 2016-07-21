@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Internal;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
@@ -397,6 +396,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             public IEnumerable<string> Keys { get { return _innerDictionary.Keys; } }
 
             public string Id => "TestId";
+
+            public bool IsAvailable { get; } = true;
 
             public Task LoadAsync()
             {

@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace FiltersWebSite.Controllers
 {
@@ -25,26 +28,41 @@ namespace FiltersWebSite.Controllers
             return "NeverGetsExecuted";
         }
 
-        private class ShortCircuitWithFormatterAttribute : Attribute, IResourceFilter
+        [HttpPost]
+        public IActionResult FormValueModelBinding_Enabled(DummyClass dc)
         {
-            private IOutputFormatter[] _formatters;
-
-            public ShortCircuitWithFormatterAttribute()
+            if (!ModelState.IsValid)
             {
-                _formatters = new IOutputFormatter[] { new JsonOutputFormatter() };
+                return BadRequest(ModelState);
             }
 
+            return Ok("Data:" + dc?.SampleInt);
+        }
+
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        public IActionResult FormValueModelBinding_Disabled(DummyClass dc)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Ok("Data:" + dc?.SampleInt);
+        }
+
+        private class ShortCircuitWithFormatterAttribute : Attribute, IResourceFilter
+        {
             public void OnResourceExecuted(ResourceExecutedContext context)
             {
             }
 
             public void OnResourceExecuting(ResourceExecutingContext context)
             {
+                var mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>();
+                var formatter = mvcOptions.Value.OutputFormatters.OfType<JsonOutputFormatter>().First();
                 var result = new ObjectResult("someValue");
-                foreach (var formatter in _formatters)
-                {
-                    result.Formatters.Add(formatter);
-                }
+                result.Formatters.Add(formatter);
 
                 context.Result = result;
             }

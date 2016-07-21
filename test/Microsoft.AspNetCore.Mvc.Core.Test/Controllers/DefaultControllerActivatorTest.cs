@@ -2,10 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
@@ -60,38 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
             // Assert
             Assert.Equal(true, controller.Disposed);
         }
-
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(OpenGenericType<>))]
-        [InlineData(typeof(AbstractType))]
-        [InlineData(typeof(InterfaceType))]
-        public void CreateController_ThrowsIfControllerCannotBeActivated(Type type)
-        {
-            // Arrange
-            var actionDescriptor = new ControllerActionDescriptor
-            {
-                ControllerTypeInfo = type.GetTypeInfo()
-            };
-
-            var context = new ControllerContext()
-            {
-                ActionDescriptor = actionDescriptor,
-                HttpContext = new DefaultHttpContext()
-                {
-                    RequestServices = GetServices(),
-                },
-            };
-            var factory = new DefaultControllerActivator(new TypeActivatorCache());
-
-            // Act and Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => factory.Create(context));
-            Assert.Equal(
-                $"The type '{type.FullName}' cannot be activated by '{typeof(DefaultControllerActivator).FullName}' " +
-                "because it is either a value type, an interface, an abstract class or an open generic type.",
-                exception.Message);
-        }
-
+                
         [Fact]
         public void DefaultControllerActivator_ReleasesNonIDisposableController()
         {
@@ -159,12 +127,15 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
         {
             var metadataProvider = new EmptyModelMetadataProvider();
             var services = new Mock<IServiceProvider>();
-            services.Setup(s => s.GetService(typeof(IUrlHelper)))
+            services
+                .Setup(s => s.GetService(typeof(IUrlHelper)))
                 .Returns(Mock.Of<IUrlHelper>());
-            services.Setup(s => s.GetService(typeof(IModelMetadataProvider)))
+            services
+                .Setup(s => s.GetService(typeof(IModelMetadataProvider)))
                 .Returns(metadataProvider);
-            services.Setup(s => s.GetService(typeof(IObjectModelValidator)))
-                .Returns(new DefaultObjectValidator(metadataProvider, new ValidatorCache()));
+            services
+                .Setup(s => s.GetService(typeof(IObjectModelValidator)))
+                .Returns(new DefaultObjectValidator(metadataProvider, new List<IModelValidatorProvider>()));
             return services.Object;
         }
 
@@ -173,18 +144,6 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
         }
 
         private class TestService
-        {
-        }
-
-        private class OpenGenericType<T> : Controller
-        {
-        }
-
-        private abstract class AbstractType : Controller
-        {
-        }
-
-        private interface InterfaceType
         {
         }
 

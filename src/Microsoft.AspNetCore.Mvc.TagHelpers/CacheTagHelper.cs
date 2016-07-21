@@ -8,6 +8,7 @@ using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
@@ -23,6 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// Prefix used by <see cref="CacheTagHelper"/> instances when creating entries in <see cref="MemoryCache"/>.
         /// </summary>
         public static readonly string CacheKeyPrefix = nameof(CacheTagHelper);
+
         private const string CachePriorityAttributeName = "priority";
 
         /// <summary>
@@ -58,19 +60,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 throw new ArgumentNullException(nameof(output));
             }
-            
+
             IHtmlContent content = null;
 
             if (Enabled)
             {
-                var key = GenerateKey(context);
+                var cacheKey = new CacheTagKey(this, context);
+
                 MemoryCacheEntryOptions options;
-    
+
                 while (content == null)
                 {
                     Task<IHtmlContent> result = null;
-                    
-                    if (!MemoryCache.TryGetValue(key, out result))
+
+                    if (!MemoryCache.TryGetValue(cacheKey, out result))
                     {
                         var tokenSource = new CancellationTokenSource();
 
@@ -81,23 +84,29 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         options.AddExpirationToken(new CancellationChangeToken(tokenSource.Token));
 
                         var tcs = new TaskCompletionSource<IHtmlContent>();
-                         
-                        MemoryCache.Set(key, tcs.Task, options);
-                        
-                        try 
+
+                        // The returned value is ignored, we only do this so that
+                        // the compiler doesn't complain about the returned task
+                        // not being awaited
+                        var localTcs = MemoryCache.Set(cacheKey, tcs.Task, options);
+
+                        try
                         {
-                            using (var link = MemoryCache.CreateLinkingScope())
-                            {
-                                result = ProcessContentAsync(output);
-                                content = await result;
-                                options.AddEntryLink(link);
-                            }
-                            
                             // The entry is set instead of assigning a value to the 
                             // task so that the expiration options are are not impacted 
                             // by the time it took to compute it.
-                            
-                            MemoryCache.Set(key, result, options);
+
+                            using (var entry = MemoryCache.CreateEntry(cacheKey))
+                            {
+                                // The result is processed inside an entry
+                                // such that the tokens are inherited.
+
+                                result = ProcessContentAsync(output);
+                                content = await result;
+
+                                entry.SetOptions(options);
+                                entry.Value = result;
+                            }
                         }
                         catch
                         {
@@ -131,7 +140,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Clear the contents of the "cache" element since we don't want to render it.
             output.SuppressOutput();
 
-            output.Content.SetContent(content);
+            output.Content.SetHtmlContent(content);
         }
 
         // Internal for unit testing
@@ -159,16 +168,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return options;
-        }
-
-        protected override string GetUniqueId(TagHelperContext context)
-        {
-            return context.UniqueId;
-        }
-
-        protected override string GetKeyPrefix(TagHelperContext context)
-        {
-            return CacheKeyPrefix;
         }
 
         private async Task<IHtmlContent> ProcessContentAsync(TagHelperOutput output)

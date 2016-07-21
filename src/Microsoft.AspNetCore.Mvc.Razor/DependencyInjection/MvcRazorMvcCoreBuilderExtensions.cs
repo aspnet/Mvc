@@ -2,17 +2,20 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Directives;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
+using Microsoft.AspNetCore.Razor.Runtime.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -26,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.AddViews();
+            AddRazorViewEngineFeatureProviders(builder);
             AddRazorViewEngineServices(builder.Services);
             return builder;
         }
@@ -45,6 +49,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.AddViews();
+
+            AddRazorViewEngineFeatureProviders(builder);
             AddRazorViewEngineServices(builder.Services);
 
             if (setupAction != null)
@@ -52,6 +58,36 @@ namespace Microsoft.Extensions.DependencyInjection
                 builder.Services.Configure(setupAction);
             }
 
+            return builder;
+        }
+
+        private static void AddRazorViewEngineFeatureProviders(IMvcCoreBuilder builder)
+        {
+            if (!builder.PartManager.FeatureProviders.OfType<TagHelperFeatureProvider>().Any())
+            {
+                builder.PartManager.FeatureProviders.Add(new TagHelperFeatureProvider());
+            }
+
+            if (!builder.PartManager.FeatureProviders.OfType<MetadataReferenceFeatureProvider>().Any())
+            {
+                builder.PartManager.FeatureProviders.Add(new MetadataReferenceFeatureProvider());
+            }
+        }
+
+        /// <summary>
+        /// Registers discovered tag helpers as services and changes the existing <see cref="ITagHelperActivator"/>
+        /// for an <see cref="ServiceBasedTagHelperActivator"/>.
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcCoreBuilder"/> instance this method extends.</param>
+        /// <returns>The <see cref="IMvcCoreBuilder"/> instance this method extends.</returns>
+        public static IMvcCoreBuilder AddTagHelpersAsServices(this IMvcCoreBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            TagHelpersAsServices.AddTagHelpersAsServices(builder.PartManager, builder.Services);
             return builder;
         }
 
@@ -91,18 +127,20 @@ namespace Microsoft.Extensions.DependencyInjection
         // Internal for testing.
         internal static void AddRazorViewEngineServices(IServiceCollection services)
         {
-            services.TryAddEnumerable(
-                ServiceDescriptor.Transient<
-                    IConfigureOptions<RazorViewEngineOptions>,
-                    DependencyContextRazorViewEngineOptionsSetup>());
-
             // This caches compilation related details that are valid across the lifetime of the application.
             services.TryAddSingleton<ICompilationService, DefaultRoslynCompilationService>();
 
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcViewOptions>, MvcRazorMvcViewOptionsSetup>());
+
+            // DependencyContextRazorViewEngineOptionsSetup needs to run after RazorViewEngineOptionsSetup.
+            // The ordering of the following two lines is important to ensure this behavior.
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<RazorViewEngineOptions>, RazorViewEngineOptionsSetup>());
+            services.TryAddEnumerable(
+                ServiceDescriptor.Transient<
+                    IConfigureOptions<RazorViewEngineOptions>,
+                    DependencyContextRazorViewEngineOptionsSetup>());
 
             services.TryAddSingleton<
                 IRazorViewEngineFileProviderAccessor,
@@ -116,6 +154,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new DefaultChunkTreeCache(accessor.FileProvider);
             }));
 
+            services.TryAddSingleton<ITagHelperTypeResolver, TagHelperTypeResolver>();
+            services.TryAddSingleton<ITagHelperDescriptorFactory>(s => new TagHelperDescriptorFactory(designTime: false));
+            services.TryAddSingleton<ITagHelperDescriptorResolver, TagHelperDescriptorResolver>();
+
             // Caches compilation artifacts across the lifetime of the application.
             services.TryAddSingleton<ICompilerCacheProvider, DefaultCompilerCacheProvider>();
 
@@ -123,13 +165,14 @@ namespace Microsoft.Extensions.DependencyInjection
             // creating the singleton RazorViewEngine instance.
             services.TryAddTransient<IRazorPageFactoryProvider, DefaultRazorPageFactoryProvider>();
             services.TryAddTransient<IRazorCompilationService, RazorCompilationService>();
-            services.TryAddTransient<IMvcRazorHost, MvcRazorHost>();
+            services.TryAddTransient<IMvcRazorHost,MvcRazorHost>();
 
             // This caches Razor page activation details that are valid for the lifetime of the application.
             services.TryAddSingleton<IRazorPageActivator, RazorPageActivator>();
 
             // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
             services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
+            services.TryAddSingleton<ITagHelperFactory, DefaultTagHelperFactory>();
 
             // Consumed by the Cache tag helper to cache results across the lifetime of the application.
             services.TryAddSingleton<IMemoryCache, MemoryCache>();

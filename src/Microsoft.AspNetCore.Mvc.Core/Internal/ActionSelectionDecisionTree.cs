@@ -6,9 +6,9 @@ using System.Collections.Generic;
 #if NET451
 using System.ComponentModel;
 #endif
+using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.DecisionTree;
 
@@ -27,8 +27,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             Version = actions.Version;
 
+            var conventionalRoutedActions = actions.Items.Where(a => a.AttributeRouteInfo?.Template == null).ToArray();
             _root = DecisionTreeBuilder<ActionDescriptor>.GenerateTree(
-                actions.Items,
+                conventionalRoutedActions,
                 new ActionDescriptorClassifier());
         }
 
@@ -83,36 +84,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var results = new Dictionary<string, DecisionCriterionValue>(StringComparer.OrdinalIgnoreCase);
 
-                if (item.RouteConstraints != null)
+                if (item.RouteValues != null)
                 {
-                    foreach (var constraint in item.RouteConstraints)
+                    foreach (var kvp in item.RouteValues)
                     {
-                        DecisionCriterionValue value;
-                        if (constraint.KeyHandling == RouteKeyHandling.DenyKey)
-                        {
-                            // null and string.Empty are equivalent for route values, so just treat nulls as
-                            // string.Empty.
-                            value = new DecisionCriterionValue(value: string.Empty);
-                        }
-                        else if (constraint.KeyHandling == RouteKeyHandling.RequireKey)
-                        {
-                            value = new DecisionCriterionValue(value: constraint.RouteValue);
-                        }
-                        else
-                        {
-                            // We'd already have failed before getting here. The RouteDataActionConstraint constructor
-                            // would throw.
-#if NET451
-                            throw new InvalidEnumArgumentException(
-                                nameof(item),
-                                (int)constraint.KeyHandling,
-                                typeof(RouteKeyHandling));
-#else
-                            throw new ArgumentOutOfRangeException(nameof(item));
-#endif
-                        }
-
-                        results.Add(constraint.RouteKey, value);
+                        // null and string.Empty are equivalent for route values, so just treat nulls as
+                        // string.Empty.
+                        results.Add(kvp.Key, new DecisionCriterionValue(kvp.Value ?? string.Empty));
                     }
                 }
 

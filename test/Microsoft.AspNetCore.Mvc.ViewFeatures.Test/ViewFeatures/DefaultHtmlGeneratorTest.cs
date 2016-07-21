@@ -7,14 +7,16 @@ using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -75,21 +77,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model: null);
 
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
-                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+            var expected = "The name of an HTML field cannot be null or empty. Instead use " +
+                "methods Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
 
             // Act and assert
-            var ex = Assert.Throws<ArgumentException>(
-                "expression",
+            ExceptionAssert.ThrowsArgument(
                 () => htmlGenerator.GetCurrentValues(
                     viewContext,
                     modelExplorer,
                     expression: null,
-                    allowMultiple: true));
-
-            Assert.Equal(expected, ex.Message);
+                    allowMultiple: true),
+                "expression",
+                expected);
         }
 
         [Fact]
@@ -103,12 +103,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
 
             // Act and assert
-            var ex = Assert.Throws<ArgumentException>(
-                "expression",
+            ExceptionAssert.ThrowsArgument(
                 () => htmlGenerator.GenerateSelect(
                     viewContext,
                     modelExplorer,
@@ -116,9 +114,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     null,
                     new List<SelectListItem>(),
                     true,
-                    null));
-
-            Assert.Equal(expected, ex.Message);
+                    null),
+                "expression",
+                expected);
         }
 
         [Fact]
@@ -132,21 +130,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
 
             // Act and assert
-            var ex = Assert.Throws<ArgumentException>(
-                "expression",
+            ExceptionAssert.ThrowsArgument(
                 () => htmlGenerator.GenerateTextArea(
                     viewContext,
                     modelExplorer,
                     null,
                     1,
                     1,
-                    null));
-
-            Assert.Equal(expected, ex.Message);
+                    null),
+                "expression",
+                expected);
         }
 
         [Fact]
@@ -160,15 +156,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
 
             // Act and assert
-            var ex = Assert.Throws<ArgumentException>(
+            ExceptionAssert.ThrowsArgument(
+                () => htmlGenerator.GenerateValidationMessage(viewContext, null, null, "Message", "tag", null),
                 "expression",
-                () => htmlGenerator.GenerateValidationMessage(viewContext, null, null, "Message", "tag", null));
-
-            Assert.Equal(expected, ex.Message);
+                expected);
         }
 
         [Theory]
@@ -636,13 +630,65 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal<string>(expected, result);
         }
 
+        [Theory]
+        [InlineData(true, "")]
+        [InlineData(false, "<input name=\"formFieldName\" type=\"hidden\" value=\"requestToken\" />")]
+        public void GenerateAntiforgery_GeneratesAntiforgeryFieldsOnlyIfRequired(
+            bool hasAntiforgeryToken,
+            string expectedAntiforgeryHtmlField)
+        {
+            // Arrange
+            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
+            viewContext.FormContext.CanRenderAtEndOfForm = true;
+            viewContext.FormContext.HasAntiforgeryToken = hasAntiforgeryToken;
+
+            // Act
+            var result = htmlGenerator.GenerateAntiforgery(viewContext);
+
+            // Assert
+            var antiforgeryField = HtmlContentUtilities.HtmlContentToString(result, HtmlEncoder.Default);
+            Assert.Equal(expectedAntiforgeryHtmlField, antiforgeryField);
+        }
+
+        // This test covers use of the helper within literal <form> tags when tag helpers are not enabled e.g.
+        // <form action="/Home/Create">
+        //     @Html.AntiForgeryToken()
+        // </form>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void GenerateAntiforgery_AlwaysGeneratesAntiforgeryToken_IfCannotRenderAtEnd(bool hasAntiforgeryToken)
+        {
+            // Arrange
+            var expected = "<input name=\"formFieldName\" type=\"hidden\" value=\"requestToken\" />";
+            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<Model>(model: null, metadataProvider: metadataProvider);
+            viewContext.FormContext.HasAntiforgeryToken = hasAntiforgeryToken;
+
+            // Act
+            var result = htmlGenerator.GenerateAntiforgery(viewContext);
+
+            // Assert
+            var antiforgeryField = HtmlContentUtilities.HtmlContentToString(result, HtmlEncoder.Default);
+            Assert.Equal(expected, antiforgeryField);
+        }
+
         // GetCurrentValues uses only the IModelMetadataProvider passed to the DefaultHtmlGenerator constructor.
         private static IHtmlGenerator GetGenerator(IModelMetadataProvider metadataProvider)
         {
             var mvcViewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
             mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions());
             var htmlEncoder = Mock.Of<HtmlEncoder>();
-            var antiforgery = Mock.Of<IAntiforgery>();
+            var antiforgery = new Mock<IAntiforgery>();
+            antiforgery
+                .Setup(mock => mock.GetAndStoreTokens(It.IsAny<DefaultHttpContext>()))
+                .Returns(() =>
+                {
+                    return new AntiforgeryTokenSet("requestToken", "cookieToken", "formFieldName", "headerName");
+                });
 
             var optionsAccessor = new Mock<IOptions<MvcOptions>>();
             optionsAccessor
@@ -650,7 +696,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 .Returns(new MvcOptions());
 
             return new DefaultHtmlGenerator(
-                antiforgery,
+                antiforgery.Object,
                 mvcViewOptionsAccessor.Object,
                 metadataProvider,
                 new UrlHelperFactory(),

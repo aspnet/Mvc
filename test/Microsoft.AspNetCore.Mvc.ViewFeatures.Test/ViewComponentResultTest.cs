@@ -9,14 +9,11 @@ using System.Reflection;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -36,6 +33,23 @@ namespace Microsoft.AspNetCore.Mvc
     {
         private readonly ITempDataDictionary _tempDataDictionary =
             new TempDataDictionary(new DefaultHttpContext(), new SessionStateTempDataProvider());
+
+        [Fact]
+        public void Model_ExposesViewDataModel()
+        {
+            // Arrange
+            var customModel = new object();
+            var viewResult = new ViewComponentResult
+            {
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider())
+                {
+                    Model = customModel
+                },
+            };
+
+            // Act & Assert
+            Assert.Same(customModel, viewResult.Model);
+        }
 
         [Fact]
         public async Task ExecuteAsync_ViewComponentResult_AllowsNullViewDataAndTempData()
@@ -519,6 +533,7 @@ namespace Microsoft.AspNetCore.Mvc
             var services = new ServiceCollection();
             services.AddSingleton<DiagnosticSource>(diagnosticSource);
             services.AddSingleton<ViewComponentInvokerCache>();
+            services.AddSingleton<ExpressionTextCache>();
             services.AddSingleton<IOptions<MvcViewOptions>, TestOptionsManager<MvcViewOptions>>();
             services.AddTransient<IViewComponentHelper, DefaultViewComponentHelper>();
             services.AddSingleton<IViewComponentSelector, DefaultViewComponentSelector>();
@@ -534,6 +549,7 @@ namespace Microsoft.AspNetCore.Mvc
             services.AddSingleton<ITempDataProvider, SessionStateTempDataProvider>();
             services.AddSingleton<HtmlEncoder, HtmlTestEncoder>();
             services.AddSingleton<IViewBufferScope, TestViewBufferScope>();
+            services.AddSingleton<ViewComponentResultExecutor>();
 
             return services;
         }

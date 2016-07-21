@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -9,16 +10,19 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -40,24 +44,28 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void Setup_SetsUpModelBinders()
+        public void Setup_SetsUpModelBinderProviders()
         {
             // Arrange & Act
             var options = GetOptions<MvcOptions>();
 
             // Assert
-            Assert.Collection(options.ModelBinders,
-                binder => Assert.IsType<BinderTypeBasedModelBinder>(binder),
-                binder => Assert.IsType<ServicesModelBinder>(binder),
-                binder => Assert.IsType<BodyModelBinder>(binder),
-                binder => Assert.IsType<HeaderModelBinder>(binder),
-                binder => Assert.IsType<SimpleTypeModelBinder>(binder),
-                binder => Assert.IsType<CancellationTokenModelBinder>(binder),
-                binder => Assert.IsType<ByteArrayModelBinder>(binder),
-                binder => Assert.IsType<FormFileModelBinder>(binder),
-                binder => Assert.IsType<FormCollectionModelBinder>(binder),
-                binder => Assert.IsType<GenericModelBinder>(binder),
-                binder => Assert.IsType<MutableObjectModelBinder>(binder));
+            Assert.Collection(
+                options.ModelBinderProviders,
+                binder => Assert.IsType<BinderTypeModelBinderProvider>(binder),
+                binder => Assert.IsType<ServicesModelBinderProvider>(binder),
+                binder => Assert.IsType<BodyModelBinderProvider>(binder),
+                binder => Assert.IsType<HeaderModelBinderProvider>(binder),
+                binder => Assert.IsType<SimpleTypeModelBinderProvider>(binder),
+                binder => Assert.IsType<CancellationTokenModelBinderProvider>(binder),
+                binder => Assert.IsType<ByteArrayModelBinderProvider>(binder),
+                binder => Assert.IsType<FormFileModelBinderProvider>(binder),
+                binder => Assert.IsType<FormCollectionModelBinderProvider>(binder),
+                binder => Assert.IsType<KeyValuePairModelBinderProvider>(binder),
+                binder => Assert.IsType<DictionaryModelBinderProvider>(binder),
+                binder => Assert.IsType<ArrayModelBinderProvider>(binder),
+                binder => Assert.IsType<CollectionModelBinderProvider>(binder),
+                binder => Assert.IsType<ComplexTypeModelBinderProvider>(binder));
         }
 
         [Fact]
@@ -142,84 +150,58 @@ namespace Microsoft.AspNetCore.Mvc
             // Arrange & Act
             var options = GetOptions<MvcOptions>(services =>
             {
-                var builder = new MvcCoreBuilder(services);
+                var builder = new MvcCoreBuilder(services, new ApplicationPartManager());
                 builder.AddXmlDataContractSerializerFormatters();
             });
 
             // Assert
             var providers = options.ModelMetadataDetailsProviders;
             Assert.Collection(providers,
+                provider => Assert.IsType<ExcludeBindingMetadataProvider>(provider),
                 provider => Assert.IsType<DefaultBindingMetadataProvider>(provider),
                 provider => Assert.IsType<DefaultValidationMetadataProvider>(provider),
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(Type), excludeFilter.Type);
                 },
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(Uri), excludeFilter.Type);
                 },
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(CancellationToken), excludeFilter.Type);
                 },
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(IFormFile), excludeFilter.Type);
                 },
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(IFormCollection), excludeFilter.Type);
                 },
                 provider => Assert.IsType<DataAnnotationsMetadataProvider>(provider),
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(JToken), excludeFilter.Type);
                 },
                 provider => Assert.IsType<DataMemberRequiredBindingMetadataProvider>(provider),
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(XObject).FullName, excludeFilter.FullTypeName);
                 },
                 provider =>
                 {
-                    var excludeFilter = Assert.IsType<ValidationExcludeFilter>(provider);
+                    var excludeFilter = Assert.IsType<SuppressChildValidationMetadataProvider>(provider);
                     Assert.Equal(typeof(XmlNode).FullName, excludeFilter.FullTypeName);
                 });
-        }
-
-        [Fact]
-        public void Setup_JsonFormattersUseSerializerSettings()
-        {
-            // Arrange
-            var services = GetServiceProvider(s =>
-            {
-                s.AddTransient<ILoggerFactory, LoggerFactory>();
-            });
-
-            // Act
-            var options = services.GetRequiredService<IOptions<MvcOptions>>().Value;
-            var jsonOptions = services.GetRequiredService<IOptions<MvcJsonOptions>>().Value;
-
-            // Assert
-            var jsonInputFormatters = options.InputFormatters.OfType<JsonInputFormatter>();
-            foreach (var jsonInputFormatter in jsonInputFormatters)
-            {
-                Assert.Same(jsonOptions.SerializerSettings, jsonInputFormatter.SerializerSettings);
-            }
-
-            var jsonOuputFormatters = options.OutputFormatters.OfType<JsonOutputFormatter>();
-            foreach (var jsonOuputFormatter in jsonOuputFormatters)
-            {
-                Assert.Same(jsonOptions.SerializerSettings, jsonOuputFormatter.SerializerSettings);
-            }
         }
 
         private static T GetOptions<T>(Action<IServiceCollection> action = null)
@@ -232,8 +214,12 @@ namespace Microsoft.AspNetCore.Mvc
         private static IServiceProvider GetServiceProvider(Action<IServiceCollection> action = null)
         {
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(new ApplicationPartManager());
+            serviceCollection.AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"));
             serviceCollection.AddMvc();
-            serviceCollection.AddTransient<ILoggerFactory, LoggerFactory>();
+            serviceCollection
+                .AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>()
+                .AddTransient<ILoggerFactory, LoggerFactory>();
 
             if (action != null)
             {

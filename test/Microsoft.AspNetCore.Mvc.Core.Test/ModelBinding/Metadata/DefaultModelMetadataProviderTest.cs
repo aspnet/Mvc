@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
@@ -42,6 +41,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             Assert.Same(metadata1.BindingMetadata, metadata2.BindingMetadata);
             Assert.Same(metadata1.DisplayMetadata, metadata2.DisplayMetadata);
             Assert.Same(metadata1.ValidationMetadata, metadata2.ValidationMetadata);
+        }
+
+        [Fact]
+        public void GetMetadataForObjectType_Cached()
+        {
+            // Arrange
+            var provider = CreateProvider();
+
+            // Act
+            var metadata1 = provider.GetMetadataForType(typeof(object));
+            var metadata2 = provider.GetMetadataForType(typeof(object));
+
+            // Assert
+            Assert.Same(metadata1, metadata2);
         }
 
         [Fact]
@@ -159,7 +172,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
         private static DefaultModelMetadataProvider CreateProvider()
         {
-            return new DefaultModelMetadataProvider(new EmptyCompositeMetadataDetailsProvider());
+            return new DefaultModelMetadataProvider(
+                new EmptyCompositeMetadataDetailsProvider(),
+                new TestOptionsManager<MvcOptions>());
         }
 
         [Model("OnType")]

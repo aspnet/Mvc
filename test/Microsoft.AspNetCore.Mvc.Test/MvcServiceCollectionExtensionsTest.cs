@@ -5,10 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
@@ -16,7 +18,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
@@ -24,7 +30,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using Xunit;
+using Microsoft.Extensions.ObjectPool;
+using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -41,6 +51,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var services = new ServiceCollection();
+            services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
 
             // Register a mock implementation of each service, AddMvcServices should add another implemenetation.
             foreach (var serviceType in MutliRegistrationServiceTypes)
@@ -69,6 +80,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var services = new ServiceCollection();
+            services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
 
             // Register a mock implementation of each service, AddMvcServices should not replace it.
             foreach (var serviceType in SingleRegistrationServiceTypes)
@@ -92,6 +104,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var services = new ServiceCollection();
+            services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
 
             // Act
             services.AddMvc();
@@ -118,11 +131,156 @@ namespace Microsoft.AspNetCore.Mvc
             }
         }
 
+        [Fact]
+        public void AddMvc_AddsAssemblyPartsForFrameworkTagHelpers()
+        {
+            // Arrange
+            var mvcRazorAssembly = typeof(UrlResolutionTagHelper).GetTypeInfo().Assembly;
+            var mvcTagHelpersAssembly = typeof(InputTagHelper).GetTypeInfo().Assembly;
+            var services = new ServiceCollection();
+            var providers = new IApplicationFeatureProvider[]
+            {
+                new ControllerFeatureProvider(),
+                new ViewComponentFeatureProvider()
+            };
+
+            // Act
+            services.AddMvc();
+
+            // Assert
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(ApplicationPartManager));
+            Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
+            Assert.NotNull(descriptor.ImplementationInstance);
+            var manager = Assert.IsType<ApplicationPartManager>(descriptor.ImplementationInstance);
+
+            Assert.Equal(2, manager.ApplicationParts.Count);
+            Assert.Single(manager.ApplicationParts.OfType<AssemblyPart>(), p => p.Assembly == mvcRazorAssembly);
+            Assert.Single(manager.ApplicationParts.OfType<AssemblyPart>(), p => p.Assembly == mvcTagHelpersAssembly);
+        }
+
+        [Fact]
+        public void AddMvcTwice_DoesNotAddDuplicateFramewokrParts()
+        {
+            // Arrange
+            var mvcRazorAssembly = typeof(UrlResolutionTagHelper).GetTypeInfo().Assembly;
+            var mvcTagHelpersAssembly = typeof(InputTagHelper).GetTypeInfo().Assembly;
+            var services = new ServiceCollection();
+            var providers = new IApplicationFeatureProvider[]
+            {
+                new ControllerFeatureProvider(),
+                new ViewComponentFeatureProvider()
+            };
+
+            // Act
+            services.AddMvc();
+            services.AddMvc();
+
+            // Assert
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(ApplicationPartManager));
+            Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
+            Assert.NotNull(descriptor.ImplementationInstance);
+            var manager = Assert.IsType<ApplicationPartManager>(descriptor.ImplementationInstance);
+
+            Assert.Equal(2, manager.ApplicationParts.Count);
+            Assert.Single(manager.ApplicationParts.OfType<AssemblyPart>(), p => p.Assembly == mvcRazorAssembly);
+            Assert.Single(manager.ApplicationParts.OfType<AssemblyPart>(), p => p.Assembly == mvcTagHelpersAssembly);
+        }
+
+        [Fact]
+        public void AddMvcTwice_DoesNotAddApplicationFeatureProvidersTwice()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            var providers = new IApplicationFeatureProvider[]
+            {
+                new ControllerFeatureProvider(),
+                new ViewComponentFeatureProvider()
+            };
+
+            // Act
+            services.AddMvc();
+            services.AddMvc();
+
+            // Assert
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(ApplicationPartManager));
+            Assert.Equal(ServiceLifetime.Singleton, descriptor.Lifetime);
+            Assert.NotNull(descriptor.ImplementationInstance);
+            var manager = Assert.IsType<ApplicationPartManager>(descriptor.ImplementationInstance);
+
+            Assert.Collection(manager.FeatureProviders,
+                feature => Assert.IsType<ControllerFeatureProvider>(feature),
+                feature => Assert.IsType<ViewComponentFeatureProvider>(feature),
+                feature => Assert.IsType<TagHelperFeatureProvider>(feature),
+                feature => Assert.IsType<MetadataReferenceFeatureProvider>(feature));
+        }
+
+        [Fact]
+        public void AddMvcCore_ReusesExistingApplicationPartManagerInstance_IfFoundOnServiceCollection()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            var manager = new ApplicationPartManager();
+            services.AddSingleton(manager);
+
+            // Act
+            services.AddMvc();
+
+            // Assert
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(ApplicationPartManager));
+            Assert.Same(manager, descriptor.ImplementationInstance);
+        }
+
+        [Fact]
+        public void AddMvcCore_AddsMvcJsonOption()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            // Act
+            services.AddMvcCore()
+                .AddJsonOptions((options) =>
+                {
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                });
+
+            // Assert
+            Assert.Single(services, d => d.ServiceType == typeof(IConfigureOptions<MvcJsonOptions>));
+        }
+
+        [Fact]
+        public void AddMvc_NoScopedServiceIsReferredToByASingleton()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+
+            services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
+            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            services.AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNet"));
+            services.AddLogging();
+            services.AddOptions();
+            services.AddMvc();
+
+            var root = services.BuildServiceProvider(validateScopes: true);
+
+            var scopeFactory = root.GetRequiredService<IServiceScopeFactory>();
+
+            // Act & Assert
+            using (var scope = scopeFactory.CreateScope())
+            {
+                foreach (var serviceType in services.Select(d => d.ServiceType).Where(t => !t.GetTypeInfo().IsGenericTypeDefinition).Distinct())
+                {
+                    // This will throw if something is invalid.
+                    scope.ServiceProvider.GetService(typeof(IEnumerable<>).MakeGenericType(serviceType));
+                }
+            }
+        }
+
         private IEnumerable<Type> SingleRegistrationServiceTypes
         {
             get
             {
                 var services = new ServiceCollection();
+                services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
                 services.AddMvc();
 
                 var multiRegistrationServiceTypes = MutliRegistrationServiceTypes;
@@ -265,6 +423,16 @@ namespace Microsoft.AspNetCore.Mvc
                     false,
                     $"Found multiple instances of {implementationType} registered as {serviceType}");
             }
+        }
+
+        private IHostingEnvironment GetHostingEnvironment()
+        {
+            var environment = new Mock<IHostingEnvironment>();
+            environment
+                .Setup(e => e.ApplicationName)
+                .Returns(typeof(MvcServiceCollectionExtensionsTest).GetTypeInfo().Assembly.GetName().Name);
+
+            return environment.Object;
         }
     }
 }

@@ -8,10 +8,10 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using Moq;
 using Xunit;
 
@@ -939,6 +939,38 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             Assert.Equal(expected, builder.ToString());
         }
 
+        [Theory]
+        [InlineData(null, null, null, "/", null, "/")]
+        [InlineData(null, null, null, "/", null, "/")]
+        [InlineData(null, null, null, "/Hello", null, "/Hello" )]
+        [InlineData(null, null, null, "Hello", null, "/Hello")]
+        [InlineData(null, null, null, "/Hello", null, "/Hello")]
+        [InlineData("/", null, null, "", null, "/")]
+        [InlineData("/hello/", null, null, "/world", null, "/hello/world")]
+        [InlineData("/hello/", "https", "myhost", "/world", "fragment-value", "https://myhost/hello/world#fragment-value")]
+        public void GenerateUrl_FastAndSlowPathsReturnsExpected(
+            string appBase,
+            string protocol,
+            string host,
+            string virtualPath,
+            string fragment,
+            string expected)
+        {
+            // Arrage
+            var router = Mock.Of<IRouter>();
+            var pathData = new VirtualPathData(router, virtualPath)
+            {
+                VirtualPath = virtualPath
+            };
+            var urlHelper = CreateUrlHelper(appBase, router);
+
+            // Act
+            var url = urlHelper.GenerateUrl(protocol, host, pathData, fragment);
+
+            // Assert
+            Assert.Equal(expected, url);
+        }
+
         private static HttpContext CreateHttpContext(
             IServiceProvider services,
             string appRoot)
@@ -1002,13 +1034,13 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             return new UrlHelper(actionContext);
         }
 
-        private static UrlHelper CreateUrlHelper(string appBase, IRouter router)
+        private static TestUrlHelper CreateUrlHelper(string appBase, IRouter router)
         {
             var services = CreateServices();
             var context = CreateHttpContext(services, appBase);
             var actionContext = CreateActionContext(context, router);
 
-            return new UrlHelper(actionContext);
+            return new TestUrlHelper(actionContext);
         }
 
         private static UrlHelper CreateUrlHelperWithRouteCollection(
@@ -1030,7 +1062,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             services.AddOptions();
             services.AddLogging();
             services.AddRouting();
-            services.AddSingleton<UrlEncoder>(UrlEncoder.Default);
+            services
+                .AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>()
+                .AddSingleton<UrlEncoder>(UrlEncoder.Default);
+
             return services.BuildServiceProvider();
         }
 
@@ -1090,6 +1125,23 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             {
                 context.Handler = (c) => Task.FromResult(0);
                 return Task.FromResult(false);
+            }
+        }
+
+        private class TestUrlHelper : UrlHelper
+        {
+            public TestUrlHelper(ActionContext actionContext) :
+                base(actionContext)
+            {
+
+            }
+            public new string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
+            {
+                return base.GenerateUrl(
+                    protocol,
+                    host,
+                    pathData,
+                    fragment);
             }
         }
     }

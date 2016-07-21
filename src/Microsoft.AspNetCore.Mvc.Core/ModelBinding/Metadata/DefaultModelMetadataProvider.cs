@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Extensions.Internal;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 {
@@ -16,22 +17,55 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
     {
         private readonly TypeCache _typeCache = new TypeCache();
         private readonly Func<ModelMetadataIdentity, ModelMetadataCacheEntry> _cacheEntryFactory;
+        private readonly ModelMetadataCacheEntry _metadataCacheEntryForObjectType;
 
         /// <summary>
         /// Creates a new <see cref="DefaultModelMetadataProvider"/>.
         /// </summary>
         /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
         public DefaultModelMetadataProvider(ICompositeMetadataDetailsProvider detailsProvider)
+            : this(detailsProvider, new ModelBindingMessageProvider())
         {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="DefaultModelMetadataProvider"/>.
+        /// </summary>
+        /// <param name="detailsProvider">The <see cref="ICompositeMetadataDetailsProvider"/>.</param>
+        /// <param name="optionsAccessor">The accessor for <see cref="MvcOptions"/>.</param>
+        public DefaultModelMetadataProvider(
+            ICompositeMetadataDetailsProvider detailsProvider,
+            IOptions<MvcOptions> optionsAccessor)
+            : this(detailsProvider, GetMessageProvider(optionsAccessor))
+        {
+        }
+
+        private DefaultModelMetadataProvider(
+            ICompositeMetadataDetailsProvider detailsProvider,
+            ModelBindingMessageProvider modelBindingMessageProvider)
+        {
+            if (detailsProvider == null)
+            {
+                throw new ArgumentNullException(nameof(detailsProvider));
+            }
+
             DetailsProvider = detailsProvider;
+            ModelBindingMessageProvider = modelBindingMessageProvider;
 
             _cacheEntryFactory = CreateCacheEntry;
+            _metadataCacheEntryForObjectType = GetMetadataCacheEntryForObjectType();
         }
 
         /// <summary>
         /// Gets the <see cref="ICompositeMetadataDetailsProvider"/>.
         /// </summary>
         protected ICompositeMetadataDetailsProvider DetailsProvider { get; }
+
+        /// <summary>
+        /// Gets the <see cref="Metadata.ModelBindingMessageProvider"/>.
+        /// </summary>
+        /// <value>Same as <see cref="MvcOptions.ModelBindingMessageProvider"/> in all production scenarios.</value>
+        protected ModelBindingMessageProvider ModelBindingMessageProvider { get; }
 
         /// <inheritdoc />
         public virtual IEnumerable<ModelMetadata> GetMetadataForProperties(Type modelType)
@@ -41,14 +75,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 throw new ArgumentNullException(nameof(modelType));
             }
 
-            var key = ModelMetadataIdentity.ForType(modelType);
-
-            var cacheEntry = _typeCache.GetOrAdd(key, _cacheEntryFactory);
+            var cacheEntry = GetCacheEntry(modelType);
 
             // We're relying on a safe race-condition for Properties - take care only
             // to set the value onces the properties are fully-initialized.
             if (cacheEntry.Details.Properties == null)
             {
+                var key = ModelMetadataIdentity.ForType(modelType);
                 var propertyDetails = CreatePropertyDetails(key);
 
                 var properties = new ModelMetadata[propertyDetails.Length];
@@ -71,10 +104,38 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
                 throw new ArgumentNullException(nameof(modelType));
             }
 
-            var key = ModelMetadataIdentity.ForType(modelType);
+            var cacheEntry = GetCacheEntry(modelType);
 
-            var cacheEntry = _typeCache.GetOrAdd(key, _cacheEntryFactory);
             return cacheEntry.Metadata;
+        }
+
+        private static ModelBindingMessageProvider GetMessageProvider(IOptions<MvcOptions> optionsAccessor)
+        {
+            if (optionsAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(optionsAccessor));
+            }
+
+            return optionsAccessor.Value.ModelBindingMessageProvider;
+        }
+
+        private ModelMetadataCacheEntry GetCacheEntry(Type modelType)
+        {
+            ModelMetadataCacheEntry cacheEntry;
+
+            // Perf: We cached model metadata cache entry for "object" type to save ConcurrentDictionary lookups.
+            if (modelType == typeof(object))
+            {
+                cacheEntry = _metadataCacheEntryForObjectType;
+            }
+            else
+            {
+                var key = ModelMetadataIdentity.ForType(modelType);
+
+                cacheEntry = _typeCache.GetOrAdd(key, _cacheEntryFactory);
+            }
+
+            return cacheEntry;
         }
 
         private ModelMetadataCacheEntry CreateCacheEntry(ModelMetadataIdentity key)
@@ -82,6 +143,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             var details = CreateTypeDetails(key);
             var metadata = CreateModelMetadata(details);
             return new ModelMetadataCacheEntry(metadata, details);
+        }
+
+        private ModelMetadataCacheEntry GetMetadataCacheEntryForObjectType()
+        {
+            var key = ModelMetadataIdentity.ForType(typeof(object));
+            var entry = CreateCacheEntry(key);
+            return entry;
         }
 
         /// <summary>
@@ -96,7 +164,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// </remarks>
         protected virtual ModelMetadata CreateModelMetadata(DefaultMetadataDetails entry)
         {
-            return new DefaultModelMetadata(this, DetailsProvider, entry);
+            return new DefaultModelMetadata(this, DetailsProvider, entry, ModelBindingMessageProvider);
         }
 
         /// <summary>

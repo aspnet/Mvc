@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
@@ -100,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.NotNull(authContext.Result);
             var result = Assert.IsType<RedirectResult>(authContext.Result);
 
-            Assert.True(result.Permanent);
+            Assert.False(result.Permanent);
             Assert.Equal(expectedUrl, result.Url);
         }
 
@@ -190,6 +189,27 @@ namespace Microsoft.AspNetCore.Mvc
             var result = Assert.IsType<RedirectResult>(authContext.Result);
 
             Assert.Equal(expectedUrl, result.Url);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void OnAuthorization_RedirectsToHttpsEndpoint_WithSpecifiedStatusCode(bool permanent)
+        {
+            var requestContext = new DefaultHttpContext();
+            requestContext.RequestServices = CreateServices();
+            requestContext.Request.Scheme = "http";
+            requestContext.Request.Method = "GET";
+            
+            var authContext = CreateAuthorizationContext(requestContext);
+            var attr = new RequireHttpsAttribute { Permanent = permanent };
+
+            // Act
+            attr.OnAuthorization(authContext);
+
+            // Assert
+            var result = Assert.IsType<RedirectResult>(authContext.Result);
+            Assert.Equal(permanent, result.Permanent);
         }
 
         private class CustomRequireHttpsAttribute : RequireHttpsAttribute

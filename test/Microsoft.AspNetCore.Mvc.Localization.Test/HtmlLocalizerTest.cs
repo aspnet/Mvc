@@ -76,21 +76,22 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
                     new object[] { 10, new DateTime(2015, 10, 10) },
                     "Bonjour {HtmlEncode[[x}]] Bienvenue {1:yyyy}"
                 };
-                yield return new object[] {
+                yield return new object[] { // padding happens after encoding
                     "Bonjour {0,6} Bienvenue {{1:yyyy}}",
                     new object[] { 10, new DateTime(2015, 10, 10) },
-                    "Bonjour HtmlEncode[[    10]] Bienvenue {1:yyyy}"
+                    "Bonjour HtmlEncode[[10]] Bienvenue {1:yyyy}"
                 };
-                if (!TestPlatformHelper.IsMono)
-                {
-                    // Mono doesn't deal well with custom format strings, even valid ones
-                    yield return new object[] { "{0:{{000}}}", new object[] { 10 }, "HtmlEncode[[{010}]]" };
-                    yield return new object[] {
+                yield return new object[] { // padding happens after encoding
+                    "Bonjour {0,20} Bienvenue {{1:yyyy}}",
+                    new object[] { 10, new DateTime(2015, 10, 10) },
+                    "Bonjour     HtmlEncode[[10]] Bienvenue {1:yyyy}"
+                };
+                yield return new object[] { "{0:{{000}}}", new object[] { 10 }, "HtmlEncode[[{010}]]" };
+                yield return new object[] {
                     "Bonjour {0:'{{characters that should be escaped}}b'###'b'}",
                     new object[] { 10 },
                     "Bonjour HtmlEncode[[{characters that should be escaped}b10b]]"
-                    };
-                }
+                };
             }
         }
 
@@ -126,22 +127,16 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
         {
             get
             {
-                var data = new TheoryData<string>
+                return new TheoryData<string>
                 {
                     "{0",
+                    "{"
                 };
-
-                // Mono doesn't like { in an underlying string.Format on Mac.
-                if (!TestPlatformHelper.IsMac || !TestPlatformHelper.IsMono)
-                {
-                    data.Add("{");
-                }
-
-                return data;
             }
         }
 
         [Theory]
+        [ReplaceCulture]
         [MemberData(nameof(InvalidResourceStringData))]
         public void HtmlLocalizer_HtmlWithInvalidResourceString_ContentThrowsException(string format)
         {

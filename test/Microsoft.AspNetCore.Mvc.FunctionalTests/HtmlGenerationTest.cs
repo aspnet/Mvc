@@ -96,11 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 #if GENERATE_BASELINES
                 ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-                // Mono issue - https://github.com/aspnet/External/issues/19
-                Assert.Equal(
-                    PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
-                    responseContent,
-                    ignoreLineEndingDifferences: true);
+                Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
 #endif
             }
             else
@@ -112,11 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
                 expectedContent = string.Format(expectedContent, forgeryToken);
-                // Mono issue - https://github.com/aspnet/External/issues/19
-                Assert.Equal(
-                    PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
-                    responseContent,
-                    ignoreLineEndingDifferences: true);
+                Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
 #endif
             }
         }
@@ -164,9 +156,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 #if GENERATE_BASELINES
                 ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-                // Mono issue - https://github.com/aspnet/External/issues/19
                 Assert.Equal(
-                    PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
+                    expectedContent.Trim(),
                     responseContent,
                     ignoreLineEndingDifferences: true);
 #endif
@@ -180,13 +171,38 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
                 expectedContent = string.Format(expectedContent, forgeryToken);
-                // Mono issue - https://github.com/aspnet/External/issues/19
-                Assert.Equal(
-                    PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
-                    responseContent,
-                    ignoreLineEndingDifferences: true);
+                Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
 #endif
             }
+        }
+
+        // Testing how ModelMetadata is handled as ViewDataDictionary instances are created.
+        [Theory]
+        [InlineData("AtViewModel")]
+        [InlineData("NullViewModel")]
+        [InlineData("ViewModel")]
+        public async Task CheckViewData_GeneratesExpectedResults(string action)
+        {
+            // Arrange
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
+            var outputFile = "compiler/resources/HtmlGenerationWebSite.CheckViewData." + action + ".html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            // Act
+            var response = await Client.GetAsync("http://localhost/CheckViewData/" + action);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
+
+            responseContent = responseContent.Trim();
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
         }
 
         [Fact]
@@ -225,11 +241,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
             expectedContent = string.Format(expectedContent, forgeryToken);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
-                responseContent,
-                ignoreLineEndingDifferences: true);
+            Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -310,7 +322,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(expected1, response1.Trim());
 
             // Act - 2
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(2));
             var response2 = await Client.GetStringAsync("/catalog/3");
 
             // Assert - 2
@@ -473,12 +485,12 @@ Products: Music Systems, Televisions (3)";
         public async Task EditorTemplateWithNoModel_RendersWithCorrectMetadata()
         {
             // Arrange
-            var expected = PlatformNormalizer.NormalizeContent(
+            var expected =
                 "<label class=\"control-label col-md-2\" for=\"Name\">ItemName</label>" + Environment.NewLine +
                 "<input id=\"Name\" name=\"Name\" type=\"text\" value=\"\" />" + Environment.NewLine + Environment.NewLine +
                 "<label class=\"control-label col-md-2\" for=\"Id\">ItemNo</label>" + Environment.NewLine +
                 "<input data-val=\"true\" data-val-required=\"The ItemNo field is required.\" id=\"Id\" name=\"Id\" type=\"text\" value=\"\" />" +
-                Environment.NewLine + Environment.NewLine);
+                Environment.NewLine + Environment.NewLine;
 
             // Act
             var response = await Client.GetStringAsync("http://localhost/HtmlGeneration_Home/ItemUsingSharedEditorTemplate");

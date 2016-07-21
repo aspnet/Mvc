@@ -2,22 +2,25 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -28,18 +31,31 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_ActivatesAndContextualizesPropertiesOnViews()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var urlHelperFactory = new UrlHelperFactory();
+            var jsonHelper = new JsonHelper(
+                new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                ArrayPool<char>.Shared);
+            var htmlEncoder = new HtmlTestEncoder();
+            var diagnosticSource = new DiagnosticListener("Microsoft.AspNetCore");
+            var activator = new RazorPageActivator(
+                new EmptyModelMetadataProvider(),
+                urlHelperFactory,
+                jsonHelper,
+                diagnosticSource,
+                htmlEncoder,
+                modelExpressionProvider);
+
             var instance = new TestRazorPage();
 
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var htmlEncoder = new HtmlTestEncoder();
-            var diagnosticSource = new DiagnosticListener("Microsoft.AspNetCore");
+
             var serviceProvider = new ServiceCollection()
                 .AddSingleton(myService)
                 .AddSingleton(helper)
-                .AddSingleton<HtmlEncoder>(htmlEncoder)
-                .AddSingleton<DiagnosticSource>(diagnosticSource)
+                .AddSingleton(new ExpressionTextCache())
                 .BuildServiceProvider();
             var httpContext = new DefaultHttpContext
             {
@@ -55,6 +71,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 TextWriter.Null,
                 new HtmlHelperOptions());
 
+            var urlHelper = urlHelperFactory.GetUrlHelper(viewContext);
+
             // Act
             activator.Activate(instance, viewContext);
 
@@ -63,6 +81,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             Assert.Same(myService, instance.MyService);
             Assert.Same(viewContext, myService.ViewContext);
             Assert.Same(diagnosticSource, instance.DiagnosticSource);
+            Assert.Same(htmlEncoder, instance.HtmlEncoder);
+            Assert.Same(jsonHelper, instance.Json);
+            Assert.Same(urlHelper, instance.Url);
             Assert.Null(instance.MyService2);
         }
 
@@ -70,7 +91,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_ThrowsIfTheViewDoesNotDeriveFromRazorViewOfT()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new DoesNotDeriveFromRazorPageOfT();
 
             var myService = new MyService();
@@ -100,17 +132,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_InstantiatesNewViewDataDictionaryType_IfTheTypeDoesNotMatch()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore.Mvc"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new TestRazorPage();
 
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var htmlEncoder = new HtmlTestEncoder();
             var serviceProvider = new ServiceCollection()
                 .AddSingleton(myService)
                 .AddSingleton(helper)
-                .AddSingleton<HtmlEncoder>(htmlEncoder)
-                .AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"))
+                .AddSingleton(new ExpressionTextCache())
                 .BuildServiceProvider();
             var httpContext = new DefaultHttpContext
             {
@@ -141,16 +182,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_UsesPassedInViewDataDictionaryInstance_IfPassedInTypeMatches()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore.Mvc"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new TestRazorPage();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var htmlEncoder = new HtmlTestEncoder();
             var serviceProvider = new ServiceCollection()
                 .AddSingleton(myService)
                 .AddSingleton(helper)
-                .AddSingleton<HtmlEncoder>(htmlEncoder)
-                .AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"))
+                .AddSingleton(new ExpressionTextCache())
                 .BuildServiceProvider();
             var httpContext = new DefaultHttpContext
             {
@@ -181,16 +231,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_DeterminesModelTypeFromProperty()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore.Mvc"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new DoesNotDeriveFromRazorPageOfTButHasModelProperty();
             var myService = new MyService();
             var helper = Mock.Of<IHtmlHelper<object>>();
-            var htmlEncoder = new HtmlTestEncoder();
             var serviceProvider = new ServiceCollection()
                 .AddSingleton(myService)
                 .AddSingleton(helper)
-                .AddSingleton<HtmlEncoder>(htmlEncoder)
-                .AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"))
+                .AddSingleton(new ExpressionTextCache())
                 .BuildServiceProvider();
             var httpContext = new DefaultHttpContext
             {
@@ -218,13 +277,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_Throws_WhenViewDataPropertyHasIncorrectType()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore.Mvc"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new HasIncorrectViewDataPropertyType();
 
             var collection = new ServiceCollection();
-            collection
-                .AddSingleton<HtmlEncoder>(new HtmlTestEncoder())
-                .AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"));
+            collection.AddSingleton(new ExpressionTextCache());
             var httpContext = new DefaultHttpContext
             {
                 RequestServices = collection.BuildServiceProvider(),
@@ -247,15 +315,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public void Activate_CanGetUrlHelperFromDependencyInjection()
         {
             // Arrange
-            var activator = new RazorPageActivator(new EmptyModelMetadataProvider());
+            var modelMetadataProvider = new EmptyModelMetadataProvider();
+            var modelExpressionProvider = new ModelExpressionProvider(modelMetadataProvider, new ExpressionTextCache());
+            var activator = new RazorPageActivator(
+                modelMetadataProvider,
+                new UrlHelperFactory(),
+                new JsonHelper(
+                    new JsonOutputFormatter(new JsonSerializerSettings(), ArrayPool<char>.Shared),
+                    ArrayPool<char>.Shared),
+                new DiagnosticListener("Microsoft.AspNetCore.Mvc"),
+                new HtmlTestEncoder(),
+                modelExpressionProvider);
+
             var instance = new HasUnusualIUrlHelperProperty();
 
             // IUrlHelperFactory should not be used. But set it up to match a real configuration.
             var collection = new ServiceCollection();
             collection
-                .AddSingleton<IUrlHelperFactory, UrlHelperFactory>()
-                .AddSingleton<HtmlEncoder>(new HtmlTestEncoder())
-                .AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNetCore.Mvc"))
+                .AddSingleton(new ExpressionTextCache())
                 .AddSingleton<IUrlHelperWrapper, UrlHelperWrapper>();
             var httpContext = new DefaultHttpContext
             {
@@ -284,6 +361,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             public MyService MyService { get; set; }
 
             public MyService MyService2 { get; set; }
+
+            [RazorInject]
+            public IJsonHelper Json { get; set; }
+
+            [RazorInject]
+            public IUrlHelper Url { get; set; }
         }
 
         private class TestRazorPage : TestPageBase<MyModel>

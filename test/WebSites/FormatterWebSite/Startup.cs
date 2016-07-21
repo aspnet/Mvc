@@ -1,9 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FormatterWebSite
@@ -14,8 +15,8 @@ namespace FormatterWebSite
         {
             services.AddMvc(options =>
             {
-                options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(Developer)));
-                options.ModelMetadataDetailsProviders.Add(new ValidationExcludeFilter(typeof(Supplier)));
+                options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Developer)));
+                options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Supplier)));
 
                 options.InputFormatters.Add(new StringInputFormatter());
             })
@@ -37,12 +38,14 @@ namespace FormatterWebSite
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .UseDefaultHostingConfiguration(args)
+                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
-                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
+                .UseKestrel()
+                .UseIISIntegration()
                 .Build();
 
             host.Run();
         }
     }
 }
+

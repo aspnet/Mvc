@@ -874,6 +874,38 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return string.Format(CultureInfo.CurrentCulture, GetString("ValueInterfaceAbstractOrOpenGenericTypesCannotBeActivated"), p0, p1);
         }
 
+        /// <summary>
+        /// The {0} was unable to provide metadata for expression '{1}'.
+        /// </summary>
+        internal static string CreateModelExpression_NullModelMetadata
+        {
+            get { return GetString("CreateModelExpression_NullModelMetadata"); }
+        }
+
+        /// <summary>
+        /// The {0} was unable to provide metadata for expression '{1}'.
+        /// </summary>
+        internal static string FormatCreateModelExpression_NullModelMetadata(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CreateModelExpression_NullModelMetadata"), p0, p1);
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.
+        /// </summary>
+        internal static string ViewEnginesAreRequired
+        {
+            get { return GetString("ViewEnginesAreRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.
+        /// </summary>
+        internal static string FormatViewEnginesAreRequired(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewEnginesAreRequired"), p0, p1, p2);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

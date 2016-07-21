@@ -1,7 +1,7 @@
 {
-  "description": "Features that enable globalization & localization of MVC applications.",
-  "version": "1.0.0-*",
-  "compilationOptions": {
+  "description": "ASP.NET Core MVC features that enable globalization and localization of applications.\r\nCommonly used types:\r\nMicrosoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>\r\nMicrosoft.AspNetCore.Mvc.Localization.IViewLocalizer",
+  "version": "1.1.0-*",
+  "buildOptions": {
     "warningsAsErrors": true,
     "keyFile": "../../tools/Key.snk",
     "nowarn": [
@@ -10,31 +10,28 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Localization": "1.0.0-*",
-    "Microsoft.AspNetCore.Mvc.Razor": "1.0.0-*",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
-    "Microsoft.Extensions.Localization": "1.0.0-*",
+    "Microsoft.AspNetCore.Localization": "1.1.0-*",
+    "Microsoft.AspNetCore.Mvc.Razor": "1.1.0-*",
+    "Microsoft.Extensions.DependencyInjection": "1.1.0-*",
+    "Microsoft.Extensions.Localization": "1.1.0-*",
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-*",
+      "version": "1.1.0-*",
       "type": "build"
     }
   },
   "frameworks": {
     "net451": {},
-    "netstandard1.5": {
-      "imports": [
-        "dotnet5.6",
-        "portable-net45+win8"
-      ]
-    }
+    "netstandard1.6": {}
   },
-  "exclude": [
-    "wwwroot",
-    "node_modules",
-    "bower_components"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/aspnet/mvc"
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/aspnet/mvc"
+    },
+    "tags": [
+      "aspnetcore",
+      "aspnetcoremvc",
+      "localization"
+    ]
   }
 }

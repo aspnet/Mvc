@@ -1,22 +1,20 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Buffers;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
+using Newtonsoft.Json;
 using Xunit;
-using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace System.Web.Http
 {
@@ -71,7 +69,9 @@ namespace System.Web.Http
         {
             var options = new OptionsManager<MvcOptions>(new IConfigureOptions<MvcOptions>[] { });
             options.Value.OutputFormatters.Add(new StringOutputFormatter());
-            options.Value.OutputFormatters.Add(new JsonOutputFormatter());
+            options.Value.OutputFormatters.Add(new JsonOutputFormatter(
+                new JsonSerializerSettings(),
+                ArrayPool<char>.Shared));
 
             var services = new ServiceCollection();
             services.AddSingleton(new ObjectResultExecutor(

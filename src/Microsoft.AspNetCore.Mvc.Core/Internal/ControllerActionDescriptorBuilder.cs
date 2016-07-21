@@ -36,8 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var actions = new List<ControllerActionDescriptor>();
 
-            var hasAttributeRoutes = false;
-            var removalConstraints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var routeValueKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             var methodInfoMap = new MethodToActionMap();
 
@@ -67,25 +66,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         actionDescriptor.ControllerTypeInfo = controller.ControllerType;
 
                         AddApiExplorerInfo(actionDescriptor, application, controller, action);
-                        AddRouteConstraints(removalConstraints, actionDescriptor, controller, action);
+                        AddRouteValues(routeValueKeys, actionDescriptor, controller, action);
                         AddProperties(actionDescriptor, action, controller, application);
 
                         actionDescriptor.BoundProperties = controllerPropertyDescriptors;
+
                         if (IsAttributeRoutedAction(actionDescriptor))
                         {
-                            hasAttributeRoutes = true;
-
-                            // An attribute routed action will ignore conventional routed constraints. We still
-                            // want to provide these values as ambient values for link generation.
-                            AddConstraintsAsDefaultRouteValues(actionDescriptor);
-
                             // Replaces tokens like [controller]/[action] in the route template with the actual values
                             // for this action.
                             ReplaceAttributeRouteTokens(actionDescriptor, routeTemplateErrors);
-
-                            // Attribute routed actions will ignore conventional routed constraints. Instead they have
-                            // a single route constraint "RouteGroup" associated with it.
-                            ReplaceRouteConstraints(actionDescriptor);
                         }
                     }
 
@@ -113,46 +103,19 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     validatedMethods.Add(actionDescriptor.MethodInfo);
                 }
 
-                if (!IsAttributeRoutedAction(actionDescriptor))
+                var attributeRouteInfo = actionDescriptor.AttributeRouteInfo;
+                if (attributeRouteInfo?.Name != null)
                 {
-                    // Any attribute routes are in use, then non-attribute-routed action descriptors can't be
-                    // selected when a route group returned by the route.
-                    if (hasAttributeRoutes)
-                    {
-                        actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                            TreeRouter.RouteGroupKey,
-                            string.Empty));
-                    }
-
-                    // Add a route constraint with DenyKey for each constraint in the set to all the
-                    // actions that don't have that constraint. For example, if a controller defines
-                    // an area constraint, all actions that don't belong to an area must have a route
-                    // constraint that prevents them from matching an incoming request.
-                    AddRemovalConstraints(actionDescriptor, removalConstraints);
+                    // Build a map of attribute route name to action descriptors to ensure that all
+                    // attribute routes with a given name have the same template.
+                    AddActionToNamedGroup(actionsByRouteName, attributeRouteInfo.Name, actionDescriptor);
                 }
-                else
-                {
-                    var attributeRouteInfo = actionDescriptor.AttributeRouteInfo;
-                    if (attributeRouteInfo.Name != null)
-                    {
-                        // Build a map of attribute route name to action descriptors to ensure that all
-                        // attribute routes with a given name have the same template.
-                        AddActionToNamedGroup(actionsByRouteName, attributeRouteInfo.Name, actionDescriptor);
-                    }
 
-                    // We still want to add a 'null' for any constraint with DenyKey so that link generation
-                    // works properly.
-                    //
-                    // Consider an action like { area = "", controller = "Home", action = "Index" }. Even if
-                    // it's attribute routed, it needs to know that area must be null to generate a link.
-                    foreach (var key in removalConstraints)
-                    {
-                        if (!actionDescriptor.RouteValueDefaults.ContainsKey(key))
-                        {
-                            actionDescriptor.RouteValueDefaults.Add(key, value: null);
-                        }
-                    }
-                }
+                // Add a route value with 'null' for each user-defined route value in the set to all the
+                // actions that don't have that value. For example, if a controller defines
+                // an area, all actions that don't belong to an area must have a route
+                // value that prevents them from matching an incoming request when area is specified.
+                AddGlobalRouteValues(actionDescriptor, routeValueKeys);
             }
 
             if (attributeRoutingConfigurationErrors.Any())
@@ -284,10 +247,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var actionDescriptor = new ControllerActionDescriptor()
             {
-                Name = action.ActionName,
+                ActionName = action.ActionName,
                 MethodInfo = action.ActionMethod,
                 Parameters = parameterDescriptors,
-                RouteConstraints = new List<RouteDataActionConstraint>(),
                 AttributeRouteInfo = CreateAttributeRouteInfo(actionAttributeRoute, controllerAttributeRoute)
             };
 
@@ -448,8 +410,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public static void AddRouteConstraints(
-            ISet<string> removalConstraints,
+        public static void AddRouteValues(
+            ISet<string> keys,
             ControllerActionDescriptor actionDescriptor,
             ControllerModel controller,
             ActionModel action)
@@ -459,72 +421,38 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // without the constraint to match. For example, actions without an [Area] attribute on their
             // controller should not match when a value has been given for area when matching a url or
             // generating a link.
-            foreach (var constraintAttribute in action.RouteConstraints)
+            foreach (var kvp in action.RouteValues)
             {
-                if (constraintAttribute.BlockNonAttributedActions)
-                {
-                    removalConstraints.Add(constraintAttribute.RouteKey);
-                }
+                keys.Add(kvp.Key);
 
                 // Skip duplicates
-                if (!HasConstraint(actionDescriptor.RouteConstraints, constraintAttribute.RouteKey))
+                if (!actionDescriptor.RouteValues.ContainsKey(kvp.Key))
                 {
-                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                        constraintAttribute.RouteKey,
-                        constraintAttribute.RouteValue));
+                    actionDescriptor.RouteValues.Add(kvp.Key, kvp.Value);
                 }
             }
 
-            foreach (var constraintAttribute in controller.RouteConstraints)
+            foreach (var kvp in controller.RouteValues)
             {
-                if (constraintAttribute.BlockNonAttributedActions)
-                {
-                    removalConstraints.Add(constraintAttribute.RouteKey);
-                }
+                keys.Add(kvp.Key);
 
                 // Skip duplicates - this also means that a value on the action will take precedence
-                if (!HasConstraint(actionDescriptor.RouteConstraints, constraintAttribute.RouteKey))
+                if (!actionDescriptor.RouteValues.ContainsKey(kvp.Key))
                 {
-                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                        constraintAttribute.RouteKey,
-                        constraintAttribute.RouteValue));
+                    actionDescriptor.RouteValues.Add(kvp.Key, kvp.Value);
                 }
             }
 
             // Lastly add the 'default' values
-            if (!HasConstraint(actionDescriptor.RouteConstraints, "action"))
+            if (!actionDescriptor.RouteValues.ContainsKey("action"))
             {
-                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                    "action",
-                    action.ActionName ?? string.Empty));
+                actionDescriptor.RouteValues.Add("action", action.ActionName ?? string.Empty);
             }
 
-            if (!HasConstraint(actionDescriptor.RouteConstraints, "controller"))
+            if (!actionDescriptor.RouteValues.ContainsKey("controller"))
             {
-                actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                    "controller",
-                    controller.ControllerName));
+                actionDescriptor.RouteValues.Add("controller", controller.ControllerName);
             }
-        }
-
-        private static bool HasConstraint(IList<RouteDataActionConstraint> constraints, string routeKey)
-        {
-            return constraints.Any(
-                rc => string.Equals(rc.RouteKey, routeKey, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static void ReplaceRouteConstraints(ControllerActionDescriptor actionDescriptor)
-        {
-            var routeGroupValue = GetRouteGroupValue(
-                actionDescriptor.AttributeRouteInfo.Order,
-                actionDescriptor.AttributeRouteInfo.Template);
-
-            var routeConstraints = new List<RouteDataActionConstraint>();
-            routeConstraints.Add(new RouteDataActionConstraint(
-                TreeRouter.RouteGroupKey,
-                routeGroupValue));
-
-            actionDescriptor.RouteConstraints = routeConstraints;
         }
 
         private static void ReplaceAttributeRouteTokens(
@@ -535,13 +463,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 actionDescriptor.AttributeRouteInfo.Template = AttributeRouteModel.ReplaceTokens(
                     actionDescriptor.AttributeRouteInfo.Template,
-                    actionDescriptor.RouteValueDefaults);
+                    actionDescriptor.RouteValues);
 
                 if (actionDescriptor.AttributeRouteInfo.Name != null)
                 {
                     actionDescriptor.AttributeRouteInfo.Name = AttributeRouteModel.ReplaceTokens(
                         actionDescriptor.AttributeRouteInfo.Name,
-                        actionDescriptor.RouteValueDefaults);
+                        actionDescriptor.RouteValues);
                 }
             }
             catch (InvalidOperationException ex)
@@ -557,31 +485,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private static void AddConstraintsAsDefaultRouteValues(ControllerActionDescriptor actionDescriptor)
-        {
-            foreach (var constraint in actionDescriptor.RouteConstraints)
-            {
-                // We don't need to do anything with attribute routing for 'catch all' behavior. Order
-                // and precedence of attribute routes allow this kind of behavior.
-                if (constraint.KeyHandling == RouteKeyHandling.RequireKey ||
-                    constraint.KeyHandling == RouteKeyHandling.DenyKey)
-                {
-                    actionDescriptor.RouteValueDefaults.Add(constraint.RouteKey, constraint.RouteValue);
-                }
-            }
-        }
-
-        private static void AddRemovalConstraints(
+        private static void AddGlobalRouteValues(
             ControllerActionDescriptor actionDescriptor,
             ISet<string> removalConstraints)
         {
             foreach (var key in removalConstraints)
             {
-                if (!HasConstraint(actionDescriptor.RouteConstraints, key))
+                if (!actionDescriptor.RouteValues.ContainsKey(key))
                 {
-                    actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint(
-                        key,
-                        string.Empty));
+                    actionDescriptor.RouteValues.Add(key, string.Empty);
                 }
             }
         }
@@ -721,8 +633,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var routeTemplate = action.AttributeRouteInfo?.Template ?? nullTemplate;
 
-                var verbs = action.ActionConstraints.OfType<HttpMethodActionConstraint>().FirstOrDefault()?.HttpMethods;
-                var formattedVerbs = string.Join(", ", verbs.OrderBy(v => v, StringComparer.Ordinal));
+                var verbs = action.ActionConstraints?.OfType<HttpMethodActionConstraint>()
+                    .FirstOrDefault()?.HttpMethods;
+
+                var formattedVerbs = string.Empty;
+                if (verbs != null)
+                {
+                    formattedVerbs = string.Join(", ", verbs.OrderBy(v => v, StringComparer.OrdinalIgnoreCase));
+                }
 
                 var description =
                     Resources.FormatAttributeRoute_MixedAttributeAndConventionallyRoutedActions_ForMethod_Item(
@@ -758,12 +676,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 Environment.NewLine,
                 string.Join(Environment.NewLine + Environment.NewLine, errorMessages));
             return message;
-        }
-
-        private static string GetRouteGroupValue(int order, string template)
-        {
-            var group = string.Format(CultureInfo.InvariantCulture, "{0}-{1}", order, template);
-            return ("__route__" + group).ToUpperInvariant();
         }
 
         // We need to build a map of methods to reflected actions and reflected actions to

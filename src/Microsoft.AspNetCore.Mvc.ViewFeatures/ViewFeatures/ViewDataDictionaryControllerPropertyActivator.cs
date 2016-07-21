@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Internal;
 
@@ -49,7 +49,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         private ViewDataDictionary GetViewDataDictionary(ControllerContext context)
         {
-            var serviceProvider = context.HttpContext.RequestServices;
             return new ViewDataDictionary(
                 _modelMetadataProvider,
                 context.ModelState);

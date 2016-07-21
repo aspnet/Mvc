@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -256,7 +257,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            var builder = new DefaultTagHelperContent();
+            var builder = output.PostElement;
+            builder.Clear();
+
             if (mode == Mode.GlobbedHref || mode == Mode.Fallback && !string.IsNullOrEmpty(HrefInclude))
             {
                 BuildGlobbedLinkTags(output.Attributes, builder);
@@ -264,7 +267,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 {
                     // Only HrefInclude is specified. Don't render the original tag.
                     output.TagName = null;
-                    output.Content.SetContent(HtmlString.Empty);
+                    output.Content.SetHtmlContent(HtmlString.Empty);
                 }
             }
 
@@ -278,8 +281,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 BuildFallbackBlock(builder);
             }
-
-            output.PostElement.SetContent(builder);
         }
 
         private void BuildGlobbedLinkTags(TagHelperAttributeList attributes, TagHelperContent builder)
@@ -421,7 +422,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
                 else
                 {
-                    AppendAttribute(attribute.Name, attribute.Value, builder);
+                    attribute.CopyTo(builder);
+                    builder.AppendHtml(" ");
                 }
             }
 
@@ -440,15 +442,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 hrefValue = _fileVersionProvider.AddFileVersionToPath(hrefValue);
             }
 
-            AppendAttribute(hrefName, hrefValue, builder);
-        }
-
-        private void AppendAttribute(string key, object value, TagHelperContent builder)
-        {
             builder
-                .AppendHtml(key)
+                .AppendHtml(hrefName)
                 .AppendHtml("=\"")
-                .Append(HtmlEncoder, value)
+                .Append(hrefValue)
                 .AppendHtml("\" ");
         }
 

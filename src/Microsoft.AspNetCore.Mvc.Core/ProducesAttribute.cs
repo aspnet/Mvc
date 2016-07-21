@@ -3,20 +3,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Formatters.Internal;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// Specifies the allowed content types and the type of the value returned by the action
-    /// which can be used to select a formatter while executing <see cref="ObjectResult"/>.
+    /// A filter that specifies the expected <see cref="System.Type"/> the action will return and the supported
+    /// response content types. The <see cref="ContentTypes"/> value is used to set
+    /// <see cref="ObjectResult.ContentTypes"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class ProducesAttribute : ResultFilterAttribute, IApiResponseMetadataProvider
@@ -60,10 +60,18 @@ namespace Microsoft.AspNetCore.Mvc
             ContentTypes = GetContentTypes(contentType, additionalContentTypes);
         }
 
+        /// <inheritdoc />
         public Type Type { get; set; }
 
+        /// <summary>
+        /// Gets or sets the supported response content types. Used to set <see cref="ObjectResult.ContentTypes"/>.
+        /// </summary>
         public MediaTypeCollection ContentTypes { get; set; }
 
+        /// <inheritdoc />
+        public int StatusCode => StatusCodes.Status200OK;
+
+        /// <inheritdoc />
         public override void OnResultExecuting(ResultExecutingContext context)
         {
             if (context == null)
@@ -78,10 +86,17 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 // Check if there are any IFormatFilter in the pipeline, and if any of them is active. If there is one,
                 // do not override the content type value.
-                if (context.Filters.OfType<IFormatFilter>().All(f => f.GetFormat(context) == null))
+                for (var i = 0; i < context.Filters.Count; i++)
                 {
-                    SetContentTypes(objectResult.ContentTypes);
+                    var filter = context.Filters[i] as IFormatFilter;
+
+                    if (filter?.GetFormat(context) != null)
+                    {
+                        return;
+                    }
                 }
+
+                SetContentTypes(objectResult.ContentTypes);
             }
         }
 
@@ -107,6 +122,7 @@ namespace Microsoft.AspNetCore.Mvc
             return contentTypes;
         }
 
+        /// <inheritdoc />
         public void SetContentTypes(MediaTypeCollection contentTypes)
         {
             contentTypes.Clear();

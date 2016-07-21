@@ -4,6 +4,7 @@
 using System.Buffers;
 using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -20,7 +21,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         public TestMvcOptions()
         {
             Value = new MvcOptions();
-            MvcCoreMvcOptionsSetup.ConfigureMvc(Value, new TestHttpRequestStreamReaderFactory());
+            var optionsSetup = new MvcCoreMvcOptionsSetup(new TestHttpRequestStreamReaderFactory());
+            optionsSetup.Configure(Value);
+
             var collection = new ServiceCollection().AddOptions();
             collection.AddSingleton<ICompositeMetadataDetailsProvider, DefaultCompositeMetadataDetailsProvider>();
             collection.AddSingleton<IModelMetadataProvider, DefaultModelMetadataProvider>();
@@ -30,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 collection.BuildServiceProvider());
 
             var loggerFactory = new LoggerFactory();
-            var serializerSettings = SerializerSettingsProvider.CreateSerializerSettings();
+            var serializerSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
 
             MvcJsonMvcOptionsSetup.ConfigureMvc(
                 Value,

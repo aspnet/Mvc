@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -8,8 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc
             var path = Path.GetFullPath("helllo.txt");
 
             // Act
-            var result = new VirtualFileResult(path, "text/plain");
+            var result = new TestVirtualFileResult(path, "text/plain");
 
             // Assert
             Assert.Equal(path, result.FileName);
@@ -45,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc
             var expectedMediaType = contentType;
 
             // Act
-            var result = new VirtualFileResult(path, contentType);
+            var result = new TestVirtualFileResult(path, contentType);
 
             // Assert
             Assert.Equal(path, result.FileName);
@@ -66,7 +67,8 @@ namespace Microsoft.AspNetCore.Mvc
             var httpContext = GetHttpContext();
             httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = new ServiceCollection()
-                .AddSingleton<IHostingEnvironment>(appEnvironment.Object)
+                .AddSingleton(appEnvironment.Object)
+                .AddTransient<TestVirtualFileResultExecutor>()
                 .AddTransient<ILoggerFactory, LoggerFactory>()
                 .BuildServiceProvider();
             var context = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
@@ -245,7 +247,7 @@ namespace Microsoft.AspNetCore.Mvc
         public async Task ExecuteResultAsync_WorksWithNonDiskBasedFiles()
         {
             // Arrange
-            var httpContext = GetHttpContext();
+            var httpContext = GetHttpContext(typeof(VirtualFileResultExecutor));
             httpContext.Response.Body = new MemoryStream();
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
             var expectedData = "This is an embedded resource";
@@ -281,7 +283,7 @@ namespace Microsoft.AspNetCore.Mvc
             fileInfo.SetupGet(f => f.Exists).Returns(false);
             var fileProvider = new Mock<IFileProvider>();
             fileProvider.Setup(f => f.GetFileInfo(path)).Returns(fileInfo.Object);
-            var filePathResult = new VirtualFileResult(path, "text/plain")
+            var filePathResult = new TestVirtualFileResult(path, "text/plain")
             {
                 FileProvider = fileProvider.Object,
             };
@@ -297,18 +299,22 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(path, ex.FileName);
         }
 
-        private static IServiceCollection CreateServices()
+        private static IServiceCollection CreateServices(Type executorType)
         {
             var services = new ServiceCollection();
 
+            var hostingEnvironment = new Mock<IHostingEnvironment>();
+
+            services.AddSingleton(executorType ?? typeof(TestVirtualFileResultExecutor));
+            services.AddSingleton<IHostingEnvironment>(hostingEnvironment.Object);
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
 
             return services;
         }
 
-        private static HttpContext GetHttpContext()
+        private static HttpContext GetHttpContext(Type executorType = null)
         {
-            var services = CreateServices();
+            var services = CreateServices(executorType);
 
             var httpContext = new DefaultHttpContext();
             httpContext.RequestServices = services.BuildServiceProvider();
@@ -316,7 +322,7 @@ namespace Microsoft.AspNetCore.Mvc
             return httpContext;
         }
 
-        private IFileProvider GetFileProvider(string path)
+        private static IFileProvider GetFileProvider(string path)
         {
             var fileInfo = new Mock<IFileInfo>();
             fileInfo.SetupGet(fi => fi.Exists).Returns(true);
@@ -336,7 +342,24 @@ namespace Microsoft.AspNetCore.Mvc
             {
             }
 
+            public override Task ExecuteResultAsync(ActionContext context)
+            {
+                var executor = context.HttpContext.RequestServices.GetRequiredService<TestVirtualFileResultExecutor>();
+                executor.IsAscii = IsAscii;
+                return executor.ExecuteAsync(context, this);
+            }
+
             public bool IsAscii { get; set; } = false;
+        }
+
+        private class TestVirtualFileResultExecutor : VirtualFileResultExecutor
+        {
+            public TestVirtualFileResultExecutor(ILoggerFactory loggerFactory, IHostingEnvironment hostingEnvironment)
+                : base(loggerFactory,hostingEnvironment)
+            {
+            }
+
+            public bool IsAscii { get; set; }
 
             protected override Stream GetFileStream(IFileInfo fileInfo)
             {

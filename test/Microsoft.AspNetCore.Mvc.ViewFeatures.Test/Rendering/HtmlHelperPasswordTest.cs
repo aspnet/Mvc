@@ -131,16 +131,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             var name = string.Empty;
             var value = string.Empty;
-            var expected = "The name of an HTML field cannot be null or empty. Instead use methods " +
+            var expectedMessage = "The name of an HTML field cannot be null or empty. Instead use methods " +
                 "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
-                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value." +
-                Environment.NewLine + "Parameter name: expression";
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
 
             // Act and Assert
             ExceptionAssert.ThrowsArgument(
                 () => helper.Password(name, value, htmlAttributes: null),
                 "expression",
-                expected);
+                expectedMessage);
         }
 
         [Fact]
@@ -169,10 +168,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordGeneratesUnobtrusiveValidation()
         {
             // Arrange
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
-                @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />");
+            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("Property2");
+            var expected =
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{requiredMessage}]]"" " +
+                @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
 
             // Act
@@ -278,10 +277,10 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordFor_GeneratesUnobtrusiveValidationAttributes()
         {
             // Arrange
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            var expected = PlatformNormalizer.NormalizeContent(
-                @"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[The Property2 field is required.]]"" " +
-                @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />");
+            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("Property2");
+            var expected =
+                $@"<input data-val=""HtmlEncode[[true]]"" data-val-required=""HtmlEncode[[{requiredMessage}]]"" " +
+                @"id=""HtmlEncode[[Property2]]"" name=""HtmlEncode[[Property2]]"" type=""HtmlEncode[[password]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
 
             // Act
@@ -437,6 +436,61 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             viewData.ModelState.AddModelError("Property1", "error 1");
             viewData.ModelState.AddModelError("Property1", "error 2");
             return viewData;
+        }
+
+        public static TheoryData PasswordFor_IgnoresExpressionValueForComplexExpressionsData
+        {
+            get
+            {
+                return new TheoryData<Expression<Func<PasswordModel, string>>, string>
+                {
+                    {
+                        model => model.Property3["key"],
+                        @"<input id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"type=""HtmlEncode[[password]]"" />"
+                    },
+                    {
+                        model => model.Property4.Property5,
+                        @"<input id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"type=""HtmlEncode[[password]]"" />"
+                    },
+                    {
+                        model => model.Property4.Property6[0],
+                        @"<input id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
+                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[password]]"" />"
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(PasswordFor_IgnoresExpressionValueForComplexExpressionsData))]
+        public void PasswordFor_ComplexExpressions_IgnoresValueFromViewDataModelStateAndModel(
+            Expression<Func<PasswordModel, string>> expression,
+            string expected)
+        {
+            // Arrange            
+            var model = new PasswordModel();
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            helper.ViewData.TemplateInfo.HtmlFieldPrefix = "pre";
+
+            helper.ViewData.ModelState.SetModelValue("pre.Property3[key]", "MProp3Val", "MProp3Val");
+            helper.ViewData.ModelState.SetModelValue("pre.Property4.Property5", "MProp5Val", "MProp5Val");
+            helper.ViewData.ModelState.SetModelValue("pre.Property4.Property6[0]", "MProp6Val", "MProp6Val");
+
+            helper.ViewData["pre.Property3[key]"] = "VDProp3Val";
+            helper.ViewData["pre.Property4.Property5"] = "VDProp5Val";
+            helper.ViewData["pre.Property4.Property6"] = "VDProp6Val";
+
+            helper.ViewData.Model.Property3["key"] = "Prop3Val";
+            helper.ViewData.Model.Property4.Property5 = "Prop5Val";
+            helper.ViewData.Model.Property4.Property6.Add("Prop6Val");
+
+            // Act
+            var result = helper.PasswordFor(expression);
+
+            // Assert 
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
         }
 
         public class PasswordModel

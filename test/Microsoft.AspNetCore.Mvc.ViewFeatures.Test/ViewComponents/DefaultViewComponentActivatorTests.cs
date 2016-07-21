@@ -4,7 +4,7 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Moq;
@@ -36,41 +36,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             // Assert
             Assert.NotNull(instance);
             Assert.Same(context, instance.ViewComponentContext);
-        }
-
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(OpenGenericType<>))]
-        [InlineData(typeof(AbstractType))]
-        [InlineData(typeof(InterfaceType))]
-        public void Create_ThrowsIfControllerCannotBeActivated(Type type)
-        {
-            // Arrange
-            var actionDescriptor = new ViewComponentDescriptor
-            {
-                TypeInfo = type.GetTypeInfo()
-            };
-
-            var context = new ViewComponentContext
-            {
-                ViewComponentDescriptor = actionDescriptor,
-                ViewContext = new ViewContext
-                {
-                    HttpContext = new DefaultHttpContext()
-                    {
-                        RequestServices = Mock.Of<IServiceProvider>()
-                    },
-                }
-            };
-
-            var activator = new DefaultViewComponentActivator(new TypeActivatorCache());
-
-            // Act and Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => activator.Create(context));
-            Assert.Equal(
-                $"The type '{type.FullName}' cannot be activated by '{typeof(DefaultViewComponentActivator).FullName}' " +
-                "because it is either a value type, an interface, an abstract class or an open generic type.",
-                exception.Message);
         }
 
         [Fact]
@@ -114,18 +79,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
                     }
                 }
             };
-        }
-
-        private class OpenGenericType<T> : Controller
-        {
-        }
-
-        private abstract class AbstractType : Controller
-        {
-        }
-
-        private interface InterfaceType
-        {
         }
 
         private class TestViewComponent : ViewComponent

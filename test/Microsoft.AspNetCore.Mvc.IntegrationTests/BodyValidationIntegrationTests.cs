@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -15,20 +16,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 {
     public class BodyValidationIntegrationTests
     {
-        private class Person
-        {
-            [FromBody]
-            [Required]
-            public Address Address { get; set; }
-        }
-
-        private class Address
-        {
-            public string Street { get; set; }
-        }
-
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_ValidBaseClass_NoModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_ValidBaseClass_NoModelStateErrors()
         {
             // Arrange
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
@@ -45,17 +34,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 }
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json;charset=utf-8";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -65,7 +54,47 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesAndSubPropertiesOnBaseClass_HasModelStateErrors()
+        public async Task ModelMetadataType_ValidArray_NoModelStateErrors()
+        {
+            // Arrange
+            var input = "[" +
+                "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 21, " +
+                "\"ProductDetails\": {\"Detail1\": \"d1\", \"Detail2\": \"d2\", \"Detail3\": \"d3\"}}," +
+                "{ \"Name\": \"MVC too\", \"Contact\":\"4258959020\", \"Category\":\"Technology\"," +
+                "\"CompanyName\":\"Microsoft\", \"Country\":\"USA\",\"Price\": 22, " +
+                "\"ProductDetails\": {\"Detail1\": \"d2\", \"Detail2\": \"d3\", \"Detail3\": \"d4\"}}" +
+                "]";
+            var argumentBinding = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor
+            {
+                Name = "Parameter1",
+                ParameterType = typeof(IEnumerable<ProductViewModel>),
+                BindingInfo = new BindingInfo
+                {
+                    BindingSource = BindingSource.Body,
+                },
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(request =>
+            {
+                request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
+                request.ContentType = "application/json;charset=utf-8";
+            });
+            var modelState = testContext.ModelState;
+
+            // Act
+            var result = await argumentBinding.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelState.IsValid);
+            Assert.True(result.IsModelSet);
+            var products = Assert.IsAssignableFrom<IEnumerable<ProductViewModel>>(result.Model);
+            Assert.Equal(2, products.Count());
+        }
+
+        [Fact]
+        public async Task ModelMetadataTypeAttribute_InvalidPropertiesAndSubPropertiesOnBaseClass_HasModelStateErrors()
         {
             // Arrange
             var input = "{ \"Price\": 2, \"ProductDetails\": {\"Detail1\": \"d1\"}}";
@@ -80,17 +109,23 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ProductViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
+
+            var priceRange = ValidationAttributeUtil.GetRangeErrorMessage(20, 100, "Price");
+            var categoryRequired = ValidationAttributeUtil.GetRequiredErrorMessage("Category");
+            var contactUsRequired = ValidationAttributeUtil.GetRequiredErrorMessage("Contact Us");
+            var detail2Required = ValidationAttributeUtil.GetRequiredErrorMessage("Detail2");
+            var detail3Required = ValidationAttributeUtil.GetRequiredErrorMessage("Detail3");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -98,25 +133,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(boundPerson);
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
+
             Assert.Equal("CompanyName cannot be null or empty.", modelStateErrors["CompanyName"]);
-            Assert.Equal("The field Price must be between 20 and 100.", modelStateErrors["Price"]);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Category field is required."),
-                modelStateErrors["Category"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Contact Us field is required."),
-                modelStateErrors["Contact"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Detail2 field is required."),
-                modelStateErrors["ProductDetails.Detail2"]);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The Detail3 field is required."),
-                modelStateErrors["ProductDetails.Detail3"]);
+            Assert.Equal(priceRange, modelStateErrors["Price"]);
+            Assert.Equal(categoryRequired, modelStateErrors["Category"]);
+            Assert.Equal(contactUsRequired, modelStateErrors["Contact"]);
+            Assert.Equal(detail2Required, modelStateErrors["ProductDetails.Detail2"]);
+            Assert.Equal(detail3Required, modelStateErrors["ProductDetails.Detail3"]);
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidComplexTypePropertyOnBaseClass_HasModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_InvalidComplexTypePropertyOnBaseClass_HasModelStateErrors()
         {
             // Arrange
             var input = "{ \"Contact\":\"4255678765\", \"Category\":\"Technology\"," +
@@ -132,17 +159,19 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ProductViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
+
+            var productDetailsRequired = ValidationAttributeUtil.GetRequiredErrorMessage("ProductDetails");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -150,13 +179,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.NotNull(boundPerson);
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent("The ProductDetails field is required."),
-                modelStateErrors["ProductDetails"]);
+            Assert.Equal(productDetailsRequired, modelStateErrors["ProductDetails"]);
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClass_HasModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_InvalidClassAttributeOnBaseClass_HasModelStateErrors()
         {
             // Arrange
             var input = "{ \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
@@ -173,17 +200,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ProductViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -196,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_ValidDerivedClass_NoModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_ValidDerivedClass_NoModelStateErrors()
         {
             // Arrange
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
@@ -213,17 +240,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(SoftwareViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -233,7 +260,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidPropertiesOnDerivedClass_HasModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_InvalidPropertiesOnDerivedClass_HasModelStateErrors()
         {
             // Arrange
             var input = "{ \"Name\": \"MVC\", \"Contact\":\"425-895-9019\", \"Category\":\"Technology\"," +
@@ -249,17 +276,20 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(SoftwareViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
+
+            var priceRange = ValidationAttributeUtil.GetRangeErrorMessage(100, 200, "Price");
+            var contactLength = ValidationAttributeUtil.GetStringLengthErrorMessage(null, 10, "Contact");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -268,14 +298,13 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.False(modelState.IsValid);
             var modelStateErrors = CreateValidationDictionary(modelState);
             Assert.Equal(2, modelStateErrors.Count);
-            Assert.Equal("The field Price must be between 100 and 200.", modelStateErrors["Price"]);
-            Assert.Equal(
-                "The field Contact must be a string with a maximum length of 10.",
-                modelStateErrors["Contact"]);
+
+            Assert.Equal(priceRange, modelStateErrors["Price"]);
+            Assert.Equal(contactLength, modelStateErrors["Contact"]);
         }
 
         [Fact]
-        public async Task ModelMetaDataTypeAttribute_InvalidClassAttributeOnBaseClassProduct_HasModelStateErrors()
+        public async Task ModelMetadataTypeAttribute_InvalidClassAttributeOnBaseClassProduct_HasModelStateErrors()
         {
             // Arrange
             var input = "{ \"Contact\":\"4258959019\", \"Category\":\"Technology\"," +
@@ -292,17 +321,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(SoftwareViewModel)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(input));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -312,6 +341,18 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelStateErrors = CreateValidationDictionary(modelState);
             Assert.Single(modelStateErrors);
             Assert.Equal("Product must be made in the USA if it is not named.", modelStateErrors[""]);
+        }
+
+        private class Person
+        {
+            [FromBody]
+            [Required]
+            public Address Address { get; set; }
+        }
+
+        private class Address
+        {
+            public string Street { get; set; }
         }
 
         [Fact]
@@ -329,17 +370,19 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
               request =>
               {
                   request.Body = new MemoryStream(Encoding.UTF8.GetBytes(string.Empty));
                   request.ContentType = "application/json";
               });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
+
+            var addressRequired = ValidationAttributeUtil.GetRequiredErrorMessage("Address");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -349,8 +392,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal("CustomParameter.Address", key);
             Assert.False(modelState.IsValid);
             var error = Assert.Single(modelState[key].Errors);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Address field is required."), error.ErrorMessage);
+            Assert.Equal(addressRequired, error.ErrorMessage);
         }
 
         [Fact]
@@ -369,18 +411,18 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes(string.Empty));
                     request.ContentType = "application/json";
                 });
 
-            var httpContext = operationContext.HttpContext;
-            var modelState = operationContext.ActionContext.ModelState;
+            var httpContext = testContext.HttpContext;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -412,17 +454,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person4)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes(string.Empty));
                     request.ContentType = "application/json";
                 });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -471,17 +513,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person5)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{ \"Number\": 5 }"));
                     request.ContentType = "application/json";
                 });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -509,17 +551,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(Person5)
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{ \"Number\": \"not a number\" }"));
                     request.ContentType = "application/json";
                 });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -573,17 +615,19 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 Name = "param-name",
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes(inputText));
                     request.ContentType = "application/json";
                 });
-            var httpContext = operationContext.HttpContext;
-            var modelState = operationContext.ActionContext.ModelState;
+            var httpContext = testContext.HttpContext;
+            var modelState = testContext.ModelState;
+
+            var streetRequired = ValidationAttributeUtil.GetRequiredErrorMessage("Street");
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
@@ -596,8 +640,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var street = entry.Value;
             Assert.Equal(ModelValidationState.Invalid, street.ValidationState);
             var error = Assert.Single(street.Errors);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(PlatformNormalizer.NormalizeContent("The Street field is required."), error.ErrorMessage);
+            Assert.Equal(streetRequired, error.ErrorMessage);
         }
 
         private class Person3
@@ -631,20 +674,121 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 Name = "param-name",
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.Body = new MemoryStream(Encoding.UTF8.GetBytes(inputText));
                     request.ContentType = "application/json";
                 });
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet);
             Assert.IsType<Person3>(modelBindingResult.Model);
+
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
+        private class Person6
+        {
+            public Address6 Address { get; set; }
+        }
+
+        private class Address6
+        {
+            public string Street { get; set; }
+        }
+
+        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with a class somewhere in the type hierarchy of an action parameter.
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task FromBodyOnPropertyType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var inputText = "{ \"Street\" : \"someStreet\" }";
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForProperty<Person6>(nameof(Person6.Address))
+                .BindingDetails(binding => binding.BindingSource = BindingSource.Body);
+
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder(metadataProvider);
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Person6),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request =>
+                {
+                    request.Body = new MemoryStream(Encoding.UTF8.GetBytes(inputText));
+                    request.ContentType = "application/json";
+                });
+            testContext.MetadataProvider = metadataProvider;
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var person = Assert.IsType<Person6>(modelBindingResult.Model);
+            Assert.NotNull(person.Address);
+            Assert.Equal("someStreet", person.Address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
+        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with an action parameter's type.
+        [Theory]
+        [MemberData(
+            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
+            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
+        public async Task FromBodyOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        {
+            // Arrange
+            var inputText = "{ \"Street\" : \"someStreet\" }";
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForType<Address6>()
+                .BindingDetails(binding => binding.BindingSource = BindingSource.Body);
+
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder(metadataProvider);
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = bindingInfo,
+                ParameterType = typeof(Address6),
+            };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request =>
+                {
+                    request.Body = new MemoryStream(Encoding.UTF8.GetBytes(inputText));
+                    request.ContentType = "application/json";
+                });
+            testContext.MetadataProvider = metadataProvider;
+            var modelState = testContext.ModelState;
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var address = Assert.IsType<Address6>(modelBindingResult.Model);
+            Assert.Equal("someStreet", address.Street, StringComparer.Ordinal);
 
             Assert.True(modelState.IsValid);
             Assert.Empty(modelState);

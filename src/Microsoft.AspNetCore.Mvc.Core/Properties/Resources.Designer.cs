@@ -923,22 +923,6 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// The type '{0}' does not implement the interface '{1}'.
-        /// </summary>
-        internal static string PropertyBindingPredicateProvider_WrongType
-        {
-            get { return GetString("PropertyBindingPredicateProvider_WrongType"); }
-        }
-
-        /// <summary>
-        /// The type '{0}' does not implement the interface '{1}'.
-        /// </summary>
-        internal static string FormatPropertyBindingPredicateProvider_WrongType(object p0, object p1)
-        {
-            return string.Format(CultureInfo.CurrentCulture, GetString("PropertyBindingPredicateProvider_WrongType"), p0, p1);
-        }
-
-        /// <summary>
         /// The parameter conversion from type '{0}' to type '{1}' failed because no type converter can convert between these types.
         /// </summary>
         internal static string ValueProviderResult_NoConverterExists
@@ -1117,17 +1101,17 @@ namespace Microsoft.AspNetCore.Mvc.Core
         /// <summary>
         /// '{0}' is not supported by '{1}'. Use '{2}' instead.
         /// </summary>
-        internal static string TextOutpurFormatter_WriteResponseBodyAsynNotSupported
+        internal static string TextOutputFormatter_WriteResponseBodyAsyncNotSupported
         {
-            get { return GetString("TextOutpurFormatter_WriteResponseBodyAsynNotSupported"); }
+            get { return GetString("TextOutputFormatter_WriteResponseBodyAsyncNotSupported"); }
         }
 
         /// <summary>
         /// '{0}' is not supported by '{1}'. Use '{2}' instead.
         /// </summary>
-        internal static string FormatTextOutpurFormatter_WriteResponseBodyAsynNotSupported(object p0, object p1, object p2)
+        internal static string FormatTextOutputFormatter_WriteResponseBodyAsyncNotSupported(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("TextOutpurFormatter_WriteResponseBodyAsynNotSupported"), p0, p1, p2);
+            return string.Format(CultureInfo.CurrentCulture, GetString("TextOutputFormatter_WriteResponseBodyAsyncNotSupported"), p0, p1, p2);
         }
 
         /// <summary>
@@ -1144,6 +1128,86 @@ namespace Microsoft.AspNetCore.Mvc.Core
         internal static string FormatFormatter_NoMediaTypes(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("Formatter_NoMediaTypes"), p0, p1);
+        }
+
+        /// <summary>
+        /// At least one authentication scheme must be specified.
+        /// </summary>
+        internal static string MustSpecifyAtLeastOneAuthenticationScheme
+        {
+            get { return GetString("MustSpecifyAtLeastOneAuthenticationScheme"); }
+        }
+
+        /// <summary>
+        /// At least one authentication scheme must be specified.
+        /// </summary>
+        internal static string FormatMustSpecifyAtLeastOneAuthenticationScheme()
+        {
+            return GetString("MustSpecifyAtLeastOneAuthenticationScheme");
+        }
+
+        /// <summary>
+        /// Could not create a model binder for model object of type '{0}'.
+        /// </summary>
+        internal static string CouldNotCreateIModelBinder
+        {
+            get { return GetString("CouldNotCreateIModelBinder"); }
+        }
+
+        /// <summary>
+        /// Could not create a model binder for model object of type '{0}'.
+        /// </summary>
+        internal static string FormatCouldNotCreateIModelBinder(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CouldNotCreateIModelBinder"), p0);
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to bind from the body.
+        /// </summary>
+        internal static string InputFormattersAreRequired
+        {
+            get { return GetString("InputFormattersAreRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to bind from the body.
+        /// </summary>
+        internal static string FormatInputFormattersAreRequired(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("InputFormattersAreRequired"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to model bind.
+        /// </summary>
+        internal static string ModelBinderProvidersAreRequired
+        {
+            get { return GetString("ModelBinderProvidersAreRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to model bind.
+        /// </summary>
+        internal static string FormatModelBinderProvidersAreRequired(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ModelBinderProvidersAreRequired"), p0, p1, p2);
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to format a response.
+        /// </summary>
+        internal static string OutputFormattersAreRequired
+        {
+            get { return GetString("OutputFormattersAreRequired"); }
+        }
+
+        /// <summary>
+        /// '{0}.{1}' must not be empty. At least one '{2}' is required to format a response.
+        /// </summary>
+        internal static string FormatOutputFormattersAreRequired(object p0, object p1, object p2)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("OutputFormattersAreRequired"), p0, p1, p2);
         }
 
         private static string GetString(string name, params string[] formatterNames)

@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -225,6 +225,64 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             await page.ExecuteAsync();
         }
 
+        [Fact]
+        public async Task EndWriteTagHelperAttribute_RestoresPageWriter()
+        {
+            // Arrange
+            var page = CreatePage(v =>
+            {
+                v.BeginWriteTagHelperAttribute();
+                v.Write("Hello World!");
+                v.EndWriteTagHelperAttribute();
+            });
+            var originalWriter = page.Output;
+
+            // Act
+            await page.ExecuteAsync();
+
+            // Assert
+            Assert.NotNull(originalWriter);
+            Assert.Same(originalWriter, page.Output);
+        }
+
+        [Fact]
+        public async Task EndWriteTagHelperAttribute_ReturnsAppropriateContent()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.HtmlEncoder = new HtmlTestEncoder();
+                v.BeginWriteTagHelperAttribute();
+                v.Write("Hello World!");
+                var returnValue = v.EndWriteTagHelperAttribute();
+
+                // Assert
+                var content = Assert.IsType<string>(returnValue);
+                Assert.Equal("HtmlEncode[[Hello World!]]", content);
+            });
+
+            // Act & Assert
+            await page.ExecuteAsync();
+        }
+
+        [Fact]
+        public async Task BeginWriteTagHelperAttribute_NestingWritingScopesThrows()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var page = CreatePage(v =>
+            {
+                v.BeginWriteTagHelperAttribute();
+                v.BeginWriteTagHelperAttribute();
+                v.Write("Hello World!");
+            });
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => page.ExecuteAsync());
+            Assert.Equal("Nesting of TagHelper attribute writing scopes is not supported.", ex.Message);
+        }
+
         // This is an integration test for ensuring that ViewBuffer segments used by
         // TagHelpers can be merged back into the 'main' segment where possible.
         [Fact]
@@ -343,7 +401,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             Assert.Equal(
                 "HtmlEncode[[Level:0]]" +
                 "<t1>" +
-                    "HtmlEncode[[Level:1-A]]" + 
+                    "HtmlEncode[[Level:1-A]]" +
                 "</t1>" +
                 "HtmlEncode[[Level:0]]" +
                 "<t2>" +
@@ -353,7 +411,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     "</t3>" +
                     "HtmlEncode[[Level:1-B]]" +
                 "</t2>" +
-                "HtmlEncode[[Level:0]]", 
+                "HtmlEncode[[Level:0]]",
                 page.RenderedContent);
         }
 
@@ -1190,7 +1248,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
-            page.BeginAddHtmlAttributeValues(executionContext, "someattr", attributeValues.Length);
+            page.BeginAddHtmlAttributeValues(executionContext, "someattr", attributeValues.Length, HtmlAttributeValueStyle.SingleQuotes);
             foreach (var value in attributeValues)
             {
                 page.AddHtmlAttributeValue(value.Item1, value.Item2, value.Item3, value.Item4, 0, value.Item5);
@@ -1198,19 +1256,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             page.EndAddHtmlAttributeValues(executionContext);
 
             // Assert
-            var output = executionContext.CreateTagHelperOutput();
+            var output = executionContext.Output;
             var htmlAttribute = Assert.Single(output.Attributes);
             Assert.Equal("someattr", htmlAttribute.Name, StringComparer.Ordinal);
             var htmlContent = Assert.IsAssignableFrom<IHtmlContent>(htmlAttribute.Value);
             Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(htmlContent), StringComparer.Ordinal);
-            Assert.False(htmlAttribute.Minimized);
+            Assert.Equal(HtmlAttributeValueStyle.SingleQuotes, htmlAttribute.ValueStyle);
 
-            var context = executionContext.CreateTagHelperContext();
+            var context = executionContext.Context;
             var allAttribute = Assert.Single(context.AllAttributes);
             Assert.Equal("someattr", allAttribute.Name, StringComparer.Ordinal);
             htmlContent = Assert.IsAssignableFrom<IHtmlContent>(allAttribute.Value);
             Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(htmlContent), StringComparer.Ordinal);
-            Assert.False(allAttribute.Minimized);
+            Assert.Equal(HtmlAttributeValueStyle.SingleQuotes, allAttribute.ValueStyle);
         }
 
         [Theory]
@@ -1233,18 +1291,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
-            page.BeginAddHtmlAttributeValues(executionContext, "someattr", 1);
+            page.BeginAddHtmlAttributeValues(executionContext, "someattr", 1, HtmlAttributeValueStyle.DoubleQuotes);
             page.AddHtmlAttributeValue(string.Empty, 9, attributeValue, 9, valueLength: 0, isLiteral: false);
             page.EndAddHtmlAttributeValues(executionContext);
 
             // Assert
-            var output = executionContext.CreateTagHelperOutput();
+            var output = executionContext.Output;
             Assert.Empty(output.Attributes);
-            var context = executionContext.CreateTagHelperContext();
+            var context = executionContext.Context;
             var attribute = Assert.Single(context.AllAttributes);
             Assert.Equal("someattr", attribute.Name, StringComparer.Ordinal);
             Assert.Equal(expectedValue, (string)attribute.Value, StringComparer.Ordinal);
-            Assert.False(attribute.Minimized);
+            Assert.Equal(HtmlAttributeValueStyle.DoubleQuotes, attribute.ValueStyle);
         }
 
         [Fact]
@@ -1263,21 +1321,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 endTagHelperWritingScope: () => new DefaultTagHelperContent());
 
             // Act
-            page.BeginAddHtmlAttributeValues(executionContext, "someattr", 1);
+            page.BeginAddHtmlAttributeValues(executionContext, "someattr", 1, HtmlAttributeValueStyle.NoQuotes);
             page.AddHtmlAttributeValue(string.Empty, 9, true, 9, valueLength: 0, isLiteral: false);
             page.EndAddHtmlAttributeValues(executionContext);
 
             // Assert
-            var output = executionContext.CreateTagHelperOutput();
+            var output = executionContext.Output;
             var htmlAttribute = Assert.Single(output.Attributes);
             Assert.Equal("someattr", htmlAttribute.Name, StringComparer.Ordinal);
             Assert.Equal("someattr", (string)htmlAttribute.Value, StringComparer.Ordinal);
-            Assert.False(htmlAttribute.Minimized);
-            var context = executionContext.CreateTagHelperContext();
+            Assert.Equal(HtmlAttributeValueStyle.NoQuotes, htmlAttribute.ValueStyle);
+            var context = executionContext.Context;
             var allAttribute = Assert.Single(context.AllAttributes);
             Assert.Equal("someattr", allAttribute.Name, StringComparer.Ordinal);
             Assert.Equal("someattr", (string)allAttribute.Value, StringComparer.Ordinal);
-            Assert.False(allAttribute.Minimized);
+            Assert.Equal(HtmlAttributeValueStyle.NoQuotes, allAttribute.ValueStyle);
         }
 
         public static TheoryData WriteAttributeData

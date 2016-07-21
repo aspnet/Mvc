@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -55,9 +56,9 @@ namespace System.Web.Http
 
             // Assert
             var controllerType = typeof(TestControllers.Blog).GetTypeInfo();
-            var actions = results.Where(ad => ad.ControllerTypeInfo == controllerType).ToArray();
+            var actions = results.Where(ad => ad.ControllerTypeInfo == controllerType);
 
-            Assert.Empty(actions);
+            Assert.Equal(2, actions.Count());
         }
 
         [Fact]
@@ -83,14 +84,14 @@ namespace System.Web.Http
 
             var action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == "GetAll"));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && rc.Value == "GetAll"));
             Assert.Equal(
                 new string[] { "GET" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
 
             action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == ""));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && string.IsNullOrEmpty(rc.Value)));
             Assert.Equal(
                 new string[] { "GET" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
@@ -119,14 +120,14 @@ namespace System.Web.Http
 
             var action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == "Edit"));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && rc.Value == "Edit"));
             Assert.Equal(
                 new string[] { "POST" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
 
             action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == ""));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && string.IsNullOrEmpty(rc.Value)));
             Assert.Equal(
                 new string[] { "POST" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
@@ -155,14 +156,14 @@ namespace System.Web.Http
 
             var action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == "Delete"));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && rc.Value == "Delete"));
             Assert.Equal(
                 new string[] { "PUT" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
 
             action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == ""));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && string.IsNullOrEmpty(rc.Value)));
             Assert.Equal(
                 new string[] { "PUT" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
@@ -192,14 +193,14 @@ namespace System.Web.Http
 
             var action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == "GetOptions"));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && rc.Value == "GetOptions"));
             Assert.Equal(
                 new string[] { "OPTIONS" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
 
             action = Assert.Single(
                 actions,
-                a => a.RouteConstraints.Any(rc => rc.RouteKey == "action" && rc.RouteValue == ""));
+                a => a.RouteValues.Any(rc => rc.Key == "action" && string.IsNullOrEmpty(rc.Value)));
             Assert.Equal(
                 new string[] { "OPTIONS" },
                 Assert.Single(action.ActionConstraints.OfType<HttpMethodActionConstraint>()).HttpMethods);
@@ -251,7 +252,7 @@ namespace System.Web.Http
             Assert.NotEmpty(actions);
             foreach (var action in actions)
             {
-                Assert.Single(action.RouteConstraints, c => c.RouteKey == "area" && c.RouteValue == "api");
+                Assert.Single(action.RouteValues, c => c.Key == "area" && c.Value== "api");
             }
         }
 
@@ -271,7 +272,7 @@ namespace System.Web.Http
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
                 .Where(ad => ad.ControllerTypeInfo == controllerType)
-                .Where(ad => ad.Name == "Get")
+                .Where(ad => ad.ActionName == "Get")
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -300,7 +301,7 @@ namespace System.Web.Http
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
                 .Where(ad => ad.ControllerTypeInfo == controllerType)
-                .Where(ad => ad.Name == "Put")
+                .Where(ad => ad.ActionName == "Put")
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -327,7 +328,7 @@ namespace System.Web.Http
             var controllerType = typeof(TestControllers.EmployeesController).GetTypeInfo();
             var actions = results
                 .Where(ad => ad.ControllerTypeInfo == controllerType)
-                .Where(ad => ad.Name == "Post")
+                .Where(ad => ad.ActionName == "Post")
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -356,7 +357,7 @@ namespace System.Web.Http
             var controllerType = typeof(TestControllers.EventsController).GetTypeInfo();
             var actions = results
                 .Where(ad => ad.ControllerTypeInfo == controllerType)
-                .Where(ad => ad.Name == name)
+                .Where(ad => ad.ActionName == name)
                 .ToArray();
 
             Assert.NotEmpty(actions);
@@ -371,9 +372,7 @@ namespace System.Web.Http
 
         private ControllerActionDescriptorProvider CreateProvider()
         {
-            var assemblyProvider = new StaticAssemblyProvider();
-            assemblyProvider.CandidateAssemblies.Add(GetType().GetTypeInfo().Assembly);
-            var controllerTypeProvider = new NamespaceFilteredControllerTypeProvider(assemblyProvider);
+            var manager = GetApplicationManager(GetType().GetTypeInfo().Assembly.DefinedTypes.ToArray());
 
             var options = new MvcOptions();
 
@@ -393,7 +392,7 @@ namespace System.Web.Http
             var modelProvider = new DefaultApplicationModelProvider(optionsAccessor.Object);
 
             var provider = new ControllerActionDescriptorProvider(
-                controllerTypeProvider,
+                manager,
                 new[] { modelProvider },
                 optionsAccessor.Object);
 
@@ -406,20 +405,49 @@ namespace System.Web.Http
             provider.OnProvidersExecuted(context);
         }
 
-        private class NamespaceFilteredControllerTypeProvider : DefaultControllerTypeProvider
+        private static ApplicationPartManager GetApplicationManager(params TypeInfo[] controllerTypes)
         {
-            public NamespaceFilteredControllerTypeProvider(IAssemblyProvider provider)
-                : base(provider)
-            {
+            var manager = new ApplicationPartManager();
+            manager.ApplicationParts.Add(new TestPart(controllerTypes));
+            manager.FeatureProviders.Add(new TestProvider());
+            manager.FeatureProviders.Add(new NamespaceFilteredControllersFeatureProvider());
+            return manager;
+        }
 
+        private class TestPart : ApplicationPart, IApplicationPartTypeProvider
+        {
+            public TestPart(IEnumerable<TypeInfo> types)
+            {
+                Types = types;
             }
 
-            public override IEnumerable<TypeInfo> ControllerTypes
+            public override string Name => "Test";
+
+            public IEnumerable<TypeInfo> Types { get; }
+        }
+
+        private class TestProvider : IApplicationFeatureProvider<ControllerFeature>
+        {
+            public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
             {
-                get
+                foreach (var type in parts.OfType<IApplicationPartTypeProvider>().SelectMany(t => t.Types))
                 {
-                    return base.ControllerTypes
-                               .Where(typeInfo => typeInfo.Namespace == "System.Web.Http.TestControllers");
+                    feature.Controllers.Add(type);
+                }
+            }
+        }
+
+        private class NamespaceFilteredControllersFeatureProvider : IApplicationFeatureProvider<ControllerFeature>
+        {
+            public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
+            {
+                var controllers = feature.Controllers.ToList();
+                foreach (var controller in controllers)
+                {
+                    if (controller.Namespace != "System.Web.Http.TestControllers")
+                    {
+                        feature.Controllers.Remove(controller);
+                    }
                 }
             }
         }

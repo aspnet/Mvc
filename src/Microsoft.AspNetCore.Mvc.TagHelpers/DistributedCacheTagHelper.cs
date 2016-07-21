@@ -35,12 +35,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         public DistributedCacheTagHelper(
             IDistributedCacheTagHelperService distributedCacheService,
-            HtmlEncoder htmlEncoder) 
+            HtmlEncoder htmlEncoder)
             : base(htmlEncoder)
         {
             _distributedCacheService = distributedCacheService;
         }
-        
+
         /// <summary>
         /// Gets the <see cref="IMemoryCache"/> instance used to cache workers.
         /// </summary>
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(NameAttributeName)]
         public string Name { get; set; }
-        
+
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
@@ -67,15 +67,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             IHtmlContent content = null;
 
-            // Create a cancellation token that will be used 
+            // Create a cancellation token that will be used
             // to release the task from the memory cache.
             var tokenSource = new CancellationTokenSource();
 
             if (Enabled)
             {
-                var key = GenerateKey(context);
+                var cacheKey = new CacheTagKey(this);
 
-                content = await _distributedCacheService.ProcessContentAsync(output, key, GetDistributedCacheEntryOptions());
+                content = await _distributedCacheService.ProcessContentAsync(output, cacheKey, GetDistributedCacheEntryOptions());
             }
             else
             {
@@ -85,9 +85,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Clear the contents of the "cache" element since we don't want to render it.
             output.SuppressOutput();
 
-            output.Content.SetContent(content);
+            output.Content.SetHtmlContent(content);
         }
-        
+
         // Internal for unit testing
         internal DistributedCacheEntryOptions GetDistributedCacheEntryOptions()
         {
@@ -110,14 +110,5 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return options;
         }
 
-        protected override string GetUniqueId(TagHelperContext context)
-        {
-            return Name;
-        }
-
-        protected override string GetKeyPrefix(TagHelperContext context)
-        {
-            return CacheKeyPrefix;
-        }
     }
 }

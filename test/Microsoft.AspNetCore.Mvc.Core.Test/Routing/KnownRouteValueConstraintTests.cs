@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
@@ -55,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var actionDescriptor = CreateActionDescriptor("testArea",
                                                           "testController",
                                                           "testAction");
-            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint("randomKey", "testRandom"));
+            actionDescriptor.RouteValues.Add("randomKey", "testRandom");
             var httpContext = GetHttpContext(actionDescriptor);
             var route = Mock.Of<IRouter>();
             var values = new RouteValueDictionary()
@@ -85,10 +86,11 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         public void RouteValue_DoesNotExists_MatchFails(string keyName, RouteDirection direction)
         {
             // Arrange
-            var actionDescriptor = CreateActionDescriptor("testArea",
-                                                          "testController",
-                                                          "testAction");
-            actionDescriptor.RouteConstraints.Add(new RouteDataActionConstraint("randomKey", "testRandom"));
+            var actionDescriptor = CreateActionDescriptor(
+                "testArea",
+                "testController",
+                "testAction");
+            actionDescriptor.RouteValues.Add("randomKey", "testRandom");
             var httpContext = GetHttpContext(actionDescriptor);
             var route = Mock.Of<IRouter>();
             var values = new RouteValueDictionary()
@@ -183,26 +185,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
         private static ActionDescriptor CreateActionDescriptor(string area, string controller, string action)
         {
-            var actionDescriptor = new ActionDescriptor()
+            var actionDescriptor = new ControllerActionDescriptor()
             {
-                Name = string.Format("Area: {0}, Controller: {1}, Action: {2}", area, controller, action),
-                RouteConstraints = new List<RouteDataActionConstraint>(),
+                ActionName = string.Format("Area: {0}, Controller: {1}, Action: {2}", area, controller, action),
             };
 
-            actionDescriptor.RouteConstraints.Add(
-                area == null ?
-                new RouteDataActionConstraint("area", null) :
-                new RouteDataActionConstraint("area", area));
-
-            actionDescriptor.RouteConstraints.Add(
-                controller == null ?
-                new RouteDataActionConstraint("controller", null) :
-                new RouteDataActionConstraint("controller", controller));
-
-            actionDescriptor.RouteConstraints.Add(
-                action == null ?
-                new RouteDataActionConstraint("action", null) :
-                new RouteDataActionConstraint("action", action));
+            actionDescriptor.RouteValues.Add("area", area);
+            actionDescriptor.RouteValues.Add("controller", controller);
+            actionDescriptor.RouteValues.Add("action", action);
 
             return actionDescriptor;
         }

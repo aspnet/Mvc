@@ -1,12 +1,18 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using ControllersFromServicesClassLibrary;
+using ControllersFromServicesWebSite.Components;
+using ControllersFromServicesWebSite.TagHelpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllersFromServicesWebSite
@@ -15,16 +21,38 @@ namespace ControllersFromServicesWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services
+            var builder = services
                 .AddMvc()
-                .AddControllersAsServices(typeof(AnotherController))
-                .AddControllersAsServices(new[]
+                .ConfigureApplicationPartManager(manager => manager.ApplicationParts.Clear())
+                .AddApplicationPart(typeof(TimeScheduleController).GetTypeInfo().Assembly)
+                .ConfigureApplicationPartManager(manager =>
                 {
-                    typeof(TimeScheduleController).GetTypeInfo().Assembly
-                });
+                    manager.ApplicationParts.Add(new TypesPart(
+                      typeof(AnotherController),
+                      typeof(ComponentFromServicesViewComponent),
+                      typeof(InServicesTagHelper)));
+
+                    manager.FeatureProviders.Add(new AssemblyMetadataReferenceFeatureProvider());
+                })
+                .AddControllersAsServices()
+                .AddViewComponentsAsServices()
+                .AddTagHelpersAsServices();
 
             services.AddTransient<QueryValueService>();
+            services.AddTransient<ValueService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        }
+
+        private class TypesPart : ApplicationPart, IApplicationPartTypeProvider
+        {
+            public TypesPart(params Type[] types)
+            {
+                Types = types.Select(t => t.GetTypeInfo());
+            }
+
+            public override string Name => string.Join(", ", Types.Select(t => t.FullName));
+
+            public IEnumerable<TypeInfo> Types { get; }
         }
 
         public void Configure(IApplicationBuilder app)
@@ -40,12 +68,14 @@ namespace ControllersFromServicesWebSite
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .UseDefaultHostingConfiguration(args)
+                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
-                .UseServer("Microsoft.AspNetCore.Server.Kestrel")
+                .UseKestrel()
+                .UseIISIntegration()
                 .Build();
 
             host.Run();
         }
     }
 }
+

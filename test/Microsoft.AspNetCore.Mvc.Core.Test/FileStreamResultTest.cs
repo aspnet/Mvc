@@ -3,13 +3,11 @@
 
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -141,37 +139,10 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(expectedContentType, httpContext.Response.ContentType);
         }
 
-        [Fact]
-        public async Task DisablesResponseBuffering_IfBufferingFeatureAvailable()
-        {
-            // Arrange
-            var expectedContentType = "text/foo; charset=us-ascii";
-            var expected = Encoding.ASCII.GetBytes("Test data");
-
-            var originalStream = new MemoryStream(expected);
-
-            var httpContext = GetHttpContext();
-            var bufferingFeature = new TestBufferingFeature();
-            httpContext.Features.Set<IHttpBufferingFeature>(bufferingFeature);
-            var outStream = new MemoryStream();
-            httpContext.Response.Body = outStream;
-
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-            var result = new FileStreamResult(originalStream, expectedContentType);
-
-            // Act
-            await result.ExecuteResultAsync(actionContext);
-
-            // Assert
-            var outBytes = outStream.ToArray();
-            Assert.Equal(expected, outBytes);
-            Assert.Equal(expectedContentType, httpContext.Response.ContentType);
-            Assert.True(bufferingFeature.DisableResponseBufferingInvoked);
-        }
-
         private static IServiceCollection CreateServices()
         {
             var services = new ServiceCollection();
+            services.AddSingleton<FileStreamResultExecutor>();
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
             return services;
         }

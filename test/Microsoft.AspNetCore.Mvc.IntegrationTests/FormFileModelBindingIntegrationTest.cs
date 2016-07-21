@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features.Internal;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -42,17 +41,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             var data = "Some Data Is Better Than No Data.";
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     request.QueryString = QueryString.Create("Address.Zip", "12345");
                     UpdateRequest(request, data, "Address.File");
                 });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
 
@@ -74,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var key = Assert.Single(modelState.Keys, k => k == "Address.File");
             Assert.Null(modelState[key].RawValue);
             Assert.Empty(modelState[key].Errors);
-            Assert.Equal(ModelValidationState.Skipped, modelState[key].ValidationState);
+            Assert.Equal(ModelValidationState.Valid, modelState[key].ValidationState);
         }
 
         private class ListContainer1
@@ -96,13 +95,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             var data = "some data";
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => UpdateRequest(request, data, "files"));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var result = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -125,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelStateEntry = kvp.Value;
             Assert.NotNull(modelStateEntry);
             Assert.Empty(modelStateEntry.Errors);
-            Assert.Equal(ModelValidationState.Skipped, modelStateEntry.ValidationState);
+            Assert.Equal(ModelValidationState.Valid, modelStateEntry.ValidationState);
             Assert.Null(modelStateEntry.AttemptedValue);
             Assert.Null(modelStateEntry.RawValue);
         }
@@ -142,13 +140,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 ParameterType = typeof(ListContainer1),
             };
 
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => UpdateRequest(request, data: null, name: null));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var result = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -187,13 +184,12 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             var data = "some data";
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => UpdateRequest(request, data, "files"));
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var result = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             Assert.True(result.IsModelSet);
@@ -216,7 +212,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelStateEntry = kvp.Value;
             Assert.NotNull(modelStateEntry);
             Assert.Empty(modelStateEntry.Errors);
-            Assert.Equal(ModelValidationState.Skipped, modelStateEntry.ValidationState);
+            Assert.Equal(ModelValidationState.Valid, modelStateEntry.ValidationState);
             Assert.Null(modelStateEntry.AttemptedValue);
             Assert.Null(modelStateEntry.RawValue);
         }
@@ -238,16 +234,16 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             var data = "Some Data Is Better Than No Data.";
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request =>
                 {
                     UpdateRequest(request, data, "CustomParameter");
                 });
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ?? default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
             // ModelBindingResult
@@ -265,7 +261,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var entry = Assert.Single(modelState);
             Assert.Equal("CustomParameter", entry.Key);
             Assert.Empty(entry.Value.Errors);
-            Assert.Equal(ModelValidationState.Skipped, entry.Value.ValidationState);
+            Assert.Equal(ModelValidationState.Valid, entry.Value.ValidationState);
             Assert.Null(entry.Value.AttemptedValue);
             Assert.Null(entry.Value.RawValue);
         }
@@ -287,17 +283,16 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
 
             // No data is passed.
-            var operationContext = ModelBindingTestHelper.GetOperationBindingContext(
+            var testContext = ModelBindingTestHelper.GetTestContext(
                 request => UpdateRequest(request, data: null, name: null));
 
-            var modelState = operationContext.ActionContext.ModelState;
+            var modelState = testContext.ModelState;
 
             // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, operationContext) ??
-                default(ModelBindingResult);
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
 
             // Assert
-            Assert.Equal(default(ModelBindingResult), modelBindingResult);
+            Assert.False(modelBindingResult.IsModelSet);
 
             // ModelState
             Assert.True(modelState.IsValid);

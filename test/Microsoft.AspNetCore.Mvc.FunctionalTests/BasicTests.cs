@@ -7,8 +7,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Xunit;
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.GetAsync("Home/HttpsOnlyAction");
 
             // Assert
-            Assert.Equal(HttpStatusCode.MovedPermanently, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Found, response.StatusCode);
             Assert.NotNull(response.Headers.Location);
             Assert.Equal("https://localhost/Home/HttpsOnlyAction", response.Headers.Location.ToString());
             Assert.Equal(0, response.Content.Headers.ContentLength);
@@ -218,15 +218,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelper_RendersJson()
+        public async Task JsonHelper_RendersJson_WithCamelCaseNames()
         {
             // Arrange
-            var json = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
-            {
-                Id = 9000,
-                Name = "John <b>Smith</b>"
-            });
-
+            var json = "{\"id\":9000,\"fullName\":\"John <b>Smith</b>\"}";
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
@@ -245,15 +240,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task JsonHelperWithSettings_RendersJson()
+        public async Task JsonHelperWithSettings_RendersJson_WithNamesUnchanged()
         {
             // Arrange
-            var json = JsonConvert.SerializeObject(new BasicWebSite.Models.Person()
-            {
-                Id = 9000,
-                Name = "John <b>Smith</b>"
-            }, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
+            var json = "{\"id\":9000,\"FullName\":\"John <b>Smith</b>\"}";
             var expectedBody = string.Format(
                 @"<script type=""text/javascript"">
     var json = {0};
@@ -261,7 +251,29 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 json);
 
             // Act
-            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView");
+            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView?snakeCase=false");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("text/html", response.Content.Headers.ContentType.MediaType);
+
+            var actualBody = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedBody, actualBody, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public async Task JsonHelperWithSettings_RendersJson_WithSnakeCaseNames()
+        {
+            // Arrange
+            var json = "{\"id\":9000,\"full_name\":\"John <b>Smith</b>\"}";
+            var expectedBody = string.Format(
+                @"<script type=""text/javascript"">
+    var json = {0};
+</script>",
+                json);
+
+            // Act
+            var response = await Client.GetAsync("Home/JsonHelperWithSettingsInView?snakeCase=true");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -329,16 +341,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseData = await response.Content.ReadAsStringAsync();
             Assert.Equal("This is a basic website.", responseData);
-        }
-
-        [Fact]
-        public async Task TypesWithoutControllerSuffix_DerivingFromTypesWithControllerSuffix_CanBeAccessed()
-        {
-            // Act
-            var response = await Client.GetStringAsync("appointments");
-
-            // Assert
-            Assert.Equal("2 appointments available.", response);
         }
 
         [Fact]
