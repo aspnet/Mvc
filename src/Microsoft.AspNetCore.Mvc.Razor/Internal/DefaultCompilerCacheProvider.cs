@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
@@ -13,10 +13,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// <summary>
         /// Initializes a new instance of <see cref="DefaultCompilerCacheProvider"/>.
         /// </summary>
+        /// <param name="applicationPartManager">The <see cref="ApplicationPartManager" /></param>
         /// <param name="fileProviderAccessor">The <see cref="IRazorViewEngineFileProviderAccessor"/>.</param>
-        public DefaultCompilerCacheProvider(IRazorViewEngineFileProviderAccessor fileProviderAccessor)
+        public DefaultCompilerCacheProvider(
+            ApplicationPartManager applicationPartManager,
+            IRazorViewEngineFileProviderAccessor fileProviderAccessor)
         {
-            Cache = new CompilerCache(fileProviderAccessor.FileProvider);
+            var feature = new PrecompiledViewsFeature();
+            applicationPartManager.PopulateFeature(feature);
+            Cache = new CompilerCache(fileProviderAccessor.FileProvider, feature.PrecompiledViews);
         }
 
         /// <inheritdoc />
