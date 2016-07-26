@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class RequireHttpsAttribute : Attribute, IAuthorizationFilter, IOrderedFilter
     {
-        private bool? _permanent = null;
+        private bool? _permanent;
 
         /// <summary>
         /// Specifies whether a permanent redirect, <c>301 Moved Permanently</c>,
@@ -88,7 +88,6 @@ namespace Microsoft.AspNetCore.Mvc
                     host = new HostString(host.Host);
                 }
 
-                //i use MvcOption.requireHttpsPermanent value if Permanent parameter is null
                 _permanent = _permanent ?? optionsAccessor.Value.RequireHttpsPermanent;
 
                 var newUrl = string.Concat(
