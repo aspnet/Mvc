@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc
                     host = new HostString(host.Host);
                 }
 
-                _permanent = _permanent ?? optionsAccessor.Value.RequireHttpsPermanent;
+                var permanentValue = _permanent ?? optionsAccessor.Value.RequireHttpsPermanent;
 
                 var newUrl = string.Concat(
                     "https://",
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc
                     request.QueryString.ToUriComponent());
 
                 // redirect to HTTPS version of page
-                filterContext.Result = new RedirectResult(newUrl, _permanent.Value);
+                filterContext.Result = new RedirectResult(newUrl, permanentValue);
             }
         }
     }
