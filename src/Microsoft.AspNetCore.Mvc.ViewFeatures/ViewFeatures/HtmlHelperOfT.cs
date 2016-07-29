@@ -216,6 +216,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 modelExplorer,
                 GetExpressionName(expression),
                 modelExplorer.Model,
+                format: null,
                 useViewData: false,
                 htmlAttributes: htmlAttributes);
         }
