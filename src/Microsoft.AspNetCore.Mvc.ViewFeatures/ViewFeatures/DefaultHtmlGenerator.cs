@@ -176,7 +176,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             bool? isChecked,
             object htmlAttributes,
-            string idModifier = null)
+            string idModifier)
         {
             if (viewContext == null)
             {
@@ -347,7 +347,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             string labelText,
             object htmlAttributes,
-            string idModifier = null)
+            string idModifier)
         {
             if (viewContext == null)
             {
@@ -419,7 +419,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             object value,
             bool? isChecked,
             object htmlAttributes,
-            string idModifier = null)
+            string idModifier)
         {
             if (viewContext == null)
             {

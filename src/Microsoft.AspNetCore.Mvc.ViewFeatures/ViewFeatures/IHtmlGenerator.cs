@@ -86,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             bool? isChecked,
             object htmlAttributes,
-            string idModifier = null);
+            string idModifier);
 
         /// <summary>
         /// Generate an additional &lt;input type="hidden".../&gt; for checkboxes. This addresses scenarios where
@@ -168,7 +168,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             string labelText,
             object htmlAttributes,
-            string idModifier = null);
+            string idModifier);
 
         TagBuilder GeneratePassword(
             ViewContext viewContext,
@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             object value,
             bool? isChecked,
             object htmlAttributes,
-            string idModifier = null);
+            string idModifier);
 
         /// <summary>
         /// Generate a &lt;a&gt; element for a link to an action.

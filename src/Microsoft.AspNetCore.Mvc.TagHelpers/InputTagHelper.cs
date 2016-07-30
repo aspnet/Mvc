@@ -262,7 +262,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 modelExplorer,
                 For.Name,
                 isChecked: null,
-                htmlAttributes: htmlAttributes);
+                htmlAttributes: htmlAttributes,
+                idModifier: null);
             if (checkBoxTag != null)
             {
                 // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
