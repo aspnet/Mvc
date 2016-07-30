@@ -600,7 +600,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     value,
                     null,       // isChecked
                     null,       // htmlAttributes
-                    null))      // idModifier
+                    value))     // idModifier
                 .Returns(tagBuilder)
                 .Verifiable();
 
