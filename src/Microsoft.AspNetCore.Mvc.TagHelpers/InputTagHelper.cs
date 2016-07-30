@@ -189,6 +189,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             TagBuilder tagBuilder;
             switch (inputType)
             {
+                case "hidden":
+                    tagBuilder = Generator.GenerateHidden(
+                        ViewContext,
+                        modelExplorer,
+                        For.Name,
+                        value: For.Model,
+                        format: Format,
+                        useViewData: false,
+                        htmlAttributes: null);
+                    break;
+
                 case "checkbox":
                     GenerateCheckBox(modelExplorer, output);
                     return;
@@ -207,7 +218,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     break;
 
                 default:
-                    tagBuilder = GenerateInput(modelExplorer, inputTypeHint, inputType);
+                    tagBuilder = GenerateTextBox(modelExplorer, inputTypeHint, inputType);
                     break;
             }
 
@@ -303,7 +314,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 htmlAttributes: null);
         }
 
-        private TagBuilder GenerateInput(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
+        private TagBuilder GenerateTextBox(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
         {
             var format = Format;
             if (string.IsNullOrEmpty(format))
@@ -315,18 +326,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 { "type", inputType }
             };
-
-            if (string.Equals(inputType, "hidden"))
-            {
-                return Generator.GenerateHidden(
-                        ViewContext,
-                        modelExplorer,
-                        For.Name,
-                        value: For.Model,
-                        format: format,
-                        useViewData: false,
-                        htmlAttributes: null);
-            }
 
             if (string.Equals(inputType, "file") && string.Equals(inputTypeHint, TemplateRenderer.IEnumerableOfIFormFileName))
             {
@@ -340,7 +339,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 value: modelExplorer.Model,
                 format: format,
                 htmlAttributes: htmlAttributes);
-            
         }
 
         // Get a fall-back format based on the metadata.
