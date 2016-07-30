@@ -98,11 +98,15 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
         /// <paramref name="name"/>.
         /// </param>
+        /// <param name="idModifier">
+        /// Value to be appended the id attribute.
+        /// Only relevant for creating radio or non-boolean checkbox inputs and their labels.
+        /// </param>
         /// <returns>
         /// Valid HTML 4.01 "id" attribute for an element with the given <paramref name="name"/>.
         /// </returns>
         /// <remarks>Valid "id" attributes are defined in http://www.w3.org/TR/html401/types.html#type-id</remarks>
-        public static string CreateSanitizedId(string name, string invalidCharReplacement)
+        public static string CreateSanitizedId(string name, string invalidCharReplacement, string idModifier = null)
         {
             if (invalidCharReplacement == null)
             {
@@ -112,6 +116,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             if (string.IsNullOrEmpty(name))
             {
                 return string.Empty;
+            }
+
+            if (idModifier != null)
+            {
+                name += "." + idModifier;
             }
 
             // If there are no invalid characters in the string, then we don't have to create the buffer.
@@ -171,7 +180,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
         /// <paramref name="name"/>.
         /// </param>
-        public void GenerateId(string name, string invalidCharReplacement)
+        /// <param name="idModifier">
+        /// Value to be appended the id attribute.
+        /// Only relevant for creating radio or non-boolean checkbox inputs and their labels.
+        /// </param>
+        public void GenerateId(string name, string invalidCharReplacement, string idModifier = null)
         {
             if (invalidCharReplacement == null)
             {
@@ -180,6 +193,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             if (!Attributes.ContainsKey("id"))
             {
+                if (idModifier != null)
+                {
+                    name += "." + idModifier;
+                }
+
                 var sanitizedId = CreateSanitizedId(name, invalidCharReplacement);
                 if (!string.IsNullOrEmpty(sanitizedId))
                 {

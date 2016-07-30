@@ -76,6 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
         /// <see cref="IDictionary{String, Object}"/> instance containing the HTML attributes.
         /// </param>
+        /// <param name="idModifier">Value to be appended the id attribute</param>
         /// <returns>
         /// A <see cref="TagBuilder"/> instance for the &lt;input type="checkbox".../&gt; element.
         /// </returns>
@@ -84,7 +85,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             bool? isChecked,
-            object htmlAttributes);
+            object htmlAttributes,
+            string idModifier = null);
 
         /// <summary>
         /// Generate an additional &lt;input type="hidden".../&gt; for checkboxes. This addresses scenarios where
@@ -165,7 +167,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             string labelText,
-            object htmlAttributes);
+            object htmlAttributes,
+            string idModifier = null);
 
         TagBuilder GeneratePassword(
             ViewContext viewContext,
@@ -180,7 +183,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             object value,
             bool? isChecked,
-            object htmlAttributes);
+            object htmlAttributes,
+            string idModifier = null);
 
         /// <summary>
         /// Generate a &lt;a&gt; element for a link to an action.

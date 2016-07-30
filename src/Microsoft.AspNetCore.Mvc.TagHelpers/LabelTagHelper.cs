@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     public class LabelTagHelper : TagHelper
     {
         private const string ForAttributeName = "asp-for";
+        private const string ForValueAttributeName = "asp-for-value";
 
         /// <summary>
         /// Creates a new <see cref="LabelTagHelper"/>.
@@ -47,6 +48,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [HtmlAttributeName(ForAttributeName)]
         public ModelExpression For { get; set; }
 
+        /// <summary>
+        /// The value of the input checkbox or radio that this label is used for.
+        /// Used to generate a unique html element id
+        /// </summary>
+        [HtmlAttributeName(ForValueAttributeName)]
+        public Object ForValue { get; set; }
+
         /// <inheritdoc />
         /// <remarks>Does nothing if <see cref="For"/> is <c>null</c>.</remarks>
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
@@ -66,7 +74,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 For.ModelExplorer,
                 For.Name,
                 labelText: null,
-                htmlAttributes: null);
+                htmlAttributes: null,
+                idModifier: ForValue?.ToString());
 
             if (tagBuilder != null)
             {

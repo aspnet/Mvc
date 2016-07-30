@@ -175,7 +175,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             bool? isChecked,
-            object htmlAttributes)
+            object htmlAttributes,
+            string idModifier = null)
         {
             if (viewContext == null)
             {
@@ -216,7 +217,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 setId: true,
                 isExplicitValue: false,
                 format: null,
-                htmlAttributes: htmlAttributeDictionary);
+                htmlAttributes: htmlAttributeDictionary,
+                idModifier: idModifier);
         }
 
         /// <inheritdoc />
@@ -344,7 +346,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             string labelText,
-            object htmlAttributes)
+            object htmlAttributes,
+            string idModifier = null)
         {
             if (viewContext == null)
             {
@@ -372,7 +375,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var tagBuilder = new TagBuilder("label");
             var idString =
-                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
+                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement, idModifier);
             tagBuilder.Attributes.Add("for", idString);
             tagBuilder.InnerHtml.SetContent(resolvedLabelText);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), replaceExisting: true);
@@ -415,7 +418,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             object value,
             bool? isChecked,
-            object htmlAttributes)
+            object htmlAttributes,
+            string idModifier = null)
         {
             if (viewContext == null)
             {
@@ -474,7 +478,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 setId: true,
                 isExplicitValue: true,
                 format: null,
-                htmlAttributes: htmlAttributeDictionary);
+                htmlAttributes: htmlAttributeDictionary,
+                idModifier: idModifier);
         }
 
         /// <inheritdoc />
@@ -1137,7 +1142,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool setId,
             bool isExplicitValue,
             string format,
-            IDictionary<string, object> htmlAttributes)
+            IDictionary<string, object> htmlAttributes,
+            string idModifier = null)
         {
             if (viewContext == null)
             {
@@ -1254,7 +1260,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (setId)
             {
-                tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
+                tagBuilder.GenerateId(fullName, IdAttributeDotReplacement, idModifier);
             }
 
             // If there are any errors for a named field, we add the CSS attribute.

@@ -310,7 +310,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 For.Name,
                 Value,
                 isChecked: null,
-                htmlAttributes: null);
+                htmlAttributes: null,
+                idModifier: Value);
         }
 
         private TagBuilder GenerateTextBox(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
