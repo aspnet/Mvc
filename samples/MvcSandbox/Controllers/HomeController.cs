@@ -9,13 +9,7 @@ namespace MvcSandbox.Controllers
     {
         public IActionResult Index()
         {
-            return View(new Models.SimpleDateTimeModel
-            {
-                PlainProp1 = System.DateTime.Now,
-                PlainProp2 = System.DateTime.Now,
-                Prop1 = System.DateTime.Now,
-                Prop2 = System.DateTime.Now
-            });
+            return View();
         }
     }
 }

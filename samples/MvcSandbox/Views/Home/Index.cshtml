@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-@model global::MvcSandbox.Models.SimpleDateTimeModel
+
 <div class="row">
     <div class="col-md-3">
         <h2>Sandbox</h2>
@@ -9,11 +9,4 @@
             <li>This sandbox should give you a quick view of a basic MVC application.</li>
         </ul>
     </div>
-    <form>
-        <input type="hidden" asp-for="PlainProp1" />
-        <input type="hidden" asp-for="PlainProp2" />
-
-        <input type="hidden" asp-for="Prop1" asp-format="{0:yyyy-MM-dd}" />
-        <input type="hidden" asp-for="Prop2" asp-format="{0:yyyy-MM-dd}" />
-    </form>
 </div>
