@@ -297,8 +297,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     null,                   // isChecked
-                    It.IsAny<object>(),     // htmlAttributes
-                    null))                  // idModifier
+                    It.IsAny<object>()))    // htmlAttributes
                 .Returns(tagBuilder)
                 .Verifiable();
             htmlGenerator
@@ -599,8 +598,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelper.For.Name,
                     value,
                     null,       // isChecked
-                    null,       // htmlAttributes
-                    value))     // idModifier
+                    null))      // htmlAttributes
                 .Returns(tagBuilder)
                 .Verifiable();
 

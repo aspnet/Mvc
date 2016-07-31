@@ -11,15 +11,15 @@ using System.Collections.Generic;
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
     [HtmlTargetElement("input", Attributes = ForCollectionAttributeName, TagStructure = TagStructure.WithoutEndTag)]
-    public class CollectionCheckboxTagHelper : TagHelper
+    public class CollectionInputTagHelper : TagHelper
     {
         private const string ForCollectionAttributeName = "asp-for-collection";
 
         /// <summary>
-        /// Creates a new <see cref="CollectionCheckboxTagHelper"/>.
+        /// Creates a new <see cref="CollectionInputTagHelper"/>.
         /// </summary>
         /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>
-        public CollectionCheckboxTagHelper(IHtmlGenerator generator)
+        public CollectionInputTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
         }
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             // Checking if the model array contains the passed in value
-            bool? isChecked = null;
+            bool isChecked = false;
             if (ForCollection.Model != null && ForCollection.Model is Array)
             {
                 var modelItems = ForCollection.Model as Array;
@@ -105,18 +105,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            var checkBoxTag = Generator.GenerateCheckBox(
+            var checkBoxTag = Generator.GenerateRadioButton(
                 ViewContext,
                 modelExplorer,
                 ForCollection.Name,
-                isChecked: isChecked,
-                htmlAttributes: htmlAttributes,
-                idModifier: Value?.ToString());
+                Value,
+                isChecked: null,
+                htmlAttributes: htmlAttributes);
             if (checkBoxTag != null)
             {
                 output.Attributes.Clear();
                 output.TagName = null;
 
+                if (isChecked)
+                    checkBoxTag.Attributes["checked"] = "checked";
                 output.Content.AppendHtml(checkBoxTag);
             }
         }

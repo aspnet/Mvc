@@ -175,8 +175,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             bool? isChecked,
-            object htmlAttributes,
-            string idModifier)
+            object htmlAttributes)
         {
             if (viewContext == null)
             {
@@ -217,8 +216,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 setId: true,
                 isExplicitValue: false,
                 format: null,
-                htmlAttributes: htmlAttributeDictionary,
-                idModifier: idModifier);
+                htmlAttributes: htmlAttributeDictionary);
         }
 
         /// <inheritdoc />
@@ -418,8 +416,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             object value,
             bool? isChecked,
-            object htmlAttributes,
-            string idModifier)
+            object htmlAttributes)
         {
             if (viewContext == null)
             {
@@ -479,7 +476,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 isExplicitValue: true,
                 format: null,
                 htmlAttributes: htmlAttributeDictionary,
-                idModifier: idModifier);
+                idModifier: value?.ToString());
         }
 
         /// <inheritdoc />

@@ -748,8 +748,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 modelExplorer,
                 expression,
                 isChecked,
-                htmlAttributes,
-                null);
+                htmlAttributes);
 
             var hiddenForCheckboxTag = _htmlGenerator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, expression);
             if (checkbox == null || hiddenForCheckboxTag == null)
@@ -1072,8 +1071,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 expression,
                 value,
                 isChecked,
-                htmlAttributes,
-                null);
+                htmlAttributes);
             if (tagBuilder == null)
             {
                 return HtmlString.Empty;

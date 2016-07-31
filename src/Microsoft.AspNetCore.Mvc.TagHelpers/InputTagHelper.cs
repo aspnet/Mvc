@@ -262,8 +262,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 modelExplorer,
                 For.Name,
                 isChecked: null,
-                htmlAttributes: htmlAttributes,
-                idModifier: null);
+                htmlAttributes: htmlAttributes);
             if (checkBoxTag != null)
             {
                 // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
@@ -311,8 +310,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 For.Name,
                 Value,
                 isChecked: null,
-                htmlAttributes: null,
-                idModifier: Value);
+                htmlAttributes: null);
         }
 
         private TagBuilder GenerateTextBox(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
