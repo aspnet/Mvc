@@ -12,6 +12,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     /// </summary>
     public class MvcCoreRouteOptionsSetup : ConfigureOptions<RouteOptions>
     {
+        private const string KnownRouteValueConstraintKey = "exists";
+
         public MvcCoreRouteOptionsSetup()
             : base(ConfigureRouting)
         {
@@ -23,7 +25,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// <param name="options">The <see cref="RouteOptions"/>.</param>
         public static void ConfigureRouting(RouteOptions options)
         {
-            options.ConstraintMap.Add("exists", typeof(KnownRouteValueConstraint));
+            if (!options.ConstraintMap.ContainsKey(KnownRouteValueConstraintKey))
+            {
+                options.ConstraintMap.Add(KnownRouteValueConstraintKey, typeof(KnownRouteValueConstraint));
+            }
         }
     }
 }
