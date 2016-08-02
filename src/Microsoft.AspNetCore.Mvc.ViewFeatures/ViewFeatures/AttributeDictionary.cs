@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
@@ -13,7 +12,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
     /// </summary>
     public class AttributeDictionary : IDictionary<string, string>, IReadOnlyDictionary<string, string>
     {
-        private List<KeyValuePair<string, string>> _items;
+        private readonly AttributeValuesDictionary _innerDictionary;
+
+        // Legacy constructor for tests.
+        public AttributeDictionary()
+            : this(new AttributeValuesDictionary())
+        {
+        }
+
+        public AttributeDictionary(AttributeValuesDictionary innerDictionary)
+        {
+            if (innerDictionary == null)
+            {
+                throw new ArgumentNullException(nameof(innerDictionary));
+            }
+
+            _innerDictionary = innerDictionary;
+        }
 
         /// <inheritdoc />
         public string this[string key]
@@ -25,15 +40,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     throw new ArgumentNullException(nameof(key));
                 }
 
-                var index = Find(key);
-                if (index < 0)
-                {
-                    throw new KeyNotFoundException();
-                }
-                else
-                {
-                    return Get(index).Value;
-                }
+                var value = _innerDictionary[key];
+                return value.ToString();
             }
 
             set
@@ -43,37 +51,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     throw new ArgumentNullException(nameof(key));
                 }
 
-                var item = new KeyValuePair<string, string>(key, value);
-                var index = Find(key);
-                if (index < 0)
-                {
-                    Insert(~index, item);
-                }
-                else
-                {
-                    Set(index, item);
-                }
+                _innerDictionary[key] = value;
             }
         }
 
         /// <inheritdoc />
-        public int Count => _items == null ? 0 : _items.Count;
+        public int Count => _innerDictionary.Count;
 
         /// <inheritdoc />
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsReadOnly { get; } = false;
 
         /// <inheritdoc />
         public ICollection<string> Keys
         {
             get
             {
-                return new KeyCollection(this);
+                return _innerDictionary.Keys;
             }
         }
 
@@ -82,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             get
             {
-                return new ValueCollection(this);
+                return new ValueCollection(_innerDictionary);
             }
         }
 
@@ -91,7 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             get
             {
-                return new KeyCollection(this);
+                return _innerDictionary.Keys;
             }
         }
 
@@ -100,93 +93,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             get
             {
-                return new ValueCollection(this);
+                return new ValueCollection(_innerDictionary);
             }
-        }
-
-        private KeyValuePair<string, string> Get(int index)
-        {
-            Debug.Assert(index >= 0 && index < Count);
-            return _items[index];
-        }
-
-        private void Set(int index, KeyValuePair<string, string> value)
-        {
-            Debug.Assert(index >= 0 && index <= Count);
-            Debug.Assert(value.Key != null);
-
-            if (_items == null)
-            {
-                _items = new List<KeyValuePair<string, string>>();
-            }
-
-            _items[index] = value;
-        }
-
-        private void Insert(int index, KeyValuePair<string, string> value)
-        {
-            Debug.Assert(index >= 0 && index <= Count);
-            Debug.Assert(value.Key != null);
-
-            if (_items == null)
-            {
-                _items = new List<KeyValuePair<string, string>>();
-            }
-
-            _items.Insert(index, value);
-        }
-
-        private void Remove(int index)
-        {
-            Debug.Assert(index >= 0 && index < Count);
-
-            _items.RemoveAt(index);
-        }
-
-        // This API is a lot like List<T>.BinarySearch https://msdn.microsoft.com/en-us/library/3f90y839(v=vs.110).aspx
-        // If an item is not found, we return the compliment of where it belongs. Then we don't need to search again
-        // to do something with it.
-        private int Find(string key)
-        {
-            Debug.Assert(key != null);
-
-            if (Count == 0)
-            {
-                return ~0;
-            }
-
-            var start = 0;
-            var end = Count - 1;
-
-            while (start <= end)
-            {
-                var pivot = start + (end - start >> 1);
-
-                var compare = StringComparer.OrdinalIgnoreCase.Compare(Get(pivot).Key, key);
-                if (compare == 0)
-                {
-                    return pivot;
-                }
-                if (compare < 0)
-                {
-                    start = pivot + 1;
-                }
-                else
-                {
-                    end = pivot - 1;
-                }
-            }
-
-            return ~start;
         }
 
         /// <inheritdoc />
         public void Clear()
         {
-            if (_items != null)
-            {
-                _items.Clear();
-            }
+            _innerDictionary.Clear();
         }
 
         /// <inheritdoc />
@@ -201,15 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     nameof(item));
             }
 
-            var index = Find(item.Key);
-            if (index < 0)
-            {
-                Insert(~index, item);
-            }
-            else
-            {
-                throw new InvalidOperationException(Resources.FormatDictionary_DuplicateKey(item.Key));
-            }
+            _innerDictionary.Add(item.Key, item.Value);
         }
 
         /// <inheritdoc />
@@ -220,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(key));
             }
 
-            Add(new KeyValuePair<string, string>(key, value));
+            _innerDictionary.Add(key, value);
         }
 
         /// <inheritdoc />
@@ -235,15 +141,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     nameof(item));
             }
 
-            var index = Find(item.Key);
-            if (index < 0)
-            {
-                return false;
-            }
-            else
-            {
-                return string.Equals(item.Value, Get(index).Value, StringComparison.OrdinalIgnoreCase);
-            }
+            var innerItem = new KeyValuePair<string, StringValuesTutu>(item.Key, item.Value);
+            return _innerDictionary.Contains(innerItem);
         }
 
         /// <inheritdoc />
@@ -254,12 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (Count == 0)
-            {
-                return false;
-            }
-
-            return Find(key) >= 0;
+            return _innerDictionary.ContainsKey(key);
         }
 
         /// <inheritdoc />
@@ -275,16 +169,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new IndexOutOfRangeException();
             }
 
-            for (var i = 0; i < Count; i++)
+            foreach (var innerItem in _innerDictionary)
             {
-                array[arrayIndex + i] = Get(i);
+                var item = new KeyValuePair<string, string>(innerItem.Key, innerItem.Value.ToString());
+                array[arrayIndex++] = item;
             }
         }
 
         /// <inheritdoc />
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(this);
+            return new Enumerator(_innerDictionary);
         }
 
         /// <inheritdoc />
@@ -299,20 +194,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     nameof(item));
             }
 
-            var index = Find(item.Key);
-            if (index < 0)
-            {
-                return false;
-            }
-            else if (string.Equals(item.Value, Get(index).Value, StringComparison.OrdinalIgnoreCase))
-            {
-                Remove(index);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            var innerItem = new KeyValuePair<string, StringValuesTutu>(item.Key, item.Value);
+            return _innerDictionary.Remove(innerItem);
         }
 
         /// <inheritdoc />
@@ -323,16 +206,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var index = Find(key);
-            if (index < 0)
-            {
-                return false;
-            }
-            else
-            {
-                Remove(index);
-                return true;
-            }
+            return _innerDictionary.Remove(key);
         }
 
         /// <inheritdoc />
@@ -343,17 +217,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(key));
             }
 
-            var index = Find(key);
-            if (index < 0)
+            StringValuesTutu stringValues;
+            if (_innerDictionary.TryGetValue(key, out stringValues))
             {
-                value = null;
-                return false;
-            }
-            else
-            {
-                value = Get(index).Value;
+                value = stringValues.ToString();
                 return true;
             }
+
+            value = null;
+            return false;
         }
 
         /// <inheritdoc />
@@ -373,19 +245,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </summary>
         public struct Enumerator : IEnumerator<KeyValuePair<string, string>>
         {
-            private readonly AttributeDictionary _attributes;
-
-            private int _index;
+            private AttributeValuesDictionary.Enumerator _innerEnumerator;
 
             /// <summary>
             /// Creates a new <see cref="Enumerator"/>.
             /// </summary>
-            /// <param name="attributes">The <see cref="AttributeDictionary"/>.</param>
-            public Enumerator(AttributeDictionary attributes)
+            /// <param name="attributes">The <see cref="AttributeValuesDictionary"/>.</param>
+            public Enumerator(AttributeValuesDictionary attributes)
             {
-                _attributes = attributes;
-
-                _index = -1;
+                _innerEnumerator = attributes.GetEnumerator();
             }
 
             /// <inheritdoc />
@@ -393,7 +261,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 get
                 {
-                    return _attributes.Get(_index);
+                    var innerItem = _innerEnumerator.Current;
+                    return new KeyValuePair<string, string>(innerItem.Key, innerItem.Value.ToString());
                 }
             }
 
@@ -409,155 +278,31 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             /// <inheritdoc />
             public void Dispose()
             {
+                _innerEnumerator.Dispose();
             }
 
             /// <inheritdoc />
             public bool MoveNext()
             {
-                _index++;
-                return _index < _attributes.Count;
+                return _innerEnumerator.MoveNext();
             }
 
             /// <inheritdoc />
             public void Reset()
             {
-                _index = -1;
-            }
-        }
-
-        private class KeyCollection : ICollection<string>
-        {
-            private readonly AttributeDictionary _attributes;
-
-            public KeyCollection(AttributeDictionary attributes)
-            {
-                _attributes = attributes;
-            }
-
-            public int Count => _attributes.Count;
-
-            public bool IsReadOnly => true;
-
-            public void Add(string item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
-
-            public bool Contains(string item)
-            {
-                if (item == null)
-                {
-                    throw new ArgumentNullException(nameof(item));
-                }
-
-                for (var i = 0; i < _attributes.Count; i++)
-                {
-                    if (string.Equals(item, _attributes.Get(i).Key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            public void CopyTo(string[] array, int arrayIndex)
-            {
-                if (array == null)
-                {
-                    throw new ArgumentNullException(nameof(array));
-                }
-
-                if (arrayIndex < 0 || arrayIndex >= array.Length)
-                {
-                    throw new IndexOutOfRangeException();
-                }
-
-                for (var i = 0; i < _attributes.Count; i++)
-                {
-                    array[arrayIndex + i] = _attributes.Get(i).Key;
-                }
-            }
-
-            public Enumerator GetEnumerator()
-            {
-                return new Enumerator(this._attributes);
-            }
-
-            public bool Remove(string item)
-            {
-                throw new NotSupportedException();
-            }
-
-            IEnumerator<string> IEnumerable<string>.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public struct Enumerator : IEnumerator<string>
-            {
-                private readonly AttributeDictionary _attributes;
-
-                private int _index;
-
-                public Enumerator(AttributeDictionary attributes)
-                {
-                    _attributes = attributes;
-
-                    _index = -1;
-                }
-
-                public string Current
-                {
-                    get
-                    {
-                        return _attributes.Get(_index).Key;
-                    }
-                }
-
-                object IEnumerator.Current
-                {
-                    get
-                    {
-                        return Current;
-                    }
-                }
-
-                public void Dispose()
-                {
-                }
-
-                public bool MoveNext()
-                {
-                    _index++;
-                    return _index < _attributes.Count;
-                }
-
-                public void Reset()
-                {
-                    _index = -1;
-                }
+                _innerEnumerator.Reset();
             }
         }
 
         private class ValueCollection : ICollection<string>
         {
-            private readonly AttributeDictionary _attributes;
+            private readonly AttributeValuesDictionary _attributes;
 
-            public ValueCollection(AttributeDictionary attributes)
+            public ValueCollection(AttributeValuesDictionary attributes)
             {
                 _attributes = attributes;
             }
+
             public int Count => _attributes.Count;
 
             public bool IsReadOnly => true;
@@ -574,9 +319,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             public bool Contains(string item)
             {
-                for (var i = 0; i < _attributes.Count; i++)
+                foreach (var value in _attributes.Values)
                 {
-                    if (string.Equals(item, _attributes.Get(i).Value, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(item, value.ToString(), StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -597,15 +342,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     throw new IndexOutOfRangeException();
                 }
 
-                for (var i = 0; i < _attributes.Count; i++)
+                foreach (var value in _attributes.Values)
                 {
-                    array[arrayIndex + i] = _attributes.Get(i).Value;
+                    array[arrayIndex++] = value.ToString();
                 }
             }
 
             public Enumerator GetEnumerator()
             {
-                return new Enumerator(this._attributes);
+                return new Enumerator(_attributes);
             }
 
             public bool Remove(string item)
@@ -625,22 +370,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             public struct Enumerator : IEnumerator<string>
             {
-                private readonly AttributeDictionary _attributes;
+                private IEnumerator<StringValuesTutu> _innerEnumerator;
 
-                private int _index;
-
-                public Enumerator(AttributeDictionary attributes)
+                public Enumerator(AttributeValuesDictionary attributes)
                 {
-                    _attributes = attributes;
-
-                    _index = -1;
+                    _innerEnumerator = attributes.Values.GetEnumerator();
                 }
 
                 public string Current
                 {
                     get
                     {
-                        return _attributes.Get(_index).Key;
+                        var innerValue = _innerEnumerator.Current;
+                        return innerValue.ToString();
                     }
                 }
 
@@ -654,17 +396,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
                 public void Dispose()
                 {
+                    _innerEnumerator.Dispose();
                 }
 
                 public bool MoveNext()
                 {
-                    _index++;
-                    return _index < _attributes.Count;
+                    return _innerEnumerator.MoveNext();
                 }
 
                 public void Reset()
                 {
-                    _index = -1;
+                    _innerEnumerator.Reset();
                 }
             }
         }

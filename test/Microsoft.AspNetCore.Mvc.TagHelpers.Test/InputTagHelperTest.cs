@@ -238,7 +238,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -307,7 +307,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagHelper.Process(context, output);
 
             // Assert
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Empty(output.PreContent.GetContent());
             Assert.Empty(output.Content.GetContent());
             Assert.Empty(output.PostContent.GetContent());
@@ -350,7 +350,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             output.Content.AppendHtml(originalContent);
             output.PostContent.AppendHtml(expectedPostContent);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
             tagHelper.Format = "somewhat-less-null"; // ignored
 
@@ -455,7 +455,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForProperty<Model>("Text").DisplayDetails(dd => dd.DataTypeName = dataTypeName);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
                 model,
@@ -489,7 +489,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.StartTagOnly, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -557,7 +557,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForProperty<Model>("Text").DisplayDetails(dd => dd.DataTypeName = dataTypeName);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
                 model,
@@ -590,7 +590,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.StartTagOnly, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -653,7 +653,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             output.Content.SetContent(expectedContent);
             output.PostContent.SetContent(expectedPostContent);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(htmlGenerator.Object, model, nameof(Model.Text));
             tagHelper.Format = "somewhat-less-null"; // ignored
             tagHelper.InputTypeName = inputTypeName;
@@ -684,7 +684,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.StartTagOnly, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -767,7 +767,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForProperty<Model>("Text").DisplayDetails(dd => dd.DataTypeName = dataTypeName);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
                 model,
@@ -801,7 +801,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.StartTagOnly, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -878,7 +878,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForProperty<Model>("Text").DisplayDetails(dd => dd.DataTypeName = dataTypeName);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
                 model: null,
@@ -913,7 +913,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Empty(output.PreContent.GetContent());
             Assert.Equal(string.Empty, output.Content.GetContent());
             Assert.Empty(output.PostContent.GetContent());
@@ -967,7 +967,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "type", expectedType }
             };
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
                 model: null,
@@ -994,7 +994,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             htmlGenerator.Verify();
 
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Empty(output.PreContent.GetContent());
             Assert.Equal(string.Empty, output.Content.GetContent());
             Assert.Empty(output.PostContent.GetContent());

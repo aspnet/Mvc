@@ -69,6 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public InputTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+            GeneratorTutu = HtmlGeneratorAdapter.GetTuTu(generator);
         }
 
         /// <inheritdoc />
@@ -81,6 +82,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         protected IHtmlGenerator Generator { get; }
+
+        protected IHtmlGeneratorTutu GeneratorTutu { get; }
 
         [HtmlAttributeNotBound]
         [ViewContext]
@@ -199,10 +202,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     return;
 
                 case "password":
-                    tagBuilder = Generator.GeneratePassword(
+                    tagBuilder = GeneratorTutu.GeneratePassword(
                         ViewContext,
                         modelExplorer,
-                        For.Name,
+                        For.NameValues,
                         value: null,
                         htmlAttributes: null);
                     break;
@@ -276,10 +279,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            var checkBoxTag = Generator.GenerateCheckBox(
+            var checkBoxTag = GeneratorTutu.GenerateCheckBox(
                 ViewContext,
                 modelExplorer,
-                For.Name,
+                For.NameValues,
                 isChecked: null,
                 htmlAttributes: htmlAttributes);
             if (checkBoxTag != null)
@@ -294,7 +297,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 checkBoxTag.TagRenderMode = renderingMode;
                 output.Content.AppendHtml(checkBoxTag);
 
-                var hiddenForCheckboxTag = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
+                var hiddenForCheckboxTag = GeneratorTutu.GenerateHiddenForCheckbox(
+                    ViewContext,
+                    modelExplorer,
+                    For.NameValues);
                 if (hiddenForCheckboxTag != null)
                 {
                     hiddenForCheckboxTag.TagRenderMode = renderingMode;
@@ -323,10 +329,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     "radio"));
             }
 
-            return Generator.GenerateRadioButton(
+            return GeneratorTutu.GenerateRadioButton(
                 ViewContext,
                 modelExplorer,
-                For.Name,
+                For.NameValues,
                 Value,
                 isChecked: null,
                 htmlAttributes: null);
@@ -350,10 +356,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 htmlAttributes["multiple"] = "multiple";
             }
 
-            return Generator.GenerateTextBox(
+            return GeneratorTutu.GenerateTextBox(
                 ViewContext,
                 modelExplorer,
-                For.Name,
+                For.NameValues,
                 value: modelExplorer.Model,
                 format: format,
                 htmlAttributes: htmlAttributes);
@@ -378,10 +384,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "type", "hidden" }
             };
 
-            return Generator.GenerateTextBox(
+            return GeneratorTutu.GenerateTextBox(
                 ViewContext,
                 modelExplorer,
-                For.Name,
+                For.NameValues,
                 value: value,
                 format: Format,
                 htmlAttributes: htmlAttributes);

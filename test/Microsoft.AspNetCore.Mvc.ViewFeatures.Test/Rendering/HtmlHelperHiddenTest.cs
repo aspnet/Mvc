@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             get
             {
                 var expected1 = @"<input baz=""HtmlEncode[[BazValue]]"" id=""HtmlEncode[[Property1]]"" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                                @"value=""HtmlEncode[[ModelStateValue]]"" />";
+                    @"value=""HtmlEncode[[ModelStateValue]]"" />";
                 yield return new object[] { new Dictionary<string, object> { { "baz", "BazValue" } }, expected1 };
                 yield return new object[] { new { baz = "BazValue" }, expected1 };
 
                 var expected2 = @"<input foo-baz=""HtmlEncode[[BazValue]]"" id=""HtmlEncode[[Property1]]"" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                                @"value=""HtmlEncode[[ModelStateValue]]"" />";
+                    @"value=""HtmlEncode[[ModelStateValue]]"" />";
                 yield return new object[] { new Dictionary<string, object> { { "foo-baz", "BazValue" } }, expected2 };
                 yield return new object[] { new { foo_baz = "BazValue" }, expected2 };
             }
@@ -81,7 +81,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_GetsValueFromPropertyOfViewDataEntry()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[Prefix_Property1]]"" name=""HtmlEncode[[Prefix.Property1]]"" " +
+            var expected = @"<input id=""HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" " +
                 @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[contained-view-data-value]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNonNullModel());
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "Prefix";
@@ -116,7 +117,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_GetsValueFromViewDataEntry_EvenIfNull()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[Prefix_Property1]]"" name=""HtmlEncode[[Prefix.Property1]]"" " +
+            var expected = @"<input id=""HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" " +
                 @"type=""HtmlEncode[[hidden]]"" value="""" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNonNullModel());
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "Prefix";
@@ -151,7 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var expected = @"<input id=""HtmlEncode[[Property1]]"" key=""HtmlEncode[[value]]"" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[test]]"" />";
+                @"value=""HtmlEncode[[test]]"" />";
             var attributes = new { key = "value" };
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNullModelAndNonNullViewData());
 
@@ -167,7 +169,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var expected = @"<input data-key=""HtmlEncode[[value]]"" id=""HtmlEncode[[Property1]]"" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[test]]"" />";
+                @"value=""HtmlEncode[[test]]"" />";
             var attributes = new Dictionary<string, object> { { "data-key", "value" } };
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNullModelAndNonNullViewData());
 
@@ -244,7 +246,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_GetsModelValue_IfModelStateAndViewDataEmpty()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[Prefix_Property1]]"" name=""HtmlEncode[[Prefix.Property1]]"" " +
+            var expected = @"<input id=""HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" " +
                 @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[property-value]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNonNullModel());
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "Prefix";
@@ -275,7 +278,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_DoesNotUseAttributeValue()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[Prefix_Property1]]"" name=""HtmlEncode[[Prefix.Property1]]"" " +
+            var expected = @"<input id=""HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" " +
                 @"type=""HtmlEncode[[hidden]]"" value="""" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithNonNullModel());
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "Prefix";
@@ -292,7 +296,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var expected = @"<input baz=""HtmlEncode[[BazValue]]"" id=""HtmlEncode[[keyNotFound]]"" name=""HtmlEncode[[keyNotFound]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value="""" />";
+                @"value="""" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             var attributes = new Dictionary<string, object> { { "baz", "BazValue" } };
 
@@ -307,7 +311,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_GetsEmptyValue_IfPropertyIsNotFound()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[Prefix_keyNotFound]]"" name=""HtmlEncode[[Prefix.keyNotFound]]"" " +
+            var expected = @"<input id=""HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[keyNotFound]]"" " +
+                @"name=""HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[keyNotFound]]"" " +
                 @"type=""HtmlEncode[[hidden]]"" value="""" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "Prefix";
@@ -323,8 +328,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_WithExplicitValue_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix_Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[PropValue]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
+                @"value=""HtmlEncode[[PropValue]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
 
@@ -354,8 +360,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_UsesPrefixName_ToLookupPropertyValueInModelState()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix$Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[modelstate-with-prefix]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[$]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
+                @"value=""HtmlEncode[[modelstate-with-prefix]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(
                 GetViewDataWithModelStateAndModelAndViewDataValues(),
                 idAttributeDotReplacement: "$");
@@ -385,8 +392,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenInTemplate_UsesPrefixNameToLookupPropertyValueInViewData()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix$Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[vdd-with-prefix]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[$]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
+                @"value=""HtmlEncode[[vdd-with-prefix]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(
                 GetViewDataWithModelStateAndModelAndViewDataValues(),
                 idAttributeDotReplacement: "$");
@@ -428,8 +436,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenWithViewDataErrors_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" class=""HtmlEncode[[input-validation-error some-class]]"" id=""HtmlEncode[[Property1]]""" +
-                           @" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelStateValue]]"" />";
+            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" " +
+                @"class=""HtmlEncode[[input-validation-error]]HtmlEncode[[ ]]HtmlEncode[[some-class]]"" id=""HtmlEncode[[Property1]]""" +
+                @" name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelStateValue]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
             var attributes = new Dictionary<string, object>
             {
@@ -643,8 +652,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenForInTemplate_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix_Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[propValue]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
+                @"value=""HtmlEncode[[propValue]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewData.Model.Property1 = "propValue";
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
@@ -660,8 +670,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenForInTemplate_UsesPrefixWhenLookingUpModelStateValues()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix$Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[hidden]]"" " +
-                           @"value=""HtmlEncode[[modelstate-with-prefix]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[$]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" " +
+                @"value=""HtmlEncode[[modelstate-with-prefix]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(
                 GetViewDataWithModelStateAndModelAndViewDataValues(),
                 "$");
@@ -692,8 +703,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void HiddenForWithViewDataErrors_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" class=""HtmlEncode[[input-validation-error some-class]]"" id=""HtmlEncode[[Property1]]"" " +
-                           @"name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelStateValue]]"" />";
+            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" " +
+                @"class=""HtmlEncode[[input-validation-error]]HtmlEncode[[ ]]HtmlEncode[[some-class]]"" id=""HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelStateValue]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithErrors());
             var attributes = new Dictionary<string, object>
             {
@@ -735,23 +747,31 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[Property3_key_]]"" name=""HtmlEncode[[Property3[key]]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelProp3Val]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[Property4_Property5]]"" name=""HtmlEncode[[Property4.Property5]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelProp5Val]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[Property4_Property6_0_]]"" name=""HtmlEncode[[Property4.Property6[0]]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[ModelProp6Val]]"" />"
                     },
                     {
                         model => localModel.Property4.Property5,
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[localModel_Property4_Property5]]"" " +
-                        @"name=""HtmlEncode[[localModel.Property4.Property5]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[local-value]]"" />"
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[localModel]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[localModel]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
+                        @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[local-value]]"" />"
                     }
                 };
             }
@@ -794,18 +814,24 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[Prop3Val]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[Prop5Val]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
-                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[Prop6Val]]"" />"
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
+                        @"type=""HtmlEncode[[hidden]]"" value=""HtmlEncode[[Prop6Val]]"" />"
                     }
                 };
             }

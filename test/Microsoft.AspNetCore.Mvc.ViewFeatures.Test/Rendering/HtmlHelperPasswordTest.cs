@@ -78,8 +78,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordWithPrefix_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix_Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[password]]"" " +
-                           @"value=""HtmlEncode[[explicit-value]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[password]]"" " +
+                @"value=""HtmlEncode[[explicit-value]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
 
@@ -94,8 +95,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordWithPrefix_UsesIdDotReplacementToken()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix$Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[password]]"" " +
-                           @"value=""HtmlEncode[[explicit-value]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[$]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[password]]"" " +
+                @"value=""HtmlEncode[[explicit-value]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(
                 GetViewDataWithModelStateAndModelAndViewDataValues(),
                 idAttributeDotReplacement: "$");
@@ -146,8 +148,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void Password_UsesModelStateErrors_ButDoesNotUseModelOrViewDataOrModelStateForValueAttribute()
         {
             // Arrange
-            var expected = @"<input class=""HtmlEncode[[input-validation-error some-class]]"" id=""HtmlEncode[[Property1]]""" +
-                           @" name=""HtmlEncode[[Property1]]"" test-key=""HtmlEncode[[test-value]]"" type=""HtmlEncode[[password]]"" />";
+            var expected = @"<input class=""HtmlEncode[[input-validation-error]]HtmlEncode[[ ]]HtmlEncode[[some-class]]"" " +
+                @"id=""HtmlEncode[[Property1]]""" +
+                @" name=""HtmlEncode[[Property1]]"" test-key=""HtmlEncode[[test-value]]"" type=""HtmlEncode[[password]]"" />";
             var vdd = GetViewDataWithErrors();
             vdd.Model.Property1 = "property-value";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
@@ -240,7 +243,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordForWithPrefix_GeneratesExpectedValue()
         {
             // Arrange
-            var expected = @"<input id=""HtmlEncode[[MyPrefix_Property1]]"" name=""HtmlEncode[[MyPrefix.Property1]]"" type=""HtmlEncode[[password]]"" />";
+            var expected = @"<input id=""HtmlEncode[[MyPrefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[MyPrefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]"" type=""HtmlEncode[[password]]"" />";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(GetViewDataWithModelStateAndModelAndViewDataValues());
             helper.ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "MyPrefix";
 
@@ -255,8 +259,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void PasswordFor_UsesModelStateErrors_ButDoesNotUseModelOrViewDataOrModelStateForValueAttribute()
         {
             // Arrange
-            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" class=""HtmlEncode[[input-validation-error some-class]]"" id=""HtmlEncode[[Property1]]"" " +
-                           @"name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[password]]"" />";
+            var expected = @"<input baz=""HtmlEncode[[BazValue]]"" " +
+                @"class=""HtmlEncode[[input-validation-error]]HtmlEncode[[ ]]HtmlEncode[[some-class]]"" id=""HtmlEncode[[Property1]]"" " +
+                @"name=""HtmlEncode[[Property1]]"" type=""HtmlEncode[[password]]"" />";
             var vdd = GetViewDataWithErrors();
             vdd.Model.Property1 = "prop1-value";
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(vdd);
@@ -298,18 +303,24 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[password]]"" value=""HtmlEncode[[attr-value]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[password]]"" value=""HtmlEncode[[attr-value]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input data-val=""HtmlEncode[[true]]"" id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
-                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[password]]"" value=""HtmlEncode[[attr-value]]"" />"
+                        @"<input data-val=""HtmlEncode[[true]]"" " +
+                        @"id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
+                        @"type=""HtmlEncode[[password]]"" value=""HtmlEncode[[attr-value]]"" />"
                     }
                 };
             }
@@ -446,18 +457,21 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[password]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[password]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
-                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[password]]"" />"
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
+                        @"type=""HtmlEncode[[password]]"" />"
                     }
                 };
             }
@@ -469,7 +483,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             Expression<Func<PasswordModel, string>> expression,
             string expected)
         {
-            // Arrange            
+            // Arrange
             var model = new PasswordModel();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "pre";
@@ -489,7 +503,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             // Act
             var result = helper.PasswordFor(expression);
 
-            // Assert 
+            // Assert
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
         }
 

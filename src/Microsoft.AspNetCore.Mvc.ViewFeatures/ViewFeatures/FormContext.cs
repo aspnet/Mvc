@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
     /// </remarks>
     public class FormContext
     {
-        private Dictionary<string, bool> _renderedFields;
+        private Dictionary<StringValuesTutu, bool> _renderedFields;
         private Dictionary<string, object> _formData;
         private IList<IHtmlContent> _endOfFormContent;
 
@@ -96,13 +96,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// Gets a dictionary mapping full HTML field names to indications that the named field has been rendered in
         /// this &lt;form&gt;.
         /// </summary>
-        private Dictionary<string, bool> RenderedFields
+        private Dictionary<StringValuesTutu, bool> RenderedFields
         {
             get
             {
                 if (_renderedFields == null)
                 {
-                    _renderedFields = new Dictionary<string, bool>(StringComparer.Ordinal);
+                    _renderedFields = new Dictionary<StringValuesTutu, bool>();
                 }
 
                 return _renderedFields;
@@ -131,6 +131,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
+        /// Returns an indication based on <see cref="RenderedFields"/> that the given <paramref name="fieldName"/> has
+        /// been rendered in this &lt;form&gt;.
+        /// </summary>
+        /// <param name="fieldName">The full HTML name of a field that may have been rendered.</param>
+        /// <returns>
+        /// <c>true</c> if the given <paramref name="fieldName"/> has been rendered; <c>false</c> otherwise.
+        /// </returns>
+        public bool RenderedField(StringValuesTutu fieldName)
+        {
+            bool result;
+            RenderedFields.TryGetValue(fieldName, out result);
+
+            return result;
+        }
+
+        /// <summary>
         /// Updates <see cref="RenderedFields"/> to indicate <paramref name="fieldName"/> has been rendered in this
         /// &lt;form&gt;.
         /// </summary>
@@ -143,6 +159,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
+            RenderedFields[fieldName] = value;
+        }
+
+        /// <summary>
+        /// Updates <see cref="RenderedFields"/> to indicate <paramref name="fieldName"/> has been rendered in this
+        /// &lt;form&gt;.
+        /// </summary>
+        /// <param name="fieldName">The full HTML name of a field that may have been rendered.</param>
+        /// <param name="value">If <c>true</c>, the given <paramref name="fieldName"/> has been rendered.</param>
+        public void RenderedField(StringValuesTutu fieldName, bool value)
+        {
             RenderedFields[fieldName] = value;
         }
     }

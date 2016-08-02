@@ -369,7 +369,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_RendersAntiforgeryToken()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -407,7 +407,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_RendersAntiforgeryTokenWhenMethodIsPost()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -446,7 +446,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_SuppressAntiforgeryToken()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -484,7 +484,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_SuppressAntiforgeryTokenWhenMethodIsGet()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -524,7 +524,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_DoesNotSuppressAntiforgeryTokenWhenAntiforgeryIsTrue(FormMethod method)
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -563,7 +563,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginForm_EndForm_SuppressAntiforgeryToken_WithExplicitCallToAntiforgery()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -604,7 +604,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginRouteForm_EndForm_RendersAntiforgeryToken()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
                     It.IsAny<ViewContext>(),
@@ -641,7 +641,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginRouteForm_EndForm_RendersAntiforgeryTokenWhenMethodIsPost()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
                     It.IsAny<ViewContext>(),
@@ -684,7 +684,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginRouteForm_EndForm_SuppressAntiforgeryToken()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
                     It.IsAny<ViewContext>(),
@@ -726,7 +726,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginRouteForm_EndForm_SuppressAntiforgeryTokenWhenMethodIsGet()
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
                     It.IsAny<ViewContext>(),
@@ -770,7 +770,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         public void BeginRouteForm_EndForm_DoesNotSuppressAntiforgeryTokenWhenAntiforgeryIsTrue(FormMethod method)
         {
             // Arrange
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
                     It.IsAny<ViewContext>(),

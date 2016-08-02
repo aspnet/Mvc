@@ -241,7 +241,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -339,7 +339,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
@@ -517,7 +517,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, HtmlContentUtilities.HtmlContentToString(output.PostContent));
@@ -573,7 +573,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string model = null;
             var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator.Object, metadataProvider);
 
             // Simulate a (model => model) scenario. E.g. the calling helper may appear in a low-level template.
@@ -654,7 +654,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var modelExplorer = metadataProvider.GetModelExplorerForType(modelType, model);
             var modelExpression = new ModelExpression(propertyName, modelExplorer);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator.Object, metadataProvider);
             var currentValues = new string[0];
             htmlGenerator

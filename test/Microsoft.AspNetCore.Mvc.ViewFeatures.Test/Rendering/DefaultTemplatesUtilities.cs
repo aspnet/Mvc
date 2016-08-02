@@ -74,6 +74,11 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 provider: TestModelMetadataProvider.CreateDefaultProvider());
         }
 
+        public static HtmlHelper<ObjectTemplateModel> GetHtmlHelper(IHtmlGeneratorTutu htmlGenerator)
+        {
+            return GetHtmlHelper((IHtmlGenerator)htmlGenerator);
+        }
+
         public static HtmlHelper<ObjectTemplateModel> GetHtmlHelper(IHtmlGenerator htmlGenerator)
         {
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();

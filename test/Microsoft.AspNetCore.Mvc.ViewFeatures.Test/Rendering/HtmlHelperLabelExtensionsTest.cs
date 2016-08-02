@@ -45,8 +45,12 @@ namespace Microsoft.AspNetCore.Mvc.Core
             var labelForResult = helper.LabelFor(m => m.Property1);
 
             // Assert
-            Assert.Equal("<label for=\"HtmlEncode[[Property1]]\">HtmlEncode[[Property1]]</label>", HtmlContentUtilities.HtmlContentToString(labelResult));
-            Assert.Equal("<label for=\"HtmlEncode[[Property1]]\">HtmlEncode[[Property1]]</label>", HtmlContentUtilities.HtmlContentToString(labelForResult));
+            Assert.Equal(
+                "<label for=\"HtmlEncode[[Property1]]\">HtmlEncode[[Property1]]</label>",
+                HtmlContentUtilities.HtmlContentToString(labelResult));
+            Assert.Equal(
+                "<label for=\"HtmlEncode[[Property1]]\">HtmlEncode[[Property1]]</label>",
+                HtmlContentUtilities.HtmlContentToString(labelForResult));
         }
 
         [Fact]
@@ -60,8 +64,12 @@ namespace Microsoft.AspNetCore.Mvc.Core
             var labelForResult = helper.LabelFor(m => m.Inner.Id);
 
             // Assert
-            Assert.Equal("<label for=\"HtmlEncode[[Inner_Id]]\">HtmlEncode[[Id]]</label>", HtmlContentUtilities.HtmlContentToString(labelResult));
-            Assert.Equal("<label for=\"HtmlEncode[[Inner_Id]]\">HtmlEncode[[Id]]</label>", HtmlContentUtilities.HtmlContentToString(labelForResult));
+            Assert.Equal(
+                "<label for=\"HtmlEncode[[Inner_Id]]\">HtmlEncode[[Id]]</label>",
+                HtmlContentUtilities.HtmlContentToString(labelResult));
+            Assert.Equal(
+                "<label for=\"HtmlEncode[[Inner]]HtmlEncode[[_]]HtmlEncode[[Id]]\">HtmlEncode[[Id]]</label>",
+                HtmlContentUtilities.HtmlContentToString(labelForResult));
         }
 
         [Fact]

@@ -22,7 +22,7 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
-    public class DefaultHtmlGenerator : IHtmlGenerator
+    public class DefaultHtmlGenerator : IHtmlGeneratorTutu
     {
         private const string HiddenListItem = @"<li style=""display:none""></li>";
         private static readonly MethodInfo ConvertEnumFromStringMethod =
@@ -181,6 +181,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool? isChecked,
             object htmlAttributes)
         {
+            return GenerateCheckBox(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                isChecked,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateCheckBox(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            bool? isChecked,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -228,6 +244,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewContext viewContext,
             ModelExplorer modelExplorer,
             string expression)
+        {
+            return GenerateHiddenForCheckbox(viewContext, modelExplorer, new StringValuesTutu(expression));
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateHiddenForCheckbox(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression)
         {
             if (viewContext == null)
             {
@@ -315,6 +340,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool useViewData,
             object htmlAttributes)
         {
+            return GenerateHidden(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                useViewData,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateHidden(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            bool useViewData,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -350,6 +393,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string labelText,
             object htmlAttributes)
         {
+            return GenerateLabel(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                labelText,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateLabel(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            string labelText,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -363,23 +422,62 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var resolvedLabelText = labelText ??
                 modelExplorer.Metadata.DisplayName ??
                 modelExplorer.Metadata.PropertyName;
+            StringValuesTutuContent content = null;
             if (resolvedLabelText == null)
             {
-                resolvedLabelText =
-                    string.IsNullOrEmpty(expression) ? string.Empty : expression.Split('.').Last();
+                if (StringValuesTutu.IsNullOrEmpty(expression))
+                {
+                    resolvedLabelText = string.Empty;
+                }
+                else
+                {
+                    for (var i = expression.Count - 1; i >= 0; i--)
+                    {
+                        var stringValue = expression[i];
+                        if (string.Equals(".", stringValue, StringComparison.Ordinal))
+                        {
+                            content = new StringValuesTutuContent(expression.Substring(i + 1));
+                            break;
+                        }
+
+                        var j = stringValue.LastIndexOf('.');
+                        if (j != -1)
+                        {
+                            var stringValues = StringValuesTutu.Concat(
+                                stringValue.Substring(j + 1),
+                                expression.Substring(i + 1));
+                            content = new StringValuesTutuContent(stringValues);
+                            break;
+                        }
+                    }
+
+                    if (content == null)
+                    {
+                        // Expression does not contain a dot separator.
+                        content = new StringValuesTutuContent(expression);
+                    }
+                }
             }
 
-            if (string.IsNullOrEmpty(resolvedLabelText))
+            if (content == null && string.IsNullOrEmpty(resolvedLabelText))
             {
                 return null;
             }
 
             var tagBuilder = new TagBuilder("label");
-            var idString =
-                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
-            tagBuilder.Attributes.Add("for", idString);
-            tagBuilder.InnerHtml.SetContent(resolvedLabelText);
+            var idString = TagBuilder.CreateSanitizedId(
+                GetFullHtmlFieldName(viewContext, expression),
+                IdAttributeDotReplacement);
+            tagBuilder.AttributeValues.Add("for", idString);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), replaceExisting: true);
+            if (content == null)
+            {
+                tagBuilder.InnerHtml.SetContent(resolvedLabelText);
+            }
+            else
+            {
+                tagBuilder.InnerHtml.SetHtmlContent(content);
+            }
 
             return tagBuilder;
         }
@@ -389,6 +487,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewContext viewContext,
             ModelExplorer modelExplorer,
             string expression,
+            object value,
+            object htmlAttributes)
+        {
+            return GeneratePassword(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GeneratePassword(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             object value,
             object htmlAttributes)
         {
@@ -421,6 +535,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool? isChecked,
             object htmlAttributes)
         {
+            return GenerateRadioButton(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                isChecked,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateRadioButton(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            bool? isChecked,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -442,7 +574,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     // isChecked not provided nor found in the given attributes; fall back to view data.
                     var valueString = Convert.ToString(value, CultureInfo.CurrentCulture);
                     isChecked = string.Equals(
-                        EvalString(viewContext, expression),
+                        EvalString(viewContext, expression.ToString()),
                         valueString,
                         StringComparison.OrdinalIgnoreCase);
                 }
@@ -517,6 +649,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool allowMultiple,
             object htmlAttributes)
         {
+            return GenerateSelect(
+                viewContext,
+                modelExplorer,
+                optionLabel,
+                new StringValuesTutu(expression),
+                selectList,
+                allowMultiple,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public TagBuilder GenerateSelect(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            string optionLabel,
+            StringValuesTutu expression,
+            IEnumerable<SelectListItem> selectList,
+            bool allowMultiple,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -545,13 +697,35 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool allowMultiple,
             object htmlAttributes)
         {
+            return GenerateSelect(
+                viewContext,
+                modelExplorer,
+                optionLabel,
+                new StringValuesTutu(expression),
+                selectList,
+                currentValues,
+                allowMultiple,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateSelect(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            string optionLabel,
+            StringValuesTutu expression,
+            IEnumerable<SelectListItem> selectList,
+            ICollection<string> currentValues,
+            bool allowMultiple,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
-            if (string.IsNullOrEmpty(fullName))
+            if (StringValuesTutu.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(
                     Resources.FormatHtmlGenerator_FieldNameCannotBeNullOrEmpty(
@@ -569,8 +743,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 selectList = GetSelectListItems(viewContext, expression);
             }
 
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression.ToString(),
+                viewContext.ViewData,
+                _metadataProvider);
 
             // Convert each ListItem to an <option> tag and wrap them with <optgroup> if requested.
             var listItemBuilder = GenerateGroupsAndOptions(optionLabel, selectList, currentValues);
@@ -609,6 +785,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             int columns,
             object htmlAttributes)
         {
+            return GenerateTextArea(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                rows,
+                columns,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateTextArea(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            int rows,
+            int columns,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -627,7 +821,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
-            if (string.IsNullOrEmpty(fullName))
+            if (StringValuesTutu.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(
                     Resources.FormatHtmlGenerator_FieldNameCannotBeNullOrEmpty(
@@ -693,6 +887,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string format,
             object htmlAttributes)
         {
+            return GenerateTextBox(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                format,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateTextBox(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            string format,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -722,13 +934,31 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string tag,
             object htmlAttributes)
         {
+            return GenerateValidationMessage(
+                viewContext,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                message,
+                tag,
+                htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateValidationMessage(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            string message,
+            string tag,
+            object htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
-            if (string.IsNullOrEmpty(fullName))
+            if (StringValuesTutu.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(
                     Resources.FormatHtmlGenerator_FieldNameCannotBeNullOrEmpty(
@@ -784,7 +1014,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             else if (modelError != null)
             {
                 modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
-                    expression,
+                    expression.ToString(),
                     viewContext.ViewData,
                     _metadataProvider);
                 tagBuilder.InnerHtml.SetContent(
@@ -816,7 +1046,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
-            if (viewContext.ViewData.ModelState.IsValid && (!viewContext.ClientValidationEnabled || excludePropertyErrors))
+            if (viewContext.ViewData.ModelState.IsValid &&
+                (!viewContext.ClientValidationEnabled || excludePropertyErrors))
             {
                 // No client side validation/updates
                 return null;
@@ -899,13 +1130,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string expression,
             bool allowMultiple)
         {
+            return GetCurrentValues(viewContext, modelExplorer, new StringValuesTutu(expression), allowMultiple);
+        }
+
+        /// <inheritdoc />
+        public virtual ICollection<string> GetCurrentValues(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            bool allowMultiple)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
             var fullName = GetFullHtmlFieldName(viewContext, expression);
-            if (string.IsNullOrEmpty(fullName))
+            if (StringValuesTutu.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(
                     Resources.FormatHtmlGenerator_FieldNameCannotBeNullOrEmpty(
@@ -926,7 +1167,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 if (modelExplorer == null)
                 {
                     // Html.DropDownList() and Html.ListBox() helper case.
-                    rawValue = viewContext.ViewData.Eval(expression);
+                    rawValue = viewContext.ViewData.Eval(expression.ToString());
                     if (rawValue is IEnumerable<SelectListItem>)
                     {
                         // This ViewData item contains the fallback selectList collection for GenerateSelect().
@@ -962,8 +1203,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 rawValues = new[] { rawValue };
             }
 
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression.ToString(),
+                viewContext.ViewData,
+                _metadataProvider);
+
             var metadata = modelExplorer.Metadata;
             if (allowMultiple && metadata.IsEnumerableType)
             {
@@ -1056,29 +1300,29 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (item.Value != null)
             {
-                tagBuilder.Attributes["value"] = item.Value;
+                tagBuilder.AttributeValues["value"] = item.Value;
             }
 
             if (selected)
             {
-                tagBuilder.Attributes["selected"] = "selected";
+                tagBuilder.AttributeValues["selected"] = "selected";
             }
 
             if (item.Disabled)
             {
-                tagBuilder.Attributes["disabled"] = "disabled";
+                tagBuilder.AttributeValues["disabled"] = "disabled";
             }
 
             return tagBuilder;
         }
 
-        internal static string GetFullHtmlFieldName(ViewContext viewContext, string expression)
+        internal static StringValuesTutu GetFullHtmlFieldName(ViewContext viewContext, StringValuesTutu expression)
         {
             var fullName = viewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
             return fullName;
         }
 
-        internal static object GetModelStateValue(ViewContext viewContext, string key, Type destinationType)
+        internal static object GetModelStateValue(ViewContext viewContext, StringValuesTutu key, Type destinationType)
         {
             ModelStateEntry entry;
             if (viewContext.ViewData.ModelState.TryGetValue(key, out entry) && entry.RawValue != null)
@@ -1145,6 +1389,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string format,
             IDictionary<string, object> htmlAttributes)
         {
+            return GenerateInput(
+                viewContext,
+                inputType,
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                useViewData,
+                isChecked,
+                setId,
+                isExplicitValue,
+                format,
+                htmlAttributes);
+        }
+
+        protected virtual TagBuilder GenerateInput(
+            ViewContext viewContext,
+            InputType inputType,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            bool useViewData,
+            bool isChecked,
+            bool setId,
+            bool isExplicitValue,
+            string format,
+            IDictionary<string, object> htmlAttributes)
+        {
             if (viewContext == null)
             {
                 throw new ArgumentNullException(nameof(viewContext));
@@ -1154,7 +1425,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // elements. But we support the *ForModel() methods in any lower-level template, once HtmlFieldPrefix is
             // non-empty.
             var fullName = GetFullHtmlFieldName(viewContext, expression);
-            if (string.IsNullOrEmpty(fullName))
+            if (StringValuesTutu.IsNullOrEmpty(fullName))
             {
                 throw new ArgumentException(
                     Resources.FormatHtmlGenerator_FieldNameCannotBeNullOrEmpty(
@@ -1173,7 +1444,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             tagBuilder.MergeAttribute("type", inputTypeString);
             tagBuilder.MergeAttribute("name", fullName, replaceExisting: true);
 
-            var suppliedTypeString = tagBuilder.Attributes["type"];
+            var suppliedTypeString = tagBuilder.AttributeValues["type"][0];
             if (_placeholderInputTypes.Contains(suppliedTypeString))
             {
                 AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
@@ -1206,7 +1477,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
                     if (!usedModelState && useViewData)
                     {
-                        isChecked = EvalBoolean(viewContext, expression);
+                        isChecked = EvalBoolean(viewContext, expression.ToString());
                     }
 
                     if (isChecked)
@@ -1230,7 +1501,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     var attributeValue = (string)GetModelStateValue(viewContext, fullName, typeof(string));
                     if (attributeValue == null)
                     {
-                        attributeValue = useViewData ? EvalString(viewContext, expression, format) : valueParameter;
+                        attributeValue = useViewData ?
+                            EvalString(viewContext, expression.ToString(), format) :
+                            valueParameter;
                     }
 
                     var addValue = true;
@@ -1302,7 +1575,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression)
         {
-            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(expression, viewData, _metadataProvider);
+            AddPlaceholderAttribute(viewData, tagBuilder, modelExplorer, new StringValuesTutu(expression));
+        }
+
+        protected virtual void AddPlaceholderAttribute(
+            ViewDataDictionary viewData,
+            TagBuilder tagBuilder,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression)
+        {
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression.ToString(),
+                viewData,
+                _metadataProvider);
+
             var placeholder = modelExplorer.Metadata.Placeholder;
             if (!string.IsNullOrEmpty(placeholder))
             {
@@ -1324,6 +1610,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression)
         {
+            AddValidationAttributes(viewContext, tagBuilder, modelExplorer, new StringValuesTutu(expression));
+        }
+
+        protected virtual void AddValidationAttributes(
+            ViewContext viewContext,
+            TagBuilder tagBuilder,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression)
+        {
             // Only render attributes if client-side validation is enabled, and then only if we've
             // never rendered validation for a field with this name in this form.
             var formContext = viewContext.ClientValidationEnabled ? viewContext.FormContext : null;
@@ -1340,11 +1635,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             formContext.RenderedField(fullName, true);
 
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression.ToString(),
+                viewContext.ViewData,
+                _metadataProvider);
 
-
-            var validators = _clientValidatorCache.GetValidators(modelExplorer.Metadata, _clientModelValidatorProvider);
+            var validators = _clientValidatorCache.GetValidators(
+                modelExplorer.Metadata,
+                _clientModelValidatorProvider);
             if (validators.Count > 0)
             {
                 var validationContext = new ClientModelValidationContext(
@@ -1434,7 +1732,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         private static IEnumerable<SelectListItem> GetSelectListItems(
             ViewContext viewContext,
-            string expression)
+            StringValuesTutu expression)
         {
             if (viewContext == null)
             {
@@ -1444,7 +1742,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Method is called only if user did not pass a select list in. They must provide select list items in the
             // ViewData dictionary and definitely not as the Model. (Even if the Model datatype were correct, a
             // <select> element generated for a collection of SelectListItems would be useless.)
-            var value = viewContext.ViewData.Eval(expression);
+            var value = viewContext.ViewData.Eval(expression.ToString());
 
             // First check whether above evaluation was successful and did not match ViewData.Model.
             if (value == null || value == viewContext.ViewData.Model)

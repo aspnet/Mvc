@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Moq;
@@ -83,7 +85,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("id"));
             Assert.Equal("myanchor", attribute.Value);
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("href"));
-            Assert.Equal("home/index", attribute.Value);
+            Assert.Equal(
+                "home/index",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal("Something", output.Content.GetContent());
             Assert.Equal(expectedTagName, output.TagName);
         }
@@ -108,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Content.SetContent(string.Empty);
 
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateRouteLink(
                     It.IsAny<ViewContext>(),
@@ -134,7 +138,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Fact]
@@ -157,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Content.SetContent(string.Empty);
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             generator
                 .Setup(mock => mock.GenerateActionLink(
                     It.IsAny<ViewContext>(),
@@ -185,7 +189,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             generator.Verify();
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Fact]
@@ -208,7 +212,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Content.SetContent(string.Empty);
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             var expectedRouteValues = new Dictionary<string, object> { { "area", "Admin" } };
 
             generator
@@ -242,7 +246,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Fact]
@@ -265,7 +269,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Content.SetContent(string.Empty);
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             var expectedRouteValues = new Dictionary<string, object> { { "area", "Admin" } };
 
             generator
@@ -300,7 +304,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Fact]
@@ -323,7 +327,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Content.SetContent(string.Empty);
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             var expectedRouteValues = new Dictionary<string, object> { { "area", string.Empty } };
 
             generator
@@ -357,7 +361,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             Assert.Equal("a", output.TagName);
             Assert.Empty(output.Attributes);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Theory]

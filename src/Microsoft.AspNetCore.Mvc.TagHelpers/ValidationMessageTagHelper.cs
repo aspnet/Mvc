@@ -25,6 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public ValidationMessageTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+            GeneratorTutu = HtmlGeneratorAdapter.GetTuTu(generator);
         }
 
         /// <inheritdoc />
@@ -41,6 +42,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public ViewContext ViewContext { get; set; }
 
         protected IHtmlGenerator Generator { get; }
+
+        protected IHtmlGeneratorTutu GeneratorTutu { get; }
 
         /// <summary>
         /// Name to be validated on the current model.
@@ -64,10 +67,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (For != null)
             {
-                var tagBuilder = Generator.GenerateValidationMessage(
+                var tagBuilder = GeneratorTutu.GenerateValidationMessage(
                     ViewContext,
                     For.ModelExplorer,
-                    For.Name,
+                    For.NameValues,
                     message: null,
                     tag: null,
                     htmlAttributes: null);

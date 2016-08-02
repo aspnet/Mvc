@@ -33,11 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var inputTag = new TagBuilder("input");
             inputTag.AddCssClass("check-box");
-            inputTag.Attributes["disabled"] = "disabled";
-            inputTag.Attributes["type"] = "checkbox";
+            inputTag.AttributeValues["disabled"] = "disabled";
+            inputTag.AttributeValues["type"] = "checkbox";
             if (value)
             {
-                inputTag.Attributes["checked"] = "checked";
+                inputTag.AttributeValues["checked"] = "checked";
             }
 
             inputTag.TagRenderMode = TagRenderMode.SelfClosing;
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var selectTag = new TagBuilder("select");
             selectTag.AddCssClass("list-box");
             selectTag.AddCssClass("tri-state");
-            selectTag.Attributes["disabled"] = "disabled";
+            selectTag.AttributeValues["disabled"] = "disabled";
 
             foreach (var item in TriStateValues(value))
             {
@@ -114,12 +114,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 elementMetadata = metadataProvider.GetMetadataForType(typeof(string));
             }
 
-            var oldPrefix = htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefix;
+            var oldPrefix = htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefixValues;
             try
             {
-                htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefix = string.Empty;
+                htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefixValues = StringValuesTutu.Empty;
 
-                var fieldNameBase = oldPrefix;
                 var result = new HtmlContentBuilder();
                 var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
                 var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
@@ -138,7 +137,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         container: htmlHelper.ViewData.ModelExplorer,
                         metadata: itemMetadata,
                         model: item);
-                    var fieldName = string.Format(CultureInfo.InvariantCulture, "{0}[{1}]", fieldNameBase, index++);
 
                     var templateBuilder = new TemplateBuilder(
                         viewEngine,
@@ -146,18 +144,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         htmlHelper.ViewContext,
                         htmlHelper.ViewData,
                         modelExplorer,
-                        htmlFieldName: fieldName,
+                        htmlFieldName: StringValuesTutu.Concat(oldPrefix, "[", index.ToString(), "]"),
                         templateName: null,
                         readOnly: true,
                         additionalViewData: null);
                     result.AppendHtml(templateBuilder.Build());
+
+                    index++;
                 }
 
                 return result;
             }
             finally
             {
-                htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefix = oldPrefix;
+                htmlHelper.ViewData.TemplateInfo.HtmlFieldPrefixValues = oldPrefix;
             }
         }
 
@@ -174,9 +174,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static IHtmlContent EmailAddressTemplate(IHtmlHelper htmlHelper)
         {
-            var uriString = "mailto:" + ((htmlHelper.ViewData.Model == null) ?
-                string.Empty :
-                htmlHelper.ViewData.Model.ToString());
+            var uriString = new StringValuesTutu(new[]
+            {
+                "mailto:",
+                (htmlHelper.ViewData.Model == null) ? string.Empty : htmlHelper.ViewData.Model.ToString(),
+            });
             var linkedText = (htmlHelper.ViewData.TemplateInfo.FormattedModelValue == null) ?
                 string.Empty :
                 htmlHelper.ViewData.TemplateInfo.FormattedModelValue.ToString();
@@ -301,11 +303,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         // Neither uriString nor linkedText need be encoded prior to calling this method.
-        private static IHtmlContent HyperlinkTemplate(string uriString, string linkedText, IHtmlHelper htmlHelper)
+        private static IHtmlContent HyperlinkTemplate(
+            StringValuesTutu uriString,
+            string linkedText,
+            IHtmlHelper htmlHelper)
         {
             var hyperlinkTag = new TagBuilder("a");
             hyperlinkTag.MergeAttribute("href", uriString);
             hyperlinkTag.InnerHtml.SetContent(linkedText);
+
             return hyperlinkTag;
         }
     }

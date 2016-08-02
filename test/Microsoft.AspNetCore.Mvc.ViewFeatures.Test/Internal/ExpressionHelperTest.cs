@@ -157,8 +157,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         (Expression<Func<TestModel, string>>)(m => value)
                     },
                     {
-                        // These two expressions are not actually equivalent. However ExpressionHelper returns 
-                        // string.Empty for these two expressions and hence they are considered as equivalent by the 
+                        // These two expressions are not actually equivalent. However ExpressionHelper returns
+                        // string.Empty for these two expressions and hence they are considered as equivalent by the
                         // cache.
                         (Expression<Func<TestModel, string>>)(m => Model),
                         (Expression<Func<TestModel, TestModel>>)(m => m)
@@ -207,10 +207,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         (Expression<Func<TestModel, Category>>)(model => model.SelectedCategory)
                     },
                     {
-                        (Expression<Func<IList<TestModel>, Category>>)(model => model[2].SelectedCategory),
-                        (Expression<Func<IList<TestModel>, Category>>)(model => model[2].SelectedCategory)
-                    },
-                    {
                         (Expression<Func<TestModel, string>>)(m => Model),
                         (Expression<Func<TestModel, string>>)(m => m.Model)
                     },
@@ -226,10 +222,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         (Expression<Func<TestModel, string>>)(m => key),
                         (Expression<Func<TestModel, string>>)(m => value)
                     },
-                    {
-                        (Expression<Func<IDictionary<string, TestModel>, string>>)(model => model[key].SelectedCategory.CategoryName.MainCategory),
-                        (Expression<Func<IDictionary<string, TestModel>, string>>)(model => model[key].SelectedCategory.CategoryName.MainCategory)
-                    },
                 };
             }
         }
@@ -242,7 +234,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var text = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
 
             // Assert
-            Assert.Equal(expressionText, text);
+            Assert.Equal(expressionText, text.ToString(), StringComparer.Ordinal);
         }
 
         [Theory]
@@ -256,12 +248,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var text2 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
 
             // Assert
-            Assert.Same(text1, text2); // Cached
+            Assert.Equal(text1, text2); // Cached
         }
 
         [Theory]
         [MemberData(nameof(IndexerExpressions))]
-        public void GetExpressionText_DoesNotCacheIndexerExpression(LambdaExpression expression)
+        public void GetExpressionText_RecalculatesIndexerExpressionsConsistently(LambdaExpression expression)
         {
             // Act - 1
             var text1 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
@@ -270,7 +262,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var text2 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
 
             // Assert
-            Assert.NotSame(text1, text2); // not cached
+            Assert.Equal(text1, text2); // not cached
         }
 
         [Theory]
@@ -284,7 +276,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var text2 = ExpressionHelper.GetExpressionText(expression2, _expressionTextCache);
 
             // Assert
-            Assert.Same(text1, text2);
+            Assert.Equal(text1, text2);
         }
 
         [Theory]
@@ -298,7 +290,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var text2 = ExpressionHelper.GetExpressionText(expression2, _expressionTextCache);
 
             // Assert
-            Assert.NotSame(text1, text2);
+            Assert.NotEqual(text1, text2);
         }
 
         private class TestModel

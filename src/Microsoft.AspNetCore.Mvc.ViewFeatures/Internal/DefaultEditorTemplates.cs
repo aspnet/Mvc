@@ -78,12 +78,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 elementMetadata = metadataProvider.GetMetadataForType(typeof(string));
             }
 
-            var oldPrefix = viewData.TemplateInfo.HtmlFieldPrefix;
+            var oldPrefix = viewData.TemplateInfo.HtmlFieldPrefixValues;
             try
             {
-                viewData.TemplateInfo.HtmlFieldPrefix = string.Empty;
+                viewData.TemplateInfo.HtmlFieldPrefixValues = StringValuesTutu.Empty;
 
-                var fieldNameBase = oldPrefix;
                 var result = new HtmlContentBuilder();
                 var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
                 var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
@@ -102,7 +101,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         container: htmlHelper.ViewData.ModelExplorer,
                         metadata: itemMetadata,
                         model: item);
-                    var fieldName = string.Format(CultureInfo.InvariantCulture, "{0}[{1}]", fieldNameBase, index++);
 
                     var templateBuilder = new TemplateBuilder(
                         viewEngine,
@@ -110,18 +108,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         htmlHelper.ViewContext,
                         htmlHelper.ViewData,
                         modelExplorer,
-                        htmlFieldName: fieldName,
+                        htmlFieldName: StringValuesTutu.Concat(oldPrefix, "[", index.ToString(), "]"),
                         templateName: null,
                         readOnly: false,
                         additionalViewData: null);
                     result.AppendHtml(templateBuilder.Build());
+
+                    index++;
                 }
 
                 return result;
             }
             finally
             {
-                viewData.TemplateInfo.HtmlFieldPrefix = oldPrefix;
+                viewData.TemplateInfo.HtmlFieldPrefixValues = oldPrefix;
             }
         }
 
@@ -195,8 +195,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             object htmlClassObject;
             if (htmlAttributes.TryGetValue("class", out htmlClassObject))
             {
-                var htmlClassName = htmlClassObject.ToString() + " " + className;
-                htmlAttributes["class"] = htmlClassName;
+                if (htmlClassObject is StringValuesTutu)
+                {
+                    htmlAttributes["class"] = StringValuesTutu.Concat(
+                        (StringValuesTutu)htmlClassObject,
+                        " ",
+                        className);
+                }
+                else
+                {
+                    htmlAttributes["class"] = new StringValuesTutu(new[]
+                    {
+                        htmlClassObject.ToString(),
+                        " ",
+                        className,
+                    });
+                }
             }
             else
             {

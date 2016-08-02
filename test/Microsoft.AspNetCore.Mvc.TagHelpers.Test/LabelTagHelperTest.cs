@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(
                 tagHelperOutputContent.ExpectedContent,

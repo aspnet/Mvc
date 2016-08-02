@@ -154,18 +154,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // We check if expression is wrapped with conversion to object expression
             // and unwrap it if necessary, because Expression<Func<TModel, object>>
-            // automatically creates a convert to object expression for expresions
+            // automatically creates a convert to object expression for expressions
             // returning value types
             var unaryExpression = expression.Body as UnaryExpression;
 
+            StringValuesTutu expressionValues;
             if (IsConversionToObject(unaryExpression))
             {
-                return ExpressionHelper.GetExpressionText(Expression.Lambda(
+                expressionValues = ExpressionHelper.GetExpressionText(Expression.Lambda(
                     unaryExpression.Operand,
                     expression.Parameters[0]));
             }
+            else
+            {
+                expressionValues = ExpressionHelper.GetExpressionText(expression);
+            }
 
-            return ExpressionHelper.GetExpressionText(expression);
+            return expressionValues.ToString();
         }
 
         private static bool IsConversionToObject(UnaryExpression expression)

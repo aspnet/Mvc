@@ -278,7 +278,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -315,7 +315,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -352,7 +352,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -386,7 +386,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -430,7 +430,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -474,7 +474,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -514,7 +514,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -548,7 +548,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -588,7 +588,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -629,7 +629,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -670,7 +670,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -716,7 +716,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -762,7 +762,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -808,7 +808,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -856,7 +856,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateForm(
@@ -896,7 +896,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -934,7 +934,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -972,7 +972,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1005,7 +1005,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1043,7 +1043,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1081,7 +1081,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1116,7 +1116,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1155,7 +1155,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1199,7 +1199,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1243,7 +1243,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1287,7 +1287,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(
@@ -1332,7 +1332,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder(tagName: "form");
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var htmlGenerator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var htmlHelper = DefaultTemplatesUtilities.GetHtmlHelper(htmlGenerator.Object);
             htmlGenerator
                 .Setup(g => g.GenerateRouteForm(

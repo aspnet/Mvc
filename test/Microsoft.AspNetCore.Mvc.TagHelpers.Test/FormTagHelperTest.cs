@@ -90,9 +90,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("id"));
             Assert.Equal("myform", attribute.Value);
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("method"));
-            Assert.Equal("post", attribute.Value);
+            Assert.Equal(
+                "post",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("action"));
-            Assert.Equal("home/index", attribute.Value);
+            Assert.Equal(
+                "home/index",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Empty(output.PreContent.GetContent());
             Assert.True(output.Content.GetContent().Length == 0);
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -127,7 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -183,7 +187,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
             output.Attributes.Add(expectedAttribute);
 
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     It.IsAny<ViewContext>(),
@@ -252,7 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     viewContext,
@@ -305,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
 
             var expectedRouteValues = new Dictionary<string, object> { { "area", "Admin" } };
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     viewContext,
@@ -361,7 +365,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
 
             var expectedRouteValues = new Dictionary<string, object> { { "area", string.Empty } };
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     viewContext,
@@ -417,7 +421,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 });
 
             var expectedRouteValues = new Dictionary<string, object> { { "area", "Admin" } };
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateForm(
                     viewContext,
@@ -472,7 +476,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelperContent.SetContent("Something");
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateRouteForm(
                     viewContext,
@@ -517,7 +521,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             // Arrange
             var viewContext = CreateViewContext();
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
 
             generator.Setup(mock => mock.GenerateAntiforgery(It.IsAny<ViewContext>()))
                      .Returns(new HtmlString("<input />"));

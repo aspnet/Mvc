@@ -15,8 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class ExpressionTextCache
     {
         /// <inheritdoc />
-        public ConcurrentDictionary<LambdaExpression, string> Entries { get; } = 
-            new ConcurrentDictionary<LambdaExpression, string>(LambdaExpressionComparer.Instance);
+        public ConcurrentDictionary<LambdaExpression, StringValuesTutu> Entries { get; } =
+            new ConcurrentDictionary<LambdaExpression, StringValuesTutu>(LambdaExpressionComparer.Instance);
 
         // This comparer is tightly coupled with the logic of ExpressionHelper.GetExpressionText.
         // It is not designed to accurately compare any two arbitrary LambdaExpressions.
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     return true;
                 }
-                // We will cache only pure member access expressions. Hence we compare two expressions 
+                // We will cache only pure member access expressions. Hence we compare two expressions
                 // to be equal only if they are identical member access expressions.
                 var expression1 = lambdaExpression1.Body;
                 var expression2 = lambdaExpression2.Body;
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                             return false;
                         }
                     }
-                    else 
+                    else
                     {
                         return true;
                     }

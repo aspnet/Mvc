@@ -698,7 +698,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             var selectList = SomeDisabledOneSelectedSelectList;
             var savedSelected = selectList.Select(item => item.Selected).ToList();
             var expectedHtml =
-                "<select id=\"HtmlEncode[[Property1_2_]]\" name=\"HtmlEncode[[Property1[2]]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
+                "<select id=\"HtmlEncode[[Property1]]HtmlEncode[[_]]HtmlEncode[[2]]HtmlEncode[[_]]\" " +
+                "name=\"HtmlEncode[[Property1]]HtmlEncode[[[]]HtmlEncode[[2]]HtmlEncode[[]]]\"><option value=\"HtmlEncode[[0]]\">HtmlEncode[[Zero]]</option>" +
                 Environment.NewLine +
                 "<option disabled=\"HtmlEncode[[disabled]]\" value=\"HtmlEncode[[1]]\">HtmlEncode[[One]]</option>" + Environment.NewLine +
                 "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[2]]\">HtmlEncode[[Two]]</option>" + Environment.NewLine +
@@ -1526,8 +1527,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         private static string GetExpectedSelectElementWithPrefix(SelectSources source, bool allowMultiple)
         {
-            return $"<select id=\"HtmlEncode[[Prefix_Property1]]\"{ GetMultiple(allowMultiple) } " +
-                "name=\"HtmlEncode[[Prefix.Property1]]\">" +
+            return $"<select id=\"HtmlEncode[[Prefix]]HtmlEncode[[_]]HtmlEncode[[Property1]]\"{ GetMultiple(allowMultiple) } " +
+                "name=\"HtmlEncode[[Prefix]]HtmlEncode[[.]]HtmlEncode[[Property1]]\">" +
                 $"{ GetOption(SelectSources.ModelStateEntry, source) }{ Environment.NewLine }" +
                 $"{ GetOption(SelectSources.ModelStateEntryWithPrefix, source) }{ Environment.NewLine }" +
                 $"{ GetOption(SelectSources.ViewDataEntry, source) }{ Environment.NewLine }" +
@@ -1576,7 +1577,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         {
             public TestHtmlHelper(IModelMetadataProvider metadataProvider)
                 : base(
-                      new Mock<IHtmlGenerator>(MockBehavior.Strict).Object,
+                      new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict).Object,
                       new Mock<ICompositeViewEngine>(MockBehavior.Strict).Object,
                       metadataProvider,
                       new TestViewBufferScope(),
