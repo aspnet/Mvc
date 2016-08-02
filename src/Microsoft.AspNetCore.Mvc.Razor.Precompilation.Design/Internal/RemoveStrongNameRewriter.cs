@@ -4,7 +4,7 @@
 using Microsoft.Cci;
 using Microsoft.Cci.MutableCodeModel;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class RemoveStrongNameRewriter : MetadataRewriter
     {
@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
         public override IAssembly Rewrite(IAssembly assembly)
         {
-            var mutableAssembly = base.Rewrite(assembly) as Assembly;
+            var mutableAssembly = base.Rewrite(assembly) as Cci.MutableCodeModel.Assembly;
             if (mutableAssembly == null)
             {
                 return assembly;

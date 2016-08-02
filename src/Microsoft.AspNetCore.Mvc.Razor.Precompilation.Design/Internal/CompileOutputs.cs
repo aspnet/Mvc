@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class CompileOutputs : IDisposable
     {
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
         public void Dispose()
         {
             AssemblyStream.Dispose();
-            PdbStream.Dispose();
+            PdbStream?.Dispose();
         }
     }
 }

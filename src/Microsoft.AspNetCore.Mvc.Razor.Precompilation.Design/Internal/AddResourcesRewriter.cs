@@ -3,11 +3,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Cci;
 using Microsoft.Cci.MutableCodeModel;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class AddResourcesRewriter : MetadataRewriter
     {
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
         public override IAssembly Rewrite(IAssembly assembly)
         {
             _assembly = assembly;
-            return _assembly;
+            return base.Rewrite(assembly);
         }
 
         public override List<IResourceReference> Rewrite(List<IResourceReference> resourceReferences)
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
             foreach (var output in _outputs)
             {
-                var dllResource = $"{PrecompiledViewsFeatureProvider.PrecompiledResourcePrefix}{output.RelativePath}.dll";
+                var dllResource = $"{AssemblyPart.PrecompiledResourcePrefix}{output.RelativePath}.dll";
                 resourceReferences.Add(new ResourceReference
                 {
                     Name = host.NameTable.GetNameFor(dllResource),
@@ -49,19 +49,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                     }
                 });
 
-                var pdbResource = $"{PrecompiledViewsFeatureProvider.PrecompiledResourcePrefix}{output.RelativePath}.pdb";
-                resourceReferences.Add(new ResourceReference
+                if (output.PdbStream != null)
                 {
-                    Name = host.NameTable.GetNameFor(pdbResource),
-                    DefiningAssembly = _assembly,
-                    IsPublic = true,
-                    Resource = new Resource
+                    var pdbResource = $"{AssemblyPart.PrecompiledResourcePrefix}{output.RelativePath}.pdb";
+                    resourceReferences.Add(new ResourceReference
                     {
-                        Data = output.PdbStream.ToArray().ToList(),
-                        IsPublic = true,
+                        Name = host.NameTable.GetNameFor(pdbResource),
                         DefiningAssembly = _assembly,
-                    }
-                });
+                        IsPublic = true,
+                        Resource = new Resource
+                        {
+                            Data = output.PdbStream.ToArray().ToList(),
+                            IsPublic = true,
+                            DefiningAssembly = _assembly,
+                        }
+                    });
+                }
             }
 
             return resourceReferences;

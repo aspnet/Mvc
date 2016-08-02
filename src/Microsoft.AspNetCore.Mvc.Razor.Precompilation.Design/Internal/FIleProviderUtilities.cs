@@ -7,7 +7,7 @@ using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.FileProviders;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public static class FileProviderUtilities
     {

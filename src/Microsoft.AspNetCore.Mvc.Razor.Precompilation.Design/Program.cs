@@ -4,9 +4,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design
 {
     public class Program
     {
@@ -18,12 +18,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation
             DebugHelper.HandleDebugSwitch(ref args);
 #endif
 
-            var app = new PrecompilationApplication(ProgramType);
-
             EnsureValidDispatchRecipient(ref args);
 
-            PrecompileCommandBase.Register<PrecompileRunCommand>(app);
-
+            var app = new PrecompilationApplication(ProgramType);
+            new PrecompileRunCommand().Configure(app);
             return app.Execute(args);
         }
 

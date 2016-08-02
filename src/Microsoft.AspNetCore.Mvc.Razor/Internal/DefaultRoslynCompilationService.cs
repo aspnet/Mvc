@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                             result.Diagnostics);
                     }
 
-                    var type = CompiledAssemblyUtility.GetExportedType(assemblyStream, pdbStream);
+                    var type = RazorAssemblyLoader.GetExportedType(assemblyStream, pdbStream);
 
                     _logger.GeneratedCodeToAssemblyCompilationEnd(fileInfo.RelativePath, startTimestamp);
 

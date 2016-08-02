@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public static class DebugHelper
     {

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 {
     public class PrecompiledViewsFeature
     {

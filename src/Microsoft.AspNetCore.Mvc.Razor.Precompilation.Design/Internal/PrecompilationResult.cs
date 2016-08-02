@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class PrecompilationResult
     {
-        public string OutputPath { get; set; }
-
         public List<RazorError> RazorErrors { get; } = new List<RazorError>();
 
         public List<Diagnostic> RoslynErrors { get; } = new List<Diagnostic>();

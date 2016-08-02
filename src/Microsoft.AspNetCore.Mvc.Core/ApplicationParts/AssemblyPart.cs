@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
 using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationParts
@@ -12,8 +14,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
     /// <summary>
     /// An <see cref="ApplicationPart"/> backed by an <see cref="Assembly"/>.
     /// </summary>
-    public class AssemblyPart : ApplicationPart, IApplicationPartTypeProvider, ICompilationReferencesProvider
+    public class AssemblyPart :
+        ApplicationPart,
+        IApplicationPartTypeProvider,
+        ICompilationReferencesProvider,
+        IPrecompiledViewsProvider
     {
+        public static readonly string PrecompiledResourcePrefix = "__PrecompiledView__.";
+        private const string DllExtension = ".dll";
+        private const string PdbExtension = ".pdb";
+
         /// <summary>
         /// Initalizes a new <see cref="AssemblyPart"/> instance.
         /// </summary>
@@ -40,6 +50,32 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
 
         /// <inheritdoc />
         public IEnumerable<TypeInfo> Types => Assembly.DefinedTypes;
+
+        public IEnumerable<PrecompiledViewInfo> PrecompiledViews
+        {
+            get
+            {
+                var precompiledViews = new List<PrecompiledViewInfo>();
+                foreach (var resourceName in Assembly.GetManifestResourceNames())
+                {
+                    if (resourceName.StartsWith(PrecompiledResourcePrefix, StringComparison.Ordinal) &&
+                        resourceName.EndsWith(DllExtension, StringComparison.Ordinal))
+                    {
+                        var viewPath = resourceName.Substring(
+                            PrecompiledResourcePrefix.Length,
+                            resourceName.Length - PrecompiledResourcePrefix.Length - DllExtension.Length);
+
+                        var pdbStreamName = Path.ChangeExtension(viewPath, PdbExtension);
+                        precompiledViews.Add(new PrecompiledViewInfo(
+                            viewPath,
+                            () => Assembly.GetManifestResourceStream(resourceName),
+                            () => Assembly.GetManifestResourceStream(pdbStreamName)));
+                    }
+                }
+
+                return precompiledViews;
+            }
+        }
 
         /// <inheritdoc />
         public IEnumerable<string> GetReferencePaths()

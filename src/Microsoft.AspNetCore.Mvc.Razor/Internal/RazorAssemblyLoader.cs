@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
-    public static class CompiledAssemblyUtility
+    public static class RazorAssemblyLoader
     {
         public static Type GetExportedType(Stream assemblyStream, Stream pdbStream)
         {

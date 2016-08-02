@@ -5,7 +5,7 @@ using System;
 using System.Reflection;
 using Microsoft.Extensions.CommandLineUtils;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class PrecompilationApplication : CommandLineApplication
     {
@@ -15,9 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
         {
             _callingType = callingType;
 
-            Name = "razor-tooling";
-            FullName = "Microsoft Razor Tooling Utility";
-            Description = "Resolves Razor tooling specific information.";
+            Name = "razor-precompile";
+            FullName = "Microsoft Razor Precompilation Utility";
+            Description = "Precompiles Razor views.";
             ShortVersionGetter = GetInformationalVersion;
 
             HelpOption("-?|-h|--help");
@@ -38,6 +38,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.Message);
+#if DEBUG
+                Console.Error.WriteLine(ex);
+#endif
                 return 1;
             }
         }

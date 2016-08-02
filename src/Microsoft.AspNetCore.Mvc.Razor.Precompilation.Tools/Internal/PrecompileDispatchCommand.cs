@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal;
 using Microsoft.DotNet.Cli.Utils;
 using Microsoft.DotNet.InternalAbstractions;
 using Microsoft.DotNet.ProjectModel;
@@ -15,21 +17,55 @@ using NuGet.Frameworks;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 {
-    public class PrecompileDispatchCommand : PrecompileCommandBase
+    public class PrecompileDispatchCommand
     {
+        private CommonOptions Options { get; } = new CommonOptions();
+
         private CommandOption NoBuildOption { get; set; }
 
-        protected override void Configure(CommandLineApplication app)
+        public CommandOption FrameworkOption { get; set; }
+
+        public CommandOption ConfigurationOption { get; set; }
+
+        private NuGetFramework TargetFramework { get; set; }
+
+        private ProjectContext RuntimeContext { get; set; }
+
+
+        private string OutputPath { get; set; }
+
+        private string ProjectPath { get; set; }
+
+        private string Configuration { get; set; }
+
+        public void Configure(CommandLineApplication app)
         {
-            base.Configure(app);
+            Options.Configure(app);
+            FrameworkOption = app.Option(
+                "-f|--framework",
+                "Target Framework",
+                CommandOptionType.SingleValue);
+
+            ConfigurationOption = app.Option(
+                "-c|--configuration",
+                "Configuration",
+                CommandOptionType.SingleValue);
+
             NoBuildOption = app.Option(
                 "--no-build",
                 "Do not build project before compiling views.",
                 CommandOptionType.NoValue);
+            app.OnExecute(() => Execute());
         }
 
-        protected override int ExecuteCore()
+        private int Execute()
         {
+            ProjectPath = GetProjectPath();
+            Configuration = ConfigurationOption.Value() ?? DotNet.Cli.Utils.Constants.DefaultConfiguration;
+            TargetFramework = GetTargetFramework();
+            RuntimeContext = GetRuntimeContext();
+            OutputPath = GetBuildOutputPath();
+
             if (!NoBuildOption.HasValue())
             {
                 var exitCode = BuildProject();
@@ -42,44 +78,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             var dispatchArgs = new List<string>
             {
                 ProjectPath,
-                "--framework",
-                TargetFramework.ToString(),
-                "--configuration",
-                Configuration,
+                "--output",
+                OutputPath,
+                "--content-root",
+                Options.ContentRootOption.Value() ?? Directory.GetCurrentDirectory(),
             };
 
-            string outputPath = null;
-            if (OutputPathOption.HasValue())
-            {
-                outputPath = OutputPathOption.Value();
-
-                dispatchArgs.Add("--output");
-                dispatchArgs.Add(outputPath);
-            }
-
-            if (ConfigureCompilationType.HasValue())
+            if (Options.ConfigureCompilationType.HasValue())
             {
                 dispatchArgs.Add("--configure-compilation-type");
-                dispatchArgs.Add(ConfigureCompilationType.Value());
+                dispatchArgs.Add(Options.ConfigureCompilationType.Value());
             }
 
-            if (ContentRootOption.HasValue())
-            {
-                dispatchArgs.Add("--content-root");
-                dispatchArgs.Add(ContentRootOption.Value());
-            }
-
-            if (GeneratePdbOption.HasValue())
+            if (Options.GeneratePdbOption.HasValue())
             {
                 dispatchArgs.Add("--generate-pdbs");
             }
 
-            var toolName = typeof(Precompilation.Program).GetTypeInfo().Assembly.GetName().Name;
+            var toolName = typeof(Design.Program).GetTypeInfo().Assembly.GetName().Name;
             var dispatchCommand = DotnetToolDispatcher.CreateDispatchCommand(
                 dispatchArgs,
                 TargetFramework,
                 Configuration,
-                outputPath: outputPath,
+                outputPath: OutputPath,
                 buildBasePath: null,
                 projectDirectory: ProjectPath,
                 toolName: toolName);
@@ -90,64 +111,129 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                 .Execute()
                 .ExitCode;
 
-            var buildOutputPath = GetBuildOutputPath();
-            var updatedBinary = Directory.EnumerateFiles(buildOutputPath, $"*{ModifiedAssemblyExtension}").FirstOrDefault();
-            if (updatedBinary == null)
+            if (commandExitCode == 0)
             {
-                Console.Error.WriteLine("Unable to find modified binary with precompiled views.");
-                return 1;
-            }
-            else
-            {
-                File.Copy(
-                    updatedBinary,
-                    Path.ChangeExtension(updatedBinary, ".dll"),
-                    overwrite: true);
-                File.Delete(updatedBinary);
+                var outputAssembly = RuntimeContext.GetOutputPaths(Configuration).RuntimeFiles.Assembly;
+                var modifiedAssembly = Path.ChangeExtension(outputAssembly, Design.Internal.Constants.ModifiedAssemblyExtension);
+
+                if (File.Exists(outputAssembly))
+                {
+                    File.Copy(modifiedAssembly, outputAssembly, overwrite: true);
+                    File.Delete(modifiedAssembly);
+                }
             }
 
             return commandExitCode;
         }
 
-        private int BuildProject()
+        private string GetProjectPath()
+        {
+            string projectPath;
+            if (!string.IsNullOrEmpty(Options.ProjectArgument.Value))
+            {
+                projectPath = Path.GetFullPath(Options.ProjectArgument.Value);
+                if (string.Equals(Path.GetFileName(ProjectPath), "project.json", StringComparison.OrdinalIgnoreCase))
+                {
+                    projectPath = Path.GetDirectoryName(ProjectPath);
+                }
+
+                if (!Directory.Exists(ProjectPath))
+                {
+                    throw new InvalidOperationException($"Error: Could not find directory {ProjectPath}");
+                }
+
+            }
+            else
+            {
+                projectPath = Directory.GetCurrentDirectory();
+            }
+
+            return projectPath;
+        }
+
+        private ProjectContext GetRuntimeContext()
         {
             var workspace = new BuildWorkspace(ProjectReaderSettings.ReadFromEnvironment());
 
-            var projectContext = workspace.GetProjectContext(ProjectPath, NuGetFramework.Parse(FrameworkOption.Value()));
+            var projectContext = workspace.GetProjectContext(ProjectPath, TargetFramework);
             if (projectContext == null)
             {
-                Console.Error.WriteLine($"Project '{ProjectPath}' does not support framework: {FrameworkOption.Value()}");
-                return 1;
+                Debug.Assert(FrameworkOption.HasValue());
+                throw new InvalidOperationException($"Project '{ProjectPath}' does not support framework: {FrameworkOption.Value()}");
             }
 
-            projectContext = workspace.GetRuntimeContext(
+            return workspace.GetRuntimeContext(
                 projectContext,
                 RuntimeEnvironmentRidExtensions.GetAllCandidateRuntimeIdentifiers());
+        }
 
+        private int BuildProject()
+        {
             var arguments = new List<string>
             {
                 ProjectPath,
                 "--framework",
-                projectContext.TargetFramework.ToString(),
+                RuntimeContext.TargetFramework.ToString(),
+                "--configuration",
+                Configuration,
+                "--output",
+                OutputPath
             };
 
-            if (ConfigurationOption.HasValue())
-            {
-                arguments.Add("--configuration");
-                arguments.Add(ConfigurationOption.Value());
-            }
-
-            if (OutputPathOption.HasValue())
-            {
-                arguments.Add("--output");
-                arguments.Add(OutputPathOption.Value());
-            }
-
-            return Command.CreateDotNet("build", arguments, NuGetFramework.Parse(FrameworkOption.Value()), ConfigurationOption.Value())
+            return Command.CreateDotNet("build", arguments, RuntimeContext.TargetFramework, Configuration)
                 .ForwardStdErr(Console.Error)
                 .ForwardStdOut(Console.Out)
                 .Execute()
                 .ExitCode;
+        }
+
+        private NuGetFramework GetTargetFramework()
+        {
+            if (!FrameworkOption.HasValue())
+            {
+                var workspace = new BuildWorkspace(ProjectReaderSettings.ReadFromEnvironment());
+                var projectContexts = workspace.GetProjectContextCollection(ProjectPath)
+                    .FrameworkOnlyContexts
+                    .ToList();
+
+                if (projectContexts.Count == 0)
+                {
+                    throw new Exception($"Error: Project at {ProjectPath} does not have any specified frameworks.");
+
+                }
+                else if (projectContexts.Count > 1)
+                {
+                    throw new Exception($"Error: Project at {ProjectPath} supports multiple framework. " +
+                        $"Specify a framework using {FrameworkOption.Template}.");
+                }
+
+                return projectContexts[0].TargetFramework;
+            }
+            else
+            {
+                return NuGetFramework.Parse(FrameworkOption.Value());
+            }
+        }
+
+        private string GetBuildOutputPath()
+        {
+            if (Options.OutputPathOption.HasValue())
+            {
+                return Options.OutputPathOption.Value();
+            }
+
+            var outputs = RuntimeContext.GetOutputPaths(Configuration);
+            string outputPath;
+            if (!string.IsNullOrEmpty(RuntimeContext.RuntimeIdentifier))
+            {
+                outputPath = outputs.RuntimeOutputPath;
+            }
+            else
+            {
+                outputPath = outputs.CompilationOutputPath;
+            }
+
+            return outputPath;
         }
     }
 }
