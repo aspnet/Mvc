@@ -1289,8 +1289,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     object typeAttributeValue;
                     if (htmlAttributes != null && htmlAttributes.TryGetValue("type", out typeAttributeValue))
                     {
-                        if (string.Equals(typeAttributeValue.ToString(), "file", StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(typeAttributeValue.ToString(), "image", StringComparison.OrdinalIgnoreCase))
+                        var typeAttributeString = typeAttributeValue.ToString();
+                        if (string.Equals(typeAttributeString, "file", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(typeAttributeString, "image", StringComparison.OrdinalIgnoreCase))
                         {
                             // 'value' attribute is not needed for 'file' and 'image' input types.
                             addValue = false;

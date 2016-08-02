@@ -181,16 +181,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <summary>
         /// Creates a dictionary of HTML attributes from the input object,
         /// translating underscores to dashes in each public instance property.
-        ///
-        /// If the object is already an <see cref="IDictionary{String, Object}"/> instance, then it is
-        /// returned as-is.
+        /// </summary>
+        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
+        /// <returns>A dictionary that represents HTML attributes.</returns>
+        /// <remarks>
+        /// If the object is already an <see cref="IDictionary{String, Object}"/> instance, then a shallow copy is
+        /// returned.
         /// <example>
         /// <c>new { data_name="value" }</c> will translate to the entry <c>{ "data-name", "value" }</c>
         /// in the resulting dictionary.
         /// </example>
-        /// </summary>
-        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
-        /// <returns>A dictionary that represents HTML attributes.</returns>
+        /// </remarks>
         public static IDictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
         {
             var dictionary = htmlAttributes as IDictionary<string, object>;
@@ -978,14 +979,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool useViewData,
             object htmlAttributes)
         {
-            var tagBuilder =
-                _htmlGenerator.GenerateHidden(
-                    ViewContext,
-                    modelExplorer,
-                    expression,
-                    value,
-                    useViewData,
-                    htmlAttributes);
+            var tagBuilder = _htmlGenerator.GenerateHidden(
+                ViewContext,
+                modelExplorer,
+                expression,
+                value,
+                useViewData,
+                htmlAttributes);
             if (tagBuilder == null)
             {
                 return HtmlString.Empty;
