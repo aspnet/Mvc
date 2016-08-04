@@ -21,6 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Cors
     public class CorsAuthorizationFilterTest
     {
         [Theory]
+        [InlineData("options")]
         [InlineData("Options")]
         [InlineData("OPTIONS")]
         public async Task CaseInsensitive_PreFlightRequest_SuccessfulMatch_WritesHeaders(string preflightRequestMethod)
