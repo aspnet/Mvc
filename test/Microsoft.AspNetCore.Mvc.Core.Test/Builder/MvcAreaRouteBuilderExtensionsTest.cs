@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.IsType<RegexRouteConstraint>(kvp.Value);
+                    Assert.IsType<StringRouteConstraint>(kvp.Value);
                 });
             Assert.Empty(route.DataTokens);
             Assert.Collection(
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.IsType<RegexRouteConstraint>(kvp.Value);
+                    Assert.IsType<StringRouteConstraint>(kvp.Value);
                 });
             Assert.Empty(route.DataTokens);
             Assert.Collection(
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.IsType<RegexRouteConstraint>(kvp.Value);
+                    Assert.IsType<StringRouteConstraint>(kvp.Value);
                 },
                 kvp =>
                 {
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Builder
                 kvp =>
                 {
                     Assert.Equal(kvp.Key, "area");
-                    Assert.IsType<RegexRouteConstraint>(kvp.Value);
+                    Assert.IsType<StringRouteConstraint>(kvp.Value);
                 },
                 kvp =>
                 {
