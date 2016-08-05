@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         [Fact]
-        public void MapAreaRoute_DotCheck()
+        public void MapAreaRoute_UsesPassedInAreaNameAsIs()
         {
             // Arrange
             var builder = CreateRouteBuilder();
