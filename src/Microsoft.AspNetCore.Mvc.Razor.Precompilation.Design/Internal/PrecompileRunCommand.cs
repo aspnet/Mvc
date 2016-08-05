@@ -4,11 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Razor.CodeGenerators;
-using Microsoft.Cci;
-using Microsoft.Cci.MutableCodeModel;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.FileProviders;
 
@@ -16,9 +21,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class PrecompileRunCommand
     {
-        private readonly string PrecompiledAssemblyNameSuffix = Guid.NewGuid().ToString();
+        private CommandOption OutputPathOption { get; set; }
 
-        private CommandOption OutputFilePath { get; set; }
+        private CommandOption ApplicationNameOption { get; set; }
 
         private MvcServicesProvider ServicesProvider { get; set; }
 
@@ -29,9 +34,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
         public void Configure(CommandLineApplication app)
         {
             Options.Configure(app);
-            OutputFilePath = app.Option(
-                "--output-file-path", 
-                "Path to the output binary (assembly or executable).",
+            OutputPathOption = app.Option(
+                "--output-path",
+                "Path to the emit the precompiled assembly in.",
+                CommandOptionType.SingleValue);
+
+            ApplicationNameOption = app.Option(
+                "--application-name",
+                "Name of the application to produce precompiled assembly for.",
                 CommandOptionType.SingleValue);
 
             app.OnExecute(() => Execute());
@@ -43,33 +53,91 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             ServicesProvider = new MvcServicesProvider(
                 ProjectPath,
-                OutputFilePath.Value(),
+                ApplicationNameOption.Value(),
                 Options.ContentRootOption.Value(),
                 Options.ConfigureCompilationType.Value());
 
             Console.WriteLine("Running Razor view precompilation.");
 
-            var result = CompileViews();
-            if (!result.Success)
+            var results = ParseViews();
+            var success = true;
+            foreach (var result in results)
             {
-                foreach (var error in result.RazorErrors)
+                if (!result.GeneratorResults.Success)
                 {
-                    Console.Error.WriteLine($"{error.Location.FilePath} ({error.Location.LineIndex}): {error.Message}");
+                    success = false;
+                    foreach (var error in result.GeneratorResults.ParserErrors)
+                    {
+                        Console.Error.WriteLine($"{error.Location.FilePath} ({error.Location.LineIndex}): {error.Message}");
+                    }
                 }
+            }
 
-                foreach (var error in result.RoslynErrors)
+            if (!success)
+            {
+                return 1;
+            }
+
+            var precompileAssemblyName = $"{ApplicationNameOption.Value()}{AssemblyPart.PrecompiledViewsAssemblySuffix}";
+            var compilation = CompileViews(results, precompileAssemblyName);
+
+            var assemblyPath = Path.Combine(OutputPathOption.Value(), precompileAssemblyName + ".dll");
+            var emitResult = EmitAssembly(compilation, assemblyPath);
+
+            if (!emitResult.Success)
+            {
+                foreach (var diagnostic in emitResult.Diagnostics)
                 {
-                    Console.Error.WriteLine(CSharpDiagnosticFormatter.Instance.Format(error));
+                    Console.Error.WriteLine(CSharpDiagnosticFormatter.Instance.Format(diagnostic));
                 }
 
                 return 1;
             }
 
-            Console.WriteLine($"Successfully compiled {result.CompileOutputs.Count} Razor views.");
-            Console.WriteLine($"Injecting precompiled views into assembly {OutputFilePath.Value()}.");
-
-            UpdateAssembly(result);
+            Console.WriteLine($"Successfully compiled {results.Count} Razor views.");
+            Console.WriteLine($"Precompiled views emitted to {assemblyPath}.");
             return 0;
+        }
+
+        private EmitResult EmitAssembly(CSharpCompilation compilation, string assemblyPath)
+        {
+            EmitResult emitResult;
+            using (var assemblyStream = File.OpenWrite(assemblyPath))
+            {
+                using (var pdbStream = File.OpenWrite(Path.ChangeExtension(assemblyPath, ".pdb")))
+                {
+                    emitResult = compilation.Emit(
+                        assemblyStream,
+                        pdbStream,
+                        options: ServicesProvider.Compiler.EmitOptions);
+                }
+            }
+
+            return emitResult;
+        }
+
+        private CSharpCompilation CompileViews(List<ViewCompilationInfo> results, string assemblyname)
+        {
+            var compiler = ServicesProvider.Compiler;
+            var compilation = compiler.CreateCompilation(assemblyname);
+
+            foreach (var result in results)
+            {
+                var sourceText = SourceText.From(result.GeneratorResults.GeneratedCode, Encoding.UTF8);
+                var syntaxTree = compiler.CreateSyntaxTree(sourceText);
+                compilation = compilation.AddSyntaxTrees(syntaxTree);
+                result.TypeName = ReadTypeInfo(compilation, syntaxTree);
+            }
+
+            compilation = compiler.ProcessCompilation(compilation);
+            var codeGenerator = new CodeGenerator(compiler, compilation);
+            codeGenerator.AddViewFactory(results);
+
+            var assemblyName = new AssemblyName(ApplicationNameOption.Value());
+            assemblyName = Assembly.Load(assemblyName).GetName();
+            codeGenerator.AddAssemblyMetadata(assemblyName, keyFilePath: null);
+
+            return codeGenerator.Compilation;
         }
 
         private void ParseArguments()
@@ -80,86 +148,32 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 throw new ArgumentException("Project path not specified.");
             }
 
-            if (!OutputFilePath.HasValue())
+            if (!OutputPathOption.HasValue())
             {
-                throw new ArgumentException($"Option {OutputFilePath.Template} does not specify a value.");
+                throw new ArgumentException($"Option {OutputPathOption.Template} does not specify a value.");
+            }
+
+            if (!ApplicationNameOption.HasValue())
+            {
+                throw new ArgumentException($"Option {ApplicationNameOption.Template} does not specify a value.");
             }
         }
 
-        private void UpdateAssembly(PrecompilationResult precompilationResult)
+        private List<ViewCompilationInfo> ParseViews()
         {
-            var host = new PeReader.DefaultHost();
-
-            var outputFilePath = OutputFilePath.Value();
-            var assembly = host.LoadUnitFrom(outputFilePath) as Cci.IAssembly;
-            assembly = new MetadataDeepCopier(host).Copy(assembly);
-
-            var rewriters = new MetadataRewriter[]
-            {
-                new AddResourcesRewriter(host, precompilationResult.CompileOutputs),
-                new RemoveStrongNameRewriter(host)
-            };
-
-            var updatedAssembly = assembly;
-            foreach (var rewriter in rewriters)
-            {
-                updatedAssembly = rewriter.Rewrite(updatedAssembly);
-            }
-
-            var saveFilePath = Path.ChangeExtension(outputFilePath, Constants.ModifiedAssemblyExtension);
-            using (var stream = File.OpenWrite(saveFilePath))
-            {
-                var pdbPath = Path.ChangeExtension(outputFilePath, ".pdb");
-                using (var pdb = new PdbReaderWriter(host, pdbPath))
-                {
-                    PeWriter.WritePeToStream(assembly, host, stream, pdb.PdbReader, localScopeProvider: null, pdbWriter: pdb.PdbWriter);
-                }
-            }
-        }
-
-        private PrecompilationResult CompileViews()
-        {
+            var results = new List<ViewCompilationInfo>();
             var files = new List<RelativeFileInfo>();
             GetRazorFiles(ServicesProvider.FileProvider, files, root: string.Empty);
-            var precompilationResult = new PrecompilationResult();
             foreach (var fileInfo in files)
             {
-                CompileView(precompilationResult, fileInfo);
+                using (var fileStream = fileInfo.FileInfo.CreateReadStream())
+                {
+                    var result = ServicesProvider.Host.GenerateCode(fileInfo.RelativePath, fileStream);
+                    results.Add(new ViewCompilationInfo(fileInfo, result));
+                }
             }
 
-            return precompilationResult;
-        }
-
-        private void CompileView(PrecompilationResult result, RelativeFileInfo fileInfo)
-        {
-            GeneratorResults generatorResults;
-            using (var fileStream = fileInfo.FileInfo.CreateReadStream())
-            {
-                generatorResults = ServicesProvider.Host.GenerateCode(fileInfo.RelativePath, fileStream);
-            }
-
-            if (!generatorResults.Success)
-            {
-                result.RazorErrors.AddRange(generatorResults.ParserErrors);
-                return;
-            }
-
-            var compileOutputs = new CompileOutputs(fileInfo.RelativePath, Options.GeneratePdbOption.HasValue());
-            var emitResult = ServicesProvider.CompilationService.EmitAssembly(
-                Constants.PrecompiledAssemblyNamePrefix + Guid.NewGuid(),
-                generatorResults.GeneratedCode,
-                compileOutputs.AssemblyStream,
-                compileOutputs.PdbStream);
-
-            if (!emitResult.Success)
-            {
-                result.RoslynErrors.AddRange(emitResult.Diagnostics);
-                compileOutputs.Dispose();
-            }
-            else
-            {
-                result.CompileOutputs.Add(compileOutputs);
-            }
+            return results;
         }
 
         private static void GetRazorFiles(IFileProvider fileProvider, List<RelativeFileInfo> razorFiles, string root)
@@ -178,30 +192,37 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             }
         }
 
-        private class PdbReaderWriter : IDisposable
+        private string ReadTypeInfo(CSharpCompilation compilation, SyntaxTree syntaxTree)
         {
-            public PdbReaderWriter(IMetadataHost host, string pdbPath)
+            var semanticModel = compilation.GetSemanticModel(syntaxTree, ignoreAccessibility: true);
+            var classDeclarations = syntaxTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>();
+            foreach (var declaration in classDeclarations)
             {
-                if (File.Exists(pdbPath))
+                var typeModel = semanticModel.GetDeclaredSymbol(declaration);
+                if (typeModel.ContainingType == null && typeModel.DeclaredAccessibility == Accessibility.Public)
                 {
-                    using (var pdbStream = File.OpenRead(pdbPath))
-                    {
-                        PdbReader = new PdbReader(pdbStream, host);
-                    }
-
-                    PdbWriter = new PdbWriter(pdbPath, PdbReader);
+                    return GetFullName(typeModel);
                 }
             }
 
-            public PdbReader PdbReader { get; }
+            return null;
+        }
 
-            public PdbWriter PdbWriter { get; }
+        private string GetFullName(INamedTypeSymbol typeModel)
+        {
+            var nameBuilder = new StringBuilder();
 
-            public void Dispose()
+            var containingNamespace = typeModel.ContainingNamespace;
+            while (!containingNamespace.IsGlobalNamespace)
             {
-                PdbWriter?.Dispose();
-                PdbReader?.Dispose();
+                nameBuilder.Insert(0, ".");
+                nameBuilder.Insert(0, containingNamespace.MetadataName);
+
+                containingNamespace = containingNamespace.ContainingNamespace;
             }
+
+            nameBuilder.Append(typeModel.MetadataName);
+            return nameBuilder.ToString();
         }
     }
 }

@@ -25,8 +25,7 @@
   "dependencies": {
     "Microsoft.AspNetCore.Hosting": "1.1.0-*",
     "Microsoft.AspNetCore.Mvc.Razor": "1.1.0-*",
-    "Microsoft.Extensions.CommandLineUtils": "1.1.0-*",
-    "Microsoft.Cci": "4.0.0-rc3-24214-00"
+    "Microsoft.Extensions.CommandLineUtils": "1.1.0-*"
   },
   "frameworks": {
     "netcoreapp1.0": {
@@ -37,6 +36,6 @@
         }
       }
     },
-    "net46": {}
+    "net451": {}
   }
 }

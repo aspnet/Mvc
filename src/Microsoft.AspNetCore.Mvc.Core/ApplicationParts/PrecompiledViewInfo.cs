@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 
 namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
 {
@@ -15,16 +14,11 @@ namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
         /// Creates a new instance of <see cref="PrecompiledViewInfo" />.
         /// </summary>
         /// <param name="path">The path of the view.</param>
-        /// <param name="assemblyStreamFactory">Factory that provides the <see cref="Stream"/> for the view assembly.</param>
-        /// <param name="pdbStreamFactory">Factory that provides the <see cref="Stream"/> for the view pdb.</param>
-        public PrecompiledViewInfo(
-            string path,
-            Func<Stream> assemblyStreamFactory,
-            Func<Stream> pdbStreamFactory)
+        /// <param name="type">The view <see cref="System.Type"/>.</param>
+        public PrecompiledViewInfo(string path, Type type)
         {
             Path = path;
-            AssemblyStreamFactory = assemblyStreamFactory;
-            PdbStreamFactory = pdbStreamFactory;
+            Type = type;
         }
 
         /// <summary>
@@ -32,9 +26,9 @@ namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
         /// </summary>
         public string Path { get; }
 
-
-        public Func<Stream> AssemblyStreamFactory { get; }
-
-        public Func<Stream> PdbStreamFactory { get; }
+        /// <summary>
+        /// The view <see cref="System.Type"/>.
+        /// </summary>
+        public Type Type { get; }
     }
 }

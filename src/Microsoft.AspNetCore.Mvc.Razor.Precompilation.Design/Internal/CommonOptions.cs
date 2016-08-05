@@ -13,8 +13,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
         public CommandOption ContentRootOption { get; private set; }
 
-        public CommandOption GeneratePdbOption { get; private set; }
-
         public void Configure(CommandLineApplication app)
         {
             app.Description = "Precompiles an application.";
@@ -33,11 +31,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 "--content-root",
                 "The application's content root.",
                 CommandOptionType.SingleValue);
-
-            GeneratePdbOption = app.Option(
-                "--generate-pdbs",
-                "Generate pdbs for views.",
-                CommandOptionType.NoValue);
         }
     }
 }

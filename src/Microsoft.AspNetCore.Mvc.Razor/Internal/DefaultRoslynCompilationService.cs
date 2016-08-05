@@ -6,18 +6,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
-using System.Threading;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
@@ -32,59 +29,28 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         // error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive
         // or an assembly reference?)
         private const string CS0246 = nameof(CS0246);
-        private readonly DebugInformationFormat _pdbFormat =
-#if NET451
-            SymbolsUtility.SupportsFullPdbGeneration() ?
-                DebugInformationFormat.Pdb :
-                DebugInformationFormat.PortablePdb;
-#else
-            DebugInformationFormat.PortablePdb;
-#endif
-        private readonly ApplicationPartManager _partManager;
+
+        private readonly CSharpCompiler _compiler;
         private readonly IFileProvider _fileProvider;
-        private readonly Action<RoslynCompilationContext> _compilationCallback;
-        private readonly CSharpParseOptions _parseOptions;
-        private readonly CSharpCompilationOptions _compilationOptions;
-        private readonly IList<MetadataReference> _additionalMetadataReferences;
         private readonly ILogger _logger;
-        private object _compilationReferencesLock = new object();
-        private bool _compilationReferencesInitialized;
-        private IList<MetadataReference> _compilationReferences;
 
         /// <summary>
         /// Initalizes a new instance of the <see cref="DefaultRoslynCompilationService"/> class.
         /// </summary>
-        /// <param name="partManager">The <see cref="ApplicationPartManager"/>.</param>
-        /// <param name="optionsAccessor">Accessor to <see cref="RazorViewEngineOptions"/>.</param>
+        /// <param name="compiler">The <see cref="CSharpCompiler"/>.</param>
         /// <param name="fileProviderAccessor">The <see cref="IRazorViewEngineFileProviderAccessor"/>.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
         public DefaultRoslynCompilationService(
-            ApplicationPartManager partManager,
-            IOptions<RazorViewEngineOptions> optionsAccessor,
+            CSharpCompiler compiler,
             IRazorViewEngineFileProviderAccessor fileProviderAccessor,
             ILoggerFactory loggerFactory)
         {
-            _partManager = partManager;
+            _compiler = compiler;
             _fileProvider = fileProviderAccessor.FileProvider;
-            _compilationCallback = optionsAccessor.Value.CompilationCallback;
-            _parseOptions = optionsAccessor.Value.ParseOptions;
-            _compilationOptions = optionsAccessor.Value.CompilationOptions;
-            _additionalMetadataReferences = optionsAccessor.Value.AdditionalCompilationReferences;
             _logger = loggerFactory.CreateLogger<DefaultRoslynCompilationService>();
         }
 
-        private IList<MetadataReference> CompilationReferences
-        {
-            get
-            {
-                return LazyInitializer.EnsureInitialized(
-                    ref _compilationReferences,
-                    ref _compilationReferencesInitialized,
-                    ref _compilationReferencesLock,
-                    GetCompilationReferences);
-            }
-        }
-
+        /// <inheritdoc />
         public CompilationResult Compile(RelativeFileInfo fileInfo, string compilationContent)
         {
             if (fileInfo == null)
@@ -100,16 +66,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             _logger.GeneratedCodeToAssemblyCompilationStart(fileInfo.RelativePath);
             var startTimestamp = _logger.IsEnabled(LogLevel.Debug) ? Stopwatch.GetTimestamp() : 0;
 
+            var assemblyName = Path.GetRandomFileName();
+            var sourceText = SourceText.From(compilationContent, Encoding.UTF8);
+            var syntaxTree = _compiler.CreateSyntaxTree(sourceText).WithFilePath(assemblyName);
+            var compilation = _compiler
+                .CreateCompilation(assemblyName)
+                .AddSyntaxTrees(syntaxTree);
+            compilation = _compiler.ProcessCompilation(compilation);
+
             using (var assemblyStream = new MemoryStream())
             {
                 using (var pdbStream = new MemoryStream())
                 {
-                    var assemblyName = Path.GetRandomFileName();
-                    var result = EmitAssembly(
-                        assemblyName,
-                        compilationContent,
+                    var result = compilation.Emit(
                         assemblyStream,
-                        pdbStream);
+                        pdbStream,
+                        options: _compiler.EmitOptions);
 
                     if (!result.Success)
                     {
@@ -120,85 +92,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                             result.Diagnostics);
                     }
 
-                    var type = RazorAssemblyLoader.GetExportedType(assemblyStream, pdbStream);
+                    assemblyStream.Seek(0, SeekOrigin.Begin);
+                    pdbStream.Seek(0, SeekOrigin.Begin);
+
+                    var assembly = LoadAssembly(assemblyStream, pdbStream);
+                    var type = assembly.GetExportedTypes().FirstOrDefault(a => !a.IsNested);
 
                     _logger.GeneratedCodeToAssemblyCompilationEnd(fileInfo.RelativePath, startTimestamp);
 
                     return new CompilationResult(type);
                 }
             }
-        }
-
-        /// <inheritdoc />
-        public EmitResult EmitAssembly(
-            string assemblyName,
-            string compilationContent,
-            Stream assemblyStream,
-            Stream pdbStream)
-        {
-            var sourceText = SourceText.From(compilationContent, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(
-                sourceText,
-                path: assemblyName,
-                options: _parseOptions);
-
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                syntaxTrees: new[] { syntaxTree },
-                options: _compilationOptions,
-                references: CompilationReferences);
-
-            var compilationContext = new RoslynCompilationContext(compilation);
-            Rewrite(compilationContext);
-            _compilationCallback(compilationContext);
-
-            var emitResult = compilationContext.Compilation.Emit(
-                assemblyStream,
-                pdbStream,
-                options: new EmitOptions(debugInformationFormat: _pdbFormat));
-
-            assemblyStream.Seek(0, SeekOrigin.Begin);
-            pdbStream?.Seek(0, SeekOrigin.Begin);
-
-            return emitResult;
-        }
-
-        /// <summary>
-        /// Gets the sequence of <see cref="MetadataReference"/> instances used for compilation.
-        /// </summary>
-        /// <returns>The <see cref="MetadataReference"/> instances.</returns>
-        protected virtual IList<MetadataReference> GetCompilationReferences()
-        {
-            var feature = new MetadataReferenceFeature();
-            _partManager.PopulateFeature(feature);
-            var applicationReferences = feature.MetadataReferences;
-
-            if (_additionalMetadataReferences.Count == 0)
-            {
-                return applicationReferences;
-            }
-
-            var compilationReferences = new List<MetadataReference>(applicationReferences.Count + _additionalMetadataReferences.Count);
-            compilationReferences.AddRange(applicationReferences);
-            compilationReferences.AddRange(_additionalMetadataReferences);
-
-            return compilationReferences;
-        }
-
-        private void Rewrite(RoslynCompilationContext compilationContext)
-        {
-            var compilation = compilationContext.Compilation;
-            var rewrittenTrees = new List<SyntaxTree>();
-            foreach (var tree in compilation.SyntaxTrees)
-            {
-                var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-                var rewriter = new ExpressionRewriter(semanticModel);
-
-                var rewrittenTree = tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options);
-                rewrittenTrees.Add(rewrittenTree);
-            }
-
-            compilationContext.Compilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(rewrittenTrees);
         }
 
         // Internal for unit testing
@@ -265,6 +169,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private static bool IsError(Diagnostic diagnostic)
         {
             return diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
+        }
+
+        public static Assembly LoadAssembly(MemoryStream assemblyStream, MemoryStream pdbStream)
+        {
+            var assembly =
+#if NET451
+                Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
+#else
+                System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyStream, pdbStream);
+#endif
+            return assembly;
         }
 
         private static string ReadFileContentsSafely(IFileProvider fileProvider, string filePath)

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.DesignTime;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -26,32 +25,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
         public MvcServicesProvider(
             string projectPath,
-            string outputFilePath,
+            string applicationName,
             string contentRoot,
             string configureCompilationType)
         {
             _projectPath = projectPath;
             _contentRoot = contentRoot;
-            _applicationName = Path.GetFileNameWithoutExtension(outputFilePath);
+            _applicationName = applicationName;
 
             var mvcBuilderConfiguration = GetConfigureCompilationAction(configureCompilationType);
             var serviceProvider = GetProvider(mvcBuilderConfiguration);
 
             Host = serviceProvider.GetRequiredService<IMvcRazorHost>();
-            CompilationService = serviceProvider.GetRequiredService<ICompilationService>() as DefaultRoslynCompilationService;
-            if (CompilationService == null)
-            {
-                throw new InvalidOperationException(
-                    $"An {typeof(ICompilationService)} of type {typeof(DefaultRoslynCompilationService)} " +
-                    "is required for Razor precompilation.");
-            }
+            Compiler = serviceProvider.GetRequiredService<CSharpCompiler>();
 
             FileProvider = serviceProvider.GetRequiredService<IRazorViewEngineFileProviderAccessor>().FileProvider;
         }
 
         public IMvcRazorHost Host { get; }
 
-        public DefaultRoslynCompilationService CompilationService { get; }
+        public CSharpCompiler Compiler { get; }
 
         public IFileProvider FileProvider { get; }
 

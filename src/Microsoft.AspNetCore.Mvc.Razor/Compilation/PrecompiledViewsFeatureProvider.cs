@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 {
@@ -16,21 +15,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             foreach (var provider in parts.OfType<IPrecompiledViewsProvider>())
             {
                 var precompiledViews = provider.PrecompiledViews;
-                foreach (var viewInfo in precompiledViews)
+                if (precompiledViews != null)
                 {
-                    AddView(feature, viewInfo);
-                }
-            }
-        }
-
-        private void AddView(PrecompiledViewsFeature feature, PrecompiledViewInfo viewInfo)
-        {
-            using (var assemblyStream = viewInfo.AssemblyStreamFactory())
-            {
-                using (var pdbStream = viewInfo.PdbStreamFactory?.Invoke())
-                {
-                    var type = RazorAssemblyLoader.GetExportedType(assemblyStream, pdbStream);
-                    feature.PrecompiledViews[viewInfo.Path] = type;
+                    foreach (var viewInfo in precompiledViews)
+                    {
+                        feature.PrecompiledViews[viewInfo.Path] = viewInfo.Type;
+                    }
                 }
             }
         }
