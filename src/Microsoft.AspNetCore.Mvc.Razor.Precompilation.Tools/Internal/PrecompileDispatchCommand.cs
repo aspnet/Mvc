@@ -23,21 +23,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
         private CommandOption NoBuildOption { get; set; }
 
-        public CommandOption FrameworkOption { get; set; }
+        private CommandOption FrameworkOption { get; set; }
 
-        public CommandOption ConfigurationOption { get; set; }
+        private CommandOption ConfigurationOption { get; set; }
+
+        private CommandOption OutputPathOption { get; set; }
 
         private NuGetFramework TargetFramework { get; set; }
 
-        private ProjectContext RuntimeContext { get; set; }
-
+        private CommandOption BuildBasePathOption { get; set; }
 
         private string OutputPath { get; set; }
 
         private string ProjectPath { get; set; }
 
         private string Configuration { get; set; }
-
+        
         public void Configure(CommandLineApplication app)
         {
             Options.Configure(app);
@@ -55,6 +56,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                 "--no-build",
                 "Do not build project before compiling views.",
                 CommandOptionType.NoValue);
+
+            OutputPathOption = app.Option(
+                "-o|--output",
+                "The output (bin or publish) directory.",
+                CommandOptionType.SingleValue);
+
+            BuildBasePathOption = app.Option(
+                "-b|--build-base-path",
+                "Directory in which to place outputs.",
+                CommandOptionType.SingleValue);
+
             app.OnExecute(() => Execute());
         }
 
@@ -63,8 +75,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             ProjectPath = GetProjectPath();
             Configuration = ConfigurationOption.Value() ?? DotNet.Cli.Utils.Constants.DefaultConfiguration;
             TargetFramework = GetTargetFramework();
-            RuntimeContext = GetRuntimeContext();
-            OutputPath = GetBuildOutputPath();
+            var runtimeIdentifiers = RuntimeEnvironmentRidExtensions.GetAllCandidateRuntimeIdentifiers();
+            var outputPaths = GetOutputPaths(runtimeIdentifiers);
+            OutputPath = runtimeIdentifiers.Any() ? outputPaths.RuntimeOutputPath : outputPaths.CompilationOutputPath;
+            var outputBinary = outputPaths.RuntimeFiles.Assembly;
 
             if (!NoBuildOption.HasValue())
             {
@@ -78,8 +92,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             var dispatchArgs = new List<string>
             {
                 ProjectPath,
-                "--output",
-                OutputPath,
+                "--output-file-path",
+                outputBinary,
                 "--content-root",
                 Options.ContentRootOption.Value() ?? Directory.GetCurrentDirectory(),
             };
@@ -101,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                 TargetFramework,
                 Configuration,
                 outputPath: OutputPath,
-                buildBasePath: null,
+                buildBasePath: BuildBasePathOption.Value(),
                 projectDirectory: ProjectPath,
                 toolName: toolName);
 
@@ -113,12 +127,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
             if (commandExitCode == 0)
             {
-                var outputAssembly = RuntimeContext.GetOutputPaths(Configuration).RuntimeFiles.Assembly;
-                var modifiedAssembly = Path.ChangeExtension(outputAssembly, Design.Internal.Constants.ModifiedAssemblyExtension);
+                var modifiedAssembly = Path.ChangeExtension(outputBinary, Design.Internal.Constants.ModifiedAssemblyExtension);
 
-                if (File.Exists(outputAssembly))
+                if (File.Exists(outputBinary))
                 {
-                    File.Copy(modifiedAssembly, outputAssembly, overwrite: true);
+                    File.Copy(modifiedAssembly, outputBinary, overwrite: true);
                     File.Delete(modifiedAssembly);
                 }
             }
@@ -137,11 +150,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                     projectPath = Path.GetDirectoryName(ProjectPath);
                 }
 
-                if (!Directory.Exists(ProjectPath))
+                if (!Directory.Exists(projectPath))
                 {
-                    throw new InvalidOperationException($"Error: Could not find directory {ProjectPath}");
+                    throw new InvalidOperationException($"Error: Could not find directory {projectPath}.");
                 }
-
             }
             else
             {
@@ -151,7 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             return projectPath;
         }
 
-        private ProjectContext GetRuntimeContext()
+        private OutputPaths GetOutputPaths(IEnumerable<string> runtimeIdentifiers)
         {
             var workspace = new BuildWorkspace(ProjectReaderSettings.ReadFromEnvironment());
 
@@ -162,9 +174,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                 throw new InvalidOperationException($"Project '{ProjectPath}' does not support framework: {FrameworkOption.Value()}");
             }
 
-            return workspace.GetRuntimeContext(
-                projectContext,
-                RuntimeEnvironmentRidExtensions.GetAllCandidateRuntimeIdentifiers());
+            var runtimeContext = workspace.GetRuntimeContext(projectContext, runtimeIdentifiers);
+            return runtimeContext.GetOutputPaths(
+                Configuration,
+                BuildBasePathOption.Value(),
+                OutputPathOption.Value());
         }
 
         private int BuildProject()
@@ -173,14 +187,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             {
                 ProjectPath,
                 "--framework",
-                RuntimeContext.TargetFramework.ToString(),
+                TargetFramework.ToString(),
                 "--configuration",
                 Configuration,
-                "--output",
-                OutputPath
             };
 
-            return Command.CreateDotNet("build", arguments, RuntimeContext.TargetFramework, Configuration)
+            if (BuildBasePathOption.HasValue())
+            {
+                arguments.Add("--build-base-path");
+                arguments.Add(BuildBasePathOption.Value());
+            }
+
+            if (OutputPathOption.HasValue())
+            {
+                arguments.Add("--output");
+                arguments.Add(OutputPathOption.Value());
+            }
+
+            return Command.CreateDotNet("build", arguments, TargetFramework, Configuration)
                 .ForwardStdErr(Console.Error)
                 .ForwardStdOut(Console.Out)
                 .Execute()
@@ -213,27 +237,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             {
                 return NuGetFramework.Parse(FrameworkOption.Value());
             }
-        }
-
-        private string GetBuildOutputPath()
-        {
-            if (Options.OutputPathOption.HasValue())
-            {
-                return Options.OutputPathOption.Value();
-            }
-
-            var outputs = RuntimeContext.GetOutputPaths(Configuration);
-            string outputPath;
-            if (!string.IsNullOrEmpty(RuntimeContext.RuntimeIdentifier))
-            {
-                outputPath = outputs.RuntimeOutputPath;
-            }
-            else
-            {
-                outputPath = outputs.CompilationOutputPath;
-            }
-
-            return outputPath;
         }
     }
 }

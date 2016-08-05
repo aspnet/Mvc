@@ -6,5 +6,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
     public static class Constants
     {
         public static readonly string ModifiedAssemblyExtension = ".precompiled-razor";
+
+        public const string PrecompiledAssemblyNamePrefix = "PrecompiledRazor.";
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
@@ -9,12 +10,13 @@ using Microsoft.Cci;
 using Microsoft.Cci.MutableCodeModel;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class PrecompileRunCommand
     {
-        private const string PrecompiledAssemblyPrefix = "PrecompiledRazor.";
+        private readonly string PrecompiledAssemblyNameSuffix = Guid.NewGuid().ToString();
 
         private CommandOption OutputFilePath { get; set; }
 
@@ -27,6 +29,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
         public void Configure(CommandLineApplication app)
         {
             Options.Configure(app);
+            OutputFilePath = app.Option(
+                "--output-file-path", 
+                "Path to the output binary (assembly or executable).",
+                CommandOptionType.SingleValue);
+
             app.OnExecute(() => Execute());
         }
 
@@ -36,8 +43,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             ServicesProvider = new MvcServicesProvider(
                 ProjectPath,
+                OutputFilePath.Value(),
                 Options.ContentRootOption.Value(),
                 Options.ConfigureCompilationType.Value());
+
+            Console.WriteLine("Running Razor view precompilation.");
 
             var result = CompileViews();
             if (!result.Success)
@@ -55,8 +65,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 return 1;
             }
 
-            var outputPath = Options.OutputPathOption.Value();
-            UpdateAssembly(outputPath, result);
+            Console.WriteLine($"Successfully compiled {result.CompileOutputs.Count} Razor views.");
+            Console.WriteLine($"Injecting precompiled views into assembly {OutputFilePath.Value()}.");
+
+            UpdateAssembly(result);
             return 0;
         }
 
@@ -67,14 +79,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             {
                 throw new ArgumentException("Project path not specified.");
             }
+
+            if (!OutputFilePath.HasValue())
+            {
+                throw new ArgumentException($"Option {OutputFilePath.Template} does not specify a value.");
+            }
         }
 
-        private void UpdateAssembly(string outputPath, PrecompilationResult precompilationResult)
+        private void UpdateAssembly(PrecompilationResult precompilationResult)
         {
             var host = new PeReader.DefaultHost();
 
-            var assemblyPath = Path.Combine(outputPath, Path.GetFileName(ProjectPath) + ".dll");
-            var assembly = host.LoadUnitFrom(assemblyPath) as Cci.IAssembly;
+            var outputFilePath = OutputFilePath.Value();
+            var assembly = host.LoadUnitFrom(outputFilePath) as Cci.IAssembly;
             assembly = new MetadataDeepCopier(host).Copy(assembly);
 
             var rewriters = new MetadataRewriter[]
@@ -89,17 +106,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 updatedAssembly = rewriter.Rewrite(updatedAssembly);
             }
 
-            var outputFilePath = Path.ChangeExtension(assemblyPath, Constants.ModifiedAssemblyExtension);
-            using (var stream = File.OpenWrite(outputFilePath))
+            var saveFilePath = Path.ChangeExtension(outputFilePath, Constants.ModifiedAssemblyExtension);
+            using (var stream = File.OpenWrite(saveFilePath))
             {
-                PeWriter.WritePeToStream(updatedAssembly, host, stream);
+                var pdbPath = Path.ChangeExtension(outputFilePath, ".pdb");
+                using (var pdb = new PdbReaderWriter(host, pdbPath))
+                {
+                    PeWriter.WritePeToStream(assembly, host, stream, pdb.PdbReader, localScopeProvider: null, pdbWriter: pdb.PdbWriter);
+                }
             }
         }
 
         private PrecompilationResult CompileViews()
         {
+            var files = new List<RelativeFileInfo>();
+            GetRazorFiles(ServicesProvider.FileProvider, files, root: string.Empty);
             var precompilationResult = new PrecompilationResult();
-            foreach (var fileInfo in FileProviderUtilities.GetRazorFiles(ServicesProvider.FileProvider))
+            foreach (var fileInfo in files)
             {
                 CompileView(precompilationResult, fileInfo);
             }
@@ -123,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             var compileOutputs = new CompileOutputs(fileInfo.RelativePath, Options.GeneratePdbOption.HasValue());
             var emitResult = ServicesProvider.CompilationService.EmitAssembly(
-                PrecompiledAssemblyPrefix + Guid.NewGuid(),
+                Constants.PrecompiledAssemblyNamePrefix + Guid.NewGuid(),
                 generatorResults.GeneratedCode,
                 compileOutputs.AssemblyStream,
                 compileOutputs.PdbStream);
@@ -136,6 +159,48 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             else
             {
                 result.CompileOutputs.Add(compileOutputs);
+            }
+        }
+
+        private static void GetRazorFiles(IFileProvider fileProvider, List<RelativeFileInfo> razorFiles, string root)
+        {
+            foreach (var fileInfo in fileProvider.GetDirectoryContents(root))
+            {
+                var relativePath = Path.Combine(root, fileInfo.Name);
+                if (fileInfo.IsDirectory)
+                {
+                    GetRazorFiles(fileProvider, razorFiles, relativePath);
+                }
+                else if (fileInfo.Name.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
+                {
+                    razorFiles.Add(new RelativeFileInfo(fileInfo, relativePath));
+                }
+            }
+        }
+
+        private class PdbReaderWriter : IDisposable
+        {
+            public PdbReaderWriter(IMetadataHost host, string pdbPath)
+            {
+                if (File.Exists(pdbPath))
+                {
+                    using (var pdbStream = File.OpenRead(pdbPath))
+                    {
+                        PdbReader = new PdbReader(pdbStream, host);
+                    }
+
+                    PdbWriter = new PdbWriter(pdbPath, PdbReader);
+                }
+            }
+
+            public PdbReader PdbReader { get; }
+
+            public PdbWriter PdbWriter { get; }
+
+            public void Dispose()
+            {
+                PdbWriter?.Dispose();
+                PdbReader?.Dispose();
             }
         }
     }

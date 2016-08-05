@@ -6,13 +6,17 @@ using System.IO;
 
 namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
 {
+    /// <summary>
+    /// Provides information for precompiled views.
+    /// </summary>
     public class PrecompiledViewInfo
     {
-        public PrecompiledViewInfo(string path, Func<Stream> assemblyStreamFactory)
-            : this(path, assemblyStreamFactory, pdbStreamFactory: null)
-        {
-        }
-
+        /// <summary>
+        /// Creates a new instance of <see cref="PrecompiledViewInfo" />.
+        /// </summary>
+        /// <param name="path">The path of the view.</param>
+        /// <param name="assemblyStreamFactory">Factory that provides the <see cref="Stream"/> for the view assembly.</param>
+        /// <param name="pdbStreamFactory">Factory that provides the <see cref="Stream"/> for the view pdb.</param>
         public PrecompiledViewInfo(
             string path,
             Func<Stream> assemblyStreamFactory,
@@ -23,7 +27,11 @@ namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
             PdbStreamFactory = pdbStreamFactory;
         }
 
+        /// <summary>
+        /// The path of the view.
+        /// </summary>
         public string Path { get; }
+
 
         public Func<Stream> AssemblyStreamFactory { get; }
 

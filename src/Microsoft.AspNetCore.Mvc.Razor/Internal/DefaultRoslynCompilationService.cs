@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     /// <summary>
     /// A type that uses Roslyn to compile C# content.
     /// </summary>
-    public class DefaultRoslynCompilationService : IRoslynCompilationService
+    public class DefaultRoslynCompilationService : ICompilationService
     {
         // error CS0234: The type or namespace name 'C' does not exist in the namespace 'N' (are you missing
         // an assembly reference?)
