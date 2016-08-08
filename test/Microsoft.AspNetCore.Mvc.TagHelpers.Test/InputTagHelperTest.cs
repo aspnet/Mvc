@@ -404,7 +404,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelper.For.ModelExplorer,
                     tagHelper.For.Name,
                     model,      // value
-                    null,       // format
                     false,      // useViewData
                     null))      // htmlAttributes
                 .Returns(tagBuilder)

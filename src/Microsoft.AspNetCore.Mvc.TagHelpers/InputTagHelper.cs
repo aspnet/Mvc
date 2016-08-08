@@ -190,14 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             switch (inputType)
             {
                 case "hidden":
-                    tagBuilder = Generator.GenerateHidden(
-                        ViewContext,
-                        modelExplorer,
-                        For.Name,
-                        value: For.Model,
-                        format: Format,
-                        useViewData: false,
-                        htmlAttributes: null);
+                    tagBuilder = GenerateHidden(modelExplorer);
                     break;
 
                 case "checkbox":
@@ -341,6 +334,29 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 htmlAttributes: htmlAttributes);
         }
 
+        private TagBuilder GenerateHidden(ModelExplorer modelExplorer)
+        {
+            var value = For.Model;
+            var byteArrayValue = value as byte[];
+            if (byteArrayValue != null)
+            {
+                value = Convert.ToBase64String(byteArrayValue);
+            }
+
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "type", "hidden" }
+            };
+
+            return Generator.GenerateTextBox(
+                ViewContext,
+                modelExplorer,
+                For.Name,
+                value: value,
+                format: Format,
+                htmlAttributes: htmlAttributes);
+        }
+
         // Get a fall-back format based on the metadata.
         private string GetFormat(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
         {
@@ -413,6 +429,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 yield return typeName;
             }
+        }
+        
+        // Only need a dictionary if htmlAttributes is non-null. TagBuilder.MergeAttributes() is fine with null.
+        private static IDictionary<string, object> GetHtmlAttributeDictionaryOrNull(object htmlAttributes)
+        {
+            IDictionary<string, object> htmlAttributeDictionary = null;
+            if (htmlAttributes != null)
+            {
+                htmlAttributeDictionary = htmlAttributes as IDictionary<string, object>;
+                if (htmlAttributeDictionary == null)
+                {
+                    htmlAttributeDictionary = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributes);
+                }
+            }
+
+            return htmlAttributeDictionary;
         }
     }
 }

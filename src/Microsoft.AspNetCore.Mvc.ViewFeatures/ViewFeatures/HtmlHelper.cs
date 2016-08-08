@@ -449,7 +449,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 modelExplorer: null,
                 expression: expression,
                 value: value,
-                format: null,
                 useViewData: (value == null),
                 htmlAttributes: htmlAttributes);
         }
@@ -958,7 +957,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             object value,
-            string format,
             bool useViewData,
             object htmlAttributes)
         {
@@ -968,7 +966,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     modelExplorer,
                     expression,
                     value,
-                    format,
                     useViewData,
                     htmlAttributes);
             if (tagBuilder == null)

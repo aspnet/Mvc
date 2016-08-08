@@ -312,7 +312,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             object value,
-            string format,
             bool useViewData,
             object htmlAttributes)
         {
@@ -339,36 +338,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 isChecked: false,
                 setId: true,
                 isExplicitValue: true,
-                format: format,
-                htmlAttributes: htmlAttributeDictionary);
-        }
-
-        /// <inheritdoc />
-        public virtual TagBuilder GenerateTextBox(
-            ViewContext viewContext,
-            ModelExplorer modelExplorer,
-            string expression,
-            object value,
-            string format,
-            object htmlAttributes)
-        {
-            if (viewContext == null)
-            {
-                throw new ArgumentNullException(nameof(viewContext));
-            }
-
-            var htmlAttributeDictionary = GetHtmlAttributeDictionaryOrNull(htmlAttributes);
-            return GenerateInput(
-                viewContext,
-                InputType.Text,
-                modelExplorer,
-                expression,
-                value,
-                useViewData: (modelExplorer == null && value == null),
-                isChecked: false,
-                setId: true,
-                isExplicitValue: true,
-                format: format,
+                format: null,
                 htmlAttributes: htmlAttributeDictionary);
         }
 
@@ -714,6 +684,34 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return tagBuilder;
         }
 
+        /// <inheritdoc />
+        public virtual TagBuilder GenerateTextBox(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            string expression,
+            object value,
+            string format,
+            object htmlAttributes)
+        {
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
+            var htmlAttributeDictionary = GetHtmlAttributeDictionaryOrNull(htmlAttributes);
+            return GenerateInput(
+                viewContext,
+                InputType.Text,
+                modelExplorer,
+                expression,
+                value,
+                useViewData: (modelExplorer == null && value == null),
+                isChecked: false,
+                setId: true,
+                isExplicitValue: true,
+                format: format,
+                htmlAttributes: htmlAttributeDictionary);
+        }
 
         /// <inheritdoc />
         public virtual TagBuilder GenerateValidationMessage(
