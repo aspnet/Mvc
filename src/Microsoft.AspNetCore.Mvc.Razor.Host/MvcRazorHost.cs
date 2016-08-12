@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Razor.Directives;
+using Microsoft.AspNetCore.Mvc.Razor.Host;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Chunks;
@@ -20,7 +21,7 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
 {
-    public class MvcRazorHost : RazorEngineHost, IMvcRazorHost
+    public class MvcRazorHost : RazorEngineHost, IMvcRazorHost, IMvcRazorHostWithTemplateEngineContext
     {
         private const string BaseType = "Microsoft.AspNetCore.Mvc.Razor.RazorPage";
         private const string HtmlHelperPropertyName = "Html";
@@ -118,7 +119,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     TagHelperOutputContentPropertyName = nameof(TagHelperOutput.Content),
                     ExecutionContextSetOutputContentAsyncMethodName = nameof(TagHelperExecutionContext.SetOutputContentAsync),
                     TagHelperAttributeValuePropertyName = nameof(TagHelperAttribute.Value),
-        })
+                })
             {
                 BeginContextMethodName = "BeginContext",
                 EndContextMethodName = "EndContext"
@@ -286,6 +287,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <inheritdoc />
+        public GeneratorResults GenerateCode(TemplateEngineContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (string.IsNullOrEmpty(context.ClassName) && !string.IsNullOrEmpty(context.RelativePath))
+            {
+                context.ClassName = ParserHelpers.SanitizeClassName(context.RelativePath);
+            }
+
+            var engine = new RazorTemplateEngine(this);
+            return engine.GenerateCode(context);
+        }
+
+        /// <inheritdoc />
         public override RazorParser DecorateRazorParser(RazorParser razorParser, string sourceFileName)
         {
             if (razorParser == null)
@@ -295,6 +313,33 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             var inheritedChunkTrees = GetInheritedChunkTrees(sourceFileName);
             return new MvcRazorParser(razorParser, inheritedChunkTrees, DefaultInheritedChunks, ModelExpressionType);
+        }
+
+        public override RazorParser DecorateRazorParser(
+            RazorParser incomingRazorParser,
+            TemplateEngineContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (incomingRazorParser == null)
+            {
+                throw new ArgumentNullException(nameof(incomingRazorParser));
+            }
+
+            if (string.IsNullOrEmpty(context.RelativePath))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpy, nameof(context.RelativePath));
+            }
+
+            var inheritedChunkTrees = GetInheritedChunkTrees(context.RelativePath);
+            return new MvcRazorParser(
+                incomingRazorParser,
+                inheritedChunkTrees,
+                DefaultInheritedChunks,
+                ModelExpressionType);
         }
 
         /// <inheritdoc />

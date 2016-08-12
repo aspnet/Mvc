@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.Extensions.FileProviders;
@@ -23,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     {
         private readonly ICompilationService _compilationService;
         private readonly IMvcRazorHost _razorHost;
+        private readonly IMvcRazorHostWithTemplateEngineContext _razorHostWithContext;
         private readonly IFileProvider _fileProvider;
         private readonly ILogger _logger;
 
@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             _compilationService = compilationService;
             _razorHost = razorHost;
+            _razorHostWithContext = razorHost as IMvcRazorHostWithTemplateEngineContext;
             _fileProvider = fileProviderAccessor.FileProvider;
             _logger = loggerFactory.CreateLogger<RazorCompilationService>();
         }
@@ -53,16 +54,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 throw new ArgumentNullException(nameof(file));
             }
 
+            var filePath = file.FileInfo.PhysicalPath ?? file.RelativePath;
             GeneratorResults results;
             using (var inputStream = file.FileInfo.CreateReadStream())
             {
-                _logger.RazorFileToCodeCompilationStart(file.RelativePath);
+                _logger.RazorFileToCodeCompilationStart(filePath);
 
                 var startTimestamp = _logger.IsEnabled(LogLevel.Debug) ? Stopwatch.GetTimestamp() : 0;
 
-                results = GenerateCode(file.RelativePath, inputStream);
+                if (_razorHostWithContext != null)
+                {
+                    var context = new TemplateEngineContext(inputStream, filePath)
+                    {
+                        RelativePath = file.RelativePath,
+                    };
 
-                _logger.RazorFileToCodeCompilationEnd(file.RelativePath, startTimestamp);
+                    results = _razorHostWithContext.GenerateCode(context);
+                }
+                else
+                {
+                    results = _razorHost.GenerateCode(filePath, inputStream);
+                }
+
+                _logger.RazorFileToCodeCompilationEnd(filePath, startTimestamp);
             }
 
             if (!results.Success)
@@ -73,36 +87,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             return _compilationService.Compile(file, results.GeneratedCode);
         }
 
-        /// <summary>
-        /// Generate code for the Razor file at <paramref name="relativePath"/> with content
-        /// <paramref name="inputStream"/>.
-        /// </summary>
-        /// <param name="relativePath">
-        /// The path of the Razor file relative to the root of the application. Used to generate line pragmas and
-        /// calculate the class name of the generated type.
-        /// </param>
-        /// <param name="inputStream">A <see cref="Stream"/> that contains the Razor content.</param>
-        /// <returns>A <see cref="GeneratorResults"/> instance containing results of code generation.</returns>
-        protected virtual GeneratorResults GenerateCode(string relativePath, Stream inputStream)
-        {
-            return _razorHost.GenerateCode(relativePath, inputStream);
-        }
-
         // Internal for unit testing
         internal CompilationResult GetCompilationFailedResult(RelativeFileInfo file, IEnumerable<RazorError> errors)
         {
             // If a SourceLocation does not specify a file path, assume it is produced
             // from parsing the current file.
             var messageGroups = errors
-                .GroupBy(razorError =>
-                razorError.Location.FilePath ?? file.RelativePath,
-                StringComparer.Ordinal);
+                .GroupBy(
+                    razorError => razorError.Location.FilePath ?? file.RelativePath,
+                    StringComparer.Ordinal);
 
             var failures = new List<CompilationFailure>();
             foreach (var group in messageGroups)
             {
                 var filePath = group.Key;
-                var fileContent = ReadFileContentsSafely(filePath);
+                var fileContent = ReadFileContentsSafely(file.FileInfo);
                 var compilationFailure = new CompilationFailure(
                     filePath,
                     fileContent,
@@ -127,9 +126,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 endColumn: error.Location.CharacterIndex + error.Length);
         }
 
-        private string ReadFileContentsSafely(string relativePath)
+        private string ReadFileContentsSafely(IFileInfo fileInfo)
         {
-            var fileInfo = _fileProvider.GetFileInfo(relativePath);
             if (fileInfo.Exists)
             {
                 try

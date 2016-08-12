@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     if (!result.Success)
                     {
                         return GetCompilationFailedResult(
-                            fileInfo.RelativePath,
+                            fileInfo,
                             compilationContent,
                             assemblyName,
                             result.Diagnostics);
@@ -201,14 +201,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         // Internal for unit testing
         internal CompilationResult GetCompilationFailedResult(
-            string relativePath,
+            RelativeFileInfo fileInfo,
             string compilationContent,
             string assemblyName,
             IEnumerable<Diagnostic> diagnostics)
         {
             var diagnosticGroups = diagnostics
                 .Where(IsError)
-                .GroupBy(diagnostic => GetFilePath(relativePath, diagnostic), StringComparer.Ordinal);
+                .GroupBy(diagnostic => GetFilePath(fileInfo.RelativePath, diagnostic), StringComparer.Ordinal);
 
             var failures = new List<CompilationFailure>();
             foreach (var group in diagnosticGroups)
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 }
                 else
                 {
-                    sourceFileContent = ReadFileContentsSafely(_fileProvider, sourceFilePath);
+                    sourceFileContent = ReadFileContentsSafely(fileInfo.FileInfo);
                 }
 
                 string additionalMessage = null;
@@ -265,9 +265,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             return diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error;
         }
 
-        private static string ReadFileContentsSafely(IFileProvider fileProvider, string filePath)
+        private static string ReadFileContentsSafely(IFileInfo fileInfo)
         {
-            var fileInfo = fileProvider.GetFileInfo(filePath);
             if (fileInfo.Exists)
             {
                 try
