@@ -19,10 +19,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         ICompilationReferencesProvider,
         IPrecompiledViewsProvider
     {
-
         public static readonly string PrecompiledViewsAssemblySuffix = ".PrecompiledViews";
-        public static readonly string ViewFactoryNamespace = "AspNetCore";
-        public static readonly string ViewFactoryTypeName = "__PrecompiledViewFactory";
+        public static readonly string ViewCollectionNamespace = "AspNetCore";
+        public static readonly string ViewCollectionTypeName = "__PrecompiledViewCollection";
 
         /// <summary>
         /// Initalizes a new <see cref="AssemblyPart"/> instance.
@@ -51,14 +50,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         /// <inheritdoc />
         public IEnumerable<TypeInfo> Types => Assembly.DefinedTypes;
 
-        public PrecompiledViews PrecompiledViews
+        /// <inheritdoc />
+        public IReadOnlyCollection<PrecompiledViewInfo> PrecompiledViews
         {
             get
             {
                 var precompiledAssemblyName = new AssemblyName(Assembly.FullName);
                 precompiledAssemblyName.Name = precompiledAssemblyName.Name + PrecompiledViewsAssemblySuffix;
 
-                var viewFactoryTypeName = $"{ViewFactoryNamespace}.{ViewFactoryTypeName},{precompiledAssemblyName}";
+                var viewFactoryTypeName = $"{ViewCollectionNamespace}.{ViewCollectionTypeName},{precompiledAssemblyName}";
                 var viewFactoryType = Type.GetType(viewFactoryTypeName);
 
                 if (viewFactoryType == null)
@@ -66,7 +66,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
                     return null;
                 }
 
-                return Activator.CreateInstance(viewFactoryType) as PrecompiledViews;
+                var precompiledViews = Activator.CreateInstance(viewFactoryType) as PrecompiledViews;
+                return precompiledViews?.ViewInfos;
             }
         }
 

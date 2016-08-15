@@ -21,26 +21,35 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class PrecompileRunCommand
     {
+        public static readonly string ApplicationNameTemplate = "--applicationName";
+        public static readonly string OutputPathTemplate = "--output-path";
+
         private CommandOption OutputPathOption { get; set; }
 
         private CommandOption ApplicationNameOption { get; set; }
 
+        
+
         private MvcServicesProvider ServicesProvider { get; set; }
 
         private CommonOptions Options { get; } = new CommonOptions();
+
+        private StrongNameOptions StrongNameOptions { get; } = new StrongNameOptions();
 
         private string ProjectPath { get; set; }
 
         public void Configure(CommandLineApplication app)
         {
             Options.Configure(app);
+            StrongNameOptions.Configure(app);
+
             OutputPathOption = app.Option(
-                "--output-path",
-                "Path to the emit the precompiled assembly in.",
+               OutputPathTemplate,
+                "Path to the emit the precompiled assembly to.",
                 CommandOptionType.SingleValue);
 
             ApplicationNameOption = app.Option(
-                "--application-name",
+                ApplicationNameTemplate,
                 "Name of the application to produce precompiled assembly for.",
                 CommandOptionType.SingleValue);
 
@@ -130,12 +139,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             }
 
             compilation = compiler.ProcessCompilation(compilation);
-            var codeGenerator = new CodeGenerator(compiler, compilation);
+            var codeGenerator = new ViewCollectionCodeGenerator(compiler, compilation);
             codeGenerator.AddViewFactory(results);
 
             var assemblyName = new AssemblyName(ApplicationNameOption.Value());
             assemblyName = Assembly.Load(assemblyName).GetName();
-            codeGenerator.AddAssemblyMetadata(assemblyName, keyFilePath: null);
+            codeGenerator.AddAssemblyMetadata(assemblyName, StrongNameOptions);
 
             return codeGenerator.Compilation;
         }
@@ -150,12 +159,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             if (!OutputPathOption.HasValue())
             {
-                throw new ArgumentException($"Option {OutputPathOption.Template} does not specify a value.");
+                throw new ArgumentException($"Option {OutputPathTemplate} does not specify a value.");
             }
 
             if (!ApplicationNameOption.HasValue())
             {
-                throw new ArgumentException($"Option {ApplicationNameOption.Template} does not specify a value.");
+                throw new ArgumentException($"Option {ApplicationNameTemplate} does not specify a value.");
             }
         }
 
@@ -201,28 +210,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 var typeModel = semanticModel.GetDeclaredSymbol(declaration);
                 if (typeModel.ContainingType == null && typeModel.DeclaredAccessibility == Accessibility.Public)
                 {
-                    return GetFullName(typeModel);
+                    return typeModel.ToDisplayString();
                 }
             }
 
             return null;
-        }
-
-        private string GetFullName(INamedTypeSymbol typeModel)
-        {
-            var nameBuilder = new StringBuilder();
-
-            var containingNamespace = typeModel.ContainingNamespace;
-            while (!containingNamespace.IsGlobalNamespace)
-            {
-                nameBuilder.Insert(0, ".");
-                nameBuilder.Insert(0, containingNamespace.MetadataName);
-
-                containingNamespace = containingNamespace.ContainingNamespace;
-            }
-
-            nameBuilder.Append(typeModel.MetadataName);
-            return nameBuilder.ToString();
         }
     }
 }

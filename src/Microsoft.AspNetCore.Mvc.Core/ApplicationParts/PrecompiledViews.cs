@@ -1,25 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Mvc.Core.ApplicationParts
 {
     /// <summary>
-    /// Provides information for precompiled views.
+    /// A container for <see cref="PrecompiledViewInfo"/> instances.
     /// </summary>
-    public abstract class PrecompiledViews : IEnumerable<PrecompiledViewInfo>
+    public abstract class PrecompiledViews
     {
-        private IEnumerable<PrecompiledViewInfo> _precompiledViews;
-
-        protected PrecompiledViews(IEnumerable<PrecompiledViewInfo> precompiledViews)
+        /// <summary>
+        /// Initializes a new instance of <see cref="ViewInfos"/>.
+        /// </summary>
+        /// <param name="precompiledViews">The sequence of <see cref="PrecompiledViewInfo"/>.</param>
+        protected PrecompiledViews(IReadOnlyCollection<PrecompiledViewInfo> precompiledViews)
         {
-            _precompiledViews = precompiledViews;
+            ViewInfos = precompiledViews;
         }
 
-        public IEnumerator<PrecompiledViewInfo> GetEnumerator() => _precompiledViews.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public IReadOnlyCollection<PrecompiledViewInfo> ViewInfos { get; }
     }
 }

@@ -7,6 +7,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
     public class CommonOptions
     {
+        public static readonly string ConfigureCompilationTypeTemplate = "--configure-compilation-type";
+        public static readonly string ContentRootTemplate = "--content-root";
+
         public CommandArgument ProjectArgument { get; private set; }
 
         public CommandOption ConfigureCompilationType { get; private set; }
@@ -23,12 +26,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 "The path to the project (project folder or project.json) with precompilation.");
 
             ConfigureCompilationType = app.Option(
-                "--configure-compilation-type",
+                ConfigureCompilationTypeTemplate,
                 "Type with Configure method",
                 CommandOptionType.SingleValue);
 
             ContentRootOption = app.Option(
-                "--content-root",
+                ContentRootTemplate,
                 "The application's content root.",
                 CommandOptionType.SingleValue);
         }

@@ -33,6 +33,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
         private string Configuration { get; set; }
 
+        private string OutputPath { get; set; }
+
         public void Configure(CommandLineApplication app)
         {
             Options.Configure(app);
@@ -56,28 +58,48 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
 
         private int Execute()
         {
-            ProjectPath = GetProjectPath();
-            Configuration = ConfigurationOption.Value() ?? DotNet.Cli.Utils.Constants.DefaultConfiguration;
-            TargetFramework = GetTargetFramework();
+            ParseArguments();
 
-            var outputPaths = GetOutputPaths();
+            var runtimeContext = GetRuntimeContext();
+
+            var outputPaths = runtimeContext.GetOutputPaths(Configuration);
             var applicationName = Path.GetFileNameWithoutExtension(outputPaths.CompilationFiles.Assembly);
             var dispatchArgs = new List<string>
             {
+#if DEBUG
                 "--debug",
+#endif
                 ProjectPath,
-                "--application-name",
+                PrecompileRunCommand.ApplicationNameTemplate,
                 applicationName,
-                "--output-path",
-                GetOutputPath(),
-                "--content-root",
+                PrecompileRunCommand.OutputPathTemplate,
+                OutputPath,
+                CommonOptions.ContentRootTemplate,
                 Options.ContentRootOption.Value() ?? Directory.GetCurrentDirectory(),
             };
 
             if (Options.ConfigureCompilationType.HasValue())
             {
-                dispatchArgs.Add("--configure-compilation-type");
+                dispatchArgs.Add(CommonOptions.ConfigureCompilationTypeTemplate);
                 dispatchArgs.Add(Options.ConfigureCompilationType.Value());
+            }
+
+            var compilerOptions = runtimeContext.ProjectFile.GetCompilerOptions(TargetFramework, Configuration);
+            if (!string.IsNullOrEmpty(compilerOptions.KeyFile))
+            {
+                dispatchArgs.Add(StrongNameOptions.StrongNameKeyPath);
+                var keyFilePath = Path.GetFullPath(Path.Combine(runtimeContext.ProjectDirectory, compilerOptions.KeyFile));
+                dispatchArgs.Add(keyFilePath);
+
+                if (compilerOptions.DelaySign ?? false)
+                {
+                    dispatchArgs.Add(StrongNameOptions.DelaySignTemplate);
+                }
+
+                if (compilerOptions.PublicSign ?? false)
+                {
+                    dispatchArgs.Add(StrongNameOptions.PublicSignTemplate);
+                }
             }
 
             var toolName = typeof(Design.Program).GetTypeInfo().Assembly.GetName().Name;
@@ -97,6 +119,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
                 .ExitCode;
 
             return commandExitCode;
+        }
+
+        private void ParseArguments()
+        {
+            ProjectPath = GetProjectPath();
+            Configuration = ConfigurationOption.Value() ?? DotNet.Cli.Utils.Constants.DefaultConfiguration;
+
+            if (!FrameworkOption.HasValue())
+            {
+                throw new Exception($"Option {FrameworkOption.Template} does not have a value.");
+            }
+            TargetFramework = NuGetFramework.Parse(FrameworkOption.Value());
+
+            if (!OutputPathOption.HasValue())
+            {
+                throw new Exception($"Option {OutputPathOption.Template} does not have a value.");
+            }
+            OutputPath = OutputPathOption.Value();
         }
 
         private string GetProjectPath()
@@ -123,7 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             return projectPath;
         }
 
-        private OutputPaths GetOutputPaths()
+        private ProjectContext GetRuntimeContext()
         {
             var workspace = new BuildWorkspace(ProjectReaderSettings.ReadFromEnvironment());
 
@@ -137,28 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Internal
             var runtimeContext = workspace.GetRuntimeContext(
                 projectContext,
                 RuntimeEnvironmentRidExtensions.GetAllCandidateRuntimeIdentifiers());
-
-            return runtimeContext.GetOutputPaths(Configuration);
-        }
-
-        private NuGetFramework GetTargetFramework()
-        {
-            if (!FrameworkOption.HasValue())
-            {
-                throw new Exception($"Option {FrameworkOption.Template} does not have a value.");
-            }
-
-            return NuGetFramework.Parse(FrameworkOption.Value());
-        }
-
-        private string GetOutputPath()
-        {
-            if (!OutputPathOption.HasValue())
-            {
-                throw new Exception($"Option {OutputPathOption.Template} does not have a value.");
-            }
-
-            return OutputPathOption.Value();
+            return runtimeContext;
         }
     }
 }

@@ -2,19 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 {
-    public class CodeGenerator
+    public class ViewCollectionCodeGenerator
     {
-        public CodeGenerator(
+        public ViewCollectionCodeGenerator(
             CSharpCompiler compiler,
             CSharpCompilation compilation)
         {
@@ -37,11 +40,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             var factoryContent =
             $@"
-namespace {AssemblyPart.ViewFactoryNamespace}
+namespace {AssemblyPart.ViewCollectionNamespace}
 {{
-  public class {AssemblyPart.ViewFactoryTypeName} : {typeof(PrecompiledViews).FullName}
+  public class {AssemblyPart.ViewCollectionTypeName} : {typeof(PrecompiledViews).FullName}
   {{
-    public {AssemblyPart.ViewFactoryTypeName}() : base(new[]
+    public {AssemblyPart.ViewCollectionTypeName}() : base(new[]
     {{
         {precompiledViewsArray}
     }})
@@ -53,11 +56,26 @@ namespace {AssemblyPart.ViewFactoryNamespace}
             Compilation = Compilation.AddSyntaxTrees(syntaxTree);
         }
 
-        public void AddAssemblyMetadata(AssemblyName applicationAssemblyName, string keyFilePath)
+        public void AddAssemblyMetadata(
+            AssemblyName applicationAssemblyName,
+            StrongNameOptions strongNameOptions)
         {
-            if (!string.IsNullOrEmpty(keyFilePath))
+            if (!string.IsNullOrEmpty(strongNameOptions.KeyFile))
             {
-                Compilation = Compilation.WithOptions(Compilation.Options.WithCryptoKeyFile(keyFilePath));
+                var updatedOptions = Compilation.Options.WithStrongNameProvider(new DesktopStrongNameProvider());
+
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)  || strongNameOptions.PublicSign)
+                {
+                    updatedOptions = updatedOptions.WithCryptoPublicKey(
+                        SnkUtils.ExtractPublicKey(File.ReadAllBytes(strongNameOptions.KeyFile)));
+                }
+                else
+                {
+                    updatedOptions = updatedOptions.WithCryptoKeyFile(strongNameOptions.KeyFile)
+                        .WithDelaySign(strongNameOptions.DelaySign);
+                }
+
+                Compilation = Compilation.WithOptions(updatedOptions);
             }
 
             var assemblyVersionContent = $"[assembly:{typeof(AssemblyVersionAttribute).FullName}(\"{applicationAssemblyName.Version}\")]";
