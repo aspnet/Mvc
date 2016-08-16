@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
         public CSharpCompilation Compilation { get; private set; }
 
-        public void AddViewFactory(List<ViewCompilationInfo> result)
+        public void AddViewFactory(IList<ViewCompilationInfo> result)
         {
             var precompiledViewsArray = new StringBuilder();
             foreach (var item in result)

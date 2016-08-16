@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.CodeAnalysis;
@@ -23,12 +25,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
     {
         public static readonly string ApplicationNameTemplate = "--applicationName";
         public static readonly string OutputPathTemplate = "--output-path";
+        private static readonly ParallelOptions ParalellOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = 4
+        };
 
         private CommandOption OutputPathOption { get; set; }
 
         private CommandOption ApplicationNameOption { get; set; }
-
-        
 
         private MvcServicesProvider ServicesProvider { get; set; }
 
@@ -68,6 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
 
             Console.WriteLine("Running Razor view precompilation.");
 
+            var stopWatch = Stopwatch.StartNew();
             var results = ParseViews();
             var success = true;
             foreach (var result in results)
@@ -103,13 +108,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
                 return 1;
             }
 
-            Console.WriteLine($"Successfully compiled {results.Count} Razor views.");
+            stopWatch.Stop();
             Console.WriteLine($"Precompiled views emitted to {assemblyPath}.");
+            Console.WriteLine($"Successfully compiled {results.Length} Razor views in {stopWatch.ElapsedMilliseconds}ms.");
             return 0;
         }
 
         private EmitResult EmitAssembly(CSharpCompilation compilation, string assemblyPath)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(assemblyPath));
+
             EmitResult emitResult;
             using (var assemblyStream = File.OpenWrite(assemblyPath))
             {
@@ -125,17 +133,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             return emitResult;
         }
 
-        private CSharpCompilation CompileViews(List<ViewCompilationInfo> results, string assemblyname)
+        private CSharpCompilation CompileViews(ViewCompilationInfo[] results, string assemblyname)
         {
             var compiler = ServicesProvider.Compiler;
             var compilation = compiler.CreateCompilation(assemblyname);
+            var syntaxTrees = new SyntaxTree[results.Length];
 
-            foreach (var result in results)
+            Parallel.For(0, results.Length, ParalellOptions, i =>
             {
+                var result = results[i];
                 var sourceText = SourceText.From(result.GeneratorResults.GeneratedCode, Encoding.UTF8);
-                var syntaxTree = compiler.CreateSyntaxTree(sourceText);
-                compilation = compilation.AddSyntaxTrees(syntaxTree);
-                result.TypeName = ReadTypeInfo(compilation, syntaxTree);
+                var fileInfo = result.RelativeFileInfo;
+                var syntaxTree = compiler.CreateSyntaxTree(sourceText)
+                    .WithFilePath(fileInfo.FileInfo.PhysicalPath ?? fileInfo.RelativePath);
+                syntaxTrees[i] = syntaxTree;
+            });
+
+            compilation = compilation.AddSyntaxTrees(syntaxTrees);
+            for (var i = 0; i < results.Length; i++)
+            {
+                results[i].TypeName = ReadTypeInfo(compilation, syntaxTrees[i]);
             }
 
             compilation = compiler.ProcessCompilation(compilation);
@@ -168,19 +185,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Precompilation.Design.Internal
             }
         }
 
-        private List<ViewCompilationInfo> ParseViews()
+        private ViewCompilationInfo[] ParseViews()
         {
-            var results = new List<ViewCompilationInfo>();
             var files = new List<RelativeFileInfo>();
             GetRazorFiles(ServicesProvider.FileProvider, files, root: string.Empty);
-            foreach (var fileInfo in files)
+            var results = new ViewCompilationInfo[files.Count];
+            Parallel.For(0, results.Length, ParalellOptions, i =>
             {
+                var fileInfo = files[i];
                 using (var fileStream = fileInfo.FileInfo.CreateReadStream())
                 {
                     var result = ServicesProvider.Host.GenerateCode(fileInfo.RelativePath, fileStream);
-                    results.Add(new ViewCompilationInfo(fileInfo, result));
+                    results[i] = new ViewCompilationInfo(fileInfo, result);
                 }
-            }
+            });
 
             return results;
         }
