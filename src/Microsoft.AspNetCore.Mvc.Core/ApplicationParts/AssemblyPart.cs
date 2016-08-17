@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
 using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationParts
@@ -12,8 +13,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
     /// <summary>
     /// An <see cref="ApplicationPart"/> backed by an <see cref="Assembly"/>.
     /// </summary>
-    public class AssemblyPart : ApplicationPart, IApplicationPartTypeProvider, ICompilationReferencesProvider
+    public class AssemblyPart :
+        ApplicationPart,
+        IApplicationPartTypeProvider,
+        ICompilationReferencesProvider,
+        IPrecompiledViewsProvider
     {
+        public static readonly string PrecompiledViewsAssemblySuffix = ".PrecompiledViews";
+        public static readonly string ViewCollectionNamespace = "AspNetCore";
+        public static readonly string ViewCollectionTypeName = "__PrecompiledViewCollection";
+
         /// <summary>
         /// Initalizes a new <see cref="AssemblyPart"/> instance.
         /// </summary>
@@ -40,6 +49,27 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
 
         /// <inheritdoc />
         public IEnumerable<TypeInfo> Types => Assembly.DefinedTypes;
+
+        /// <inheritdoc />
+        public IReadOnlyCollection<PrecompiledViewInfo> PrecompiledViews
+        {
+            get
+            {
+                var precompiledAssemblyName = new AssemblyName(Assembly.FullName);
+                precompiledAssemblyName.Name = precompiledAssemblyName.Name + PrecompiledViewsAssemblySuffix;
+
+                var viewFactoryTypeName = $"{ViewCollectionNamespace}.{ViewCollectionTypeName},{precompiledAssemblyName}";
+                var viewFactoryType = Type.GetType(viewFactoryTypeName);
+
+                if (viewFactoryType == null)
+                {
+                    return null;
+                }
+
+                var precompiledViews = Activator.CreateInstance(viewFactoryType) as PrecompiledViews;
+                return precompiledViews?.ViewInfos;
+            }
+        }
 
         /// <inheritdoc />
         public IEnumerable<string> GetReferencePaths()
