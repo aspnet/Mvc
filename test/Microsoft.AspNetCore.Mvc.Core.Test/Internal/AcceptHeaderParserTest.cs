@@ -54,10 +54,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
         {
             // Arrange
             var header = "application/json, application/xml,;q=0.8";
+            var expectedException = "\"Invalid values ';q=0.8'.\"";
 
-            // Act, Assert
-            Assert.Throws<FormatException>(
+            // Act
+            var ex = Assert.Throws<FormatException>(
                 () => { AcceptHeaderParser.ParseAcceptHeader(new List<string> { header }); });
+
+            // Assert
+            Assert.Equal(ex.Message, expectedException);
         }
 
         [Fact]
