@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
                 () => { AcceptHeaderParser.ParseAcceptHeader(new List<string> { header }); });
 
             // Assert
-            Assert.Equal(ex.Message, expectedException);
+            Assert.Equal(expectedException, ex.Message);
         }
 
         [Fact]
