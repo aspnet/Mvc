@@ -290,12 +290,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             Canceled = true,
                             Result = _resourceExecutingContext.Result,
                         };
-                    }
 
-                    _diagnosticSource.AfterOnResourceExecution(_resourceExecutedContext, item.FilterAsync);
+                        _diagnosticSource.AfterOnResourceExecution(_resourceExecutedContext, item.FilterAsync);
 
-                    if (_resourceExecutingContext.Result != null)
-                    {
                         _logger.ResourceFilterShortCircuited(item.FilterAsync);
 
                         await InvokeResultAsync(_resourceExecutingContext.Result);
