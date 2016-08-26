@@ -77,8 +77,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
             }
 
             var assemblyName = viewComponentDescriptor.TypeInfo.Assembly.GetName().Name;
-            var tagName = ViewComponentTagHelperDescriptorConventions.GetTagName(viewComponentDescriptor);
-            var typeName = ViewComponentTagHelperDescriptorConventions.GetTypeName(viewComponentDescriptor);
+            var tagName = GetTagName(viewComponentDescriptor);
+            var typeName = GetTypeName(viewComponentDescriptor);
 
             var tagHelperDescriptor = new TagHelperDescriptor
             {
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
                 ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey, viewComponentDescriptor.ShortName);
             tagHelperDescriptor.PropertyBag.Add(
                 ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
-                ViewComponentTagHelperDescriptorConventions.GetTypeName(viewComponentDescriptor));
+                GetTypeName(viewComponentDescriptor));
 
             return tagHelperDescriptor;
         }
@@ -143,6 +143,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
             requiredAttributeDescriptors = requiredDescriptors;
 
             return true;
+        }
+
+        private string GetTagName(ViewComponentDescriptor descriptor) =>
+            $"vc:{TagHelperDescriptorFactory.ToHtmlCase(descriptor.ShortName)}";
+
+        private string GetTypeName(ViewComponentDescriptor descriptor)
+        {
+            var typeName = ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameHeader
+                + descriptor.ShortName
+                + ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameFooter;
+
+            return typeName;
         }
     }
 }

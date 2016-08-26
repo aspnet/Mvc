@@ -83,20 +83,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
                     ShortName = "ShortName"
                 };
 
-                // GetTagName()
-                var tagName = ViewComponentTagHelperDescriptorConventions.GetTagName(viewComponentDescriptor);
-                var expectedTagName = "vc:short-name";
-
-                // GetTypeName()
-                var typeName = ViewComponentTagHelperDescriptorConventions.GetTypeName(viewComponentDescriptor);
-                var expectedTypeName = "__Generated__ShortNameViewComponentTagHelper";
-
                 return new TheoryData<string, string>
                 {
                     { viewComponentName, expectedViewComponentName },
-                    { viewComponentTagHelperName, expectedViewComponentTagHelperName },
-                    { tagName, expectedTagName },
-                    { typeName, expectedTypeName }
+                    { viewComponentTagHelperName, expectedViewComponentTagHelperName }
                 };
             }
         }
