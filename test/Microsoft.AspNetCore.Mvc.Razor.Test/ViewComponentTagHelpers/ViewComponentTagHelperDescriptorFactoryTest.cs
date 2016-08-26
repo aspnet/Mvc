@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers;
@@ -80,6 +84,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                     Assert.Equal(requiredAttribute.Name, expectedRequiredAttribute.Name);
                 }
             }
+        }
+
+        [Fact]
+        public void CreateDescriptors_ThrowsException_OnNullAssemblyName()
+        {
+            // Arrange
+            var provider = new TestViewComponentDescriptorProvider();
+            var factory = new ViewComponentTagHelperDescriptorFactory(provider);
+
+            // Act, Assert
+            Assert.Throws<ArgumentNullException>(() => factory.CreateDescriptors(null));
         }
 
         private class TestViewComponentDescriptorProvider : IViewComponentDescriptorProvider

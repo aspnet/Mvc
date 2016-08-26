@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Razor.Host;
@@ -14,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
     /// </summary>
     public class ViewComponentTagHelperDescriptorFactory
     {
-        private IViewComponentDescriptorProvider _descriptorProvider;
+        private readonly IViewComponentDescriptorProvider _descriptorProvider;
 
         /// <summary>
         /// Creates a new ViewComponentTagHelperDescriptorFactory than creates tag helper descriptors for
@@ -33,9 +36,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
         /// <returns>A <see cref="IEnumerable{TagHelperDescriptor}"/>, one for each view component.</returns>
         public IEnumerable<TagHelperDescriptor> CreateDescriptors(string assemblyName)
         {
+            if (assemblyName == null)
+            {
+                throw new ArgumentNullException(assemblyName);
+            }
+
             var viewComponentDescriptors = _descriptorProvider.GetViewComponents()
                 .Where(viewComponent => assemblyName.Equals(
-                ViewComponentTagHelperDescriptorConventions.GetAssemblyName(viewComponent)));
+                viewComponent.TypeInfo.Assembly.GetName().Name));
 
             return CreateDescriptors(viewComponentDescriptors);
         }
@@ -68,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
                 throw new Exception("Unable to resolve view component descriptor to tag helper descriptor.");
             }
 
-            var assemblyName = ViewComponentTagHelperDescriptorConventions.GetAssemblyName(viewComponentDescriptor);
+            var assemblyName = viewComponentDescriptor.TypeInfo.Assembly.GetName().Name;
             var tagName = ViewComponentTagHelperDescriptorConventions.GetTagName(viewComponentDescriptor);
             var typeName = ViewComponentTagHelperDescriptorConventions.GetTypeName(viewComponentDescriptor);
 
@@ -83,9 +91,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
             };
 
             tagHelperDescriptor.PropertyBag.Add(
-                ViewComponentTagHelperDescriptorConventions.ViewComponentProperty, viewComponentDescriptor.ShortName);
+                ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey, viewComponentDescriptor.ShortName);
             tagHelperDescriptor.PropertyBag.Add(
-                ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperProperty,
+                ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
                 ViewComponentTagHelperDescriptorConventions.GetTypeName(viewComponentDescriptor));
 
             return tagHelperDescriptor;

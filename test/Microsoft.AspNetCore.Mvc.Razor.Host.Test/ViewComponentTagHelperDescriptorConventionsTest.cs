@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.ViewComponents;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 using Xunit;
 
@@ -14,16 +17,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
 
                 var onlyViewComponentProperty = CreateTagHelperDescriptor();
                 onlyViewComponentProperty.PropertyBag.Add(
-                    ViewComponentTagHelperDescriptorConventions.ViewComponentProperty,
+                    ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
                     "view component property");
 
                 var onlyViewComponentTagHelperProperty = CreateTagHelperDescriptor();
                 onlyViewComponentTagHelperProperty.PropertyBag.Add(
-                    ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperProperty,
+                    ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
                     "view component tag helper property");
 
                 return new TheoryData<TagHelperDescriptor>
                 {
+                    null,
                     noProperties,
                     onlyViewComponentProperty,
                     onlyViewComponentTagHelperProperty
@@ -121,10 +125,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
         {
             var descriptor = CreateTagHelperDescriptor();
             descriptor.PropertyBag.Add(
-                ViewComponentTagHelperDescriptorConventions.ViewComponentProperty,
+                ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
                 "ViewComponentName");
             descriptor.PropertyBag.Add(
-                ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperProperty,
+                ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
                 "ViewComponentTagHelperName");
 
             return descriptor;
