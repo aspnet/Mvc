@@ -20,20 +20,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
         private readonly IViewComponentDescriptorProvider _descriptorProvider;
 
         /// <summary>
-        /// Creates a new ViewComponentTagHelperDescriptorFactory than creates tag helper descriptors for
-        /// view components in the given descriptorProvider.
+        /// Creates a new <see cref="ViewComponentTagHelperDescriptorFactory"/>, 
+        /// then creates <see cref="TagHelperDescriptor"/>s  for <see cref="ViewComponents"/> 
+        /// in the given <see cref="IViewComponentDescriptorProvider"/>. 
         /// </summary>
-        /// <param name="descriptorProvider">The provider of view component descriptors.</param>
+        /// <param name="descriptorProvider">The provider of <see cref="ViewComponentDescriptor"/>s.</param>
         public ViewComponentTagHelperDescriptorFactory(IViewComponentDescriptorProvider descriptorProvider)
         {
+            if (descriptorProvider == null)
+            {
+                throw new ArgumentNullException();
+            }
+
             _descriptorProvider = descriptorProvider;
         }
 
         /// <summary>
-        /// Creates <see cref="TagHelperDescriptor"/> representations of view components in a given assembly.
+        /// Creates <see cref="TagHelperDescriptor"/> representations of <see cref="ViewComponents"/>
+        /// in an <see href="Assembly"/> represented by the given <paramref name="assemblyName"/>.
         /// </summary>
-        /// <param name="assemblyName">The name of the assembly containing the view components to translate.</param>
-        /// <returns>A <see cref="IEnumerable{TagHelperDescriptor}"/>, one for each view component.</returns>
+        /// <param name="assemblyName">The name of the assembly containing 
+        /// the <see cref="ViewComponents"/> s to translate.</param>
+        /// <returns>A <see cref="IEnumerable{TagHelperDescriptor}"/>, 
+        /// one for each <see cref="ViewComponents"/> .</returns>
         public IEnumerable<TagHelperDescriptor> CreateDescriptors(string assemblyName)
         {
             if (assemblyName == null)
@@ -41,41 +50,35 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
                 throw new ArgumentNullException(assemblyName);
             }
 
-            var viewComponentDescriptors = _descriptorProvider.GetViewComponents()
+            var viewComponentDescriptors = _descriptorProvider
+                .GetViewComponents()
                 .Where(viewComponent => assemblyName.Equals(
-                viewComponent.TypeInfo.Assembly.GetName().Name));
+                    viewComponent.TypeInfo.Assembly.GetName().Name, StringComparison.Ordinal));
 
-            return CreateDescriptors(viewComponentDescriptors);
+            var tagHelperDescriptors = CreateDescriptors(viewComponentDescriptors);
+            return tagHelperDescriptors;
         }
 
+        /*
         private IEnumerable<TagHelperDescriptor> CreateDescriptors(
-            IEnumerable<ViewComponentDescriptor> viewComponentDescriptors)
+            IEnumerable<ViewComponentDescriptor> viewComponentDescriptors) =>
+            viewComponentDescriptors.Select(viewComponentDescriptor => CreateDescriptor(viewComponentDescriptor));
+            */
+
+        private IEnumerable<TagHelperDescriptor> CreateDescriptors(IEnumerable<ViewComponentDescriptor> viewComponentDescriptors)
         {
             var tagHelperDescriptors = new List<TagHelperDescriptor>();
 
-            foreach (var viewComponentDescriptor in viewComponentDescriptors)
+            foreach (var viewComponent in viewComponentDescriptors)
             {
-                var tagHelperDescriptor = CreateDescriptor(viewComponentDescriptor);
-                tagHelperDescriptors.Add(tagHelperDescriptor);
+                var descriptor = CreateDescriptor(viewComponent);
+                tagHelperDescriptors.Add(descriptor);
             }
 
             return tagHelperDescriptors;
         }
-
         private TagHelperDescriptor CreateDescriptor(ViewComponentDescriptor viewComponentDescriptor)
         {
-            // Fill in the attribute and required attribute descriptors.
-            IEnumerable<TagHelperAttributeDescriptor> attributeDescriptors;
-            IEnumerable<TagHelperRequiredAttributeDescriptor> requiredAttributeDescriptors;
-            if (!TryGetAttributeDescriptors(viewComponentDescriptor,
-                out attributeDescriptors,
-                out requiredAttributeDescriptors))
-            {
-                // After adding view component name validation,
-                // this exception will make sense.
-                throw new Exception("Unable to resolve view component descriptor to tag helper descriptor.");
-            }
-
             var assemblyName = viewComponentDescriptor.TypeInfo.Assembly.GetName().Name;
             var tagName = GetTagName(viewComponentDescriptor);
             var typeName = GetTypeName(viewComponentDescriptor);
@@ -85,10 +88,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
                 TagName = tagName,
                 TypeName = typeName,
                 AssemblyName = assemblyName,
-                Attributes = attributeDescriptors,
-                RequiredAttributes = requiredAttributeDescriptors,
                 TagStructure = TagStructure.NormalOrSelfClosing,
             };
+
+            SetAttributeDescriptors(viewComponentDescriptor, tagHelperDescriptor);
+            SetRequiredAttributeDescriptors(viewComponentDescriptor, tagHelperDescriptor);
 
             tagHelperDescriptor.PropertyBag.Add(
                 ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey, viewComponentDescriptor.ShortName);
@@ -99,16 +103,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
             return tagHelperDescriptor;
         }
 
-        // TODO: Add support for customization of HtmlTargetElement, HtmlAttributeName.
-        private bool TryGetAttributeDescriptors(
-            ViewComponentDescriptor viewComponentDescriptor,
-            out IEnumerable<TagHelperAttributeDescriptor> attributeDescriptors,
-            out IEnumerable<TagHelperRequiredAttributeDescriptor> requiredAttributeDescriptors
-            )
+        private void SetAttributeDescriptors(ViewComponentDescriptor viewComponentDescriptor,
+            TagHelperDescriptor tagHelperDescriptor)
         {
             var methodParameters = viewComponentDescriptor.MethodInfo.GetParameters();
-            var descriptors = new List<TagHelperAttributeDescriptor>();
-            var requiredDescriptors = new List<TagHelperRequiredAttributeDescriptor>();
+            var attributeDescriptors = new List<TagHelperAttributeDescriptor>();
 
             foreach (var parameter in methodParameters)
             {
@@ -126,35 +125,38 @@ namespace Microsoft.AspNetCore.Mvc.Razor.ViewComponentTagHelpers
                     descriptor.IsStringProperty = true;
                 }
 
-                descriptors.Add(descriptor);
+                attributeDescriptors.Add(descriptor);
+            }
 
+            tagHelperDescriptor.Attributes = attributeDescriptors;
+        }
+
+        private void SetRequiredAttributeDescriptors(ViewComponentDescriptor viewComponentDescriptor,
+            TagHelperDescriptor tagHelperDescriptor)
+        {
+            var methodParameters = viewComponentDescriptor.MethodInfo.GetParameters();
+            var requiredAttributeDescriptors = new List<TagHelperRequiredAttributeDescriptor>();
+
+            foreach (var parameter in methodParameters)
+            {
                 if (!parameter.HasDefaultValue)
                 {
                     var requiredDescriptor = new TagHelperRequiredAttributeDescriptor
                     {
-                        Name = lowerKebabName
+                        Name = TagHelperDescriptorFactory.ToHtmlCase(parameter.Name)
                     };
 
-                    requiredDescriptors.Add(requiredDescriptor);
+                    requiredAttributeDescriptors.Add(requiredDescriptor);
                 }
             }
 
-            attributeDescriptors = descriptors;
-            requiredAttributeDescriptors = requiredDescriptors;
-
-            return true;
+            tagHelperDescriptor.RequiredAttributes = requiredAttributeDescriptors;
         }
 
         private string GetTagName(ViewComponentDescriptor descriptor) =>
             $"vc:{TagHelperDescriptorFactory.ToHtmlCase(descriptor.ShortName)}";
 
-        private string GetTypeName(ViewComponentDescriptor descriptor)
-        {
-            var typeName = ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameHeader
-                + descriptor.ShortName
-                + ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameFooter;
-
-            return typeName;
-        }
+        private string GetTypeName(ViewComponentDescriptor descriptor) =>
+            $"__Generated__{descriptor.ShortName}ViewComponentTagHelper";
     }
 }

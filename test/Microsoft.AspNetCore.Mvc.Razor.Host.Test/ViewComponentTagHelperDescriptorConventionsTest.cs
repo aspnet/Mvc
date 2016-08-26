@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 using Xunit;
@@ -59,44 +60,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
 
             // Assert
             Assert.True(isViewComponentDescriptor);
-        }
-
-        public static TheoryData NameData
-        {
-            get
-            {
-                var tagHelperDescriptor = CreateViewComponentTagHelperDescriptor();
-
-                // GetViewComponentName()
-                var viewComponentName = ViewComponentTagHelperDescriptorConventions
-                    .GetViewComponentName(tagHelperDescriptor);
-                var expectedViewComponentName = "ViewComponentName";
-
-                // GetViewComponentTagHelperName()
-                var viewComponentTagHelperName = ViewComponentTagHelperDescriptorConventions
-                    .GetViewComponentTagHelperName(tagHelperDescriptor);
-                var expectedViewComponentTagHelperName = "ViewComponentTagHelperName";
-
-                var viewComponentDescriptor = new ViewComponentDescriptor
-                {
-                    FullName = "FullName",
-                    ShortName = "ShortName"
-                };
-
-                return new TheoryData<string, string>
-                {
-                    { viewComponentName, expectedViewComponentName },
-                    { viewComponentTagHelperName, expectedViewComponentTagHelperName }
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(NameData))]
-        public void GetNameMethods_ReturnCorrectNames(string name, string expectedName)
-        {
-            // Assert
-            Assert.Equal(name, expectedName);
         }
 
         private static TagHelperDescriptor CreateTagHelperDescriptor()

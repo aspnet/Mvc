@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
 {
     public class ViewComponentTagHelperDescriptorFactoryTest
     {
-        public static TheoryData<string, IEnumerable<TagHelperDescriptor>> AssemblyData
+        public static TheoryData AssemblyData
         {
             get
             {
@@ -23,12 +23,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
 
                 var assemblyOne = "Microsoft.AspNetCore.Mvc.Razor";
                 var assemblyTwo = "Microsoft.AspNetCore.Mvc.Razor.Test";
-                var assemblyNone = "";
+                var assemblyNone = string.Empty;
 
                 return new TheoryData<string, IEnumerable<TagHelperDescriptor>>
                 {
-                    { assemblyOne, new List<TagHelperDescriptor> { provider.tagHelperDescriptorOne } },
-                    { assemblyTwo, new List<TagHelperDescriptor> { provider.tagHelperDescriptorTwo } },
+                    { assemblyOne, new [] { provider.tagHelperDescriptorOne } },
+                    { assemblyTwo, new [] { provider.tagHelperDescriptorTwo } },
                     { assemblyNone, new List<TagHelperDescriptor>() }
                 };
             }
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
 
         [Theory]
         [MemberData(nameof(AssemblyData))]
-        public void CreateDescriptors_ReturnsCorrectDescriptors_ForViewComponentsInAssembly(
+        public void CreateDescriptors_ReturnsCorrectDescriptors(
             string assemblyName, 
             IEnumerable<TagHelperDescriptor> expectedDescriptors)
         {
@@ -48,78 +48,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
             var descriptors = factory.CreateDescriptors(assemblyName);
 
             // Assert
-            Assert.Equal(descriptors.Count(), expectedDescriptors.Count());
-            
-            if (descriptors.Count() > 0) // Either empty or 1 descriptor.
-            {
-                Assert.Single(descriptors);
-
-                var descriptor = descriptors.First();
-                var expectedDescriptor = expectedDescriptors.First();
-
-                Assert.Equal(descriptor.TagName, expectedDescriptor.TagName);
-                Assert.Equal(descriptor.TypeName, expectedDescriptor.TypeName);
-                Assert.Equal(descriptor.AssemblyName, expectedDescriptor.AssemblyName);
-                Assert.Equal(descriptor.TagStructure, expectedDescriptor.TagStructure);
-
-                // Check attributes.
-                Assert.Equal(descriptor.Attributes.Count(), expectedDescriptor.Attributes.Count());
-                for (var i = 0; i < descriptor.Attributes.Count(); i++)
-                {
-                    var attribute = descriptor.Attributes.ElementAt(i);
-                    var expectedAttribute = expectedDescriptor.Attributes.ElementAt(i);
-
-                    Assert.Equal(attribute.Name, expectedAttribute.Name);
-                    Assert.Equal(attribute.PropertyName, expectedAttribute.PropertyName);
-                    Assert.Equal(attribute.TypeName, expectedAttribute.TypeName);
-                }
-  
-                // Check required attributes.
-                Assert.Equal(descriptor.RequiredAttributes.Count(), expectedDescriptor.RequiredAttributes.Count());
-                for (int i = 0; i < descriptor.RequiredAttributes.Count(); i++)
-                {
-                    var requiredAttribute = descriptor.RequiredAttributes.ElementAt(i);
-                    var expectedRequiredAttribute = expectedDescriptor.RequiredAttributes.ElementAt(i);
-
-                    Assert.Equal(requiredAttribute.Name, expectedRequiredAttribute.Name);
-                }
-            }
+            Assert.Equal(expectedDescriptors, descriptors, TagHelperDescriptorComparer.Default);
         }
 
-        [Fact]
-        public void CreateDescriptors_ThrowsException_OnNullAssemblyName()
+        public void TestInvokeOne(string foo, string bar)
         {
-            // Arrange
-            var provider = new TestViewComponentDescriptorProvider();
-            var factory = new ViewComponentTagHelperDescriptorFactory(provider);
+        }
 
-            // Act, Assert
-            Assert.Throws<ArgumentNullException>(() => factory.CreateDescriptors(null));
+        public void TestInvokeTwo(int baz = 5)
+        {
         }
 
         private class TestViewComponentDescriptorProvider : IViewComponentDescriptorProvider
         {
-            private ViewComponentDescriptor _viewComponentDescriptorOne = new ViewComponentDescriptor
-            {
-                DisplayName = "OneDisplayName",
-                FullName = "OneViewComponent",
-                ShortName = "One",
-                MethodInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest)
-                    .GetMethod("TestInvokeOne"),
-                TypeInfo = typeof(ViewComponentTagHelperDescriptorFactory).GetTypeInfo()
-            };
-
-            private ViewComponentDescriptor _viewComponentDescriptorTwo = new ViewComponentDescriptor
-            {
-                DisplayName = "TwoDisplayName",
-                FullName = "TwoViewComponent",
-                ShortName = "Two",
-                MethodInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest)
-                    .GetMethod("TestInvokeTwo"),
-                TypeInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest).GetTypeInfo()
-            };
-
-            public TagHelperDescriptor tagHelperDescriptorOne = new TagHelperDescriptor
+            public readonly TagHelperDescriptor tagHelperDescriptorOne = new TagHelperDescriptor
             {
                 TagName = "vc:one",
                 TypeName = "__Generated__OneViewComponentTagHelper",
@@ -155,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                 TagStructure = TagStructure.NormalOrSelfClosing
             };
 
-            public TagHelperDescriptor tagHelperDescriptorTwo = new TagHelperDescriptor
+            public readonly TagHelperDescriptor tagHelperDescriptorTwo = new TagHelperDescriptor
             {
                 TagName = "vc:two",
                 TypeName = "__Generated__TwoViewComponentTagHelper",
@@ -173,6 +115,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                 TagStructure = TagStructure.NormalOrSelfClosing
             };
 
+            private readonly ViewComponentDescriptor _viewComponentDescriptorOne = new ViewComponentDescriptor
+            {
+                DisplayName = "OneDisplayName",
+                FullName = "OneViewComponent",
+                ShortName = "One",
+                MethodInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest)
+                    .GetMethod(nameof(ViewComponentTagHelperDescriptorFactoryTest.TestInvokeOne)),
+                TypeInfo = typeof(ViewComponentTagHelperDescriptorFactory).GetTypeInfo()
+            };
+
+            private readonly ViewComponentDescriptor _viewComponentDescriptorTwo = new ViewComponentDescriptor
+            {
+                DisplayName = "TwoDisplayName",
+                FullName = "TwoViewComponent",
+                ShortName = "Two",
+                MethodInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest)
+                    .GetMethod(nameof(ViewComponentTagHelperDescriptorFactoryTest.TestInvokeTwo)),
+                TypeInfo = typeof(ViewComponentTagHelperDescriptorFactoryTest).GetTypeInfo()
+            };
+
             public IEnumerable<ViewComponentDescriptor> GetViewComponents()
             {
                 return new List<ViewComponentDescriptor>
@@ -181,14 +143,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                     _viewComponentDescriptorTwo
                 };
             }
-        }
-
-        public void TestInvokeOne(string foo, string bar)
-        {
-        }
-
-        public void TestInvokeTwo(int baz = 5)
-        {
         }
     }
 }
