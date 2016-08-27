@@ -10,39 +10,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
 {
     public class ViewComponentTagHelperDescriptorConventionsTest
     {
-        public static TheoryData InvalidDescriptorData
+        [Fact]
+        public void IsViewComponentDescriptor_ReturnsFalseForInvalidDescriptor()
         {
-            get
-            {
-                var noProperties = CreateTagHelperDescriptor();
+            //Arrange
+            var tagHelperDescriptor = CreateTagHelperDescriptor();
 
-                var onlyViewComponentProperty = CreateTagHelperDescriptor();
-                onlyViewComponentProperty.PropertyBag.Add(
-                    ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
-                    "view component property");
-
-                var onlyViewComponentTagHelperProperty = CreateTagHelperDescriptor();
-                onlyViewComponentTagHelperProperty.PropertyBag.Add(
-                    ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
-                    "view component tag helper property");
-
-                return new TheoryData<TagHelperDescriptor>
-                {
-                    null,
-                    noProperties,
-                    onlyViewComponentProperty,
-                    onlyViewComponentTagHelperProperty
-                };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidDescriptorData))]
-        public void IsViewComponentDescriptor_ReturnsFalseForInvalidDescriptor(TagHelperDescriptor descriptor)
-        {
-            // Arrange, Act
+            // Act
             var isViewComponentDescriptor = ViewComponentTagHelperDescriptorConventions
-                .IsViewComponentDescriptor(descriptor);
+                .IsViewComponentDescriptor(tagHelperDescriptor);
 
             // Assert
             Assert.False(isViewComponentDescriptor);
@@ -80,9 +56,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
             descriptor.PropertyBag.Add(
                 ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
                 "ViewComponentName");
-            descriptor.PropertyBag.Add(
-                ViewComponentTagHelperDescriptorConventions.ViewComponentTagHelperNameKey,
-                "ViewComponentTagHelperName");
 
             return descriptor;
         }
