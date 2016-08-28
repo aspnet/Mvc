@@ -15,12 +15,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
         public TagHelperChunkVisitor(CodeGeneratorContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             NamespaceName = context.RootNamespace;
             ClassName = context.ClassName;
         }
 
         public void Accept(IList<Chunk> chunks)
         {
+            if (chunks == null)
+            {
+                throw new ArgumentNullException(nameof(chunks));
+            }
+
             foreach (Chunk chunk in chunks)
             {
                 Accept(chunk);
@@ -29,6 +39,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
         public void Accept(Chunk chunk)
         {
+            if (chunk == null)
+            {
+                throw new ArgumentNullException(nameof(chunk));
+            }
+
             var parentChunk = chunk as ParentChunk;
             var tagHelperChunk = chunk as TagHelperChunk;
 
@@ -47,6 +62,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
         public void Decorate(TagHelperChunk chunk)
         {
+            if (chunk == null)
+            {
+                throw new ArgumentNullException(nameof(chunk));
+            }
+
             var viewComponentDescriptors = GetViewComponentDescriptors(chunk);
             foreach (var descriptor in viewComponentDescriptors)
             {
