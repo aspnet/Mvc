@@ -2,8 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Directives;
+using Microsoft.AspNetCore.Mvc.Razor.Host;
+using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
+using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.CodeGenerators.Visitors;
 
@@ -47,6 +51,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             _injectAttribute = injectAttribute;
         }
 
+        public override CodeGeneratorResult Generate()
+        {
+            var descriptorDecorator = new TagHelperChunkVisitor(Context);
+            descriptorDecorator.Accept(Context.ChunkTreeBuilder.Root.Children);
+            return base.Generate();
+        }
+
         protected override CSharpCodeWritingScope BuildClassDeclaration(CSharpCodeWriter writer)
         {
             if (Context.Host.DesignTimeMode &&
@@ -60,6 +71,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             return base.BuildClassDeclaration(writer);
+        }
+
+        protected override void BuildAfterExecuteContent(CSharpCodeWriter writer, IList<Chunk> chunks)
+        {
+            new ViewComponentTagHelperChunkVisitor(writer, Context).Accept(chunks);
         }
 
         protected override CSharpCodeVisitor CreateCSharpCodeVisitor(
