@@ -21,9 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
         /// </summary>
         /// <param name="descriptor">The <see cref="TagHelperDescriptor"/> to check.</param>
         /// <returns>Whether a <see cref="TagHelperDescriptor"/> represents a view component.</returns>
-        public static bool IsViewComponentDescriptor(TagHelperDescriptor descriptor)
-        {
-            return descriptor != null && descriptor.PropertyBag.ContainsKey(ViewComponentNameKey);
-        }
+        public static bool IsViewComponentDescriptor(TagHelperDescriptor descriptor) =>
+            descriptor != null && descriptor.PropertyBag.ContainsKey(ViewComponentNameKey);
     }
 }

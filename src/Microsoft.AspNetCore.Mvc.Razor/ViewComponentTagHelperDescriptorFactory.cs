@@ -54,13 +54,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 .Where(viewComponent => string.Equals(assemblyName, viewComponent.TypeInfo.Assembly.GetName().Name,
                     StringComparison.Ordinal));
 
-            var tagHelperDescriptors = CreateDescriptors(viewComponentDescriptors);
+            var tagHelperDescriptors = viewComponentDescriptors
+                .Select(viewComponentDescriptor => CreateDescriptor(viewComponentDescriptor));
+
             return tagHelperDescriptors;
         }
-
-        private IEnumerable<TagHelperDescriptor> CreateDescriptors(
-            IEnumerable<ViewComponentDescriptor> viewComponentDescriptors) =>
-            viewComponentDescriptors.Select(viewComponentDescriptor => CreateDescriptor(viewComponentDescriptor));
 
         private TagHelperDescriptor CreateDescriptor(ViewComponentDescriptor viewComponentDescriptor)
         {
@@ -99,8 +97,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     TypeName = parameter.ParameterType.FullName
                 };
 
-                descriptor.IsEnum = false;
-                descriptor.IsIndexer = false;
+                descriptor.IsEnum = parameter.ParameterType.IsEnum;
+                descriptor.IsIndexer = (parameter.GetType().GetProperties()
+                    .Where(property => property.GetIndexParameters().Length != 0).FirstOrDefault() != null);
+
                 attributeDescriptors.Add(descriptor);
             }
 
