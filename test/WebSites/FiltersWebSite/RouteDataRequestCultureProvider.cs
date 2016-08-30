@@ -1,13 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Localization;
 
-namespace Microsoft.AspNetCore.Mvc.Localization
+namespace FiltersWebSite
 {
     /// <summary>
     /// Determines the culture information for a request via values in the route data.
@@ -71,4 +68,5 @@ namespace Microsoft.AspNetCore.Mvc.Localization
             return Task.FromResult(providerResultCulture);
         }
     }
+
 }
