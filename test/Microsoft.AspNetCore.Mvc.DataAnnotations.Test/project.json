@@ -6,7 +6,7 @@
   "dependencies": {
     "dotnet-test-xunit": "2.2.0-*",
     "Microsoft.AspNetCore.Mvc": "1.1.0-*",
-    "Microsoft.AspNetCore.Mvc.DataAnnotations": "1.1.0-alpha1-21905",
+    "Microsoft.AspNetCore.Mvc.DataAnnotations": "1.1.0-*",
     "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.1.0-*",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "version": "1.1.0-*",
