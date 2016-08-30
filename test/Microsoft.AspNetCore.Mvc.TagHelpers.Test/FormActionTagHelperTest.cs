@@ -15,19 +15,19 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
-    public class ButtonTagHelperTest
+    public class FormActionTagHelperTest
     {
         [Fact]
         public async Task ProcessAsync_GeneratesExpectedOutput()
         {
             // Arrange
-            var expectedTagName = "not-button";
+            var expectedTagName = "not-button-or-submit";
             var metadataProvider = new TestModelMetadataProvider();
 
             var tagHelperContext = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList
                 {
-                    { "id", "mybutton" },
+                    { "id", "my-id" },
                     { "asp-route-name", "value" },
                     { "asp-action", "index" },
                     { "asp-controller", "home" },
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 expectedTagName,
                 attributes: new TagHelperAttributeList
                 {
-                    { "id", "mybutton" },
+                    { "id", "my-id" },
                 },
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
@@ -58,10 +58,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Returns(urlHelper.Object);
 
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
-            var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
-                                                                   htmlGenerator: htmlGenerator,
-                                                                   metadataProvider: metadataProvider);
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory.Object)
+            var viewContext = TestableHtmlGenerator.GetViewContext(
+                model: null,
+                htmlGenerator: htmlGenerator,
+                metadataProvider: metadataProvider);
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "index",
                 Controller = "home",
@@ -73,13 +74,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             };
 
             // Act
-            await buttonTagHelper.ProcessAsync(tagHelperContext, output);
+            await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
             urlHelper.Verify();
             Assert.Equal(2, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("id"));
-            Assert.Equal("mybutton", attribute.Value);
+            Assert.Equal("my-id", attribute.Value);
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
             Assert.Equal("home/index", attribute.Value);
             Assert.Equal("Something", output.Content.GetContent());
@@ -117,10 +118,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var metadataProvider = new TestModelMetadataProvider();
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
-            var viewContext = TestableHtmlGenerator.GetViewContext(model: null,
-                                                                   htmlGenerator: htmlGenerator,
-                                                                   metadataProvider: metadataProvider);
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory.Object)
+            var viewContext = TestableHtmlGenerator.GetViewContext(
+                model: null,
+                htmlGenerator: htmlGenerator,
+                metadataProvider: metadataProvider);
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Route = "Default",
                 ViewContext = viewContext,
@@ -130,8 +132,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 },
             };
 
-            // Act 
-            await buttonTagHelper.ProcessAsync(context, output);
+            // Act
+            await tagHelper.ProcessAsync(context, output);
 
             // Assert
             urlHelper.Verify();
@@ -152,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                "button",
+                "submit",
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
@@ -175,7 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
 
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory.Object)
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "Index",
                 Controller = "Dashboard",
@@ -183,11 +185,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             };
 
             // Act
-            await buttonTagHelper.ProcessAsync(context, output);
+            await tagHelper.ProcessAsync(context, output);
 
             // Assert
             urlHelper.Verify();
-            Assert.Equal("button", output.TagName);
+            Assert.Equal("submit", output.TagName);
             Assert.Equal(1, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
             Assert.Equal("admin/dashboard/index", attribute.Value);
@@ -227,7 +229,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
 
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory.Object)
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "Index",
                 Controller = "Dashboard",
@@ -236,7 +238,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             };
 
             // Act
-            await buttonTagHelper.ProcessAsync(context, output);
+            await tagHelper.ProcessAsync(context, output);
 
             // Assert
             urlHelper.Verify();
@@ -257,7 +259,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                "button",
+                "submit",
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
@@ -280,7 +282,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
                 .Returns(urlHelper.Object);
 
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory.Object)
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "Index",
                 Controller = "Dashboard",
@@ -288,11 +290,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             };
 
             // Act
-            await buttonTagHelper.ProcessAsync(context, output);
+            await tagHelper.ProcessAsync(context, output);
 
             // Assert
             urlHelper.Verify();
-            Assert.Equal("button", output.TagName);
+            Assert.Equal("submit", output.TagName);
             Assert.Equal(1, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
             Assert.Equal("admin/dashboard/index", attribute.Value);
@@ -300,19 +302,23 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Theory]
-        [InlineData("Action")]
-        [InlineData("Controller")]
-        [InlineData("Route")]
-        [InlineData("asp-route-")]
-        public async Task ProcessAsync_ThrowsIfFormActionConflictsWithBoundAttributes(string propertyName)
+        [InlineData("button", "Action")]
+        [InlineData("button", "Controller")]
+        [InlineData("button", "Route")]
+        [InlineData("button", "asp-route-")]
+        [InlineData("submit", "Action")]
+        [InlineData("submit", "Controller")]
+        [InlineData("submit", "Route")]
+        [InlineData("submit", "asp-route-")]
+        public async Task ProcessAsync_ThrowsIfFormActionConflictsWithBoundAttributes(string tagName, string propertyName)
         {
             // Arrange
             var urlHelperFactory = new Mock<IUrlHelperFactory>().Object;
 
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory);
+            var tagHelper = new FormActionTagHelper(urlHelperFactory);
 
             var output = new TagHelperOutput(
-                "button",
+                tagName,
                 attributes: new TagHelperAttributeList
                 {
                     { "formaction", "my-action" }
@@ -320,16 +326,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
             if (propertyName == "asp-route-")
             {
-                buttonTagHelper.RouteValues.Add("name", "value");
+                tagHelper.RouteValues.Add("name", "value");
             }
             else
             {
-                typeof(ButtonTagHelper).GetProperty(propertyName).SetValue(buttonTagHelper, "Home");
+                typeof(FormActionTagHelper).GetProperty(propertyName).SetValue(tagHelper, "Home");
             }
 
-            var expectedErrorMessage = "Cannot override the 'formaction' attribute for <button>. A <button> with a specified " +
-                                       "'formaction' must not have attributes starting with 'asp-route-' or an " +
-                                       "'asp-action', 'asp-controller', 'asp-area', or 'asp-route' attribute.";
+            var expectedErrorMessage = $"Cannot override the 'formaction' attribute for <{tagName}>. <{tagName}> " +
+                "elements with a specified 'formaction' must not have attributes starting with 'asp-route-' or an " +
+                "'asp-action', 'asp-controller', 'asp-area', or 'asp-route' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(
@@ -338,32 +344,33 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 uniqueId: "test");
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => buttonTagHelper.ProcessAsync(context, output));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => tagHelper.ProcessAsync(context, output));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
 
         [Theory]
-        [InlineData("Action")]
-        [InlineData("Controller")]
-        public async Task ProcessAsync_ThrowsIfRouteAndActionOrControllerProvided(string propertyName)
+        [InlineData("button", "Action")]
+        [InlineData("button", "Controller")]
+        [InlineData("submit", "Action")]
+        [InlineData("submit", "Controller")]
+        public async Task ProcessAsync_ThrowsIfRouteAndActionOrControllerProvided(string tagName, string propertyName)
         {
             // Arrange
             var urlHelperFactory = new Mock<IUrlHelperFactory>().Object;
 
-            var buttonTagHelper = new ButtonTagHelper(urlHelperFactory)
+            var tagHelper = new FormActionTagHelper(urlHelperFactory)
             {
                 Route = "Default",
             };
 
-            typeof(ButtonTagHelper).GetProperty(propertyName).SetValue(buttonTagHelper, "Home");
+            typeof(FormActionTagHelper).GetProperty(propertyName).SetValue(tagHelper, "Home");
             var output = new TagHelperOutput(
-                "button",
+                tagName,
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
-            var expectedErrorMessage = "Cannot determine a 'formaction' attribute for <button>. A <button> with a specified " +
-                "'asp-route' must not have an 'asp-action' or 'asp-controller' attribute.";
+            var expectedErrorMessage = $"Cannot determine a 'formaction' attribute for <{tagName}>. <{tagName}> " +
+                "elements with a specified 'asp-route' must not have an 'asp-action' or 'asp-controller' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(
@@ -372,8 +379,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 uniqueId: "test");
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => buttonTagHelper.ProcessAsync(context, output));
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => tagHelper.ProcessAsync(context, output));
 
             Assert.Equal(expectedErrorMessage, ex.Message);
         }
