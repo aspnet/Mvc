@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Chunks;
@@ -9,11 +12,20 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 {
+    /// <summary>
+    /// A <see cref="CodeVisitor{CSharpCodeWriter}"/> that parses <see cref="Chunk"/>s and 
+    /// generates code based on the contents of the chunks that are view component tag helpers.
+    /// </summary>
     public class ViewComponentTagHelperChunkVisitor : CodeVisitor<CSharpCodeWriter>
     {
         private GeneratedViewComponentTagHelperContext _context;
-        private HashSet<TagHelperChunk> _writtenChunks;
+        private HashSet<string> _writtenViewComponents;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ViewComponentTagHelperChunkVisitor"/>. 
+        /// </summary>
+        /// <param name="writer">The <see cref="CSharpCodeWriter"/> the code is generated to.</param>
+        /// <param name="context">The <see cref="CodeGeneratorContext"/> needed to visit chunks.</param>
         public ViewComponentTagHelperChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context) :
             base(writer, context)
         {
@@ -28,9 +40,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             }
 
             _context = new GeneratedViewComponentTagHelperContext();
-            _writtenChunks = new HashSet<TagHelperChunk>();
+            _writtenViewComponents = new HashSet<string>();
         }
 
+        /// <summary>
+        /// Generates code if the selected <see cref="Chunk"/>, if the chunk is a <see cref="TagHelperChunk"/>
+        /// that describes a view component. If the chunk is a <see cref="ParentChunk"/>, accepts the chunk's children. 
+        /// </summary>
+        /// <param name="chunk">A <see cref="Chunk"/> to accept.</param> 
         public override void Accept(Chunk chunk)
         {
             if (chunk == null)
@@ -38,19 +55,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 throw new ArgumentNullException(nameof(chunk));
             }
 
-            // Has already parsed.
-            if (_writtenChunks.Contains(chunk)) return;
-
             var parentChunk = chunk as ParentChunk;
             var tagHelperChunk = chunk as TagHelperChunk;
 
-            // If not a tag helper chunk, we check the children.
             if (parentChunk != null && !(parentChunk is TagHelperChunk))
             {
                 Accept(parentChunk.Children);
             }
 
-            else if (tagHelperChunk != null) // Else, we check this tag helper chunk for view component properties.
+            else if (tagHelperChunk != null) 
             {
                 var viewComponentDescriptors = tagHelperChunk.Descriptors.Where(
                     descriptor => ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor));
@@ -62,19 +75,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             }
         }
 
-        // Writes the view component tag helper class.
+        /// <summary>
+        /// We generate classes for each view component <see cref="TagHelperDescriptor"/> in the chunk.
+        /// </summary>
+        /// <param name="chunk">The <see cref="TagHelperChunk"/> to visit.</param>
         protected override void Visit(TagHelperChunk chunk)
         {
-            if (!_writtenChunks.Contains(chunk))
-            {
-                var viewComponentDescriptors = chunk.Descriptors.Where(
-                    descriptor => ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor));
+            var viewComponentDescriptors = chunk.Descriptors.Where(
+                descriptor => ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor));
 
-                foreach (var descriptor in viewComponentDescriptors)
+            foreach (var descriptor in viewComponentDescriptors)
+            {
+                var descriptorName =
+                    descriptor.PropertyBag[ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey];
+                if (!_writtenViewComponents.Contains(descriptorName))
                 {
-                    _writtenChunks.Add(chunk);
+                    _writtenViewComponents.Add(descriptorName);
                     WriteClass(descriptor);
-                    return;
                 }
             }
         }
@@ -87,7 +104,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             // Initialize declaration.
             var tagHelperTypeName = $"{_context.TagHelpersNamespace}.{nameof(TagHelper)}";
 
-            var className = ViewComponentTagHelperDescriptorConventions.GetViewComponentTagHelperName(descriptor);
+            var shortName = descriptor.PropertyBag[ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey];
+            var className = $"__Generated__{shortName}ViewComponentTagHelper";
 
             using (Writer.BuildClassDeclaration("public", className, new[] { tagHelperTypeName }))
             {
@@ -124,8 +142,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
         private void BuildAttributeDeclarations(TagHelperDescriptor descriptor)
         {
-            // Add view context.
-
             Writer.Write("[")
               .WriteMethodInvocation(typeof(HtmlAttributeNotBoundAttribute).FullName, false, new string[0])
               .WriteParameterSeparator()
@@ -137,7 +153,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 "public",
                 _context.ViewContextType,
                 _context.ViewContextType);
-
 
             foreach (var attribute in descriptor.Attributes)
             {
@@ -166,7 +181,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                     "Contextualize",
                     new string[] { _context.ViewContextType });
 
-                var viewComponentName = ViewComponentTagHelperDescriptorConventions.GetViewComponentName(descriptor);
+                var viewComponentName = descriptor.PropertyBag[
+                    ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey];
                 var viewComponentParameters = GetParametersObjectString(descriptor);
                 var methodParameters = new string[] { $"\"{viewComponentName}\"", viewComponentParameters };
 

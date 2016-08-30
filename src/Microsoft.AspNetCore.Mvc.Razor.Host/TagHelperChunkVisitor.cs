@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Chunks;
@@ -8,22 +11,34 @@ using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host
 {
+    /// <summary>
+    /// A <see cref="IChunkVisitor"/> that decorates tag helper chunk content. 
+    /// </summary>
     public class TagHelperChunkVisitor : IChunkVisitor
     {
-        public string NamespaceName { get; }
-        public string ClassName { get; }
+        private string _namespaceName { get; }
+        private string _className { get; }
 
+        /// <summary>
+        /// Creates a <see cref="TagHelperChunkVisitor"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="CodeGeneratorContext"/> where
+        /// the <see cref="Chunk"/>s live.</param>
         public TagHelperChunkVisitor(CodeGeneratorContext context)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
-
-            NamespaceName = context.RootNamespace;
-            ClassName = context.ClassName;
+            
+            _namespaceName = context.RootNamespace;
+            _className = context.ClassName;
         }
 
+        /// <summary>
+        /// Accepts the selected chunks.
+        /// </summary>
+        /// <param name="chunks">A <see cref="IList{Chunk}"/> to accept.</param>
         public void Accept(IList<Chunk> chunks)
         {
             if (chunks == null)
@@ -37,6 +52,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             }
         }
 
+        /// <summary>
+        /// Decorates the selected <see cref="Chunk"/>, if the chunk is a <see cref="TagHelperChunk"/>.
+        /// If the chunk is a <see cref="ParentChunk"/>, accepts the chunk's children. 
+        /// </summary>
+        /// <param name="chunk">A <see cref="Chunk"/> to accept.</param>
         public void Accept(Chunk chunk)
         {
             if (chunk == null)
@@ -49,18 +69,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
             if (parentChunk != null && !(parentChunk is TagHelperChunk))
             {
-                var resultChunk = parentChunk;
                 Accept(parentChunk.Children);
                 return;
             }
 
-            else if (tagHelperChunk != null && HasViewComponentDescriptors(tagHelperChunk))
+            else if (tagHelperChunk != null && GetViewComponentDescriptors(tagHelperChunk).Count() > 0)
             {
                 Decorate(tagHelperChunk);
             }
         }
 
-        public void Decorate(TagHelperChunk chunk)
+        private void Decorate(TagHelperChunk chunk)
         {
             if (chunk == null)
             {
@@ -70,21 +89,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             var viewComponentDescriptors = GetViewComponentDescriptors(chunk);
             foreach (var descriptor in viewComponentDescriptors)
             {
-                descriptor.TypeName = $"{NamespaceName}.{ClassName}.{descriptor.TypeName}";
+                descriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
             }
         }
 
-        private bool HasViewComponentDescriptors(TagHelperChunk chunk)
-        {
-            var viewComponentDescriptors = GetViewComponentDescriptors(chunk);
-            return (viewComponentDescriptors.Count() > 0);
-        }
-
-        private IEnumerable<TagHelperDescriptor> GetViewComponentDescriptors(TagHelperChunk chunk)
-        {
-            var viewComponentDescriptors = chunk.Descriptors.Where(
+        private IEnumerable<TagHelperDescriptor> GetViewComponentDescriptors(TagHelperChunk chunk) =>
+            chunk.Descriptors.Where(
                 descriptor => ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor));
-            return viewComponentDescriptors;
-        }
     }
 }
