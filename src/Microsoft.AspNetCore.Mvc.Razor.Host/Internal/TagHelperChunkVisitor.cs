@@ -9,21 +9,13 @@ using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.CodeGenerators.Visitors;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Host
+namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 {
-    /// <summary>
-    /// A <see cref="IChunkVisitor"/> that decorates tag helper chunk content. 
-    /// </summary>
     public class TagHelperChunkVisitor : IChunkVisitor
     {
         private string _namespaceName { get; }
         private string _className { get; }
 
-        /// <summary>
-        /// Creates a <see cref="TagHelperChunkVisitor"/>.
-        /// </summary>
-        /// <param name="context">The <see cref="CodeGeneratorContext"/> where
-        /// the <see cref="Chunk"/>s live.</param>
         public TagHelperChunkVisitor(CodeGeneratorContext context)
         {
             if (context == null)
@@ -35,10 +27,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             _className = context.ClassName;
         }
 
-        /// <summary>
-        /// Accepts the selected chunks.
-        /// </summary>
-        /// <param name="chunks">A <see cref="IList{Chunk}"/> to accept.</param>
         public void Accept(IList<Chunk> chunks)
         {
             if (chunks == null)
@@ -52,11 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             }
         }
 
-        /// <summary>
-        /// Decorates the selected <see cref="Chunk"/>, if the chunk is a <see cref="TagHelperChunk"/>.
-        /// If the chunk is a <see cref="ParentChunk"/>, accepts the chunk's children. 
-        /// </summary>
-        /// <param name="chunk">A <see cref="Chunk"/> to accept.</param>
         public void Accept(Chunk chunk)
         {
             if (chunk == null)
@@ -67,27 +50,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             var parentChunk = chunk as ParentChunk;
             var tagHelperChunk = chunk as TagHelperChunk;
 
-            if (parentChunk != null && !(parentChunk is TagHelperChunk))
-            {
-                Accept(parentChunk.Children);
-                return;
+            if (tagHelperChunk != null){
+                var viewComponentDescriptors = GetViewComponentDescriptors(tagHelperChunk);
+                if (viewComponentDescriptors.Any())
+                {
+                    Decorate(viewComponentDescriptors);
+                }
             }
 
-            else if (tagHelperChunk != null && GetViewComponentDescriptors(tagHelperChunk).Count() > 0)
+            if (parentChunk != null)
             {
-                Decorate(tagHelperChunk);
+                Accept(parentChunk.Children);
             }
         }
 
-        private void Decorate(TagHelperChunk chunk)
+        private void Decorate(IEnumerable<TagHelperDescriptor> descriptors)
         {
-            if (chunk == null)
-            {
-                throw new ArgumentNullException(nameof(chunk));
-            }
-
-            var viewComponentDescriptors = GetViewComponentDescriptors(chunk);
-            foreach (var descriptor in viewComponentDescriptors)
+            foreach (var descriptor in descriptors)
             {
                 descriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
             }
