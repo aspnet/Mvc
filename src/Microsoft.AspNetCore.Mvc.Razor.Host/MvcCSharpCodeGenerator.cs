@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Directives;
-using Microsoft.AspNetCore.Mvc.Razor.Host;
 using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
@@ -16,6 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     public class MvcCSharpCodeGenerator : CSharpCodeGenerator
     {
         private readonly GeneratedTagHelperAttributeContext _tagHelperAttributeContext;
+        private readonly TagHelperChunkVisitor _tagHelperChunkVisitor;
         private readonly string _defaultModel;
         private readonly string _injectAttribute;
 
@@ -49,12 +49,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             _tagHelperAttributeContext = tagHelperAttributeContext;
             _defaultModel = defaultModel;
             _injectAttribute = injectAttribute;
+
+            _tagHelperChunkVisitor = new TagHelperChunkVisitor(Context);
         }
 
         public override CodeGeneratorResult Generate()
         {
-            var descriptorDecorator = new TagHelperChunkVisitor(Context);
-            descriptorDecorator.Accept(Context.ChunkTreeBuilder.Root.Children);
+            _tagHelperChunkVisitor.Accept(Context.ChunkTreeBuilder.Root.Children);
             return base.Generate();
         }
 
