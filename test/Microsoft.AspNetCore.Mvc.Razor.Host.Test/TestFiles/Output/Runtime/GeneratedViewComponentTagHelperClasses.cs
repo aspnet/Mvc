@@ -6,8 +6,8 @@ public class __Generated__FooViewComponentTagHelper : Microsoft.AspNetCore.Razor
     {
         _viewComponentHelper = viewComponentHelper;
     }
-    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute(), ViewContext]
-    public ViewContext ViewContext { get; set; }
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute, ViewContext]
+    public Microsoft.AspNetCore.Mvc.Rendering.ViewContext ViewContext { get; set; }
     public string Attribute { get; set; }
     public override async System.Threading.Tasks.Task ProcessAsync(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput output)
     {
@@ -25,8 +25,8 @@ public class __Generated__BarViewComponentTagHelper : Microsoft.AspNetCore.Razor
     {
         _viewComponentHelper = viewComponentHelper;
     }
-    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute(), ViewContext]
-    public ViewContext ViewContext { get; set; }
+    [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute, ViewContext]
+    public Microsoft.AspNetCore.Mvc.Rendering.ViewContext ViewContext { get; set; }
     public string Attribute { get; set; }
     public override async System.Threading.Tasks.Task ProcessAsync(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput output)
     {
