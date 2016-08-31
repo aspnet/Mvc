@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             }
 
             _context = new GeneratedViewComponentTagHelperContext();
-            _writtenViewComponents = new HashSet<string>();
+            _writtenViewComponents = new HashSet<string>(StringComparer.Ordinal);
         }
 
         public override void Accept(Chunk chunk)
@@ -45,17 +45,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 throw new ArgumentNullException(nameof(chunk));
             }
 
-            var parentChunk = chunk as ParentChunk;
             var tagHelperChunk = chunk as TagHelperChunk;
+            if (tagHelperChunk != null) 
+            {
+                Visit(tagHelperChunk);
+            }
 
+            var parentChunk = chunk as ParentChunk;
             if (parentChunk != null)
             {
                 Accept(parentChunk.Children);
-            }
-
-            if (tagHelperChunk != null) 
-            {
-                base.Accept(chunk);
             }
         }
 
@@ -95,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 // Add view component helper for reasons.
                 Writer.WriteVariableDeclaration(
-                    $"private readonly {_context.IViewComponentHelperType}",
+                    $"private readonly {_context.IViewComponentHelperTypeName}",
                     _viewComponentHelperVariable,
                     value: null);
 
@@ -112,9 +111,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
         private void BuildConstructorString(string className)
         {
+            var viewComponentHelperVariable = "viewComponentHelper";
+
             var helperPair = new KeyValuePair<string, string>(
-                _context.IViewComponentHelperType,
-                "viewComponentHelper");
+                _context.IViewComponentHelperTypeName,
+                viewComponentHelperVariable);
 
             using (Writer.BuildConstructor(
                 "public",
@@ -122,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 new[] { helperPair }))
             {
                 Writer.WriteStartAssignment(_viewComponentHelperVariable)
-                    .Write("viewComponentHelper")
+                    .Write(viewComponentHelperVariable)
                     .WriteLine(";");
             }
         }
@@ -133,12 +134,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
               .Write(typeof(HtmlAttributeNotBoundAttribute).FullName)
               .WriteParameterSeparator()
-              .Write(_viewContextVariable)
+              .Write(_context.ViewContextTypeName)
               .WriteLine("]");
 
             Writer.WriteAutoPropertyDeclaration(
                 "public",
-                _context.ViewContextType,
+                _context.ViewContextTypeName,
                 _viewContextVariable);
 
             foreach (var attribute in descriptor.Attributes)
@@ -163,15 +164,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                     }))
             {
                 Writer.WriteInstanceMethodInvocation(
-                    $"(({_context.IViewContextAwareType}){_viewComponentHelperVariable})",
-                    _context.ContextualizeMethod,
+                    $"(({_context.IViewContextAwareTypeName}){_viewComponentHelperVariable})",
+                    _context.ContextualizeMethodName,
                     new [] { _viewContextVariable });
 
                 var methodParameters = GetMethodParameters(descriptor);
                 var viewContentVariable = "viewContent";
                 Writer.Write("var ")
                     .WriteStartAssignment(viewContentVariable)
-                    .WriteInstanceMethodInvocation($"await {_viewComponentHelperVariable}", _context.InvokeAsyncMethod, methodParameters);
+                    .WriteInstanceMethodInvocation($"await {_viewComponentHelperVariable}", _context.InvokeAsyncMethodName, methodParameters);
                 Writer.WriteStartAssignment($"{outputVariable}.{nameof(TagHelperOutput.TagName)}")
                     .WriteLine("null;");
                 Writer.WriteInstanceMethodInvocation(
