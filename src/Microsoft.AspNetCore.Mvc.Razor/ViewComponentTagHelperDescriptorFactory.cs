@@ -98,8 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 };
 
                 descriptor.IsEnum = parameter.ParameterType.IsEnum;
-                descriptor.IsIndexer = (parameter.GetType().GetProperties()
-                    .Where(property => property.GetIndexParameters().Length != 0).FirstOrDefault() != null);
+                descriptor.IsIndexer = false;
 
                 attributeDescriptors.Add(descriptor);
             }
