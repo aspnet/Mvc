@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            
+
             _namespaceName = context.RootNamespace;
             _className = context.ClassName;
         }
@@ -47,29 +47,39 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 throw new ArgumentNullException(nameof(chunk));
             }
 
-            var parentChunk = chunk as ParentChunk;
             var tagHelperChunk = chunk as TagHelperChunk;
-
-            if (tagHelperChunk != null){
-                var viewComponentDescriptors = GetViewComponentDescriptors(tagHelperChunk);
-                if (viewComponentDescriptors.Any())
-                {
-                    Decorate(viewComponentDescriptors);
-                }
+            if (tagHelperChunk != null)
+            {
+                tagHelperChunk.Descriptors = Decorate(tagHelperChunk);
             }
 
+            var parentChunk = chunk as ParentChunk;
             if (parentChunk != null)
             {
                 Accept(parentChunk.Children);
             }
         }
 
-        private void Decorate(IEnumerable<TagHelperDescriptor> descriptors)
+        private IEnumerable<TagHelperDescriptor> Decorate(TagHelperChunk chunk)
         {
-            foreach (var descriptor in descriptors)
+            var decoratedDescriptors = new List<TagHelperDescriptor>();
+
+            foreach (var descriptor in chunk.Descriptors)
             {
-                descriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
+                if (ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor))
+                {
+                    var copyDescriptor = new TagHelperDescriptor(descriptor);
+                    copyDescriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
+
+                    decoratedDescriptors.Add(copyDescriptor);
+                }
+                else
+                {
+                    decoratedDescriptors.Add(descriptor);
+                }
             }
+
+            return decoratedDescriptors;
         }
 
         private IEnumerable<TagHelperDescriptor> GetViewComponentDescriptors(TagHelperChunk chunk) =>

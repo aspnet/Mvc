@@ -4,28 +4,45 @@
 namespace Microsoft.AspNetCore.Mvc.Razor
 {
     /// <summary>
-    /// Contains necessary information for the tag helper code generation process.
+    /// Contains information for generating view component <see cref="AspNetCore.Razor.TagHelpers.TagHelper"/> classes.
     /// </summary>
     public class GeneratedViewComponentTagHelperContext
     {
+        /// <summary>
+        /// Sets the names.
+        /// </summary>
         public GeneratedViewComponentTagHelperContext()
         {
-            TagHelpersNamespace = "Microsoft.AspNetCore.Razor.TagHelpers";
-            IViewComponentHelperType = "IViewComponentHelper";
-            IViewContextAwareType = "IViewContextAware";
-            TagStructureType = "TagStructure";
-            ViewContextType = "Microsoft.AspNetCore.Mvc.Rendering.ViewContext";
-
-            ContextualizeMethod = "Contextualize";
-            InvokeAsyncMethod = "InvokeAsync";
+            ContextualizeMethodName = "Contextualize";
+            InvokeAsyncMethodName = "InvokeAsync";
+            IViewComponentHelperTypeName = "Microsoft.AspNetCore.Mvc.IViewComponentHelper";
+            IViewContextAwareTypeName = "Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware";
+            ViewContextTypeName = "Microsoft.AspNetCore.Mvc.Rendering.ViewContext";
         }
 
-        public string ContextualizeMethod { get; set; }
-        public string InvokeAsyncMethod { get; set; }
-        public string TagHelpersNamespace { get; set; }
-        public string IViewComponentHelperType { get; set; }
-        public string IViewContextAwareType { get; set; }
-        public string TagStructureType { get; set; }
-        public string ViewContextType { get; set; }
+        /// <summary>
+        /// Name of the Contextualize method.
+        /// </summary>
+        public string ContextualizeMethodName { get; set; }
+
+        /// <summary>
+        /// Name of the InvokeAsync method.
+        /// </summary>
+        public string InvokeAsyncMethodName { get; set; }
+
+        /// <summary>
+        /// Name of the IViewComponentHelper type. 
+        /// </summary>
+        public string IViewComponentHelperTypeName { get; set; }
+
+        /// <summary>
+        /// Name of the IViewContextAware type.
+        /// </summary>
+        public string IViewContextAwareTypeName { get; set; }
+
+        /// <summary>
+        /// Name of the ViewContext type.
+        /// </summary>
+        public string ViewContextTypeName { get; set; }
     }
 }
