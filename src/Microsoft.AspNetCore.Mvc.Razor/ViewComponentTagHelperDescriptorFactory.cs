@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.Host;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
@@ -97,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     TypeName = parameter.ParameterType.FullName
                 };
 
-                descriptor.IsEnum = parameter.ParameterType.IsEnum;
+                descriptor.IsEnum = parameter.ParameterType.GetTypeInfo().IsEnum;
                 descriptor.IsIndexer = false;
 
                 attributeDescriptors.Add(descriptor);

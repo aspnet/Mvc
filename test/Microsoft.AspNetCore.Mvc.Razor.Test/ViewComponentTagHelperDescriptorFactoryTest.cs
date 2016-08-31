@@ -1,14 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.Host;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
@@ -52,11 +50,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
         }
 
         // Test invokes are needed for method creation in TestViewComponentDescriptorProvider.
+        public enum TestEnum
+        {
+            A = 1,
+            B = 2,
+            C = 3
+        }
+
         public void TestInvokeOne(string foo, string bar)
         {
         }
 
-        public void TestInvokeTwo(int baz = 5)
+        public void TestInvokeTwo(TestEnum testEnum, Dictionary<string, int> testDictionary, int baz = 5)
         {
         }
 
@@ -132,6 +137,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                     {
                         new TagHelperAttributeDescriptor
                         {
+                            Name = "test-enum",
+                            PropertyName = "testEnum",
+                            TypeName = typeof(TestEnum).FullName,
+                            IsEnum = true
+                        },
+
+                        new TagHelperAttributeDescriptor
+                        {
+                            Name = "test-dictionary",
+                            PropertyName = "testDictionary",
+                            TypeName = typeof(Dictionary<string, int>).FullName
+                        },
+
+                        new TagHelperAttributeDescriptor
+                        {
                             Name = "baz",
                             PropertyName = "baz",
                             TypeName = "System.Int32"
@@ -139,6 +159,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                     },
                     RequiredAttributes = new List<TagHelperRequiredAttributeDescriptor>
                     {
+                        new TagHelperRequiredAttributeDescriptor
+                        {
+                            Name = "test-enum"
+                        },
+
+                        new TagHelperRequiredAttributeDescriptor
+                        {
+                            Name = "test-dictionary"
+                        },
+
                         new TagHelperRequiredAttributeDescriptor
                         {
                             Name = "baz"
