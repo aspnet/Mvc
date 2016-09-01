@@ -166,11 +166,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         // RouteValues property value, expected RouteValuesDictionary content.
-        public static TheoryData<Dictionary<string, string>, Dictionary<string, object>> RouteValuesData
+        public static TheoryData<IDictionary<string, string>, IDictionary<string, object>> RouteValuesData
         {
             get
             {
-                return new TheoryData<Dictionary<string, string>, Dictionary<string, object>>
+                return new TheoryData<IDictionary<string, string>, IDictionary<string, object>>
                 {
                     { null, null },
                     // FormActionTagHelper ignores an empty route values dictionary.
@@ -180,8 +180,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         new Dictionary<string, object> { { "name", "value" } }
                     },
                     {
-                        new Dictionary<string, string> { { "name1", "value1" }, { "name2", "value2" } },
-                        new Dictionary<string, object> { { "name1", "value1" }, { "name2", "value2" } }
+                        new SortedDictionary<string, string>(StringComparer.Ordinal)
+                        {
+                            { "name1", "value1" },
+                            { "name2", "value2" },
+                        },
+                        new SortedDictionary<string, object>(StringComparer.Ordinal)
+                        {
+                            { "name1", "value1" },
+                            { "name2", "value2" },
+                        }
                     },
                 };
             }
@@ -190,8 +198,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [Theory]
         [MemberData(nameof(RouteValuesData))]
         public async Task ProcessAsync_CallsActionWithExpectedParameters(
-            Dictionary<string, string> routeValues,
-            Dictionary<string, object> expectedRouteValues)
+            IDictionary<string, string> routeValues,
+            IDictionary<string, object> expectedRouteValues)
         {
             // Arrange
             var context = new TagHelperContext(
