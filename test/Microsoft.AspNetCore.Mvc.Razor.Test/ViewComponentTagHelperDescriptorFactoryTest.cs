@@ -100,13 +100,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                         {
                             Name = "foo",
                             PropertyName = "foo",
-                            TypeName = "System.String",
+                            TypeName = typeof(string).FullName
                         },
                         new TagHelperAttributeDescriptor
                         {
                             Name = "bar",
                             PropertyName = "bar",
-                            TypeName = "System.String",
+                            TypeName = typeof(string).FullName
                         }
                     },
                     RequiredAttributes = new List<TagHelperRequiredAttributeDescriptor>
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.ViewComponentTagHelpers
                         {
                             Name = "baz",
                             PropertyName = "baz",
-                            TypeName = "System.Int32"
+                            TypeName = typeof(int).FullName
                         }
                     },
                     RequiredAttributes = new List<TagHelperRequiredAttributeDescriptor>
