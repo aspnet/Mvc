@@ -21,18 +21,18 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("button", Attributes = RouteAttributeName)]
     [HtmlTargetElement("button", Attributes = RouteValuesDictionaryName)]
     [HtmlTargetElement("button", Attributes = RouteValuesPrefix + "*")]
-    [HtmlTargetElement("input", Attributes = ImageActionAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = ImageControllerAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = ImageAreaAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = ImageRouteAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = ImageRouteValuesDictionarySelector)]
-    [HtmlTargetElement("input", Attributes = ImageRouteValuesSelector)]
-    [HtmlTargetElement("input", Attributes = SubmitActionAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = SubmitControllerAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = SubmitAreaAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = SubmitRouteAttributeSelector)]
-    [HtmlTargetElement("input", Attributes = SubmitRouteValuesDictionarySelector)]
-    [HtmlTargetElement("input", Attributes = SubmitRouteValuesSelector)]
+    [HtmlTargetElement("input", Attributes = ImageActionAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImageControllerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImageAreaAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImageRouteAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImageRouteValuesDictionarySelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImageRouteValuesSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitActionAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitControllerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitAreaAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitRouteAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitRouteValuesDictionarySelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitRouteValuesSelector, TagStructure = TagStructure.WithoutEndTag)]
     public class FormActionTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
@@ -153,7 +153,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // If "formaction" is already set, it means the user is attempting to use a normal button or input element.
             if (output.Attributes.ContainsName(FormAction))
             {
-                if (Action != null || Controller != null || Area != null || Route != null || RouteValues.Count != 0)
+                if (Action != null ||
+                    Controller != null ||
+                    Area != null ||
+                    Route != null ||
+                    (_routeValues != null && _routeValues.Count > 0))
                 {
                     // User specified a formaction and one of the bound attributes; can't override that formaction
                     // attribute.

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
@@ -28,9 +29,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 allAttributes: new TagHelperAttributeList
                 {
                     { "id", "my-id" },
-                    { "asp-route-name", "value" },
-                    { "asp-action", "index" },
-                    { "asp-controller", "home" },
                 },
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
@@ -43,25 +41,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
                     var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something Else");
+                    tagHelperContent.SetContent("Something Else");  // ignored
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 });
-            output.Content.SetContent("Something");
 
-            var urlHelper = new Mock<IUrlHelper>();
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
             urlHelper
-                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>())).Returns("home/index").Verifiable();
+                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
+                .Returns<UrlActionContext>(c => $"{c.Controller}/{c.Action}/{(c.Values as RouteValueDictionary)["name"]}");
 
-            var urlHelperFactory = new Mock<IUrlHelperFactory>();
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
             urlHelperFactory
-                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(viewContext))
                 .Returns(urlHelper.Object);
 
-            var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
-            var viewContext = TestableHtmlGenerator.GetViewContext(
-                model: null,
-                htmlGenerator: htmlGenerator,
-                metadataProvider: metadataProvider);
             var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "index",
@@ -77,23 +71,131 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            urlHelper.Verify();
-            Assert.Equal(2, output.Attributes.Count);
-            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("id"));
-            Assert.Equal("my-id", attribute.Value);
-            attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
-            Assert.Equal("home/index", attribute.Value);
-            Assert.Equal("Something", output.Content.GetContent());
+            Assert.Collection(
+                output.Attributes,
+                attribute =>
+                {
+                    Assert.Equal("id", attribute.Name, StringComparer.Ordinal);
+                    Assert.Equal("my-id", attribute.Value as string, StringComparer.Ordinal);
+                },
+                attribute =>
+                {
+                    Assert.Equal("formaction", attribute.Name, StringComparer.Ordinal);
+                    Assert.Equal("home/index/value", attribute.Value as string, StringComparer.Ordinal);
+                });
+            Assert.False(output.IsContentModified);
+            Assert.False(output.PostContent.IsModified);
+            Assert.False(output.PostElement.IsModified);
+            Assert.False(output.PreContent.IsModified);
+            Assert.False(output.PreElement.IsModified);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
             Assert.Equal(expectedTagName, output.TagName);
         }
 
         [Fact]
-        public async Task ProcessAsync_CallsIntoRouteLinkWithExpectedParameters()
+        public async Task ProcessAsync_GeneratesExpectedOutput_WithRoute()
+        {
+            // Arrange
+            var expectedTagName = "not-button-or-submit";
+            var metadataProvider = new TestModelMetadataProvider();
+
+            var tagHelperContext = new TagHelperContext(
+                allAttributes: new TagHelperAttributeList
+                {
+                    { "id", "my-id" },
+                },
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                attributes: new TagHelperAttributeList
+                {
+                    { "id", "my-id" },
+                },
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something Else");  // ignored
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
+            urlHelper
+                .Setup(mock => mock.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Returns<UrlRouteContext>(c => $"{c.RouteName}/{(c.Values as RouteValueDictionary)["name"]}");
+
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
+            urlHelperFactory
+                .Setup(f => f.GetUrlHelper(viewContext))
+                .Returns(urlHelper.Object);
+
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
+            {
+                Route = "routine",
+                RouteValues =
+                {
+                    {  "name", "value" },
+                },
+                ViewContext = viewContext,
+            };
+
+            // Act
+            await tagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            Assert.Collection(
+                output.Attributes,
+                attribute =>
+                {
+                    Assert.Equal("id", attribute.Name, StringComparer.Ordinal);
+                    Assert.Equal("my-id", attribute.Value as string, StringComparer.Ordinal);
+                },
+                attribute =>
+                {
+                    Assert.Equal("formaction", attribute.Name, StringComparer.Ordinal);
+                    Assert.Equal("routine/value", attribute.Value as string, StringComparer.Ordinal);
+                });
+            Assert.False(output.IsContentModified);
+            Assert.False(output.PostContent.IsModified);
+            Assert.False(output.PostElement.IsModified);
+            Assert.False(output.PreContent.IsModified);
+            Assert.False(output.PreElement.IsModified);
+            Assert.Equal(TagMode.StartTagAndEndTag, output.TagMode);
+            Assert.Equal(expectedTagName, output.TagName);
+        }
+
+        // RouteValues property value, expected RouteValuesDictionary content.
+        public static TheoryData<Dictionary<string, string>, Dictionary<string, object>> RouteValuesData
+        {
+            get
+            {
+                return new TheoryData<Dictionary<string, string>, Dictionary<string, object>>
+                {
+                    { null, null },
+                    // FormActionTagHelper ignores an empty route values dictionary.
+                    { new Dictionary<string, string>(), null },
+                    {
+                        new Dictionary<string, string> { { "name", "value" } },
+                        new Dictionary<string, object> { { "name", "value" } }
+                    },
+                    {
+                        new Dictionary<string, string> { { "name1", "value1" }, { "name2", "value2" } },
+                        new Dictionary<string, object> { { "name1", "value1" }, { "name2", "value2" } }
+                    },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(RouteValuesData))]
+        public async Task ProcessAsync_CallsActionWithExpectedParameters(
+            Dictionary<string, string> routeValues,
+            Dictionary<string, object> expectedRouteValues)
         {
             // Arrange
             var context = new TagHelperContext(
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
+                allAttributes: new TagHelperAttributeList(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
@@ -101,56 +203,133 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
                 });
-            output.Content.SetContent(string.Empty);
 
-            var urlHelper = new Mock<IUrlHelper>();
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
             urlHelper
-                .Setup(mock => mock.RouteUrl(It.IsAny<UrlRouteContext>())).Returns("home/index").Verifiable();
+                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
+                .Callback<UrlActionContext>(param =>
+                {
+                    Assert.Equal("delete", param.Action, StringComparer.Ordinal);
+                    Assert.Equal("books", param.Controller, StringComparer.Ordinal);
+                    Assert.Null(param.Fragment);
+                    Assert.Null(param.Host);
+                    Assert.Null(param.Protocol);
+                    Assert.Equal(expectedRouteValues, param.Values as RouteValueDictionary);
+                })
+                .Returns("home/index");
 
-            var urlHelperFactory = new Mock<IUrlHelperFactory>();
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
             urlHelperFactory
-                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(viewContext))
                 .Returns(urlHelper.Object);
 
-            var metadataProvider = new TestModelMetadataProvider();
-            var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
-            var viewContext = TestableHtmlGenerator.GetViewContext(
-                model: null,
-                htmlGenerator: htmlGenerator,
-                metadataProvider: metadataProvider);
+            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
+            {
+                Action = "delete",
+                Controller = "books",
+                RouteValues = routeValues,
+                ViewContext = viewContext,
+            };
+
+            // Act
+            await tagHelper.ProcessAsync(context, output);
+
+            // Assert
+            Assert.Equal("button", output.TagName);
+            var attribute = Assert.Single(output.Attributes);
+            Assert.Equal("formaction", attribute.Name);
+            Assert.Equal("home/index", attribute.Value);
+            Assert.Empty(output.Content.GetContent());
+        }
+
+        [Theory]
+        [MemberData(nameof(RouteValuesData))]
+        public async Task ProcessAsync_CallsRouteUrlWithExpectedParameters(
+            Dictionary<string, string> routeValues,
+            Dictionary<string, object> expectedRouteValues)
+        {
+            // Arrange
+            var context = new TagHelperContext(
+                allAttributes: new TagHelperAttributeList(),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "button",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    return Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
+                });
+
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
+            urlHelper
+                .Setup(mock => mock.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback<UrlRouteContext>(param =>
+                {
+                    Assert.Null(param.Fragment);
+                    Assert.Null(param.Host);
+                    Assert.Null(param.Protocol);
+                    Assert.Equal("Default", param.RouteName, StringComparer.Ordinal);
+                    Assert.Equal(expectedRouteValues, param.Values as RouteValueDictionary);
+                })
+                .Returns("home/index");
+
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
+            urlHelperFactory
+                .Setup(f => f.GetUrlHelper(viewContext))
+                .Returns(urlHelper.Object);
+
             var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Route = "Default",
+                RouteValues = routeValues,
                 ViewContext = viewContext,
-                RouteValues =
-                {
-                    { "name", "value" },
-                },
             };
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            urlHelper.Verify();
             Assert.Equal("button", output.TagName);
-            Assert.Equal(1, output.Attributes.Count);
-            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
+            var attribute = Assert.Single(output.Attributes);
+            Assert.Equal("formaction", attribute.Name);
             Assert.Equal("home/index", attribute.Value);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
-        [Fact]
-        public async Task ProcessAsync_AddsAreaToRouteValuesAndCallsIntoActionLinkWithExpectedParameters()
+        // Area property value, RouteValues property value, expected "area" in final RouteValuesDictionary.
+        public static TheoryData<string, Dictionary<string, string>, string> AreaRouteValuesData
+        {
+            get
+            {
+                return new TheoryData<string, Dictionary<string, string>, string>
+                {
+                    { "Area", null, "Area" },
+                    // Explicit Area overrides value in the dictionary.
+                    { "Area", new Dictionary<string, string> { { "area", "Home" } }, "Area" },
+                    // Empty string is also passed through to the helper.
+                    { string.Empty, null, string.Empty },
+                    { string.Empty, new Dictionary<string, string> { { "area", "Home" } }, string.Empty },
+                    // Fall back "area" entry in the provided route values if Area is null.
+                    { null, new Dictionary<string, string> { { "area", "Admin" } }, "Admin" },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(AreaRouteValuesData))]
+        public async Task ProcessAsync_CallsActionWithExpectedRouteValues(
+            string area,
+            Dictionary<string, string> routeValues,
+            string expectedArea)
         {
             // Arrange
             var context = new TagHelperContext(
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
+                allAttributes: new TagHelperAttributeList(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
@@ -158,104 +337,52 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
                 });
-            output.Content.SetContent(string.Empty);
 
-            var expectedRouteValues = new RouteValueDictionary(new Dictionary<string, string> { { "area", "Admin" } });
-            var urlHelper = new Mock<IUrlHelper>();
+            var expectedRouteValues = new Dictionary<string, object> { { "area", expectedArea } };
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
             urlHelper
                 .Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
-                .Returns("admin/dashboard/index")
-                .Callback<UrlActionContext>(param => Assert.Equal(param.Values, expectedRouteValues))
-                .Verifiable();
+                .Callback<UrlActionContext>(param => Assert.Equal(expectedRouteValues, param.Values as RouteValueDictionary))
+                .Returns("admin/dashboard/index");
 
-            var urlHelperFactory = new Mock<IUrlHelperFactory>();
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
             urlHelperFactory
-                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(viewContext))
                 .Returns(urlHelper.Object);
 
             var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
                 Action = "Index",
+                Area = area,
                 Controller = "Dashboard",
-                Area = "Admin",
+                RouteValues = routeValues,
+                ViewContext = viewContext,
             };
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            urlHelper.Verify();
             Assert.Equal("submit", output.TagName);
-            Assert.Equal(1, output.Attributes.Count);
-            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
+            var attribute = Assert.Single(output.Attributes);
+            Assert.Equal("formaction", attribute.Name);
             Assert.Equal("admin/dashboard/index", attribute.Value);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
-        [Fact]
-        public async Task ProcessAsync_AspAreaOverridesAspRouteArea()
+        [Theory]
+        [MemberData(nameof(AreaRouteValuesData))]
+        public async Task ProcessAsync_CallsRouteUrlWithExpectedRouteValues(
+            string area,
+            Dictionary<string, string> routeValues,
+            string expectedArea)
         {
             // Arrange
             var context = new TagHelperContext(
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
-                items: new Dictionary<object, object>(),
-                uniqueId: "test");
-            var output = new TagHelperOutput(
-                "button",
-                attributes: new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) =>
-                {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
-                });
-            output.Content.SetContent(string.Empty);
-
-            var expectedRouteValues = new RouteValueDictionary(new Dictionary<string, string> { { "area", "Admin" } });
-            var urlHelper = new Mock<IUrlHelper>();
-            urlHelper
-                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
-                .Returns("admin/dashboard/index")
-                .Callback<UrlActionContext>(param => Assert.Equal(param.Values, expectedRouteValues))
-                .Verifiable();
-
-            var urlHelperFactory = new Mock<IUrlHelperFactory>();
-            urlHelperFactory
-                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
-                .Returns(urlHelper.Object);
-
-            var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
-            {
-                Action = "Index",
-                Controller = "Dashboard",
-                Area = "Admin",
-                RouteValues = new Dictionary<string, string> { { "area", "Home" } }
-            };
-
-            // Act
-            await tagHelper.ProcessAsync(context, output);
-
-            // Assert
-            urlHelper.Verify();
-            Assert.Equal("button", output.TagName);
-            Assert.Equal(1, output.Attributes.Count);
-            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
-            Assert.Equal("admin/dashboard/index", attribute.Value);
-            Assert.True(output.Content.GetContent().Length == 0);
-        }
-
-        [Fact]
-        public async Task ProcessAsync_EmptyStringOnAspAreaIsPassedThroughToRouteValues()
-        {
-            // Arrange
-            var context = new TagHelperContext(
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
+                allAttributes: new TagHelperAttributeList(),
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
@@ -263,42 +390,39 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
-                    var tagHelperContent = new DefaultTagHelperContent();
-                    tagHelperContent.SetContent("Something");
-                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                    return Task.FromResult<TagHelperContent>(new DefaultTagHelperContent());
                 });
-            output.Content.SetContent(string.Empty);
 
-            var expectedRouteValues = new RouteValueDictionary(new Dictionary<string, string> { { "area", string.Empty } });
-            var urlHelper = new Mock<IUrlHelper>();
+            var expectedRouteValues = new Dictionary<string, object> { { "area", expectedArea } };
+            var urlHelper = new Mock<IUrlHelper>(MockBehavior.Strict);
             urlHelper
-                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>()))
-                .Returns("admin/dashboard/index")
-                .Callback<UrlActionContext>(param => Assert.Equal(param.Values, expectedRouteValues))
-                .Verifiable();
+                .Setup(mock => mock.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback<UrlRouteContext>(param => Assert.Equal(expectedRouteValues, param.Values as RouteValueDictionary))
+                .Returns("admin/dashboard/index");
 
-            var urlHelperFactory = new Mock<IUrlHelperFactory>();
+            var viewContext = new ViewContext();
+            var urlHelperFactory = new Mock<IUrlHelperFactory>(MockBehavior.Strict);
             urlHelperFactory
-                .Setup(f => f.GetUrlHelper(It.IsAny<ActionContext>()))
+                .Setup(f => f.GetUrlHelper(viewContext))
                 .Returns(urlHelper.Object);
 
             var tagHelper = new FormActionTagHelper(urlHelperFactory.Object)
             {
-                Action = "Index",
-                Controller = "Dashboard",
-                Area = string.Empty,
+                Area = area,
+                Route = "routine",
+                RouteValues = routeValues,
+                ViewContext = viewContext,
             };
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            urlHelper.Verify();
             Assert.Equal("submit", output.TagName);
-            Assert.Equal(1, output.Attributes.Count);
-            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("formaction"));
+            var attribute = Assert.Single(output.Attributes);
+            Assert.Equal("formaction", attribute.Name);
             Assert.Equal("admin/dashboard/index", attribute.Value);
-            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Empty(output.Content.GetContent());
         }
 
         [Theory]
