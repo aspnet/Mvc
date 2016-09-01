@@ -170,6 +170,38 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return string.Format(CultureInfo.CurrentCulture, GetString("PropertyOfTypeCannotBeNull"), p0, p1);
         }
 
+        /// <summary>
+        /// Cannot override the '{6}' attribute for &lt;{0}&gt;. &lt;{0}&gt; elements with a specified '{6}' must not have attributes starting with '{5}' or an '{1}', '{2}', '{3}', or '{4}' attribute.
+        /// </summary>
+        internal static string FormActionTagHelper_CannotOverrideFormAction
+        {
+            get { return GetString("FormActionTagHelper_CannotOverrideFormAction"); }
+        }
+
+        /// <summary>
+        /// Cannot override the '{6}' attribute for &lt;{0}&gt;. &lt;{0}&gt; elements with a specified '{6}' must not have attributes starting with '{5}' or an '{1}', '{2}', '{3}', or '{4}' attribute.
+        /// </summary>
+        internal static string FormatFormActionTagHelper_CannotOverrideFormAction(object p0, object p1, object p2, object p3, object p4, object p5, object p6)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormActionTagHelper_CannotOverrideFormAction"), p0, p1, p2, p3, p4, p5, p6);
+        }
+
+        /// <summary>
+        /// Cannot determine a '{4}' attribute for &lt;{0}&gt;. &lt;{0}&gt; elements with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// </summary>
+        internal static string FormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified
+        {
+            get { return GetString("FormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified"); }
+        }
+
+        /// <summary>
+        /// Cannot determine a '{4}' attribute for &lt;{0}&gt;. &lt;{0}&gt; elements with a specified '{1}' must not have an '{2}' or '{3}' attribute.
+        /// </summary>
+        internal static string FormatFormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified(object p0, object p1, object p2, object p3, object p4)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("FormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified"), p0, p1, p2, p3, p4);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
