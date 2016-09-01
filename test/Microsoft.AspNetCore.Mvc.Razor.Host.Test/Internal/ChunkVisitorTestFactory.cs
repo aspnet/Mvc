@@ -49,6 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 {
                     new TagHelperDescriptor
                     {
+                        AssemblyName = $"{name}Assembly",
                         TagName = name.ToLower(),
                         TypeName = $"{name}Type",
                     }
@@ -91,6 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 
             var tagHelperDescriptor = new TagHelperDescriptor
             {
+                AssemblyName = $"{name}Assembly",
                 TagName = name.ToLower(),
                 TypeName = typeName,
                 Attributes = new List<TagHelperAttributeDescriptor>
