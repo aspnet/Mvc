@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 {
-    public class TagHelperChunkVisitor : IChunkVisitor
+    public class TagHelperChunkDecorator : IChunkVisitor
     {
-        private string _namespaceName { get; }
-        private string _className { get; }
+        private readonly string _className; 
+        private readonly string _namespaceName;
 
-        public TagHelperChunkVisitor(CodeGeneratorContext context)
+        public TagHelperChunkDecorator(CodeGeneratorContext context)
         {
             if (context == null)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 throw new ArgumentNullException(nameof(chunks));
             }
 
-            foreach (Chunk chunk in chunks)
+            foreach (var chunk in chunks)
             {
                 Accept(chunk);
             }
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             var tagHelperChunk = chunk as TagHelperChunk;
             if (tagHelperChunk != null)
             {
-                tagHelperChunk.Descriptors = Decorate(tagHelperChunk);
+                tagHelperChunk.Descriptors = Decorate(tagHelperChunk.Descriptors);
             }
 
             var parentChunk = chunk as ParentChunk;
@@ -60,11 +60,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             }
         }
 
-        private IEnumerable<TagHelperDescriptor> Decorate(TagHelperChunk chunk)
+        private IEnumerable<TagHelperDescriptor> Decorate(IEnumerable<TagHelperDescriptor> descriptors)
         {
             var decoratedDescriptors = new List<TagHelperDescriptor>();
 
-            foreach (var descriptor in chunk.Descriptors)
+            foreach (var descriptor in descriptors)
             {
                 if (ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor))
                 {
@@ -81,9 +81,5 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
             return decoratedDescriptors;
         }
-
-        private IEnumerable<TagHelperDescriptor> GetViewComponentDescriptors(TagHelperChunk chunk) =>
-            chunk.Descriptors.Where(
-                descriptor => ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor));
     }
 }

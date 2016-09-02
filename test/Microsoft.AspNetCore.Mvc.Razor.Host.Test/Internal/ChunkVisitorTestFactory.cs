@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.Chunks.Generators;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
-using Microsoft.AspNetCore.Razor.Parser.SyntaxTree;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Moq;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 {
@@ -20,11 +18,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
         private static string _testNamespace = "TestNamespace";
         private static string _testFile = "TestFile";
 
+        public static CodeGeneratorContext CreateDummyCodeGeneratorContext()
+        {
+            var language = new CSharpRazorCodeLanguage();
+            var host = new RazorEngineHost(language);
+            var chunkGeneratorContext = new ChunkGeneratorContext
+            (
+                host,
+                _testClass,
+                _testNamespace,
+                _testFile,
+                shouldGenerateLinePragmas: false
+            );
+
+            var codeGeneratorContext = new CodeGeneratorContext(
+                chunkGeneratorContext,
+                errorSink: new ErrorSink());
+            return codeGeneratorContext;
+        }
+
         public static IList<Chunk> GetTestChunks(bool visitedTagHelperChunks)
         {
             var chunkList = new List<Chunk>();
 
-            // Add a normal tag helper chunk.
             var normalTagHelperChunk = GetTagHelperChunk("Baz");
             chunkList.Add(normalTagHelperChunk);
 
@@ -32,7 +48,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 GetNestedViewComponentTagHelperChunk("Foo", visitedTagHelperChunks);
             chunkList.Add(nestedViewComponentTagHelperChunk);
 
-            // Add a view component tag helper chunk.
             var viewComponentTagHelperChunk = GetViewComponentTagHelperChunk("Bar", visitedTagHelperChunks);
             chunkList.Add(viewComponentTagHelperChunk);
 
@@ -82,7 +97,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
             {
                 Name = "attribute",
                 PropertyName = "Attribute",
-                TypeName = "string"
+                TypeName = typeof(string).FullName
             };
 
             var requiredAttribute = new TagHelperRequiredAttributeDescriptor
@@ -95,11 +110,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 AssemblyName = $"{name}Assembly",
                 TagName = name.ToLower(),
                 TypeName = typeName,
-                Attributes = new List<TagHelperAttributeDescriptor>
+                Attributes = new[]
                 {
                     attribute
                 },
-                RequiredAttributes = new List<TagHelperRequiredAttributeDescriptor>
+                RequiredAttributes = new[]
                 {
                     requiredAttribute
                 }
@@ -113,32 +128,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 $"vc:{name.ToLower()}",
                 TagMode.SelfClosing,
                 new List<TagHelperAttributeTracker>(),
-                new List<TagHelperDescriptor>
+                new[]
                 {
                     tagHelperDescriptor
                 });
 
             return tagHelperChunk;
-        }
-
-        public static CodeGeneratorContext CreateDummyCodeGeneratorContext()
-        {
-            var syntaxTreeNode = new Mock<Span>(new SpanBuilder());
-            var language = new CSharpRazorCodeLanguage();
-            var host = new RazorEngineHost(language);
-            var chunkGeneratorContext = new ChunkGeneratorContext
-            (
-                host,
-                _testClass,
-                _testNamespace,
-                _testFile,
-                false
-            );
-
-            var codeGeneratorContext = new CodeGeneratorContext(
-                chunkGeneratorContext,
-                errorSink: new ErrorSink());
-            return codeGeneratorContext;
         }
     }
 }

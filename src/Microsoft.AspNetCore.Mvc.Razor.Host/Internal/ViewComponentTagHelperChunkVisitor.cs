@@ -18,22 +18,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
         private readonly GeneratedViewComponentTagHelperContext _context;
         private readonly HashSet<string> _writtenViewComponents;
 
-        private const string _viewComponentHelperVariable = "_viewComponentHelper";
+        private const string ViewComponentTagHelperVariable = "_viewComponentHelper";
         private const string _viewContextVariable = "ViewContext";
 
         public ViewComponentTagHelperChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context) :
             base(writer, context)
         {
-            if (writer == null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             _context = new GeneratedViewComponentTagHelperContext();
             _writtenViewComponents = new HashSet<string>(StringComparer.Ordinal);
         }
@@ -60,20 +50,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
         protected override void Visit(TagHelperChunk chunk)
         {
-            var viewComponentDescriptors = chunk.Descriptors.
-                Where(ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor);
+            var viewComponentDescriptors = chunk.Descriptors
+                .Where(ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor);
 
             foreach (var descriptor in viewComponentDescriptors)
             {
                 var shortName =
                     descriptor.PropertyBag[ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey];
                 // TODO: type name generation as a method. 
-                var typeName =
-                    $"__Generated__{shortName}ViewComponentTagHelper";
+                var typeName = $"__Generated__{shortName}ViewComponentTagHelper";
 
-                if (!_writtenViewComponents.Contains(typeName, StringComparer.Ordinal))
+                if (_writtenViewComponents.Add(typeName))
                 {
-                    _writtenViewComponents.Add(typeName);
                     WriteClass(descriptor);
                 }
             }
@@ -92,10 +80,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
             using (Writer.BuildClassDeclaration("public", className, new[] { tagHelperTypeName }))
             {
-                // Add view component helper for reasons.
+                // Add view component helper.
                 Writer.WriteVariableDeclaration(
                     $"private readonly {_context.IViewComponentHelperTypeName}",
-                    _viewComponentHelperVariable,
+                    ViewComponentTagHelperVariable,
                     value: null);
 
                 // Add constructor.
@@ -122,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 className,
                 new[] { helperPair }))
             {
-                Writer.WriteStartAssignment(_viewComponentHelperVariable)
+                Writer.WriteStartAssignment(ViewComponentTagHelperVariable)
                     .Write(viewComponentHelperVariable)
                     .WriteLine(";");
             }
@@ -131,7 +119,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
         private void BuildAttributeDeclarations(TagHelperDescriptor descriptor)
         {
             Writer.Write("[")
-
               .Write(typeof(HtmlAttributeNotBoundAttribute).FullName)
               .WriteParameterSeparator()
               .Write(_context.ViewContextTypeName)
@@ -164,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                     }))
             {
                 Writer.WriteInstanceMethodInvocation(
-                    $"(({_context.IViewContextAwareTypeName}){_viewComponentHelperVariable})",
+                    $"(({_context.IViewContextAwareTypeName}){ViewComponentTagHelperVariable})",
                     _context.ContextualizeMethodName,
                     new [] { _viewContextVariable });
 
@@ -172,7 +159,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 var viewContentVariable = "viewContent";
                 Writer.Write("var ")
                     .WriteStartAssignment(viewContentVariable)
-                    .WriteInstanceMethodInvocation($"await {_viewComponentHelperVariable}", _context.InvokeAsyncMethodName, methodParameters);
+                    .WriteInstanceMethodInvocation($"await {ViewComponentTagHelperVariable}", _context.InvokeAsyncMethodName, methodParameters);
                 Writer.WriteStartAssignment($"{outputVariable}.{nameof(TagHelperOutput.TagName)}")
                     .WriteLine("null;");
                 Writer.WriteInstanceMethodInvocation(
@@ -199,8 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             Writer.Write("[")
                 .WriteStartMethodInvocation(typeof(HtmlTargetElementAttribute).FullName)
                 .WriteStringLiteral(descriptor.FullTagName)
-                .Write(")]")
-                .WriteLine();
+                .WriteLine(")]");
         }
     }
 }

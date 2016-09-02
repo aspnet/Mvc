@@ -4,12 +4,12 @@
 namespace Microsoft.AspNetCore.Mvc.Razor
 {
     /// <summary>
-    /// Contains information for generating view component <see cref="AspNetCore.Razor.TagHelpers.TagHelper"/> classes.
+    /// Contains necessary information for the view component <see cref="AspNetCore.Razor.TagHelpers.TagHelper"/> code generation process.
     /// </summary>
     public class GeneratedViewComponentTagHelperContext
     {
         /// <summary>
-        /// Sets the names.
+        /// Instantiates a new instance of the <see cref="GeneratedViewComponentTagHelperContext"/> with default values.  
         /// </summary>
         public GeneratedViewComponentTagHelperContext()
         {
@@ -20,28 +20,28 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             ViewContextTypeName = "Microsoft.AspNetCore.Mvc.Rendering.ViewContext";
         }
 
-        /// <summary>
-        /// Name of the Contextualize method.
+        /// <summary> 
+        /// Name of the Contextualize method called by an instance of the IViewContextAware type.
         /// </summary>
         public string ContextualizeMethodName { get; set; }
 
         /// <summary>
-        /// Name of the InvokeAsync method.
+        /// Name of the InvokeAsync method called by an IViewComponentHelper.
         /// </summary>
         public string InvokeAsyncMethodName { get; set; }
 
         /// <summary>
-        /// Name of the IViewComponentHelper type. 
+        /// Name of the IViewComponentHelper type used to invoke view components.
         /// </summary>
         public string IViewComponentHelperTypeName { get; set; }
 
         /// <summary>
-        /// Name of the IViewContextAware type.
+        /// Name of the IViewContextAware type used to contextualize the view context.
         /// </summary>
         public string IViewContextAwareTypeName { get; set; }
 
         /// <summary>
-        /// Name of the ViewContext type.
+        /// Name of the ViewContext type for view execution.
         /// </summary>
         public string ViewContextTypeName { get; set; }
     }

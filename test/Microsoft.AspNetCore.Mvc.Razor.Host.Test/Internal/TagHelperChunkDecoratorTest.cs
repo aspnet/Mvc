@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
 {
-    public class TagHelperChunkVisitorTest
+    public class TagHelperChunkDecoratorTest
     {
         [Fact]
         public void Accept_CorrectlyDecoratesViewComponentChunks()
@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
                 codeGeneratorContext.ChunkTreeBuilder.AddChunk(chunk, syntaxTreeNode.Object);
             }
 
-            var tagHelperChunkVisitor = new TagHelperChunkVisitor(codeGeneratorContext);
+            var tagHelperChunkVisitor = new TagHelperChunkDecorator(codeGeneratorContext);
             var expectedChunks = ChunkVisitorTestFactory.GetTestChunks(visitedTagHelperChunks: true);
 
             // Act
