@@ -681,6 +681,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             var mvcViewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
             mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions());
+
             var htmlEncoder = Mock.Of<HtmlEncoder>();
             var antiforgery = new Mock<IAntiforgery>();
             antiforgery
@@ -689,11 +690,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 {
                     return new AntiforgeryTokenSet("requestToken", "cookieToken", "formFieldName", "headerName");
                 });
-
-            var optionsAccessor = new Mock<IOptions<MvcOptions>>();
-            optionsAccessor
-                .SetupGet(o => o.Value)
-                .Returns(new MvcOptions());
 
             return new DefaultHtmlGenerator(
                 antiforgery.Object,
