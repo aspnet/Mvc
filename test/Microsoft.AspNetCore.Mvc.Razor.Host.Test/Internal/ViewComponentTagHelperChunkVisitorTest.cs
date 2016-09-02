@@ -13,8 +13,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 {
     public class ViewComponentTagHelperChunkVisitorTest
     {
-        private static Assembly _assembly = typeof(ViewComponentTagHelperChunkVisitorTest).GetTypeInfo().Assembly;
-
         public static TheoryData CodeGenerationData
         {
             get
@@ -29,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 };
             }
         }
-        // Create a context with view component tag helpers
+
         [Theory]
         [MemberData(nameof(CodeGenerationData))]
         public void Accept_CorrectlyGeneratesCode(IList<Chunk> chunks)
@@ -39,8 +37,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
             var context = ChunkVisitorTestFactory.CreateDummyCodeGeneratorContext();
             var chunkVisitor = new ViewComponentTagHelperChunkVisitor(writer, context);
 
+            var assembly = typeof(ViewComponentTagHelperChunkVisitorTest).GetTypeInfo().Assembly;
             var path = "TestFiles/Output/Runtime/GeneratedViewComponentTagHelperClasses.cs";
-            var expectedOutput = ResourceFile.ReadResource(_assembly, path, sourceFile: true);
+            var expectedOutput = ResourceFile.ReadResource(assembly, path, sourceFile: true);
 
             // Act
             chunkVisitor.Accept(chunks);
@@ -49,8 +48,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 #if GENERATE_BASELINES
             if (!string.Equals(expectedOutput, resultOutput, StringComparison.Ordinal))
             {
-                ResourceFile.UpdateFile(_assembly, path, expectedOutput, resultOutput);
-                expectedOutput = ResourceFile.ReadResource(_assembly, path, sourceFile: true);
+                ResourceFile.UpdateFile(assembly, path, expectedOutput, resultOutput);
+                expectedOutput = ResourceFile.ReadResource(assembly, path, sourceFile: true);
             }
 #endif
 

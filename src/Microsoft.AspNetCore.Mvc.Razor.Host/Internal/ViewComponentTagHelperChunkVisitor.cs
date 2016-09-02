@@ -105,10 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 _context.IViewComponentHelperTypeName,
                 viewComponentHelperVariable);
 
-            using (Writer.BuildConstructor(
-                "public",
-                className,
-                new[] { helperPair }))
+            using (Writer.BuildConstructor( "public", className, new[] { helperPair }))
             {
                 Writer.WriteStartAssignment(ViewComponentTagHelperVariable)
                     .Write(viewComponentHelperVariable)
