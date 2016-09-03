@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
         private const string ViewComponentTagHelperVariable = "_viewComponentHelper";
         private const string _viewContextVariable = "ViewContext";
 
-        public ViewComponentTagHelperChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context) :
-            base(writer, context)
+        public ViewComponentTagHelperChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context) 
+            : base(writer, context)
         {
             _context = new GeneratedViewComponentTagHelperContext();
             _writtenViewComponents = new HashSet<string>(StringComparer.Ordinal);
@@ -41,28 +41,34 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 Visit(tagHelperChunk);
             }
 
-            var parentChunk = chunk as ParentChunk;
-            if (parentChunk != null)
+            base.Accept(chunk); 
+        }
+
+        protected override void Visit(ParentChunk parentChunk)
+        {
+            foreach (var chunk in parentChunk.Children)
             {
-                Accept(parentChunk.Children);
+                Accept(chunk);
             }
         }
 
         protected override void Visit(TagHelperChunk chunk)
         {
-            var viewComponentDescriptors = chunk.Descriptors
-                .Where(ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor);
-
-            foreach (var descriptor in viewComponentDescriptors)
+            foreach (var descriptor in chunk.Descriptors)
             {
-                var shortName =
-                    descriptor.PropertyBag[ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey];
-                // TODO: type name generation as a method. 
-                var typeName = $"__Generated__{shortName}ViewComponentTagHelper";
+                string shortName;
+                descriptor.PropertyBag.TryGetValue(
+                    ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
+                    out shortName);
 
-                if (_writtenViewComponents.Add(typeName))
+                if (shortName != null)
                 {
-                    WriteClass(descriptor);
+                    var typeName = $"__Generated__{shortName}ViewComponentTagHelper";
+
+                    if (_writtenViewComponents.Add(typeName))
+                    {
+                        WriteClass(descriptor);
+                    }
                 }
             }
         }
@@ -82,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 // Add view component helper.
                 Writer.WriteVariableDeclaration(
-                    $"private readonly {_context.IViewComponentHelperTypeName}",
+                    $"private readonly global::{_context.IViewComponentHelperTypeName}",
                     ViewComponentTagHelperVariable,
                     value: null);
 
@@ -139,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
             using (Writer.BuildMethodDeclaration(
                     $"public override async",
-                    typeof(Task).FullName,
+                    $"global::{typeof(Task).FullName}",
                     nameof(ITagHelper.ProcessAsync),
                     new Dictionary<string, string>()
                     {

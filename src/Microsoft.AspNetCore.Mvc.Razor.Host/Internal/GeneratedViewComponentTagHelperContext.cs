@@ -15,9 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             ContextualizeMethodName = "Contextualize";
             InvokeAsyncMethodName = "InvokeAsync";
-            IViewComponentHelperTypeName = "Microsoft.AspNetCore.Mvc.IViewComponentHelper";
-            IViewContextAwareTypeName = "Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware";
-            ViewContextTypeName = "Microsoft.AspNetCore.Mvc.Rendering.ViewContext";
+            IViewComponentHelperTypeName = "global::Microsoft.AspNetCore.Mvc.IViewComponentHelper";
+            IViewContextAwareTypeName = "global::Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware";
+            ViewContextTypeName = "global::Microsoft.AspNetCore.Mvc.Rendering.ViewContext";
         }
 
         /// <summary> 

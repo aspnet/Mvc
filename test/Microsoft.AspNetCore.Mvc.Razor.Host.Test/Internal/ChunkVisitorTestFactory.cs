@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Host
 {
     public static class ChunkVisitorTestFactory
     {
@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
         private static string _testNamespace = "TestNamespace";
         private static string _testFile = "TestFile";
 
-        public static CodeGeneratorContext CreateDummyCodeGeneratorContext()
+        public static CodeGeneratorContext CreateCodeGeneratorContext()
         {
             var language = new CSharpRazorCodeLanguage();
             var host = new RazorEngineHost(language);
@@ -39,25 +39,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 
         public static IList<Chunk> GetTestChunks(bool visitedTagHelperChunks)
         {
-            var chunkList = new List<Chunk>();
-
-            var normalTagHelperChunk = GetTagHelperChunk("Baz");
-            chunkList.Add(normalTagHelperChunk);
-
-            var nestedViewComponentTagHelperChunk =
-                GetNestedViewComponentTagHelperChunk("Foo", visitedTagHelperChunks);
-            chunkList.Add(nestedViewComponentTagHelperChunk);
-
-            var viewComponentTagHelperChunk = GetViewComponentTagHelperChunk("Bar", visitedTagHelperChunks);
-            chunkList.Add(viewComponentTagHelperChunk);
-
-            return chunkList;
+            return new List<Chunk>
+            {
+                GetTagHelperChunk("Baz"),
+                GetNestedViewComponentTagHelperChunk("Foo", visitedTagHelperChunks),
+                GetViewComponentTagHelperChunk("Bar", visitedTagHelperChunks),
+            };
         }
 
         private static TagHelperChunk GetTagHelperChunk(string name)
         {
             var tagHelperChunk = new TagHelperChunk(
-                name.ToLower(),
+                name.ToLowerInvariant(),
                 TagMode.SelfClosing,
                 new List<TagHelperAttributeTracker>(),
                 new List<TagHelperDescriptor>
@@ -65,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                     new TagHelperDescriptor
                     {
                         AssemblyName = $"{name}Assembly",
-                        TagName = name.ToLower(),
+                        TagName = name.ToLowerInvariant(),
                         TypeName = $"{name}Type",
                     }
                 });
@@ -77,13 +70,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
         {
             var parentChunk = new ParentChunk();
             var tagHelperChunk = GetViewComponentTagHelperChunk(name, visitedTagHelperChunks);
-
+/*
             if (visitedTagHelperChunks)
             {
                 var tagHelperDescriptor = tagHelperChunk.Descriptors.First();
                 tagHelperDescriptor.TypeName = $"{_testNamespace}.{_testClass}.{tagHelperDescriptor.TypeName}";
             }
-
+            */
             parentChunk.Children.Add(tagHelperChunk);
             return parentChunk;
         }
@@ -108,7 +101,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
             var tagHelperDescriptor = new TagHelperDescriptor
             {
                 AssemblyName = $"{name}Assembly",
-                TagName = name.ToLower(),
+                TagName = name.ToLowerInvariant(),
                 TypeName = typeName,
                 Attributes = new[]
                 {
@@ -125,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 name);
 
             var tagHelperChunk = new TagHelperChunk(
-                $"vc:{name.ToLower()}",
+                $"vc:{name.ToLowerInvariant()}",
                 TagMode.SelfClosing,
                 new List<TagHelperAttributeTracker>(),
                 new[]

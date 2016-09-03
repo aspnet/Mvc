@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
-using Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.Parser.SyntaxTree;
 using Moq;
@@ -18,40 +17,38 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
         public void Accept_CorrectlyDecoratesViewComponentChunks()
         {
             // Arrange
-            var codeGeneratorContext = ChunkVisitorTestFactory.CreateDummyCodeGeneratorContext();
+            var codeGeneratorContext = ChunkVisitorTestFactory.CreateCodeGeneratorContext();
             var syntaxTreeNode = new Mock<Span>(new SpanBuilder());
             foreach (var chunk in ChunkVisitorTestFactory.GetTestChunks(visitedTagHelperChunks: false))
             {
                 codeGeneratorContext.ChunkTreeBuilder.AddChunk(chunk, syntaxTreeNode.Object);
             }
 
-            var tagHelperChunkVisitor = new TagHelperChunkDecorator(codeGeneratorContext);
+            var tagHelperChunkDecorator = new TagHelperChunkDecorator(codeGeneratorContext);
             var expectedChunks = ChunkVisitorTestFactory.GetTestChunks(visitedTagHelperChunks: true);
 
             // Act
             var resultChunks = codeGeneratorContext.ChunkTreeBuilder.Root.Children;
-            tagHelperChunkVisitor.Accept(resultChunks);
+            tagHelperChunkDecorator.Accept(resultChunks);
 
             // Assert
             // Test the normal tag helper chunk, Baz.
-            Assert.Equal(expectedChunks.Count(), resultChunks.Count());
+            Assert.Equal(expectedChunks.Count, resultChunks.Count);
 
-            var expectedTagHelperChunk = expectedChunks.ElementAt(0) as TagHelperChunk;
-            var resultTagHelperChunk = resultChunks.ElementAt(0) as TagHelperChunk;
-            Assert.NotNull(resultTagHelperChunk);
+            var expectedTagHelperChunk = (TagHelperChunk)expectedChunks[0];
+            var resultTagHelperChunk = Assert.IsType<TagHelperChunk>(resultChunks[0]);
 
-            Assert.Equal(expectedTagHelperChunk.Descriptors.First().TypeName,
-                         resultTagHelperChunk.Descriptors.First().TypeName,
-                         StringComparer.Ordinal);
+            Assert.Equal(
+                expectedTagHelperChunk.Descriptors.First().TypeName,
+                Assert.Single(resultTagHelperChunk.Descriptors).TypeName);
 
             // Test the parent chunk with view component tag helper inside, Foo.
-            var expectedParentChunk = expectedChunks.ElementAt(1) as ParentChunk;
-            var resultParentChunk = expectedChunks.ElementAt(1) as ParentChunk;
-            Assert.NotNull(resultParentChunk);
+            var expectedParentChunk = (ParentChunk)expectedChunks[1];
+            var resultParentChunk = Assert.IsType<ParentChunk>(resultChunks[1]);
             Assert.Single(resultParentChunk.Children);
 
-            expectedTagHelperChunk = expectedParentChunk.Children.First() as TagHelperChunk;
-            resultTagHelperChunk = resultParentChunk.Children.First() as TagHelperChunk;
+            expectedTagHelperChunk = (TagHelperChunk)expectedParentChunk.Children.First();
+            resultTagHelperChunk = (TagHelperChunk)resultParentChunk.Children.First();
 
             Assert.Equal(expectedTagHelperChunk.Descriptors.First().TypeName,
                 resultTagHelperChunk.Descriptors.First().TypeName,

@@ -21,7 +21,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
                 var twoInstanceChunks = ChunkVisitorTestFactory.GetTestChunks(visitedTagHelperChunks: true);
                 twoInstanceChunks.Add(twoInstanceChunks[twoInstanceChunks.Count - 1]);
 
-                return new TheoryData<IList<Chunk>> {
+                return new TheoryData<IList<Chunk>>
+                {
                     oneInstanceChunks,
                     twoInstanceChunks
                 };
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
         {
             // Arrange
             var writer = new CSharpCodeWriter();
-            var context = ChunkVisitorTestFactory.CreateDummyCodeGeneratorContext();
+            var context = ChunkVisitorTestFactory.CreateCodeGeneratorContext();
             var chunkVisitor = new ViewComponentTagHelperChunkVisitor(writer, context);
 
             var assembly = typeof(ViewComponentTagHelperChunkVisitorTest).GetTypeInfo().Assembly;

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Microsoft.AspNetCore.Razor.CodeGenerators.Visitors;
@@ -11,12 +10,13 @@ using Microsoft.AspNetCore.Razor.Compilation.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 {
-    public class TagHelperChunkDecorator : IChunkVisitor
+    public class TagHelperChunkDecorator : CodeVisitor<CSharpCodeWriter>
     {
-        private readonly string _className; 
+        private readonly string _className;
         private readonly string _namespaceName;
 
         public TagHelperChunkDecorator(CodeGeneratorContext context)
+            : base(new CSharpCodeWriter(), context)
         {
             if (context == null)
             {
@@ -27,20 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             _className = context.ClassName;
         }
 
-        public void Accept(IList<Chunk> chunks)
-        {
-            if (chunks == null)
-            {
-                throw new ArgumentNullException(nameof(chunks));
-            }
-
-            foreach (var chunk in chunks)
-            {
-                Accept(chunk);
-            }
-        }
-
-        public void Accept(Chunk chunk)
+        public override void Accept(Chunk chunk)
         {
             if (chunk == null)
             {
@@ -53,10 +40,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 tagHelperChunk.Descriptors = Decorate(tagHelperChunk.Descriptors);
             }
 
-            var parentChunk = chunk as ParentChunk;
-            if (parentChunk != null)
+            base.Accept(chunk);
+        }
+
+        protected override void Visit(ParentChunk parentChunk)
+        {
+            foreach (var chunk in parentChunk.Children)
             {
-                Accept(parentChunk.Children);
+                Accept(chunk);
             }
         }
 
@@ -68,10 +59,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 if (ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor))
                 {
-                    var copyDescriptor = new TagHelperDescriptor(descriptor);
-                    copyDescriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
+                    var decoratedDescriptor = new TagHelperDescriptor(descriptor);
+                    decoratedDescriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
 
-                    decoratedDescriptors.Add(copyDescriptor);
+                    decoratedDescriptors.Add(decoratedDescriptor);
                 }
                 else
                 {
