@@ -1,7 +1,7 @@
 [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("foo")]
 public class __Generated__FooViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
 {
-    private readonly global::global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _viewComponentHelper = null;
+    private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _viewComponentHelper = null;
     public __Generated__FooViewComponentTagHelper(global::Microsoft.AspNetCore.Mvc.IViewComponentHelper viewComponentHelper)
     {
         _viewComponentHelper = viewComponentHelper;
@@ -20,7 +20,7 @@ public class __Generated__FooViewComponentTagHelper : Microsoft.AspNetCore.Razor
 [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("bar")]
 public class __Generated__BarViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
 {
-    private readonly global::global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _viewComponentHelper = null;
+    private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _viewComponentHelper = null;
     public __Generated__BarViewComponentTagHelper(global::Microsoft.AspNetCore.Mvc.IViewComponentHelper viewComponentHelper)
     {
         _viewComponentHelper = viewComponentHelper;

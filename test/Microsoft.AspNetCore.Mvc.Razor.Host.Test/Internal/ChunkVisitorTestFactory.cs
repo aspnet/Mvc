@@ -70,20 +70,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
         {
             var parentChunk = new ParentChunk();
             var tagHelperChunk = GetViewComponentTagHelperChunk(name, visitedTagHelperChunks);
-/*
-            if (visitedTagHelperChunks)
-            {
-                var tagHelperDescriptor = tagHelperChunk.Descriptors.First();
-                tagHelperDescriptor.TypeName = $"{_testNamespace}.{_testClass}.{tagHelperDescriptor.TypeName}";
-            }
-            */
             parentChunk.Children.Add(tagHelperChunk);
             return parentChunk;
         }
 
         private static TagHelperChunk GetViewComponentTagHelperChunk(string name, bool visitedTagHelperChunks)
         {
-            // Add a view component tag helper.
             var typeName = visitedTagHelperChunks ? $"{_testNamespace}.{_testClass}.{name}Type" : $"{name}Type";
 
             var attribute = new TagHelperAttributeDescriptor

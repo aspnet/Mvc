@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 // Add view component helper.
                 Writer.WriteVariableDeclaration(
-                    $"private readonly global::{_context.IViewComponentHelperTypeName}",
+                    $"private readonly {_context.IViewComponentHelperTypeName}",
                     ViewComponentTagHelperVariable,
                     value: null);
 
