@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             {
                 // Add view component helper.
                 Writer.WriteVariableDeclaration(
-                    $"private readonly {_context.IViewComponentHelperTypeName}",
+                    $"private readonly global::{_context.IViewComponentHelperTypeName}",
                     ViewComponentTagHelperVariable,
                     value: null);
 
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             var viewComponentHelperVariable = "viewComponentHelper";
 
             var helperPair = new KeyValuePair<string, string>(
-                _context.IViewComponentHelperTypeName,
+                $"global::{_context.IViewComponentHelperTypeName}",
                 viewComponentHelperVariable);
 
             using (Writer.BuildConstructor( "public", className, new[] { helperPair }))
@@ -119,12 +119,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             Writer.Write("[")
               .Write(typeof(HtmlAttributeNotBoundAttribute).FullName)
               .WriteParameterSeparator()
-              .Write(_context.ViewContextTypeName)
+              .Write($"global::{_context.ViewContextTypeName}")
               .WriteLine("]");
 
             Writer.WriteAutoPropertyDeclaration(
                 "public",
-                _context.ViewContextTypeName,
+                $"global::{_context.ViewContextTypeName}",
                 ViewContextVariable);
 
             foreach (var attribute in descriptor.Attributes)
@@ -149,7 +149,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                     }))
             {
                 Writer.WriteInstanceMethodInvocation(
-                    $"(({_context.IViewContextAwareTypeName}){ViewComponentTagHelperVariable})",
+                    $"((global::{_context.IViewContextAwareTypeName}){ViewComponentTagHelperVariable})",
                     _context.ContextualizeMethodName,
                     new [] { ViewContextVariable });
 
