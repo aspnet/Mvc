@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
         private readonly HashSet<string> _writtenViewComponents;
 
         private const string ViewComponentTagHelperVariable = "_viewComponentHelper";
-        private const string _viewContextVariable = "ViewContext";
+        private const string ViewContextVariable = "ViewContext";
 
         public ViewComponentTagHelperChunkVisitor(CSharpCodeWriter writer, CodeGeneratorContext context) 
             : base(writer, context)
@@ -46,10 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
         protected override void Visit(ParentChunk parentChunk)
         {
-            foreach (var chunk in parentChunk.Children)
-            {
-                Accept(chunk);
-            }
+            Accept(parentChunk.Children);
         }
 
         protected override void Visit(TagHelperChunk chunk)
@@ -57,11 +54,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             foreach (var descriptor in chunk.Descriptors)
             {
                 string shortName;
-                descriptor.PropertyBag.TryGetValue(
+                if (descriptor.PropertyBag.TryGetValue(
                     ViewComponentTagHelperDescriptorConventions.ViewComponentNameKey,
-                    out shortName);
-
-                if (shortName != null)
+                    out shortName))
                 {
                     var typeName = $"__Generated__{shortName}ViewComponentTagHelper";
 
@@ -130,7 +125,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
             Writer.WriteAutoPropertyDeclaration(
                 "public",
                 _context.ViewContextTypeName,
-                _viewContextVariable);
+                ViewContextVariable);
 
             foreach (var attribute in descriptor.Attributes)
             {
@@ -156,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                 Writer.WriteInstanceMethodInvocation(
                     $"(({_context.IViewContextAwareTypeName}){ViewComponentTagHelperVariable})",
                     _context.ContextualizeMethodName,
-                    new [] { _viewContextVariable });
+                    new [] { ViewContextVariable });
 
                 var methodParameters = GetMethodParameters(descriptor);
                 var viewContentVariable = "viewContent";

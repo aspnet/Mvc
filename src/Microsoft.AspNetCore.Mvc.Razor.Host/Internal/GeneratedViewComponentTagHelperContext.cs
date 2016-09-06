@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace Microsoft.AspNetCore.Mvc.Razor
+namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 {
     /// <summary>
     /// Contains necessary information for the view component <see cref="AspNetCore.Razor.TagHelpers.TagHelper"/> code generation process.

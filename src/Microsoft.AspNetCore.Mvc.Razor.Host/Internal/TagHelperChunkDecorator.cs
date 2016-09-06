@@ -45,16 +45,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
 
         protected override void Visit(ParentChunk parentChunk)
         {
-            foreach (var chunk in parentChunk.Children)
-            {
-                Accept(chunk);
-            }
+            Accept(parentChunk.Children);
         }
 
         private IEnumerable<TagHelperDescriptor> Decorate(IEnumerable<TagHelperDescriptor> descriptors)
         {
-            var decoratedDescriptors = new List<TagHelperDescriptor>();
-
             foreach (var descriptor in descriptors)
             {
                 if (ViewComponentTagHelperDescriptorConventions.IsViewComponentDescriptor(descriptor))
@@ -62,15 +57,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Internal
                     var decoratedDescriptor = new TagHelperDescriptor(descriptor);
                     decoratedDescriptor.TypeName = $"{_namespaceName}.{_className}.{descriptor.TypeName}";
 
-                    decoratedDescriptors.Add(decoratedDescriptor);
+                    yield return decoratedDescriptor;
                 }
                 else
                 {
-                    decoratedDescriptors.Add(descriptor);
+                    yield return descriptor;
                 }
             }
-
-            return decoratedDescriptors;
         }
     }
 }
