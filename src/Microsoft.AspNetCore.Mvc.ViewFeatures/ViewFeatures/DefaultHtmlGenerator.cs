@@ -36,10 +36,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private readonly IModelMetadataProvider _metadataProvider;
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly HtmlEncoder _htmlEncoder;
-        private readonly IValidationAttributeProvider _validationAttributeProvider;
+        private readonly ValidationHtmlAttributeProvider _validationAttributeProvider;
 
         /// <summary>
+        /// <para>
         /// Initializes a new instance of the <see cref="DefaultHtmlGenerator"/> class.
+        /// </para>
+        /// <para>
+        /// This constructor is obsolete and will be removed in a future version. The recommended alternative is to
+        /// use <see cref="DefaultHtmlGenerator(IAntiforgery, IOptions{MvcViewOptions}, IModelMetadataProvider,
+        /// IUrlHelperFactory, HtmlEncoder, ClientValidatorCache, ValidationHtmlAttributeProvider)"/>.
+        /// </para>
         /// </summary>
         /// <param name="antiforgery">The <see cref="IAntiforgery"/> instance which is used to generate antiforgery
         /// tokens.</param>
@@ -49,6 +56,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         /// <param name="clientValidatorCache">The <see cref="ClientValidatorCache"/> that provides
         /// a list of <see cref="IClientModelValidator"/>s.</param>
+        [Obsolete("This constructor is obsolete and will be removed in a future version. The recommended " +
+            "alternative is to use the other public constructor.")]
         public DefaultHtmlGenerator(
             IAntiforgery antiforgery,
             IOptions<MvcViewOptions> optionsAccessor,
@@ -62,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 urlHelperFactory,
                 htmlEncoder,
                 clientValidatorCache,
-                () => new ValidationAttributeProvider(optionsAccessor, metadataProvider, clientValidatorCache))
+                new DefaultValidationHtmlAttributeProvider(optionsAccessor, metadataProvider, clientValidatorCache))
         {
         }
 
@@ -77,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         /// <param name="clientValidatorCache">The <see cref="ClientValidatorCache"/> that provides
         /// a list of <see cref="IClientModelValidator"/>s.</param>
-        /// <param name="validationAttributeProvider">The <see cref="IValidationAttributeProvider"/>.</param>
+        /// <param name="validationAttributeProvider">The <see cref="ValidationHtmlAttributeProvider"/>.</param>
         public DefaultHtmlGenerator(
             IAntiforgery antiforgery,
             IOptions<MvcViewOptions> optionsAccessor,
@@ -85,27 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             IUrlHelperFactory urlHelperFactory,
             HtmlEncoder htmlEncoder,
             ClientValidatorCache clientValidatorCache,
-            IValidationAttributeProvider validationAttributeProvider) : this(
-                antiforgery,
-                optionsAccessor,
-                metadataProvider,
-                urlHelperFactory,
-                htmlEncoder,
-                clientValidatorCache,
-                () => validationAttributeProvider)
-        {
-        }
-
-        // All parameter names must match the public constructor just above.
-        // Note validationAttributeProvider is not evaluated until after all arguments have been null-checked.
-        private DefaultHtmlGenerator(
-            IAntiforgery antiforgery,
-            IOptions<MvcViewOptions> optionsAccessor,
-            IModelMetadataProvider metadataProvider,
-            IUrlHelperFactory urlHelperFactory,
-            HtmlEncoder htmlEncoder,
-            ClientValidatorCache clientValidatorCache,
-            Func<IValidationAttributeProvider> validationAttributeProvider)
+            ValidationHtmlAttributeProvider validationAttributeProvider)
         {
             if (antiforgery == null)
             {
@@ -146,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             _metadataProvider = metadataProvider;
             _urlHelperFactory = urlHelperFactory;
             _htmlEncoder = htmlEncoder;
-            _validationAttributeProvider = validationAttributeProvider();
+            _validationAttributeProvider = validationAttributeProvider;
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = optionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
@@ -1365,7 +1354,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression)
         {
-            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(expression, viewData, _metadataProvider);
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression,
+                viewData,
+                _metadataProvider);
+
             var placeholder = modelExplorer.Metadata.Placeholder;
             if (!string.IsNullOrEmpty(placeholder))
             {
@@ -1387,7 +1380,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression)
         {
-            _validationAttributeProvider.AddValidationAttributes(
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression,
+                viewContext.ViewData,
+                _metadataProvider);
+
+            _validationAttributeProvider.AddAndTrackValidationAttributes(
                 viewContext,
                 modelExplorer,
                 expression,

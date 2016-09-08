@@ -116,7 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IHtmlGenerator, DefaultHtmlGenerator>();
             services.TryAddSingleton<ExpressionTextCache>();
             services.TryAddSingleton<IModelExpressionProvider, ModelExpressionProvider>();
-            services.TryAddSingleton<IValidationAttributeProvider, ValidationAttributeProvider>();
+            services.TryAddSingleton<ValidationHtmlAttributeProvider, DefaultValidationHtmlAttributeProvider>();
 
             //
             // JSON Helper

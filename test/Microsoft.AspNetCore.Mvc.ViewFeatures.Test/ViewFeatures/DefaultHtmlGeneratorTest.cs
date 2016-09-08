@@ -691,13 +691,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     return new AntiforgeryTokenSet("requestToken", "cookieToken", "formFieldName", "headerName");
                 });
 
+            var attributeProvider = new DefaultValidationHtmlAttributeProvider(
+                mvcViewOptionsAccessor.Object,
+                metadataProvider,
+                new ClientValidatorCache());
+
             return new DefaultHtmlGenerator(
                 antiforgery.Object,
                 mvcViewOptionsAccessor.Object,
                 metadataProvider,
                 new UrlHelperFactory(),
                 htmlEncoder,
-                new ClientValidatorCache());
+                new ClientValidatorCache(),
+                attributeProvider);
         }
 
         // GetCurrentValues uses only the ModelStateDictionary and ViewDataDictionary from the passed ViewContext.

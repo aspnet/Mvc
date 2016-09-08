@@ -7,28 +7,27 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
     /// <summary>
-    /// Default implementation of <see cref="IValidationAttributeProvider"/>.
+    /// Default implementation of <see cref="ValidationHtmlAttributeProvider"/>.
     /// </summary>
-    public class ValidationAttributeProvider : IValidationAttributeProvider
+    public class DefaultValidationHtmlAttributeProvider : ValidationHtmlAttributeProvider
     {
         private readonly IModelMetadataProvider _metadataProvider;
         private readonly ClientValidatorCache _clientValidatorCache;
         private readonly IClientModelValidatorProvider _clientModelValidatorProvider;
 
         /// <summary>
-        /// Initializes a new <see cref="ValidationAttributeProvider"/> instance.
+        /// Initializes a new <see cref="DefaultValidationHtmlAttributeProvider"/> instance.
         /// </summary>
         /// <param name="optionsAccessor">The accessor for <see cref="MvcViewOptions"/>.</param>
         /// <param name="metadataProvider">The <see cref="IModelMetadataProvider"/>.</param>
         /// <param name="clientValidatorCache">The <see cref="ClientValidatorCache"/> that provides
         /// a list of <see cref="IClientModelValidator"/>s.</param>
-        public ValidationAttributeProvider(
+        public DefaultValidationHtmlAttributeProvider(
             IOptions<MvcViewOptions> optionsAccessor,
             IModelMetadataProvider metadataProvider,
             ClientValidatorCache clientValidatorCache)
@@ -56,10 +55,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
-        public virtual void AddValidationAttributes(
+        public override void AddValidationAttributes(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
             IDictionary<string, string> attributes)
         {
             if (viewContext == null)
@@ -67,31 +65,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
+            if (modelExplorer == null)
+            {
+                throw new ArgumentNullException(nameof(modelExplorer));
+            }
+
             if (attributes == null)
             {
                 throw new ArgumentNullException(nameof(attributes));
             }
 
-            // Only render attributes if client-side validation is enabled, and then only if we've
-            // never rendered validation for a field with this name in this form.
             var formContext = viewContext.ClientValidationEnabled ? viewContext.FormContext : null;
             if (formContext == null)
             {
                 return;
             }
 
-            var fullName = viewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(expression);
-            if (formContext.RenderedField(fullName))
-            {
-                return;
-            }
-
-            formContext.RenderedField(fullName, true);
-
-            modelExplorer = modelExplorer ??
-                ExpressionMetadataProvider.FromStringExpression(expression, viewContext.ViewData, _metadataProvider);
-
-            var validators = _clientValidatorCache.GetValidators(modelExplorer.Metadata, _clientModelValidatorProvider);
+            var validators = _clientValidatorCache.GetValidators(
+                modelExplorer.Metadata,
+                _clientModelValidatorProvider);
             if (validators.Count > 0)
             {
                 var validationContext = new ClientModelValidationContext(
