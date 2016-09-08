@@ -29,13 +29,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public override async Task FlushAsync()
         {
-            var pages = _charBuffer.Pages;
-            if (_charBuffer.Length == 0)
+            var length = _charBuffer.Length;
+            if (length == 0)
             {
                 return;
             }
 
-            var length = _charBuffer.Length;
+            var pages = _charBuffer.Pages;
             for (var i = 0; i < pages.Count; i++)
             {
                 var page = pages[i];
@@ -87,19 +87,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _charBuffer.Append(value);
         }
 
-        public override Task WriteAsync(char value)
+        public override async Task WriteAsync(char value)
         {
-            return _inner.WriteAsync(value);
+            await FlushAsync();
+            await _inner.WriteAsync(value);
         }
 
-        public override Task WriteAsync(char[] buffer, int index, int count)
+        public override async Task WriteAsync(char[] buffer, int index, int count)
         {
-            return _inner.WriteAsync(buffer, index, count);
+            await FlushAsync();
+            await _inner.WriteAsync(buffer, index, count);
         }
 
-        public override Task WriteAsync(string value)
+        public override async Task WriteAsync(string value)
         {
-            return _inner.WriteAsync(value);
+            await FlushAsync();
+            await _inner.WriteAsync(value);
         }
 
         protected override void Dispose(bool disposing)
