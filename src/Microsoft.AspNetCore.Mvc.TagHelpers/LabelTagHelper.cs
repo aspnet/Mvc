@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public LabelTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+            GeneratorTutu = HtmlGeneratorAdapter.GetTuTu(generator);
         }
 
         /// <inheritdoc />
@@ -40,6 +41,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public ViewContext ViewContext { get; set; }
 
         protected IHtmlGenerator Generator { get; }
+
+        protected IHtmlGeneratorTutu GeneratorTutu { get; }
 
         /// <summary>
         /// An expression to be evaluated against the current model.
@@ -61,10 +64,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(output));
             }
 
-            var tagBuilder = Generator.GenerateLabel(
+            var tagBuilder = GeneratorTutu.GenerateLabel(
                 ViewContext,
                 For.ModelExplorer,
-                For.Name,
+                For.NameValues,
                 labelText: null,
                 htmlAttributes: null);
 

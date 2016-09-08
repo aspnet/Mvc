@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
@@ -33,14 +32,27 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(modelExplorer));
             }
 
-            Name = name;
+            NameValues = new StringValuesTutu(name);
+            ModelExplorer = modelExplorer;
+        }
+
+        public ModelExpression(StringValuesTutu nameValues, ModelExplorer modelExplorer)
+        {
+            if (modelExplorer == null)
+            {
+                throw new ArgumentNullException(nameof(modelExplorer));
+            }
+
+            NameValues = nameValues;
             ModelExplorer = modelExplorer;
         }
 
         /// <summary>
         /// String representation of the <see cref="System.Linq.Expressions.Expression"/> of interest.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name => NameValues.ToString();
+
+        public StringValuesTutu NameValues { get; }
 
         /// <summary>
         /// Metadata about the <see cref="System.Linq.Expressions.Expression"/> of interest.

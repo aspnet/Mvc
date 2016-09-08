@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -87,9 +88,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Equal(2, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal("form-control validation-summary-valid", attribute.Value);
+            Assert.Equal(
+                "form-control validation-summary-valid",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-valmsg-summary"));
-            Assert.Equal("true", attribute.Value);
+            Assert.Equal(
+                "true",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(
@@ -151,7 +156,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.InRange(output.Attributes.Count, low: 1, high: 2);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal("form-control validation-summary-errors", attribute.Value);
+            Assert.Equal(
+                "form-control validation-summary-errors",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(
@@ -213,9 +220,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Equal(2, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal("form-control validation-summary-errors", attribute.Value);
+            Assert.Equal(
+                "form-control validation-summary-errors",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-valmsg-summary"));
-            Assert.Equal("true", attribute.Value);
+            Assert.Equal(
+                "true",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(
@@ -235,7 +246,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Arrange
             var expectedViewContext = CreateViewContext();
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             generator
                 .Setup(mock => mock.GenerateValidationSummary(
                     expectedViewContext,
@@ -292,7 +303,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagBuilder.Attributes.Add("data-hello", "world");
             tagBuilder.Attributes.Add("anything", "something");
 
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             generator
                 .Setup(mock => mock.GenerateValidationSummary(
                     It.IsAny<ViewContext>(),
@@ -334,11 +345,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal("div", output.TagName);
             Assert.Equal(3, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-foo"));
-            Assert.Equal("bar", attribute.Value);
+            Assert.Equal(
+                "bar",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-hello"));
-            Assert.Equal("world", attribute.Value);
+            Assert.Equal(
+                "world",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("anything"));
-            Assert.Equal("something", attribute.Value);
+            Assert.Equal(
+                "something",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal("Content of validation summaryNew HTML", output.PostContent.GetContent());
@@ -348,7 +365,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public async Task ProcessAsync_DoesNothingIfValidationSummaryNone()
         {
             // Arrange
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
 
             var validationSummaryTagHelper = new ValidationSummaryTagHelper(generator.Object)
             {
@@ -396,7 +413,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagBuilder = new TagBuilder("span2");
             tagBuilder.InnerHtml.SetHtmlContent("New HTML");
 
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             generator
                 .Setup(mock => mock.GenerateValidationSummary(
                     It.IsAny<ViewContext>(),

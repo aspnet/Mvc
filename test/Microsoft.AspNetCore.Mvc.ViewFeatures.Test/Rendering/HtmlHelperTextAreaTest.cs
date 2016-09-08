@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         [Fact]
         public void TextAreaFor_GeneratesPlaceholderAttribute_WhenDisplayAttributePromptIsSetAndTypeIsValid()
         {
-            // Arrange            
+            // Arrange
             var model = new TextAreaModelWithAPlaceholder();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
             var textArea = helper.TextAreaFor(m => m.Property1);
 
-            // Assert 
+            // Assert
             var result = HtmlContentUtilities.HtmlContentToString(textArea);
             Assert.Contains(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
@@ -30,14 +30,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         [Fact]
         public void TextAreaFor_DoesNotGeneratePlaceholderAttribute_WhenNoPlaceholderPresentInModel()
         {
-            // Arrange            
+            // Arrange
             var model = new TextAreaModelWithoutAPlaceholder();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
             var textArea = helper.TextAreaFor(m => m.Property1);
 
-            // Assert 
+            // Assert
             var result = HtmlContentUtilities.HtmlContentToString(textArea);
             Assert.DoesNotContain(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
@@ -50,17 +50,20 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        "<textarea id=\"HtmlEncode[[pre_Property3_key_]]\" name=\"HtmlEncode[[pre.Property3[key]]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]\">" + Environment.NewLine +
                         "HtmlEncode[[Prop3Val]]</textarea>"
                     },
                     {
                         model => model.Property4.Property5,
-                        "<textarea id=\"HtmlEncode[[pre_Property4_Property5]]\" name=\"HtmlEncode[[pre.Property4.Property5]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]\">" + Environment.NewLine +
                         "HtmlEncode[[Prop5Val]]</textarea>"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        "<textarea id=\"HtmlEncode[[pre_Property4_Property6_0_]]\" name=\"HtmlEncode[[pre.Property4.Property6[0]]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]\">" + Environment.NewLine +
                         "HtmlEncode[[Prop6Val]]</textarea>"
                     }
                 };
@@ -97,17 +100,20 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        "<textarea id=\"HtmlEncode[[pre_Property3_key_]]\" name=\"HtmlEncode[[pre.Property3[key]]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]\">" + Environment.NewLine +
                         "HtmlEncode[[MProp3Val]]</textarea>"
                     },
                     {
                         model => model.Property4.Property5,
-                        "<textarea id=\"HtmlEncode[[pre_Property4_Property5]]\" name=\"HtmlEncode[[pre.Property4.Property5]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]\">" + Environment.NewLine +
                         "HtmlEncode[[MProp5Val]]</textarea>"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        "<textarea id=\"HtmlEncode[[pre_Property4_Property6_0_]]\" name=\"HtmlEncode[[pre.Property4.Property6[0]]]\">" + Environment.NewLine +
+                        "<textarea id=\"HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]\" " +
+                        "name=\"HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]\">" + Environment.NewLine +
                         "HtmlEncode[[MProp6Val]]</textarea>"
                     }
                 };

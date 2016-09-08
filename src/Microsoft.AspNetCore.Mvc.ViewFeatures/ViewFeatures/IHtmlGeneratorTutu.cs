@@ -1,69 +1,13 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
-    /// <summary>
-    /// Contract for a service supporting <see cref="IHtmlHelper"/> and <c>ITagHelper</c> implementations.
-    /// </summary>
-    public interface IHtmlGenerator
+    public interface IHtmlGeneratorTutu : IHtmlGenerator
     {
-        string IdAttributeDotReplacement { get; }
-
-        string Encode(string value);
-
-        string Encode(object value);
-
-        string FormatValue(object value, string format);
-
-        /// <summary>
-        /// Generate a &lt;a&gt; element for a link to an action.
-        /// </summary>
-        /// <param name="viewContext">The <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <param name="linkText">The text to insert inside the element.</param>
-        /// <param name="actionName">The name of the action method.</param>
-        /// <param name="controllerName">The name of the controller.</param>
-        /// <param name="protocol">The protocol (scheme) for the generated link.</param>
-        /// <param name="hostname">The hostname for the generated link.</param>
-        /// <param name="fragment">The fragment for the genrated link.</param>
-        /// <param name="routeValues">
-        /// An <see cref="object"/> that contains the parameters for a route. The parameters are retrieved through
-        /// reflection by examining the properties of the <see cref="object"/>. This <see cref="object"/> is typically
-        /// created using <see cref="object"/> initializer syntax. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the route parameters.
-        /// </param>
-        /// <param name="htmlAttributes">
-        /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the HTML attributes.
-        /// </param>
-        /// <returns>
-        /// A <see cref="TagBuilder"/> instance for the &lt;a&gt; element.
-        /// </returns>
-        TagBuilder GenerateActionLink(
-            ViewContext viewContext,
-            string linkText,
-            string actionName,
-            string controllerName,
-            string protocol,
-            string hostname,
-            string fragment,
-            object routeValues,
-            object htmlAttributes);
-
-        /// <summary>
-        /// Generate an &lt;input type="hidden".../&gt; element containing an antiforgery token.
-        /// </summary>
-        /// <param name="viewContext">The <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <returns>
-        /// An <see cref="IHtmlContent"/> instance for the &lt;input type="hidden".../&gt; element. Intended to be used
-        /// inside a &lt;form&gt; element.
-        /// </returns>
-        IHtmlContent GenerateAntiforgery(ViewContext viewContext);
-
         /// <summary>
         /// Generate a &lt;input type="checkbox".../&gt; element.
         /// </summary>
@@ -81,8 +25,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         TagBuilder GenerateCheckBox(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             bool? isChecked,
+            object htmlAttributes);
+
+        TagBuilder GenerateHidden(
+            ViewContext viewContext,
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            bool useViewData,
             object htmlAttributes);
 
         /// <summary>
@@ -93,124 +45,28 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         TagBuilder GenerateHiddenForCheckbox(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression);
-
-        /// <summary>
-        /// Generate a &lt;form&gt; element. When the user submits the form, the action with name
-        /// <paramref name="actionName"/> will process the request.
-        /// </summary>
-        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <param name="actionName">The name of the action method.</param>
-        /// <param name="controllerName">The name of the controller.</param>
-        /// <param name="routeValues">
-        /// An <see cref="object"/> that contains the parameters for a route. The parameters are retrieved through
-        /// reflection by examining the properties of the <see cref="object"/>. This <see cref="object"/> is typically
-        /// created using <see cref="object"/> initializer syntax. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the route parameters.
-        /// </param>
-        /// <param name="method">The HTTP method for processing the form, either GET or POST.</param>
-        /// <param name="htmlAttributes">
-        /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the HTML attributes.
-        /// </param>
-        /// <returns>
-        /// A <see cref="TagBuilder"/> instance for the &lt;/form&gt; element.
-        /// </returns>
-        TagBuilder GenerateForm(
-            ViewContext viewContext,
-            string actionName,
-            string controllerName,
-            object routeValues,
-            string method,
-            object htmlAttributes);
-
-        /// <summary>
-        /// Generate a &lt;form&gt; element. The route with name <paramref name="routeName"/> generates the
-        /// &lt;form&gt;'s <c>action</c> attribute value.
-        /// </summary>
-        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <param name="routeName">The name of the route.</param>
-        /// <param name="routeValues">
-        /// An <see cref="object"/> that contains the parameters for a route. The parameters are retrieved through
-        /// reflection by examining the properties of the <see cref="object"/>. This <see cref="object"/> is typically
-        /// created using <see cref="object"/> initializer syntax. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the route parameters.
-        /// </param>
-        /// <param name="method">The HTTP method for processing the form, either GET or POST.</param>
-        /// <param name="htmlAttributes">
-        /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the HTML attributes.
-        /// </param>
-        /// <returns>
-        /// A <see cref="TagBuilder"/> instance for the &lt;/form&gt; element.
-        /// </returns>
-        TagBuilder GenerateRouteForm(
-            ViewContext viewContext,
-            string routeName,
-            object routeValues,
-            string method,
-            object htmlAttributes);
-
-        TagBuilder GenerateHidden(
-            ViewContext viewContext,
-            ModelExplorer modelExplorer,
-            string expression,
-            object value,
-            bool useViewData,
-            object htmlAttributes);
+            StringValuesTutu expression);
 
         TagBuilder GenerateLabel(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             string labelText,
             object htmlAttributes);
 
         TagBuilder GeneratePassword(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             object value,
             object htmlAttributes);
 
         TagBuilder GenerateRadioButton(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             object value,
             bool? isChecked,
-            object htmlAttributes);
-
-        /// <summary>
-        /// Generate a &lt;a&gt; element for a link to an action.
-        /// </summary>
-        /// <param name="viewContext">The <see cref="ViewContext"/> instance for the current scope.</param>
-        /// <param name="linkText">The text to insert inside the element.</param>
-        /// <param name="routeName">The name of the route to use for link generation.</param>
-        /// <param name="protocol">The protocol (scheme) for the generated link.</param>
-        /// <param name="hostName">The hostname for the generated link.</param>
-        /// <param name="fragment">The fragment for the genrated link.</param>
-        /// <param name="routeValues">
-        /// An <see cref="object"/> that contains the parameters for a route. The parameters are retrieved through
-        /// reflection by examining the properties of the <see cref="object"/>. This <see cref="object"/> is typically
-        /// created using <see cref="object"/> initializer syntax. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the route parameters.
-        /// </param>
-        /// <param name="htmlAttributes">
-        /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
-        /// <see cref="IDictionary{String, Object}"/> instance containing the HTML attributes.
-        /// </param>
-        /// <returns>
-        /// A <see cref="TagBuilder"/> instance for the &lt;a&gt; element.
-        /// </returns>
-        TagBuilder GenerateRouteLink(
-            ViewContext viewContext,
-            string linkText,
-            string routeName,
-            string protocol,
-            string hostName,
-            string fragment,
-            object routeValues,
             object htmlAttributes);
 
         /// <summary>
@@ -251,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewContext viewContext,
             ModelExplorer modelExplorer,
             string optionLabel,
-            string expression,
+            StringValuesTutu expression,
             IEnumerable<SelectListItem> selectList,
             bool allowMultiple,
             object htmlAttributes);
@@ -300,29 +156,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewContext viewContext,
             ModelExplorer modelExplorer,
             string optionLabel,
-            string expression,
+            StringValuesTutu expression,
             IEnumerable<SelectListItem> selectList,
             ICollection<string> currentValues,
             bool allowMultiple,
             object htmlAttributes);
 
-        /// <summary>
-        /// Generates &lt;optgroup&gt; and &lt;option&gt; elements.
-        /// </summary>
-        /// <param name="optionLabel">Optional text for a default empty &lt;option&gt; element.</param>
-        /// <param name="selectList">
-        /// A collection of <see cref="SelectListItem"/> objects used to generate &lt;optgroup&gt; and &lt;option&gt;
-        /// elements.
-        /// </param>
-        /// <returns>
-        /// An <see cref="IHtmlContent"/> instance for &lt;optgroup&gt; and &lt;option&gt; elements.
-        /// </returns>
-        IHtmlContent GenerateGroupsAndOptions(string optionLabel, IEnumerable<SelectListItem> selectList);
-
         TagBuilder GenerateTextArea(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             int rows,
             int columns,
             object htmlAttributes);
@@ -330,7 +173,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         TagBuilder GenerateTextBox(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             object value,
             string format,
             object htmlAttributes);
@@ -365,16 +208,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         TagBuilder GenerateValidationMessage(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             string message,
             string tag,
-            object htmlAttributes);
-
-        TagBuilder GenerateValidationSummary(
-            ViewContext viewContext,
-            bool excludePropertyErrors,
-            string message,
-            string headerTag,
             object htmlAttributes);
 
         /// <summary>
@@ -414,7 +250,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         ICollection<string> GetCurrentValues(
             ViewContext viewContext,
             ModelExplorer modelExplorer,
-            string expression,
+            StringValuesTutu expression,
             bool allowMultiple);
     }
 }

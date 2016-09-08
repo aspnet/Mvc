@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.Primitives;
 
@@ -43,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var emptySegment = new StringSegment(buffer: string.Empty);
             _root = new ModelStateNode(subKey: emptySegment)
             {
-                Key = string.Empty
+                Key = StringValuesTutu.Empty
             };
         }
 
@@ -502,34 +503,87 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
-        private ModelStateNode GetNode(string key) => GetNode(key, createIfNotExists: false);
+        private ModelStateNode GetNode(string key) => GetNode(new StringValuesTutu(key));
 
-        private ModelStateNode GetOrAddNode(string key) => GetNode(key, createIfNotExists: true);
+        private ModelStateNode GetNode(StringValuesTutu key) => GetNode(key, createIfNotExists: false);
 
-        private ModelStateNode GetNode(string key, bool createIfNotExists)
+        private ModelStateNode GetOrAddNode(string key) => GetOrAddNode(new StringValuesTutu(key));
+
+        private ModelStateNode GetOrAddNode(StringValuesTutu key) => GetNode(key, createIfNotExists: true);
+
+        private ModelStateNode GetNode(StringValuesTutu key, bool createIfNotExists)
         {
-            Debug.Assert(key != null);
-            if (key.Length == 0)
+            if (StringValuesTutu.IsNullOrEmpty(key))
             {
                 return _root;
             }
 
-            // For a key of the format, foo.bar[0].baz[qux] we'll create the following nodes:
-            // foo
-            //  -> bar
-            //   -> [0]
-            //    -> baz
-            //     -> [qux]
-
             var current = _root;
+            for (var index = 0; index < key.Count && current != null; index++)
+            {
+                var keyValue = key[index];
+                if (keyValue.Length == 1)
+                {
+                    if (keyValue[0] == '.')
+                    {
+                        // Skip over separators that aren't treated as part of the next sub key.
+                        continue;
+                    }
+
+                    if (keyValue[0] == '[')
+                    {
+                        // Unfortunately, need to create a new string despite keeping the bits separate so far.
+                        // Commas do not need to be special-cased and nested indexers cannot occur in a key. In every
+                        // real case, the closing ']' value exists.
+                        var closingIndex = key.IndexOf("]", index);
+                        Debug.Assert(closingIndex != -1);
+
+                        var subkeyValues = key.Substring(index, closingIndex - index + 1);
+
+                        // Avoid current.GetNode() because we'd need to duplicate its null Key handling.
+                        current = GetNode(current, key, index, subkeyValues.ToString(), createIfNotExists);
+
+                        index = closingIndex;
+                        continue;
+                    }
+                }
+
+                // Avoid current.GetNode() because keyValue may include delimiters.
+                current = GetNode(current, key, index, keyValue, createIfNotExists);
+            }
+
+            if (current != null && !current.Key.HasValue)
+            {
+                // Don't update the key if it's been previously assigned. This is to prevent change in key casing
+                // e.g. modelState.SetModelValue("foo", .., ..);
+                // var value = modelState["FOO"];
+                current.Key = key;
+            }
+
+            return current;
+        }
+
+        // For a key of the format, foo.bar[0].baz[qux] we'll create the following nodes:
+        // foo
+        //  -> bar
+        //   -> [0]
+        //    -> baz
+        //     -> [qux]
+        private ModelStateNode GetNode(
+            ModelStateNode current,
+            StringValuesTutu key,
+            int prefixLength,
+            string keyPart,
+            bool createIfNotExists)
+        {
             var previousIndex = 0;
             int index;
-            while ((index = key.IndexOfAny(Delimiters, previousIndex)) != -1)
+            while ((index = keyPart.IndexOfAny(Delimiters, previousIndex)) != -1)
             {
-                var keyStart = previousIndex == 0 || key[previousIndex - 1] == '.'
+                var keyStart = previousIndex == 0 || keyPart[previousIndex - 1] == '.'
                     ? previousIndex
                     : previousIndex - 1;
-                var subKey = new StringSegment(key, keyStart, index - keyStart);
+                var subKey = new StringSegment(keyPart, keyStart, index - keyStart);
                 current = current.GetNode(subKey, createIfNotExists);
                 if (current == null)
                 {
@@ -540,21 +594,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 previousIndex = index + 1;
             }
 
-            if (previousIndex < key.Length)
+            if (previousIndex < keyPart.Length)
             {
-                var keyStart = previousIndex == 0 || key[previousIndex - 1] == '.'
+                var keyStart = previousIndex == 0 || keyPart[previousIndex - 1] == '.'
                     ? previousIndex
                     : previousIndex - 1;
-                var subKey = new StringSegment(key, keyStart, key.Length - keyStart);
+                var subKey = new StringSegment(keyPart, keyStart, keyPart.Length - keyStart);
                 current = current.GetNode(subKey, createIfNotExists);
-            }
-
-            if (current != null && current.Key == null)
-            {
-                // Don't update the key if it's been previously assigned. This is to prevent change in key casing
-                // e.g. modelState.SetModelValue("foo", .., ..);
-                // var value = modelState["FOO"];
-                current.Key = key;
             }
 
             return current;
@@ -647,6 +693,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return !GetNode(key)?.IsContainerNode ?? false;
         }
 
+        public bool ContainsKey(StringValuesTutu key)
+        {
+            return !GetNode(key)?.IsContainerNode ?? false;
+        }
+
         /// <summary>
         /// Removes the <see cref="ModelStateEntry"/> with the specified <paramref name="key"/>.
         /// </summary>
@@ -680,6 +731,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(key));
             }
 
+            var result = GetNode(key);
+            if (result?.IsContainerNode == false)
+            {
+                value = result;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public bool TryGetValue(StringValuesTutu key, out ModelStateEntry value)
+        {
             var result = GetNode(key);
             if (result?.IsContainerNode == false)
             {
@@ -771,7 +835,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public override IReadOnlyList<ModelStateEntry> Children => ChildNodes;
 
-            public string Key { get; set; }
+            public StringValuesTutu? Key { get; set; }
 
             public StringSegment SubKey { get; }
 
@@ -934,7 +998,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             public KeyValuePair<string, ModelStateEntry> Current =>
-                new KeyValuePair<string, ModelStateEntry>(_modelStateNode.Key, _modelStateNode);
+                new KeyValuePair<string, ModelStateEntry>(_modelStateNode.Key.ToString(), _modelStateNode);
 
             object IEnumerator.Current => Current;
 

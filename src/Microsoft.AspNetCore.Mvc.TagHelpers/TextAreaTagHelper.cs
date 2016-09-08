@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public TextAreaTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+            GeneratorTutu = HtmlGeneratorAdapter.GetTuTu(generator);
         }
 
         /// <inheritdoc />
@@ -35,6 +36,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         protected IHtmlGenerator Generator { get; }
+
+        protected IHtmlGeneratorTutu GeneratorTutu { get; }
 
         [HtmlAttributeNotBound]
         [ViewContext]
@@ -60,10 +63,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(output));
             }
 
-            var tagBuilder = Generator.GenerateTextArea(
+            var tagBuilder = GeneratorTutu.GenerateTextArea(
                 ViewContext,
                 For.ModelExplorer,
-                For.Name,
+                For.NameValues,
                 rows: 0,
                 columns: 0,
                 htmlAttributes: null);

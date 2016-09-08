@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public static readonly string ValidationSummaryCssClassName = "validation-summary-errors";
         public static readonly string ValidationSummaryValidCssClassName = "validation-summary-valid";
 
-        private readonly IHtmlGenerator _htmlGenerator;
+        private readonly IHtmlGeneratorTutu _htmlGenerator;
         private readonly ICompositeViewEngine _viewEngine;
         private readonly HtmlEncoder _htmlEncoder;
         private readonly IViewBufferScope _bufferScope;
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             _viewEngine = viewEngine;
-            _htmlGenerator = htmlGenerator;
+            _htmlGenerator = HtmlGeneratorAdapter.GetTuTu(htmlGenerator);
             _htmlEncoder = htmlEncoder;
             _bufferScope = bufferScope;
             MetadataProvider = metadataProvider;
@@ -181,16 +181,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <summary>
         /// Creates a dictionary of HTML attributes from the input object,
         /// translating underscores to dashes in each public instance property.
-        ///
-        /// If the object is already an <see cref="IDictionary{String, Object}"/> instance, then it is
-        /// returned as-is.
+        /// </summary>
+        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
+        /// <returns>A dictionary that represents HTML attributes.</returns>
+        /// <remarks>
+        /// If the object is already an <see cref="IDictionary{String, Object}"/> instance, then a shallow copy is
+        /// returned.
         /// <example>
         /// <c>new { data_name="value" }</c> will translate to the entry <c>{ "data-name", "value" }</c>
         /// in the resulting dictionary.
         /// </example>
-        /// </summary>
-        /// <param name="htmlAttributes">Anonymous object describing HTML attributes.</param>
-        /// <returns>A dictionary that represents HTML attributes.</returns>
+        /// </remarks>
         public static IDictionary<string, object> AnonymousObjectToHtmlAttributes(object htmlAttributes)
         {
             var dictionary = htmlAttributes as IDictionary<string, object>;
@@ -523,6 +524,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string templateName,
             object additionalViewData)
         {
+            return GenerateDisplay(
+                modelExplorer,
+                new StringValuesTutu(htmlFieldName),
+                templateName,
+                additionalViewData);
+        }
+
+        protected virtual IHtmlContent GenerateDisplay(
+            ModelExplorer modelExplorer,
+            StringValuesTutu htmlFieldName,
+            string templateName,
+            object additionalViewData)
+        {
             var modelEnum = modelExplorer.Model as Enum;
             if (modelExplorer.Metadata.IsEnum && modelEnum != null)
             {
@@ -735,7 +749,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <inheritdoc />
         public IHtmlContent TextBox(string expression, object value, string format, object htmlAttributes)
         {
-            return GenerateTextBox(modelExplorer: null, expression: expression, value: value, format: format,
+            return GenerateTextBox(
+                modelExplorer: null,
+                expression: expression,
+                value: value,
+                format: format,
                 htmlAttributes: htmlAttributes);
         }
 
@@ -758,6 +776,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual IHtmlContent GenerateCheckBox(
             ModelExplorer modelExplorer,
             string expression,
+            bool? isChecked,
+            object htmlAttributes)
+        {
+            return GenerateCheckBox(modelExplorer, new StringValuesTutu(expression), isChecked, htmlAttributes);
+        }
+
+        protected virtual IHtmlContent GenerateCheckBox(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             bool? isChecked,
             object htmlAttributes)
         {
@@ -790,6 +817,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         protected virtual string GenerateDisplayName(ModelExplorer modelExplorer, string expression)
         {
+            return GenerateDisplayName(modelExplorer, new StringValuesTutu(expression));
+        }
+
+        protected virtual string GenerateDisplayName(ModelExplorer modelExplorer, StringValuesTutu expression)
+        {
             if (modelExplorer == null)
             {
                 throw new ArgumentNullException(nameof(modelExplorer));
@@ -801,8 +833,38 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var resolvedDisplayName = modelExplorer.Metadata.DisplayName ?? modelExplorer.Metadata.PropertyName;
             if (resolvedDisplayName == null)
             {
-                resolvedDisplayName =
-                    string.IsNullOrEmpty(expression) ? string.Empty : expression.Split('.').Last();
+                if (StringValuesTutu.IsNullOrEmpty(expression))
+                {
+                    resolvedDisplayName = string.Empty;
+                }
+                else
+                {
+                    for (var i = expression.Count - 1; i >= 0; i--)
+                    {
+                        var stringValue = expression[i];
+                        if (string.Equals(".", stringValue, StringComparison.Ordinal))
+                        {
+                            resolvedDisplayName = expression.Substring(i + 1).ToString();
+                            break;
+                        }
+
+                        var j = stringValue.LastIndexOf('.');
+                        if (j != -1)
+                        {
+                            var stringValues = StringValuesTutu.Concat(
+                                stringValue.Substring(j + 1),
+                                expression.Substring(i + 1));
+                            resolvedDisplayName = stringValues.ToString();
+                            break;
+                        }
+                    }
+
+                    if (resolvedDisplayName == null)
+                    {
+                        // Expression does not contain a dot separator.
+                        resolvedDisplayName = expression.ToString();
+                    }
+                }
             }
 
             return resolvedDisplayName;
@@ -816,6 +878,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected IHtmlContent GenerateDropDown(
             ModelExplorer modelExplorer,
             string expression,
+            IEnumerable<SelectListItem> selectList,
+            string optionLabel,
+            object htmlAttributes)
+        {
+            return GenerateDropDown(
+                modelExplorer,
+                new StringValuesTutu(expression),
+                selectList,
+                optionLabel,
+                htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateDropDown(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             IEnumerable<SelectListItem> selectList,
             string optionLabel,
             object htmlAttributes)
@@ -839,6 +916,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual IHtmlContent GenerateEditor(
             ModelExplorer modelExplorer,
             string htmlFieldName,
+            string templateName,
+            object additionalViewData)
+        {
+            return GenerateEditor(
+                modelExplorer,
+                new StringValuesTutu(htmlFieldName),
+                templateName,
+                additionalViewData);
+        }
+
+        protected virtual IHtmlContent GenerateEditor(
+            ModelExplorer modelExplorer,
+            StringValuesTutu htmlFieldName,
             string templateName,
             object additionalViewData)
         {
@@ -978,14 +1068,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             bool useViewData,
             object htmlAttributes)
         {
-            var tagBuilder =
-                _htmlGenerator.GenerateHidden(
-                    ViewContext,
-                    modelExplorer,
-                    expression,
-                    value,
-                    useViewData,
-                    htmlAttributes);
+            return GenerateHidden(modelExplorer, new StringValuesTutu(expression), value, useViewData, htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateHidden(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            bool useViewData,
+            object htmlAttributes)
+        {
+            var tagBuilder = _htmlGenerator.GenerateHidden(
+                ViewContext,
+                modelExplorer,
+                expression,
+                value,
+                useViewData,
+                htmlAttributes);
             if (tagBuilder == null)
             {
                 return HtmlString.Empty;
@@ -996,15 +1095,29 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         protected virtual string GenerateId(string expression)
         {
-            var fullName = DefaultHtmlGenerator.GetFullHtmlFieldName(ViewContext, expression: expression);
+            return GenerateId(new StringValuesTutu(expression));
+        }
+
+        protected virtual string GenerateId(StringValuesTutu expression)
+        {
+            var fullName = DefaultHtmlGenerator.GetFullHtmlFieldName(ViewContext, expression);
             var id = TagBuilder.CreateSanitizedId(fullName, IdAttributeDotReplacement);
 
-            return id;
+            return id.ToString();
         }
 
         protected virtual IHtmlContent GenerateLabel(
             ModelExplorer modelExplorer,
             string expression,
+            string labelText,
+            object htmlAttributes)
+        {
+            return GenerateLabel(modelExplorer, new StringValuesTutu(expression), labelText, htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateLabel(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             string labelText,
             object htmlAttributes)
         {
@@ -1033,6 +1146,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             IEnumerable<SelectListItem> selectList,
             object htmlAttributes)
         {
+            return GenerateListBox(modelExplorer, new StringValuesTutu(expression), selectList, htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateListBox(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            IEnumerable<SelectListItem> selectList,
+            object htmlAttributes)
+        {
             var tagBuilder = _htmlGenerator.GenerateSelect(
                 ViewContext,
                 modelExplorer,
@@ -1051,13 +1173,27 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         protected virtual string GenerateName(string expression)
         {
+            return GenerateName(new StringValuesTutu(expression));
+        }
+
+        protected virtual string GenerateName(StringValuesTutu expression)
+        {
             var fullName = DefaultHtmlGenerator.GetFullHtmlFieldName(ViewContext, expression);
-            return fullName;
+            return fullName.ToString();
         }
 
         protected virtual IHtmlContent GeneratePassword(
             ModelExplorer modelExplorer,
             string expression,
+            object value,
+            object htmlAttributes)
+        {
+            return GeneratePassword(modelExplorer, new StringValuesTutu(expression), value, htmlAttributes);
+        }
+
+        protected IHtmlContent GeneratePassword(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             object value,
             object htmlAttributes)
         {
@@ -1078,6 +1214,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual IHtmlContent GenerateRadioButton(
             ModelExplorer modelExplorer,
             string expression,
+            object value,
+            bool? isChecked,
+            object htmlAttributes)
+        {
+            return GenerateRadioButton(
+                modelExplorer,
+                new StringValuesTutu(expression),
+                value,
+                isChecked,
+                htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateRadioButton(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             object value,
             bool? isChecked,
             object htmlAttributes)
@@ -1104,6 +1255,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             int columns,
             object htmlAttributes)
         {
+            return GenerateTextArea(modelExplorer, new StringValuesTutu(expression), rows, columns, htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateTextArea(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            int rows,
+            int columns,
+            object htmlAttributes)
+        {
             var tagBuilder = _htmlGenerator.GenerateTextArea(
                 ViewContext,
                 modelExplorer,
@@ -1126,6 +1287,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             string format,
             object htmlAttributes)
         {
+            return GenerateTextBox(modelExplorer, new StringValuesTutu(expression), value, format, htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateTextBox(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
+            object value,
+            string format,
+            object htmlAttributes)
+        {
             var tagBuilder = _htmlGenerator.GenerateTextBox(
                 ViewContext,
                 modelExplorer,
@@ -1144,6 +1315,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual IHtmlContent GenerateValidationMessage(
             ModelExplorer modelExplorer,
             string expression,
+            string message,
+            string tag,
+            object htmlAttributes)
+        {
+            return GenerateValidationMessage(
+                modelExplorer,
+                new StringValuesTutu(expression),
+                message,
+                tag,
+                htmlAttributes);
+        }
+
+        protected IHtmlContent GenerateValidationMessage(
+            ModelExplorer modelExplorer,
+            StringValuesTutu expression,
             string message,
             string tag,
             object htmlAttributes)
@@ -1185,9 +1371,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         protected virtual string GenerateValue(string expression, object value, string format, bool useViewData)
         {
+            return GenerateValue(new StringValuesTutu(expression), value, format, useViewData);
+        }
+
+        protected virtual string GenerateValue(
+            StringValuesTutu expression,
+            object value,
+            string format,
+            bool useViewData)
+        {
             var fullName = DefaultHtmlGenerator.GetFullHtmlFieldName(ViewContext, expression);
-            var attemptedValue =
-                (string)DefaultHtmlGenerator.GetModelStateValue(ViewContext, fullName, typeof(string));
+            var attemptedValue = (string)DefaultHtmlGenerator.GetModelStateValue(ViewContext, fullName, typeof(string));
 
             string resolvedValue;
             if (attemptedValue != null)
@@ -1198,7 +1392,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             else if (useViewData)
             {
                 // case 2: format the value from ViewData
-                resolvedValue = DefaultHtmlGenerator.EvalString(ViewContext, expression, format);
+                resolvedValue = DefaultHtmlGenerator.EvalString(ViewContext, expression.ToString(), format);
             }
             else
             {

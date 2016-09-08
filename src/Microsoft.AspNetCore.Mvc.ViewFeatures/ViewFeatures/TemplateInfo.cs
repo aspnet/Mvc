@@ -1,30 +1,34 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
     public class TemplateInfo
     {
-        private string _htmlFieldPrefix;
-        private object _formattedModelValue;
+        private static readonly char[] _prefixDividers = new[] { '.', '[', ']' };
 
         // Keep a collection of visited objects to prevent infinite recursion.
-        private HashSet<object> _visitedObjects;
+        private readonly HashSet<object> _visitedObjects;
+
+        private string _htmlFieldPrefix;
+        private StringValuesTutu _htmlFieldPrefixValues;
+        private object _formattedModelValue;
 
         public TemplateInfo()
         {
-            _htmlFieldPrefix = string.Empty;
             _formattedModelValue = string.Empty;
+            _htmlFieldPrefix = string.Empty;
+            _htmlFieldPrefixValues = StringValuesTutu.Empty;
             _visitedObjects = new HashSet<object>();
         }
 
         public TemplateInfo(TemplateInfo original)
         {
             FormattedModelValue = original.FormattedModelValue;
-            HtmlFieldPrefix = original.HtmlFieldPrefix;
+            _htmlFieldPrefix = original._htmlFieldPrefix;
+            _htmlFieldPrefixValues = original._htmlFieldPrefixValues;
             _visitedObjects = new HashSet<object>(original._visitedObjects);
         }
 
@@ -51,8 +55,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <value>The HTML field prefix.</value>
         public string HtmlFieldPrefix
         {
-            get { return _htmlFieldPrefix; }
-            set { _htmlFieldPrefix = value ?? string.Empty; }
+            get
+            {
+                if (_htmlFieldPrefix == null)
+                {
+                    _htmlFieldPrefix = _htmlFieldPrefixValues.ToString();
+                }
+
+                return _htmlFieldPrefix;
+            }
+            set
+            {
+                _htmlFieldPrefix = value ?? string.Empty;
+                _htmlFieldPrefixValues = _htmlFieldPrefix;
+            }
+        }
+
+        public StringValuesTutu HtmlFieldPrefixValues
+        {
+            get
+            {
+                return _htmlFieldPrefixValues;
+            }
+            set
+            {
+                _htmlFieldPrefix = null;
+                _htmlFieldPrefixValues = value;
+            }
         }
 
         public int TemplateDepth
@@ -67,24 +96,27 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         public string GetFullHtmlFieldName(string partialFieldName)
         {
-            if (string.IsNullOrEmpty(partialFieldName))
+            return GetFullHtmlFieldName(new StringValuesTutu(partialFieldName)).ToString();
+        }
+
+        public StringValuesTutu GetFullHtmlFieldName(StringValuesTutu partialFieldName)
+        {
+            if (StringValuesTutu.IsNullOrEmpty(partialFieldName))
             {
-                return HtmlFieldPrefix;
+                return HtmlFieldPrefixValues;
             }
-            else if (string.IsNullOrEmpty(HtmlFieldPrefix))
+
+            if (StringValuesTutu.IsNullOrEmpty(HtmlFieldPrefixValues))
             {
                 return partialFieldName;
             }
-            else if (partialFieldName.StartsWith("[", StringComparison.Ordinal))
+
+            if ('[' != partialFieldName[0][0])
             {
-                // The partialFieldName might represent an indexer access, in which case combining
-                // with a 'dot' would be invalid.
-                return HtmlFieldPrefix + partialFieldName;
+                return StringValuesTutu.Concat(HtmlFieldPrefixValues, ".", partialFieldName);
             }
-            else
-            {
-                return HtmlFieldPrefix + "." + partialFieldName;
-            }
+
+            return StringValuesTutu.Concat(HtmlFieldPrefixValues, partialFieldName);
         }
 
         public bool Visited(ModelExplorer modelExplorer)

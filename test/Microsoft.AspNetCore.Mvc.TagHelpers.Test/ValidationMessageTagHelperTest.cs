@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -77,11 +78,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("id"));
             Assert.Equal("myvalidationmessage", attribute.Value);
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal("field-validation-valid", attribute.Value);
+            Assert.Equal(
+                "field-validation-valid",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-valmsg-for"));
-            Assert.Equal("Name", attribute.Value);
+            Assert.Equal(
+                "Name",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-valmsg-replace"));
-            Assert.Equal("true", attribute.Value);
+            Assert.Equal(
+                "true",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
             Assert.Equal(expectedContent, output.Content.GetContent());
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
@@ -94,7 +101,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Arrange
             var expectedViewContext = CreateViewContext();
             var modelExpression = CreateModelExpression("Hello");
-            var generator = new Mock<IHtmlGenerator>();
+            var generator = new Mock<IHtmlGeneratorTutu>();
             generator
                 .Setup(mock => mock.GenerateValidationMessage(
                     expectedViewContext,
@@ -149,7 +156,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [InlineData("\r\n  \r\n", "\r\n Something Else \r\n", "\r\n Something Else \r\n")]
         [InlineData("\r\n  \r\n", "Some Content", "Some Content")]
         public async Task ProcessAsync_DoesNotOverrideOutputContent(
-            string childContent, string outputContent, string expectedOutputContent)
+            string childContent,
+            string outputContent,
+            string expectedOutputContent)
         {
             // Arrange
             var tagBuilder = new TagBuilder("span2");
@@ -157,12 +166,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");
 
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var setup = generator
                 .Setup(mock => mock.GenerateValidationMessage(
                     It.IsAny<ViewContext>(),
                     It.IsAny<ModelExplorer>(),
-                    It.IsAny<string>(),
+                    It.IsAny<StringValuesTutu>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<object>()))
@@ -199,9 +208,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal("span", output.TagName);
             Assert.Equal(2, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-foo"));
-            Assert.Equal("bar", attribute.Value);
+            Assert.Equal(
+                "bar",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-hello"));
-            Assert.Equal("world", attribute.Value);
+            Assert.Equal(
+                "world",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedOutputContent, output.Content.GetContent());
         }
 
@@ -209,7 +222,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [InlineData("Content of validation message", "Content of validation message")]
         [InlineData("\r\n  \r\n", "New HTML")]
         public async Task ProcessAsync_MergesTagBuilderFromGenerateValidationMessage(
-            string childContent, string expectedOutputContent)
+            string childContent,
+            string expectedOutputContent)
         {
             // Arrange
             var tagBuilder = new TagBuilder("span2");
@@ -217,12 +231,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagBuilder.Attributes.Add("data-foo", "bar");
             tagBuilder.Attributes.Add("data-hello", "world");
 
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var setup = generator
                 .Setup(mock => mock.GenerateValidationMessage(
                     It.IsAny<ViewContext>(),
                     It.IsAny<ModelExplorer>(),
-                    It.IsAny<string>(),
+                    It.IsAny<StringValuesTutu>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<object>()))
@@ -258,9 +272,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal("span", output.TagName);
             Assert.Equal(2, output.Attributes.Count);
             var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-foo"));
-            Assert.Equal("bar", attribute.Value);
+            Assert.Equal(
+                "bar",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("data-hello"));
-            Assert.Equal("world", attribute.Value);
+            Assert.Equal(
+                "world",
+                HtmlContentUtilities.HtmlContentToString((IHtmlContent)(attribute.Value), NullHtmlEncoder.Default));
             Assert.Equal(expectedOutputContent, output.Content.GetContent());
         }
 
@@ -268,7 +286,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public async Task ProcessAsync_DoesNothingIfNullFor()
         {
             // Arrange
-            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            var generator = new Mock<IHtmlGeneratorTutu>(MockBehavior.Strict);
             var validationMessageTagHelper = new ValidationMessageTagHelper(generator.Object);
             var expectedPreContent = "original pre-content";
             var expectedContent = "original content";

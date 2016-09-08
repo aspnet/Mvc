@@ -36,6 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public SelectTagHelper(IHtmlGenerator generator)
         {
             Generator = generator;
+            GeneratorTutu = HtmlGeneratorAdapter.GetTuTu(generator);
         }
 
         /// <inheritdoc />
@@ -48,6 +49,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         protected IHtmlGenerator Generator { get; }
+
+        protected IHtmlGeneratorTutu GeneratorTutu { get; }
 
         [HtmlAttributeNotBound]
         [ViewContext]
@@ -98,10 +101,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var realModelType = For.ModelExplorer.ModelType;
             _allowMultiple = typeof(string) != realModelType &&
                 typeof(IEnumerable).IsAssignableFrom(realModelType);
-            _currentValues = Generator.GetCurrentValues(
+            _currentValues = GeneratorTutu.GetCurrentValues(
                 ViewContext,
                 For.ModelExplorer,
-                expression: For.Name,
+                expression: For.NameValues,
                 allowMultiple: _allowMultiple);
 
             // Whether or not (not being highly unlikely) we generate anything, could update contained <option/>
@@ -129,16 +132,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (For == null)
             {
-                var options = Generator.GenerateGroupsAndOptions(optionLabel: null, selectList: items);
+                var options = GeneratorTutu.GenerateGroupsAndOptions(optionLabel: null, selectList: items);
                 output.PostContent.AppendHtml(options);
                 return;
             }
 
-            var tagBuilder = Generator.GenerateSelect(
+            var tagBuilder = GeneratorTutu.GenerateSelect(
                 ViewContext,
                 For.ModelExplorer,
                 optionLabel: null,
-                expression: For.Name,
+                expression: For.NameValues,
                 selectList: items,
                 currentValues: _currentValues,
                 allowMultiple: _allowMultiple,

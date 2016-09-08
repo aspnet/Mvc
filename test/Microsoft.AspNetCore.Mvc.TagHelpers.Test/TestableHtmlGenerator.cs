@@ -114,7 +114,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             ViewContext viewContext,
             TagBuilder tagBuilder,
             ModelExplorer modelExplorer,
-            string expression)
+            StringValuesTutu expression)
         {
             tagBuilder.MergeAttributes(ValidationAttributes);
         }

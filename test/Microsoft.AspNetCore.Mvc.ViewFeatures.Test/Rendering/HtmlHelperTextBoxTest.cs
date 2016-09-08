@@ -21,14 +21,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         [InlineData("number")]
         public void TextBoxFor_GeneratesPlaceholderAttribute_WhenDisplayAttributePromptIsSetAndTypeIsValid(string type)
         {
-            // Arrange            
+            // Arrange
             var model = new TextBoxModel();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
             var textBox = helper.TextBoxFor(m => m.Property1, new { type });
 
-            // Assert 
+            // Assert
             var result = HtmlContentUtilities.HtmlContentToString(textBox);
             Assert.Contains(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
@@ -48,14 +48,14 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         [InlineData("file")]
         public void TextBoxFor_DoesNotGeneratePlaceholderAttribute_WhenDisplayAttributePromptIsSetAndTypeIsInvalid(string type)
         {
-            // Arrange            
+            // Arrange
             var model = new TextBoxModel();
             var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
 
             // Act
             var textBox = helper.TextBoxFor(m => m.Property1, new { type });
 
-            // Assert 
+            // Assert
             var result = HtmlContentUtilities.HtmlContentToString(textBox);
             Assert.DoesNotContain(@"placeholder=""HtmlEncode[[placeholder]]""", result, StringComparison.Ordinal);
         }
@@ -68,18 +68,21 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[Prop3Val]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[Prop5Val]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
-                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[text]]"" value=""HtmlEncode[[Prop6Val]]"" />"
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
+                        @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[Prop6Val]]"" />"
                     }
                 };
             }
@@ -115,18 +118,21 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 {
                     {
                         model => model.Property3["key"],
-                        @"<input id=""HtmlEncode[[pre_Property3_key_]]"" name=""HtmlEncode[[pre.Property3[key]]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[key]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[key]]HtmlEncode[[]]]"" " +
                         @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[MProp3Val]]"" />"
                     },
                     {
                         model => model.Property4.Property5,
-                        @"<input id=""HtmlEncode[[pre_Property4_Property5]]"" name=""HtmlEncode[[pre.Property4.Property5]]"" " +
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property5]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property5]]"" " +
                         @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[MProp5Val]]"" />"
                     },
                     {
                         model => model.Property4.Property6[0],
-                        @"<input id=""HtmlEncode[[pre_Property4_Property6_0_]]"" " +
-                        @"name=""HtmlEncode[[pre.Property4.Property6[0]]]"" type=""HtmlEncode[[text]]"" value=""HtmlEncode[[MProp6Val]]"" />"
+                        @"<input id=""HtmlEncode[[pre]]HtmlEncode[[_]]HtmlEncode[[Property4]]HtmlEncode[[_]]HtmlEncode[[Property6]]HtmlEncode[[_]]HtmlEncode[[0]]HtmlEncode[[_]]"" " +
+                        @"name=""HtmlEncode[[pre]]HtmlEncode[[.]]HtmlEncode[[Property4]]HtmlEncode[[.]]HtmlEncode[[Property6]]HtmlEncode[[[]]HtmlEncode[[0]]HtmlEncode[[]]]"" " +
+                        @"type=""HtmlEncode[[text]]"" value=""HtmlEncode[[MProp6Val]]"" />"
                     }
                 };
             }

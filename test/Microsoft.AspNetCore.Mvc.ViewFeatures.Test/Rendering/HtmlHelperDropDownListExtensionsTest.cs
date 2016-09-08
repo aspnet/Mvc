@@ -198,7 +198,8 @@ namespace Microsoft.AspNetCore.Mvc.Core
         public void DropDownListFor_UsesSpecifiedExpressionAndSelectListAndHtmlAttributes()
         {
             // Arrange
-            var expectedHtml = "<select id=\"HtmlEncode[[Property3_2_]]\" Key=\"HtmlEncode[[Value]]\" name=\"HtmlEncode[[Property3[2]]]\">" +
+            var expectedHtml = "<select id=\"HtmlEncode[[Property3]]HtmlEncode[[_]]HtmlEncode[[2]]HtmlEncode[[_]]\" " +
+                "Key=\"HtmlEncode[[Value]]\" name=\"HtmlEncode[[Property3]]HtmlEncode[[[]]HtmlEncode[[2]]HtmlEncode[[]]]\">" +
                 "<option selected=\"HtmlEncode[[selected]]\" value=\"HtmlEncode[[4]]\">HtmlEncode[[Four]]</option>" + Environment.NewLine +
                 "<option value=\"HtmlEncode[[5]]\">HtmlEncode[[Five]]</option>" + Environment.NewLine +
                 "</select>";

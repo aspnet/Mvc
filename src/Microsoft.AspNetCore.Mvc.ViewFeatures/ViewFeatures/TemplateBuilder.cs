@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly ModelExplorer _modelExplorer;
         private object _model;
         private readonly ModelMetadata _metadata;
-        private readonly string _htmlFieldName;
+        private readonly StringValuesTutu _htmlFieldName;
         private readonly string _templateName;
         private readonly bool _readOnly;
         private readonly object _additionalViewData;
@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             ViewContext viewContext,
             ViewDataDictionary viewData,
             ModelExplorer modelExplorer,
-            string htmlFieldName,
+            StringValuesTutu htmlFieldName,
             string templateName,
             bool readOnly,
             object additionalViewData)
@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             viewData.ModelExplorer = _modelExplorer.GetExplorerForModel(_model);
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;
-            viewData.TemplateInfo.HtmlFieldPrefix = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName);
+            viewData.TemplateInfo.HtmlFieldPrefixValues = _viewData.TemplateInfo.GetFullHtmlFieldName(_htmlFieldName);
 
             if (_additionalViewData != null)
             {

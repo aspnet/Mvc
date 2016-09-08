@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(expectedAttributes, output.Attributes, TagHelperAttributeStringComparer.Instance);
             Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedTagName, output.TagName);
         }

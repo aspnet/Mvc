@@ -676,7 +676,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -691,7 +691,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -706,7 +706,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -725,7 +725,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         new TagHelperAttributeList
                         {
                             { "before", "before value" },
-                            { "class", "btn2 btn" },
+                            { "clASS", "btn2 btn" },
                             { "mid", "mid value" },
                             { "after", "after value" },
                         }
@@ -748,7 +748,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         new TagHelperAttributeList
                         {
                             { "before", "before value" },
-                            { "class", "btn2 btn" },
+                            { "clASS", "btn2 btn" },
                             { "mid", "mid value" },
                             { "after", "after value" },
                             { "A", "A Value" },
@@ -783,10 +783,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagHelperOutput.MergeAttributes(tagBuilder);
 
             // Assert
-            Assert.Equal(
-                expectedAttributes,
-                tagHelperOutput.Attributes,
-                CaseSensitiveTagHelperAttributeComparer.Default);
+            Assert.Equal(expectedAttributes, tagHelperOutput.Attributes, TagHelperAttributeStringComparer.Instance);
         }
 
         [Fact]
@@ -833,7 +830,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var attribute = Assert.Single(tagHelperOutput.Attributes);
-            Assert.Equal(expectedAttribute, attribute);
+            Assert.Equal(expectedAttribute, attribute, TagHelperAttributeStringComparer.Instance);
         }
 
         [Theory]
@@ -859,7 +856,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var attribute = Assert.Single(tagHelperOutput.Attributes);
-            Assert.Equal(new TagHelperAttribute(originalName, "Hello btn"), attribute);
+            Assert.Equal(
+                new TagHelperAttribute(originalName, "Hello btn"),
+                attribute,
+                TagHelperAttributeStringComparer.Instance);
         }
 
         [Fact]
@@ -881,7 +881,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var attribute = Assert.Single(tagHelperOutput.Attributes);
-            Assert.Equal(expectedAttribute, attribute);
+            Assert.Equal(expectedAttribute, attribute, TagHelperAttributeStringComparer.Instance);
         }
 
         [Fact]
@@ -906,9 +906,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Equal(2, tagHelperOutput.Attributes.Count);
             var attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal(expectedAttribute1.Value, attribute.Value);
+            Assert.Equal(expectedAttribute1, attribute, TagHelperAttributeStringComparer.Instance);
             attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class2"));
-            Assert.Equal(expectedAttribute2.Value, attribute.Value);
+            Assert.Equal(expectedAttribute2, attribute, TagHelperAttributeStringComparer.Instance);
         }
 
         [Fact]
@@ -955,9 +955,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             Assert.Equal(tagHelperOutput.Attributes.Count, 2);
             var attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
-            Assert.Equal(expectedOutputAttribute.Value, attribute.Value);
+            Assert.Equal(expectedOutputAttribute, attribute, TagHelperAttributeStringComparer.Instance);
             attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("for"));
-            Assert.Equal(expectedBuilderAttribute.Value, attribute.Value);
+            Assert.Equal(expectedBuilderAttribute, attribute, TagHelperAttributeStringComparer.Instance);
         }
 
         private class CaseSensitiveTagHelperAttributeComparer : IEqualityComparer<TagHelperAttribute>

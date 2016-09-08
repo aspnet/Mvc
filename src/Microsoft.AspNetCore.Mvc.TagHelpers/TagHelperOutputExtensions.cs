@@ -3,8 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
@@ -83,16 +87,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Merges the given <paramref name="tagBuilder"/>'s <see cref="TagBuilder.Attributes"/> into the
+        /// Merges the given <paramref name="tagBuilder"/>'s <see cref="TagBuilder.AttributeValues"/> into the
         /// <paramref name="tagHelperOutput"/>.
         /// </summary>
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="tagBuilder">The <see cref="TagBuilder"/> to merge attributes from.</param>
         /// <remarks>Existing <see cref="TagHelperOutput.Attributes"/> on the given <paramref name="tagHelperOutput"/>
         /// are not overridden; "class" attributes are merged with spaces.</remarks>
-        public static void MergeAttributes(
-            this TagHelperOutput tagHelperOutput,
-            TagBuilder tagBuilder)
+        public static void MergeAttributes(this TagHelperOutput tagHelperOutput, TagBuilder tagBuilder)
         {
             if (tagHelperOutput == null)
             {
@@ -104,11 +106,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagBuilder));
             }
 
-            foreach (var attribute in tagBuilder.Attributes)
+            foreach (var attribute in tagBuilder.AttributeValues)
             {
                 if (!tagHelperOutput.Attributes.ContainsName(attribute.Key))
                 {
-                    tagHelperOutput.Attributes.Add(attribute.Key, attribute.Value);
+                    tagHelperOutput.Attributes.Add(attribute.Key, new StringValuesTutuContent(attribute.Value));
                 }
                 else if (attribute.Key.Equals("class", StringComparison.OrdinalIgnoreCase))
                 {
@@ -116,11 +118,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                     if (tagHelperOutput.Attributes.TryGetAttribute("class", out classAttribute))
                     {
-                        tagHelperOutput.Attributes.SetAttribute("class", classAttribute.Value + " " + attribute.Value);
+                        // If everything were a string, writes (classAttribute.Value + " " + attribute.Value).
+                        tagHelperOutput.Attributes.SetAttribute(
+                            classAttribute.Name,
+                            new ClassValuesContent(classAttribute.Value, attribute.Value));
                     }
                     else
                     {
-                        tagHelperOutput.Attributes.Add("class", attribute.Value);
+                        tagHelperOutput.Attributes.Add("class", new StringValuesTutuContent(attribute.Value));
                     }
                 }
             }
@@ -200,6 +205,33 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return -1;
+        }
+
+        private class ClassValuesContent : StringValuesTutuContent
+        {
+            private readonly object _original;
+
+            public ClassValuesContent(object original, StringValuesTutu stringValues)
+                : base(stringValues)
+            {
+                _original = original;
+            }
+
+            public override void WriteTo(TextWriter writer, HtmlEncoder encoder)
+            {
+                var htmlContent = _original as IHtmlContent;
+                if (htmlContent != null)
+                {
+                    htmlContent.WriteTo(writer, encoder);
+                }
+                else if (_original != null)
+                {
+                    encoder.Encode(writer, _original.ToString());
+                }
+
+                writer.Write(' ');
+                base.WriteTo(writer, encoder);
+            }
         }
     }
 }

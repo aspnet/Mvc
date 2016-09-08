@@ -128,9 +128,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var modelExplorer = GetModelExplorer(expression);
+            if (htmlFieldName != null)
+            {
+                return GenerateDisplay(
+                    modelExplorer,
+                    htmlFieldName,
+                    templateName,
+                    additionalViewData);
+            }
+
             return GenerateDisplay(
                 modelExplorer,
-                htmlFieldName ?? GetExpressionName(expression),
+                GetExpressionName(expression),
                 templateName,
                 additionalViewData);
         }
@@ -272,7 +281,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var expressionName = GetExpressionName(expression);
-            return Name(expressionName);
+            return GenerateName(expressionName);
         }
 
         /// <inheritdoc />
@@ -354,7 +363,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 htmlAttributes);
         }
 
-        protected string GetExpressionName<TResult>(Expression<Func<TModel, TResult>> expression)
+        protected StringValuesTutu GetExpressionName<TResult>(Expression<Func<TModel, TResult>> expression)
         {
             if (expression == null)
             {

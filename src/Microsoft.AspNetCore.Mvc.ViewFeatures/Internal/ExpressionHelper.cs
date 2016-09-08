@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
@@ -18,31 +17,30 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return string.Equals(expression, "model", StringComparison.OrdinalIgnoreCase) ? string.Empty : expression;
         }
 
-        public static string GetExpressionText(LambdaExpression expression)
+        public static StringValuesTutu GetExpressionText(LambdaExpression expression)
         {
             return GetExpressionText(expression, expressionTextCache: null);
         }
 
-        public static string GetExpressionText(LambdaExpression expression, ExpressionTextCache expressionTextCache)
+        public static StringValuesTutu GetExpressionText(
+            LambdaExpression expression,
+            ExpressionTextCache expressionTextCache)
         {
             if (expression == null)
             {
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            string expressionText;
+            StringValuesTutu stringValues;
             if (expressionTextCache != null &&
-                expressionTextCache.Entries.TryGetValue(expression, out expressionText))
+                expressionTextCache.Entries.TryGetValue(expression, out stringValues))
             {
-                return expressionText;
+                return stringValues;
             }
 
+            stringValues = StringValuesTutu.Empty;
             var containsIndexers = false;
             var part = expression.Body;
-
-            // Builder to concatenate the names for property/field accessors within an expression to create a string.
-            var builder = new StringBuilder();
-
             while (part != null)
             {
                 if (part.NodeType == ExpressionType.Call)
@@ -55,8 +53,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         break;
                     }
 
-                    InsertIndexerInvocationText(
-                        builder,
+                    stringValues = InsertIndexerInvocationText(
+                        stringValues,
                         methodExpression.Arguments.Single(),
                         expression);
 
@@ -67,8 +65,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     containsIndexers = true;
                     var binaryExpression = (BinaryExpression)part;
 
-                    InsertIndexerInvocationText(
-                        builder,
+                    stringValues = InsertIndexerInvocationText(
+                        stringValues,
                         binaryExpression.Right,
                         expression);
 
@@ -88,8 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         break;
                     }
 
-                    builder.Insert(0, name);
-                    builder.Insert(0, '.');
+                    stringValues = StringValuesTutu.Concat(".", name, stringValues);
                     part = memberExpressionPart.Expression;
                 }
                 else
@@ -99,42 +96,52 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
 
             // If parts start with "model", then strip that part away.
-            if (part == null || part.NodeType != ExpressionType.Parameter)
+            var removeSegments = 0;
+            if ((part == null || part.NodeType != ExpressionType.Parameter) &&
+                stringValues.Count >= 2 &&
+                string.Equals(".", stringValues[0], StringComparison.Ordinal) &&
+                string.Equals("model", stringValues[1], StringComparison.OrdinalIgnoreCase))
             {
-                var text = builder.ToString();
-                if (text.StartsWith(".model", StringComparison.OrdinalIgnoreCase))
+                removeSegments = 2;
+            }
+
+            // Trim the leading "." if present.
+            if (removeSegments < stringValues.Count &&
+                string.Equals(".", stringValues[removeSegments], StringComparison.Ordinal))
+            {
+                removeSegments++;
+            }
+
+            // Remove the leading segments found just above.
+            if (removeSegments != 0)
+            {
+                if (removeSegments == stringValues.Count)
                 {
-                    // 6 is the length of the string ".model".
-                    builder.Remove(0, 6);
+                    stringValues = StringValuesTutu.Empty;
+                }
+                else
+                {
+                    var oldValues = stringValues.ToArray();
+                    var newValues = new string[stringValues.Count - removeSegments];
+                    Array.Copy(oldValues, removeSegments, newValues, destinationIndex: 0, length: newValues.Length);
+
+                    stringValues = new StringValuesTutu(newValues);
                 }
             }
 
-            if (builder.Length > 0)
-            {
-                // Trim the leading "." if present.
-                builder.Replace(".", string.Empty, 0, 1);
-            }
-
-            expressionText = builder.ToString();
-
             if (expressionTextCache != null && !containsIndexers)
             {
-                expressionTextCache.Entries.TryAdd(expression, expressionText);
+                expressionTextCache.Entries.TryAdd(expression, stringValues);
             }
 
-            return expressionText;
+            return stringValues;
         }
 
-        private static void InsertIndexerInvocationText(
-            StringBuilder builder,
+        private static StringValuesTutu InsertIndexerInvocationText(
+            StringValuesTutu stringValues,
             Expression indexExpression,
             LambdaExpression parentExpression)
         {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
             if (indexExpression == null)
             {
                 throw new ArgumentNullException(nameof(indexExpression));
@@ -169,9 +176,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     ex);
             }
 
-            builder.Insert(0, ']');
-            builder.Insert(0, Convert.ToString(func(null), CultureInfo.InvariantCulture));
-            builder.Insert(0, '[');
+            return StringValuesTutu.Concat(
+                "[",
+                Convert.ToString(func(null), CultureInfo.InvariantCulture),
+                "]",
+                stringValues);
         }
 
         public static bool IsSingleArgumentIndexer(Expression expression)
