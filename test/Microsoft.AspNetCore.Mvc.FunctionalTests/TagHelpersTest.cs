@@ -115,11 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
             expectedContent = string.Format(expectedContent, forgeryToken);
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent(expectedContent.Trim()),
-                responseContent,
-                ignoreLineEndingDifferences: true);
+            Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -216,11 +212,7 @@ page:<root>root-content</root>"
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent(expectedContent),
-                responseContent,
-                ignoreLineEndingDifferences: true);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 
@@ -284,11 +276,7 @@ page:<root>root-content</root>"
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            Assert.Equal(
-                PlatformNormalizer.NormalizeContent(expectedContent),
-                responseContent,
-                ignoreLineEndingDifferences: true);
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
 #endif
         }
 

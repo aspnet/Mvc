@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
@@ -67,7 +66,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             get
             {
-                var data = new TheoryData<Type>
+                return new TheoryData<Type>
                 {
                     typeof(byte),
                     typeof(short),
@@ -76,15 +75,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                     typeof(Guid),
                     typeof(double),
                     typeof(DayOfWeek),
+                    typeof(DateTimeOffset),
                 };
-
-                // DateTimeOffset doesn't have a TypeConverter in Mono.
-                if (!TestPlatformHelper.IsMono)
-                {
-                    data.Add(typeof(DateTimeOffset));
-                }
-
-                return data;
             }
         }
 

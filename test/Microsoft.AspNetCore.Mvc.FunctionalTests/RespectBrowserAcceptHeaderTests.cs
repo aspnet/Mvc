@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
-using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -40,9 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("{\"id\":10,\"name\":\"John\"}", responseData);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("application/xml,*/*;q=0.2")]
         [InlineData("application/xml,*/*")]
         public async Task AllMediaRangeAcceptHeader_ProducesAttributeIsHonored(string acceptHeader)
@@ -68,9 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             XmlAssert.Equal(expectedResponseData, responseData);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("application/xml,*/*;q=0.2")]
         [InlineData("application/xml,*/*")]
         public async Task AllMediaRangeAcceptHeader_WithContentTypeHeader_ContentTypeIsIgnored(string acceptHeader)
@@ -100,9 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(expectedResponseData, responseData);
         }
 
-        [ConditionalTheory]
-        // Mono issue - https://github.com/aspnet/External/issues/18
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Theory]
         [InlineData("application/xml,application/json;q=0.2")]
         [InlineData("application/xml,application/json")]
         public async Task AllMediaRangeAcceptHeader_WithExactMatch_ReturnsExpectedContent(string acceptHeader)

@@ -1,8 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Testing;
-using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 using Xunit.Sdk;
 
@@ -39,21 +37,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         {
             get
             {
-                var data = new TheoryData<string, string>
+                return new TheoryData<string, string>
                 {
                     { "<A></A>", "<A></A>" },
                     { "<A><!-- comment1 --><B></B></A>", "<A><!-- comment1 --><B></B></A>" },
                     { "<A/>", "<A/>" },
+                    { "<A><![CDATA[<greeting></greeting>]]></A>", "<A><![CDATA[<greeting></greeting>]]></A>" },
                 };
-
-                // DeepEquals returns false even though the generated XML documents are equal.
-                // This is fixed in Mono 4.3.0
-                if (!TestPlatformHelper.IsMono)
-                {
-                    data.Add("<A><![CDATA[<greeting></greeting>]]></A>", "<A><![CDATA[<greeting></greeting>]]></A>");
-                }
-
-                return data;
             }
         }
 
@@ -74,10 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Throws<EqualException>(() => XmlAssert.Equal(input1, input2));
         }
 
-        [ConditionalFact]
-        // DeepEquals returns false even though the generated XML documents are equal.
-        // This is fixed in Mono 4.3.0
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void ReturnsSuccessfully_WithMatchingXmlDeclaration_IgnoringCase()
         {
             // Arrange

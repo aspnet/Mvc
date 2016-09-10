@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Testing;
-using Microsoft.AspNetCore.Testing.xunit;
 using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
@@ -26,9 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var attribute = new CompareAttribute("OtherProperty");
             var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            var expectedMessage = PlatformNormalizer.NormalizeContent(
-                    "'MyPropertyDisplayName' and 'OtherPropertyDisplayName' do not match.");
+            var expectedMessage = "'MyPropertyDisplayName' and 'OtherPropertyDisplayName' do not match.";
 
             var actionContext = new ActionContext();
             var context = new ClientModelValidationContext(
@@ -106,8 +103,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             var attribute = new CompareAttribute("OtherProperty");
             var adapter = new CompareAttributeAdapter(attribute, stringLocalizer: null);
 
-            // Mono issue - https://github.com/aspnet/External/issues/19
-            var expectedMessage = PlatformNormalizer.NormalizeContent("'MyProperty' and 'OtherProperty' do not match.");
+            var expectedMessage = "'MyProperty' and 'OtherProperty' do not match.";
 
             var actionContext = new ActionContext();
             var context = new ClientModelValidationContext(
@@ -168,9 +164,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 });
         }
 
-        [ConditionalFact]
-        // ValidationAttribute in Mono does not read non-public resx properties.
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void ClientRulesWithCompareAttribute_ErrorMessageUsesResourceOverride()
         {
             // Arrange

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Formatting;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Testing.xunit;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -146,9 +145,7 @@ namespace System.Web.Http.Dispatcher
             Assert.Contains("c", data);
         }
 
-        [ConditionalFact]
-        // Mono issue - https://github.com/aspnet/External/issues/25
-        [FrameworkSkipCondition(RuntimeFrameworks.Mono)]
+        [Fact]
         public void HttpError_Roundtrips_WithXmlFormatter()
         {
             HttpError error = new HttpError("error") { { "ErrorCode", 42 }, { "Data", new[] { "a", "b", "c" } } };
