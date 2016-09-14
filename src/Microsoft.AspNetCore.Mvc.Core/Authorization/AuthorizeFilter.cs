@@ -68,6 +68,15 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         /// <summary>
+        /// Initializes a new instance of <see cref="AuthorizeFilter"/>.
+        /// </summary>
+        /// <param name="policy">The name of the policy to require for authorization.</param>
+        public AuthorizeFilter(string policy)
+            : this(new[] { new AuthorizeAttribute(policy) })
+        {
+        }
+
+        /// <summary>
         /// The <see cref="IAuthorizationPolicyProvider"/> to use to resolve policy names.
         /// </summary>
         public IAuthorizationPolicyProvider PolicyProvider { get; }

@@ -27,7 +27,22 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task OnAuthorizationAsync_ThrowsIfPolicyAndPolicyProviderAreNotAvailable()
+        public async Task AuthorizeFilter_CreatedWithAuthorizeData_ThrowsWhenOnAuthorizationAsyncIsCalled()
+        {
+            // Arrange
+            var authorizeFilter = new AuthorizeFilter(new[] { new AuthorizeAttribute() });
+            var authorizationContext = GetAuthorizationContext(services => services.AddAuthorization());
+            var expected = "An AuthorizationPolicy cannot be created without a valid instance of " +
+                "IAuthorizationPolicyProvider.";
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => authorizeFilter.OnAuthorizationAsync(authorizationContext));
+            Assert.Equal(expected, ex.Message);
+        }
+
+        [Fact]
+        public async Task AuthorizeFilter_CreatedWithPolicy_ThrowsWhenOnAuthorizationAsyncIsCalled()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new[] { new AuthorizeAttribute() });
@@ -380,15 +395,33 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             Assert.Same(authorizeFilter, result);
         }
 
-        [Fact]
-        public void CreateInstance_ReturnsNewPolicyIfPolicyAndPolicyProviderIsNotSet()
+        public static TheoryData AuthorizeFiltersCreatedWithoutPolicyOrPolicyProvider
+        {
+            get
+            {
+                return new TheoryData<AuthorizeFilter>
+                {
+                    new AuthorizeFilter(new[] { new AuthorizeAttribute()}),
+                    new AuthorizeFilter("some-policy"),
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(AuthorizeFiltersCreatedWithoutPolicyOrPolicyProvider))]
+        public void CreateInstance_ReturnsNewFilterIfPolicyAndPolicyProviderAreNotSet(AuthorizeFilter authorizeFilter)
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new[] { new AuthorizeAttribute() });
             var factory = (IFilterFactory)authorizeFilter;
             var serviceProvider = new ServiceCollection()
                 .AddOptions()
-                .AddAuthorization()
+                .AddAuthorization(options =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAssertion(_ => true)
+                        .Build();
+                    options.AddPolicy("some-policy", policy);
+                })
                 .BuildServiceProvider();
 
             // Act
@@ -398,6 +431,27 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             Assert.NotSame(authorizeFilter, result);
             var actual = Assert.IsType<AuthorizeFilter>(result);
             Assert.NotNull(actual.Policy);
+        }
+
+        [Theory]
+        [MemberData(nameof(AuthorizeFiltersCreatedWithoutPolicyOrPolicyProvider))]
+        public void CreateInstance_ReturnsNewFilterIfPolicyAndPolicyProviderAreNotSetAndCustomProviderIsUsed(
+            AuthorizeFilter authorizeFilter)
+        {
+            // Arrange
+            var factory = (IFilterFactory)authorizeFilter;
+            var policyProvider = Mock.Of<IAuthorizationPolicyProvider>();
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(policyProvider)
+                .BuildServiceProvider();
+
+            // Act
+            var result = factory.CreateInstance(serviceProvider);
+
+            // Assert
+            Assert.NotSame(authorizeFilter, result);
+            var actual = Assert.IsType<AuthorizeFilter>(result);
+            Assert.Same(policyProvider, actual.PolicyProvider);
         }
 
         private AuthorizationFilterContext GetAuthorizationContext(
