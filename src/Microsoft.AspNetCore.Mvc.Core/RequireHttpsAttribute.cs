@@ -71,10 +71,10 @@ namespace Microsoft.AspNetCore.Mvc
                 var request = filterContext.HttpContext.Request;
 
                 var host = request.Host;
-                if (optionsAccessor.Value.SslPort.HasValue && optionsAccessor.Value.SslPort > 0)
+                if (optionsAccessor.Value.TlsPort.HasValue && optionsAccessor.Value.TlsPort > 0)
                 {
-                    // a specific SSL port is specified
-                    host = new HostString(host.Host, optionsAccessor.Value.SslPort.Value);
+                    // a specific TLS port is specified
+                    host = new HostString(host.Host, optionsAccessor.Value.TlsPort.Value);
                 }
                 else
                 {
