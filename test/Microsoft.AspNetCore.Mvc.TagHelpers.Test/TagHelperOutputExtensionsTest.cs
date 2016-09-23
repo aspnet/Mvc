@@ -676,7 +676,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -691,7 +691,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -706,7 +706,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         },
                         new TagHelperAttributeList
                         {
-                            { "class", "btn2 btn" }
+                            { "clASS", "btn2 btn" }
                         }
                     },
                     {
@@ -725,7 +725,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         new TagHelperAttributeList
                         {
                             { "before", "before value" },
-                            { "class", "btn2 btn" },
+                            { "clASS", "btn2 btn" },
                             { "mid", "mid value" },
                             { "after", "after value" },
                         }
@@ -748,7 +748,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         new TagHelperAttributeList
                         {
                             { "before", "before value" },
-                            { "class", "btn2 btn" },
+                            { "clASS", "btn2 btn" },
                             { "mid", "mid value" },
                             { "after", "after value" },
                             { "A", "A Value" },

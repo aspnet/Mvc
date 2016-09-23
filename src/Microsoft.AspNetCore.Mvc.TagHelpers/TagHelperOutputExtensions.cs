@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -90,9 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <param name="tagBuilder">The <see cref="TagBuilder"/> to merge attributes from.</param>
         /// <remarks>Existing <see cref="TagHelperOutput.Attributes"/> on the given <paramref name="tagHelperOutput"/>
         /// are not overridden; "class" attributes are merged with spaces.</remarks>
-        public static void MergeAttributes(
-            this TagHelperOutput tagHelperOutput,
-            TagBuilder tagBuilder)
+        public static void MergeAttributes(this TagHelperOutput tagHelperOutput, TagBuilder tagBuilder)
         {
             if (tagHelperOutput == null)
             {
@@ -110,18 +109,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 {
                     tagHelperOutput.Attributes.Add(attribute.Key, attribute.Value);
                 }
-                else if (attribute.Key.Equals("class", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(attribute.Key, "class", StringComparison.OrdinalIgnoreCase))
                 {
                     TagHelperAttribute classAttribute;
+                    var found = tagHelperOutput.Attributes.TryGetAttribute("class", out classAttribute);
+                    Debug.Assert(found);
 
-                    if (tagHelperOutput.Attributes.TryGetAttribute("class", out classAttribute))
-                    {
-                        tagHelperOutput.Attributes.SetAttribute("class", classAttribute.Value + " " + attribute.Value);
-                    }
-                    else
-                    {
-                        tagHelperOutput.Attributes.Add("class", attribute.Value);
-                    }
+                    tagHelperOutput.Attributes.SetAttribute(
+                        classAttribute.Name,
+                        classAttribute.Value + " " + attribute.Value);
                 }
             }
         }
