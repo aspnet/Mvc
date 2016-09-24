@@ -833,7 +833,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var attribute = Assert.Single(tagHelperOutput.Attributes);
-            Assert.Equal(expectedAttribute, attribute);
+            Assert.Equal(expectedAttribute, attribute, CaseSensitiveTagHelperAttributeComparer.Default);
         }
 
         [Theory]
@@ -859,7 +859,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var attribute = Assert.Single(tagHelperOutput.Attributes);
-            Assert.Equal(new TagHelperAttribute(originalName, "Hello btn"), attribute);
+            Assert.Equal(
+                new TagHelperAttribute(originalName, "Hello btn"),
+                attribute,
+                CaseSensitiveTagHelperAttributeComparer.Default);
         }
 
         [Fact]
@@ -958,43 +961,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal(expectedOutputAttribute.Value, attribute.Value);
             attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("for"));
             Assert.Equal(expectedBuilderAttribute.Value, attribute.Value);
-        }
-
-        private class CaseSensitiveTagHelperAttributeComparer : IEqualityComparer<TagHelperAttribute>
-        {
-            public readonly static CaseSensitiveTagHelperAttributeComparer Default =
-                new CaseSensitiveTagHelperAttributeComparer();
-
-            private CaseSensitiveTagHelperAttributeComparer()
-            {
-            }
-
-            public bool Equals(TagHelperAttribute attributeX, TagHelperAttribute attributeY)
-            {
-                if (attributeX == attributeY)
-                {
-                    return true;
-                }
-
-                // Normal comparer (TagHelperAttribute.Equals()) doesn't care about the Name case, in tests we do.
-                return attributeX != null &&
-                    string.Equals(attributeX.Name, attributeY.Name, StringComparison.Ordinal) &&
-                    attributeX.ValueStyle == attributeY.ValueStyle &&
-                    (attributeX.ValueStyle == HtmlAttributeValueStyle.Minimized || Equals(attributeX.Value, attributeY.Value));
-            }
-
-            public int GetHashCode(TagHelperAttribute attribute)
-            {
-                // Manually combine hash codes here. We can't reference HashCodeCombiner because we have internals visible
-                // from Mvc.Core and Mvc.TagHelpers; both of which reference HashCodeCombiner.
-                var baseHashCode = 0x1505L;
-                var attributeHashCode = attribute.GetHashCode();
-                var combinedHash = ((baseHashCode << 5) + baseHashCode) ^ attributeHashCode;
-                var nameHashCode = StringComparer.Ordinal.GetHashCode(attribute.Name);
-                combinedHash = ((combinedHash << 5) + combinedHash) ^ nameHashCode;
-
-                return combinedHash.GetHashCode();
-            }
         }
     }
 }
