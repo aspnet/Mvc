@@ -25,6 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly IViewBufferScope _bufferScope;
         private readonly string _name;
         private readonly int _pageSize;
+        private ViewBufferPages _pages;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ViewBuffer"/>.
@@ -48,13 +49,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _name = name;
             _pageSize = pageSize;
 
-            Pages = new List<ViewBufferPage>();
+            _pages = new ViewBufferPages();
         }
 
         /// <summary>
         /// Gets the backing buffer.
         /// </summary>
-        public IList<ViewBufferPage> Pages { get; }
+        public IReadOnlyList<ViewBufferPage> Pages => _pages;
 
         /// <inheritdoc />
         public IHtmlContentBuilder Append(string unencoded)
@@ -89,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             {
                 return this;
             }
-            
+
             AppendValue(new ViewBufferValue(encoded));
             return this;
         }
@@ -103,18 +104,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private ViewBufferPage GetCurrentPage()
         {
             ViewBufferPage page;
-            if (Pages.Count == 0)
+            if (_pages.Count == 0)
             {
                 page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                Pages.Add(page);
+                _pages = _pages.Add(page);
             }
             else
             {
-                page = Pages[Pages.Count - 1];
+                page = _pages[_pages.Count - 1];
                 if (page.IsFull)
                 {
                     page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                    Pages.Add(page);
+                    _pages = _pages.Add(page);
                 }
             }
 
@@ -124,11 +125,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public IHtmlContentBuilder Clear()
         {
-            if (Pages != null)
-            {
-                Pages.Clear();
-            }
-
+            _pages = _pages.Clear();
             return this;
         }
 
@@ -145,14 +142,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            if (Pages == null)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                return;
-            }
-
-            for (var i = 0; i < Pages.Count; i++)
-            {
-                var page = Pages[i];
+                var page = _pages[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -192,14 +184,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            if (Pages == null)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                return;
-            }
-
-            for (var i = 0; i < Pages.Count; i++)
-            {
-                var page = Pages[i];
+                var page = _pages[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -238,14 +225,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            if (Pages == null)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                return;
-            }
-
-            for (var i = 0; i < Pages.Count; i++)
-            {
-                var page = Pages[i];
+                var page = _pages[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -275,11 +257,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            if (Pages == null)
-            {
-                return;
-            }
-
             // Perf: We have an efficient implementation when the destination is another view buffer,
             // we can just insert our pages as-is.
             var other = destination as ViewBuffer;
@@ -289,9 +266,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return;
             }
 
-            for (var i = 0; i < Pages.Count; i++)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                var page = Pages[i];
+                var page = _pages[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -313,23 +290,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 }
             }
 
-            for (var i = 0; i < Pages.Count; i++)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                var page = Pages[i];
+                var page = _pages[i];
                 Array.Clear(page.Buffer, 0, page.Count);
                 _bufferScope.ReturnSegment(page.Buffer);
             }
 
-            Pages.Clear();
+            _pages = _pages.Clear();
         }
 
         private void MoveTo(ViewBuffer destination)
         {
-            for (var i = 0; i < Pages.Count; i++)
+            for (var i = 0; i < _pages.Count; i++)
             {
-                var page = Pages[i];
+                var page = _pages[i];
 
-                var destinationPage = destination.Pages.Count == 0 ? null : destination.Pages[destination.Pages.Count - 1];
+                var destinationPage = destination._pages.Count == 0 ? null : destination._pages[destination._pages.Count - 1];
 
                 // If the source page is less or equal to than half full, let's copy it's content to the destination
                 // page if possible.
@@ -351,17 +328,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     // Now we can return the source page, and it can be reused in the scope of this request.
                     Array.Clear(page.Buffer, 0, page.Count);
                     _bufferScope.ReturnSegment(page.Buffer);
-                    
+
                 }
                 else
                 {
                     // Otherwise, let's just add the source page to the other buffer.
-                    destination.Pages.Add(page);
+                    destination._pages = destination._pages.Add(page);
                 }
 
             }
 
-            Pages.Clear();
+            _pages = _pages.Clear();
         }
 
         private class EncodingWrapper : IHtmlContent
