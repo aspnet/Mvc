@@ -286,6 +286,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                .AddSingleton(urlHelperFactory.Object)
                .AddSingleton(Mock.Of<IViewComponentHelper>())
                .AddSingleton(innerHelper)
+               .AddSingleton<HtmlEncoder, HtmlTestEncoder>()
                .AddSingleton<IViewBufferScope, TestViewBufferScope>()
                .BuildServiceProvider();
 

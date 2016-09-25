@@ -6,6 +6,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -245,6 +248,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
 
             var serviceProvider = htmlHelper.ViewContext.HttpContext.RequestServices;
+            var htmlEncoder = serviceProvider.GetRequiredService<HtmlEncoder>();
             var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
             var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
 
@@ -272,12 +276,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 if (!propertyMetadata.HideSurroundingHtml)
                 {
                     var label = htmlHelper.Label(propertyMetadata.PropertyName, labelText: null, htmlAttributes: null);
-                    if (!string.IsNullOrEmpty(label.ToString()))
+                    using (var writer = new HasContentTextWriter())
                     {
-                        var labelTag = new TagBuilder("div");
-                        labelTag.AddCssClass("editor-label");
-                        labelTag.InnerHtml.SetHtmlContent(label);
-                        content.AppendLine(labelTag);
+                        label.WriteTo(writer, htmlEncoder);
+                        if (writer.HasContent)
+                        {
+                            var labelTag = new TagBuilder("div");
+                            labelTag.AddCssClass("editor-label");
+                            labelTag.InnerHtml.SetHtmlContent(label);
+                            content.AppendLine(labelTag);
+                        }
                     }
 
                     var valueDivTag = new TagBuilder("div");
@@ -432,6 +440,38 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 value: value,
                 format: null,
                 htmlAttributes: htmlAttributes);
+        }
+
+        private class HasContentTextWriter : TextWriter
+        {
+            public HasContentTextWriter()
+            {
+            }
+
+            public bool HasContent { get; private set; }
+
+            public override Encoding Encoding => Null.Encoding;
+
+            public override void Write(char value)
+            {
+                HasContent = true;
+            }
+
+            public override void Write(char[] buffer, int index, int count)
+            {
+                if (count > 0)
+                {
+                    HasContent = true;
+                }
+            }
+
+            public override void Write(string value)
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    HasContent = true;
+                }
+            }
         }
     }
 }
