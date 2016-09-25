@@ -404,10 +404,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var resolvedLabelText = labelText ??
                 modelExplorer.Metadata.DisplayName ??
                 modelExplorer.Metadata.PropertyName;
-            if (resolvedLabelText == null)
+            if (resolvedLabelText == null && expression != null)
             {
-                resolvedLabelText =
-                    string.IsNullOrEmpty(expression) ? string.Empty : expression.Split('.').Last();
+                var index = expression.LastIndexOf('.');
+                if (index == -1)
+                {
+                    // Expression does not contain a dot separator.
+                    resolvedLabelText = expression;
+                }
+                else
+                {
+                    resolvedLabelText = expression.Substring(index + 1);
+                }
             }
 
             if (string.IsNullOrEmpty(resolvedLabelText))

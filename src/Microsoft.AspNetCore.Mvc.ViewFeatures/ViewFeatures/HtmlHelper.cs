@@ -800,13 +800,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // we want to fall back to the field name rather than the ModelType.
             // This is similar to how the GenerateLabel get the text of a label.
             var resolvedDisplayName = modelExplorer.Metadata.DisplayName ?? modelExplorer.Metadata.PropertyName;
-            if (resolvedDisplayName == null)
+            if (resolvedDisplayName == null && expression != null)
             {
-                resolvedDisplayName =
-                    string.IsNullOrEmpty(expression) ? string.Empty : expression.Split('.').Last();
+                var index = expression.LastIndexOf('.');
+                if (index == -1)
+                {
+                    // Expression does not contain a dot separator.
+                    resolvedDisplayName = expression;
+                }
+                else
+                {
+                    resolvedDisplayName = expression.Substring(index + 1);
+                }
             }
 
-            return resolvedDisplayName;
+            return resolvedDisplayName ?? string.Empty;
         }
 
         protected virtual string GenerateDisplayText(ModelExplorer modelExplorer)

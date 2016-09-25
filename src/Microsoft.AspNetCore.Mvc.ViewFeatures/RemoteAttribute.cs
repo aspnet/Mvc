@@ -25,8 +25,10 @@ namespace Microsoft.AspNetCore.Mvc
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class RemoteAttribute : ValidationAttribute, IClientModelValidator
     {
+        private static readonly string[] EmptyArray = new string[0];
+
         private string _additionalFields = string.Empty;
-        private string[] _additionalFieldsSplit = new string[0];
+        private string[] _additionalFieldsSplit = EmptyArray;
         private bool _checkedForLocalizer;
         private IStringLocalizer _stringLocalizer;
 
@@ -275,7 +277,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             if (string.IsNullOrEmpty(original))
             {
-                return new string[0];
+                return EmptyArray;
             }
 
             var split = original
