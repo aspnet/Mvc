@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -37,86 +38,158 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return expressionText;
             }
 
-            var containsIndexers = false;
+            // Determine size of string needed and number of segments.
+            var lastIsModel = false;
+            var length = 0;
             var part = expression.Body;
-
-            // Builder to concatenate the names for property/field accessors within an expression to create a string.
-            var builder = new StringBuilder();
-
+            var segmentCount = 0;
+            var trailingMemberExpressions = 0;
             while (part != null)
             {
-                if (part.NodeType == ExpressionType.Call)
+                switch (part.NodeType)
                 {
-                    containsIndexers = true;
-                    var methodExpression = (MethodCallExpression)part;
-                    if (!IsSingleArgumentIndexer(methodExpression))
-                    {
+                    case ExpressionType.Call:
+                        var methodExpression = (MethodCallExpression)part;
+                        if (IsSingleArgumentIndexer(methodExpression))
+                        {
+                            lastIsModel = false;
+                            length += 4;    // allow room for [99]
+                            part = methodExpression.Object;
+                            segmentCount++;
+                            trailingMemberExpressions = 0;
+                        }
+                        else
+                        {
+                            // Unsupported.
+                            part = null;
+                        }
+                        break;
+
+                    case ExpressionType.ArrayIndex:
+                        var binaryExpression = (BinaryExpression)part;
+
+                        lastIsModel = false;
+                        length += 4;    // allow room for [99]
+                        part = binaryExpression.Left;
+                        segmentCount++;
+                        trailingMemberExpressions = 0;
+                        break;
+
+                    case ExpressionType.MemberAccess:
+                        var memberExpressionPart = (MemberExpression)part;
+                        var name = memberExpressionPart.Member.Name;
+
+                        // If identifier contains "__", it is "reserved for use by the implementation" and likely
+                        // compiler- or Razor-generated e.g. the name of a field in a delegate's generated class.
+                        if (name.Contains("__"))
+                        {
+                            // Exit loop.
+                            part = null;
+                        }
+                        else
+                        {
+                            lastIsModel = string.Equals("model", name, StringComparison.OrdinalIgnoreCase);
+                            length += name.Length + 1;
+                            part = memberExpressionPart.Expression;
+                            segmentCount += 2;
+                            trailingMemberExpressions++;
+                        }
+                        break;
+
+                    case ExpressionType.Parameter:
+                        // Unsupported but indicates previous member access was not the view's Model.
+                        lastIsModel = false;
+                        part = null;
+                        break;
+
+                    default:
                         // Unsupported.
+                        part = null;
                         break;
-                    }
-
-                    InsertIndexerInvocationText(
-                        builder,
-                        methodExpression.Arguments.Single(),
-                        expression);
-
-                    part = methodExpression.Object;
                 }
-                else if (part.NodeType == ExpressionType.ArrayIndex)
+            }
+
+            // Expression must contain indexers if not all parts are member expressions.
+            var containsIndexers = (trailingMemberExpressions * 2) != segmentCount;
+
+            // If name would start with ".model", then strip that part away.
+            if (lastIsModel)
+            {
+                length -= 6;    // ".model".Length
+                segmentCount -= 2;
+                trailingMemberExpressions--;
+            }
+
+            // Trim the leading "." if present.
+            if (trailingMemberExpressions > 0)
+            {
+                length--;
+                segmentCount--;
+            }
+
+            Debug.Assert(segmentCount >= 0);
+            if (segmentCount == 0)
+            {
+                Debug.Assert(!containsIndexers);
+                if (expressionTextCache != null)
                 {
-                    containsIndexers = true;
-                    var binaryExpression = (BinaryExpression)part;
-
-                    InsertIndexerInvocationText(
-                        builder,
-                        binaryExpression.Right,
-                        expression);
-
-                    part = binaryExpression.Left;
+                    expressionTextCache.Entries.TryAdd(expression, string.Empty);
                 }
-                else if (part.NodeType == ExpressionType.MemberAccess)
-                {
-                    var memberExpressionPart = (MemberExpression)part;
-                    var name = memberExpressionPart.Member.Name;
 
-                    // If identifier contains "__", it is "reserved for use by the implementation" and likely compiler-
-                    // or Razor-generated e.g. the name of a field in a delegate's generated class.
-                    if (name.Contains("__"))
-                    {
-                        // Exit loop. Should have the entire name because previous MemberAccess has same name as the
-                        // leftmost expression node (a variable).
+                return string.Empty;
+            }
+
+            var builder = new StringBuilder(length);
+            part = expression.Body;
+            while (part != null && segmentCount > 0)
+            {
+                switch (part.NodeType)
+                {
+                    case ExpressionType.Call:
+                        Debug.Assert(containsIndexers);
+                        var methodExpression = (MethodCallExpression)part;
+
+                        InsertIndexerInvocationText(builder, methodExpression.Arguments.Single(), expression);
+                        segmentCount--;
+
+                        part = methodExpression.Object;
                         break;
-                    }
 
-                    builder.Insert(0, name);
-                    builder.Insert(0, '.');
-                    part = memberExpressionPart.Expression;
-                }
-                else
-                {
-                    break;
+                    case ExpressionType.ArrayIndex:
+                        Debug.Assert(containsIndexers);
+                        var binaryExpression = (BinaryExpression)part;
+
+                        InsertIndexerInvocationText(builder, binaryExpression.Right, expression);
+                        segmentCount--;
+
+                        part = binaryExpression.Left;
+                        break;
+
+                    case ExpressionType.MemberAccess:
+                        var memberExpression = (MemberExpression)part;
+                        var name = memberExpression.Member.Name;
+                        Debug.Assert(!name.Contains("__"));
+
+                        builder.Insert(0, name);
+                        segmentCount--;
+                        if (segmentCount > 0)
+                        {
+                            builder.Insert(0, '.');
+                            segmentCount--;
+                        }
+
+                        part = memberExpression.Expression;
+                        break;
+
+                    default:
+                        // Should be unreachable due to handling in above loop.
+                        Debug.Assert(false);
+                        break;
                 }
             }
 
-            // If parts start with "model", then strip that part away.
-            if (part == null || part.NodeType != ExpressionType.Parameter)
-            {
-                var text = builder.ToString();
-                if (text.StartsWith(".model", StringComparison.OrdinalIgnoreCase))
-                {
-                    // 6 is the length of the string ".model".
-                    builder.Remove(0, 6);
-                }
-            }
-
-            if (builder.Length > 0)
-            {
-                // Trim the leading "." if present.
-                builder.Replace(".", string.Empty, 0, 1);
-            }
-
+            Debug.Assert(segmentCount == 0);
             expressionText = builder.ToString();
-
             if (expressionTextCache != null && !containsIndexers)
             {
                 expressionTextCache.Entries.TryAdd(expression, expressionText);

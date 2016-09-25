@@ -424,8 +424,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var tagBuilder = new TagBuilder("label");
-            var idString =
-                TagBuilder.CreateSanitizedId(GetFullHtmlFieldName(viewContext, expression), IdAttributeDotReplacement);
+            var idString = CreateSanitizedId(viewContext, GetFullHtmlFieldName(viewContext, expression));
             tagBuilder.Attributes.Add("for", idString);
             tagBuilder.InnerHtml.SetContent(resolvedLabelText);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), replaceExisting: true);
@@ -628,7 +627,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             tagBuilder.InnerHtml.SetHtmlContent(listItemBuilder);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes));
             tagBuilder.MergeAttribute("name", fullName, true /* replaceExisting */);
-            tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
+            GenerateId(viewContext, tagBuilder, fullName);
             if (allowMultiple)
             {
                 tagBuilder.MergeAttribute("multiple", "multiple");
@@ -702,7 +701,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var tagBuilder = new TagBuilder("textarea");
-            tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
+            GenerateId(viewContext, tagBuilder, fullName);
             tagBuilder.MergeAttributes(GetHtmlAttributeDictionaryOrNull(htmlAttributes), true);
             if (rows > 0)
             {
@@ -1096,6 +1095,30 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return currentValues;
         }
 
+        // Public to minimize churn when (2.0?) this is added to IHtmlGenerator.
+        /// <summary>
+        /// Returns a valid HTML 4.01 "id" attribute value for an element with the given <paramref name="fullName"/>.
+        /// </summary>
+        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
+        /// <param name="fullName">
+        /// The fully-qualified expression name, ignoring the current model. Also the original HTML element name.
+        /// </param>
+        /// <returns>
+        /// Valid HTML 4.01 "id" attribute value for an element with the given <paramref name="fullName"/>.
+        /// </returns>
+        /// <seealso cref="TagBuilder.CreateSanitizedId"/>
+        public virtual string CreateSanitizedId(ViewContext viewContext, string fullName)
+        {
+            var lastSanitizedId = viewContext.LastSanitizedId;
+            if (!string.Equals(lastSanitizedId.Name, fullName, StringComparison.Ordinal))
+            {
+                lastSanitizedId.Name = fullName;
+                lastSanitizedId.Id = TagBuilder.CreateSanitizedId(fullName, IdAttributeDotReplacement);
+            }
+
+            return lastSanitizedId.Id;
+        }
+
         internal static string EvalString(ViewContext viewContext, string key, string format)
         {
             return Convert.ToString(viewContext.ViewData.Eval(key, format), CultureInfo.CurrentCulture);
@@ -1190,6 +1213,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             tagBuilder.MergeAttribute("method", method, replaceExisting: true);
 
             return tagBuilder;
+        }
+
+        /// <summary>
+        /// Adds a valid HTML 4.01 "id" attribute for an element with the given <paramref name="fullName"/> to the
+        /// given <paramref name="tagBuilder"/>. Does nothing if the <paramref name="tagBuilder"/> already contains an
+        /// "id" attribute or the <paramref name="fullName"/> is <c>null</c> or empty.
+        /// </summary>
+        /// <param name="viewContext">A <see cref="ViewContext"/> instance for the current scope.</param>
+        /// <param name="tagBuilder">A <see cref="TagBuilder"/> instance.</param>
+        /// <param name="fullName">
+        /// The fully-qualified expression name, ignoring the current model. Also the original HTML element name.
+        /// </param>
+        /// <seealso cref="CreateSanitizedId"/>
+        protected virtual void GenerateId(ViewContext viewContext, TagBuilder tagBuilder, string fullName)
+        {
+            var attributes = tagBuilder.Attributes;
+            if (!attributes.ContainsKey("id"))
+            {
+                var sanitizedId = CreateSanitizedId(viewContext, fullName);
+
+                // Delay check for null or empty (i.e. don't check fullName in first condition) to cover the corner
+                // case where fullName contains only invalid characters and IdAttributeDotReplacement is empty.
+                if (!string.IsNullOrEmpty(sanitizedId))
+                {
+                    attributes["id"] = sanitizedId;
+                }
+            }
         }
 
         protected virtual TagBuilder GenerateInput(
@@ -1316,7 +1366,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (setId)
             {
-                tagBuilder.GenerateId(fullName, IdAttributeDotReplacement);
+                GenerateId(viewContext, tagBuilder, fullName);
             }
 
             // If there are any errors for a named field, we add the CSS attribute.
