@@ -6,6 +6,7 @@ using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
@@ -27,16 +28,44 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Don't do anything. We'll call FlushAsync.
         }
 
-        public override async Task FlushAsync()
+        public override Task FlushAsync()
         {
             var length = _charBuffer.Length;
             if (length == 0)
             {
-                return;
+                return TaskCache.CompletedTask;
             }
 
             var pages = _charBuffer.Pages;
             for (var i = 0; i < pages.Count; i++)
+            {
+                var page = pages[i];
+
+                var pageLength = Math.Min(length, PagedCharBuffer.PageSize);
+                if (pageLength != 0)
+                {
+                    var writeTask = _inner.WriteAsync(page, 0, pageLength);
+                    if (writeTask.Status != TaskStatus.RanToCompletion)
+                    {
+                        // Write did not complete sync, go async
+                        return FlushAsyncAwaited(writeTask, i - 1, length - pageLength);
+                    }
+                }
+                length -= pageLength;
+            }
+
+            _charBuffer.Clear();
+
+            return TaskCache.CompletedTask;
+        }
+
+        private async Task FlushAsyncAwaited(Task writeTask, int i, int length)
+        {
+            // Await last write
+            await writeTask;
+
+            var pages = _charBuffer.Pages;
+            for (; i < pages.Count; i++)
             {
                 var page = pages[i];
 
@@ -86,21 +115,57 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _charBuffer.Append(value);
         }
 
-        public override async Task WriteAsync(char value)
+        public override Task WriteAsync(char value)
         {
-            await FlushAsync();
+            var flushTask = FlushAsync();
+            if (flushTask.Status != TaskStatus.RanToCompletion)
+            {
+                // Flush did not complete sync, go async
+                return WriteAsyncAwaited(flushTask, value);
+            }
+
+            return _inner.WriteAsync(value);
+        }
+
+        private async Task WriteAsyncAwaited(Task flushTask, char value)
+        {
+            await flushTask;
             await _inner.WriteAsync(value);
         }
 
-        public override async Task WriteAsync(char[] buffer, int index, int count)
+        public override Task WriteAsync(char[] buffer, int index, int count)
         {
-            await FlushAsync();
+            var flushTask = FlushAsync();
+            if (flushTask.Status != TaskStatus.RanToCompletion)
+            {
+                // Flush did not complete sync, go async
+                return WriteAsyncAwaited(flushTask, buffer, index, count);
+            }
+
+            return _inner.WriteAsync(buffer, index, count);
+        }
+
+        private async Task WriteAsyncAwaited(Task flushTask, char[] buffer, int index, int count)
+        {
+            await flushTask;
             await _inner.WriteAsync(buffer, index, count);
         }
 
-        public override async Task WriteAsync(string value)
+        public override Task WriteAsync(string value)
         {
-            await FlushAsync();
+            var flushTask = FlushAsync();
+            if (flushTask.Status != TaskStatus.RanToCompletion)
+            {
+                // Flush did not complete sync, go async
+                return WriteAsyncAwaited(flushTask, value);
+            }
+
+            return _inner.WriteAsync(value);
+        }
+
+        private async Task WriteAsyncAwaited(Task flushTask, string value)
+        {
+            await flushTask;
             await _inner.WriteAsync(value);
         }
 
