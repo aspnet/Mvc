@@ -25,7 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly IViewBufferScope _bufferScope;
         private readonly string _name;
         private readonly int _pageSize;
-        private ViewBufferPages _pages;
+        private ViewBufferPage _singlePage = null;          // Limits allocation if the ViewBuffer has only one page (frequent case).
+        private List<ViewBufferPage> _multiplePages = null; // Allocated only if necessary
 
         /// <summary>
         /// Initializes a new instance of <see cref="ViewBuffer"/>.
@@ -48,14 +49,45 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _bufferScope = bufferScope;
             _name = name;
             _pageSize = pageSize;
-
-            _pages = new ViewBufferPages();
         }
 
         /// <summary>
-        /// Gets the backing buffer.
+        /// Get the <see cref="ViewBufferPage"/> count.
         /// </summary>
-        public IReadOnlyList<ViewBufferPage> Pages => _pages;
+        public int Count
+        {
+            get
+            {
+                if (_multiplePages != null)
+                {
+                    return _multiplePages.Count;
+                }
+                if (_singlePage != null)
+                {
+                    return 1;
+                }
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ViewBufferPage"/>.
+        /// </summary>
+        public ViewBufferPage this[int index]
+        {
+            get
+            {
+                if (_multiplePages != null)
+                {
+                    return _multiplePages[index];
+                }
+                if (index == 0 && _singlePage != null)
+                {
+                    return _singlePage;
+                }
+                throw new IndexOutOfRangeException();
+            }
+        }
 
         /// <inheritdoc />
         public IHtmlContentBuilder Append(string unencoded)
@@ -104,19 +136,32 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private ViewBufferPage GetCurrentPage()
         {
             ViewBufferPage page;
-            if (_pages.Count == 0)
+            if (_multiplePages != null)
             {
-                page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                _pages = _pages.Add(page);
-            }
-            else
-            {
-                page = _pages[_pages.Count - 1];
+                page = _multiplePages[_multiplePages.Count - 1];
                 if (page.IsFull)
                 {
                     page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                    _pages = _pages.Add(page);
+                    _multiplePages.Add(page);
                 }
+            }
+            else if (_singlePage != null)
+            {
+                page = _singlePage;
+                if (page.IsFull)
+                {
+                    _multiplePages = new List<ViewBufferPage>();
+                    _multiplePages.Add(_singlePage);
+                    _singlePage = null;
+
+                    page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
+                    _multiplePages.Add(page);
+                }
+            }
+            else
+            {
+                page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
+                _singlePage = page;
             }
 
             return page;
@@ -125,7 +170,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public IHtmlContentBuilder Clear()
         {
-            _pages = _pages.Clear();
+            _singlePage = null;
+            _multiplePages = null;
             return this;
         }
 
@@ -142,9 +188,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -184,9 +230,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -225,9 +271,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -266,9 +312,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return;
             }
 
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
                 for (var j = 0; j < page.Count; j++)
                 {
                     var value = page.Buffer[j];
@@ -290,23 +336,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 }
             }
 
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
                 Array.Clear(page.Buffer, 0, page.Count);
                 _bufferScope.ReturnSegment(page.Buffer);
             }
 
-            _pages = _pages.Clear();
+            Clear();
         }
 
         private void MoveTo(ViewBuffer destination)
         {
-            for (var i = 0; i < _pages.Count; i++)
+            for (var i = 0; i < Count; i++)
             {
-                var page = _pages[i];
+                var page = this[i];
 
-                var destinationPage = destination._pages.Count == 0 ? null : destination._pages[destination._pages.Count - 1];
+                var destinationPage = destination.Count == 0 ? null : destination[destination.Count - 1];
 
                 // If the source page is less or equal to than half full, let's copy it's content to the destination
                 // page if possible.
@@ -333,12 +379,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 else
                 {
                     // Otherwise, let's just add the source page to the other buffer.
-                    destination._pages = destination._pages.Add(page);
+                    if (destination._multiplePages != null)
+                    {
+                        destination._multiplePages.Add(page);
+                    }
+                    else if (destination._singlePage != null)
+                    {
+                        destination._multiplePages = new List<ViewBufferPage>();
+                        destination._multiplePages.Add(destination._singlePage);
+                        destination._multiplePages.Add(page);
+                    }
+                    else
+                    {
+                        destination._singlePage = page;
+                    }
                 }
 
             }
 
-            _pages = _pages.Clear();
+            Clear();
         }
 
         private class EncodingWrapper : IHtmlContent
