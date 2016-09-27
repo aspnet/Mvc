@@ -248,7 +248,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
 
             var serviceProvider = htmlHelper.ViewContext.HttpContext.RequestServices;
-            var htmlEncoder = serviceProvider.GetRequiredService<HtmlEncoder>();
             var viewEngine = serviceProvider.GetRequiredService<ICompositeViewEngine>();
             var viewBufferScope = serviceProvider.GetRequiredService<IViewBufferScope>();
 
@@ -278,7 +277,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     var label = htmlHelper.Label(propertyMetadata.PropertyName, labelText: null, htmlAttributes: null);
                     using (var writer = new HasContentTextWriter())
                     {
-                        label.WriteTo(writer, htmlEncoder);
+                        label.WriteTo(writer, PassThroughHtmlEncoder.Default);
                         if (writer.HasContent)
                         {
                             var labelTag = new TagBuilder("div");
@@ -471,6 +470,80 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     HasContent = true;
                 }
+            }
+        }
+
+        // An HTML encoder which passes through all input data. Does no encoding.
+        // Copied from Microsoft.AspNetCore.Razor.TagHelpers.NullHtmlEncoder.
+        private class PassThroughHtmlEncoder : HtmlEncoder
+        {
+            private PassThroughHtmlEncoder()
+            {
+            }
+
+            public static new PassThroughHtmlEncoder Default { get; } = new PassThroughHtmlEncoder();
+
+            public override int MaxOutputCharactersPerInputCharacter => 1;
+
+            public override string Encode(string value)
+            {
+                return value;
+            }
+
+            public override void Encode(TextWriter output, char[] value, int startIndex, int characterCount)
+            {
+                if (output == null)
+                {
+                    throw new ArgumentNullException(nameof(output));
+                }
+
+                if (characterCount == 0)
+                {
+                    return;
+                }
+
+                output.Write(value, startIndex, characterCount);
+            }
+
+            public override void Encode(TextWriter output, string value, int startIndex, int characterCount)
+            {
+                if (output == null)
+                {
+                    throw new ArgumentNullException(nameof(output));
+                }
+
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (characterCount == 0)
+                {
+                    return;
+                }
+
+                output.Write(value.Substring(startIndex, characterCount));
+            }
+
+            public override unsafe int FindFirstCharacterToEncode(char* text, int textLength)
+            {
+                return -1;
+            }
+
+            public override unsafe bool TryEncodeUnicodeScalar(
+                int unicodeScalar,
+                char* buffer,
+                int bufferLength,
+                out int numberOfCharactersWritten)
+            {
+                numberOfCharactersWritten = 0;
+
+                return false;
+            }
+
+            public override bool WillEncode(int unicodeScalar)
+            {
+                return false;
             }
         }
     }
