@@ -96,59 +96,65 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             return InnerEvalComplexExpression(indexableObject, expression);
         }
 
-        private static ViewDataInfo InnerEvalComplexExpression(object indexableObject, string expression)
-        {
-            foreach (var expressionPair in GetRightToLeftExpressions(expression))
-            {
-                var subExpression = expressionPair.Left;
-                var postExpression = expressionPair.Right;
-
-                var subTargetInfo = GetPropertyValue(indexableObject, subExpression);
-                if (subTargetInfo != null)
-                {
-                    if (string.IsNullOrEmpty(postExpression))
-                    {
-                        return subTargetInfo;
-                    }
-
-                    if (subTargetInfo.Value != null)
-                    {
-                        var potential = InnerEvalComplexExpression(subTargetInfo.Value, postExpression);
-                        if (potential != null)
-                        {
-                            return potential;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        // Produces an enumeration of combinations of property names given a complex expression in the following order:
+        // Enumerates combinations of property names given a complex expression in the following order:
         //  this["one.two.three.four"]
         //  this["one.two.three][four"]
         //  this["one.two][three.four"]
         //  this["one][two.three.four"]
         // Recursion of InnerEvalComplexExpression() further sub-divides these cases to cover the full set of
         // combinations shown in Eval(ViewDataDictionary, string) comments.
-        private static IEnumerable<ExpressionPair> GetRightToLeftExpressions(string expression)
+        private static ViewDataInfo InnerEvalComplexExpression(object indexableObject, string expression)
         {
-            yield return new ExpressionPair(expression, string.Empty);
+            var viewDataInfo = SubTargetInfo(indexableObject, new ExpressionPair(expression, string.Empty));
+
+            if (viewDataInfo != null)
+            {
+                return viewDataInfo;
+            }
 
             var lastDot = expression.LastIndexOf('.');
 
-            var subExpression = expression;
-            var postExpression = string.Empty;
-
             while (lastDot > -1)
             {
-                subExpression = expression.Substring(0, lastDot);
-                postExpression = expression.Substring(lastDot + 1);
-                yield return new ExpressionPair(subExpression, postExpression);
+                var subExpression = expression.Substring(0, lastDot);
+                var postExpression = expression.Substring(lastDot + 1);
+
+                viewDataInfo = SubTargetInfo(indexableObject, new ExpressionPair(subExpression, postExpression));
+                if (viewDataInfo != null)
+                {
+                    return viewDataInfo;
+                }
 
                 lastDot = subExpression.LastIndexOf('.');
             }
+
+            return null;
+        }
+
+        private static ViewDataInfo SubTargetInfo(object indexableObject, ExpressionPair expressionPair)
+        {
+            var subExpression = expressionPair.Left;
+            var postExpression = expressionPair.Right;
+
+            var subTargetInfo = GetPropertyValue(indexableObject, subExpression);
+            if (subTargetInfo != null)
+            {
+                if (string.IsNullOrEmpty(postExpression))
+                {
+                    return subTargetInfo;
+                }
+
+                if (subTargetInfo.Value != null)
+                {
+                    var potential = InnerEvalComplexExpression(subTargetInfo.Value, postExpression);
+                    if (potential != null)
+                    {
+                        return potential;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static ViewDataInfo GetIndexedPropertyValue(object indexableObject, string key)
