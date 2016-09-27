@@ -27,6 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly int _pageSize;
         private ViewBufferPage _singlePage = null;          // Limits allocation if the ViewBuffer has only one page (frequent case).
         private List<ViewBufferPage> _multiplePages = null; // Allocated only if necessary
+        private ViewBufferPage _currentPage = null;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ViewBuffer"/>.
@@ -135,36 +136,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         private ViewBufferPage GetCurrentPage()
         {
-            ViewBufferPage page;
+            if (_currentPage == null || _currentPage.IsFull)
+            {
+                AddPage(new ViewBufferPage(_bufferScope.GetPage(_pageSize)));
+            }
+            return _currentPage;
+        }
+
+        private void AddPage(ViewBufferPage page)
+        {
             if (_multiplePages != null)
             {
-                page = _multiplePages[_multiplePages.Count - 1];
-                if (page.IsFull)
-                {
-                    page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                    _multiplePages.Add(page);
-                }
+                _multiplePages.Add(page);
             }
             else if (_singlePage != null)
             {
-                page = _singlePage;
-                if (page.IsFull)
-                {
-                    _multiplePages = new List<ViewBufferPage>();
-                    _multiplePages.Add(_singlePage);
-                    _singlePage = null;
+                _multiplePages = new List<ViewBufferPage>(2);
+                _multiplePages.Add(_singlePage);
+                _multiplePages.Add(page);
 
-                    page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
-                    _multiplePages.Add(page);
-                }
+                _singlePage = null;
             }
             else
             {
-                page = new ViewBufferPage(_bufferScope.GetPage(_pageSize));
                 _singlePage = page;
             }
 
-            return page;
+            _currentPage = page;
         }
 
         /// <inheritdoc />
@@ -172,6 +170,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             _singlePage = null;
             _multiplePages = null;
+            _currentPage = null;
             return this;
         }
 
@@ -379,20 +378,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 else
                 {
                     // Otherwise, let's just add the source page to the other buffer.
-                    if (destination._multiplePages != null)
-                    {
-                        destination._multiplePages.Add(page);
-                    }
-                    else if (destination._singlePage != null)
-                    {
-                        destination._multiplePages = new List<ViewBufferPage>();
-                        destination._multiplePages.Add(destination._singlePage);
-                        destination._multiplePages.Add(page);
-                    }
-                    else
-                    {
-                        destination._singlePage = page;
-                    }
+                    destination.AddPage(page);
                 }
 
             }
