@@ -64,9 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
             tagBuilder.Attributes.Add("ID", "something");
 
             // Act
-#pragma warning disable 0618
             tagBuilder.GenerateId("else", invalidCharReplacement: "-");
-#pragma warning restore 0618
 
             // Assert
             var attribute = Assert.Single(tagBuilder.Attributes);

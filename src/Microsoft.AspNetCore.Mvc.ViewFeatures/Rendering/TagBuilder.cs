@@ -166,21 +166,13 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         /// <summary>
-        /// <para>
         /// Generates a sanitized ID attribute for the tag by using the specified name.
-        /// </para>
-        /// <para>
-        /// This method is obsolete and will be removed in a future version. The recommended alternative is to use
-        /// <see cref="DefaultHtmlGenerator.GenerateId"/>.
-        /// </para>
         /// </summary>
         /// <param name="name">The name to use to generate an ID attribute.</param>
         /// <param name="invalidCharReplacement">
         /// The <see cref="string"/> (normally a single <see cref="char"/>) to substitute for invalid characters in
         /// <paramref name="name"/>.
         /// </param>
-        [Obsolete("This method is obsolete and will be removed in a future version. The recommended alternative is " +
-            "to use Microsoft.AspNetCore.Mvc.ViewFeatures.DefaultHtmlGenerator.GenerateId().")]
         public void GenerateId(string name, string invalidCharReplacement)
         {
             if (invalidCharReplacement == null)

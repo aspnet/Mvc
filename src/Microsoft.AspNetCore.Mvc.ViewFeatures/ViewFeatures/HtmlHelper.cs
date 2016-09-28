@@ -342,7 +342,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(fullName));
             }
 
-            return CreateSanitizedId(fullName);
+            return TagBuilder.CreateSanitizedId(fullName, IdAttributeDotReplacement);
         }
 
         /// <inheritdoc />
@@ -1005,8 +1005,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         protected virtual string GenerateId(string expression)
         {
             var fullName = DefaultHtmlGenerator.GetFullHtmlFieldName(ViewContext, expression: expression);
+            var id = TagBuilder.CreateSanitizedId(fullName, IdAttributeDotReplacement);
 
-            return CreateSanitizedId(fullName);
+            return id;
         }
 
         protected virtual IHtmlContent GenerateLabel(
@@ -1268,31 +1269,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             return selectList;
-        }
-
-        // This method exists only because we cannot add IHtmlGenerator.CreateSanitizedId() until 2.0.
-        private string CreateSanitizedId(string fullName)
-        {
-            // First, cover possibility user has subclassed DefaultHtmlGenerator and overridden its CreateSanitizedId()
-            // implementation.
-            var defaultGenerator = _htmlGenerator as DefaultHtmlGenerator;
-            if (defaultGenerator != null)
-            {
-                return defaultGenerator.CreateSanitizedId(ViewContext, fullName);
-            }
-
-            // Fall back to duplicating DefaultHtmlGenerator.CreateSanitizedId() when user has replaced the
-            // IHtmlGenerator implementation with something unrelated.
-            var lastSanitizedId = ViewContext.LastSanitizedId;
-            if (string.Equals(lastSanitizedId.Name, fullName, StringComparison.Ordinal))
-            {
-                return lastSanitizedId.Id;
-            }
-
-            lastSanitizedId.Name = fullName;
-            lastSanitizedId.Id = TagBuilder.CreateSanitizedId(fullName, IdAttributeDotReplacement);
-
-            return lastSanitizedId.Id;
         }
     }
 }
