@@ -16,6 +16,7 @@ namespace AspNetCore
             #pragma warning disable 219
             string __tagHelperDirectiveSyntaxHelper = null;
             __tagHelperDirectiveSyntaxHelper = "Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper, Microsoft.AspNetCore.Mvc.Razor.Host.Test";
+            __tagHelperDirectiveSyntaxHelper = "Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper, Microsoft.AspNetCore.Mvc.Razor.Host.Test";
 #line 1 "testfiles/input/modelexpressiontaghelper.cshtml"
 var __modelHelper = default(DateTime);
 
@@ -47,14 +48,19 @@ var __modelHelper = default(DateTime);
         public override async Task ExecuteAsync()
         {
             __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper>();
-#line 5 "testfiles/input/modelexpressiontaghelper.cshtml"
+#line 6 "testfiles/input/modelexpressiontaghelper.cshtml"
 __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper.For = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.Now);
 
 #line default
 #line hidden
             __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper>();
-#line 6 "testfiles/input/modelexpressiontaghelper.cshtml"
+#line 7 "testfiles/input/modelexpressiontaghelper.cshtml"
 __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper.For = ModelExpressionProvider.CreateModelExpression(ViewData, __model => Model);
+
+#line default
+#line hidden
+#line 9 "testfiles/input/modelexpressiontaghelper.cshtml"
+             __o = Model;
 
 #line default
 #line hidden

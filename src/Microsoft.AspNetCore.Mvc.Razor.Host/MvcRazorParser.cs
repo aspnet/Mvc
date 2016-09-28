@@ -87,29 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 _viewImportsDirectiveDescriptors,
                 errorSink);
 
-            var descriptors = visitor.GetDescriptors(documentRoot);
-            foreach (var descriptor in descriptors)
-            {
-                foreach (var attributeDescriptor in descriptor.Attributes)
-                {
-                    if (attributeDescriptor.IsIndexer &&
-                        string.Equals(
-                            attributeDescriptor.TypeName,
-                            _modelExpressionTypeName,
-                            StringComparison.Ordinal))
-                    {
-                        errorSink.OnError(
-                            SourceLocation.Undefined,
-                            Resources.FormatMvcRazorParser_InvalidPropertyType(
-                                descriptor.TypeName,
-                                attributeDescriptor.Name,
-                                _modelExpressionTypeName),
-                            length: 0);
-                    }
-                }
-            }
-
-            return descriptors;
+            return visitor.GetDescriptors(documentRoot);
         }
 
         private static IEnumerable<TagHelperDirectiveDescriptor> GetTagHelperDirectiveDescriptors(

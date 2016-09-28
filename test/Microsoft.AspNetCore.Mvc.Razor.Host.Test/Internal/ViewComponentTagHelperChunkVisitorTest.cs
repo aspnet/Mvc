@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Xunit;
+using System;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 {
