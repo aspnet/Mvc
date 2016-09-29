@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -14,8 +15,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// <typeparam name="TElement">Type of elements in the array.</typeparam>
     public class ArrayModelBinder<TElement> : CollectionModelBinder<TElement>
     {
-        private static readonly TElement[] EmptyArray = new TElement[0];
-
         /// <summary>
         /// Creates a new <see cref="ArrayModelBinder{TElement}"/>.
         /// </summary>
@@ -38,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             Debug.Assert(targetType == typeof(TElement[]), "GenericModelBinder only creates this binder for arrays.");
 
-            return EmptyArray;
+            return EmptyArray<TElement>.Instance;
         }
 
         /// <inheritdoc />
