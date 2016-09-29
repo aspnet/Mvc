@@ -38,12 +38,24 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 return expressionText;
             }
 
-            // Determine size of string needed and number of segments.
+            // Determine size of string needed (length) and number of segments it contains (segmentCount). Put another
+            // way, segmentCount tracks the number of times the loop below should iterate. This avoids adding ".model"
+            // and / or an extra leading "." and then removing them after the loop. Other information collected in this
+            // first loop helps with length and segmentCount adjustments. containsIndexers is somewhat separate: If
+            // true, expression strings are not cached for the expression.
+            //
+            // After the corrections below the first loop, length is usually exactly the size of the returned string.
+            // However when containsIndexers is true, the calculation is approximate because either evaluating indexer
+            // expressions multiple times or saving indexer strings can get expensive. Optimizing for the common case
+            // of a collection (not a dictionary) with less than 100 elements. If that assumption proves to be
+            // incorrect, the StringBuilder will be enlarged but hopefully just once.
+            var containsIndexers = false;
             var lastIsModel = false;
             var length = 0;
-            var part = expression.Body;
             var segmentCount = 0;
             var trailingMemberExpressions = 0;
+
+            var part = expression.Body;
             while (part != null)
             {
                 switch (part.NodeType)
@@ -52,8 +64,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         var methodExpression = (MethodCallExpression)part;
                         if (IsSingleArgumentIndexer(methodExpression))
                         {
+                            containsIndexers = true;
                             lastIsModel = false;
-                            length += 4;    // allow room for [99]
+                            length += "[99]".Length;
                             part = methodExpression.Object;
                             segmentCount++;
                             trailingMemberExpressions = 0;
@@ -68,8 +81,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     case ExpressionType.ArrayIndex:
                         var binaryExpression = (BinaryExpression)part;
 
+                        containsIndexers = true;
                         lastIsModel = false;
-                        length += 4;    // allow room for [99]
+                        length += "[99]".Length;
                         part = binaryExpression.Left;
                         segmentCount++;
                         trailingMemberExpressions = 0;
@@ -91,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                             lastIsModel = string.Equals("model", name, StringComparison.OrdinalIgnoreCase);
                             length += name.Length + 1;
                             part = memberExpressionPart.Expression;
-                            segmentCount += 2;
+                            segmentCount++;
                             trailingMemberExpressions++;
                         }
                         break;
@@ -109,22 +123,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 }
             }
 
-            // Expression must contain indexers if not all parts are member expressions.
-            var containsIndexers = (trailingMemberExpressions * 2) != segmentCount;
-
             // If name would start with ".model", then strip that part away.
             if (lastIsModel)
             {
-                length -= 6;    // ".model".Length
-                segmentCount -= 2;
+                length -= ".model".Length;
+                segmentCount--;
                 trailingMemberExpressions--;
             }
 
-            // Trim the leading "." if present.
+            // Trim the leading "." if present. The loop below special-cases the last property to avoid this addition.
             if (trailingMemberExpressions > 0)
             {
                 length--;
-                segmentCount--;
             }
 
             Debug.Assert(segmentCount >= 0);
@@ -143,6 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             part = expression.Body;
             while (part != null && segmentCount > 0)
             {
+                segmentCount--;
                 switch (part.NodeType)
                 {
                     case ExpressionType.Call:
@@ -150,7 +161,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         var methodExpression = (MethodCallExpression)part;
 
                         InsertIndexerInvocationText(builder, methodExpression.Arguments.Single(), expression);
-                        segmentCount--;
 
                         part = methodExpression.Object;
                         break;
@@ -160,7 +170,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         var binaryExpression = (BinaryExpression)part;
 
                         InsertIndexerInvocationText(builder, binaryExpression.Right, expression);
-                        segmentCount--;
 
                         part = binaryExpression.Left;
                         break;
@@ -171,11 +180,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         Debug.Assert(!name.Contains("__"));
 
                         builder.Insert(0, name);
-                        segmentCount--;
                         if (segmentCount > 0)
                         {
+                            // One or more parts to the left of this part are coming.
                             builder.Insert(0, '.');
-                            segmentCount--;
                         }
 
                         part = memberExpression.Expression;
