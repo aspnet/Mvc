@@ -6,7 +6,6 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Diagnostics": "1.1.0-alpha1-22244",
     "Microsoft.AspNetCore.Mvc": "1.1.0-*",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
     "Microsoft.AspNetCore.Razor.Tools": {
@@ -20,7 +19,7 @@
   "frameworks": {
     "net451": {},
     "netcoreapp1.0": {
-      "dependencies": {        
+      "dependencies": {
         "Microsoft.NETCore.App": {
           "version": "1.0.0-*",
           "type": "platform"

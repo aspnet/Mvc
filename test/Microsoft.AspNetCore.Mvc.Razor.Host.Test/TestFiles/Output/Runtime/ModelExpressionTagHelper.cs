@@ -1,4 +1,4 @@
-#pragma checksum "TestFiles/Input/ModelExpressionTagHelper.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "9e4cf6e4030f5e9e62458b1f7608e7a70cfaa4e0"
+#pragma checksum "TestFiles/Input/ModelExpressionTagHelper.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "faaab08eebb321aea098bd40df018e89cd247b6f"
 namespace AspNetCore
 {
     using System;
@@ -90,8 +90,8 @@ WriteAttributeValue("", 321, Model, 321, 6, false);
 #line default
 #line hidden
             EndWriteAttribute();
-            BeginContext(328, 8, true);
-            WriteLiteral(" ></div>");
+            BeginContext(328, 65, true);
+            WriteLiteral(" ></div>\r\n<span prefix-hour=\"Hour\" prefix-minute=\"Minute\"></span>");
             EndContext();
         }
         #pragma warning restore 1998

@@ -21,7 +21,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     public class MvcRazorParser : RazorParser
     {
         private readonly IEnumerable<TagHelperDirectiveDescriptor> _viewImportsDirectiveDescriptors;
-        private readonly string _modelExpressionTypeName;
 
         /// <summary>
         /// Initializes a new instance of <see cref="MvcRazorParser"/>.
@@ -31,12 +30,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// from parsed pages from _ViewImports files.</param>
         /// <param name="defaultInheritedChunks">The <see cref="IReadOnlyList{Chunk}"/> inherited by
         /// default by all Razor pages in the application.</param>
-        /// <param name="modelExpressionTypeName">The full name of the model expression <see cref="Type"/>.</param>
         public MvcRazorParser(
             RazorParser parser,
             IReadOnlyList<ChunkTree> inheritedChunkTrees,
-            IReadOnlyList<Chunk> defaultInheritedChunks,
-            string modelExpressionTypeName)
+            IReadOnlyList<Chunk> defaultInheritedChunks)
             : base(parser)
         {
             if (parser == null)
@@ -54,17 +51,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new ArgumentNullException(nameof(defaultInheritedChunks));
             }
 
-            if (modelExpressionTypeName == null)
-            {
-                throw new ArgumentNullException(nameof(modelExpressionTypeName));
-            }
-
             // Construct tag helper descriptors from @addTagHelper, @removeTagHelper and @tagHelperPrefix chunks
             _viewImportsDirectiveDescriptors = GetTagHelperDirectiveDescriptors(
                 inheritedChunkTrees,
                 defaultInheritedChunks);
-
-            _modelExpressionTypeName = modelExpressionTypeName;
         }
 
         /// <inheritdoc />

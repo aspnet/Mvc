@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Xunit;
-using System;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 {
@@ -47,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
             var resultOutput = writer.GenerateCode();
 
 #if GENERATE_BASELINES
-            if (!string.Equals(expectedOutput, resultOutput, StringComparison.Ordinal))
+            if (!string.Equals(expectedOutput, resultOutput, System.StringComparison.Ordinal))
             {
                 ResourceFile.UpdateFile(assembly, path, expectedOutput, resultOutput);
             }

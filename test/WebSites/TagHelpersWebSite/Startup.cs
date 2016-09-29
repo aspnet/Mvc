@@ -20,8 +20,6 @@ namespace TagHelpersWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseDeveloperExceptionPage();
-
             app.UseMvcWithDefaultRoute();
         }
 

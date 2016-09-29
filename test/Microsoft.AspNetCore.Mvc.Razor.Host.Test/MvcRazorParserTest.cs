@@ -238,7 +238,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 RazorParser parser,
                 IReadOnlyList<ChunkTree> chunkTrees,
                 IReadOnlyList<Chunk> defaultInheritedChunks)
-                : base(parser, chunkTrees, defaultInheritedChunks, typeof(ModelExpression).FullName)
+                : base(parser, chunkTrees, defaultInheritedChunks)
             {
             }
 
