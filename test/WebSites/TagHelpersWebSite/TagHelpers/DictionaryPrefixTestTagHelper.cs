@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
+namespace TagHelpersWebSite.TagHelpers
 {
     [HtmlTargetElement(Attributes = "prefix-*")]
     public class DictionaryPrefixTestTagHelper : TagHelper
