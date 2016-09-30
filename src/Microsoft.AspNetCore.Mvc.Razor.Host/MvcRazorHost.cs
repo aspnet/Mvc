@@ -294,7 +294,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             var inheritedChunkTrees = GetInheritedChunkTrees(sourceFileName);
-            return new MvcRazorParser(razorParser, inheritedChunkTrees, DefaultInheritedChunks);
+            return new MvcRazorParser(razorParser, inheritedChunkTrees, DefaultInheritedChunks, ModelExpressionType);
         }
 
         /// <inheritdoc />

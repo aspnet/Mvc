@@ -19,6 +19,7 @@ namespace AspNetCore
         private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = null;
         private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __tagHelperScopeManager = null;
         private global::Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper = null;
+        private global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = null;
         #line hidden
         public TestFiles_Input_ModelExpressionTagHelper_cshtml()
         {
@@ -80,19 +81,58 @@ __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper.For = ModelExpressionProvide
             Write(__tagHelperExecutionContext.Output);
             EndContext();
             __tagHelperExecutionContext = __tagHelperScopeManager.End();
-            BeginContext(299, 8, true);
-            WriteLiteral("\r\n\r\n<div");
+            BeginContext(299, 4, true);
+            WriteLiteral("\r\n\r\n");
             EndContext();
-            BeginWriteAttribute("prefix-test", " prefix-test=\"", 307, "\"", 327, 1);
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+            }
+            );
+            __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper>();
+            __tagHelperExecutionContext.Add(__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper);
+            if (__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues == null)
+            {
+                throw new InvalidOperationException(InvalidTagHelperIndexerAssignment("prefix-test", "Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper", "PrefixValues"));
+            }
 #line 9 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
-WriteAttributeValue("", 321, Model, 321, 6, false);
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["test"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => Model);
 
 #line default
 #line hidden
-            EndWriteAttribute();
-            BeginContext(328, 65, true);
-            WriteLiteral(" ></div>\r\n<span prefix-hour=\"Hour\" prefix-minute=\"Minute\"></span>");
+            __tagHelperExecutionContext.AddTagHelperAttribute("prefix-test", __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["test"], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            BeginContext(303, 33, false);
+            Write(__tagHelperExecutionContext.Output);
             EndContext();
+            __tagHelperExecutionContext = __tagHelperScopeManager.End();
+            BeginContext(336, 2, true);
+            WriteLiteral("\r\n");
+            EndContext();
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("span", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+            }
+            );
+            __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper>();
+            __tagHelperExecutionContext.Add(__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper);
+            if (__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues == null)
+            {
+                throw new InvalidOperationException(InvalidTagHelperIndexerAssignment("prefix-hour", "Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper", "PrefixValues"));
+            }
+#line 10 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["hour"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.Hour);
+
+#line default
+#line hidden
+            __tagHelperExecutionContext.AddTagHelperAttribute("prefix-hour", __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["hour"], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+#line 10 "TestFiles/Input/ModelExpressionTagHelper.cshtml"
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["minute"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.Minute);
+
+#line default
+#line hidden
+            __tagHelperExecutionContext.AddTagHelperAttribute("prefix-minute", __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["minute"], global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            BeginContext(338, 55, false);
+            Write(__tagHelperExecutionContext.Output);
+            EndContext();
+            __tagHelperExecutionContext = __tagHelperScopeManager.End();
         }
         #pragma warning restore 1998
     }

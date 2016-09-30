@@ -162,28 +162,43 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     documentAbsoluteIndex: 263,
                     documentLineIndex: 5,
                     documentCharacterIndex: 17,
-                    generatedAbsoluteIndex: 2684,
-                    generatedLineIndex: 51,
+                    generatedAbsoluteIndex: 2841,
+                    generatedLineIndex: 52,
                     generatedCharacterIndex: 133,
                     contentLength: 3),
                 BuildLineMapping(
                     documentAbsoluteIndex: 290,
                     documentLineIndex: 6,
                     documentCharacterIndex: 18,
-                    generatedAbsoluteIndex: 3051,
-                    generatedLineIndex: 57,
+                    generatedAbsoluteIndex: 3208,
+                    generatedLineIndex: 58,
                     generatedCharacterIndex: 125,
                     contentLength: 5),
                 BuildLineMapping(
                     documentAbsoluteIndex: 322,
                     documentLineIndex: 8,
                     documentCharacterIndex: 19,
-                    generatedAbsoluteIndex: 3169,
-                    generatedLineIndex: 62,
-                    generatedCharacterIndex: 19,
+                    generatedAbsoluteIndex: 3627,
+                    generatedLineIndex: 64,
+                    generatedCharacterIndex: 153,
                     contentLength: 5),
+                BuildLineMapping(
+                    documentAbsoluteIndex: 357,
+                    documentLineIndex: 9,
+                    documentCharacterIndex: 19,
+                    generatedAbsoluteIndex: 4055,
+                    generatedLineIndex: 70,
+                    generatedCharacterIndex: 161,
+                    contentLength: 4),
+                BuildLineMapping(
+                    documentAbsoluteIndex: 378,
+                    documentLineIndex: 9,
+                    documentCharacterIndex: 40,
+                    generatedAbsoluteIndex: 4317,
+                    generatedLineIndex: 75,
+                    generatedCharacterIndex: 163,
+                    contentLength: 6),
             };
-
 
             // Act and Assert
             RunDesignTimeTest(

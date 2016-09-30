@@ -30,10 +30,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// from parsed pages from _ViewImports files.</param>
         /// <param name="defaultInheritedChunks">The <see cref="IReadOnlyList{Chunk}"/> inherited by
         /// default by all Razor pages in the application.</param>
+        /// <param name="modelExpressionTypeName">The full name of the model expression <see cref="Type"/>.</param> 
         public MvcRazorParser(
             RazorParser parser,
             IReadOnlyList<ChunkTree> inheritedChunkTrees,
-            IReadOnlyList<Chunk> defaultInheritedChunks)
+            IReadOnlyList<Chunk> defaultInheritedChunks,
+            string modelExpressionTypeName)
             : base(parser)
         {
             if (parser == null)
@@ -49,6 +51,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             if (defaultInheritedChunks == null)
             {
                 throw new ArgumentNullException(nameof(defaultInheritedChunks));
+            }
+
+            if (modelExpressionTypeName == null)
+            {
+                throw new ArgumentNullException(nameof(modelExpressionTypeName));
             }
 
             // Construct tag helper descriptors from @addTagHelper, @removeTagHelper and @tagHelperPrefix chunks

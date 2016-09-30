@@ -26,6 +26,7 @@ var __modelHelper = default(DateTime);
         }
         #line hidden
         private global::Microsoft.AspNetCore.Mvc.Razor.InputTestTagHelper __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper = null;
+        private global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = null;
         #line hidden
         public testfiles_input_modelexpressiontaghelper_cshtml()
         {
@@ -59,8 +60,20 @@ __Microsoft_AspNetCore_Mvc_Razor_InputTestTagHelper.For = ModelExpressionProvide
 
 #line default
 #line hidden
+            __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper>();
 #line 9 "testfiles/input/modelexpressiontaghelper.cshtml"
-             __o = Model;
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["test"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => Model);
+
+#line default
+#line hidden
+            __Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper = CreateTagHelper<global::Microsoft.AspNetCore.Mvc.Razor.DictionaryPrefixTestTagHelper>();
+#line 10 "testfiles/input/modelexpressiontaghelper.cshtml"
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["hour"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.Hour);
+
+#line default
+#line hidden
+#line 10 "testfiles/input/modelexpressiontaghelper.cshtml"
+__Microsoft_AspNetCore_Mvc_Razor_DictionaryPrefixTestTagHelper.PrefixValues["minute"] = ModelExpressionProvider.CreateModelExpression(ViewData, __model => __model.Minute);
 
 #line default
 #line hidden
