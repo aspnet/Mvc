@@ -911,6 +911,120 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Creates a <see cref="AcceptedObjectResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedObjectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedObjectResult Accepted(string uri, object value)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            return new AcceptedObjectResult(uri, value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedObjectResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedObjectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedObjectResult Accepted(Uri uri, object value)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            return new AcceptedObjectResult(uri, value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtActionResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="actionName">The name of the action to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="CreatedAtActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object value)
+        {
+            return AcceptedAtAction(actionName, routeValues: null, value: value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtActionResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="actionName">The name of the action to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedAtActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object routeValues, object value)
+        {
+            return AcceptedAtAction(actionName, controllerName: null, routeValues: routeValues, value: value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtActionResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="actionName">The name of the action to use for generating the URL.</param>
+        /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedAtActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtActionResult AcceptedAtAction(
+            string actionName,
+            string controllerName,
+            object routeValues,
+            object value)
+        {
+            return new AcceptedAtActionResult(actionName, controllerName, routeValues, value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="routeName">The name of the route to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object value)
+        {
+            return AcceptedAtRoute(routeName, routeValues: null, value: value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(object routeValues, object value)
+        {
+            return AcceptedAtRoute(routeName: null, routeValues: routeValues, value: value);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
+        /// </summary>
+        /// <param name="routeName">The name of the route to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
+        [NonAction]
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object routeValues, object value)
+        {
+            return new AcceptedAtRouteResult(routeName, routeValues, value);
+        }
+
+        /// <summary>
         /// Creates a <see cref="ChallengeResult"/>.
         /// </summary>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
