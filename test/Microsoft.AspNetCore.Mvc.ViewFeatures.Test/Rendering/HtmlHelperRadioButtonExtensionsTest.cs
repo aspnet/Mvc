@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonResult));
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonForResult));
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonResult));
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonForResult));
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input checked=\"HtmlEncode[[checked]]\" id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonResult));
         }
 
@@ -113,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input id=\"HtmlEncode[[Property2]]\" name=\"HtmlEncode[[Property2]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input id=\"HtmlEncode[[Property2_myvalue]]\" name=\"HtmlEncode[[Property2]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonResult));
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input attr=\"HtmlEncode[[value]]\" id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input attr=\"HtmlEncode[[value]]\" id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonResult));
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
 
             // Assert
             Assert.Equal(
-                "<input attr=\"HtmlEncode[[value]]\" id=\"HtmlEncode[[Property1]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
+                "<input attr=\"HtmlEncode[[value]]\" id=\"HtmlEncode[[Property1_myvalue]]\" name=\"HtmlEncode[[Property1]]\" type=\"HtmlEncode[[radio]]\" value=\"HtmlEncode[[myvalue]]\" />",
                 HtmlContentUtilities.HtmlContentToString(radioButtonForResult));
         }
 

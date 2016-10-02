@@ -1018,7 +1018,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 modelExplorer,
                 expression: expression,
                 labelText: labelText,
-                htmlAttributes: htmlAttributes);
+                htmlAttributes: htmlAttributes,
+                idModifier: null);
             if (tagBuilder == null)
             {
                 return HtmlString.Empty;

@@ -165,7 +165,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ModelExplorer modelExplorer,
             string expression,
             string labelText,
-            object htmlAttributes);
+            object htmlAttributes,
+            string idModifier);
 
         TagBuilder GeneratePassword(
             ViewContext viewContext,
