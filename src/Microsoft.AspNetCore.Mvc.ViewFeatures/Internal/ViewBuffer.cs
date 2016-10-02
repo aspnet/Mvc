@@ -25,9 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly IViewBufferScope _bufferScope;
         private readonly string _name;
         private readonly int _pageSize;
-        private ViewBufferPage _singlePage = null;          // Limits allocation if the ViewBuffer has only one page (frequent case).
-        private List<ViewBufferPage> _multiplePages = null; // Allocated only if necessary
-        private ViewBufferPage _currentPage = null;
+        private ViewBufferPage _currentPage;         // Limits allocation if the ViewBuffer has only one page (frequent case).
+        private List<ViewBufferPage> _multiplePages; // Allocated only if necessary
 
         /// <summary>
         /// Initializes a new instance of <see cref="ViewBuffer"/>.
@@ -63,7 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     return _multiplePages.Count;
                 }
-                if (_singlePage != null)
+                if (_currentPage != null)
                 {
                     return 1;
                 }
@@ -82,9 +81,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     return _multiplePages[index];
                 }
-                if (index == 0 && _singlePage != null)
+                if (index == 0 && _currentPage != null)
                 {
-                    return _singlePage;
+                    return _currentPage;
                 }
                 throw new IndexOutOfRangeException();
             }
@@ -149,17 +148,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             {
                 _multiplePages.Add(page);
             }
-            else if (_singlePage != null)
+            else if (_currentPage != null)
             {
                 _multiplePages = new List<ViewBufferPage>(2);
-                _multiplePages.Add(_singlePage);
+                _multiplePages.Add(_currentPage);
                 _multiplePages.Add(page);
-
-                _singlePage = null;
-            }
-            else
-            {
-                _singlePage = page;
             }
 
             _currentPage = page;
@@ -168,7 +161,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public IHtmlContentBuilder Clear()
         {
-            _singlePage = null;
             _multiplePages = null;
             _currentPage = null;
             return this;

@@ -81,12 +81,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Assert
             Assert.Equal(1, buffer.Count);
             Assert.Equal(expected, buffer[0].Buffer.Select(v => v.Value));
-
-            // Act
-            buffer.Clear();
-
-            // Assert
-            Assert.Equal(0, buffer.Count);
         }
 
         [Fact]
@@ -114,12 +108,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     Assert.Equal("Hello", array[0].Value);
                     Assert.Equal("world", array[1].Value);
                 });
-
-            // Act
-            buffer.Clear();
-
-            // Assert
-            Assert.Equal(0, buffer.Count);
         }
 
         [Fact]
@@ -153,27 +141,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     Assert.Equal("Hello", array[0].Value);
                     Assert.Equal("world", array[1].Value);
                 });
-
-            // Act
-            buffer.Clear();
-
-            // Assert
-            Assert.Equal(0, buffer.Count);
-
-            // Act (append again values to check if Clear() resets all correctly)
-            buffer.AppendHtml("Hello world");
-
-            // Assert
-            Assert.Equal(1, buffer.Count);
-            var newPage = buffer[0];
-            Assert.Equal(1, newPage.Count);
-            Assert.Equal("Hello world", Assert.IsType<string>(newPage.Buffer[0].Value));
-
         }
 
         [Theory]
-        [InlineData(1)]
-        [InlineData(35)]
+        [InlineData(1)]             // Create one page before clear
+        [InlineData(35)]            // Create two pages before clear
+        [InlineData(65)]            // Create many pages before clear
         public void Clear_ResetsBackingBufferAndIndex(int valuesToWrite)
         {
             // Arrange
