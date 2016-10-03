@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var expected2 = Enumerable.Repeat('d', PagedCharBuffer.PageSize + 1);
             var laterString = new string('d', PagedCharBuffer.PageSize);
 
-            // Act (loop w/in first Append(string) call).
+            // Act (loop within first Append(string) call).
             buffer.Append('d');
             buffer.Append(laterString);
             buffer.Append(laterString);
@@ -197,6 +197,36 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 buffer.Pages,
                 page => Assert.Equal(expected1, page),
                 page => Assert.Equal(expected2, page.Take(PagedCharBuffer.PageSize + 1)));
+        }
+
+        [Fact]
+        public void AppendWithString_AppendsToMultiplePages_AsLengthReturnsToNormal()
+        {
+            // Arrange
+            // Imitate ArrayPool<char>.Shared just after an entry in its default char[1024] Bucket is returned.
+            var bufferSource = new Mock<ICharBufferSource>();
+            bufferSource
+                .SetupSequence(s => s.Rent(PagedCharBuffer.PageSize))
+                .Returns(new char[2 * PagedCharBuffer.PageSize])
+                .Returns(new char[PagedCharBuffer.PageSize]);
+            var buffer = new PagedCharBuffer(bufferSource.Object);
+
+            // Request enough space that transition should occur.
+            var length = 2 * PagedCharBuffer.PageSize + 1;
+            var expected = Enumerable.Repeat('d', 2 * PagedCharBuffer.PageSize);
+            var laterString = new string('d', PagedCharBuffer.PageSize);
+
+            // Act (loop within second Append(string) call).
+            buffer.Append('d');
+            buffer.Append(laterString);
+            buffer.Append(laterString);
+
+            // Assert
+            Assert.Equal(length, buffer.Length);
+            Assert.Collection(
+                buffer.Pages,
+                page => Assert.Equal(expected, page),
+                page => Assert.Equal('d', page[0]));
         }
 
         [Fact]
@@ -215,7 +245,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var expected = Enumerable.Repeat('d', 2 * PagedCharBuffer.PageSize);
             var laterString = new string('d', PagedCharBuffer.PageSize);
 
-            // Act (loop w/in second Append(string) call).
+            // Act (loop within second Append(string) call).
             buffer.Append('d');
             buffer.Append(laterString);
             buffer.Append(laterString);
@@ -306,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var expected2 = Enumerable.Repeat('d', PagedCharBuffer.PageSize + 1);
             var laterChars = new string('d', PagedCharBuffer.PageSize).ToCharArray();
 
-            // Act (loop w/in first Append(char[]) call).
+            // Act (loop within first Append(char[]) call).
             buffer.Append('d');
             buffer.Append(laterChars, 0, laterChars.Length);
             buffer.Append(laterChars, 0, laterChars.Length);
@@ -317,6 +347,36 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 buffer.Pages,
                 page => Assert.Equal(expected1, page),
                 page => Assert.Equal(expected2, page.Take(PagedCharBuffer.PageSize + 1)));
+        }
+
+        [Fact]
+        public void AppendWithCharArray_AppendsToMultiplePages_AsLengthReturnsToNormal()
+        {
+            // Arrange
+            // Imitate ArrayPool<char>.Shared just after an entry in its default char[1024] Bucket is returned.
+            var bufferSource = new Mock<ICharBufferSource>();
+            bufferSource
+                .SetupSequence(s => s.Rent(PagedCharBuffer.PageSize))
+                .Returns(new char[2 * PagedCharBuffer.PageSize])
+                .Returns(new char[PagedCharBuffer.PageSize]);
+            var buffer = new PagedCharBuffer(bufferSource.Object);
+
+            // Request enough space that transition should occur.
+            var length = 2 * PagedCharBuffer.PageSize + 1;
+            var expected = Enumerable.Repeat('d', 2 * PagedCharBuffer.PageSize);
+            var laterChars = new string('d', PagedCharBuffer.PageSize).ToCharArray();
+
+            // Act (loop within second Append(char[]) call).
+            buffer.Append('d');
+            buffer.Append(laterChars, 0, laterChars.Length);
+            buffer.Append(laterChars, 0, laterChars.Length);
+
+            // Assert
+            Assert.Equal(length, buffer.Length);
+            Assert.Collection(
+                buffer.Pages,
+                page => Assert.Equal(expected, page),
+                page => Assert.Equal('d', page[0]));
         }
 
         [Fact]
@@ -335,7 +395,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var expected = Enumerable.Repeat('d', 2 * PagedCharBuffer.PageSize);
             var laterChars = new string('d', PagedCharBuffer.PageSize).ToCharArray();
 
-            // Act (loop w/in second Append(char[]) call).
+            // Act (loop within second Append(char[]) call).
             buffer.Append('d');
             buffer.Append(laterChars, 0, laterChars.Length);
             buffer.Append(laterChars, 0, laterChars.Length);
