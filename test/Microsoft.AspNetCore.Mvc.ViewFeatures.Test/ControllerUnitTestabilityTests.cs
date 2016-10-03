@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Assert
             Assert.NotNull(result);
 
-            var acceptedResult = Assert.IsType<AcceptedObjectResult>(result);
+            var acceptedResult = Assert.IsType<AcceptedResult>(result);
             Assert.Equal(uri, acceptedResult.Location);
             Assert.Equal(content, acceptedResult.Value);
             Assert.Equal(StatusCodes.Status202Accepted, acceptedResult.StatusCode);

@@ -574,10 +574,10 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var uri = "http://test/url";
 
             // Act
-            var result = controller.Accepted(uri, null);
+            var result = controller.Accepted(uri);
 
             // Assert
-            Assert.IsType<AcceptedObjectResult>(result);
+            Assert.IsType<AcceptedResult>(result);
             Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
             Assert.Same(uri, result.Location);
         }
@@ -590,10 +590,10 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var uri = new Uri("http://test/url");
 
             // Act
-            var result = controller.Accepted(uri, null);
+            var result = controller.Accepted(uri);
 
             // Assert
-            Assert.IsType<AcceptedObjectResult>(result);
+            Assert.IsType<AcceptedResult>(result);
             Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
             Assert.Equal(uri.OriginalString, result.Location);
         }
@@ -606,10 +606,10 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var uri = new Uri("/test/url", UriKind.Relative);
 
             // Act
-            var result = controller.Accepted(uri, null);
+            var result = controller.Accepted(uri);
 
             // Assert
-            Assert.IsType<AcceptedObjectResult>(result);
+            Assert.IsType<AcceptedResult>(result);
             Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
             Assert.Equal(uri.OriginalString, result.Location);
         }
@@ -621,7 +621,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.AcceptedAtAction("SampleAction", null);
+            var result = controller.AcceptedAtAction("SampleAction");
 
             // Assert
             Assert.IsType<AcceptedAtActionResult>(result);
@@ -640,7 +640,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var result = controller.AcceptedAtAction("SampleAction", controllerName, null, null);
+            var result = controller.AcceptedAtAction("SampleAction", controllerName, null);
 
             // Assert
             Assert.IsType<AcceptedAtActionResult>(result);
@@ -682,7 +682,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var routeName = "SampleRoute";
 
             // Act
-            var result = controller.AcceptedAtRoute(routeName, null);
+            var result = controller.AcceptedAtRoute(routeName);
 
             // Assert
             Assert.IsType<AcceptedAtRouteResult>(result);
@@ -701,7 +701,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                 };
 
             // Act
-            var result = controller.AcceptedAtRoute(new RouteValueDictionary(expected), null);
+            var result = controller.AcceptedAtRoute(new RouteValueDictionary(expected));
 
             // Assert
             Assert.IsType<AcceptedAtRouteResult>(result);

@@ -74,32 +74,6 @@ namespace WebApiCompatShimWebSite
             return CreatedAtRoute("named-action", values, CreateUser());
         }
 
-        public IActionResult GetAcceptedRelative()
-        {
-            return Accepted("5", CreateUser());
-        }
-
-        public IActionResult GetAcceptedAbsolute()
-        {
-            return Accepted("/api/Blog/ActionResult/GetUser/5", CreateUser());
-        }
-
-        public IActionResult GetAcceptedQualified()
-        {
-            return Accepted("http://localhost/api/Blog/ActionResult/5", CreateUser());
-        }
-
-        public IActionResult GetAcceptedUri()
-        {
-            return Accepted(new Uri("/api/Blog/ActionResult/GetUser/5", UriKind.Relative), CreateUser());
-        }
-
-        public IActionResult GetAcceptedAtRoute()
-        {
-            var values = new { controller = "ActionResult", action = "GetUser", id = 5 };
-            return AcceptedAtRoute("named-action", values, CreateUser());
-        }
-
         public IActionResult GetInternalServerError()
         {
             return InternalServerError();

@@ -911,47 +911,47 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Creates a <see cref="AcceptedObjectResult"/> object that produces an Accepted (202) response.
+        /// Creates a <see cref="AcceptedResult"/> object that produces an Accepted (202) response.
         /// </summary>
         /// <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
-        /// <returns>The created <see cref="AcceptedObjectResult"/> for the response.</returns>
+        /// <param name="value">The optional content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedObjectResult Accepted(string uri, object value)
+        public virtual AcceptedResult Accepted(string uri, object value = null)
         {
             if (uri == null)
             {
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return new AcceptedObjectResult(uri, value);
+            return new AcceptedResult(uri, value);
         }
 
         /// <summary>
-        /// Creates a <see cref="AcceptedObjectResult"/> object that produces an Accepted (202) response.
+        /// Creates a <see cref="AcceptedResult"/> object that produces an Accepted (202) response.
         /// </summary>
         /// <param name="uri">The URI with the location at which the status of requested content can be monitored.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
-        /// <returns>The created <see cref="AcceptedObjectResult"/> for the response.</returns>
+        /// <param name="value">The optional content value to format in the entity body.</param>
+        /// <returns>The created <see cref="AcceptedResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedObjectResult Accepted(Uri uri, object value)
+        public virtual AcceptedResult Accepted(Uri uri, object value = null)
         {
             if (uri == null)
             {
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return new AcceptedObjectResult(uri, value);
+            return new AcceptedResult(uri, value);
         }
 
         /// <summary>
         /// Creates a <see cref="AcceptedAtActionResult"/> object that produces an Accepted (202) response.
         /// </summary>
         /// <param name="actionName">The name of the action to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="CreatedAtActionResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object value)
+        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object value = null)
         {
             return AcceptedAtAction(actionName, routeValues: null, value: value);
         }
@@ -961,10 +961,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="actionName">The name of the action to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="AcceptedAtActionResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object routeValues, object value)
+        public virtual AcceptedAtActionResult AcceptedAtAction(string actionName, object routeValues, object value = null)
         {
             return AcceptedAtAction(actionName, controllerName: null, routeValues: routeValues, value: value);
         }
@@ -975,14 +975,14 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="actionName">The name of the action to use for generating the URL.</param>
         /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="AcceptedAtActionResult"/> for the response.</returns>
         [NonAction]
         public virtual AcceptedAtActionResult AcceptedAtAction(
             string actionName,
             string controllerName,
             object routeValues,
-            object value)
+            object value = null)
         {
             return new AcceptedAtActionResult(actionName, controllerName, routeValues, value);
         }
@@ -991,10 +991,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
         /// </summary>
         /// <param name="routeName">The name of the route to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object value)
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object value = null)
         {
             return AcceptedAtRoute(routeName, routeValues: null, value: value);
         }
@@ -1003,10 +1003,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
         /// </summary>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedAtRouteResult AcceptedAtRoute(object routeValues, object value)
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(object routeValues, object value = null)
         {
             return AcceptedAtRoute(routeName: null, routeValues: routeValues, value: value);
         }
@@ -1016,10 +1016,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="routeName">The name of the route to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
-        /// <param name="value">The content value to format in the entity body.</param>
+        /// <param name="value">The optional content value to format in the entity body.</param>
         /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
         [NonAction]
-        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object routeValues, object value)
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName, object routeValues, object value = null)
         {
             return new AcceptedAtRouteResult(routeName, routeValues, value);
         }

@@ -10,17 +10,17 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ActionResult"/> that returns an Accepted (202) response with a Location header.
     /// </summary>
-    public class AcceptedObjectResult : ObjectResult
+    public class AcceptedResult : ObjectResult
     {
         private string _location;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AcceptedObjectResult"/> class with the values
+        /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
         /// provided.
         /// </summary>
         /// <param name="location">The location at which the status of requested content can be monitored.</param>
         /// <param name="value">The value to format in the entity body.</param>
-        public AcceptedObjectResult(string location, object value)
+        public AcceptedResult(string location, object value)
             : base(value)
         {
             if (location == null)
@@ -33,12 +33,12 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AcceptedObjectResult"/> class with the values
+        /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
         /// provided.
         /// </summary>
         /// <param name="location">The location at which the status of requested content can be monitored.</param>
         /// <param name="value">The value to format in the entity body.</param>
-        public AcceptedObjectResult(Uri location, object value)
+        public AcceptedResult(Uri location, object value)
             : base(value)
         {
             if (location == null)
