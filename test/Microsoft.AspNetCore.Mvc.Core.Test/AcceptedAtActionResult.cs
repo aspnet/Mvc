@@ -9,16 +9,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Testing;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Core.Test
+namespace Microsoft.AspNetCore.Mvc
 {
-    public class AcceptedObjectResultTests
+    public class AcceptedAtActionResultTests
     {
         public static TheoryData<object> ValuesData
         {
@@ -39,10 +41,16 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public void AcceptedObjectResult_InitializesStatusCodeAndValue(object value)
+        public void AcceptedAtActionResult_InitializesStatusCodeAndValue(object value)
         {
-            // Arrange & Act
-            var result = new AcceptedObjectResult("testlocation", value);
+            // Arrange 
+            var expectedUrl = "testAction";
+
+            //Act         
+            var result = new AcceptedAtActionResult(
+                actionName: expectedUrl,
+                controllerName: null,
+                routeValues: null, value: value);
 
             // Assert
             Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
@@ -51,15 +59,22 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task AcceptedObjectResult_SetsStatusCodeAndValueAsync(object value)
+        public async Task AcceptedAtActionResult_SetsStatusCodeAndValueAsync(object value)
         {
-            // Arrange
-            var location = "/test/";
+            // Arrange           
+            var expectedUrl = "testAction";
             var httpContext = GetHttpContext();
             var actionContext = GetActionContext(httpContext);
-            var result = new AcceptedObjectResult(location, value);
+            var urlHelper = GetMockUrlHelper(expectedUrl);
 
             // Act
+            var result = new AcceptedAtActionResult(
+                actionName: expectedUrl,
+                controllerName: null,
+                routeValues: null,
+                value: value);
+
+            result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
@@ -68,51 +83,49 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedObjectResult_SetsLocation()
+        public async Task AcceptedAtActionResult_ReturnsStatusCode_SetsLocationHeader()
         {
             // Arrange
-            var location = "http://test/location";
-
-            // Act
-            var result = new AcceptedObjectResult(location, "testInput");
-
-            // Assert
-            Assert.Same(location, result.Location);
-        }
-
-        [Fact]
-        public async Task AcceptedObjectResult_ReturnsStatusCode_SetsLocationHeader()
-        {
-            // Arrange
-            var location = "/test/";
+            var expectedUrl = "testAction";
             var httpContext = GetHttpContext();
             var actionContext = GetActionContext(httpContext);
-            var result = new AcceptedObjectResult(location, "testInput");
+            var urlHelper = GetMockUrlHelper(expectedUrl);
 
             // Act
+            var result = new AcceptedAtActionResult(
+                actionName: expectedUrl,
+                controllerName: null,
+                routeValues: null,
+                value: null);
+
+            result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
             Assert.Equal(StatusCodes.Status202Accepted, httpContext.Response.StatusCode);
-            Assert.Equal(location, httpContext.Response.Headers["Location"]);
+            Assert.Equal(expectedUrl, httpContext.Response.Headers["Location"]);
         }
 
         [Fact]
-        public async Task AcceptedObjectResult_OverwritesLocationHeader()
+        public async Task AcceptedAtActionResult_ThrowsOnNullUrl()
         {
             // Arrange
-            var location = "/test/";
             var httpContext = GetHttpContext();
             var actionContext = GetActionContext(httpContext);
-            httpContext.Response.Headers["Location"] = "/different/location/";
-            var result = new AcceptedObjectResult(location, "testInput");
+            var urlHelper = GetMockUrlHelper(returnValue: null);
 
-            // Act
-            await result.ExecuteResultAsync(actionContext);
+            var result = new AcceptedAtActionResult(
+                actionName: null,
+                controllerName: null,
+                routeValues: null,
+                value: null);
 
-            // Assert
-            Assert.Equal(StatusCodes.Status202Accepted, httpContext.Response.StatusCode);
-            Assert.Equal(location, httpContext.Response.Headers["Location"]);
+            result.UrlHelper = urlHelper;
+
+            // Act & Assert
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
+                async () => await result.ExecuteResultAsync(actionContext),
+            "No route matches the supplied values.");
         }
 
         private static ActionContext GetActionContext(HttpContext httpContext)
@@ -124,7 +137,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                                     routeData,
                                     new ActionDescriptor());
         }
-
         private static HttpContext GetHttpContext()
         {
             var httpContext = new DefaultHttpContext();
@@ -149,6 +161,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                 NullLoggerFactory.Instance));
 
             return services.BuildServiceProvider();
+        }
+
+        private static IUrlHelper GetMockUrlHelper(string returnValue)
+        {
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.Setup(o => o.Action(It.IsAny<UrlActionContext>())).Returns(returnValue);
+
+            return urlHelper.Object;
         }
 
         private class ResourceStatusBody

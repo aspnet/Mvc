@@ -177,6 +177,82 @@ namespace System.Web.Http
         }
 
         [Fact]
+        public void ApiController_Accepted_Uri()
+        {
+            // Arrange
+            var controller = new ConcreteApiController();
+
+            var uri = new Uri("http://contoso.com/");
+            var product = new Product();
+
+            // Act
+            var result = controller.Accepted(uri, product);
+
+            // Assert
+            var accepted = Assert.IsType<AcceptedObjectResult>(result);
+            Assert.Same(product, accepted.Value);
+            Assert.Equal(uri.OriginalString, accepted.Location);
+        }
+
+        [Theory]
+        [InlineData("http://contoso.com/Api/Products")]
+        [InlineData("/Api/Products")]
+        [InlineData("Products")]
+        public void ApiController_Accepted_String(string uri)
+        {
+            // Arrange
+            var controller = new ConcreteApiController();
+
+            var product = new Product();
+
+            // Act
+            var result = controller.Accepted(uri, product);
+
+            // Assert
+            var accepted = Assert.IsType<AcceptedObjectResult>(result);
+            Assert.Same(product, accepted.Value);
+            Assert.Equal(uri, accepted.Location);
+        }
+
+        [Fact]
+        public void ApiController_AcceptedAtRoute()
+        {
+            // Arrange
+            var controller = new ConcreteApiController();
+
+            var product = new Product();
+
+            // Act
+            var result = controller.AcceptedAtRoute("api_route", new { controller = "Products" }, product);
+
+            // Assert
+            var accepted = Assert.IsType<AcceptedAtRouteResult>(result);
+            Assert.Same(product, accepted.Value);
+            Assert.Equal("api_route", accepted.RouteName);
+            Assert.Equal("Products", accepted.RouteValues["controller"]);
+        }
+
+        [Fact]
+        public void ApiController_AcceptedAtRoute_Dictionary()
+        {
+            // Arrange
+            var controller = new ConcreteApiController();
+
+            var product = new Product();
+            var values = new RouteValueDictionary(new { controller = "Products" });
+
+            // Act
+            var result = controller.AcceptedAtRoute("api_route", values, product);
+
+            // Assert
+            var accepted = Assert.IsType<AcceptedAtRouteResult>(result);
+            Assert.Same(product, accepted.Value);
+            Assert.Equal("api_route", accepted.RouteName);
+            Assert.Equal("Products", accepted.RouteValues["controller"]);
+            Assert.Equal<KeyValuePair<string, object>>(values, accepted.RouteValues);
+        }
+
+        [Fact]
         public void ApiController_Conflict()
         {
             // Arrange

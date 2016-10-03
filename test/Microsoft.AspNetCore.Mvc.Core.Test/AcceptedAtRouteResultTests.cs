@@ -22,6 +22,65 @@ namespace Microsoft.AspNetCore.Mvc
 {
     public class AcceptedAtRouteResultTests
     {
+        public static TheoryData<object> ValuesData
+        {
+            get
+            {
+                return new TheoryData<object>
+                {
+                    null,
+                    "Test string",
+                    new ResourceStatusBody
+                    {
+                        EstimatedTime =DateTimeOffset.UtcNow.AddMinutes(5),
+                        Status = ResourceStatus.In_Progress,
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ValuesData))]
+        public void AcceptedAtRouteResult_InitializesStatusCodeAndValue(object value)
+        {
+            // Arrange & Act
+            var result = new AcceptedAtRouteResult(
+                routeName: null,
+                routeValues: null,
+                value: value);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
+            Assert.Same(value, result.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(ValuesData))]
+        public async Task AcceptedAtRouteResult_SetsStatusCodeAndValueAsync(object value)
+        {
+            // Arrange     
+            var expectedUrl = "testAction";
+            var httpContext = GetHttpContext();
+            var actionContext = GetActionContext(httpContext);
+            var urlHelper = GetMockUrlHelper(expectedUrl);
+            var routeValues = new RouteValueDictionary(new Dictionary<string, string>() {
+                            { "test", "case" },
+                            { "sample", "route" }
+                        });
+            var result = new AcceptedAtRouteResult(
+                routeName: "sample",
+                routeValues: routeValues,
+                value: value);
+            result.UrlHelper = urlHelper;
+
+            // Act
+            await result.ExecuteResultAsync(actionContext);
+
+            // Assert
+            Assert.Equal(StatusCodes.Status202Accepted, httpContext.Response.StatusCode);
+            Assert.Same(value, result.Value);
+        }
+
         public static IEnumerable<object[]> AcceptedAtRouteData
         {
             get
@@ -52,7 +111,10 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = GetMockUrlHelper(expectedUrl);
 
             // Act
-            var result = new AcceptedAtRouteResult(routeName: null, routeValues: values, value: null);
+            var result = new AcceptedAtRouteResult(
+                routeName: null,
+                routeValues: values,
+                value: null);
             result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
 
@@ -125,5 +187,14 @@ namespace Microsoft.AspNetCore.Mvc
 
             return urlHelper.Object;
         }
+
+        private class ResourceStatusBody
+        {
+            public DateTimeOffset EstimatedTime { get; set; }
+
+            public ResourceStatus Status { get; set; }
+        }
+
+        private enum ResourceStatus { Failed, In_Progress, Completed };
     }
 }

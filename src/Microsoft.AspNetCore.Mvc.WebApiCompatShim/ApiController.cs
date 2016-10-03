@@ -314,6 +314,72 @@ namespace System.Web.Http
             return new CreatedAtRouteResult(routeName, routeValues, content);
         }
 
+        /// <summary>
+        /// Creates a <see cref="AcceptedObjectResult"/> (202 Accepted) with the specified values.
+        /// </summary>
+        /// <param name="location">
+        /// The location at which the status of requested content can be monitored. Must be a relative or absolute URL.
+        /// </param>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="AcceptedObjectResult"/> with the specified values.</returns>
+        [NonAction]
+        public virtual AcceptedObjectResult Accepted(string location, object content)
+        {
+            if (location == null)
+            {
+                throw new ArgumentNullException(nameof(location));
+            }
+
+            return new AcceptedObjectResult(location, content);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedObjectResult"/> (202 Accepted) with the specified values.
+        /// </summary>
+        /// <param name="uri">The location at which the status of requested content can be monitored.</param>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="AcceptedObjectResult"/> with the specified values.</returns>
+        [NonAction]
+        public virtual AcceptedObjectResult Accepted(Uri uri, object content)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            string location;
+            if (uri.IsAbsoluteUri)
+            {
+                location = uri.AbsoluteUri;
+            }
+            else
+            {
+                location = uri.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
+            }
+            return Accepted(location, content);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="AcceptedObjectResult"/> (202 Accepted) with the specified values.
+        /// </summary>
+        /// <param name="routeName">The name of the route to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="content">The content value to format in the entity body.</param>
+        /// <returns>A <see cref="AcceptedObjectResult"/> with the specified values.</returns>
+        [NonAction]
+        public virtual AcceptedAtRouteResult AcceptedAtRoute(
+            string routeName,
+            object routeValues,
+            object content)
+        {
+            if (routeName == null)
+            {
+                throw new ArgumentNullException(nameof(routeName));
+            }
+
+            return new AcceptedAtRouteResult(routeName, routeValues, content);
+        }
+
         /// <summary
         /// >Creates an <see cref="InternalServerErrorResult"/> (500 Internal Server Error).
         /// </summary>
