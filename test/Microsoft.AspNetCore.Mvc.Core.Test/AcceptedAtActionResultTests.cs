@@ -30,23 +30,19 @@ namespace Microsoft.AspNetCore.Mvc
                 {
                     null,
                     "Test string",
-                    new ResourceStatusBody
-                    {
-                        EstimatedTime = DateTimeOffset.UtcNow.AddMinutes(5),
-                        Status = ResourceStatus.In_Progress,
-                    }
+                    new object(),
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public void AcceptedAtActionResult_InitializesStatusCodeAndValue(object value)
+        public void Constructor_InitializesStatusCodeAndValue(object value)
         {
             // Arrange 
             var expectedUrl = "testAction";
 
-            //Act         
+            // Act         
             var result = new AcceptedAtActionResult(
                 actionName: expectedUrl,
                 controllerName: null,
@@ -59,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task AcceptedAtActionResult_SetsStatusCodeAndValueAsync(object value)
+        public async Task ExecuteResultAsync_SetsStatusCodeAndValue(object value)
         {
             // Arrange           
             var expectedUrl = "testAction";
@@ -83,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task AcceptedAtActionResult_ReturnsStatusCode_SetsLocationHeader()
+        public async Task ExecuteResultAsync_SetsStatusCodeAndLocationHeader()
         {
             // Arrange
             var expectedUrl = "testAction";
@@ -107,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task AcceptedAtActionResult_ThrowsOnNullUrl()
+        public async Task ThrowsOnNullUrl()
         {
             // Arrange
             var httpContext = GetHttpContext();
@@ -123,8 +119,8 @@ namespace Microsoft.AspNetCore.Mvc
             result.UrlHelper = urlHelper;
 
             // Act & Assert
-            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
-                async () => await result.ExecuteResultAsync(actionContext),
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(() =>
+            result.ExecuteResultAsync(actionContext),
             "No route matches the supplied values.");
         }
 
@@ -133,15 +129,15 @@ namespace Microsoft.AspNetCore.Mvc
             var routeData = new RouteData();
             routeData.Routers.Add(Mock.Of<IRouter>());
 
-            return new ActionContext(httpContext,
-                                    routeData,
-                                    new ActionDescriptor());
+            return new ActionContext(
+                httpContext,
+                routeData,
+                new ActionDescriptor());
         }
+
         private static HttpContext GetHttpContext()
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.PathBase = new PathString("");
-            httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = CreateServices();
             return httpContext;
         }
@@ -170,14 +166,5 @@ namespace Microsoft.AspNetCore.Mvc
 
             return urlHelper.Object;
         }
-
-        private class ResourceStatusBody
-        {
-            public DateTimeOffset EstimatedTime { get; set; }
-
-            public ResourceStatus Status { get; set; }
-        }
-
-        private enum ResourceStatus { Failed, In_Progress, Completed };
     }
 }

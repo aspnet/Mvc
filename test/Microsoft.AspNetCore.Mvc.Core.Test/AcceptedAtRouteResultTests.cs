@@ -30,18 +30,14 @@ namespace Microsoft.AspNetCore.Mvc
                 {
                     null,
                     "Test string",
-                    new ResourceStatusBody
-                    {
-                        EstimatedTime =DateTimeOffset.UtcNow.AddMinutes(5),
-                        Status = ResourceStatus.In_Progress,
-                    }
+                    new object(),
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public void AcceptedAtRouteResult_InitializesStatusCodeAndValue(object value)
+        public void Constructor_InitializesStatusCodeAndValue(object value)
         {
             // Arrange & Act
             var result = new AcceptedAtRouteResult(
@@ -56,17 +52,18 @@ namespace Microsoft.AspNetCore.Mvc
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task AcceptedAtRouteResult_SetsStatusCodeAndValueAsync(object value)
+        public async Task ExecuteResultAsync_SetsStatusCodeAndValue(object value)
         {
             // Arrange     
             var expectedUrl = "testAction";
             var httpContext = GetHttpContext();
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(expectedUrl);
-            var routeValues = new RouteValueDictionary(new Dictionary<string, string>() {
-                            { "test", "case" },
-                            { "sample", "route" }
-                        });
+            var routeValues = new RouteValueDictionary(new Dictionary<string, string>()
+            {
+                { "test", "case" },
+                { "sample", "route" }
+            });
             var result = new AcceptedAtRouteResult(
                 routeName: "sample",
                 routeValues: routeValues,
@@ -81,28 +78,30 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Same(value, result.Value);
         }
 
-        public static IEnumerable<object[]> AcceptedAtRouteData
+        public static TheoryData<object> AcceptedAtRouteData
         {
             get
             {
-                yield return new object[] { null };
-                yield return
-                    new object[] {
-                        new Dictionary<string, string>() { { "hello", "world" } }
-                    };
-                yield return
-                    new object[] {
-                        new RouteValueDictionary(new Dictionary<string, string>() {
+                return new TheoryData<object>
+                {
+                    null,
+                    new Dictionary<string, string>()
+                    {
+                        { "hello", "world" }
+                    },
+                    new RouteValueDictionary(
+                        new Dictionary<string, string>()
+                        {
                             { "test", "case" },
                             { "sample", "route" }
-                        })
+                        }),
                     };
             }
         }
 
         [Theory]
         [MemberData(nameof(AcceptedAtRouteData))]
-        public async Task AcceptedAtRouteResult_ReturnsStatusCode_SetsLocationHeader(object values)
+        public async Task ExecuteResultAsync_SetsStatusCodeAndLocationHeader(object values)
         {
             // Arrange
             var expectedUrl = "testAction";
@@ -111,10 +110,7 @@ namespace Microsoft.AspNetCore.Mvc
             var urlHelper = GetMockUrlHelper(expectedUrl);
 
             // Act
-            var result = new AcceptedAtRouteResult(
-                routeName: null,
-                routeValues: values,
-                value: null);
+            var result = new AcceptedAtRouteResult(routeValues: values, value: null);
             result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
 
@@ -124,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task AcceptedAtRouteResult_ThrowsOnNullUrl()
+        public async Task ThrowsOnNullUrl()
         {
             // Arrange
             var httpContext = GetHttpContext();
@@ -139,8 +135,8 @@ namespace Microsoft.AspNetCore.Mvc
             result.UrlHelper = urlHelper;
 
             // Act & Assert
-            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
-                async () => await result.ExecuteResultAsync(actionContext),
+            await ExceptionAssert.ThrowsAsync<InvalidOperationException>(() =>
+            result.ExecuteResultAsync(actionContext),
             "No route matches the supplied values.");
         }
 
@@ -157,8 +153,6 @@ namespace Microsoft.AspNetCore.Mvc
         private static HttpContext GetHttpContext()
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.PathBase = new PathString("");
-            httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = CreateServices();
             return httpContext;
         }
@@ -187,14 +181,5 @@ namespace Microsoft.AspNetCore.Mvc
 
             return urlHelper.Object;
         }
-
-        private class ResourceStatusBody
-        {
-            public DateTimeOffset EstimatedTime { get; set; }
-
-            public ResourceStatus Status { get; set; }
-        }
-
-        private enum ResourceStatus { Failed, In_Progress, Completed };
     }
 }

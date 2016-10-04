@@ -567,7 +567,37 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void Accepted_WithStringParameter_SetsAcceptedLocation()
+        public void Accepted_SetsStatusCode()
+        {
+            // Arrange
+            var controller = new TestableController();
+
+            // Act
+            var result = controller.Accepted();
+
+            // Assert
+            Assert.IsType<AcceptedResult>(result);
+            Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
+        }
+
+        [Fact]
+        public void Accepted_SetsValue()
+        {
+            // Arrange
+            var controller = new TestableController();
+            var value = new object();
+
+            // Act
+            var result = controller.Accepted(value);
+
+            // Assert
+            Assert.IsType<AcceptedResult>(result);
+            Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
+            Assert.Same(value, result.Value);
+        }
+
+        [Fact]
+        public void Accepted_StringUri_SetsAcceptedLocation()
         {
             // Arrange
             var controller = new TestableController();
@@ -583,7 +613,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void Accepted_WithAbsoluteUriParameter_SetsAcceptedLocation()
+        public void Accepted_AbsoluteUri_SetsAcceptedLocation()
         {
             // Arrange
             var controller = new TestableController();
@@ -599,7 +629,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void Accepted_WithRelativeUriParameter_SetsAcceptedLocation()
+        public void Accepted_RelativeUri_SetsAcceptedLocation()
         {
             // Arrange
             var controller = new TestableController();
@@ -615,7 +645,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedAtAction_WithParameterActionName_SetsResultActionName()
+        public void AcceptedAtAction_SetsActionName()
         {
             // Arrange
             var controller = new TestableController();
@@ -633,14 +663,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void AcceptedAtAction_WithActionControllerAndNullRouteValue_SetsSameValue(
+        public void AcceptedAtAction_SetsActionController(
             string controllerName)
         {
             // Arrange
             var controller = new TestableController();
 
             // Act
-            var result = controller.AcceptedAtAction("SampleAction", controllerName, null);
+            var result = controller.AcceptedAtAction("SampleAction", controllerName);
 
             // Assert
             Assert.IsType<AcceptedAtActionResult>(result);
@@ -650,21 +680,21 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedAtAction_WithActionControllerRouteValues_SetsSameValues()
+        public void AcceptedAtAction_SetsActionControllerRouteValues()
         {
             // Arrange
             var controller = new TestableController();
             var expected = new Dictionary<string, object>
-                {
-                    { "test", "case" },
-                    { "sample", "route" },
-                };
+            {
+                { "test", "case" },
+                { "sample", "route" },
+            };
 
             // Act
             var result = controller.AcceptedAtAction(
                 "SampleAction",
                 "SampleController",
-                new RouteValueDictionary(expected), null);
+                new RouteValueDictionary(expected));
 
             // Assert
             Assert.IsType<AcceptedAtActionResult>(result);
@@ -675,22 +705,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedAtRoute_WithParameterRouteName_SetsResultSameRouteName()
-        {
-            // Arrange
-            var controller = new TestableController();
-            var routeName = "SampleRoute";
-
-            // Act
-            var result = controller.AcceptedAtRoute(routeName);
-
-            // Assert
-            Assert.IsType<AcceptedAtRouteResult>(result);
-            Assert.Same(routeName, result.RouteName);
-        }
-
-        [Fact]
-        public void AcceptedAtRoute_WithParameterRouteValues_SetsResultSameRouteValues()
+        public void AcceptedAtRoute_SetsRouteValues()
         {
             // Arrange
             var controller = new TestableController();
@@ -710,7 +725,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedAtRoute_WithParameterRouteNameAndValues_SetsResultSameProperties()
+        public void AcceptedAtRoute_SetsRouteNameAndValues()
         {
             // Arrange
             var controller = new TestableController();
@@ -722,7 +737,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                 };
 
             // Act
-            var result = controller.AcceptedAtRoute(routeName, new RouteValueDictionary(expected), null);
+            var result = controller.AcceptedAtRoute(routeName, new RouteValueDictionary(expected));
 
             // Assert
             Assert.IsType<AcceptedAtRouteResult>(result);
