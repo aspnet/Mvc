@@ -28,18 +28,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                 {
                     null,
                     "Test string",
-                    new ResourceStatusBody
-                    {
-                        EstimatedTime =DateTimeOffset.UtcNow.AddMinutes(5),
-                        Status = ResourceStatus.In_Progress,
-                    }
+                    new object(),
                 };
             }
         }
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public void AcceptedObjectResult_InitializesStatusCodeAndValue(object value)
+        public void Constructor_InitializesStatusCodeAndValue(object value)
         {
             // Arrange & Act
             var result = new AcceptedResult("testlocation", value);
@@ -51,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task AcceptedObjectResult_SetsStatusCodeAndValueAsync(object value)
+        public async Task ExecuteResultAsync_SetsStatusCodeAndValue(object value)
         {
             // Arrange
             var location = "/test/";
@@ -68,20 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public void AcceptedObjectResult_SetsLocation()
-        {
-            // Arrange
-            var location = "http://test/location";
-
-            // Act
-            var result = new AcceptedResult(location, "testInput");
-
-            // Assert
-            Assert.Same(location, result.Location);
-        }
-
-        [Fact]
-        public async Task AcceptedObjectResult_ReturnsStatusCode_SetsLocationHeader()
+        public async Task ExecuteResultAsync_SetsStatusCodeAndLocationHeader()
         {
             // Arrange
             var location = "/test/";
@@ -98,7 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         }
 
         [Fact]
-        public async Task AcceptedObjectResult_OverwritesLocationHeader()
+        public async Task ExecuteResultAsync_OverwritesLocationHeader()
         {
             // Arrange
             var location = "/test/";
@@ -119,17 +102,15 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         {
             var routeData = new RouteData();
             routeData.Routers.Add(Mock.Of<IRouter>());
-
-            return new ActionContext(httpContext,
-                                    routeData,
-                                    new ActionDescriptor());
+            return new ActionContext(
+                httpContext,
+                routeData,
+                new ActionDescriptor());
         }
 
         private static HttpContext GetHttpContext()
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.PathBase = new PathString("");
-            httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = CreateServices();
             return httpContext;
         }
@@ -150,14 +131,5 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             return services.BuildServiceProvider();
         }
-
-        private class ResourceStatusBody
-        {
-            public DateTimeOffset EstimatedTime { get; set; }
-
-            public ResourceStatus Status { get; set; }
-        }
-
-        private enum ResourceStatus { Failed, In_Progress, Completed };
     }
 }

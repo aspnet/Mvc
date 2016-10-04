@@ -23,11 +23,6 @@ namespace Microsoft.AspNetCore.Mvc
         public AcceptedResult(string location, object value)
             : base(value)
         {
-            if (location == null)
-            {
-                throw new ArgumentNullException(nameof(location));
-            }
-
             Location = location;
             StatusCode = StatusCodes.Status202Accepted;
         }
@@ -36,16 +31,12 @@ namespace Microsoft.AspNetCore.Mvc
         /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
         /// provided.
         /// </summary>
-        /// <param name="location">The location at which the status of requested content can be monitored.</param>
+        /// <param name="location">The location at which the status of requested content can be monitored
+        /// It is an optional paramater and may be null</param>
         /// <param name="value">The value to format in the entity body.</param>
         public AcceptedResult(Uri location, object value)
             : base(value)
         {
-            if (location == null)
-            {
-                throw new ArgumentNullException(nameof(location));
-            }
-
             if (location.IsAbsoluteUri)
             {
                 Location = location.AbsoluteUri;
@@ -68,12 +59,7 @@ namespace Microsoft.AspNetCore.Mvc
                 return _location;
             }
             set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
+            {              
                 _location = value;
             }
         }
