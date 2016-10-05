@@ -161,9 +161,9 @@ namespace Microsoft.AspNetCore.Mvc
         [InlineData("http://localhost:5000/path", 44380, "https://localhost:44380/path")]
         [InlineData("http://localhost:5000/path?foo=bar", 44380, "https://localhost:44380/path?foo=bar")]
         [InlineData("http://本地主機:5000", 44380, "https://xn--tiq21tzznx7c:44380/")]
-        public void OnAuthorization_RedirectsToHttpsEndpoint_ForCustomSslPort(
+        public void OnAuthorization_RedirectsToHttpsEndpoint_ForCustomTlsPort(
             string url,
-            int? sslPort,
+            int? tlsPort,
             string expectedUrl)
         {
             // Arrange
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Mvc
             var uri = new Uri(url);
 
             var requestContext = new DefaultHttpContext();
-            requestContext.RequestServices = CreateServices(sslPort);
+            requestContext.RequestServices = CreateServices(tlsPort);
             requestContext.Request.Scheme = "http";
             requestContext.Request.Method = "GET";
             requestContext.Request.Host = HostString.FromUriComponent(uri);
@@ -226,10 +226,10 @@ namespace Microsoft.AspNetCore.Mvc
             return new AuthorizationFilterContext(actionContext, new IFilterMetadata[0]);
         }
 
-        private static IServiceProvider CreateServices(int? sslPort = null)
+        private static IServiceProvider CreateServices(int? tlsPort = null)
         {
             var options = new TestOptionsManager<MvcOptions>();
-            options.Value.SslPort = sslPort;
+            options.Value.TlsPort = tlsPort;
 
             var services = new ServiceCollection();
             services.AddSingleton<IOptions<MvcOptions>>(options);
