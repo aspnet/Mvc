@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var exception = Assert.Throws<InvalidOperationException>(() => provider.GetBinder(context));
             Assert.Equal(
                 string.Format(
-                    "The model binder '{0}' cannot bind a model of type '{1}'. Change the model type to '{2}' instead.",
+                    "The '{0}' cannot bind to a model of type '{1}'. Change the model type to '{2}' instead.",
                     typeof(FormCollectionModelBinder).FullName,
                     modelType.FullName,
                     typeof(IFormCollection).FullName),

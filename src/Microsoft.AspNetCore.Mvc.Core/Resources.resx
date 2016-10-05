@@ -374,6 +374,6 @@
     <value>An {0} cannot be created without a valid instance of {1}.</value>
   </data>
   <data name="FormCollectionModelBinder_CannotBindToFormCollection" xml:space="preserve">
-    <value>The model binder '{0}' cannot bind a model of type '{1}'. Change the model type to '{2}' instead.</value>
+    <value>The '{0}' cannot bind to a model of type '{1}'. Change the model type to '{2}' instead.</value>
   </data>
 </root>

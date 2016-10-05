@@ -1323,7 +1323,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// The model binder '{0}' cannot bind a model of type '{1}'. Change the model type to '{2}' instead.
+        /// The '{0}' cannot bind to a model of type '{1}'. Change the model type to '{2}' instead.
         /// </summary>
         internal static string FormCollectionModelBinder_CannotBindToFormCollection
         {
@@ -1331,7 +1331,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// The model binder '{0}' cannot bind a model of type '{1}'. Change the model type to '{2}' instead.
+        /// The '{0}' cannot bind to a model of type '{1}'. Change the model type to '{2}' instead.
         /// </summary>
         internal static string FormatFormCollectionModelBinder_CannotBindToFormCollection(object p0, object p1, object p2)
         {
