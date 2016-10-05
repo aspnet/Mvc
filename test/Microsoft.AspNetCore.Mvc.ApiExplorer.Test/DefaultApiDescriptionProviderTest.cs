@@ -509,7 +509,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                         new ProducesAttribute("text/json", "application/json"),
                         FilterScope.Action),
                     new FilterDescriptor(
-                        new ProducesResponseTypeAttribute(typeof(void), 204),
+                        new ProducesResponseTypeAttribute(typeof(void), 200),
                         FilterScope.Action),
                     new FilterDescriptor(
                         new ProducesResponseTypeAttribute(typeof(BadData), 400),
@@ -569,7 +569,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                 responseType =>
                 {
                     Assert.Equal(typeof(void), responseType.Type);
-                    Assert.Equal(204, responseType.StatusCode);
+                    Assert.Equal(200, responseType.StatusCode);
                     Assert.Null(responseType.ModelMetadata);
                     Assert.Empty(responseType.ApiResponseFormats);
                 },
@@ -592,11 +592,30 @@ namespace Microsoft.AspNetCore.Mvc.Description
         [Theory]
         [InlineData(nameof(ReturnsVoid))]
         [InlineData(nameof(ReturnsTask))]
+        public void GetApiDescription_DefaultVoidStatus(string methodName)
+        {
+            // Arrange
+            var action = CreateActionDescriptor(methodName);
+
+            // Act
+            var descriptions = GetApiDescriptions(action);
+
+            // Assert
+            var description = Assert.Single(descriptions);
+            var responseType = Assert.Single(description.SupportedResponseTypes);
+            Assert.Equal(typeof(void), responseType.Type);
+            Assert.Equal(200, responseType.StatusCode);
+            Assert.Null(responseType.ModelMetadata);
+        }
+
+        [Theory]
+        [InlineData(nameof(ReturnsVoid))]
+        [InlineData(nameof(ReturnsTask))]
         public void GetApiDescription_DoesNotPopulatesResponseInformation_WhenVoid(string methodName)
         {
             // Arrange
             var action = CreateActionDescriptor(methodName);
-            var filter = new ProducesResponseTypeAttribute(typeof(void), statusCode: 204);
+            var filter = new ProducesResponseTypeAttribute(typeof(void), statusCode: 200);
             action.FilterDescriptors = new List<FilterDescriptor>();
             action.FilterDescriptors.Add(new FilterDescriptor(filter, FilterScope.Action));
 
@@ -607,7 +626,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
             var description = Assert.Single(descriptions);
             var responseType = Assert.Single(description.SupportedResponseTypes);
             Assert.Equal(typeof(void), responseType.Type);
-            Assert.Equal(204, responseType.StatusCode);
+            Assert.Equal(200, responseType.StatusCode);
             Assert.Null(responseType.ModelMetadata);
         }
 
