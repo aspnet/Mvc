@@ -10,8 +10,32 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
     public class FormCollectionModelBinderProviderTest
     {
+        class DerviedFormCollection : FormCollection
+        {
+            public DerviedFormCollection() : base(fields: null, files: null) { }
+        }
+
         [Theory]
         [InlineData(typeof(FormCollection))]
+        [InlineData(typeof(DerviedFormCollection))]
+        public void Create_ThrowsException_ForFormCollectionModelType(Type modelType)
+        {
+            // Arrange
+            var provider = new FormCollectionModelBinderProvider();
+            var context = new TestModelBinderProviderContext(modelType);
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(() => provider.GetBinder(context));
+            Assert.Equal(
+                string.Format(
+                    "The model binder '{0}' cannot bind a model of type '{1}'. Change the model type to '{2}' instead.",
+                    typeof(FormCollectionModelBinder).FullName,
+                    modelType.FullName,
+                    typeof(IFormCollection).FullName),
+                exception.Message);
+        }
+
+        [Theory]
         [InlineData(typeof(TestClass))]
         [InlineData(typeof(IList<int>))]
         [InlineData(typeof(int[]))]
