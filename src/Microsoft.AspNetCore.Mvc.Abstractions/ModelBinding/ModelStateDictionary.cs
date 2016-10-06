@@ -1128,26 +1128,35 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public ModelStateNode GetNode(StringSegment subKey, bool createIfNotExists)
             {
-                if (subKey.Length == 0)
-                {
-                    return this;
-                }
-
-                var index = BinarySearch(subKey);
                 ModelStateNode modelStateNode = null;
-                if (index >= 0)
-                {
-                    modelStateNode = ChildNodes[index];
-                }
-                else if (createIfNotExists)
+                if (subKey.Length != 0)
                 {
                     if (ChildNodes == null)
                     {
-                        ChildNodes = new List<ModelStateNode>(1);
+                        if (createIfNotExists)
+                        {
+                            ChildNodes = new List<ModelStateNode>(1);
+                            modelStateNode = new ModelStateNode(subKey);
+                            ChildNodes.Add(modelStateNode);
+                        }
                     }
-
-                    modelStateNode = new ModelStateNode(subKey);
-                    ChildNodes.Insert(~index, modelStateNode);
+                    else
+                    {
+                        var index = BinarySearch(subKey);
+                        if (index >= 0)
+                        {
+                            modelStateNode = ChildNodes[index];
+                        }
+                        else if (createIfNotExists)
+                        {
+                            modelStateNode = new ModelStateNode(subKey);
+                            ChildNodes.Insert(~index, modelStateNode);
+                        }
+                    }
+                }
+                else
+                {
+                    modelStateNode = this;
                 }
 
                 return modelStateNode;
@@ -1158,10 +1167,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             private int BinarySearch(StringSegment searchKey)
             {
-                if (ChildNodes == null)
-                {
-                    return -1;
-                }
+                Debug.Assert(ChildNodes != null);
 
                 var low = 0;
                 var high = ChildNodes.Count - 1;
