@@ -17,7 +17,8 @@
     "nowarn": [
       "CS1591"
     ],
-    "xmlDoc": true
+    "xmlDoc": true,
+    "allowUnsafe": true
   },
   "dependencies": {
     "Microsoft.AspNetCore.Routing.Abstractions": "1.1.0-*",
@@ -38,7 +39,9 @@
       "type": "build"
     },
     "Microsoft.Net.Http.Headers": "1.1.0-*",
-    "NETStandard.Library": "1.6.1-*"
+    "NETStandard.Library": "1.6.1-*",
+    "System.Numerics.Vectors": "4.3.0-*",
+    "System.Runtime.CompilerServices.Unsafe": "4.0.0-*"
   },
   "frameworks": {
     "net451": {},
