@@ -10,11 +10,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
     public class FormCollectionModelBinderProviderTest
     {
-        class DerviedFormCollection : FormCollection
-        {
-            public DerviedFormCollection() : base(fields: null, files: null) { }
-        }
-
         [Theory]
         [InlineData(typeof(FormCollection))]
         [InlineData(typeof(DerviedFormCollection))]
@@ -26,12 +21,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() => provider.GetBinder(context));
+
             Assert.Equal(
-                string.Format(
-                    "The '{0}' cannot bind to a model of type '{1}'. Change the model type to '{2}' instead.",
-                    typeof(FormCollectionModelBinder).FullName,
-                    modelType.FullName,
-                    typeof(IFormCollection).FullName),
+                $"The '{typeof(FormCollectionModelBinder).FullName}' cannot bind to a model of type '{modelType.FullName}'. Change the model type to '{typeof(IFormCollection).FullName}' instead.",
                 exception.Message);
         }
 
@@ -68,6 +60,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
         private class TestClass
         {
+        }
+
+        private class DerviedFormCollection : FormCollection
+        {
+            public DerviedFormCollection() : base(fields: null, files: null) { }
         }
     }
 }
