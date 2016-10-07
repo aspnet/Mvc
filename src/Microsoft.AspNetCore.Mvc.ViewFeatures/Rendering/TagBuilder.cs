@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         /// <summary>
-        /// Gets an indication <see cref="InnerHtml"/> has been access and is likely not empty.
+        /// Gets an indication <see cref="InnerHtml"/> has been accessed and is likely not empty.
         /// </summary>
         public bool HasInnerHtml => _innerHtml != null;
 
