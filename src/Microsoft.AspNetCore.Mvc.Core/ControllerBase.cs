@@ -917,8 +917,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual AcceptedResult Accepted()
         {
-            string uri = null;
-            return new AcceptedResult(uri, null);
+            return new AcceptedResult();
         }
 
         /// <summary>
@@ -929,8 +928,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual AcceptedResult Accepted(object value)
         {
-            string uri = null;
-            return new AcceptedResult(uri, value);
+            return new AcceptedResult(location: null, value: value);
         }
 
         /// <summary>
@@ -947,7 +945,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return new AcceptedResult(uri, null);
+            return new AcceptedResult(locationUri: uri, value: null);
         }
 
         /// <summary>
@@ -959,12 +957,7 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual AcceptedResult Accepted(string uri)
         {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            return new AcceptedResult(uri, null);
+            return new AcceptedResult(location: uri, value: null);
         }
 
         /// <summary>
@@ -976,11 +969,6 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual AcceptedResult Accepted(string uri, object value)
         {
-            if (uri == null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
             return new AcceptedResult(uri, value);
         }
 
@@ -998,7 +986,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(uri));
             }
 
-            return new AcceptedResult(uri, value);
+            return new AcceptedResult(locationUri: uri, value: value);
         }
 
         /// <summary>

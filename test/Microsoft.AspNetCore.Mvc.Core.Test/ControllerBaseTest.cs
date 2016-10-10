@@ -663,8 +663,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void AcceptedAtAction_SetsActionController(
-            string controllerName)
+        public void AcceptedAtAction_SetsActionController(string controllerName)
         {
             // Arrange
             var controller = new TestableController();
@@ -710,10 +709,10 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             // Arrange
             var controller = new TestableController();
             var expected = new Dictionary<string, object>
-                {
-                    { "test", "case" },
-                    { "sample", "route" },
-                };
+            {
+                { "test", "case" },
+                { "sample", "route" },
+            };
 
             // Act
             var result = controller.AcceptedAtRoute(new RouteValueDictionary(expected));
@@ -731,10 +730,10 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
             var routeName = "SampleRoute";
             var expected = new Dictionary<string, object>
-                {
-                    { "test", "case" },
-                    { "sample", "route" },
-                };
+            {
+                { "test", "case" },
+                { "sample", "route" },
+            };
 
             // Act
             var result = controller.AcceptedAtRoute(routeName, new RouteValueDictionary(expected));

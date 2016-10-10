@@ -136,8 +136,8 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Act & Assert
             await ExceptionAssert.ThrowsAsync<InvalidOperationException>(() =>
-            result.ExecuteResultAsync(actionContext),
-            "No route matches the supplied values.");
+                result.ExecuteResultAsync(actionContext),
+                "No route matches the supplied values.");
         }
 
         private static ActionContext GetActionContext(HttpContext httpContext)
@@ -145,9 +145,10 @@ namespace Microsoft.AspNetCore.Mvc
             var routeData = new RouteData();
             routeData.Routers.Add(Mock.Of<IRouter>());
 
-            return new ActionContext(httpContext,
-                                    routeData,
-                                    new ActionDescriptor());
+            return new ActionContext(
+                httpContext,
+                routeData,
+                new ActionDescriptor());
         }
 
         private static HttpContext GetHttpContext()

@@ -4,7 +4,9 @@
 using System;
 using System.Buffers;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
+using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -46,7 +48,8 @@ namespace Microsoft.AspNetCore.Mvc
             var result = new AcceptedAtActionResult(
                 actionName: expectedUrl,
                 controllerName: null,
-                routeValues: null, value: value);
+                routeValues: null,
+                value: value);
 
             // Assert
             Assert.Equal(StatusCodes.Status202Accepted, result.StatusCode);
@@ -55,27 +58,31 @@ namespace Microsoft.AspNetCore.Mvc
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task ExecuteResultAsync_SetsStatusCodeAndValue(object value)
+        public async Task ExecuteResultAsync_SetsStatusCodeAndStringValue(object value)
         {
-            // Arrange           
-            var expectedUrl = "testAction";
-            var httpContext = GetHttpContext();
+            // Arrange
+            var url = "testAction";
+            var formatter = new Mock<IOutputFormatter>
+            {
+                CallBase = true
+            };
+            var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
-            var urlHelper = GetMockUrlHelper(expectedUrl);
+            var urlHelper = GetMockUrlHelper(url);
 
             // Act
             var result = new AcceptedAtActionResult(
-                actionName: expectedUrl,
+                actionName: url,
                 controllerName: null,
                 routeValues: null,
                 value: value);
 
             result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
+            var actual = formatter.Object;
 
-            // Assert
-            Assert.Equal(StatusCodes.Status202Accepted, httpContext.Response.StatusCode);
-            Assert.Same(value, result.Value);
+            //Assert
+            Assert.Equal(value, formatter.Object);
         }
 
         [Fact]
@@ -83,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var expectedUrl = "testAction";
-            var httpContext = GetHttpContext();
+            var httpContext = GetHttpContext(null);
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(expectedUrl);
 
@@ -106,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc
         public async Task ThrowsOnNullUrl()
         {
             // Arrange
-            var httpContext = GetHttpContext();
+            var httpContext = GetHttpContext(null);
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(returnValue: null);
 
@@ -120,8 +127,8 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Act & Assert
             await ExceptionAssert.ThrowsAsync<InvalidOperationException>(() =>
-            result.ExecuteResultAsync(actionContext),
-            "No route matches the supplied values.");
+                result.ExecuteResultAsync(actionContext),
+                "No route matches the supplied values.");
         }
 
         private static ActionContext GetActionContext(HttpContext httpContext)
@@ -135,20 +142,26 @@ namespace Microsoft.AspNetCore.Mvc
                 new ActionDescriptor());
         }
 
-        private static HttpContext GetHttpContext()
+        private static HttpContext GetHttpContext(Mock<IOutputFormatter> formatter)
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.RequestServices = CreateServices();
+            httpContext.RequestServices = CreateServices(formatter);
             return httpContext;
         }
 
-        private static IServiceProvider CreateServices()
+        private static IServiceProvider CreateServices(Mock<IOutputFormatter> formatter)
         {
+            object actual = null;
+            formatter.Setup(f => f.CanWriteResult(It.IsAny<OutputFormatterWriteContext>())).Returns(true);
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            //taskCompletionSource.SetResult(value);
+            formatter.Setup(f => f.WriteAsync(It.IsAny<OutputFormatterWriteContext>())).Callback((OutputFormatterWriteContext context) =>
+            {
+                actual = context.Object;
+            }).Returns(taskCompletionSource.Task);
+
             var options = new TestOptionsManager<MvcOptions>();
-            options.Value.OutputFormatters.Add(new StringOutputFormatter());
-            options.Value.OutputFormatters.Add(new JsonOutputFormatter(
-                new JsonSerializerSettings(),
-                ArrayPool<char>.Shared));
+            options.Value.OutputFormatters.Add(formatter.Object);
 
             var services = new ServiceCollection();
             services.AddSingleton(new ObjectResultExecutor(

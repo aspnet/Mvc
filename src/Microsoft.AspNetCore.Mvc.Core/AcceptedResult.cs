@@ -17,6 +17,16 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
         /// provided.
+        /// </summary>      
+        public AcceptedResult()
+            : base(value: null)
+        {
+            StatusCode = StatusCodes.Status202Accepted;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
+        /// provided.
         /// </summary>
         /// <param name="location">The location at which the status of requested content can be monitored.</param>
         /// <param name="value">The value to format in the entity body.</param>
@@ -31,19 +41,24 @@ namespace Microsoft.AspNetCore.Mvc
         /// Initializes a new instance of the <see cref="AcceptedResult"/> class with the values
         /// provided.
         /// </summary>
-        /// <param name="location">The location at which the status of requested content can be monitored
+        /// <param name="locationUri">The location at which the status of requested content can be monitored
         /// It is an optional paramater and may be null</param>
         /// <param name="value">The value to format in the entity body.</param>
-        public AcceptedResult(Uri location, object value)
+        public AcceptedResult(Uri locationUri, object value)
             : base(value)
         {
-            if (location.IsAbsoluteUri)
+            if (locationUri == null)
             {
-                Location = location.AbsoluteUri;
+                throw new ArgumentNullException(nameof(locationUri));
+            }
+
+            if (locationUri.IsAbsoluteUri)
+            {
+                Location = locationUri.AbsoluteUri;
             }
             else
             {
-                Location = location.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
+                Location = locationUri.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
             }
 
             StatusCode = StatusCodes.Status202Accepted;
@@ -59,7 +74,7 @@ namespace Microsoft.AspNetCore.Mvc
                 return _location;
             }
             set
-            {              
+            {
                 _location = value;
             }
         }
@@ -74,7 +89,10 @@ namespace Microsoft.AspNetCore.Mvc
 
             base.OnFormatting(context);
 
-            context.HttpContext.Response.Headers[HeaderNames.Location] = Location;
+            if (!string.IsNullOrEmpty(Location))
+            {
+                context.HttpContext.Response.Headers[HeaderNames.Location] = Location;
+            }
         }
     }
 }
