@@ -56,13 +56,12 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var url = "testAction";
-            var formatter = CreateFormatter();
+            var formatter = CreateMockFormatter();
             var httpContext = GetHttpContext(formatter);
             object actual = null;
-            formatter.Setup(f => f.WriteAsync(It.IsAny<OutputFormatterWriteContext>())).Callback((OutputFormatterWriteContext context) =>
-            {
-                actual = context.Object;
-            }).Returns(Task.FromResult<int>(0));
+            formatter.Setup(f => f.WriteAsync(It.IsAny<OutputFormatterWriteContext>()))
+                .Callback((OutputFormatterWriteContext context) => actual = context.Object)
+                .Returns(Task.FromResult(0));
 
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(url);
@@ -80,8 +79,8 @@ namespace Microsoft.AspNetCore.Mvc
             result.UrlHelper = urlHelper;
             await result.ExecuteResultAsync(actionContext);
 
-            //Assert
-            Assert.Equal(value, actual);
+            // Assert
+            Assert.Same(value, actual);
         }
 
         public static TheoryData<object> AcceptedAtRouteData
@@ -111,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var expectedUrl = "testAction";
-            var formatter = CreateFormatter();
+            var formatter = CreateMockFormatter();
             var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(expectedUrl);
@@ -127,15 +126,15 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task ThrowsOnNullUrl()
+        public async Task ExecuteResultAsync_ThrowsIfRouteUrlIsNull()
         {
             // Arrange
-            var formatter = CreateFormatter();
+            var formatter = CreateMockFormatter();
             var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
             var urlHelper = GetMockUrlHelper(returnValue: null);
 
-            //Act
+            // Act
             var result = new AcceptedAtRouteResult(
                 routeName: null,
                 routeValues: new Dictionary<string, object>(),
@@ -143,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             result.UrlHelper = urlHelper;
 
-            //Assert
+            // Assert
             await ExceptionAssert.ThrowsAsync<InvalidOperationException>(() =>
                 result.ExecuteResultAsync(actionContext),
                 "No route matches the supplied values.");
@@ -167,7 +166,7 @@ namespace Microsoft.AspNetCore.Mvc
             return httpContext;
         }
 
-        private static Mock<IOutputFormatter> CreateFormatter()
+        private static Mock<IOutputFormatter> CreateMockFormatter()
         {
             var formatter = new Mock<IOutputFormatter>
             {

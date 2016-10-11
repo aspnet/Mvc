@@ -47,20 +47,25 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
         [Theory]
         [MemberData(nameof(ValuesData))]
-        public async Task ExecuteResultAsync_SetsStatusCodeAndValue(object value)
+        public async Task ExecuteResultAsync_SetsObjectValueOfFormatter(object value)
         {
             // Arrange
             var location = "/test/";
-            var httpContext = GetHttpContext();
+            var formatter = CreateMockFormatter();
+            var httpContext = GetHttpContext(formatter);
+            object actual = null;
+            formatter.Setup(f => f.WriteAsync(It.IsAny<OutputFormatterWriteContext>()))
+                .Callback((OutputFormatterWriteContext context) => actual = context.Object)
+                .Returns(Task.FromResult(0));
+
             var actionContext = GetActionContext(httpContext);
-            var result = new AcceptedResult(location, value);
 
             // Act
+            var result = new AcceptedResult(location, value);
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
-            Assert.Equal(StatusCodes.Status202Accepted, httpContext.Response.StatusCode);
-            Assert.Same(value, result.Value);
+            Assert.Same(value, actual);
         }
 
         [Fact]
@@ -68,11 +73,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         {
             // Arrange
             var location = "/test/";
-            var httpContext = GetHttpContext();
+            var formatter = CreateMockFormatter();
+            var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
-            var result = new AcceptedResult(location, "testInput");
 
             // Act
+            var result = new AcceptedResult(location, "testInput");
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
@@ -85,12 +91,13 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         {
             // Arrange
             var location = "/test/";
-            var httpContext = GetHttpContext();
+            var formatter = CreateMockFormatter();
+            var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
             httpContext.Response.Headers["Location"] = "/different/location/";
-            var result = new AcceptedResult(location, "testInput");
 
             // Act
+            var result = new AcceptedResult(location, "testInput");
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
@@ -108,21 +115,28 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
                 new ActionDescriptor());
         }
 
-        private static HttpContext GetHttpContext()
+        private static HttpContext GetHttpContext(Mock<IOutputFormatter> formatter)
         {
             var httpContext = new DefaultHttpContext();
-            httpContext.RequestServices = CreateServices();
+            httpContext.RequestServices = CreateServices(formatter);
             return httpContext;
         }
 
-        private static IServiceProvider CreateServices()
+        private static Mock<IOutputFormatter> CreateMockFormatter()
+        {
+            var formatter = new Mock<IOutputFormatter>
+            {
+                CallBase = true
+            };
+            formatter.Setup(f => f.CanWriteResult(It.IsAny<OutputFormatterWriteContext>())).Returns(true);
+
+            return formatter;
+        }
+
+        private static IServiceProvider CreateServices(Mock<IOutputFormatter> formatter)
         {
             var options = new TestOptionsManager<MvcOptions>();
-            options.Value.OutputFormatters.Add(new StringOutputFormatter());
-            options.Value.OutputFormatters.Add(new JsonOutputFormatter(
-                new JsonSerializerSettings(),
-                ArrayPool<char>.Shared));
-
+            options.Value.OutputFormatters.Add(formatter.Object);
             var services = new ServiceCollection();
             services.AddSingleton(new ObjectResultExecutor(
                 options,
