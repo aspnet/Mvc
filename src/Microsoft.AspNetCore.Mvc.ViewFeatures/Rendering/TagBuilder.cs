@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
     public class TagBuilder : IHtmlContent
     {
         private AttributeDictionary _attributes;
-        private IHtmlContentBuilder _innerHtml;
+        private HtmlContentBuilder _innerHtml;
 
         /// <summary>
         /// Creates a new HTML tag that has the specified tag name.
@@ -71,9 +71,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         /// <summary>
-        /// Gets an indication <see cref="InnerHtml"/> has been accessed and is likely not empty.
+        /// Gets an indication <see cref="InnerHtml"/> is not empty.
         /// </summary>
-        public bool HasInnerHtml => _innerHtml != null;
+        public bool HasInnerHtml => _innerHtml?.Count > 0;
 
         /// <summary>
         /// Gets the tag name for this tag.
