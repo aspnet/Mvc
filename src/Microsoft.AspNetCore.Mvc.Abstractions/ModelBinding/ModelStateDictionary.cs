@@ -519,7 +519,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     current = current.GetNode(subKey);
 
                     // Path not found, exit early
-                    if (current == null) break;
+                    if (current == null)
+                    {
+                        break;
+                    }
 
                 } while (match.Type != Delimiter.None);
             }
