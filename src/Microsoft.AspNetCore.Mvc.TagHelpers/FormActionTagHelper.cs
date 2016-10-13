@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ImageTypeSelector = "[type=image], ";
         private const string ImageActionAttributeSelector = ImageTypeSelector + ActionAttributeName;
         private const string ImageAreaAttributeSelector = ImageTypeSelector + AreaAttributeName;
-        private const string ImageFragmentAttributeSelector = ImageTypeSelector + AreaAttributeName;
+        private const string ImageFragmentAttributeSelector = ImageTypeSelector + FragmentAttributeName;
         private const string ImageControllerAttributeSelector = ImageTypeSelector + ControllerAttributeName;
         private const string ImageRouteAttributeSelector = ImageTypeSelector + RouteAttributeName;
         private const string ImageRouteValuesDictionarySelector = ImageTypeSelector + RouteValuesDictionaryName;
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string SubmitTypeSelector = "[type=submit], ";
         private const string SubmitActionAttributeSelector = SubmitTypeSelector + ActionAttributeName;
         private const string SubmitAreaAttributeSelector = SubmitTypeSelector + AreaAttributeName;
-        private const string SubmitFragmentAttributeSelector = SubmitTypeSelector + AreaAttributeName;
+        private const string SubmitFragmentAttributeSelector = SubmitTypeSelector + FragmentAttributeName;
         private const string SubmitControllerAttributeSelector = SubmitTypeSelector + ControllerAttributeName;
         private const string SubmitRouteAttributeSelector = SubmitTypeSelector + RouteAttributeName;
         private const string SubmitRouteValuesDictionarySelector = SubmitTypeSelector + RouteValuesDictionaryName;
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string Area { get; set; }
 
         /// <summary>
-        /// The URL fragment name.
+        /// Gets or sets the URL fragment
         /// </summary>
         [HtmlAttributeName(FragmentAttributeName)]
         public string Fragment { get; set; }
@@ -208,6 +208,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Route == null)
                 {
                     var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
+                    //add a null check for fragment?
                     var url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
                     output.Attributes.SetAttribute(FormAction, url);
                 }

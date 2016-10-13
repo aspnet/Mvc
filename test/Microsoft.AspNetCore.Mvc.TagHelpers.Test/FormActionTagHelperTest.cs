@@ -469,7 +469,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var expectedErrorMessage = $"Cannot override the 'formaction' attribute for <{tagName}>. <{tagName}> " +
                 "elements with a specified 'formaction' must not have attributes starting with 'asp-route-' or an " +
-                "'asp-action', 'asp-controller', 'asp-area', 'asp-fragment' or 'asp-route' attribute.";
+                "'asp-action', 'asp-controller', 'asp-area', 'asp-fragment', or 'asp-route' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(
@@ -504,7 +504,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
             var expectedErrorMessage = $"Cannot determine a 'formaction' attribute for <{tagName}>. <{tagName}> " +
-                "elements with a specified 'asp-route' must not have an 'asp-action', 'asp-controller' or 'asp-fragment' attribute.";
+                "elements with a specified 'asp-route' must not have an 'asp-action', 'asp-controller', or 'asp-fragment' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(

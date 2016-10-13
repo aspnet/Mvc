@@ -208,16 +208,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         ViewContext,
                         Action,
                         Controller,
+                        Fragment,
                         routeValues,
                         method: null,
                         htmlAttributes: null);
-
-                    //Append the fragment to action
-                    if (Fragment != null)
-                    {
-                        tagBuilder.Attributes["action"] += string.Concat("#" + Fragment);
-                        Console.WriteLine(tagBuilder.Attributes["action"]);
-                    }
                 }
                 else if (Action != null || Controller != null)
                 {
@@ -237,15 +231,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         ViewContext,
                         Route,
                         routeValues,
+                        Fragment,
                         method: null,
                         htmlAttributes: null);
-
-                    //Append the fragment to action
-                    if (Fragment != null)
-                    {
-                        tagBuilder.Attributes["action"] += string.Concat("#" + Fragment);
-                        Console.WriteLine(tagBuilder.Attributes["action"]);
-                    }
                 }
 
                 if (tagBuilder != null)

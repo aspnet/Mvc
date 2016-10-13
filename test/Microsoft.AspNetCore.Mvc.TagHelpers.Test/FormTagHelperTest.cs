@@ -651,7 +651,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var expectedErrorMessage = "Cannot override the 'action' attribute for <form>. A <form> with a specified " +
                                        "'action' must not have attributes starting with 'asp-route-' or an " +
-                                       "'asp-action' or 'asp-controller' or 'asp-fragment' or 'asp-area' or 'asp-route' attribute.";
+                                       "'asp-action', 'asp-controller', 'asp-fragment', 'asp-area', or 'asp-route' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(
@@ -682,7 +682,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
             var expectedErrorMessage = "Cannot determine an 'action' attribute for <form>. A <form> with a specified " +
-                "'asp-route' must not have an 'asp-action', 'asp-controller' or 'asp-fragment' attribute.";
+                "'asp-route' must not have an 'asp-action', 'asp-controller', or 'asp-fragment' attribute.";
 
             var context = new TagHelperContext(
                 allAttributes: new TagHelperAttributeList(
