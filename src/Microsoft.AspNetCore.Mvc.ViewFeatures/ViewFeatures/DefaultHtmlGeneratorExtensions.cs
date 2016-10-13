@@ -8,7 +8,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
     public static class DefaultHtmlGeneratorExtensions
     {
-        public static TagBuilder GenerateForm(this IHtmlGenerator generator,
+        public static TagBuilder GenerateForm(
+            this IHtmlGenerator generator,
             ViewContext viewContext,
             string actionName,
             string controllerName,
@@ -22,13 +23,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Append the fragment to action
             if (fragment != null)
             {
-                tagBuilder.Attributes["action"] = $"{tagBuilder.Attributes["action"]}#{fragment}";
+                tagBuilder.Attributes["action"] += "#" + fragment;
             }
 
             return tagBuilder;
         }
 
-        public static TagBuilder GenerateRouteForm(this IHtmlGenerator generator,
+        public static TagBuilder GenerateRouteForm(
+            this IHtmlGenerator generator,
             ViewContext viewContext,
             string routeName,
             object routeValues,
@@ -41,11 +43,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Append the fragment to action
             if (fragment != null)
             {
-                tagBuilder.Attributes["action"] = $"{tagBuilder.Attributes["action"]}#{fragment}";
+                tagBuilder.Attributes["action"] += "#" + fragment;
             }
 
             return tagBuilder;
-
         }
     }
 }

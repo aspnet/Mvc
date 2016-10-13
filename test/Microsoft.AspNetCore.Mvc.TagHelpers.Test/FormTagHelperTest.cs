@@ -331,7 +331,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 Action = "index",
                 Antiforgery = true,
                 Controller = "home",
-                Fragment ="test",
+                Fragment = "test",
                 ViewContext = viewContext,
                 RouteValues =
                 {

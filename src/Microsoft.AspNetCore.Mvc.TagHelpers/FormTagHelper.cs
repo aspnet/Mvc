@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public bool? Antiforgery { get; set; }
 
         /// <summary>
-        /// The URL fragment name.
+        /// Gets or sets the URL fragment.
         /// </summary>
         [HtmlAttributeName(FragmentAttributeName)]
         public string Fragment { get; set; }
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Action != null ||
                     Controller != null ||
                     Area != null ||
-                    Fragment != null ||//Added check for fragment
+                    Fragment != null ||
                     Route != null ||
                     (_routeValues != null && _routeValues.Count > 0))
                 {

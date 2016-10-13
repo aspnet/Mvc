@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string Area { get; set; }
 
         /// <summary>
-        /// Gets or sets the URL fragment
+        /// Gets or sets the URL fragment.
         /// </summary>
         [HtmlAttributeName(FragmentAttributeName)]
         public string Fragment { get; set; }
@@ -208,7 +208,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Route == null)
                 {
                     var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
-                    //add a null check for fragment?
                     var url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
                     output.Attributes.SetAttribute(FormAction, url);
                 }
