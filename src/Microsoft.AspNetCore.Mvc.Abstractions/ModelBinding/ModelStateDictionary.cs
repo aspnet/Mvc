@@ -5,6 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.Primitives;
 
@@ -21,7 +23,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// The default value for <see cref="MaxAllowedErrors"/> of <c>200</c>.
         /// </summary>
         public static readonly int DefaultMaxAllowedErrors = 200;
-        private static readonly char[] Delimiters = new char[] { '.', '[' };
+
+        private const ulong CharBroadcastToUlong = ~0UL / ushort.MaxValue;
+        private const ulong SetZeroCharsHighInUlong = CharBroadcastToUlong;
+        private const ulong FilterOnlyCharHighBitInUlong = (CharBroadcastToUlong >> 1) | (CharBroadcastToUlong << (64 - 1));
+
+        private const int NoMatch = int.MaxValue - 1;
+        private const ushort DelimiterDot = '.';
+        private const ushort DelimiterOpen = '[';
+        private static readonly Vector<ushort> DelimiterVectorDot = new Vector<ushort>('.');
+        private static readonly Vector<ushort> DelimiterVectorOpen = new Vector<ushort>('[');
+        private static readonly ulong PowerOfTwoToHighByte = GetPowerOfTwoToHighByte();
 
         private readonly ModelStateNode _root;
         private int _maxAllowedErrors;
@@ -506,7 +518,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private ModelStateNode GetOrAddNode(string key) => GetNode(key, createIfNotExists: true);
 
-        private ModelStateNode GetNode(string key, bool createIfNotExists)
+        private unsafe ModelStateNode GetNode(string key, bool createIfNotExists)
         {
             Debug.Assert(key != null);
             if (key.Length == 0)
@@ -521,30 +533,283 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             //    -> baz
             //     -> [qux]
 
+            DelimiterMatch lastMatchType = DelimiterMatch.NoMatch;
+
             var current = _root;
             var previousIndex = 0;
-            int index;
-            while ((index = key.IndexOfAny(Delimiters, previousIndex)) != -1)
+            int index = 0;
+            int remaining = key.Length;
+
+            fixed (char* ptr = key)
             {
-                var keyStart = previousIndex == 0 || key[previousIndex - 1] == '.'
-                    ? previousIndex
-                    : previousIndex - 1;
-                var subKey = new StringSegment(key, keyStart, index - keyStart);
-                current = current.GetNode(subKey, createIfNotExists);
-                if (current == null)
+                var ushortPtr = (ushort*)ptr;
+
+                if (Vector.IsHardwareAccelerated)
                 {
-                    // createIfNotExists is set to false and a node wasn't found. Exit early.
-                    return null;
+                    // Search by Vector length (8/16/32 chars)
+                    while (remaining > Vector<ushort>.Count)
+                    {
+                        remaining -= Vector<ushort>.Count;
+
+                        var dotVector = DelimiterVectorDot;
+                        var openVector = DelimiterVectorOpen;
+
+                        var data = Unsafe.Read<Vector<ushort>>(ushortPtr + index);
+
+                        var dotEquals = Vector.Equals(data, dotVector);
+                        var openEquals = Vector.Equals(data, openVector);
+
+                        var dotIndex = int.MaxValue;
+                        var openIndex = int.MaxValue;
+
+                        do
+                        {
+                            // Find next match if no unused match from previous iteration
+                            if (dotIndex == int.MaxValue)
+                            {
+                                if (!dotEquals.Equals(Vector<ushort>.Zero))
+                                {
+                                    dotIndex = LocateFirstFoundChar(ref dotEquals);
+                                    // Clear current match
+                                    // As indexer readonly can't do: dotEquals[dotIndex] = 0;
+                                    *((ushort*)Unsafe.AsPointer(ref dotEquals) + dotIndex) = 0;
+                                }
+                                else
+                                {
+                                    // No match, don't reevaluate
+                                    dotIndex = NoMatch;
+                                }
+                            }
+
+                            // Find next match if no unused match from previous iteration
+                            if (openIndex == int.MaxValue)
+                            {
+                                if (!openEquals.Equals(Vector<ushort>.Zero))
+                                {
+                                    openIndex = LocateFirstFoundChar(ref openEquals);
+                                    // Clear current match
+                                    // As indexer readonly can't do: dotEquals[dotIndex] = 0;
+                                    *((ushort*)Unsafe.AsPointer(ref openEquals) + openIndex) = 0;
+                                }
+                                else
+                                {
+                                    // No match, don't reevaluate
+                                    openIndex = NoMatch;
+                                }
+                            }
+
+                            if (dotIndex >= NoMatch && openIndex >= NoMatch)
+                            {
+                                // No match
+                                break;
+                            }
+
+                            // Have match
+                            int newIndex;
+                            DelimiterMatch matchType;
+                            if (dotIndex < openIndex)
+                            {
+                                matchType = DelimiterMatch.Dot;
+                                newIndex = index + dotIndex;
+                                dotIndex = int.MaxValue;
+                            }
+                            else
+                            {
+                                matchType = DelimiterMatch.OpenBracket;
+                                newIndex = index + openIndex;
+                                openIndex = int.MaxValue;
+                            }
+
+                            int keyStart;
+                            switch (lastMatchType)
+                            {
+                                case DelimiterMatch.NoMatch:
+                                case DelimiterMatch.Dot:
+                                    keyStart = previousIndex;
+                                    break;
+                                case DelimiterMatch.OpenBracket:
+                                default:
+                                    keyStart = previousIndex - 1;
+                                    break;
+                            }
+
+                            var subKey = new StringSegment(key, keyStart, newIndex - keyStart);
+                            current = current.GetNode(subKey, createIfNotExists);
+                            if (current == null)
+                            {
+                                // createIfNotExists is set to false and a node wasn't found. Exit early.
+                                return null;
+                            }
+
+                            lastMatchType = matchType;
+                            previousIndex = newIndex + 1;
+                        } while (true);
+
+                        index += Vector<ushort>.Count;
+                    }
                 }
 
-                previousIndex = index + 1;
+                // Search by Long length (4 chars)
+                while (remaining > sizeof(ulong))
+                {
+                    remaining -= sizeof(ulong) / sizeof(ushort);
+
+                    var data = Unsafe.Read<ulong>(ushortPtr + index);
+
+                    var dotEquals = SetLowBitsForCharMatch(data, DelimiterDot);
+                    var openEquals = SetLowBitsForCharMatch(data, DelimiterOpen);
+
+                    var dotIndex = int.MaxValue;
+                    var openIndex = int.MaxValue;
+
+                    do
+                    {
+                        // Find next match if no unused match from previous iteration
+                        if (dotIndex == int.MaxValue)
+                        {
+                            if (dotEquals != 0)
+                            {
+                                dotIndex = LocateFirstFoundChar(dotEquals);
+                                // Clear current match
+                                dotEquals ^= 1L << (dotIndex << 4);
+                            }
+                            else
+                            {
+                                // No match, don't reevaluate
+                                dotIndex = NoMatch;
+                            }
+                        }
+
+                        // Find next match if no unused match from previous iteration
+                        if (openIndex == int.MaxValue)
+                        {
+                            if (openEquals != 0)
+                            {
+                                openIndex = LocateFirstFoundChar(openEquals);
+                                // Clear current match
+                                openEquals ^= 1L << (openIndex << 4);
+                            }
+                            else
+                            {
+                                // No match, don't reevaluate
+                                openIndex = NoMatch;
+                            }
+                        }
+
+                        if (dotIndex >= NoMatch && openIndex >= NoMatch)
+                        {
+                            // No match
+                            break;
+                        }
+
+                        // Have match
+                        int newIndex;
+                        DelimiterMatch matchType;
+                        if (dotIndex < openIndex)
+                        {
+                            matchType = DelimiterMatch.Dot;
+                            newIndex = index + dotIndex;
+                            dotIndex = int.MaxValue;
+                        }
+                        else
+                        {
+                            matchType = DelimiterMatch.OpenBracket;
+                            newIndex = index + openIndex;
+                            openIndex = int.MaxValue;
+                        }
+
+                        int keyStart;
+                        switch (lastMatchType)
+                        {
+                            case DelimiterMatch.NoMatch:
+                            case DelimiterMatch.Dot:
+                                keyStart = previousIndex;
+                                break;
+                            case DelimiterMatch.OpenBracket:
+                            default:
+                                keyStart = previousIndex - 1;
+                                break;
+                        }
+
+                        var subKey = new StringSegment(key, keyStart, newIndex - keyStart);
+                        current = current.GetNode(subKey, createIfNotExists);
+                        if (current == null)
+                        {
+                            // createIfNotExists is set to false and a node wasn't found. Exit early.
+                            return null;
+                        }
+
+                        lastMatchType = matchType;
+                        previousIndex = newIndex + 1;
+                    } while (true);
+
+                    index += sizeof(ulong) / sizeof(ushort);
+                }
+
+                // Search per char
+                while (remaining > 0)
+                {
+                    remaining--;
+
+                    var data = *(ushortPtr + index);
+
+                    DelimiterMatch matchType;
+                    switch (data)
+                    {
+                        case DelimiterDot:
+                            matchType = DelimiterMatch.Dot;
+                            break;
+                        case DelimiterOpen:
+                            matchType = DelimiterMatch.OpenBracket;
+                            break;
+                        default:
+                            index++;
+                            continue;
+                    }
+
+                    int keyStart;
+                    switch (lastMatchType)
+                    {
+                        case DelimiterMatch.NoMatch:
+                        case DelimiterMatch.Dot:
+                            keyStart = previousIndex;
+                            break;
+                        case DelimiterMatch.OpenBracket:
+                        default:
+                            keyStart = previousIndex - 1;
+                            break;
+                    }
+
+                    var subKey = new StringSegment(key, keyStart, index - keyStart);
+                    current = current.GetNode(subKey, createIfNotExists);
+                    if (current == null)
+                    {
+                        // createIfNotExists is set to false and a node wasn't found. Exit early.
+                        return null;
+                    }
+
+                    lastMatchType = matchType;
+                    previousIndex = index + 1;
+
+                    index++;
+                }
             }
 
             if (previousIndex < key.Length)
             {
-                var keyStart = previousIndex == 0 || key[previousIndex - 1] == '.'
-                    ? previousIndex
-                    : previousIndex - 1;
+                int keyStart;
+                switch (lastMatchType)
+                {
+                    case DelimiterMatch.NoMatch:
+                    case DelimiterMatch.Dot:
+                        keyStart = previousIndex;
+                        break;
+                    case DelimiterMatch.OpenBracket:
+                    default:
+                        keyStart = previousIndex - 1;
+                        break;
+                }
+
                 var subKey = new StringSegment(key, keyStart, key.Length - keyStart);
                 current = current.GetNode(subKey, createIfNotExists);
             }
@@ -559,6 +824,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             return current;
         }
+
+        private enum DelimiterMatch
+        {
+            NoMatch,
+            Dot,
+            OpenBracket
+        }
+
 
         private static ModelValidationState? GetValidity(ModelStateNode node)
         {
@@ -757,6 +1030,55 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             return new PrefixEnumerable(this, prefix);
         }
 
+        /// <summary>
+        /// Locate the first of the found chars
+        /// </summary>
+        /// <param  name="charEquals"></param >
+        /// <returns>The first index of the result vector</returns>
+        // Force inlining (64 IL bytes, 91 bytes asm) Issue: https://github.com/dotnet/coreclr/issues/7386
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int LocateFirstFoundChar(ref Vector<ushort> charEquals)
+        {
+            var vector64 = Vector.AsVectorInt64(charEquals);
+            var i = 0;
+            long longValue = 0;
+            for (; i < Vector<long>.Count; i++)
+            {
+                longValue = vector64[i];
+                if (longValue == 0) continue;
+                break;
+            }
+
+            // Single LEA instruction with jitted const (using function result)
+            return i * 4 + LocateFirstFoundChar(longValue);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int LocateFirstFoundChar(long charEquals)
+        {
+            // Flag least significant power of two bit
+            var powerOfTwoFlag = (ulong)(charEquals & -charEquals);
+            // Shift all powers of two into the high byte and extract
+            return (int)((powerOfTwoFlag * PowerOfTwoToHighByte) >> 61);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static long SetLowBitsForCharMatch(ulong ulongValue, ushort search)
+        {
+            var value = ulongValue ^ (CharBroadcastToUlong * search);
+            return (long)(
+                (
+                    (value - SetZeroCharsHighInUlong) &
+                    ~(value) &
+                    FilterOnlyCharHighBitInUlong
+                ) >> 15);
+        }
+
+        private static ulong GetPowerOfTwoToHighByte()
+        {
+            return BitConverter.IsLittleEndian ? 0x0000200040006000ul : 0x0000002000400060ul;
+        }
+
         [DebuggerDisplay("SubKey={SubKey}, Key={Key}, ValidationState={ValidationState}")]
         private class ModelStateNode : ModelStateEntry
         {
@@ -806,26 +1128,35 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public ModelStateNode GetNode(StringSegment subKey, bool createIfNotExists)
             {
-                if (subKey.Length == 0)
-                {
-                    return this;
-                }
-
-                var index = BinarySearch(subKey);
                 ModelStateNode modelStateNode = null;
-                if (index >= 0)
-                {
-                    modelStateNode = ChildNodes[index];
-                }
-                else if (createIfNotExists)
+                if (subKey.Length != 0)
                 {
                     if (ChildNodes == null)
                     {
-                        ChildNodes = new List<ModelStateNode>(1);
+                        if (createIfNotExists)
+                        {
+                            ChildNodes = new List<ModelStateNode>(1);
+                            modelStateNode = new ModelStateNode(subKey);
+                            ChildNodes.Add(modelStateNode);
+                        }
                     }
-
-                    modelStateNode = new ModelStateNode(subKey);
-                    ChildNodes.Insert(~index, modelStateNode);
+                    else
+                    {
+                        var index = BinarySearch(subKey);
+                        if (index >= 0)
+                        {
+                            modelStateNode = ChildNodes[index];
+                        }
+                        else if (createIfNotExists)
+                        {
+                            modelStateNode = new ModelStateNode(subKey);
+                            ChildNodes.Insert(~index, modelStateNode);
+                        }
+                    }
+                }
+                else
+                {
+                    modelStateNode = this;
                 }
 
                 return modelStateNode;
@@ -836,10 +1167,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             private int BinarySearch(StringSegment searchKey)
             {
-                if (ChildNodes == null)
-                {
-                    return -1;
-                }
+                Debug.Assert(ChildNodes != null);
 
                 var low = 0;
                 var high = ChildNodes.Count - 1;
