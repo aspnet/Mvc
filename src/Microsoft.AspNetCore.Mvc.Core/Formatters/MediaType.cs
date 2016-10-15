@@ -79,6 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             var subTypeLength = GetSubtypeLength(mediaType, offset + typeLength, out subType);
             if (subTypeLength == 0)
             {
+                // ??? Should this case also reset Type? A type without a subtype is invalid.
                 SubType = new StringSegment();
                 return;
             }
@@ -103,19 +104,22 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return 0;
             }
 
-            // Parse the type, i.e. <type> in media type string "<type>/<subtype>; param1=value1; param2=value2"
-            var typeLength = HttpTokenParsingRules.GetTokenLength(input, offset);
+            // ??? GetWhitespaceLength() incorrectly stops if it hits a comment. Should either use or remove the
+            // ??? HttpTokenParsingRules comment support. File a bug?
+            var current = offset + HttpTokenParsingRules.GetWhitespaceLength(input, offset);
 
+            // Parse the type, i.e. <type> in media type string "<type>/<subtype>; param1=value1; param2=value2"
+            var typeLength = HttpTokenParsingRules.GetTokenLength(input, current);
             if (typeLength == 0)
             {
                 type = default(StringSegment);
                 return 0;
             }
 
-            type = new StringSegment(input, offset, typeLength);
+            type = new StringSegment(input, current, typeLength);
 
-            var current = offset + typeLength;
-            current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+            current += typeLength;
+            current += HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
             return current - offset;
         }
@@ -123,6 +127,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         private static int GetSubtypeLength(string input, int offset, out StringSegment subType)
         {
             var current = offset;
+
             // Parse the separator between type and subtype
             if (current < 0 || current >= input.Length || input[current] != '/')
             {
@@ -131,10 +136,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
 
             current++; // skip delimiter.
-            current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+            current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
             var subtypeLength = HttpTokenParsingRules.GetTokenLength(input, current);
-
             if (subtypeLength == 0)
             {
                 subType = default(StringSegment);
@@ -143,8 +147,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             subType = new StringSegment(input, current, subtypeLength);
 
-            current = current + subtypeLength;
-            current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+            current +=  subtypeLength;
+            current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
             return current - offset;
         }
@@ -180,11 +184,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public StringSegment Charset => GetParameter("charset");
 
         /// <summary>
-        /// Determines whether the current <see cref="MediaType"/> is a subset of the <paramref name="set"/> <see cref="MediaType"/>.
+        /// Determines whether the current <see cref="MediaType"/> is a subset of the <paramref name="set"/>
+        /// <see cref="MediaType"/>.
         /// </summary>
         /// <param name="set">The set <see cref="MediaType"/>.</param>
         /// <returns>
-        /// <code>true</code> if this <see cref="MediaType"/> is a subset of <paramref name="set"/>; otherwise<code>false</code>.
+        /// <c>true</c> if this <see cref="MediaType"/> is a subset of <paramref name="set"/>; otherwise <c>false</c>.
         /// </returns>
         public bool IsSubsetOf(MediaType set)
         {
@@ -197,7 +202,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Gets the parameter <paramref name="parameterName"/> of the media type.
         /// </summary>
         /// <param name="parameterName">The name of the parameter to retrieve.</param>
-        /// <returns>The <see cref="StringSegment"/>for the given <paramref name="parameterName"/> if found; otherwise<code>null</code>.</returns>
+        /// <returns>
+        /// The <see cref="StringSegment"/>for the given <paramref name="parameterName"/> if found; otherwise
+        /// <c>null</c>.
+        /// </returns>
         public StringSegment GetParameter(string parameterName)
         {
             return GetParameter(new StringSegment(parameterName));
@@ -207,7 +215,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Gets the parameter <paramref name="parameterName"/> of the media type.
         /// </summary>
         /// <param name="parameterName">The name of the parameter to retrieve.</param>
-        /// <returns>The <see cref="StringSegment"/>for the given <paramref name="parameterName"/> if found; otherwise<code>null</code>.</returns>
+        /// <returns>
+        /// The <see cref="StringSegment"/>for the given <paramref name="parameterName"/> if found; otherwise
+        /// <c>null</c>.
+        /// </returns>
         public StringSegment GetParameter(StringSegment parameterName)
         {
             var parametersParser = _parameterParser;
@@ -229,7 +240,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <paramref name="encoding"/>.
         /// </summary>
         /// <param name="mediaType">The media type whose encoding will be replaced.</param>
-        /// <param name="encoding">The encoding that will replace the encoding in the <paramref name="mediaType"/></param>
+        /// <param name="encoding">The encoding that will replace the encoding in the <paramref name="mediaType"/>.
+        /// </param>
         /// <returns>A media type with the replaced encoding.</returns>
         public static string ReplaceEncoding(string mediaType, Encoding encoding)
         {
@@ -241,15 +253,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <paramref name="encoding"/>.
         /// </summary>
         /// <param name="mediaType">The media type whose encoding will be replaced.</param>
-        /// <param name="encoding">The encoding that will replace the encoding in the <paramref name="mediaType"/></param>
+        /// <param name="encoding">The encoding that will replace the encoding in the <paramref name="mediaType"/>.
+        /// </param>
         /// <returns>A media type with the replaced encoding.</returns>
         public static string ReplaceEncoding(StringSegment mediaType, Encoding encoding)
         {
             var parsedMediaType = new MediaType(mediaType);
             var charset = parsedMediaType.GetParameter("charset");
 
-            if (charset.HasValue &&
-                charset.Equals(encoding.WebName, StringComparison.OrdinalIgnoreCase))
+            if (charset.HasValue && charset.Equals(encoding.WebName, StringComparison.OrdinalIgnoreCase))
             {
                 return mediaType.Value;
             }
@@ -300,12 +312,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var parser = parsedMediaType._parameterParser;
 
+            // ??? In every other ParseNextParameter() loop, we treat a parameter as valid as long as it comes before
+            // ??? anything invalid in the media type string. Why is this case different? Should the MediaType
+            // ??? constructor validate the parameters, allowing this loop to exit early and increasing consistency?
             double quality = 1.0d;
             MediaTypeParameter parameter;
             while (parser.ParseNextParameter(out parameter))
             {
                 if (parameter.HasName(QualityParameter))
                 {
+                    // ??? This code does not detect the error if a media type contains 2 q parameters. File a bug?
                     quality = double.Parse(
                         parameter.Value.Value, NumberStyles.AllowDecimalPoint,
                         NumberFormatInfo.InvariantInfo);
@@ -314,16 +330,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             // We check if the parsed media type has a value at this stage when we have iterated
             // over all the parameters and we know if the parsing was sucessful.
-            if (!parser.ParsingFailed)
-            {
-                return new MediaTypeSegmentWithQuality(
-                    new StringSegment(mediaType, start, parser.CurrentOffset - start),
-                    quality);
-            }
-            else
+            if (parser.ParsingFailed)
             {
                 return default(MediaTypeSegmentWithQuality);
             }
+
+            return new MediaTypeSegmentWithQuality(
+                new StringSegment(mediaType, start, parser.CurrentOffset - start),
+                quality);
         }
 
         private static Encoding GetEncodingFromCharset(StringSegment charset)
@@ -407,7 +421,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 }
 
                 var parameterLength = GetParameterLength(_mediaTypeBuffer, CurrentOffset, out result);
-                CurrentOffset = CurrentOffset + parameterLength;
+                CurrentOffset +=  parameterLength;
 
                 if (parameterLength == 0)
                 {
@@ -420,8 +434,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             private static int GetParameterLength(string input, int startIndex, out MediaTypeParameter parsedValue)
             {
-                if (OffsetIsOutOfRange(startIndex, input.Length) ||
-                    input[startIndex] != ';')
+                if (OffsetIsOutOfRange(startIndex, input.Length) || input[startIndex] != ';')
                 {
                     parsedValue = default(MediaTypeParameter);
                     return 0;
@@ -442,8 +455,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 var valueLength = GetValueLength(input, current, out value);
 
                 parsedValue = new MediaTypeParameter(name, value);
+                current +=  valueLength;
 
-                current = current + valueLength;
                 return current - startIndex;
             }
 
@@ -452,10 +465,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 var current = startIndex;
 
                 current++; // skip ';'
-                current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+                current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
                 var nameLength = HttpTokenParsingRules.GetTokenLength(input, current);
-
                 if (nameLength == 0)
                 {
                     name = default(StringSegment);
@@ -464,8 +476,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
                 name = new StringSegment(input, current, nameLength);
 
-                current = current + nameLength;
-                current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+                current +=  nameLength;
+                current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
+
                 return current - startIndex;
             }
 
@@ -474,25 +487,31 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 var current = startIndex;
 
                 current++; // skip '='.
-                current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+                current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
                 var valueLength = HttpTokenParsingRules.GetTokenLength(input, current);
 
                 if (valueLength == 0)
                 {
                     // A value can either be a token or a quoted string. Check if it is a quoted string.
-                    if (HttpTokenParsingRules.GetQuotedStringLength(input, current, out valueLength) != HttpParseResult.Parsed)
+                    if (HttpTokenParsingRules.GetQuotedStringLength(input, current, out valueLength) !=
+                        HttpParseResult.Parsed)
                     {
                         // We have an invalid value. Reset the name and return.
                         value = default(StringSegment);
                         return 0;
                     }
+
+                    // Quotation marks are not part of a quoted parameter value.
+                    value = new StringSegment(input, current + 1, valueLength - 2);
+                }
+                else
+                {
+                    value = new StringSegment(input, current, valueLength);
                 }
 
-                value = new StringSegment(input, current, valueLength);
-
-                current = current + valueLength;
-                current = current + HttpTokenParsingRules.GetWhitespaceLength(input, current);
+                current +=  valueLength;
+                current +=  HttpTokenParsingRules.GetWhitespaceLength(input, current);
 
                 return current - startIndex;
             }
@@ -530,10 +549,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             public bool Equals(MediaTypeParameter other)
             {
-                return HasName(other.Name) &&
-                    Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
+                return HasName(other.Name) && Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
             }
 
+            // ??? Suggest removing Equals(object) and GetHashCode() overrides they are not used and cannot be used.
             /// <inheritdoc />
             public override bool Equals(object obj)
             {
@@ -548,8 +567,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             public override int GetHashCode()
             {
                 HashCodeCombiner hashCode = HashCodeCombiner.Start();
-                hashCode.Add(Name.Value);
-                hashCode.Add(Value.Value);
+                hashCode.Add(Name.Value, StringComparer.OrdinalIgnoreCase);
+                hashCode.Add(Value.Value, StringComparer.OrdinalIgnoreCase);
+
                 return hashCode;
             }
 
