@@ -55,7 +55,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
         {
             // Arrange
             var header = "application/json, application/xml,;q=0.8";
-            var expectedMediaTypes = new List<MediaTypeSegmentWithQuality> {
+            var expectedMediaTypes = new List<MediaTypeSegmentWithQuality>
+            {
                 new MediaTypeSegmentWithQuality(new StringSegment("application/json"),1.0),
                 new MediaTypeSegmentWithQuality(new StringSegment("application/xml"),1.0),
             };
@@ -85,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
                 { new [] { "img/png,/*;q=0.9,text/html" }, new string[] { "img/png", "text/html" } },
                 { new [] { "img/png, /;q=0.9" }, new string[] { "img/png", } },
                 { new [] { "img/png, */;q=0.9" }, new string[] { "img/png", } },
-                { new [] { "img/png, /*;q=0.9" }, new string[] { "img/png", } },
+                { new [] { "img/png;q=1.0, /*;q=0.9" }, new string[] { "img/png;q=1.0", } },
             };
 
         [Theory]
@@ -95,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
             string[] expected)
         {
             // Arrange
-            var expectedMediaTypes = expected.Select(e => new MediaTypeSegmentWithQuality(new StringSegment(e), 1.0));
+            var expectedMediaTypes = expected.Select(e => new MediaTypeSegmentWithQuality(new StringSegment(e), 1.0)).ToList();
 
             // Act
             var parsed = AcceptHeaderParser.ParseAcceptHeader(acceptHeader);
@@ -110,8 +111,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
             // Arrange
             var expected = new List<MediaTypeSegmentWithQuality>
             {
-                new MediaTypeSegmentWithQuality(new StringSegment("application/json"),1.0),
-                new MediaTypeSegmentWithQuality(new StringSegment("application/xml;q=0.8"),0.8)
+                new MediaTypeSegmentWithQuality(new StringSegment("application/json"), 1.0),
+                new MediaTypeSegmentWithQuality(new StringSegment("application/xml;q=0.8"), 0.8)
             };
 
             // Act
