@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Formatters.Internal;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
@@ -79,7 +78,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             var subTypeLength = GetSubtypeLength(mediaType, offset + typeLength, out subType);
             if (subTypeLength == 0)
             {
-                // ??? Should this case also reset Type? A type without a subtype is invalid.
                 SubType = new StringSegment();
                 return;
             }
@@ -104,8 +102,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return 0;
             }
 
-            // ??? GetWhitespaceLength() incorrectly stops if it hits a comment. Should either use or remove the
-            // ??? HttpTokenParsingRules comment support. File a bug?
             var current = offset + HttpTokenParsingRules.GetWhitespaceLength(input, offset);
 
             // Parse the type, i.e. <type> in media type string "<type>/<subtype>; param1=value1; param2=value2"
@@ -312,10 +308,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var parser = parsedMediaType._parameterParser;
 
-            // ??? In every other ParseNextParameter() loop, we treat a parameter as valid as long as it comes before
-            // ??? anything invalid in the media type string. Why is this case different? Should the MediaType
-            // ??? constructor validate the parameters, allowing this loop to exit early and increasing consistency?
-            double quality = 1.0d;
+            var quality = 1.0d;
             MediaTypeParameter parameter;
             while (parser.ParseNextParameter(out parameter))
             {
@@ -494,8 +487,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 if (valueLength == 0)
                 {
                     // A value can either be a token or a quoted string. Check if it is a quoted string.
-                    if (HttpTokenParsingRules.GetQuotedStringLength(input, current, out valueLength) !=
-                        HttpParseResult.Parsed)
+                    var result = HttpTokenParsingRules.GetQuotedStringLength(input, current, out valueLength);
+                    if (result != HttpParseResult.Parsed)
                     {
                         // We have an invalid value. Reset the name and return.
                         value = default(StringSegment);
@@ -550,27 +543,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             public bool Equals(MediaTypeParameter other)
             {
                 return HasName(other.Name) && Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
-            }
-
-            // ??? Suggest removing Equals(object) and GetHashCode() overrides they are not used and cannot be used.
-            /// <inheritdoc />
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj))
-                {
-                    return false;
-                }
-
-                return obj is MediaTypeParameter && Equals((MediaTypeParameter)obj);
-            }
-
-            public override int GetHashCode()
-            {
-                HashCodeCombiner hashCode = HashCodeCombiner.Start();
-                hashCode.Add(Name.Value, StringComparer.OrdinalIgnoreCase);
-                hashCode.Add(Value.Value, StringComparer.OrdinalIgnoreCase);
-
-                return hashCode;
             }
 
             public override string ToString() => $"{Name}={Value}";
