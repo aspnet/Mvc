@@ -20,7 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <param name="expression">Expression name, relative to the current model.</param>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         /// <remarks>
         /// Method extracts an error string from the <see cref="ModelBinding.ModelStateDictionary"/> object. Message
@@ -51,7 +52,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </param>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
             this IHtmlHelper htmlHelper,
@@ -80,7 +82,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </param>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         /// <remarks>
         /// Method extracts an error string from the <see cref="ModelBinding.ModelStateDictionary"/> object. Message
@@ -115,8 +118,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <see cref="ViewContext.ValidationMessageElement"/>.
         /// </param>
         /// <returns>
-        /// A new <see cref="IHtmlContent"/> containing a <paramref name="tag"/> element. <c>null</c> if the
-        /// <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// A new <see cref="IHtmlContent"/> containing a <paramref name="tag"/> element.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
             this IHtmlHelper htmlHelper,
@@ -151,7 +155,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </param>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessage(
             this IHtmlHelper htmlHelper,
@@ -177,7 +182,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         /// <remarks>
         /// Method extracts an error string from the <see cref="ModelBinding.ModelStateDictionary"/> object. Message
@@ -215,7 +221,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
             this IHtmlHelper<TModel> htmlHelper,
@@ -256,7 +263,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>
         /// A new <see cref="IHtmlContent"/> containing a <see cref="ViewContext.ValidationMessageElement"/> element.
-        /// <c>null</c> if the <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
             this IHtmlHelper<TModel> htmlHelper,
@@ -295,8 +303,9 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>
-        /// A new <see cref="IHtmlContent"/> containing the <paramref name="tag"/> element. <c>null</c> if the
-        /// <paramref name="expression"/> is valid and client-side validation is disabled.
+        /// A new <see cref="IHtmlContent"/> containing the <paramref name="tag"/> element.
+        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// disabled.
         /// </returns>
         public static IHtmlContent ValidationMessageFor<TModel, TResult>(
             this IHtmlHelper<TModel> htmlHelper,
@@ -324,7 +333,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <param name="htmlHelper">The <see cref="IHtmlHelper"/> instance this method extends.</param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
-        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
+        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper)
         {
@@ -350,7 +359,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the &lt;ul&gt; element.
-        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled).
+        /// <see cref="HtmlString.Empty"/> if the current model is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, bool excludePropertyErrors)
         {
@@ -376,7 +385,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
         /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
-        /// is valid and client-side validation is disabled).
+        /// is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, string message)
         {
@@ -405,7 +414,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
         /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
-        /// validation is disabled).
+        /// validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(this IHtmlHelper htmlHelper, string message, string tag)
         {
@@ -434,7 +443,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which, in turn, wraps the
         /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
-        /// is valid and client-side validation is disabled).
+        /// is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(
             this IHtmlHelper htmlHelper,
@@ -468,7 +477,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
         /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
-        /// is valid and client-side validation is disabled).
+        /// is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(
             this IHtmlHelper htmlHelper,
@@ -505,7 +514,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
         /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
-        /// validation is disabled).
+        /// validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(
             this IHtmlHelper htmlHelper,
@@ -541,7 +550,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
         /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
-        /// validation is disabled).
+        /// validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(
             this IHtmlHelper htmlHelper,
@@ -579,7 +588,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the
         /// <see cref="ViewContext.ValidationSummaryMessageElement" /> element (which wraps the
         /// <paramref name="message"/>) and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model
-        /// is valid and client-side validation is disabled).
+        /// is valid and client-side validation is disabled.
         /// </returns>
         public static IHtmlContent ValidationSummary(
             this IHtmlHelper htmlHelper,
