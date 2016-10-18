@@ -1,0 +1,28 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+
+namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
+{
+    /// <summary>
+    /// Specifies that a parameter or property should be bound using the request body.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class FromBodyXmlAttribute : Attribute, IBinderTypeProviderMetadata
+    {
+        /// <inheritdoc />
+        public BindingSource BindingSource => BindingSource.Body;
+
+        //TODO: Add proper type of binder provider
+        /// <inheritdoc />
+        public Type BinderType => UseDataContractSerializer ? typeof(BodyDcXmlModelBinder) : typeof(BodyXmlModelBinder);
+
+        /// <summary>
+        /// Gets or sets the type of used xml serializer.
+        /// </summary>
+        public bool UseDataContractSerializer { get; set; }
+    }
+}
