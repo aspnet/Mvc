@@ -455,7 +455,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                         typeof(DerivedProducesController),
                         nameof(DerivedProducesController.ReturnsActionResult),
                         filterDescriptors
-                    },
+                    }
                 };
             }
         }
