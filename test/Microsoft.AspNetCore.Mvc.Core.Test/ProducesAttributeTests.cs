@@ -126,10 +126,22 @@ namespace Microsoft.AspNetCore.Mvc.Test
                        () => new ProducesAttribute(contentTypes[0], contentTypes.Skip(1).ToArray()));
 
             Assert.Equal(
-                string.Format("The argument '{0}' is invalid. "+
+                string.Format("The argument '{0}' is invalid. " +
                               "Media types which match all types or match all subtypes are not supported.",
                               invalidContentType),
                 ex.Message);
+        }
+
+        [Fact]
+        public void ProducesAttribute_SetsStatusCode()
+        {
+            // Arrange
+            var producesAttribute = new ProducesAttribute(StatusCodes.Status408RequestTimeout);
+
+            // Act & Assert
+            Assert.Equal(typeof(void), producesAttribute.Type);
+            Assert.Equal(StatusCodes.Status408RequestTimeout, producesAttribute.StatusCode);           
+            Assert.Empty(producesAttribute.ContentTypes);
         }
 
         [Fact]

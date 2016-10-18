@@ -421,17 +421,17 @@ namespace Microsoft.AspNetCore.Mvc.Description
                 var filterDescriptors = new List<FilterDescriptor>()
                 {
                     new FilterDescriptor(
-                        new ProducesResponse(404),
+                        new ProducesAttribute("text/json", "application/json") { Type = typeof(Customer) },
                         FilterScope.Action),
                     new FilterDescriptor(
-                        new ProducesAttribute("text/json", "application/json") { Type = typeof(Customer) },
+                        new ProducesResponseTypeAttribute(304),
                         FilterScope.Action),
                     new FilterDescriptor(
                         new ProducesResponseTypeAttribute(typeof(BadData), 400),
                         FilterScope.Action),
                     new FilterDescriptor(
                         new ProducesResponseTypeAttribute(typeof(ErrorDetails), 500),
-                        FilterScope.Action)
+                        FilterScope.Action),
                 };
 
                 return new TheoryData<Type, string, List<FilterDescriptor>>
@@ -443,7 +443,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                     },
                     {
                         typeof(DefaultApiDescriptionProviderTest),
-                        nameof(DefaultApiDescriptionProviderTest.ReturnsTaskOfActionResult),
+                        nameof(DefaultApiDescriptionProviderTest.ReturnsActionResult),
                         filterDescriptors
                     },
                     {
@@ -451,7 +451,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                         nameof(DefaultApiDescriptionProviderTest.ReturnsActionResult),
                         filterDescriptors
                     },
-                    {
+                                        {
                         typeof(DerivedProducesController),
                         nameof(DerivedProducesController.ReturnsActionResult),
                         filterDescriptors
@@ -490,15 +490,16 @@ namespace Microsoft.AspNetCore.Mvc.Description
                 },
                 responseType =>
                 {
-                    Assert.Equal(400, responseType.StatusCode);
-                    Assert.Equal(typeof(BadData), responseType.Type);
-                    Assert.NotNull(responseType.ModelMetadata);
-                    Assert.Equal(expectedMediaTypes, GetSortedMediaTypes(responseType));
+                    Assert.Equal(304, responseType.StatusCode);
+                    Assert.Equal(typeof(void), responseType.Type);
+                    Assert.Null(responseType.ModelMetadata);
+                    Assert.Empty(responseType.ApiResponseFormats);
                 },
                 responseType =>
                 {
-                    Assert.Equal(404, responseType.StatusCode);
-                    Assert.Null(responseType.ModelMetadata);
+                    Assert.Equal(400, responseType.StatusCode);
+                    Assert.Equal(typeof(BadData), responseType.Type);
+                    Assert.NotNull(responseType.ModelMetadata);
                     Assert.Equal(expectedMediaTypes, GetSortedMediaTypes(responseType));
                 },
                 responseType =>
@@ -523,7 +524,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                         new ProducesAttribute("text/json", "application/json"),
                         FilterScope.Action),
                     new FilterDescriptor(
-                        new ProducesResponseTypeAttribute(typeof(void), 200),
+                        new ProducesResponseTypeAttribute(200),
                         FilterScope.Action),
                     new FilterDescriptor(
                         new ProducesResponseTypeAttribute(typeof(BadData), 400),
@@ -642,25 +643,6 @@ namespace Microsoft.AspNetCore.Mvc.Description
             Assert.Equal(typeof(void), responseType.Type);
             Assert.Equal(204, responseType.StatusCode);
             Assert.Null(responseType.ModelMetadata);
-        }
-
-        [Fact]
-        public void GetApiDescription_ProducesResonseSetsStatusCode()
-        {
-            // Arrange
-            var action = CreateActionDescriptor();
-            var filter = new ProducesResponse(statusCode: 204);
-            action.FilterDescriptors = new List<FilterDescriptor>();
-            action.FilterDescriptors.Add(new FilterDescriptor(filter, FilterScope.Action));
-
-            // Act
-            var descriptions = GetApiDescriptions(action);
-
-            // Assert
-            var description = Assert.Single(descriptions);
-            var response = Assert.Single(description.SupportedResponseTypes);
-            Assert.Equal(204, response.StatusCode);
-            Assert.Null(response.ModelMetadata);
         }
 
         [Theory]
