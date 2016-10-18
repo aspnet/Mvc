@@ -23,16 +23,6 @@ namespace Microsoft.AspNetCore.Mvc
     {
         /// <summary>
         /// Initializes an instance of <see cref="ProducesAttribute"/>.
-        /// <param name="statusCode">The HTTP response status code.</param>
-        /// </summary>
-        public ProducesAttribute(int statusCode)
-            : this(typeof(void))
-        {
-            StatusCode = statusCode;
-        }
-
-        /// <summary>
-        /// Initializes an instance of <see cref="ProducesAttribute"/>.
         /// </summary>
         /// <param name="type">The <see cref="Type"/> of object that is going to be written in the response.</param>
         public ProducesAttribute(Type type)
@@ -43,7 +33,6 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             Type = type;
-            StatusCode = StatusCodes.Status200OK;
             ContentTypes = new MediaTypeCollection();
         }
 
@@ -69,7 +58,6 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             ContentTypes = GetContentTypes(contentType, additionalContentTypes);
-            StatusCode = StatusCodes.Status200OK;
         }
 
         /// <inheritdoc />
@@ -81,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc
         public MediaTypeCollection ContentTypes { get; set; }
 
         /// <inheritdoc />
-        public int StatusCode { get; set; }
+        public int StatusCode => StatusCodes.Status200OK;
 
         /// <inheritdoc />
         public override void OnResultExecuting(ResultExecutingContext context)

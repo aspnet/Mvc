@@ -133,18 +133,6 @@ namespace Microsoft.AspNetCore.Mvc.Test
         }
 
         [Fact]
-        public void ProducesAttribute_SetsStatusCode()
-        {
-            // Arrange
-            var producesAttribute = new ProducesAttribute(StatusCodes.Status408RequestTimeout);
-
-            // Act & Assert
-            Assert.Equal(typeof(void), producesAttribute.Type);
-            Assert.Equal(StatusCodes.Status408RequestTimeout, producesAttribute.StatusCode);           
-            Assert.Empty(producesAttribute.ContentTypes);
-        }
-
-        [Fact]
         public void ProducesAttribute_WithTypeOnly_SetsTypeProperty()
         {
             // Arrange
