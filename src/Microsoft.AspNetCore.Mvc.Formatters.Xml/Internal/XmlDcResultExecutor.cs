@@ -30,11 +30,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         /// </summary>
         /// <param name="writerFactory">The <see cref="IHttpResponseStreamWriterFactory"/>.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        /// <param name="options">The <see cref="IOptions{MvcXmlOptions}"/>.</param>
         public XmlDcResultExecutor(
             IHttpResponseStreamWriterFactory writerFactory,
-            ILoggerFactory loggerFactory,
-            IOptions<MvcOptions> options)
+            ILoggerFactory loggerFactory)
         {
             if (writerFactory == null)
             {
@@ -46,35 +44,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
 
 
             WriterFactory = writerFactory;
             Logger = loggerFactory.CreateLogger<XmlDcResultExecutor>();
-            Options = options.Value;
-            OptionsFormatters = Options.OutputFormatters;
-        }
 
-        // TODO: pass them from XmlResult
-        XmlWriterSettings XmlWriterSettings { get; set; }
+        }
 
         /// <summary>
         /// Gets the <see cref="ILogger"/>.
         /// </summary>
         protected ILogger Logger { get; }
 
-        /// <summary>
-        /// Gets the <see cref="MvcOptions"/>.
-        /// </summary>
-        protected MvcOptions Options { get; }
-
-        /// <summary>
-        /// Gets the list of <see cref="IOutputFormatter"/> instances from <see cref="MvcOptions"/>.
-        /// </summary>
-        protected FormatterCollection<IOutputFormatter> OptionsFormatters { get; }
 
         /// <summary>
         /// Gets the <see cref="IHttpResponseStreamWriterFactory"/>.
@@ -129,8 +110,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
 
             outputFormatterWriterContext.ContentType = new StringSegment(resolvedContentType);
 
-            // TODO: Logger.XmlResultExecuting(result.Value);
-            // TODO: get formatter from proper place
+            //  Logger formatter and value of object
+
+            Logger.FormatterSelected(formatter, outputFormatterWriterContext);
+            Logger.XmlResultExecuting(result.Value);
 
             return formatter.WriteAsync(outputFormatterWriterContext);
         }
