@@ -451,7 +451,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
                         nameof(DefaultApiDescriptionProviderTest.ReturnsActionResult),
                         filterDescriptors
                     },
-                                        {
+                    {
                         typeof(DerivedProducesController),
                         nameof(DerivedProducesController.ReturnsActionResult),
                         filterDescriptors
