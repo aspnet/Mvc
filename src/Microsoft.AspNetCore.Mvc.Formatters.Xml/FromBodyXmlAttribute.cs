@@ -19,16 +19,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         /// Gets the proper type of the XML binder provider
         /// <inheritdoc />
         public Type BinderType => UseXmlBinderOnly ?
-                                    (UseDataContractXmlBinder ? typeof(BodyDcXmlModelBinderOnly) : typeof(BodyXmlModelBinderOnly)) :
-                                    (UseDataContractXmlBinder ? typeof(BodyDcXmlModelBinder) : typeof(BodyXmlModelBinder));
+                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinderOnly) : typeof(BodyXmlModelBinderOnly)) :
+                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinder) : typeof(BodyXmlModelBinder));
 
         /// <summary>
         /// Gets or sets the flag that selects a Data Contract XML input formatter.
         /// </summary>
-        public bool UseDataContractXmlBinder { get; set; }
+        public XmlSerializerType XmlSerializerType { get; set; }
 
         /// <summary>
-        /// Gets or sets the flag that limits an input formatter to  XML  or Data Contract XML <see cref="UseDataContractXmlBinder"/>.
+        /// Gets or sets the flag that limits an input formatter to  XML  or Data Contract XML <see cref="XmlSerializerType"/>.
         /// </summary>
         public bool UseXmlBinderOnly { get; set; }
 

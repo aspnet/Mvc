@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
     /// <summary>
     /// Executes a <see cref="XmlResult"/> to write to the response.
     /// </summary>
-    public class XmlDcResultExecutor
+    public class XmlDcResultExecutor : IXmlResultExecutor
     {
         private static readonly string DefaultContentType = new MediaTypeHeaderValue("application/xml")
         {
@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
 
 
             WriterFactory = writerFactory;
-            Logger = loggerFactory.CreateLogger<XmlDcResultExecutor>();
+            Logger = loggerFactory.CreateLogger<XmlResult>();
 
         }
 

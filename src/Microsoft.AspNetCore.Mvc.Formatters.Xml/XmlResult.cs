@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -43,13 +45,10 @@ namespace Microsoft.AspNetCore.Mvc
             XmlSerializerSettings = serializerSettings;
         }
 
-        //TODO: have a look at an idea of using
-        public FormatterCollection<IOutputFormatter> Formatters { get; set; }
-
         /// <summary>
         /// Gets or sets the type of used xml serializer.
         /// </summary>
-        public bool UseDataContractSerializer { get; set; }
+        public XmlSerializerType XmlSerializerType { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="Net.Http.Headers.MediaTypeHeaderValue"/> representing the Content-Type header of the response.
@@ -79,20 +78,37 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
             var services = context.HttpContext.RequestServices;
-            if (UseDataContractSerializer)
+            IXmlResultExecutor executor = null;
+            string serviceName = string.Empty;
+
+            switch (XmlSerializerType)
             {
-                var dcExecutor = services.GetRequiredService<XmlDcResultExecutor>();
-                if (dcExecutor == null)
-                {
-                    throw new ArgumentNullException(nameof(XmlDcResultExecutor));
-                }
-                return dcExecutor.ExecuteAsync(context, this);
+                case XmlSerializerType.XmlSeriralizer:
+                    executor = services.GetService<XmlResultExecutor>();
+                    serviceName = "XmlSerializerFormatterServices";
+                    break;
+                case XmlSerializerType.DataContractSerializer:
+                    executor = services.GetService<XmlDcResultExecutor>();
+                    serviceName = "XmlDataContractSerializerFormatterServices";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(XmlSerializerType));
             }
-            var executor = services.GetRequiredService<XmlResultExecutor>();
             if (executor == null)
             {
-                throw new ArgumentNullException(nameof(XmlResultExecutor));
+                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<XmlResult>();
+                // No formatter supports this.
+                logger.NoExecutor(XmlSerializerType.ToString());
+                context.HttpContext.Response.StatusCode = StatusCodes.Status406NotAcceptable;
+#if DEBUG
+                var msg = Resources.XmlFromater_WasNotSetup_To_Mvc(serviceName);
+                context.HttpContext.Response.ContentType = "text/html";
+                MvcXmlLoggerExtensions.StringToHttpContext(context.HttpContext, msg);
+#endif
+                return Task.FromResult(0);
             }
+
             return executor.ExecuteAsync(context, this);
         }
 
