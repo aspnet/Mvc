@@ -1,0 +1,2652 @@
+{
+  "AssemblyIdentity": "Microsoft.AspNetCore.Mvc.DataAnnotations, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+  "Types": [
+    {
+      "Id": "public sealed class Microsoft.AspNetCore.Mvc.HiddenInputAttribute : System.Attribute",
+      "Name": "Microsoft.AspNetCore.Mvc.HiddenInputAttribute",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": true,
+      "BaseType": "System.Attribute",
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public System.Boolean get_DisplayValue()",
+          "Kind": "Method",
+          "Name": "get_DisplayValue",
+          "Parameters": [],
+          "ReturnType": "System.Boolean",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void set_DisplayValue(System.Boolean value)",
+          "Kind": "Method",
+          "Name": "set_DisplayValue",
+          "Parameters": [
+            {
+              "Name": "value",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean value"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator"
+      ],
+      "Members": [
+        {
+          "Id": "public abstract System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter GetAttributeAdapter(System.ComponentModel.DataAnnotations.ValidationAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Method",
+          "Name": "GetAttributeAdapter",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.ValidationAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.ValidationAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Func<System.Type, Microsoft.Extensions.Localization.IStringLocalizerFactory, Microsoft.Extensions.Localization.IStringLocalizer> DataAnnotationLocalizerProvider",
+          "Kind": "Field",
+          "Name": "DataAnnotationLocalizerProvider",
+          "Parameters": [],
+          "ReturnType": "System.Func<System.Type, Microsoft.Extensions.Localization.IStringLocalizerFactory, Microsoft.Extensions.Localization.IStringLocalizer>",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public abstract class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<TAttribute> : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapter<TAttribute>, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter where TAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<TAttribute>",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapter<TAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public abstract System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(TAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "TAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "TAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": [
+        {
+          "Id": "TAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute",
+          "New": false,
+          "Class": false,
+          "Struct": false,
+          "ParameterName": "TAttribute",
+          "BaseTypeOrInterfaces": [
+            "System.ComponentModel.DataAnnotations.ValidationAttribute"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.CompareAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.CompareAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.CompareAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.CompareAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.CompareAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.CompareAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.CompareAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsClientModelValidatorProvider : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsClientModelValidatorProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void CreateValidators(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateValidators",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider, Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> options, Microsoft.Extensions.Localization.IStringLocalizerFactory stringLocalizerFactory)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "validationAttributeAdapterProvider",
+              "Type": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider"
+            },
+            {
+              "Name": "options",
+              "Type": "Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> options"
+            },
+            {
+              "Name": "stringLocalizerFactory",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizerFactory",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizerFactory stringLocalizerFactory"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsLocalizationServices",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsLocalizationServices",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static System.Void AddDataAnnotationsLocalizationServices(Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotationsLocalizationServices",
+          "Parameters": [
+            {
+              "Name": "services",
+              "Type": "Microsoft.Extensions.DependencyInjection.IServiceCollection",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IServiceCollection services"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsMetadataProvider : Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IBindingMetadataProvider, Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IMetadataDetailsProvider, Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IDisplayMetadataProvider, Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IValidationMetadataProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsMetadataProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IBindingMetadataProvider",
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IMetadataDetailsProvider",
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IDisplayMetadataProvider",
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IValidationMetadataProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void CreateBindingMetadata(Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.BindingMetadataProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateBindingMetadata",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.BindingMetadataProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.BindingMetadataProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IBindingMetadataProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void CreateDisplayMetadata(Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.DisplayMetadataProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateDisplayMetadata",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.DisplayMetadataProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.DisplayMetadataProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IDisplayMetadataProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void CreateValidationMetadata(Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ValidationMetadataProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateValidationMetadata",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ValidationMetadataProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.ValidationMetadataProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.IValidationMetadataProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsModelValidator : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsModelValidator",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator"
+      ],
+      "Members": [
+        {
+          "Id": "public System.ComponentModel.DataAnnotations.ValidationAttribute get_Attribute()",
+          "Kind": "Method",
+          "Name": "get_Attribute",
+          "Parameters": [],
+          "ReturnType": "System.ComponentModel.DataAnnotations.ValidationAttribute",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationResult> Validate(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext validationContext)",
+          "Kind": "Method",
+          "Name": "Validate",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext validationContext"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationResult>",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider, System.ComponentModel.DataAnnotations.ValidationAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "validationAttributeAdapterProvider",
+              "Type": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider"
+            },
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.ValidationAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.ValidationAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsModelValidatorProvider : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidatorProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsModelValidatorProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidatorProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void CreateValidators(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidatorProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateValidators",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidatorProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidatorProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidatorProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider, Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> options, Microsoft.Extensions.Localization.IStringLocalizerFactory stringLocalizerFactory)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "validationAttributeAdapterProvider",
+              "Type": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider validationAttributeAdapterProvider"
+            },
+            {
+              "Name": "options",
+              "Type": "Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> options"
+            },
+            {
+              "Name": "stringLocalizerFactory",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizerFactory",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizerFactory stringLocalizerFactory"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataTypeAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.DataTypeAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataTypeAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.DataTypeAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public System.String get_RuleName()",
+          "Kind": "Method",
+          "Name": "get_RuleName",
+          "Parameters": [],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.DataTypeAttribute attribute, System.String ruleName, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.DataTypeAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.DataTypeAttribute attribute"
+            },
+            {
+              "Name": "ruleName",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String ruleName"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DefaultClientModelValidatorProvider : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DefaultClientModelValidatorProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void CreateValidators(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateValidators",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MaxLengthAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.MaxLengthAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MaxLengthAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.MaxLengthAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.MaxLengthAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.MaxLengthAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.MaxLengthAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MinLengthAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.MinLengthAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MinLengthAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.MinLengthAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.MinLengthAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.MinLengthAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.MinLengthAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MvcDataAnnotationsLocalizationOptionsSetup : Microsoft.Extensions.Options.ConfigureOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MvcDataAnnotationsLocalizationOptionsSetup",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.Extensions.Options.ConfigureOptions<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static System.Void ConfigureMvc(Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions options)",
+          "Kind": "Method",
+          "Name": "ConfigureMvc",
+          "Parameters": [
+            {
+              "Name": "options",
+              "Type": "Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions options"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MvcDataAnnotationsMvcOptionsSetup : Microsoft.Extensions.Options.ConfigureOptions<Microsoft.AspNetCore.Mvc.MvcOptions>",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.MvcDataAnnotationsMvcOptionsSetup",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.Extensions.Options.ConfigureOptions<Microsoft.AspNetCore.Mvc.MvcOptions>",
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static System.Void ConfigureMvc(Microsoft.AspNetCore.Mvc.MvcOptions options, System.IServiceProvider serviceProvider)",
+          "Kind": "Method",
+          "Name": "ConfigureMvc",
+          "Parameters": [
+            {
+              "Name": "options",
+              "Type": "Microsoft.AspNetCore.Mvc.MvcOptions",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.MvcOptions options"
+            },
+            {
+              "Name": "serviceProvider",
+              "Type": "System.IServiceProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.IServiceProvider serviceProvider"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.IServiceProvider serviceProvider)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "serviceProvider",
+              "Type": "System.IServiceProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.IServiceProvider serviceProvider"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.NumericClientModelValidator : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.NumericClientModelValidator",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.NumericClientModelValidatorProvider : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.NumericClientModelValidatorProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Void CreateValidators(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context)",
+          "Kind": "Method",
+          "Name": "CreateValidators",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientValidatorProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidatorProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RangeAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RangeAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RangeAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RangeAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.RangeAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.RangeAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.RangeAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RegularExpressionAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RegularExpressionAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RegularExpressionAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RegularExpressionAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.RegularExpressionAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.RegularExpressionAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.RegularExpressionAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RequiredAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RequiredAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.RequiredAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.RequiredAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.RequiredAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.RequiredAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.RequiredAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.StringLengthAttributeAdapter : Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.StringLengthAttribute>, Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator, Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.StringLengthAttributeAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.AttributeAdapterBase<System.ComponentModel.DataAnnotations.StringLengthAttribute>",
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter"
+      ],
+      "Members": [
+        {
+          "Id": "public override System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public override System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "validationContext",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContextBase validationContext"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": true,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.ComponentModel.DataAnnotations.StringLengthAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.StringLengthAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.StringLengthAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidatableObjectAdapter : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidatableObjectAdapter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationResult> Validate(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "Validate",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ModelValidationResult>",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public abstract class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapter<TAttribute> : Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator where TAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapter<TAttribute>",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator"
+      ],
+      "Members": [
+        {
+          "Id": "public TAttribute get_Attribute()",
+          "Kind": "Method",
+          "Name": "get_Attribute",
+          "Parameters": [],
+          "ReturnType": "TAttribute",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract System.Void AddValidation(Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context)",
+          "Kind": "Method",
+          "Name": "AddValidation",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.ClientModelValidationContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ModelBinding.Validation.IClientModelValidator",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "protected static System.Boolean MergeAttribute(System.Collections.Generic.IDictionary<System.String, System.String> attributes, System.String key, System.String value)",
+          "Kind": "Method",
+          "Name": "MergeAttribute",
+          "Parameters": [
+            {
+              "Name": "attributes",
+              "Type": "System.Collections.Generic.IDictionary<System.String, System.String>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Collections.Generic.IDictionary<System.String, System.String> attributes"
+            },
+            {
+              "Name": "key",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String key"
+            },
+            {
+              "Name": "value",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String value"
+            }
+          ],
+          "ReturnType": "System.Boolean",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Protected",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "protected virtual System.String GetErrorMessage(Microsoft.AspNetCore.Mvc.ModelBinding.ModelMetadata modelMetadata, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "GetErrorMessage",
+          "Parameters": [
+            {
+              "Name": "modelMetadata",
+              "Type": "Microsoft.AspNetCore.Mvc.ModelBinding.ModelMetadata",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ModelBinding.ModelMetadata modelMetadata"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Protected",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(TAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "TAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "TAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": [
+        {
+          "Id": "TAttribute : System.ComponentModel.DataAnnotations.ValidationAttribute",
+          "New": false,
+          "Class": false,
+          "Struct": false,
+          "ParameterName": "TAttribute",
+          "BaseTypeOrInterfaces": [
+            "System.ComponentModel.DataAnnotations.ValidationAttribute"
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapterProvider : Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidationAttributeAdapterProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter GetAttributeAdapter(System.ComponentModel.DataAnnotations.ValidationAttribute attribute, Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer)",
+          "Kind": "Method",
+          "Name": "GetAttributeAdapter",
+          "Parameters": [
+            {
+              "Name": "attribute",
+              "Type": "System.ComponentModel.DataAnnotations.ValidationAttribute",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.ComponentModel.DataAnnotations.ValidationAttribute attribute"
+            },
+            {
+              "Name": "stringLocalizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer stringLocalizer"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.DataAnnotations.IAttributeAdapter",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.DataAnnotations.IValidationAttributeAdapterProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcDataAnnotationsMvcBuilderExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcDataAnnotationsMvcBuilderExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddDataAnnotationsLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotationsLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddDataAnnotationsLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder, System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotationsLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcDataAnnotationsMvcCoreBuilderExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcDataAnnotationsMvcCoreBuilderExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddDataAnnotations(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotations",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddDataAnnotationsLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotationsLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddDataAnnotationsLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddDataAnnotationsLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Mvc.DataAnnotations.MvcDataAnnotationsLocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    }
+  ]
+}
