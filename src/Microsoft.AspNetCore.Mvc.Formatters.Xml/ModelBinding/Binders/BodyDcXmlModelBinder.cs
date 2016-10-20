@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             IList<IInputFormatter> _formatters = options.Value.InputFormatters;
             var list = new List<IInputFormatter>() { new XmlDataContractSerializerInputFormatter() };
             list.AddRange(_formatters);
-            _bodyModelBinder = new BodyModelBinder(_formatters, readerFactory);
+            _bodyModelBinder = new BodyModelBinder(list, readerFactory);
         }
 
         /// <inheritdoc />

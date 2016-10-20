@@ -9,6 +9,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 {
     /// <summary>
     /// Specifies that a parameter or property should be bound using the request body XML.
+    /// Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public class FromBodyXmlAttribute : Attribute, IBinderTypeProviderMetadata
@@ -18,6 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 
         /// Gets the proper type of the XML binder provider
         /// <inheritdoc />
+        ///<remarks> Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.</remarks>
         public Type BinderType => UseXmlBinderOnly ?
                                     (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinderOnly) : typeof(BodyXmlModelBinderOnly)) :
                                     (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinder) : typeof(BodyXmlModelBinder));

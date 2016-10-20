@@ -21,6 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
     {
         /// <summary>
         /// Creates a new <see cref="XmlResult"/> with the given <paramref name="value"/>.
+        /// Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.
         /// </summary>
         /// <param name="value">The value to format as xml.</param>
         public XmlResult(object value)
@@ -30,6 +31,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Creates a new <see cref="XmlResult"/> with the given <paramref name="value"/>.
+        /// Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.
         /// </summary>
         /// <param name="value">The value to format as XML.</param>
         /// <param name="serializerSettings">The <see cref="XmlWriterSettings"/> to be used by
