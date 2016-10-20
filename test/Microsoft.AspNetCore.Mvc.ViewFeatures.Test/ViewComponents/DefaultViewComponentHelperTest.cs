@@ -26,12 +26,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             var argumentDictionary = helper.GetArgumentDictionary(descriptor, null);
 
             // Assert
-            Assert.Collection(argumentDictionary,
-                item =>
-                {
-                    Assert.Equal("a", item.Key);
-                    Assert.Null(item.Value);
-                });
+            Assert.Equal(0, argumentDictionary.Count);
+            Assert.IsType(typeof(Dictionary<string,object>),argumentDictionary);
         }
 
         [Fact]
