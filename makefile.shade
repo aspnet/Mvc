@@ -1,0 +1,136 @@
+default AUTHORS='Microsoft Open Technologies, Inc.'
+
+use-standard-lifecycle
+k-standard-goals
+
+default PROJECT_JSON="project.json"
+
+#api-check target="verify"
+    @{
+        var Configuration = E("Configuration");
+        var BASE_DIR = Directory.GetCurrentDirectory();
+
+        var apiCheckFullFramework = new FileInfo(Path.Combine(BASE_DIR, ".build\\ApiCheck\\tools\\net452\\ApiCheck.exe"));
+        var apiCheckCore = new FileInfo(Path.Combine(BASE_DIR, ".build\\ApiCheck\\tools\\netcoreapp1.0\\ApiCheck.dll"));
+
+        var directories = Directory.EnumerateDirectories(Path.Combine(BASE_DIR, ".\\src"));
+
+        var fullFrameworkMonikerPrefix = new string[] { "net45", "net46" };
+        var coreMonikerPrefix = new string[] { "netcoreapp", "netstandard" };
+
+        foreach (var directoryPath in directories)
+        {
+            var directoryInfo = new DirectoryInfo(directoryPath);
+            var projectJson = directoryInfo.EnumerateFiles().First(f => f.Name.Equals(PROJECT_JSON, StringComparison.OrdinalIgnoreCase));
+            if (projectJson == null)
+            {
+                continue;
+            }
+
+            var buildFolder = new DirectoryInfo(Path.Combine(directoryInfo.FullName, "bin", Configuration));
+
+            FileInfo fullFrameworkDll = null;
+            foreach(var prefix in fullFrameworkMonikerPrefix)
+            {
+                var fullFrameworkDirectory = buildFolder.EnumerateDirectories(string.Concat(prefix,"*")).FirstOrDefault();
+                if(fullFrameworkDirectory != null)
+                {
+                    fullFrameworkDll = fullFrameworkDirectory.EnumerateFiles(string.Concat(directoryInfo.Name,".dll")).FirstOrDefault();
+                    if(fullFrameworkDll != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if(fullFrameworkDll != null)
+            {
+                var fullFrameworkBaseline = directoryInfo.EnumerateFiles("baseline.net45.json").FirstOrDefault();
+
+                var generate = Environment.GetEnvironmentVariable("GENERATE_APICHECK_BASELINE");
+                if(!string.IsNullOrWhiteSpace(generate))
+                {
+                    var arguments = new string[]
+                    {
+                        "generate",
+                        "-a " + fullFrameworkDll.FullName,
+                        "-p " + projectJson.FullName,
+                        "-c " + Configuration,
+                        "-o " + Path.Combine(directoryInfo.FullName, "baseline.net45.json")
+                    };
+
+                    Exec(apiCheckFullFramework.FullName, string.Join(" ",arguments));
+                }
+                else
+                {
+                    var arguments = new List<string>
+                    {
+                        "compare",
+                        "-b " + fullFrameworkBaseline.FullName,
+                        "-a " + fullFrameworkDll.FullName,
+                        "-p " + projectJson.FullName,
+                        "-c " + Configuration
+                    };
+                    if(Environment.GetEnvironmentVariable("APICHECK_EPI") != null)
+                    {
+                        arguments.Add("-epi");
+                    }
+
+                    Exec(apiCheckFullFramework.FullName, string.Join(" ",arguments));
+                }
+            }
+
+            FileInfo coreDll = null;
+            foreach(var prefix in coreMonikerPrefix)
+            {
+                var coreDirectory = buildFolder.EnumerateDirectories(string.Concat(prefix,"*")).FirstOrDefault();
+                if(coreDirectory != null)
+                {
+                    coreDll = coreDirectory.EnumerateFiles(string.Concat(directoryInfo.Name,".dll")).FirstOrDefault();
+                    if(fullFrameworkDll != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if(coreDll != null)
+            {
+                var coreBaseline = directoryInfo.EnumerateFiles("baseline.netcore.json").FirstOrDefault();
+
+                var generate = Environment.GetEnvironmentVariable("GENERATE_APICHECK_BASELINE");
+                if(!string.IsNullOrWhiteSpace(generate))
+                {
+                    var arguments = new string[]
+                    {
+                        apiCheckCore.FullName,
+                        "generate",
+                        "-a " + coreDll.FullName,
+                        "-p " + projectJson.FullName,
+                        "-c " + Configuration,
+                        "-o " + Path.Combine(directoryInfo.FullName, "baseline.netcore.json")
+                    };
+
+                    Exec("dotnet", string.Join(" ",arguments));
+                }
+                else
+                {
+                    var arguments = new List<string>
+                    {
+                        apiCheckCore.FullName,
+                        "compare",
+                        "-b " + coreBaseline.FullName,
+                        "-a " + coreDll.FullName,
+                        "-p " + projectJson.FullName,
+                        "-c " + Configuration
+                    };
+                    if(Environment.GetEnvironmentVariable("APICHECK_EPI") != null)
+                    {
+                        arguments.Add("-epi");
+                    }
+
+                    Exec("dotnet", string.Join(" ",arguments));
+                }
+            }
+        }
+    }
