@@ -50,9 +50,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             { "unicode-1-1-utf-8", "utf-8" },
             { "unicode-2-0-utf-7", "utf-7" },
             { "unicode-2-0-utf-8", "utf-8" },
-            // People get confused about the FFFE here.  We can't change this because it'd break existing apps.
-            // This has been this way for a long time, including in Mlang.
-            // Big Endian, BOM seems backwards, think of the BOM in little endian order.
             { "unicodeFFFE", "utf-16BE"},
             { "us", "us-ascii" },
             { "UTF-16LE", "utf-16"},
