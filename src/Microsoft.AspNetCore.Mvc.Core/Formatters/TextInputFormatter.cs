@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (SupportedEncodings?.Count == 0)
+            if (SupportedEncodings.Count == 0)
             {
                 var message = Resources.FormatTextInputFormatter_SupportedEncodingsMustNotBeEmpty(
                     nameof(SupportedEncodings));
@@ -145,11 +145,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 new MediaType(requestContentType).Charset;
             if (requestEncoding.HasValue)
             {
-                string encodingName;
-                if (!EncodingAliases.TryGetValue(requestEncoding.Value, out encodingName))
+                var encodingName = requestEncoding.Value;
+                string alias;
+                if (EncodingAliases.TryGetValue(encodingName, out alias))
                 {
-                    // Given name was not an encoding alias. Use the original value.
-                    encodingName = requestEncoding.Value;
+                    // Given name was an encoding alias. Use the preferred name.
+                    encodingName = alias;
                 }
 
                 for (int i = 0; i < SupportedEncodings.Count; i++)
