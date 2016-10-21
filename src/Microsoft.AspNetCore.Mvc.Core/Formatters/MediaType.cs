@@ -300,6 +300,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public static MediaTypeSegmentWithQuality CreateMediaTypeSegmentWithQuality(string mediaType, int start)
         {
             var parsedMediaType = new MediaType(mediaType, start, length: null);
+
+            // Short-circuit use of the MediaTypeParameterParser if constructor detected an invalid type or subtype.
+            // Parser would set ParsingFailed==true in this case. But, we handle invalid parameters as a separate case.
             if (parsedMediaType.Type.Equals(default(StringSegment)) ||
                 parsedMediaType.SubType.Equals(default(StringSegment)))
             {
@@ -322,7 +325,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
 
             // We check if the parsed media type has a value at this stage when we have iterated
-            // over all the parameters and we know if the parsing was sucessful.
+            // over all the parameters and we know if the parsing was successful.
             if (parser.ParsingFailed)
             {
                 return default(MediaTypeSegmentWithQuality);
