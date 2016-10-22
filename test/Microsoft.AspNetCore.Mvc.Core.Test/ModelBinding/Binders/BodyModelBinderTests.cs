@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Net.Http.Headers;
 using Moq;
 using Xunit;
@@ -204,6 +205,36 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Assert
             Assert.True(bindingContext.Result.IsModelSet);
             Assert.Same(canReadFormatter1, bindingContext.Result.Model);
+        }
+
+        [Fact]
+        public async Task BindModelAsync_LogsFormatterCheckingAndSelection()
+        {
+            // Arrange
+            var sink = new TestSink();
+            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
+            var logger = loggerFactory.CreateLogger(typeof(BodyModelBinder).ToString());
+
+            var canReadFormatter = new TestInputFormatter(canRead: true);
+            var inputFormatters = new List<IInputFormatter>()
+            {
+                new TestInputFormatter(canRead: false),
+                canReadFormatter,
+            };
+
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
+            var bindingContext = GetBindingContext(typeof(Person), metadataProvider: provider);
+
+            var binder = new BodyModelBinder(inputFormatters, new TestHttpRequestStreamReaderFactory(), logger);
+
+            // Act
+            await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.Equal($"Checking formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[0].State?.ToString());
+            Assert.Equal($"Checking formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[1].State?.ToString());
+            Assert.Equal($"Selected formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[2].State?.ToString());
         }
 
         private static DefaultModelBindingContext GetBindingContext(
