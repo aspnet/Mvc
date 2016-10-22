@@ -173,14 +173,16 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(expectedUrl, httpContext.Response.Headers["Location"]);
         }
 
-        [Fact]
-        public async Task ExecuteResultAsync_ThrowsIfActionUrlIsNull()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task ExecuteResultAsync_ThrowsIfActionUrlIsNullOrEmpty(string returnValue)
         {
             // Arrange
             var formatter = CreateMockFormatter();
             var httpContext = GetHttpContext(formatter);
             var actionContext = GetActionContext(httpContext);
-            var urlHelper = GetMockUrlHelper(returnValue: null);
+            var urlHelper = GetMockUrlHelper(returnValue);
 
             // Act
             var result = new AcceptedAtActionResult(
@@ -228,24 +230,6 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void OnFormatting_NonNullUrlHelper_ReturnsUrlHelperAction()
-        {
-            // Arrange
-            var helper = new ForwardingUrlHelper() { ActionValue = "abc" };
-            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
-
-            // Act
-            var result = new AcceptedAtActionResult(actionName: null, controllerName: null, routeValues: null, value: null);
-            result.UrlHelper = helper;
-            result.OnFormatting(context);
-
-            // Assert
-            var header = context.HttpContext.Response.Headers.Last();
-            Assert.Equal("Location", header.Key);
-            Assert.Equal(helper.ActionValue, header.Value);
-        }
-
-        [Fact]
         public void OnFormatting_NullContext_ThrowsArgumentNullException()
         {
             // Act
@@ -253,23 +237,6 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             Assert.Throws<ArgumentNullException>("context", () => result.OnFormatting(null));
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void OnFormatting_NonNullUrlHelperReturnsInvalidUrl_ThrowsInvalidOperationException(string url)
-        {
-            // Arrange
-            var helper = new ForwardingUrlHelper() { ActionValue = url };
-            var context = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
-
-            // Act
-            var result = new AcceptedAtActionResult(actionName: null, controllerName: null, routeValues: null, value: null);
-            result.UrlHelper = helper;
-
-            // Assert
-            Assert.Throws<InvalidOperationException>(() => result.OnFormatting(context));
         }
 
         private static ActionContext GetActionContext(HttpContext httpContext)
