@@ -12,7 +12,9 @@
       "type": "build",
       "version": "1.0.0-*"
     },
-    "Microsoft.AspNetCore.Testing": "1.0.0-rtm-21431"
+
+    "Microsoft.AspNetCore.Testing": "1.0.0-rtm-21431",
+    "Microsoft.Extensions.Logging.Testing": "1.0.0-rtm-21431",
   },
   "testRunner": "xunit",
   "frameworks": {
