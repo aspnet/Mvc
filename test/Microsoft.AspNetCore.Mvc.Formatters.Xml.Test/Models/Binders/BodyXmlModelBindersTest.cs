@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -14,7 +12,6 @@ using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models;
 using System.Xml;
 using System.Runtime.Serialization;
 using System.Xml.Serialization;
@@ -31,14 +28,39 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
 {
     public class BodyXmlModelBindersTest
     {
-        [Fact]
-        public void BindTheXmlToTheValue()
+        [Theory]
+        [InlineData(XmlSerializerType.XmlSeriralizer, false)]
+        [InlineData(XmlSerializerType.XmlSeriralizer, true)]
+        [InlineData(XmlSerializerType.DataContractSerializer, false)]
+        [InlineData(XmlSerializerType.DataContractSerializer, true)]
+        public async void BindTheBodyXmlToTheParameterValue(XmlSerializerType xmlSerializerType, bool useXmlBinderOnly)
         {
+            // Arrange 
+            byte[] bodyRequestContext = new byte[0];
+
+            var value = new PurchaseOrder();
+            var xmlWriterSettings = FormattingUtilities.GetDefaultXmlWriterSettings();
+            xmlWriterSettings.CloseOutput = false;
+            var textw = new StringWriter();
+            var writer = XmlWriter.Create(textw, xmlWriterSettings);
+            if (xmlSerializerType == XmlSerializerType.XmlSeriralizer)
+            {
+                var xmlSerializer = new XmlSerializer(value.GetType());
+                xmlSerializer.Serialize(writer, value);
+                bodyRequestContext = Encoding.UTF8.GetBytes(textw.ToString());
+            }
+            else
+            {
+                var xmlSerializer = new DataContractSerializer(value.GetType());
+                xmlSerializer.WriteObject(writer, value);
+                writer.Flush();
+                bodyRequestContext = Encoding.UTF8.GetBytes(textw.ToString());
+            }
 
             var att = new FromBodyXmlAttribute()
             {
-                XmlSerializerType = XmlSerializerType.XmlSeriralizer,
-                UseXmlBinderOnly = false
+                XmlSerializerType = xmlSerializerType,
+                UseXmlBinderOnly = useXmlBinderOnly
             };
             var attList = new List<object>() { att };
             var bindingInfo = BindingInfo.GetBindingInfo(attList);
@@ -56,13 +78,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
             };
 
             var actionContext = GetActionContext(actionDescriptor);
-            //TODO: Add service 
+
+            actionContext.HttpContext.Request.Body.Write(bodyRequestContext, 0, bodyRequestContext.Length);
+            actionContext.HttpContext.Request.Body.Seek(0, SeekOrigin.Begin);
+
             ServiceCollection services = CreateServices();
-
-
             var servicesProvider = services.BuildServiceProvider();
             actionContext.HttpContext.RequestServices = servicesProvider;
-
             var metadataProvider = new TestModelMetadataProvider();
 
             metadataProvider.ForType(parameterDescriptor.ParameterType).BindingDetails
@@ -88,10 +110,19 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
 
             //*2
             ModelBinderProviderContext modelBinderProviderContext = new TestModelBinderProviderContext(parameterModelMetadata, parameterDescriptor.BindingInfo, metadataProvider);
-
             BinderTypeModelBinderProvider binderTypeModelBinderProvider = new BinderTypeModelBinderProvider();
-            
-           var binderforType =  binderTypeModelBinderProvider.GetBinder(modelBinderProviderContext);
+
+            // Act
+            var binderforType = binderTypeModelBinderProvider.GetBinder(modelBinderProviderContext);
+
+            // Assert
+            Assert.NotNull(binderforType);
+            await binderforType.BindModelAsync(modelBindingContext);
+
+            var newValue = modelBindingContext.Result.Model as PurchaseOrder;
+            Assert.NotNull(newValue);
+            Assert.Equal(value.billTo.street, newValue.billTo.street);
+            Assert.Equal(value.shipTo.street, newValue.shipTo.street);
 
         }
 
@@ -113,11 +144,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
         private static ServiceCollection CreateServices()
         {
             IHttpResponseStreamWriterFactory writerFactory = new TestHttpResponseStreamWriterFactory();
+            IHttpRequestStreamReaderFactory readerFactory = new TestHttpRequestStreamReaderFactory();
             ILoggerFactory loggerFactory = NullLoggerFactory.Instance;
             var services = new ServiceCollection();
 
             services.AddOptions();
 
+            services.AddSingleton(readerFactory);
             services.AddSingleton(writerFactory);
             services.AddSingleton(loggerFactory);
 
@@ -126,7 +159,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
 
             services.TryAddTransient<BodyXmlModelBinder>();
             services.TryAddTransient<BodyXmlModelBinderOnly>();
-                        
+
             return services;
         }
 
@@ -134,6 +167,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
         {
             var httpContext = new DefaultHttpContext();
             httpContext.Response.Body = new MemoryStream();
+            httpContext.Request.Body = new MemoryStream();
+            httpContext.Request.ContentType = "application/xml";
             return httpContext;
         }
 
