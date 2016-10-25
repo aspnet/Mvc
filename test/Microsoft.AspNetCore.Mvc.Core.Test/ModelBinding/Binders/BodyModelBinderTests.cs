@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -213,28 +212,52 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var sink = new TestSink();
             var loggerFactory = new TestLoggerFactory(sink, enabled: true);
-            var logger = loggerFactory.CreateLogger(typeof(BodyModelBinder).ToString());
-
-            var canReadFormatter = new TestInputFormatter(canRead: true);
             var inputFormatters = new List<IInputFormatter>()
             {
                 new TestInputFormatter(canRead: false),
-                canReadFormatter,
+                new TestInputFormatter(canRead: true),
             };
 
             var provider = new TestModelMetadataProvider();
             provider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
             var bindingContext = GetBindingContext(typeof(Person), metadataProvider: provider);
-
-            var binder = new BodyModelBinder(inputFormatters, new TestHttpRequestStreamReaderFactory(), logger);
+            bindingContext.HttpContext.Request.ContentType = "application/json";
+            var binder = new BodyModelBinder(inputFormatters, new TestHttpRequestStreamReaderFactory(), loggerFactory);
 
             // Act
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Equal($"Checking formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[0].State?.ToString());
-            Assert.Equal($"Checking formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[1].State?.ToString());
-            Assert.Equal($"Selected formatter: 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter'", sink.Writes[2].State?.ToString());
+            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[0].State?.ToString());
+            Assert.Equal($"Selected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[1].State?.ToString());
+        }
+
+        [Fact]
+        public async Task BindModelAsync_LogsNoFormatterSelectedAndRemoveFromBodyAttribute()
+        {
+            // Arrange
+            var sink = new TestSink();
+            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
+            var inputFormatters = new List<IInputFormatter>()
+            {
+                new TestInputFormatter(canRead: false),
+                new TestInputFormatter(canRead: false),
+            };
+
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
+            var bindingContext = GetBindingContext(typeof(Person), metadataProvider: provider);
+            bindingContext.HttpContext.Request.ContentType = "multipart/form-data";
+            var binder = new BodyModelBinder(inputFormatters, new TestHttpRequestStreamReaderFactory(), loggerFactory);
+
+            // Act
+            await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", sink.Writes[0].State?.ToString());
+            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", sink.Writes[1].State?.ToString());
+            Assert.Equal($"No input formatter was found to support the content type 'multipart/form-data' for use with the [FromBody] attribute.", sink.Writes[2].State?.ToString());
+            Assert.Equal($"To use model binding, remove the [FromBody] attribute from the action method's parameter.", sink.Writes[3].State?.ToString());
         }
 
         private static DefaultModelBindingContext GetBindingContext(

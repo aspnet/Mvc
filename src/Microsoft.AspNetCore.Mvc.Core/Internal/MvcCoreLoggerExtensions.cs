@@ -51,20 +51,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, string, Exception> _objectResultExecuting;
         private static readonly Action<ILogger, string, Exception> _noFormatter;
-        private static readonly Action<ILogger, string, Exception> _noInputFormatter;
         private static readonly Action<ILogger, IOutputFormatter, string, Exception> _formatterSelected;
-        private static readonly Action<ILogger, IInputFormatter, string, Exception> _inputFormatterSelected;
         private static readonly Action<ILogger, string, Exception> _skippedContentNegotiation;
         private static readonly Action<ILogger, Exception> _noAcceptForNegotiation;
         private static readonly Action<ILogger, IEnumerable<MediaTypeSegmentWithQuality>, Exception> _noFormatterFromNegotiation;
+
+        private static readonly Action<ILogger, IInputFormatter, string, Exception> _inputFormatterSelected;
+        private static readonly Action<ILogger, IInputFormatter, string, Exception> _inputFormatterRejected;
+        private static readonly Action<ILogger, string, Exception> _noInputFormatterSelected;
+        private static readonly Action<ILogger, Exception> _removeFromBodyAttribute;
 
         private static readonly Action<ILogger, string, Exception> _redirectResultExecuting;
 
         private static readonly Action<ILogger, string, Exception> _redirectToActionResultExecuting;
 
         private static readonly Action<ILogger, string, string, Exception> _redirectToRouteResultExecuting;
-
-        private static readonly Action<ILogger, Exception> _removeFromBodyAttribute;
 
         static MvcCoreLoggerExtensions()
         {
@@ -163,16 +164,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 1,
                 "No output formatter was found for content type '{ContentType}' to write the response.");
 
-            _noInputFormatter = LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                1,
-                "No formatter was found to support the content type '{ContentType}' for use with the [FromBody] attribute.");
-
-            _removeFromBodyAttribute = LoggerMessage.Define(
-                LogLevel.Debug,
-                2,
-                "To use model binding, remove the [FromBody] attribute from the action method's parameter.");
-
             _objectResultExecuting = LoggerMessage.Define<string>(
                 LogLevel.Information,
                 1,
@@ -182,11 +173,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 LogLevel.Debug,
                 2,
                 "Selected output formatter '{OutputFormatter}' and content type '{ContentType}' to write the response.");
-
-            _inputFormatterSelected = LoggerMessage.Define<IInputFormatter, string>(
-                LogLevel.Debug,
-                2,
-                "Selected formatter '{InputFormatter}' for content type '{ContentType}'");
 
             _skippedContentNegotiation = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -202,6 +188,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 LogLevel.Debug,
                 5,
                 "Could not find an output formatter based on content negotiation. Accepted types were ({AcceptTypes})");
+
+            _inputFormatterSelected = LoggerMessage.Define<IInputFormatter, string>(
+                LogLevel.Debug,
+                1,
+                "Selected input formatter '{InputFormatter}' for content type '{ContentType}'");
+
+            _inputFormatterRejected = LoggerMessage.Define<IInputFormatter, string>(
+                LogLevel.Debug,
+                2,
+                "Rejected input formatter '{InputFormatter}' for content type '{ContentType}'");
+
+            _noInputFormatterSelected = LoggerMessage.Define<string>(
+                LogLevel.Debug,
+                3,
+                "No input formatter was found to support the content type '{ContentType}' for use with the [FromBody] attribute.");
+
+            _removeFromBodyAttribute = LoggerMessage.Define(
+                LogLevel.Debug,
+                4,
+                "To use model binding, remove the [FromBody] attribute from the action method's parameter.");
 
             _redirectResultExecuting = LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -393,21 +399,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public static void NoInputFormatter(
-            this ILogger logger,
-            InputFormatterContext formatterContext)
-        {
-            if (logger.IsEnabled(LogLevel.Debug))
-            {
-                _noInputFormatter(logger, Convert.ToString(formatterContext.HttpContext.Request.ContentType), null);
-            }
-
-            if (formatterContext.HttpContext.Request.HasFormContentType)
-            {
-                _removeFromBodyAttribute(logger, null);
-            }
-        }
-
         public static void FormatterSelected(
             this ILogger logger,
             IOutputFormatter outputFormatter,
@@ -417,18 +408,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var contentType = Convert.ToString(context.ContentType);
                 _formatterSelected(logger, outputFormatter, contentType, null);
-            }
-        }
-
-        public static void InputFormatterSelected(
-            this ILogger logger,
-            IInputFormatter inputFormatter,
-            InputFormatterContext context)
-        {
-            if (logger.IsEnabled(LogLevel.Debug))
-            {
-                var contentType = Convert.ToString(context.HttpContext.Request.ContentType);
-                _inputFormatterSelected(logger, inputFormatter, contentType, null);
             }
         }
 
@@ -445,6 +424,45 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void NoFormatterFromNegotiation(this ILogger logger, IList<MediaTypeSegmentWithQuality> acceptTypes)
         {
             _noFormatterFromNegotiation(logger, acceptTypes, null);
+        }
+
+        public static void InputFormatterSelected(
+           this ILogger logger,
+           IInputFormatter inputFormatter,
+           InputFormatterContext context)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var contentType = Convert.ToString(context.HttpContext.Request.ContentType);
+                _inputFormatterSelected(logger, inputFormatter, contentType, null);
+            }
+        }
+
+        public static void InputFormatterRejected(
+            this ILogger logger,
+            IInputFormatter inputFormatter,
+            InputFormatterContext context)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                var contentType = Convert.ToString(context.HttpContext.Request.ContentType);
+                _inputFormatterRejected(logger, inputFormatter, contentType, null);
+            }
+        }
+
+        public static void NoInputFormatterSelected(
+            this ILogger logger,
+            InputFormatterContext formatterContext)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                _noInputFormatterSelected(logger, Convert.ToString(formatterContext.HttpContext.Request.ContentType), null);
+            }
+
+            if (formatterContext.HttpContext.Request.HasFormContentType)
+            {
+                _removeFromBodyAttribute(logger, null);
+            }
         }
 
         public static void RedirectResultExecuting(this ILogger logger, string destination)
