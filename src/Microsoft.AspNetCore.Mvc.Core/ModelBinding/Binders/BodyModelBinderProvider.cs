@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// </summary>
         /// <param name="formatters">The list of <see cref="IInputFormatter"/>.</param>
         /// <param name="readerFactory">The <see cref="IHttpRequestStreamReaderFactory"/>.</param>
-        [Obsolete("This constructor is obsolete and will be removed in a future version. Please use the constructor taking an ILoggerFactory instead.")]
         public BodyModelBinderProvider(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory)
             : this(formatters, readerFactory, loggerFactory: null)
         {

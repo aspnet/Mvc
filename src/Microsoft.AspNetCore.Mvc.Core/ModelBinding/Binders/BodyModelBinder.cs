@@ -31,7 +31,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// The <see cref="IHttpRequestStreamReaderFactory"/>, used to create <see cref="System.IO.TextReader"/>
         /// instances for reading the request body.
         /// </param>
-        [Obsolete("This constructor is obsolete and will be removed in a future version. Please use the constructor taking an ILoggerFactory instead.")]
         public BodyModelBinder(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory)
             : this(formatters, readerFactory, loggerFactory: null)
         {

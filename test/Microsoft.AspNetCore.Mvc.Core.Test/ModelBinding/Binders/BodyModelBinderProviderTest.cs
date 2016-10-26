@@ -72,23 +72,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         [Fact]
-        public void ObsoleteConstructor_DoesNotThrowNullReferenceException()
+        public void ConstructorWithoutLoggerFactory_DoesNotThrowNullReferenceException()
         {
             // Arrange
             var context = new TestModelBinderProviderContext(typeof(Person));
             context.BindingInfo.BindingSource = BindingSource.Body;
             var formatter = new TestInputFormatter();
-            var formatterList = new List<IInputFormatter>();
-            formatterList.Add(formatter);
-#pragma warning disable 0618
-            var provider = new BodyModelBinderProvider((formatterList), new TestHttpRequestStreamReaderFactory());
-#pragma warning restore 0618
+            var formatterList = new List<IInputFormatter> { formatter };
+            var provider = new BodyModelBinderProvider(formatterList, new TestHttpRequestStreamReaderFactory());
 
-            // Act
-            var exception = Record.Exception(() => provider.GetBinder(context));
-
-            // Assert
-            Assert.Null(exception);
+            // Act & Assert (does not throw)
+            provider.GetBinder(context);
         }
 
         private static BodyModelBinderProvider CreateProvider(params IInputFormatter[] formatters)
