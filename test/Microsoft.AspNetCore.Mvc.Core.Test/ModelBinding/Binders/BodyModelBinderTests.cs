@@ -267,7 +267,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         [Fact]
-        public async Task ConstructorWithoutLoggerFactory_DoesNotThrowNullReferenceException()
+        public async Task BindModelAsync_DoesNotThrowNullReferenceException()
         {
             // Arrange
             var httpContext = new DefaultHttpContext();

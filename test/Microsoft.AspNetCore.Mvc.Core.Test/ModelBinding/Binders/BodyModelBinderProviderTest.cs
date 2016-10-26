@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         [Fact]
-        public void ConstructorWithoutLoggerFactory_DoesNotThrowNullReferenceException()
+        public void GetBinder_DoesNotThrowNullReferenceException()
         {
             // Arrange
             var context = new TestModelBinderProviderContext(typeof(Person));

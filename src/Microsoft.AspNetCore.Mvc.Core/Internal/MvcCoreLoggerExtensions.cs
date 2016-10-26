@@ -460,7 +460,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 _noInputFormatterSelected(logger, contentType, null);
                 if (formatterContext.HttpContext.Request.HasFormContentType)
                 {
-                    var modelType = Convert.ToString(formatterContext.ModelType);
+                    var modelType = formatterContext.ModelType.FullName;
                     var modelName = formatterContext.ModelName;
                     _removeFromBodyAttribute(logger, modelName, modelType, null);
                 }
