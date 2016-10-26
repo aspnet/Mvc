@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -51,6 +52,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlDataContractSerializerMvcOptionsSetup>());
+            services.TryAddSingleton<XmlDcResultExecutor>();
+            services.TryAddTransient<BodyDcXmlModelBinder>();
+            services.TryAddTransient<BodyDcXmlModelBinderOnly>();
         }
 
         // Internal for testing.
@@ -58,6 +62,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlSerializerMvcOptionsSetup>());
+            services.TryAddSingleton<XmlResultExecutor>();
+            services.TryAddTransient<BodyXmlModelBinder>();
+            services.TryAddTransient<BodyXmlModelBinderOnly>();
         }
     }
 }
