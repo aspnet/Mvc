@@ -429,11 +429,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void InputFormatterSelected(
            this ILogger logger,
            IInputFormatter inputFormatter,
-           InputFormatterContext context)
+           InputFormatterContext formatterContext)
         {
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                var contentType = Convert.ToString(context.HttpContext.Request.ContentType);
+                var contentType = formatterContext.HttpContext.Request.ContentType;
                 _inputFormatterSelected(logger, inputFormatter, contentType, null);
             }
         }
@@ -441,11 +441,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void InputFormatterRejected(
             this ILogger logger,
             IInputFormatter inputFormatter,
-            InputFormatterContext context)
+            InputFormatterContext formatterContext)
         {
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                var contentType = Convert.ToString(context.HttpContext.Request.ContentType);
+                var contentType = formatterContext.HttpContext.Request.ContentType;
                 _inputFormatterRejected(logger, inputFormatter, contentType, null);
             }
         }
@@ -456,12 +456,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                _noInputFormatterSelected(logger, Convert.ToString(formatterContext.HttpContext.Request.ContentType), null);
-            }
-
-            if (formatterContext.HttpContext.Request.HasFormContentType)
-            {
-                _removeFromBodyAttribute(logger, null);
+                var contentType = formatterContext.HttpContext.Request.ContentType;
+                _noInputFormatterSelected(logger, contentType, null);
+                if (formatterContext.HttpContext.Request.HasFormContentType)
+                {
+                    _removeFromBodyAttribute(logger, null);
+                }
             }
         }
 

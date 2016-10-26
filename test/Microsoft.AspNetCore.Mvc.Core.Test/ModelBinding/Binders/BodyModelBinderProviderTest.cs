@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
@@ -70,11 +71,34 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             Assert.IsType<BodyModelBinder>(result);
         }
 
+        [Fact]
+        public void ObsoleteConstructor_DoesNotThrowNullReferenceException()
+        {
+            // Arrange
+            var context = new TestModelBinderProviderContext(typeof(Person));
+            context.BindingInfo.BindingSource = BindingSource.Body;
+            var formatter = new TestInputFormatter();
+            var formatterList = new List<IInputFormatter>();
+            formatterList.Add(formatter);
+#pragma warning disable 0618
+            var provider = new BodyModelBinderProvider((formatterList), new TestHttpRequestStreamReaderFactory());
+#pragma warning restore 0618
+
+            // Act
+            var exception = Record.Exception(() => provider.GetBinder(context));
+
+            // Assert
+            Assert.Null(exception);
+        }
+
         private static BodyModelBinderProvider CreateProvider(params IInputFormatter[] formatters)
         {
+            var sink = new TestSink();
+            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
             return new BodyModelBinderProvider(
                 new List<IInputFormatter>(formatters),
-                new TestHttpRequestStreamReaderFactory());
+                new TestHttpRequestStreamReaderFactory(),
+                loggerFactory);
         }
 
         private class Person

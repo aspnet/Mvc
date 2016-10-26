@@ -195,7 +195,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var provider = new TestModelMetadataProvider();
             provider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
             var bindingContext = GetBindingContext(typeof(Person), metadataProvider: provider);
-
             var binder = CreateBinder(inputFormatters);
 
             // Act
@@ -207,7 +206,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         [Fact]
-        public async Task BindModelAsync_LogsFormatterCheckingAndSelection()
+        public async Task BindModelAsync_LogsFormatterRejectionAndSelection()
         {
             // Arrange
             var sink = new TestSink();
@@ -228,8 +227,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[0].State?.ToString());
-            Assert.Equal($"Selected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[1].State?.ToString());
+            Assert.Equal("Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[0].State.ToString());
+            Assert.Equal("Selected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'application/json'", sink.Writes[1].State.ToString());
         }
 
         [Fact]
@@ -254,10 +253,38 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             await binder.BindModelAsync(bindingContext);
 
             // Assert
-            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", sink.Writes[0].State?.ToString());
-            Assert.Equal($"Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", sink.Writes[1].State?.ToString());
-            Assert.Equal($"No input formatter was found to support the content type 'multipart/form-data' for use with the [FromBody] attribute.", sink.Writes[2].State?.ToString());
-            Assert.Equal($"To use model binding, remove the [FromBody] attribute from the action method's parameter.", sink.Writes[3].State?.ToString());
+            Assert.Collection(
+                sink.Writes,
+                write => Assert.Equal(
+                    "Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", write.State.ToString()),
+                write => Assert.Equal(
+                    "Rejected input formatter 'Microsoft.AspNetCore.Mvc.ModelBinding.Binders.BodyModelBinderTests+TestInputFormatter' for content type 'multipart/form-data'", write.State.ToString()),
+                write => Assert.Equal(
+                    "No input formatter was found to support the content type 'multipart/form-data' for use with the [FromBody] attribute.", write.State.ToString()),
+                write => Assert.Equal(
+                    "To use model binding, remove the [FromBody] attribute from the action method's parameter.", write.State.ToString()));
+        }
+
+        [Fact]
+        public void ObsoleteConstructor_DoesNotThrowNullReferenceException()
+        {
+            // Arrange
+            var httpContext = new DefaultHttpContext();
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
+            var bindingContext = GetBindingContext(
+                typeof(Person),
+                httpContext: httpContext,
+                metadataProvider: provider);
+#pragma warning disable 0618
+            var binder = new BodyModelBinder(new List<IInputFormatter>(), new TestHttpRequestStreamReaderFactory());
+#pragma warning restore 0618
+
+            // Act
+            var exception = Record.ExceptionAsync(async () => await binder.BindModelAsync(bindingContext));
+
+            // Assert
+            Assert.Null(exception.Result);
         }
 
         private static DefaultModelBindingContext GetBindingContext(
@@ -295,7 +322,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
         private static BodyModelBinder CreateBinder(IList<IInputFormatter> formatters)
         {
-            return new BodyModelBinder(formatters, new TestHttpRequestStreamReaderFactory());
+            var sink = new TestSink();
+            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
+            return new BodyModelBinder(formatters, new TestHttpRequestStreamReaderFactory(), loggerFactory);
         }
 
         private class Person

@@ -7,7 +7,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Logging;
@@ -32,8 +31,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// The <see cref="IHttpRequestStreamReaderFactory"/>, used to create <see cref="System.IO.TextReader"/>
         /// instances for reading the request body.
         /// </param>
+        [Obsolete("This constructor is obsolete and will be removed in a future version. Please use the constructor taking an ILoggerFactory instead.")]
         public BodyModelBinder(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory)
-            : this(formatters, readerFactory, null)
+            : this(formatters, readerFactory, loggerFactory: null)
         {
         }
 
@@ -61,12 +61,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             _formatters = formatters;
             _readerFactory = readerFactory.CreateReader;
 
-            if (loggerFactory == null)
+            if (loggerFactory != null)
             {
-                loggerFactory = new DefaultLoggerFactory();
+                _logger = loggerFactory.CreateLogger<BodyModelBinder>();
             }
-
-            _logger = loggerFactory.CreateLogger<BodyModelBinder>();
         }
 
         /// <inheritdoc />
@@ -100,24 +98,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 _readerFactory);
 
             var formatter = (IInputFormatter)null;
-            _logger.IsEnabled(LogLevel.Debug);
             for (var i = 0; i < _formatters.Count; i++)
             {
                 if (_formatters[i].CanRead(formatterContext))
                 {
                     formatter = _formatters[i];
-                    _logger.InputFormatterSelected(formatter, formatterContext);
+                    _logger?.InputFormatterSelected(formatter, formatterContext);
                     break;
                 }
                 else
                 {
-                    _logger.InputFormatterRejected(_formatters[i], formatterContext);
+                    _logger?.InputFormatterRejected(_formatters[i], formatterContext);
                 }
             }
 
             if (formatter == null)
             {
-                _logger.NoInputFormatterSelected(formatterContext);
+                _logger?.NoInputFormatterSelected(formatterContext);
                 var message = Resources.FormatUnsupportedContentType(httpContext.Request.ContentType);
                 var exception = new UnsupportedContentTypeException(message);
                 bindingContext.ModelState.AddModelError(modelBindingKey, exception, bindingContext.ModelMetadata);

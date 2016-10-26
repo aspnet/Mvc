@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -16,13 +17,26 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     {
         private readonly IList<IInputFormatter> _formatters;
         private readonly IHttpRequestStreamReaderFactory _readerFactory;
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Creates a new <see cref="BodyModelBinderProvider"/>.
         /// </summary>
         /// <param name="formatters">The list of <see cref="IInputFormatter"/>.</param>
         /// <param name="readerFactory">The <see cref="IHttpRequestStreamReaderFactory"/>.</param>
+        [Obsolete("This constructor is obsolete and will be removed in a future version. Please use the constructor taking an ILoggerFactory instead.")]
         public BodyModelBinderProvider(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory)
+            : this(formatters, readerFactory, loggerFactory: null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="BodyModelBinderProvider"/>.
+        /// </summary>
+        /// <param name="formatters">The list of <see cref="IInputFormatter"/>.</param>
+        /// <param name="readerFactory">The <see cref="IHttpRequestStreamReaderFactory"/>.</param>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        public BodyModelBinderProvider(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory, ILoggerFactory loggerFactory)
         {
             if (formatters == null)
             {
@@ -36,6 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             _formatters = formatters;
             _readerFactory = readerFactory;
+            _loggerFactory = loggerFactory;
         }
 
         /// <inheritdoc />
@@ -57,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                         typeof(IInputFormatter).FullName));
                 }
 
-                return new BodyModelBinder(_formatters, _readerFactory);
+                return new BodyModelBinder(_formatters, _readerFactory, _loggerFactory);
             }
 
             return null;
