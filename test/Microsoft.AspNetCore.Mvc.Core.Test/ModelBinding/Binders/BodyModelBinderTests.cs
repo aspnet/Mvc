@@ -263,7 +263,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 write => Assert.Equal(
                     "No input formatter was found to support the content type 'multipart/form-data' for use with the [FromBody] attribute.", write.State.ToString()),
                 write => Assert.Equal(
-                    $"To use model binding, remove the [FromBody] attribute from '{bindingContext.ModelName}' with model type '{bindingContext.ModelType}'.", write.State.ToString()));
+                    $"To use model binding, remove the [FromBody] attribute from the property or parameter named '{bindingContext.ModelName}' with model type '{bindingContext.ModelType}'.", write.State.ToString()));
         }
 
         [Fact]

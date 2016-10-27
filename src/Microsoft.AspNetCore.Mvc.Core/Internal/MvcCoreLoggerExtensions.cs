@@ -207,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _removeFromBodyAttribute = LoggerMessage.Define<string, string>(
                 LogLevel.Debug,
                 4,
-                "To use model binding, remove the [FromBody] attribute from '{ModelName}' with model type '{ModelType}'.");
+                "To use model binding, remove the [FromBody] attribute from the property or parameter named '{ModelName}' with model type '{ModelType}'.");
 
             _redirectResultExecuting = LoggerMessage.Define<string>(
                 LogLevel.Information,
