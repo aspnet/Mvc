@@ -763,8 +763,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// In layout pages, renders the content of the section named <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The name of the section to render.</param>
-        /// <returns>An empty <see cref="IHtmlContent"/> to allow the <see cref="Write(object)"/> call to
-        /// succeed.</returns>
+        /// <returns>An empty <see cref="IHtmlContent"/>.</returns>
         /// <remarks>The method writes to the <see cref="Output"/> and the value returned is a token
         /// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
         /// value does not represent the rendered content.</remarks>
@@ -783,8 +782,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </summary>
         /// <param name="name">The section to render.</param>
         /// <param name="required">Indicates if this section must be rendered.</param>
-        /// <returns>An empty <see cref="IHtmlContent"/> to allow the <see cref="Write(object)"/> call to
-        /// succeed.</returns>
+        /// <returns>An empty <see cref="IHtmlContent"/>.</returns>
         /// <remarks>The method writes to the <see cref="Output"/> and the value returned is a token
         /// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
         /// value does not represent the rendered content.</remarks>
@@ -805,8 +803,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// In layout pages, asynchronously renders the content of the section named <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The section to render.</param>
-        /// <returns>A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>
-        /// that allows the <see cref="Write(object)"/> call to succeed.</returns>
+        /// <returns>
+        /// A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>.
+        /// </returns>
         /// <remarks>The method writes to the <see cref="Output"/> and the value returned is a token
         /// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
         /// value does not represent the rendered content.</remarks>
@@ -826,8 +825,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// <param name="name">The section to render.</param>
         /// <param name="required">Indicates the <paramref name="name"/> section must be registered
         /// (using <c>@section</c>) in the page.</param>
-        /// <returns>A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>
-        /// that allows the <see cref="Write(object)"/> call to succeed.</returns>
+        /// <returns>
+        /// A <see cref="Task{HtmlString}"/> that on completion returns an empty <see cref="IHtmlContent"/>.
+        /// </returns>
         /// <remarks>The method writes to the <see cref="Output"/> and the value returned is a token
         /// value that allows the Write (produced due to @RenderSection(..)) to succeed. However the
         /// value does not represent the rendered content.</remarks>
