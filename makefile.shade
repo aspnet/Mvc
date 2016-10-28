@@ -1,0 +1,137 @@
+default AUTHORS='Microsoft Open Technologies, Inc.'
+
+use-standard-lifecycle
+k-standard-goals
+
+default PROJECT_JSON="project.json"
+
+#api-check target="verify"
+    @{
+        var Configuration = E("Configuration");
+        var BASE_DIR = Directory.GetCurrentDirectory();
+
+        var srcFolders = Directory.EnumerateDirectories(Path.Combine(BASE_DIR, ".\\src"));
+
+        var fullFrameworkMonikerPrefix = new string[] { "net45", "net46" };
+        var coreMonikerPrefix = new string[] { "netcoreapp", "netstandard" };
+
+        foreach (var srcProjectPath in srcFolders)
+        {
+            var srcDirectory = new DirectoryInfo(srcProjectPath);
+            var projectJson = new FileInfo(Path.Combine(srcDirectory.FullName, PROJECT_JSON));
+            if (!projectJson.Exists)
+            {
+                continue;
+            }
+
+            RunApiCheck(srcDirectory, projectJson.FullName, Configuration, fullFrameworkMonikerPrefix, "net45");
+            RunApiCheck(srcDirectory, projectJson.FullName, Configuration, coreMonikerPrefix, "netcore");
+        }
+    }
+
+functions @{
+
+    string GenerateApiCheckInvoker(string framework)
+    {
+        var BASE_DIR = Directory.GetCurrentDirectory();
+        var apiCheckFullFramework = new FileInfo(Path.Combine(BASE_DIR, ".build\\ApiCheck\\tools\\net452\\ApiCheck.exe"));
+
+        if(framework == "net45")
+        {
+            return apiCheckFullFramework.FullName;
+        }
+        else
+        {
+            return "dotnet";
+        }
+    }
+
+    IList<string> GenerateApiCheckArguments(string framework, params string [] other)
+    {
+        var BASE_DIR = Directory.GetCurrentDirectory();
+        var apiCheckCore = new FileInfo(Path.Combine(BASE_DIR, ".build\\ApiCheck\\tools\\netcoreapp1.0\\ApiCheck.dll"));
+
+        if(framework == "net45")
+        {
+            return other.ToList();
+        }
+        else
+        {
+            return new List<string>{ apiCheckCore.FullName }.Concat(other).ToList();
+        }
+    }
+
+    void RunApiCheck(
+        DirectoryInfo directoryInfo,
+        string projectJson,
+        string configuration,
+        string[] monikerPrefix,
+        string framework)
+    {
+        var apiListingFile = framework == "net45" ? "baseline.net45.json" : "baseline.netcore.json";
+        var apiListingExceptionsFile = framework == "net45" ? "exceptions.net45.json" : "exceptions.netcore.json";
+
+        var buildFolder = new DirectoryInfo(Path.Combine(directoryInfo.FullName, "bin", configuration));
+
+        FileInfo dll = null;
+        foreach(var prefix in monikerPrefix)
+        {
+            var frameworkDirectory = buildFolder.EnumerateDirectories(string.Concat(prefix,"*")).FirstOrDefault();
+            if(frameworkDirectory != null && frameworkDirectory.EnumerateDirectories().Any())
+            {
+                frameworkDirectory = frameworkDirectory.EnumerateDirectories().FirstOrDefault(d =>
+                    d.EnumerateFiles(string.Concat(directoryInfo.Name,".dll")).Any());
+            }
+
+            if(frameworkDirectory != null)
+            {
+                dll = frameworkDirectory.EnumerateFiles(string.Concat(directoryInfo.Name,".dll")).FirstOrDefault();
+                if(dll != null)
+                {
+                    break;
+                }
+            }
+        }
+
+        if(dll != null)
+        {
+            var apiListing = directoryInfo.EnumerateFiles(apiListingFile).FirstOrDefault();
+            var apiListingExceptions = directoryInfo.EnumerateFiles(apiListingExceptionsFile).FirstOrDefault();
+
+            var generate = Environment.GetEnvironmentVariable("APICHECK_GENERATE_BASELINE");
+            if(!string.IsNullOrEmpty(generate))
+            {
+                var arguments = GenerateApiCheckArguments(framework,
+                    "generate",
+                    "-a " + dll.FullName,
+                    "-p " + projectJson,
+                    "-c " + configuration,
+                    "-o " + Path.Combine(directoryInfo.FullName, apiListingFile));
+
+                Exec(GenerateApiCheckInvoker(framework), string.Join(" ",arguments));
+            }
+            else
+            {
+                var arguments = GenerateApiCheckArguments(framework,
+                    "compare",
+                    "-b " + apiListing.FullName,
+                    "-a " + dll.FullName,
+                    "-p " + projectJson,
+                    "-c " + configuration);
+
+                if(apiListingExceptions != null)
+                {
+                    arguments.Add("-e " + apiListingExceptions.FullName);
+                }
+
+                if(Environment.GetEnvironmentVariable("APICHECK_EXCLUDE_PUBLIC_INTERNAL_TYPES") != null)
+                {
+                    // Excludes types in the internal namespace
+                    arguments.Add("-epi");
+                }
+
+                Exec(GenerateApiCheckInvoker(framework), string.Join(" ",arguments));
+            }
+        }
+    }
+}
