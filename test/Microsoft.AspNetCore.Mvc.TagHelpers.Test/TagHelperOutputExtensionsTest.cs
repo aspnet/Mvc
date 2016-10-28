@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Testing;
+using Microsoft.AspNetCore.Razor.Test.Internal;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers

@@ -22,6 +22,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
@@ -652,7 +653,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             return new ViewContext(actionContext,
                                    Mock.Of<IView>(),
-                                   new ViewDataDictionary(new EmptyModelMetadataProvider()),
+                                   ViewDataDictionaryFactory.CreateViewDataDictionary(new EmptyModelMetadataProvider()),
                                    Mock.Of<ITempDataDictionary>(),
                                    TextWriter.Null,
                                    new HtmlHelperOptions());

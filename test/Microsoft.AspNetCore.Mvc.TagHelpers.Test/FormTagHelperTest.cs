@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
@@ -707,7 +708,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return new ViewContext(
                 actionContext,
                 Mock.Of<IView>(),
-                new ViewDataDictionary(new TestModelMetadataProvider()),
+                ViewDataDictionaryFactory.CreateViewDataDictionary(new TestModelMetadataProvider()),
                 Mock.Of<ITempDataDictionary>(),
                 TextWriter.Null,
                 new HtmlHelperOptions());
