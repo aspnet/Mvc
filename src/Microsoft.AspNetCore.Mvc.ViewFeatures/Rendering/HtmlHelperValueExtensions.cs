@@ -100,8 +100,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </summary>
         /// <param name="htmlHelper">The <see cref="IHtmlHelper"/> instance this method extends.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the return value unless that came from model binding.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the return
+        /// value unless that came from model binding.
         /// </param>
         /// <returns>A <see cref="string"/> containing the formatted value.</returns>
         /// <remarks>

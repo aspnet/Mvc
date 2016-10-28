@@ -372,8 +372,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </summary>
         /// <param name="expression">An expression to be evaluated against the current model.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the <paramref name="expression"/> value when using that in the "value" attribute.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the
+        /// <paramref name="expression"/> value when using that in the "value" attribute.
         /// </param>
         /// <param name="htmlAttributes">
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
@@ -429,8 +429,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </summary>
         /// <param name="expression">An expression to be evaluated against the current model.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the <paramref name="expression"/> value when returning that value.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the
+        /// <paramref name="expression"/> value when returning that value.
         /// </param>
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>
         /// <returns>A <see cref="string"/> containing the formatted value.</returns>

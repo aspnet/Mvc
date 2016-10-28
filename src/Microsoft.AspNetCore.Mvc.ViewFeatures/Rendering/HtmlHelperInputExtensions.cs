@@ -543,8 +543,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <param name="expression">Expression name, relative to the current model.</param>
         /// <param name="value">If non-<c>null</c>, value to include in the element.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the "value" attribute unless that came from model binding.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the "value"
+        /// attribute unless that came from model binding.
         /// </param>
         /// <returns>A new <see cref="IHtmlContent"/> containing the &lt;input&gt; element.</returns>
         /// <remarks>
@@ -648,8 +648,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <param name="htmlHelper">The <see cref="IHtmlHelper{TModel}"/> instance this method extends.</param>
         /// <param name="expression">An expression to be evaluated against the current model.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the <paramref name="expression"/> value when using that in the "value" attribute.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the
+        /// <paramref name="expression"/> value when using that in the "value" attribute.
         /// </param>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <typeparam name="TResult">The type of the <paramref name="expression"/> result.</typeparam>

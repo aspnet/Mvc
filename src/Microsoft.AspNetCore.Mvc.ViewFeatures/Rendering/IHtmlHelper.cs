@@ -349,8 +349,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the return value.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the return
+        /// value.
         /// </param>
         /// <returns>A <see cref="string"/> containing the formatted value.</returns>
         /// <remarks>
@@ -646,8 +646,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <param name="current">Expression name, relative to the current model.</param>
         /// <param name="value">If non-<c>null</c>, value to include in the element.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the "value" attribute unless that came from model binding.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the "value"
+        /// attribute unless that came from model binding.
         /// </param>
         /// <param name="htmlAttributes">
         /// An <see cref="object"/> that contains the HTML attributes for the element. Alternatively, an
@@ -680,8 +680,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// <see cref="ViewContext.ValidationMessageElement"/>.
         /// </param>
         /// <returns>
-        /// A new <see cref="IHtmlContent"/> containing a <paramref name="tag"/> element.
-        /// <see cref="HtmlString.Empty"/> if the <paramref name="expression"/> is valid and client-side validation is
+        /// A new <see cref="IHtmlContent"/> containing a <paramref name="tag"/> element. An empty
+        /// <see cref="IHtmlContent"/> if the <paramref name="expression"/> is valid and client-side validation is
         /// disabled.
         /// </returns>
         IHtmlContent ValidationMessage(string expression, string message, object htmlAttributes, string tag);
@@ -704,8 +704,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </param>
         /// <returns>
         /// New <see cref="IHtmlContent"/> containing a &lt;div&gt; element wrapping the <paramref name="tag"/> element
-        /// and the &lt;ul&gt; element. <see cref="HtmlString.Empty"/> if the current model is valid and client-side
-        /// validation is disabled.
+        /// and the &lt;ul&gt; element. An empty <see cref="IHtmlContent"/> if the current model is valid and
+        /// client-side validation is disabled.
         /// </returns>
         IHtmlContent ValidationSummary(
             bool excludePropertyErrors,
@@ -723,8 +723,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         /// </summary>
         /// <param name="expression">Expression name, relative to the current model.</param>
         /// <param name="format">
-        /// The composite format <see cref="string"/> (see http://msdn.microsoft.com/en-us/library/txafckwd.aspx) used
-        /// to format the return value unless that came from model binding.
+        /// The format string (see https://msdn.microsoft.com/en-us/library/txafckwd.aspx) used to format the return
+        /// value unless that came from model binding.
         /// </param>
         /// <returns>A <see cref="string"/> containing the formatted value.</returns>
         /// <remarks>
