@@ -30,6 +30,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -224,6 +226,22 @@ namespace Microsoft.AspNetCore.Mvc
             // Assert
             var descriptor = Assert.Single(services, d => d.ServiceType == typeof(ApplicationPartManager));
             Assert.Same(manager, descriptor.ImplementationInstance);
+        }
+
+        [Fact]
+        public void AddMvcCore_CheckAdded_MvcJsonOption()
+        {
+            var services = new ServiceCollection();
+           
+            services.AddMvcCore().
+                AddJsonOptions((options) =>
+            {
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                options.SerializerSettings.Formatting = Formatting.Indented;
+            });
+
+            // Assert
+            var descriptor = Assert.Single(services, d => d.ServiceType == typeof(IConfigureOptions<MvcJsonOptions>));
         }
 
         private IEnumerable<Type> SingleRegistrationServiceTypes
