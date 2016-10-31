@@ -175,6 +175,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Collection(collection3.Items,
                 item => Assert.Same(expected3, item));
         }
+
         private static IActionDescriptorProvider GetActionDescriptorProvider(params ActionDescriptor[] values)
         {
             var actionDescriptorProvider = new Mock<IActionDescriptorProvider>();

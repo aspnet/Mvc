@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,10 +14,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     /// <summary>
     /// Default implementation of <see cref="IActionDescriptorCollectionProvider"/>.
     /// </summary>
-    public class ActionDescriptorCollectionProvider : IActionDescriptorCollectionProvider, IDisposable
+    public class ActionDescriptorCollectionProvider : IActionDescriptorCollectionProvider
     {
         private readonly IActionDescriptorProvider[] _actionDescriptorProviders;
-        private readonly List<IDisposable> _disposables;
+        private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
         private ActionDescriptorCollection _collection;
         private int _version = -1;
 
@@ -35,11 +34,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 .OrderBy(p => p.Order)
                 .ToArray();
 
-            _disposables = new List<IDisposable>();
-            foreach (var changeTokenProvider in actionDescriptorChangeProviders)
+            ChangeToken.OnChange(
+                GetCompositeChangeToken,
+                UpdateCollection);
+        }
+
+        private IChangeToken GetCompositeChangeToken()
+        {
+            var changeTokens = new IChangeToken[_actionDescriptorChangeProviders.Length];
+            for (var i = 0; i < _actionDescriptorChangeProviders.Length; i++)
             {
-                _disposables.Add(ChangeToken.OnChange(changeTokenProvider.GetChangeToken, OnChange));
+                changeTokens[i] = _actionDescriptorChangeProviders[i].GetChangeToken();
             }
+
+            return new CompositeChangeToken(changeTokens);
         }
 
         /// <summary>
@@ -49,19 +57,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             get
             {
-                var result = _collection;
-
-                if (result == null)
+                if (_collection == null)
                 {
-                    result = GetCollection();
-                    _collection = result;
+                    UpdateCollection();
                 }
 
-                return result;
+                return _collection;
             }
         }
 
-        private ActionDescriptorCollection GetCollection()
+        private void UpdateCollection()
         {
             var context = new ActionDescriptorProviderContext();
 
@@ -75,22 +80,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 _actionDescriptorProviders[i].OnProvidersExecuted(context);
             }
 
-            return new ActionDescriptorCollection(
+            _collection = new ActionDescriptorCollection(
                 new ReadOnlyCollection<ActionDescriptor>(context.Results),
                 Interlocked.Increment(ref _version));
-        }
-
-        private void OnChange()
-        {
-            _collection = null;
-        }
-
-        public void Dispose()
-        {
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
         }
     }
 }
