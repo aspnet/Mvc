@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.AspNetCore.Razor.TagHelpers.Test;
+using Microsoft.AspNetCore.Razor.TagHelpers.Testing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
 using Moq;
