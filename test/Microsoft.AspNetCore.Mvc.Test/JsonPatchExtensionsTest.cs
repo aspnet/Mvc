@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void ApplyTo_ValidPatchParameters_NoErrorsAdded()
+        public void ApplyTo_ValidPatchOperation_NoErrorsAdded()
         {
             // Arrange
             var patch = new JsonPatchDocument<Customer>();
@@ -65,11 +65,10 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        [InlineData("replace", "/PropertyNotFound", null, "James", "The target location specified by path segment 'PropertyNotFound' was not found.")]
         [InlineData("test", "/CustomerName", null, "James", "The test operation is not supported.")]
         [InlineData("invalid", "/CustomerName", null, "James", "Invalid JsonPatch operation 'invalid'.")]
         [InlineData("", "/CustomerName", null, "James", "Invalid JsonPatch operation ''.")]
-        public void SafeApplyTo_PatchParameters_AddsModelStateError(
+        public void ApplyTo_InvalidPatchOperations_AddsModelStateError(
             string op,
             string path,
             string from,
