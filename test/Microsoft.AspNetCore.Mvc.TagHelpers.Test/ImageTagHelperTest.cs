@@ -24,7 +24,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
@@ -269,7 +268,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             var metadataProvider = new EmptyModelMetadataProvider();
-            var viewData = ViewDataDictionaryFactory.CreateViewDataDictionary(metadataProvider);
+            var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
             var viewContext = new ViewContext(
                 actionContext,
                 Mock.Of<IView>(),

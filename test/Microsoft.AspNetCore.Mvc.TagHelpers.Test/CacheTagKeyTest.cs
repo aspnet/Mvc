@@ -6,14 +6,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Memory;
@@ -377,7 +375,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             return new ViewContext(actionContext,
                                    Mock.Of<IView>(),
-                                   ViewDataDictionaryFactory.CreateViewDataDictionary(new EmptyModelMetadataProvider()),
+                                   new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()),
                                    Mock.Of<ITempDataDictionary>(),
                                    TextWriter.Null,
                                    new HtmlHelperOptions());

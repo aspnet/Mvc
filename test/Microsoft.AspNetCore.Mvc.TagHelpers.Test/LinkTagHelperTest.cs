@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Memory;
@@ -985,7 +984,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             var metadataProvider = new EmptyModelMetadataProvider();
-            var viewData = ViewDataDictionaryFactory.CreateViewDataDictionary(metadataProvider);
+            var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
             var viewContext = new ViewContext(
                 actionContext,
                 Mock.Of<IView>(),
