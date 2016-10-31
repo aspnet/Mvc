@@ -105,7 +105,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             {
                 // If we did simple binding, then modelstate should be updated to reflect what we bound for ModelName.
                 // If we did complex binding, there will already be an entry for each index.
-                bindingContext.ModelState.SetModelValue(
+                bindingContext.ModelStateEntry.SetModelValue(
+                    bindingContext.ModelState,
                     bindingContext.ModelName,
                     valueProviderResult);
             }
@@ -172,7 +173,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var boundCollection = new List<TElement>();
 
             var elementMetadata = bindingContext.ModelMetadata.ElementMetadata;
-
+            var originalEntry = bindingContext.ModelStateEntry;
             foreach (var value in values)
             {
                 bindingContext.ValueProvider = new CompositeValueProvider
@@ -182,19 +183,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                     bindingContext.ValueProvider
                 };
 
-                object boundValue = null;
-
+                // Enter new scope to change ModelMetadata and isolate element binding operations.
                 using (bindingContext.EnterNestedScope(
                     elementMetadata,
                     fieldName: bindingContext.FieldName,
                     modelName: bindingContext.ModelName,
                     model: null))
                 {
+                    // Use the parent scope's ModelStateEntry to collect all element errors in one place.
+                    bindingContext.ModelStateEntry = originalEntry;
+
                     await ElementBinder.BindModelAsync(bindingContext);
 
                     if (bindingContext.Result.IsModelSet)
                     {
-                        boundValue = bindingContext.Result.Model;
+                        var boundValue = bindingContext.Result.Model;
                         boundCollection.Add(ModelBindingHelper.CastOrDefault<TElement>(boundValue));
                     }
                 }

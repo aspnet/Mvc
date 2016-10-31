@@ -45,7 +45,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         /// instances for reading the request body.
         /// </param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public BodyModelBinder(IList<IInputFormatter> formatters, IHttpRequestStreamReaderFactory readerFactory, ILoggerFactory loggerFactory)
+        public BodyModelBinder(
+            IList<IInputFormatter> formatters,
+            IHttpRequestStreamReaderFactory readerFactory,
+            ILoggerFactory loggerFactory)
         {
             if (formatters == null)
             {
@@ -89,11 +92,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             var httpContext = bindingContext.HttpContext;
 
+            var metadata = bindingContext.ModelMetadata;
+            var modelState = bindingContext.ModelState;
             var formatterContext = new InputFormatterContext(
                 httpContext,
                 modelBindingKey,
-                bindingContext.ModelState,
-                bindingContext.ModelMetadata,
+                modelState,
+                metadata,
                 _readerFactory);
 
             var formatter = (IInputFormatter)null;
@@ -114,30 +119,49 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             if (formatter == null)
             {
                 _logger?.NoInputFormatterSelected(formatterContext);
+
                 var message = Resources.FormatUnsupportedContentType(httpContext.Request.ContentType);
                 var exception = new UnsupportedContentTypeException(message);
-                bindingContext.ModelState.AddModelError(modelBindingKey, exception, bindingContext.ModelMetadata);
+                if (bindingContext.IsTopLevelObject &&
+                    !string.Equals(bindingContext.ModelName, modelBindingKey, StringComparison.Ordinal))
+                {
+                    // Cannot use ModelStateEntry tracked in ModelBindingContext due to "special logic" above.
+                    modelState.TryAddModelError(modelBindingKey, exception, metadata);
+                }
+                else
+                {
+                    bindingContext.ModelStateEntry.TryAddModelError(modelState, modelBindingKey, exception, metadata);
+                }
+
                 return;
             }
 
             try
             {
-                var previousCount = bindingContext.ModelState.ErrorCount;
                 var result = await formatter.ReadAsync(formatterContext);
-                var model = result.Model;
-
                 if (result.HasError)
                 {
                     // Formatter encountered an error. Do not use the model it returned.
                     return;
                 }
 
+                var model = result.Model;
                 bindingContext.Result = ModelBindingResult.Success(model);
                 return;
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                bindingContext.ModelState.AddModelError(modelBindingKey, ex, bindingContext.ModelMetadata);
+                if (bindingContext.IsTopLevelObject &&
+                    !string.Equals(bindingContext.ModelName, modelBindingKey, StringComparison.Ordinal))
+                {
+                    // Cannot use ModelStateEntry tracked in ModelBindingContext due to "special logic" above.
+                    modelState.TryAddModelError(modelBindingKey, exception, metadata);
+                }
+                else
+                {
+                    bindingContext.ModelStateEntry.TryAddModelError(modelState, modelBindingKey, exception, metadata);
+                }
+
                 return;
             }
         }

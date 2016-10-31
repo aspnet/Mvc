@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -19,13 +20,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private State _state;
         private readonly Stack<State> _stack = new Stack<State>();
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultModelBindingContext"/> class.
-        /// </summary>
-        public DefaultModelBindingContext()
-        {
-        }
 
         /// <inheritdoc />
         public override ActionContext ActionContext
@@ -101,6 +95,57 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     throw new ArgumentNullException(nameof(value));
                 }
                 _modelState = value;
+            }
+        }
+
+        /// <inheritdoc />
+        public override ModelStateEntry ModelStateEntry
+        {
+            get
+            {
+                if (_state.ModelStateEntry == null)
+                {
+                    if (_state.OuterModelStateEntry == null)
+                    {
+                        // This case occurs when EnterNestedScope() is about to leave the root scope (unless
+                        // DefaultControllerArgumentBinder set this for the root scope) and possibly when using a
+                        // DefaultModelBindingContext subclass.
+                        _state.ModelStateEntry = base.ModelStateEntry;
+                    }
+                    else
+                    {
+                        var childName = FieldName;
+                        if (string.IsNullOrEmpty(ModelName))
+                        {
+                            // Reusing the top-level scope and FieldName is a property or parameter name which will not
+                            // be mentioned in the ModelStateDictionary.
+                            childName = string.Empty;
+                        }
+                        else if (!ModelName.EndsWith(childName, StringComparison.Ordinal) &&
+                            ModelName.EndsWith("]", StringComparison.Ordinal))
+                        {
+                            // Recreate rest of key segment if something stripped square brackets around an index.
+                            childName = "[" + childName + "]";
+                            Debug.Assert(ModelName.EndsWith(childName, StringComparison.Ordinal));
+                        }
+
+                        _state.ModelStateEntry = _state.OuterModelStateEntry.GetOrAddModelStateForProperty(
+                            ModelState,
+                            childName,
+                            ModelName);
+                    }
+                }
+
+                return _state.ModelStateEntry;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _state.ModelStateEntry = value;
             }
         }
 
@@ -228,9 +273,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             var binderModelName = bindingInfo?.BinderModelName ?? metadata.BinderModelName;
+            var fieldName = binderModelName ?? modelName;
             var propertyFilterProvider = bindingInfo?.PropertyFilterProvider ?? metadata.PropertyFilterProvider;
 
             var bindingSource = bindingInfo?.BindingSource ?? metadata.BindingSource;
+            var modelState = actionContext.ModelState;
 
             return new DefaultModelBindingContext()
             {
@@ -240,12 +287,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 PropertyFilter = propertyFilterProvider?.PropertyFilter,
 
                 // Because this is the top-level context, FieldName and ModelName should be the same.
-                FieldName = binderModelName ?? modelName,
-                ModelName = binderModelName ?? modelName,
+                FieldName = fieldName,
+                ModelName = fieldName,
 
                 IsTopLevelObject = true,
                 ModelMetadata = metadata,
-                ModelState = actionContext.ModelState,
+                ModelState = modelState,
 
                 OriginalValueProvider = valueProvider,
                 ValueProvider = FilterValueProvider(valueProvider, bindingSource),
@@ -276,6 +323,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(modelName));
             }
 
+            var outerEntry = ModelStateEntry;
             var scope = EnterNestedScope();
 
             // Only filter if the new BindingSource affects the value providers. Otherwise we want
@@ -287,8 +335,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             Model = model;
             ModelMetadata = modelMetadata;
-            ModelName = modelName;
+
             FieldName = fieldName;
+            ModelName = modelName;
+            _state.OuterModelStateEntry = outerEntry;
+            _state.ModelStateEntry = null;
+
             BinderModelName = modelMetadata.BinderModelName;
             BindingSource = modelMetadata.BindingSource;
             PropertyFilter = modelMetadata.PropertyFilterProvider?.PropertyFilter;
@@ -337,6 +389,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             public ModelMetadata ModelMetadata;
             public string ModelName;
 
+            public ModelStateEntry ModelStateEntry;
+            public ModelStateEntry OuterModelStateEntry;
+
             public IValueProvider ValueProvider;
             public Func<ModelMetadata, bool> PropertyFilter;
 
@@ -345,6 +400,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             public bool IsTopLevelObject;
 
             public ModelBindingResult Result;
-        };
+        }
     }
 }

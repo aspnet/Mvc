@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
@@ -54,13 +55,136 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         /// <param name="propertyName">The property name to lookup.</param>
         /// <returns>The <see cref="ModelStateEntry"/> if a sub-property was found; otherwise <c>null</c>.</returns>
-        /// <remarks>This method returns any existing entry, even those with <see cref="IsContainerNode"/> with value <c>true</c>..</remarks>
+        /// <remarks>
+        /// This method returns any existing entry, even those with <see cref="IsContainerNode"/> with value <c>true</c>.
+        /// </remarks>
         public abstract ModelStateEntry GetModelStateForProperty(string propertyName);
 
         /// <summary>
         /// Gets the <see cref="ModelStateEntry"/> values for sub-properties.
         /// </summary>
-        /// <remarks>This method returns all existing entries, even those with <see cref="IsContainerNode"/> with value <c>true</c>.</remarks>
+        /// <remarks>
+        /// This property returns all existing entries, even those with <see cref="IsContainerNode"/> with value <c>true</c>.
+        /// </remarks>
         public abstract IReadOnlyList<ModelStateEntry> Children { get; }
+
+        public virtual ModelStateEntry GetOrAddModelStateForProperty(
+            ModelStateDictionary dictionary,
+            string propertyName,
+            string key)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return dictionary.GetOrAddModelState(key);
+        }
+
+        public virtual ModelValidationState GetFieldValidationState(ModelStateDictionary dictionary, string key)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return dictionary.GetFieldValidationState(key);
+        }
+
+        public virtual void SetModelValue(
+            ModelStateDictionary dictionary,
+            string key,
+            ValueProviderResult valueProviderResult)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            dictionary.SetModelValue(key, valueProviderResult);
+        }
+
+        public virtual void SetModelValue(
+            ModelStateDictionary dictionary,
+            string key,
+            object rawValue,
+            string attemptedValue)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            dictionary.SetModelValue(key, rawValue, attemptedValue);
+        }
+
+        public virtual bool TryAddModelError(
+            ModelStateDictionary dictionary,
+            string key,
+            Exception exception,
+            ModelMetadata metadata)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            if (metadata == null)
+            {
+                throw new ArgumentNullException(nameof(metadata));
+            }
+
+            return dictionary.TryAddModelError(key, exception, metadata);
+        }
+
+        public virtual bool TryAddModelError(ModelStateDictionary dictionary, string key, string errorMessage)
+        {
+            if (dictionary == null)
+            {
+                throw new ArgumentNullException(nameof(dictionary));
+            }
+
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (errorMessage == null)
+            {
+                throw new ArgumentNullException(nameof(errorMessage));
+            }
+
+            return dictionary.TryAddModelError(key, errorMessage);
+        }
     }
 }

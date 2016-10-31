@@ -10,8 +10,6 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -537,6 +535,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var property = GetMetadataForProperty(model.GetType(), nameof(ModelWithBindRequired.Age));
 
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
+            bindingContext.ModelStateEntry = bindingContext.ModelState.Root.GetOrAddModelStateForProperty(
+                bindingContext.ModelState,
+                "theModel",
+                "theModel");
 
             var binder = CreateBinder(bindingContext.ModelMetadata);
             binder.Results[property] = ModelBindingResult.Failed();
@@ -570,6 +572,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             };
 
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
+            bindingContext.ModelStateEntry = bindingContext.ModelState.Root.GetOrAddModelStateForProperty(
+                bindingContext.ModelState,
+                "theModel",
+                "theModel");
 
             var binder = CreateBinder(bindingContext.ModelMetadata);
 
@@ -758,7 +764,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var model = new Person();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = metadata.Properties[nameof(model.PropertyWithDefaultValue)];
 
@@ -780,7 +786,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var model = new Person();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = metadata.Properties[nameof(model.PropertyWithInitializedValue)];
 
@@ -804,7 +810,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var model = new Person();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = metadata.Properties[nameof(model.PropertyWithInitializedValueAndDefault)];
 
@@ -828,7 +834,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var model = new Person();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = metadata.Properties[nameof(model.NonUpdateableProperty)];
 
@@ -917,7 +923,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Arrange
             var model = new Person();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfBirth)];
 
@@ -943,7 +949,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             };
 
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
-            
+            bindingContext.ModelStateEntry = bindingContext.ModelState.Root.GetOrAddModelStateForProperty(
+                bindingContext.ModelState,
+                string.Empty,
+                string.Empty);
+
             var metadata = GetMetadataForType(typeof(Person));
             var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.DateOfDeath)];
 
@@ -951,12 +961,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var binder = CreateBinder(bindingContext.ModelMetadata);
 
             // Act
-            binder.SetPropertyPublic(bindingContext, "foo", propertyMetadata, result);
+            binder.SetPropertyPublic(bindingContext, nameof(model.DateOfDeath), propertyMetadata, result);
 
             // Assert
-            Assert.Equal("Date of death can't be before date of birth." + Environment.NewLine
-                       + "Parameter name: value",
-                         bindingContext.ModelState["foo"].Errors[0].Exception.Message);
+            Assert.Equal(
+                "Date of death can't be before date of birth." + Environment.NewLine +
+                    "Parameter name: value",
+                bindingContext.ModelState[nameof(model.DateOfDeath)].Errors[0].Exception.Message);
         }
 
         [Fact]
@@ -967,7 +978,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var model = new ModelWhosePropertySetterThrows();
             var bindingContext = CreateContext(GetMetadataForType(model.GetType()), model);
             bindingContext.ModelName = "foo";
-            
+
             var metadata = GetMetadataForType(typeof(ModelWhosePropertySetterThrows));
             var propertyMetadata = bindingContext.ModelMetadata.Properties[nameof(model.NameNoAttribute)];
 

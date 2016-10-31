@@ -27,7 +27,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 return TaskCache.CompletedTask;
             }
 
-            bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+            var modelState = bindingContext.ModelState;
+            bindingContext.ModelStateEntry.SetModelValue(modelState, bindingContext.ModelName, valueProviderResult);
 
             // Check for missing data case 2: There was an <input ... /> element but it was left blank.
             var value = valueProviderResult.FirstValue;
@@ -44,7 +45,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
             catch (Exception exception)
             {
-                bindingContext.ModelState.TryAddModelError(
+                bindingContext.ModelStateEntry.TryAddModelError(
+                    modelState,
                     bindingContext.ModelName,
                     exception,
                     bindingContext.ModelMetadata);

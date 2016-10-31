@@ -100,10 +100,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 Key = modelName,
             });
 
-            bindingContext.ModelState.SetModelValue(
-                modelName,
-                rawValue: null,
-                attemptedValue: null);
+            var modelState = bindingContext.ModelState;
+            if (bindingContext.IsTopLevelObject &&
+                !string.Equals(bindingContext.ModelName, modelName, StringComparison.Ordinal))
+            {
+                // Cannot use ModelStateEntry tracked in ModelBindingContext due to "use the FieldName" logic above.
+                modelState.SetModelValue(modelName, rawValue: null, attemptedValue: null);
+            }
+            else
+            {
+                bindingContext.ModelStateEntry.SetModelValue(
+                    modelState,
+                    modelName,
+                    rawValue: null,
+                    attemptedValue: null);
+            }
 
             bindingContext.Result = ModelBindingResult.Success(value);
         }

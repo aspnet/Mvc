@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
                 using (bindingContext.EnterNestedScope(
                     modelMetadata: valueMetadata,
-                    fieldName: bindingContext.FieldName,
+                    fieldName: kvp.Key,
                     modelName: kvp.Value,
                     model: null))
                 {
