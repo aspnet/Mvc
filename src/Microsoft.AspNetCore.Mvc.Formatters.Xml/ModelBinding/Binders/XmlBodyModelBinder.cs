@@ -14,19 +14,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// An <see cref="IModelBinder"/> which binds models from the request body using an <see cref="XmlSerializerInputFormatter"/>as the first entry in the list of formatters
     /// when a model has the binding source <see cref="BindingSource.Body"/>.
     /// </summary>
-    public class BodyXmlModelBinder : IModelBinder
+    public class XmlBodyModelBinder : IModelBinder
     {
         BodyModelBinder _bodyModelBinder { get; }
 
         /// <summary>
-        /// Creates a new <see cref="BodyXmlModelBinder"/>.
+        /// Creates a new <see cref="XmlBodyModelBinder"/>.
         /// </summary>
         /// <param name="options">The configuration for the MVC framework.</param>
         /// <param name="readerFactory">
         /// The <see cref="IHttpRequestStreamReaderFactory"/>, used to create <see cref="System.IO.TextReader"/>
         /// instances for reading the request body.
         /// </param>
-        public BodyXmlModelBinder(IOptions<MvcOptions> options, IHttpRequestStreamReaderFactory readerFactory)
+        public XmlBodyModelBinder(IOptions<MvcOptions> options, IHttpRequestStreamReaderFactory readerFactory)
         {
             if (options == null)
             {

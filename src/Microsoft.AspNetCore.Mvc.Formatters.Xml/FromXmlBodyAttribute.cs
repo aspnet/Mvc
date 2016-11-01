@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
     /// Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.
     /// </summary>
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class FromBodyXmlAttribute : Attribute, IBinderTypeProviderMetadata
+    public class FromXmlBodyAttribute : Attribute, IBinderTypeProviderMetadata
     {
         /// <inheritdoc />
         public BindingSource BindingSource => BindingSource.Body;
@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         /// <inheritdoc />
         ///<remarks> Requires the XML DataContractSerializer formatters or/and the XML Serializer formatters to be add to MVC.</remarks>
         public Type BinderType => UseXmlBinderOnly ?
-                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinderOnly) : typeof(BodyXmlModelBinderOnly)) :
-                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(BodyDcXmlModelBinder) : typeof(BodyXmlModelBinder));
+                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(DcXmlBodyModelBinderOnly) : typeof(XmlBodyModelBinderOnly)) :
+                                    (XmlSerializerType == XmlSerializerType.DataContractSerializer ? typeof(DcXmlBodyModelBinder) : typeof(XmlBodyModelBinder));
 
         /// <summary>
         /// Gets or sets the flag that selects a Data Contract XML input formatter.

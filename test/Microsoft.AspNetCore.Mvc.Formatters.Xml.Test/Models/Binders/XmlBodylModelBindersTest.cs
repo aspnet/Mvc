@@ -26,14 +26,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
 {
-    public class BodyXmlModelBindersTest
+    public class XmlBodylModelBindersTest
     {
         [Theory]
         [InlineData(XmlSerializerType.XmlSeriralizer, false)]
         [InlineData(XmlSerializerType.XmlSeriralizer, true)]
         [InlineData(XmlSerializerType.DataContractSerializer, false)]
         [InlineData(XmlSerializerType.DataContractSerializer, true)]
-        public async void BindTheBodyXmlToTheParameterValue(XmlSerializerType xmlSerializerType, bool useXmlBinderOnly)
+        public async void BindTheXmlBodyToTheParameterValue(XmlSerializerType xmlSerializerType, bool useXmlBinderOnly)
         {
             // Arrange 
             byte[] bodyRequestContext = new byte[0];
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
                 bodyRequestContext = Encoding.UTF8.GetBytes(textw.ToString());
             }
 
-            var att = new FromBodyXmlAttribute()
+            var att = new FromXmlBodyAttribute()
             {
                 XmlSerializerType = xmlSerializerType,
                 UseXmlBinderOnly = useXmlBinderOnly
@@ -154,11 +154,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Test.Models.Binders
             services.AddSingleton(writerFactory);
             services.AddSingleton(loggerFactory);
 
-            services.TryAddTransient<BodyDcXmlModelBinder>();
-            services.TryAddTransient<BodyDcXmlModelBinderOnly>();
+            services.TryAddTransient<DcXmlBodyModelBinder>();
+            services.TryAddTransient<DcXmlBodyModelBinderOnly>();
 
-            services.TryAddTransient<BodyXmlModelBinder>();
-            services.TryAddTransient<BodyXmlModelBinderOnly>();
+            services.TryAddTransient<XmlBodyModelBinder>();
+            services.TryAddTransient<XmlBodyModelBinderOnly>();
 
             return services;
         }

@@ -53,8 +53,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlDataContractSerializerMvcOptionsSetup>());
             services.TryAddSingleton<XmlDcResultExecutor>();
-            services.TryAddTransient<BodyDcXmlModelBinder>();
-            services.TryAddTransient<BodyDcXmlModelBinderOnly>();
+            services.TryAddTransient<DcXmlBodyModelBinder>();
+            services.TryAddTransient<DcXmlBodyModelBinderOnly>();
         }
 
         // Internal for testing.
@@ -63,8 +63,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcXmlSerializerMvcOptionsSetup>());
             services.TryAddSingleton<XmlResultExecutor>();
-            services.TryAddTransient<BodyXmlModelBinder>();
-            services.TryAddTransient<BodyXmlModelBinderOnly>();
+            services.TryAddTransient<XmlBodyModelBinder>();
+            services.TryAddTransient<XmlBodyModelBinderOnly>();
         }
     }
 }

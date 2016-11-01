@@ -16,16 +16,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// An <see cref="IModelBinder"/> which binds models from the request body using an <see cref="XmlDataContractSerializerInputFormatter"/> only
     /// when a model has the binding source <see cref="BindingSource.Body"/>.
     /// </summary>
-    public class BodyDcXmlModelBinderOnly : BodyModelBinder
+    public class DcXmlBodyModelBinderOnly : BodyModelBinder
     {
         /// <summary>
-        /// Creates a new <see cref="BodyDcXmlModelBinderOnly"/>.
+        /// Creates a new <see cref="DcXmlBodyModelBinderOnly"/>.
         /// </summary>
         /// <param name="readerFactory">
         /// The <see cref="IHttpRequestStreamReaderFactory"/>, used to create <see cref="System.IO.TextReader"/>
         /// instances for reading the request body.
         /// </param>
-        public BodyDcXmlModelBinderOnly(IHttpRequestStreamReaderFactory readerFactory) : base(new List<IInputFormatter>() { new XmlDataContractSerializerInputFormatter() }, readerFactory)
+        public DcXmlBodyModelBinderOnly(IHttpRequestStreamReaderFactory readerFactory) : base(new List<IInputFormatter>() { new XmlDataContractSerializerInputFormatter() }, readerFactory)
         {
         }
     }

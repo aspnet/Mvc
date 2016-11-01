@@ -8,17 +8,17 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 {
-    public class FromBodyXmlAttributeTest
+    public class FromXmlBodyAttributeTest
     {
         [Theory]
-        [InlineData(XmlSerializerType.XmlSeriralizer, false,typeof(BodyXmlModelBinder))]
-        [InlineData(XmlSerializerType.XmlSeriralizer, true,typeof(BodyXmlModelBinderOnly))]
-        [InlineData(XmlSerializerType.DataContractSerializer, false, typeof(BodyDcXmlModelBinder))]
-        [InlineData(XmlSerializerType.DataContractSerializer, true, typeof(BodyDcXmlModelBinderOnly))]
-        public void Create_FromBodyXmlAttribute(XmlSerializerType xmlSerializerType, bool useXmlBinderOnly,Type expectedType)
+        [InlineData(XmlSerializerType.XmlSeriralizer, false,typeof(XmlBodyModelBinder))]
+        [InlineData(XmlSerializerType.XmlSeriralizer, true,typeof(XmlBodyModelBinderOnly))]
+        [InlineData(XmlSerializerType.DataContractSerializer, false, typeof(DcXmlBodyModelBinder))]
+        [InlineData(XmlSerializerType.DataContractSerializer, true, typeof(DcXmlBodyModelBinderOnly))]
+        public void Create_FromXmlBodyAttribute(XmlSerializerType xmlSerializerType, bool useXmlBinderOnly,Type expectedType)
         {
             // Act
-            var att = new FromBodyXmlAttribute()
+            var att = new FromXmlBodyAttribute()
             {
                 XmlSerializerType = xmlSerializerType,
                 UseXmlBinderOnly = useXmlBinderOnly
