@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -53,6 +54,17 @@ namespace Microsoft.AspNetCore.Mvc
         /// Gets the <see cref="IPrincipal"/> for the current user.
         /// </summary>
         public IPrincipal User
+        {
+            get
+            {
+                return ViewContext?.HttpContext?.User;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ClaimsPrincipal"/> for the current user.
+        /// </summary>
+        public ClaimsPrincipal UserClaimsPrincipal
         {
             get
             {
