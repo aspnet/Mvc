@@ -60,6 +60,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages {
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to The @page directive for the Razor page at {0} cannot override the relative path prefix..
+        /// </summary>
+        public static string PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable {
+            get {
+                return ResourceManager.GetString("PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to Path must begin with a forward slash &apos;/&apos;..
         /// </summary>
         public static string RazorProject_PathMustStartWithForwardSlash {

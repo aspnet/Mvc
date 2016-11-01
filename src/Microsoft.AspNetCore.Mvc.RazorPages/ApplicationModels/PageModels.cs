@@ -4,10 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Microsoft.AspNetCore.Mvc.RazorPages.ApplicationModels
+namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     public class PageModel
     {

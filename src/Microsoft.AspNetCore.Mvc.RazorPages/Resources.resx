@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable" xml:space="preserve">
+    <value>The @page directive for the Razor page at {0} cannot override the relative path prefix.</value>
+  </data>
   <data name="RazorProject_PathMustStartWithForwardSlash" xml:space="preserve">
     <value>Path must begin with a forward slash '/'.</value>
   </data>

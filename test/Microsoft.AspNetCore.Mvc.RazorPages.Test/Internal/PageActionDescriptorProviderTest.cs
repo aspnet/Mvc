@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc.RazorPages.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             razorProject.Setup(p => p.EnumerateItems("/"))
                 .Returns(new[]
                 {
-                    GetProjectItem("/", "/Test.cshtml", $"@page /Home {Environment.NewLine}<h1>Hello world</h1>"),
+                    GetProjectItem("/", "/Test.cshtml", $"@page Home {Environment.NewLine}<h1>Hello world</h1>"),
                 });
             var provider = new PageActionDescriptorProvider(
                 razorProject.Object,
@@ -90,6 +90,31 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Equal("/Test.cshtml", descriptor.RelativePath);
             Assert.Equal("/Test", descriptor.RouteValues["page"]);
             Assert.Equal("Test/Home", descriptor.AttributeRouteInfo.Template);
+        }
+
+        [Theory]
+        [InlineData("/Path1")]
+        [InlineData("~/Path1")]
+        public void GetDescriptors_ThrowsIfRouteTemplatesAreOverriden(string template)
+        {
+            // Arrange
+            var razorProject = new Mock<RazorProject>();
+            razorProject.Setup(p => p.EnumerateItems("/"))
+                .Returns(new[]
+                {
+                    GetProjectItem("/", "/Test.cshtml", $"@page {template} {Environment.NewLine}<h1>Hello world</h1>"),
+                });
+            var provider = new PageActionDescriptorProvider(
+                razorProject.Object,
+                GetAccessor<MvcOptions>(),
+                GetAccessor<RazorPagesOptions>());
+            var context = new ActionDescriptorProviderContext();
+
+            // Act and Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => provider.OnProvidersExecuting(context));
+            Assert.Equal(
+                "The @page directive for the Razor page at /Test.cshtml cannot override the relative path prefix.",
+                ex.Message);
         }
 
         [Fact]
@@ -179,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             razorProject.Setup(p => p.EnumerateItems("/"))
                 .Returns(new[]
                 {
-                    GetProjectItem("/", "/Index.cshtml", $"@page {Environment.NewLine}"),
+                    GetProjectItem("/", "/Home.cshtml", $"@page {Environment.NewLine}"),
                 });
             var provider = new PageActionDescriptorProvider(
                 razorProject.Object,
@@ -227,7 +252,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             razorProject.Setup(p => p.EnumerateItems("/"))
                 .Returns(new[]
                 {
-                    GetProjectItem("/", "/Index.cshtml", $"@page {Environment.NewLine}"),
+                    GetProjectItem("/", "/Home.cshtml", $"@page {Environment.NewLine}"),
                 });
             var provider = new PageActionDescriptorProvider(
                 razorProject.Object,

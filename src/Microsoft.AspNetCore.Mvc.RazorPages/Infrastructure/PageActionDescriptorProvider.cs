@@ -3,18 +3,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.RazorPages.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     public class PageActionDescriptorProvider : IActionDescriptorProvider
     {
+        private static readonly string IndexFileName = "Index.cshtml";
         private readonly RazorProject _project;
         private readonly MvcOptions _mvcOptions;
         private readonly RazorPagesOptions _pagesOptions;
@@ -41,14 +41,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                     continue;
                 }
 
-                var routeTemplates = GetRouteTemplates(item);
-                if (string.IsNullOrEmpty(routeTemplates.Template))
+                string template;
+                if (!PageDirectiveFeature.TryGetRouteTemplate(item, out template))
                 {
                     // .cshtml pages without @page are not RazorPages.
                     continue;
                 }
 
-                AddActionDescriptors(context.Results, item, routeTemplates);
+                if (AttributeRouteModel.IsOverridePattern(template))
+                {
+                    throw new InvalidOperationException(string.Format(
+                        Resources.PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable,
+                        item.Path));
+                }
+
+                AddActionDescriptors(context.Results, item, template);
             }
         }
 
@@ -56,34 +63,19 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         {
         }
 
-        private void AddActionDescriptors(
-            IList<ActionDescriptor> actions,
-            RazorProjectItem item, 
-            RouteTemplates templates)
+        private void AddActionDescriptors(IList<ActionDescriptor> actions, RazorProjectItem item, string template)
         {
-            var model = new PageModel(item.CombinedPath, item.PathWithoutExtension);
-            model.Selectors.Add(new SelectorModel
+            var model = new PageModel(item.PathWithoutExtension, item.PathWithoutExtension);
+            model.Selectors.Add(CreateSelectorModel(item.PathWithoutExtension, template));
+
+            if (string.Equals(IndexFileName, item.Filename, StringComparison.OrdinalIgnoreCase))
             {
-                AttributeRouteModel = new AttributeRouteModel
-                {
-                    Template = templates.Template,
-                }
-            });
+                model.Selectors.Add(CreateSelectorModel(item.BasePath, template));
+            }
 
             for (var i = 0; i < _pagesOptions.Conventions.Count; i++)
             {
                 _pagesOptions.Conventions[i].Apply(model);
-            }
-
-            if (!string.IsNullOrEmpty(templates.AlternateTemplate))
-            {
-                model.Selectors.Add(new SelectorModel
-                {
-                    AttributeRouteModel = new AttributeRouteModel
-                    {
-                        Template = templates.AlternateTemplate,
-                    }
-                });
             }
 
             var filters = new List<FilterDescriptor>(_mvcOptions.Filters.Count + model.Filters.Count);
@@ -120,72 +112,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             }
         }
 
-        private RouteTemplates GetRouteTemplates(RazorProjectItem item)
+        private static SelectorModel CreateSelectorModel(string prefix, string template)
         {
-            string template;
-            if (!PageDirectiveFeature.TryGetRouteTemplate(item, out template))
+            return new SelectorModel
             {
-                return default(RouteTemplates);
-            }
-
-            Debug.Assert(template != null);
-
-            if (template.Length > 0 && template[0] == '/')
-            {
-                template = template.Substring(1);
-            }
-            else if (template.Length > 1 && template[0] == '~' && template[1] == '/')
-            {
-                template = template.Substring(2);
-            }
-
-            var filePath = item.CombinedPathWithoutExtension.Substring(1);
-            var routeTemplate = GetRouteTemplate(filePath, template);
-
-            if (string.Equals("Index.cshtml", item.Filename, StringComparison.OrdinalIgnoreCase))
-            {
-                return new RouteTemplates(routeTemplate, GetRouteTemplate(item.BasePath.Substring(1), template));
-            }
-
-            return new RouteTemplates(routeTemplate);
-        }
-
-        private static string GetRouteTemplate(string prefix, string template)
-        {
-            if (prefix == string.Empty && string.IsNullOrEmpty(template))
-            {
-                return string.Empty;
-            }
-            else if (string.IsNullOrEmpty(template))
-            {
-                return prefix;
-            }
-            else if (prefix == string.Empty)
-            {
-                return template;
-            }
-            else
-            {
-                return prefix + "/" + template;
-            }
-        }
-
-        private struct RouteTemplates
-        {
-            public RouteTemplates(string template)
-                : this(template, alternateTemplate: null)
-            {
-            }
-
-            public RouteTemplates(string template, string alternateTemplate)
-            {
-                Template = template;
-                AlternateTemplate = alternateTemplate;
-            }
-
-            public string Template { get; }
-
-            public string AlternateTemplate { get; }
+                AttributeRouteModel = new AttributeRouteModel
+                {
+                    Template = AttributeRouteModel.CombineTemplates(prefix, template),
+                }
+            };
         }
     }
 }

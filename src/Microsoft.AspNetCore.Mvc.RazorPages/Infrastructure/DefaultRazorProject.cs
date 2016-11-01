@@ -4,12 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     public class DefaultRazorProject : RazorProject
     {
+        private const string RazorFileExtension = ".cshtml";
         private readonly IFileProvider _provider;
 
         public DefaultRazorProject(IFileProvider provider)
@@ -46,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                             yield return child;
                         }
                     }
-                    else if (string.Equals(RazorExtension, Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
+                    else if (string.Equals(RazorFileExtension, Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
                     {
                         yield return new DefaultRazorProjectItem(file, basePath, prefix + "/" + file.Name);
                     }
