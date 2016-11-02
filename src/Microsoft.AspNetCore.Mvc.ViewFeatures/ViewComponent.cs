@@ -64,13 +64,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets the <see cref="ClaimsPrincipal"/> for the current user.
         /// </summary>
-        public ClaimsPrincipal UserClaimsPrincipal
-        {
-            get
-            {
-                return ViewContext?.HttpContext?.User;
-            }
-        }
+        public ClaimsPrincipal UserClaimsPrincipal => ViewContext?.HttpContext?.User;
 
         /// <summary>
         /// Gets the <see cref="RouteData"/> for the current request.
