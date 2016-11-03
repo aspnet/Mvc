@@ -47,17 +47,22 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         /// <inheritdoc />
         public IEnumerable<string> GetReferencePaths()
         {
-            var dependencyContext = DependencyContext.Load(Assembly);
-            if (dependencyContext != null)
+            if (!Assembly.IsDynamic)
             {
-                return dependencyContext.CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
+                var dependencyContext = DependencyContext.Load(Assembly);
+                if (dependencyContext != null)
+                {
+                    return dependencyContext.CompileLibraries.SelectMany(library => library.ResolveReferencePaths());
+                }
+
+                // If an application has been compiled without preserveCompilationContext, return the path to the assembly
+                // as a reference. For runtime compilation, this will allow the compilation to succeed as long as it least
+                // one application part has been compiled with preserveCompilationContext and contains a super set of types
+                // required for the compilation to succeed.
+                return new[] { Assembly.Location };
             }
 
-            // If an application has been compiled without preserveCompilationContext, return the path to the assembly
-            // as a reference. For runtime compilation, this will allow the compilation to succeed as long as it least
-            // one application part has been compiled with preserveCompilationContext and contains a super set of types
-            // required for the compilation to succeed.
-            return new[] { Assembly.Location };
+            return Enumerable.Empty<string>();
         }
     }
 }
