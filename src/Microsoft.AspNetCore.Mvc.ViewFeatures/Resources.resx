@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -131,7 +131,7 @@
     <value>Method '{0}' of view component '{1}' should be declared to return a value.</value>
   </data>
   <data name="ViewComponent_CannotFindComponent" xml:space="preserve">
-    <value>A view component named '{0}' could not be found.</value>
+    <value>A view component named '{0}' could not be found. View components must be a Public non-generic concrete type, not contains generic parameters, use ViewComponentAttribute or class name end with 'ViewComponent'</value>
   </data>
   <data name="ViewComponent_IViewComponentFactory_ReturnedNull" xml:space="preserve">
     <value>An invoker could not be created for the view component '{0}'.</value>
