@@ -15,6 +15,31 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             typeof(DefaultAssemblyPartDiscoveryProviderTests).GetTypeInfo().Assembly;
 
         [Fact]
+        public void CandidateResolver_ThrowsDifferentCaseAssemblyReference()
+        {
+            // Arrange 
+            var upperCaseLibrary = "Microsoft.AspNetCore.Mvc";
+            var lowerCaseLibrary = "microsoft.aspNetCore.mvc";
+
+            var dependencyContext = new DependencyContext(
+                new TargetInfo("framework", "runtime", "signature", isPortable: true),
+                CompilationOptions.Default,
+                new CompilationLibrary[0],
+                new[]
+                {
+                     GetLibrary(lowerCaseLibrary),
+                     GetLibrary(upperCaseLibrary),
+                },
+                Enumerable.Empty<RuntimeFallbacks>());
+
+            // Act
+            Exception exception = Assert.Throws<Exception>(() => DefaultAssemblyPartDiscoveryProvider.GetCandidateLibraries(dependencyContext));
+
+            // Assert
+            Assert.Equal($"An item with the same key has already been added. Key: {upperCaseLibrary}.  Please ensure to use the same case for your package references in project.json files.", exception.Message);
+        }
+
+        [Fact]
         public void GetCandidateLibraries_IgnoresMvcAssemblies()
         {
             // Arrange

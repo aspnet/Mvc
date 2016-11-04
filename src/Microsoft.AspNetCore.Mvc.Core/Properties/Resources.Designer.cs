@@ -1354,6 +1354,22 @@ namespace Microsoft.AspNetCore.Mvc.Core
             return string.Format(CultureInfo.CurrentCulture, GetString("VaryByQueryKeys_Requires_ResponseCachingMiddleware"), p0);
         }
 
+        /// <summary>
+        /// {0}. Please ensure to use the same case for your package references in project.json files.
+        /// </summary>
+        internal static string CandidateResolver_DifferentCasedReference
+        {
+            get { return GetString("CandidateResolver_DifferentCasedReference"); }
+        }
+
+        /// <summary>
+        /// {0}. Please ensure to use the same case for your package references in project.json files.
+        /// </summary>
+        internal static string FormatCandidateResolver_DifferentCasedReference(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("CandidateResolver_DifferentCasedReference"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

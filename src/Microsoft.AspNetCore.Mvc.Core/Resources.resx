@@ -379,4 +379,8 @@
   <data name="VaryByQueryKeys_Requires_ResponseCachingMiddleware" xml:space="preserve">
     <value>'{0}' requires the response cache middleware.</value>
   </data>
+  <data name="CandidateResolver_DifferentCasedReference" xml:space="preserve">
+    <value>{0}.  Please ensure to use the same case for your package references in project.json files.</value>
+    <comment>{0} is the ArgumentException message about the key already being added</comment>
+  </data>
 </root>
