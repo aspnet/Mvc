@@ -33,6 +33,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// </summary>
         /// <param name="relativePath">Path of the view file relative to the application base.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
+        /// <param name="isPrecompiledView">True if precompiled view found, false otherwise</param>
+        public CompilerCacheResult(string relativePath, CompilationResult compilationResult, bool isPrecompiledView)
+            : this(relativePath, compilationResult, EmptyArray<IChangeToken>.Instance)
+        {
+            IsPrecompiledView = isPrecompiledView;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="CompilerCacheResult"/> with the specified
+        /// <see cref="Compilation.CompilationResult"/>.
+        /// </summary>
+        /// <param name="relativePath">Path of the view file relative to the application base.</param>
+        /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
         /// <param name="expirationTokens">One or more <see cref="IChangeToken"/> instances that indicate when
         /// this result has expired.</param>
         public CompilerCacheResult(string relativePath, CompilationResult compilationResult, IList<IChangeToken> expirationTokens)
@@ -51,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             var propertyBindExpression = Expression.Bind(pathProperty, Expression.Constant(relativePath));
             var objectInitializeExpression = Expression.MemberInit(newExpression, propertyBindExpression);
-            PageFactory =  Expression
+            PageFactory = Expression
                 .Lambda<Func<IRazorPage>>(objectInitializeExpression)
                 .Compile();
             IsPrecompiledView = false;
@@ -91,8 +104,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         public Func<IRazorPage> PageFactory { get; }
 
         /// <summary>
-        /// Gets or sets a value that determines if a precompiled view was found.
+        /// Gets a value that determines if a precompiled view was found.
         /// </summary>
-        public bool IsPrecompiledView { get; set; }
+        public bool IsPrecompiledView { get; }
     }
 }

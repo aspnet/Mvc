@@ -395,7 +395,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             return ViewLookupCache.Set<ViewLocationCacheResult>(cacheKey, cacheResult, cacheEntryOptions);
         }
 
-        //internal for unit testing
+        // Internal for unit testing
         internal ViewLocationCacheResult CreateCacheResult(
             HashSet<IChangeToken> expirationTokens,
             string relativePath,
@@ -418,11 +418,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                     EmptyArray<ViewLocationCacheItem>.Instance;
                 if (factoryResult.IsPrecompiledView)
                 {
-                    _logger?.PrecompiledViewFound(relativePath);
-                }
-                else
-                {
-                    _logger?.PrecompiledViewNotFound(relativePath);
+                    _logger.PrecompiledViewFound(relativePath);
                 }
 
                 return new ViewLocationCacheResult(

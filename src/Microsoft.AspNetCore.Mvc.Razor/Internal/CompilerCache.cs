@@ -59,8 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             foreach (var item in views)
             {
-                var cacheEntry = new CompilerCacheResult(item.Key, new CompilationResult(item.Value));
-                cacheEntry.IsPrecompiledView = true;
+                var cacheEntry = new CompilerCacheResult(item.Key, new CompilationResult(item.Value), isPrecompiledView: true);
                 _cache.Set(GetNormalizedPath(item.Key), Task.FromResult(cacheEntry));
             }
         }

@@ -1291,44 +1291,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             var loggerFactory = new TestLoggerFactory(sink, enabled: true);
 
             var relativePath = "/Views/Foo/details.cshtml";
-            var page = new Mock<IRazorPage>(MockBehavior.Strict);
             var pageFactory = new Mock<IRazorPageFactoryProvider>();
             pageFactory
                 .Setup(p => p.CreateFactory(relativePath))
-                .Returns(new RazorPageFactoryResult(() => page.Object, new IChangeToken[0], isPrecompiledView: true))
+                .Returns(new RazorPageFactoryResult(() => Mock.Of<IRazorPage>(), new IChangeToken[0], isPrecompiledView: true))
                 .Verifiable();
 
-            var viewEngine = new RazorViewEngine(pageFactory.Object, Mock.Of<IRazorPageActivator>(), new HtmlTestEncoder(), GetOptionsAccessor(expanders: null), loggerFactory);
+            var viewEngine = new RazorViewEngine(
+                pageFactory.Object,
+                Mock.Of<IRazorPageActivator>(),
+                new HtmlTestEncoder(),
+                GetOptionsAccessor(expanders: null),
+                loggerFactory);
 
             // Act
             var result = viewEngine.CreateCacheResult(null, relativePath, false);
 
             // Assert
-            Assert.Equal($"Precompiled view found at '{relativePath}'.", sink.Writes[0].State.ToString());
-        }
-
-        [Fact]
-        public void CreateCacheResult_LogsPrecompiledViewNotFound()
-        {
-            // Arrange
-            var sink = new TestSink();
-            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
-
-            var relativePath = "/Views/Foo/details.cshtml";
-            var page = new Mock<IRazorPage>(MockBehavior.Strict);
-            var pageFactory = new Mock<IRazorPageFactoryProvider>();
-            pageFactory
-                .Setup(p => p.CreateFactory(relativePath))
-                .Returns(new RazorPageFactoryResult(() => page.Object, new IChangeToken[0], isPrecompiledView: false))
-                .Verifiable();
-
-            var viewEngine = new RazorViewEngine(pageFactory.Object, Mock.Of<IRazorPageActivator>(), new HtmlTestEncoder(), GetOptionsAccessor(expanders: null), loggerFactory);
-
-            // Act
-            var result = viewEngine.CreateCacheResult(null, relativePath, false);
-
-            // Assert
-            Assert.Equal($"Precompiled view not found at '{relativePath}'.", sink.Writes[0].State.ToString());
+            Assert.Equal($"Using precompiled view for '{relativePath}'.", sink.Writes[0].State.ToString());
         }
 
         [Theory]

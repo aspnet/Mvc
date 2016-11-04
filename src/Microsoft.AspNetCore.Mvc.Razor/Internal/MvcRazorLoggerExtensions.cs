@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private static readonly Action<ILogger, string, string, Exception> _viewLookupCacheMiss;
         private static readonly Action<ILogger, string, string, Exception> _viewLookupCacheHit;
         private static readonly Action<ILogger, string, Exception> _precompiledViewFound;
-        private static readonly Action<ILogger, string, Exception> _precompiledViewNotFound;
 
         static MvcRazorLoggerExtensions()
         {
@@ -47,12 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             _precompiledViewFound = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 3,
-                "Precompiled view found at '{RelativePath}'.");
-
-            _precompiledViewNotFound = LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                4,
-                "Precompiled view not found at '{RelativePath}'.");
+                "Using precompiled view for '{RelativePath}'.");
 
             _generatedCodeToAssemblyCompilationStart = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -94,11 +88,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         public static void PrecompiledViewFound(this ILogger logger, string relativePath)
         {
             _precompiledViewFound(logger, relativePath, null);
-        }
-
-        public static void PrecompiledViewNotFound(this ILogger logger, string relativePath)
-        {
-            _precompiledViewNotFound(logger, relativePath, null);
         }
 
         public static void GeneratedCodeToAssemblyCompilationStart(this ILogger logger, string filePath)
