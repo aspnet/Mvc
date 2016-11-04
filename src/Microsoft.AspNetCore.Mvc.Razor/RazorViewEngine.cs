@@ -395,7 +395,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             return ViewLookupCache.Set<ViewLocationCacheResult>(cacheKey, cacheResult, cacheEntryOptions);
         }
 
-        private ViewLocationCacheResult CreateCacheResult(
+        //internal for unit testing
+        internal ViewLocationCacheResult CreateCacheResult(
             HashSet<IChangeToken> expirationTokens,
             string relativePath,
             bool isMainPage)
@@ -415,6 +416,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 var viewStartPages = isMainPage ?
                     GetViewStartPages(relativePath, expirationTokens) :
                     EmptyArray<ViewLocationCacheItem>.Instance;
+                if (factoryResult.IsPrecompiledView)
+                {
+                    _logger?.PrecompiledViewFound(relativePath);
+                }
+                else
+                {
+                    _logger?.PrecompiledViewNotFound(relativePath);
+                }
 
                 return new ViewLocationCacheResult(
                     new ViewLocationCacheItem(factoryResult.RazorPageFactory, relativePath),
