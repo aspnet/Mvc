@@ -1,0 +1,629 @@
+{
+  "AssemblyIdentity": "Microsoft.AspNetCore.Mvc.Cors, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+  "Types": [
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcCorsMvcCoreBuilderExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcCorsMvcCoreBuilderExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddCors(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddCors",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddCors(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddCors",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder ConfigureCors(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "ConfigureCors",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Cors.CorsAuthorizationFilter : Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter, Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter, Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata, Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+      "Name": "Microsoft.AspNetCore.Mvc.Cors.CorsAuthorizationFilter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter",
+        "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter",
+        "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata",
+        "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter"
+      ],
+      "Members": [
+        {
+          "Id": "public System.String get_PolicyName()",
+          "Kind": "Method",
+          "Name": "get_PolicyName",
+          "Parameters": [],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void set_PolicyName(System.String value)",
+          "Kind": "Method",
+          "Name": "set_PolicyName",
+          "Parameters": [
+            {
+              "Name": "value",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String value"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Int32 get_Order()",
+          "Kind": "Method",
+          "Name": "get_Order",
+          "Parameters": [],
+          "ReturnType": "System.Int32",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Threading.Tasks.Task OnAuthorizationAsync(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context)",
+          "Kind": "Method",
+          "Name": "OnAuthorizationAsync",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context"
+            }
+          ],
+          "ReturnType": "System.Threading.Tasks.Task",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Cors.Infrastructure.ICorsService corsService, Microsoft.AspNetCore.Cors.Infrastructure.ICorsPolicyProvider policyProvider)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "corsService",
+              "Type": "Microsoft.AspNetCore.Cors.Infrastructure.ICorsService",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Cors.Infrastructure.ICorsService corsService"
+            },
+            {
+              "Name": "policyProvider",
+              "Type": "Microsoft.AspNetCore.Cors.Infrastructure.ICorsPolicyProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Cors.Infrastructure.ICorsPolicyProvider policyProvider"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Cors.Internal.CorsApplicationModelProvider : Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelProvider",
+      "Name": "Microsoft.AspNetCore.Mvc.Cors.Internal.CorsApplicationModelProvider",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelProvider"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Int32 get_Order()",
+          "Kind": "Method",
+          "Name": "get_Order",
+          "Parameters": [],
+          "ReturnType": "System.Int32",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void OnProvidersExecuted(Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext context)",
+          "Kind": "Method",
+          "Name": "OnProvidersExecuted",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void OnProvidersExecuting(Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext context)",
+          "Kind": "Method",
+          "Name": "OnProvidersExecuting",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.ApplicationModels.ApplicationModelProviderContext context"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ApplicationModels.IApplicationModelProvider",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Cors.Internal.CorsAuthorizationFilterFactory : Microsoft.AspNetCore.Mvc.Filters.IFilterFactory, Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata, Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+      "Name": "Microsoft.AspNetCore.Mvc.Cors.Internal.CorsAuthorizationFilterFactory",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Filters.IFilterFactory",
+        "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata",
+        "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Int32 get_Order()",
+          "Kind": "Method",
+          "Name": "get_Order",
+          "Parameters": [],
+          "ReturnType": "System.Int32",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Boolean get_IsReusable()",
+          "Kind": "Method",
+          "Name": "get_IsReusable",
+          "Parameters": [],
+          "ReturnType": "System.Boolean",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IFilterFactory",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata CreateInstance(System.IServiceProvider serviceProvider)",
+          "Kind": "Method",
+          "Name": "CreateInstance",
+          "Parameters": [
+            {
+              "Name": "serviceProvider",
+              "Type": "System.IServiceProvider",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.IServiceProvider serviceProvider"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IFilterFactory",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.String policyName)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "policyName",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String policyName"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Cors.Internal.DisableCorsAuthorizationFilter : Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter, Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter, Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata, Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+      "Name": "Microsoft.AspNetCore.Mvc.Cors.Internal.DisableCorsAuthorizationFilter",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter",
+        "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter",
+        "Microsoft.AspNetCore.Mvc.Filters.IFilterMetadata",
+        "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter"
+      ],
+      "Members": [
+        {
+          "Id": "public System.Int32 get_Order()",
+          "Kind": "Method",
+          "Name": "get_Order",
+          "Parameters": [],
+          "ReturnType": "System.Int32",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Threading.Tasks.Task OnAuthorizationAsync(Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context)",
+          "Kind": "Method",
+          "Name": "OnAuthorizationAsync",
+          "Parameters": [
+            {
+              "Name": "context",
+              "Type": "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext context"
+            }
+          ],
+          "ReturnType": "System.Threading.Tasks.Task",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor()",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter : Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter, Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter",
+      "Name": "Microsoft.AspNetCore.Mvc.Cors.Internal.ICorsAuthorizationFilter",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Filters.IAsyncAuthorizationFilter",
+        "Microsoft.AspNetCore.Mvc.Filters.IOrderedFilter"
+      ],
+      "Members": [],
+      "GenericConstraints": []
+    }
+  ]
+}

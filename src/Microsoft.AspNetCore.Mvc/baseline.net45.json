@@ -1,0 +1,87 @@
+{
+  "AssemblyIdentity": "Microsoft.AspNetCore.Mvc, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+  "Types": [
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcServiceCollectionExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddMvc(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)",
+          "Kind": "Method",
+          "Name": "AddMvc",
+          "Parameters": [
+            {
+              "Name": "services",
+              "Type": "Microsoft.Extensions.DependencyInjection.IServiceCollection",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IServiceCollection services"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddMvc(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Microsoft.AspNetCore.Mvc.MvcOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddMvc",
+          "Parameters": [
+            {
+              "Name": "services",
+              "Type": "Microsoft.Extensions.DependencyInjection.IServiceCollection",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IServiceCollection services"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.AspNetCore.Mvc.MvcOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.AspNetCore.Mvc.MvcOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    }
+  ]
+}

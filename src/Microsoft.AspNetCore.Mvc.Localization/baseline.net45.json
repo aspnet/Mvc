@@ -1,0 +1,2097 @@
+{
+  "AssemblyIdentity": "Microsoft.AspNetCore.Mvc.Localization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+  "Types": [
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizer : Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizer",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer"
+      ],
+      "Members": [
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(System.Boolean includeParentCultures)",
+          "Kind": "Method",
+          "Name": "GetAllStrings",
+          "Parameters": [
+            {
+              "Name": "includeParentCultures",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean includeParentCultures"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString>",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer WithCulture(System.Globalization.CultureInfo culture)",
+          "Kind": "Method",
+          "Name": "WithCulture",
+          "Parameters": [
+            {
+              "Name": "culture",
+              "Type": "System.Globalization.CultureInfo",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Globalization.CultureInfo culture"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "protected virtual Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString ToHtmlString(Microsoft.Extensions.Localization.LocalizedString result)",
+          "Kind": "Method",
+          "Name": "ToHtmlString",
+          "Parameters": [
+            {
+              "Name": "result",
+              "Type": "Microsoft.Extensions.Localization.LocalizedString",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.LocalizedString result"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Protected",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "protected virtual Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString ToHtmlString(Microsoft.Extensions.Localization.LocalizedString result, System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "ToHtmlString",
+          "Parameters": [
+            {
+              "Name": "result",
+              "Type": "Microsoft.Extensions.Localization.LocalizedString",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.LocalizedString result"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Protected",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.Extensions.Localization.IStringLocalizer localizer)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "localizer",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizer localizer"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizerExtensions",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizerExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString GetHtml(this Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer, System.String name)",
+          "Kind": "Method",
+          "Name": "GetHtml",
+          "Parameters": [
+            {
+              "Name": "htmlLocalizer",
+              "Type": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer"
+            },
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString GetHtml(this Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer, System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "GetHtml",
+          "Parameters": [
+            {
+              "Name": "htmlLocalizer",
+              "Type": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer"
+            },
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(this Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer)",
+          "Kind": "Method",
+          "Name": "GetAllStrings",
+          "Parameters": [
+            {
+              "Name": "htmlLocalizer",
+              "Type": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer htmlLocalizer"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString>",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizerFactory : Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizerFactory",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory"
+      ],
+      "Members": [
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer Create(System.Type resourceSource)",
+          "Kind": "Method",
+          "Name": "Create",
+          "Parameters": [
+            {
+              "Name": "resourceSource",
+              "Type": "System.Type",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Type resourceSource"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer Create(System.String baseName, System.String location)",
+          "Kind": "Method",
+          "Name": "Create",
+          "Parameters": [
+            {
+              "Name": "baseName",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String baseName"
+            },
+            {
+              "Name": "location",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String location"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.Extensions.Localization.IStringLocalizerFactory localizerFactory)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "localizerFactory",
+              "Type": "Microsoft.Extensions.Localization.IStringLocalizerFactory",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.Localization.IStringLocalizerFactory localizerFactory"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizer<TResource> : Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>, Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.HtmlLocalizer<TResource>",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>",
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer"
+      ],
+      "Members": [
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(System.Boolean includeParentCultures)",
+          "Kind": "Method",
+          "Name": "GetAllStrings",
+          "Parameters": [
+            {
+              "Name": "includeParentCultures",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean includeParentCultures"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString>",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer WithCulture(System.Globalization.CultureInfo culture)",
+          "Kind": "Method",
+          "Name": "WithCulture",
+          "Parameters": [
+            {
+              "Name": "culture",
+              "Type": "System.Globalization.CultureInfo",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Globalization.CultureInfo culture"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory factory)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "factory",
+              "Type": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory factory"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract Microsoft.Extensions.Localization.LocalizedString GetString(System.String name)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract Microsoft.Extensions.Localization.LocalizedString GetString(System.String name, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(System.Boolean includeParentCultures)",
+          "Kind": "Method",
+          "Name": "GetAllStrings",
+          "Parameters": [
+            {
+              "Name": "includeParentCultures",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean includeParentCultures"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString>",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer WithCulture(System.Globalization.CultureInfo culture)",
+          "Kind": "Method",
+          "Name": "WithCulture",
+          "Parameters": [
+            {
+              "Name": "culture",
+              "Type": "System.Globalization.CultureInfo",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Globalization.CultureInfo culture"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer Create(System.Type resourceSource)",
+          "Kind": "Method",
+          "Name": "Create",
+          "Parameters": [
+            {
+              "Name": "resourceSource",
+              "Type": "System.Type",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Type resourceSource"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public abstract Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer Create(System.String baseName, System.String location)",
+          "Kind": "Method",
+          "Name": "Create",
+          "Parameters": [
+            {
+              "Name": "baseName",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String baseName"
+            },
+            {
+              "Name": "location",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String location"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": true,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource> : Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer<TResource>",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer"
+      ],
+      "Members": [],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public interface Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer : Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer",
+      "Visibility": "Public",
+      "Kind": "Interface",
+      "Abstract": true,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer"
+      ],
+      "Members": [],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString : Microsoft.AspNetCore.Html.IHtmlContent",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Html.IHtmlContent"
+      ],
+      "Members": [
+        {
+          "Id": "public System.String get_Name()",
+          "Kind": "Method",
+          "Name": "get_Name",
+          "Parameters": [],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.String get_Value()",
+          "Kind": "Method",
+          "Name": "get_Value",
+          "Parameters": [],
+          "ReturnType": "System.String",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Boolean get_IsResourceNotFound()",
+          "Kind": "Method",
+          "Name": "get_IsResourceNotFound",
+          "Parameters": [],
+          "ReturnType": "System.Boolean",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void WriteTo(System.IO.TextWriter writer, System.Text.Encodings.Web.HtmlEncoder encoder)",
+          "Kind": "Method",
+          "Name": "WriteTo",
+          "Parameters": [
+            {
+              "Name": "writer",
+              "Type": "System.IO.TextWriter",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.IO.TextWriter writer"
+            },
+            {
+              "Name": "encoder",
+              "Type": "System.Text.Encodings.Web.HtmlEncoder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Text.Encodings.Web.HtmlEncoder encoder"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Html.IHtmlContent",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.String name, System.String value)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "value",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String value"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.String name, System.String value, System.Boolean isResourceNotFound)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "value",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String value"
+            },
+            {
+              "Name": "isResourceNotFound",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean isResourceNotFound"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(System.String name, System.String value, System.Boolean isResourceNotFound, params System.Object[] arguments)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "value",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String value"
+            },
+            {
+              "Name": "isResourceNotFound",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean isResourceNotFound"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public class Microsoft.AspNetCore.Mvc.Localization.ViewLocalizer : Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer, Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer, Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.ViewLocalizer",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": false,
+      "Static": false,
+      "Sealed": false,
+      "BaseType": null,
+      "ImplementedInterfaces": [
+        "Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer",
+        "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+        "Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware"
+      ],
+      "Members": [
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String key)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "key",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String key"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString get_Item(System.String key, params System.Object[] arguments)",
+          "Kind": "Method",
+          "Name": "get_Item",
+          "Parameters": [
+            {
+              "Name": "key",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String key"
+            },
+            {
+              "Name": "arguments",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] arguments"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.LocalizedHtmlString",
+          "Sealed": false,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.Extensions.Localization.LocalizedString GetString(System.String name, params System.Object[] values)",
+          "Kind": "Method",
+          "Name": "GetString",
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "System.String",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.String name"
+            },
+            {
+              "Name": "values",
+              "Type": "System.Object[]",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": true,
+              "Id": "params System.Object[] values"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.Localization.LocalizedString",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer WithCulture(System.Globalization.CultureInfo culture)",
+          "Kind": "Method",
+          "Name": "WithCulture",
+          "Parameters": [
+            {
+              "Name": "culture",
+              "Type": "System.Globalization.CultureInfo",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Globalization.CultureInfo culture"
+            }
+          ],
+          "ReturnType": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString> GetAllStrings(System.Boolean includeParentCultures)",
+          "Kind": "Method",
+          "Name": "GetAllStrings",
+          "Parameters": [
+            {
+              "Name": "includeParentCultures",
+              "Type": "System.Boolean",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Boolean includeParentCultures"
+            }
+          ],
+          "ReturnType": "System.Collections.Generic.IEnumerable<Microsoft.Extensions.Localization.LocalizedString>",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizer",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public System.Void Contextualize(Microsoft.AspNetCore.Mvc.Rendering.ViewContext viewContext)",
+          "Kind": "Method",
+          "Name": "Contextualize",
+          "Parameters": [
+            {
+              "Name": "viewContext",
+              "Type": "Microsoft.AspNetCore.Mvc.Rendering.ViewContext",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Rendering.ViewContext viewContext"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": true,
+          "Static": false,
+          "Virtual": true,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": "Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware",
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public .ctor(Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory localizerFactory, Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnvironment)",
+          "Kind": "Constructor",
+          "Name": ".ctor",
+          "Parameters": [
+            {
+              "Name": "localizerFactory",
+              "Type": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Localization.IHtmlLocalizerFactory localizerFactory"
+            },
+            {
+              "Name": "hostingEnvironment",
+              "Type": "Microsoft.AspNetCore.Hosting.IHostingEnvironment",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnvironment"
+            }
+          ],
+          "ReturnType": null,
+          "Sealed": false,
+          "Static": false,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.AspNetCore.Mvc.Localization.Internal.MvcLocalizationServices",
+      "Name": "Microsoft.AspNetCore.Mvc.Localization.Internal.MvcLocalizationServices",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static System.Void AddLocalizationServices(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddLocalizationServices",
+          "Parameters": [
+            {
+              "Name": "services",
+              "Type": "Microsoft.Extensions.DependencyInjection.IServiceCollection",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IServiceCollection services"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static System.Void AddMvcLocalizationServices(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddMvcLocalizationServices",
+          "Parameters": [
+            {
+              "Name": "services",
+              "Type": "Microsoft.Extensions.DependencyInjection.IServiceCollection",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IServiceCollection services"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "System.Void",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": false,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcLocalizationMvcBuilderExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcLocalizationMvcBuilderExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcBuilder builder, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcBuilder builder"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    },
+    {
+      "Id": "public static class Microsoft.Extensions.DependencyInjection.MvcLocalizationMvcCoreBuilderExtensions",
+      "Name": "Microsoft.Extensions.DependencyInjection.MvcLocalizationMvcCoreBuilderExtensions",
+      "Visibility": "Public",
+      "Kind": "Class",
+      "Abstract": true,
+      "Static": true,
+      "Sealed": true,
+      "BaseType": null,
+      "ImplementedInterfaces": [],
+      "Members": [
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        },
+        {
+          "Id": "public static Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder AddViewLocalization(this Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder, Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format, System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction)",
+          "Kind": "Method",
+          "Name": "AddViewLocalization",
+          "Parameters": [
+            {
+              "Name": "builder",
+              "Type": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder builder"
+            },
+            {
+              "Name": "format",
+              "Type": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat format"
+            },
+            {
+              "Name": "setupAction",
+              "Type": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions>",
+              "Direction": "In",
+              "DefaultValue": null,
+              "IsParams": false,
+              "Id": "System.Action<Microsoft.Extensions.Localization.LocalizationOptions> setupAction"
+            }
+          ],
+          "ReturnType": "Microsoft.Extensions.DependencyInjection.IMvcCoreBuilder",
+          "Sealed": false,
+          "Static": true,
+          "Virtual": false,
+          "Override": false,
+          "Abstract": false,
+          "New": false,
+          "Extension": true,
+          "ReadOnly": false,
+          "ExplicitInterface": null,
+          "ImplementedInterface": null,
+          "Visibility": "Public",
+          "GenericConstraints": [],
+          "Constant": false,
+          "Literal": null
+        }
+      ],
+      "GenericConstraints": []
+    }
+  ]
+}
