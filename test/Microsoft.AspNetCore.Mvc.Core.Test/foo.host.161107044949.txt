@@ -1,0 +1,133 @@
+TpTrace Information: 0 : 18180, 1, 2016/11/07, 16:49:51.073, 1356847242136, testhost.x86.exe, DefaultEngineInvoker: Using Application Configuration: '<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <startup useLegacyV2RuntimeActivationPolicy="true">
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0" />
+  </startup>
+  <runtime>
+    <legacyUnhandledExceptionPolicy enabled="1" />
+    <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+      <probing privatePath="Extensions" />
+      <!-- Test adapters compiled against version 11-14, need to be redirected to version 15. -->
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.TestPlatform.ObjectModel" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="11.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.TestWindow.Interfaces" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="11.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.QualityTools.UnitTestFramework" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="10.1.0.0" newVersion="10.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.QualityTools.Resource" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="10.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.QualityTools.ControllerObject" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="10.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.QualityTools.ExecutionCommon" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="10.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Microsoft.VisualStudio.QualityTools.Common" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+        <bindingRedirect oldVersion="10.0.0.0-14.0.0.0" newVersion="15.0.0.0" />
+      </dependentAssembly>
+      <dependentAssembly>
+        <assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" />
+        <bindingRedirect oldVersion="8.0.0.0" newVersion="9.0.0.0" />
+      </dependentAssembly>
+    </assemblyBinding>
+  </runtime>
+  <system.diagnostics>
+    <switches>
+      <add name="TpTraceLevel" value="0" />
+    </switches>
+  </system.diagnostics>
+  <appSettings>
+    <!--<add key="ExecutionThreadApartmentState" value ="MTA"/>-->
+    <!--<add key="TraceLogMaxFileSizeInKb" value ="10240"/>-->
+    <!-- MsTest Adapter Specific AppSettings -->
+    <add key="TestProjectRetargetTo35Allowed" value="true" />
+  </appSettings>
+</configuration>'
+TpTrace Information: 0 : 18180, 1, 2016/11/07, 16:49:51.116, 1356847347827, testhost.x86.exe, DefaultEngineInvoker: Monitoring parent process with id: '28508'
+TpTrace Information: 0 : 18180, 1, 2016/11/07, 16:49:51.144, 1356847430676, testhost.x86.exe, DefaultEngineInvoker: Initialize communication on port number: '9840'
+TpTrace Information: 0 : 18180, 1, 2016/11/07, 16:49:51.147, 1356847439775, testhost.x86.exe, Trying to connect to server on port : 9840
+TpTrace Information: 0 : 18180, 1, 2016/11/07, 16:49:51.159, 1356847475152, testhost.x86.exe, DefaultEngineInvoker: Start Request Processing.
+TpTrace Information: 0 : 18180, 6, 2016/11/07, 16:49:51.159, 1356847477357, testhost.x86.exe, Connected to the server successfully 
+TpTrace Information: 0 : 18180, 5, 2016/11/07, 16:49:51.518, 1356848551545, testhost.x86.exe, Discovery Session Initialize.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.547, 1356848638158, testhost.x86.exe, TestPluginCache: Updating loadOnlyWellKnownExtensions from False to False.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.548, 1356848639923, testhost.x86.exe, TestPluginCache: Using directories for assembly resolution 'C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.Core.Test\bin\Debug\net46'.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.548, 1356848640298, testhost.x86.exe, TestPluginCache: Updated the available extensions to 'C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.Core.Test\bin\Debug\net46\xunit.runner.visualstudio.testadapter.dll'.
+TpTrace Information: 0 : 18180, 5, 2016/11/07, 16:49:51.548, 1356848642733, testhost.x86.exe, Discovery started.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.551, 1356848651628, testhost.x86.exe, TestPluginCache: Discovering the extensions using extension path.
+TpTrace Error: 0 : 18180, 8, 2016/11/07, 16:49:51.552, 1356848653742, testhost.x86.exe, Default extensions folder does not exist
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.559, 1356848673395, testhost.x86.exe, AssemblyResolver: xunit.runner.visualstudio.testadapter: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.574, 1356848718297, testhost.x86.exe, AssemblyResolver: xunit.runner.visualstudio.testadapter: Resolved assembly. 
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.583, 1356848747163, testhost.x86.exe, TestPluginCache: Discovered the extensions using extension path 'C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.Core.Test\bin\Debug\net46\xunit.runner.visualstudio.testadapter.dll'.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.585, 1356848751612, testhost.x86.exe, TestPluginCache: Discoverers are 'Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner, xunit.runner.visualstudio.testadapter, Version=2.2.0.1194, Culture=neutral, PublicKeyToken=null'.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.585, 1356848752026, testhost.x86.exe, TestPluginCache: Executors are 'executor://xunit/VsTestRunner2'.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.585, 1356848752373, testhost.x86.exe, TestPluginCache: Setting providers are ''.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.585, 1356848752674, testhost.x86.exe, TestPluginCache: Loggers are ''.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.638, 1356848911712, testhost.x86.exe, AssemblyResolver: xunit.runner.visualstudio.testadapter, Version=2.2.0.1194, Culture=neutral, PublicKeyToken=null: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.639, 1356848914187, testhost.x86.exe, AssemblyResolver: xunit.runner.visualstudio.testadapter, Version=2.2.0.1194, Culture=neutral, PublicKeyToken=null: Resolved assembly. 
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.640, 1356848916471, testhost.x86.exe, TestPluginManager.CreateTestExtension: Attempting to load test extension: Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.640, 1356848917013, testhost.x86.exe, TestDiscoveryManager: LoadExtensions: Created discoverer Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.642, 1356848923277, testhost.x86.exe, TestDiscoveryManager.DoDiscovery: Background test discovery started.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.643, 1356848926738, testhost.x86.exe, TestDiscoveryManager: Discovering tests from sources C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.Core.Test\bin\Debug\net46\Microsoft.AspNetCore.Mvc.Core.Test.exe
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.651, 1356848949018, testhost.x86.exe, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Common.resources, Version=15.0.0.0, Culture=en-US, PublicKeyToken=b03f5f7f11d50a3a: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.651, 1356848950679, testhost.x86.exe, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Common.resources, Version=15.0.0.0, Culture=en-US, PublicKeyToken=b03f5f7f11d50a3a: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.653, 1356848956427, testhost.x86.exe, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Common.resources, Version=15.0.0.0, Culture=en, PublicKeyToken=b03f5f7f11d50a3a: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:51.654, 1356848958383, testhost.x86.exe, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Common.resources, Version=15.0.0.0, Culture=en, PublicKeyToken=b03f5f7f11d50a3a: Resolving assembly.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:51.660, 1356848977286, testhost.x86.exe, DiscoveryContext.LoadTests: Loading tests for Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.301, 1356850896839, testhost.x86.exe, AssemblyResolver: xunit.runner.utility.desktop, Version=2.2.0.3444, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.302, 1356850901788, testhost.x86.exe, AssemblyResolver: xunit.runner.utility.desktop, Version=2.2.0.3444, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c: Resolved assembly. 
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.303, 1356850902577, testhost.x86.exe, AssemblyResolver: xunit.runner.utility.desktop, Version=2.2.0.3444, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c: Resolving assembly.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.303, 1356850902914, testhost.x86.exe, AssemblyResolver: xunit.runner.utility.desktop, Version=2.2.0.3444, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c: Resolved from cache.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.470, 1356851404976, testhost.x86.exe, TestDiscoveryManager.RunMessage: calling TestRunMessage(Warning, [xUnit.net 00:00:00.8070132] Exception discovering tests from Microsoft.AspNetCore.Mvc.Core.Test: System.BadImageFormatException: Could not load file or assembly 'Microsoft.AspNetCore.Mvc.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60' or one of its dependencies. An attempt was made to load a program with an incorrect format.
+File name: 'Microsoft.AspNetCore.Mvc.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'
+   at System.Reflection.RuntimeAssembly._nLoad(AssemblyName fileName, String codeBase, Evidence assemblySecurity, RuntimeAssembly locationHint, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.RuntimeAssembly.nLoad(AssemblyName fileName, String codeBase, Evidence assemblySecurity, RuntimeAssembly locationHint, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.RuntimeAssembly.InternalLoadAssemblyName(AssemblyName assemblyRef, Evidence assemblySecurity, RuntimeAssembly reqAssembly, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.Assembly.Load(AssemblyName assemblyRef)
+   at Xunit.Sdk.ReflectionAssemblyInfo..ctor(String assemblyFileName)$$RethrowMarker$$   at ExceptionExtensions.RethrowWithNoStackTraceLoss(Exception ex)
+   at Xunit.AppDomainManager_AppDomain.CreateObject[TObject](AssemblyName assemblyName, String typeName, Object[] args)
+   at Xunit.Xunit2Discoverer..ctor(AppDomainSupport appDomainSupport, ISourceInformationProvider sourceInformationProvider, IAssemblyInfo assemblyInfo, String assemblyFileName, String xunitExecutionAssemblyPath, String configFileName, Boolean shadowCopy, String shadowCopyFolder, IMessageSink diagnosticMessageSink, Boolean verifyAssembliesOnDisk)
+   at Xunit.XunitFrontController.CreateInnerController()
+   at Xunit.XunitFrontController.get_InnerController()
+   at Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner.DiscoverTests[TVisitor](IEnumerable`1 sources, LoggerHelper logger, Func`4 visitorFactory, Action`4 visitComplete)
+
+WRN: Assembly binding logging is turned OFF.
+To enable assembly bind failure logging, set the registry value [HKLM\Software\Microsoft\Fusion!EnableLog] (DWORD) to 1.
+Note: There is some performance penalty associated with assembly bind failure logging.
+To turn this feature off, remove the registry value [HKLM\Software\Microsoft\Fusion!EnableLog].
+) callback.
+TpTrace Warning: 0 : 18180, 8, 2016/11/07, 16:49:52.471, 1356851406814, testhost.x86.exe, [xUnit.net 00:00:00.8070132] Exception discovering tests from Microsoft.AspNetCore.Mvc.Core.Test: System.BadImageFormatException: Could not load file or assembly 'Microsoft.AspNetCore.Mvc.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60' or one of its dependencies. An attempt was made to load a program with an incorrect format.
+File name: 'Microsoft.AspNetCore.Mvc.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'
+   at System.Reflection.RuntimeAssembly._nLoad(AssemblyName fileName, String codeBase, Evidence assemblySecurity, RuntimeAssembly locationHint, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.RuntimeAssembly.nLoad(AssemblyName fileName, String codeBase, Evidence assemblySecurity, RuntimeAssembly locationHint, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.RuntimeAssembly.InternalLoadAssemblyName(AssemblyName assemblyRef, Evidence assemblySecurity, RuntimeAssembly reqAssembly, StackCrawlMark& stackMark, IntPtr pPrivHostBinder, Boolean throwOnFileNotFound, Boolean forIntrospection, Boolean suppressSecurityChecks)
+   at System.Reflection.Assembly.Load(AssemblyName assemblyRef)
+   at Xunit.Sdk.ReflectionAssemblyInfo..ctor(String assemblyFileName)$$RethrowMarker$$   at ExceptionExtensions.RethrowWithNoStackTraceLoss(Exception ex)
+   at Xunit.AppDomainManager_AppDomain.CreateObject[TObject](AssemblyName assemblyName, String typeName, Object[] args)
+   at Xunit.Xunit2Discoverer..ctor(AppDomainSupport appDomainSupport, ISourceInformationProvider sourceInformationProvider, IAssemblyInfo assemblyInfo, String assemblyFileName, String xunitExecutionAssemblyPath, String configFileName, Boolean shadowCopy, String shadowCopyFolder, IMessageSink diagnosticMessageSink, Boolean verifyAssembliesOnDisk)
+   at Xunit.XunitFrontController.CreateInnerController()
+   at Xunit.XunitFrontController.get_InnerController()
+   at Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner.DiscoverTests[TVisitor](IEnumerable`1 sources, LoggerHelper logger, Func`4 visitorFactory, Action`4 visitComplete)
+
+WRN: Assembly binding logging is turned OFF.
+To enable assembly bind failure logging, set the registry value [HKLM\Software\Microsoft\Fusion!EnableLog] (DWORD) to 1.
+Note: There is some performance penalty associated with assembly bind failure logging.
+To turn this feature off, remove the registry value [HKLM\Software\Microsoft\Fusion!EnableLog].
+
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:52.501, 1356851496872, testhost.x86.exe, DiscoveryContext.LoadTests: Done loading tests for Xunit.Runner.VisualStudio.TestAdapter.VsTestRunner
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:52.501, 1356851497623, testhost.x86.exe, TestDiscoveryManager.DoDiscovery: Background Test Discovery complete.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:52.502, 1356851498014, testhost.x86.exe, TestDiscoveryManager.DiscoveryComplete: Calling DiscoveryComplete callback.
+TpTrace Information: 0 : 18180, 8, 2016/11/07, 16:49:52.502, 1356851498798, testhost.x86.exe, Discover Finished.
+TpTrace Verbose: 0 : 18180, 8, 2016/11/07, 16:49:52.513, 1356851532753, testhost.x86.exe, TestDiscoveryManager.DiscoveryComplete: Called DiscoveryComplete callback.
+TpTrace Information: 0 : 18180, 5, 2016/11/07, 16:49:52.527, 1356851574990, testhost.x86.exe, Session End message received from server. Closing the connection.
+TpTrace Information: 0 : 18180, 5, 2016/11/07, 16:49:52.528, 1356851577438, testhost.x86.exe, Closing the connection !
