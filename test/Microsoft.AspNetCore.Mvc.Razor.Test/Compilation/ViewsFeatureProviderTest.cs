@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Xunit;
+using System.Reflection.Emit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 {
@@ -69,6 +70,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 });
         }
 
+        [Fact]
+        public void GetViewInfoContainerType_ReturnsNullForEmptyDynamicAssembly()
+        {
+            // Arrange
+            var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
+            var builder = AssemblyBuilder.DefineDynamicAssembly(name,
+                AssemblyBuilderAccess.RunAndCollect);
+            var module = builder.DefineDynamicModule("Main");
+
+            var provider = new TestableViewsFeatureProvider2();
+
+            // Act
+            var type = provider.TestGetViewInfoContainerType(new AssemblyPart(builder));
+
+            // Assert
+            Assert.Null(type);
+        }
+
         private class TestableViewsFeatureProvider : ViewsFeatureProvider
         {
             private readonly Dictionary<AssemblyPart, Type> _containerLookup;
@@ -80,6 +99,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             protected override Type GetViewInfoContainerType(AssemblyPart assemblyPart) =>
                 _containerLookup[assemblyPart];
+        }
+
+        private class TestableViewsFeatureProvider2 : ViewsFeatureProvider
+        {
+
+            public Type TestGetViewInfoContainerType(AssemblyPart assemblyPart) =>
+                GetViewInfoContainerType(assemblyPart);
+
         }
 
         private class ViewInfoContainer1 : ViewInfoContainer

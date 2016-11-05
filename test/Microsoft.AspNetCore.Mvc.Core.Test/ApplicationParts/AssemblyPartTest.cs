@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationParts
@@ -80,6 +82,24 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             // Assert
             var actual = Assert.Single(references);
             Assert.Equal(assembly.Location, actual);
+        }
+
+        [Fact]
+        public void GetReferencePaths_ReturnsEmptySequenceForDynamicAssembly()
+        {
+            // Arrange
+            var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
+            var builder = AssemblyBuilder.DefineDynamicAssembly(name,
+                AssemblyBuilderAccess.RunAndCollect);
+            var module = builder.DefineDynamicModule("Main");
+
+            var part = new AssemblyPart(builder);
+
+            // Act
+            var references = part.GetReferencePaths().ToList();
+
+            // Assert
+            Assert.Empty(references);
         }
     }
 }
