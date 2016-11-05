@@ -1355,7 +1355,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// {0}. Please ensure to use the same case for your package references in project.json files.
+        /// Duplicate entry for library reference {0} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.
         /// </summary>
         internal static string CandidateResolver_DifferentCasedReference
         {
@@ -1363,7 +1363,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// {0}. Please ensure to use the same case for your package references in project.json files.
+        /// Duplicate entry for library reference {0} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.
         /// </summary>
         internal static string FormatCandidateResolver_DifferentCasedReference(object p0)
         {

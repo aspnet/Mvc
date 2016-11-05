@@ -74,16 +74,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             public CandidateResolver(IReadOnlyList<RuntimeLibrary> dependencies, ISet<string> referenceAssemblies)
             {
-                try
+                var dependenciesWithNoDuplicates = new Dictionary<string, Dependency>(StringComparer.OrdinalIgnoreCase);
+                foreach (var dependency in dependencies)
                 {
-                    _dependencies = dependencies
-                        .ToDictionary(d => d.Name, d => CreateDependency(d, referenceAssemblies), StringComparer.OrdinalIgnoreCase);
+                    if (dependenciesWithNoDuplicates.ContainsKey(dependency.Name))
+                    {
+                        throw new InvalidOperationException(Resources.FormatCandidateResolver_DifferentCasedReference(dependency.Name));
+                    }
+                    dependenciesWithNoDuplicates.Add(dependency.Name, CreateDependency(dependency, referenceAssemblies));
                 }
 
-                catch (ArgumentException exception)
-                {
-                    throw new Exception(Resources.FormatCandidateResolver_DifferentCasedReference(exception.Message));
-                }
+                _dependencies = dependenciesWithNoDuplicates;
             }
 
             private Dependency CreateDependency(RuntimeLibrary library, ISet<string> referenceAssemblies)

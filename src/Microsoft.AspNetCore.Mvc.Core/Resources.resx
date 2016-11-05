@@ -380,7 +380,7 @@
     <value>'{0}' requires the response cache middleware.</value>
   </data>
   <data name="CandidateResolver_DifferentCasedReference" xml:space="preserve">
-    <value>{0}.  Please ensure to use the same case for your package references in project.json files.</value>
-    <comment>{0} is the ArgumentException message about the key already being added</comment>
+    <value>Duplicate entry for library reference {0} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.</value>
+    <comment>{0} is the dependency name.</comment>
   </data>
 </root>

@@ -33,10 +33,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 Enumerable.Empty<RuntimeFallbacks>());
 
             // Act
-            Exception exception = Assert.Throws<Exception>(() => DefaultAssemblyPartDiscoveryProvider.GetCandidateLibraries(dependencyContext));
+            Exception exception = Assert.Throws<InvalidOperationException>(() => DefaultAssemblyPartDiscoveryProvider.GetCandidateLibraries(dependencyContext));
 
             // Assert
-            Assert.Equal($"An item with the same key has already been added. Key: {upperCaseLibrary}.  Please ensure to use the same case for your package references in project.json files.", exception.Message);
+            Assert.Equal($"Duplicate entry for library reference {upperCaseLibrary} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.", exception.Message);
         }
 
         [Fact]
