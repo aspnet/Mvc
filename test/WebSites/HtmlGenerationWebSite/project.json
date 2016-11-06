@@ -8,10 +8,10 @@
     "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.2",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
-      "version": "1.0.0-preview2-final"
+      "version": "1.0.0-preview4-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.1",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.2",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0"
   },
   "frameworks": {

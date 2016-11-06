@@ -24,10 +24,10 @@
     "Microsoft.AspNetCore.Mvc.Core": "1.0.2",
     "Microsoft.AspNetCore.Mvc.Formatters.Json": "1.0.2",
     "Microsoft.AspNet.WebApi.Client": "5.2.2",
-    "Microsoft.AspNetCore.WebUtilities": "1.0.0",
+    "Microsoft.AspNetCore.WebUtilities": "1.0.1",
     "Microsoft.Extensions.PropertyHelper.Sources": {
       "type": "build",
-      "version": "1.0.0-rtm-21431"
+      "version": "1.0.1"
     }
   },
   "frameworks": {

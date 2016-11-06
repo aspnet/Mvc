@@ -28,10 +28,10 @@
     "Microsoft.AspNetCore.Mvc.Razor": "1.0.2",
     "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.2",
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.2",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0",
+    "Microsoft.Extensions.Caching.Memory": "1.0.1",
+    "Microsoft.Extensions.DependencyInjection": "1.0.1",
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     }
   },

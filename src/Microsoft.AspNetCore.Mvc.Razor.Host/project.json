@@ -22,11 +22,11 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Razor.Runtime": "1.0.0",
-    "Microsoft.Extensions.Caching.Memory": "1.0.0",
-    "Microsoft.Extensions.FileProviders.Physical": "1.0.0",
+    "Microsoft.AspNetCore.Razor.Runtime": "1.0.1",
+    "Microsoft.Extensions.Caching.Memory": "1.0.1",
+    "Microsoft.Extensions.FileProviders.Physical": "1.0.1",
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     }
   },

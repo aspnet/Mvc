@@ -22,14 +22,14 @@
   "dependencies": {
     "Microsoft.AspNetCore.Mvc.Core": "1.0.2",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
     "Microsoft.Extensions.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
-    "Microsoft.Extensions.Localization": "1.0.0"
+    "Microsoft.Extensions.Localization": "1.0.1"
   },
   "frameworks": {
     "net451": {

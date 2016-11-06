@@ -20,24 +20,24 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Routing.Abstractions": "1.0.0",
+    "Microsoft.AspNetCore.Routing.Abstractions": "1.0.2",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
     "Microsoft.Extensions.CopyOnWriteDictionary.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.0.0-rtm-21431",
+      "version": "1.0.1",
       "type": "build"
     },
-    "Microsoft.Net.Http.Headers": "1.0.0"
+    "Microsoft.Net.Http.Headers": "1.0.1"
   },
   "frameworks": {
     "net451": {},

@@ -4,10 +4,10 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Authentication.Cookies":"1.0.0",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.0",
+    "Microsoft.AspNetCore.Authentication.Cookies": "1.0.1",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.2",
     "Microsoft.AspNetCore.Mvc": "1.0.2",
-    "Microsoft.AspNetCore.Hosting": "1.0.0"
+    "Microsoft.AspNetCore.Hosting": "1.0.1"
   },
   "frameworks": {
     "netcoreapp1.0": {

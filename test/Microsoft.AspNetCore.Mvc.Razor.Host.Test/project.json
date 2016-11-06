@@ -11,7 +11,7 @@
       "type": "build"
     },
     "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.2",
-    "Microsoft.AspNetCore.Testing": "1.0.0-rtm-21431"
+    "Microsoft.AspNetCore.Testing": "1.0.1"
   },
   "testRunner": "xunit",
   "buildOptions": {

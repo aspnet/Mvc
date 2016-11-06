@@ -11,9 +11,9 @@
       "version": "1.0.0-*",
       "type": "build"
     },
-    "Microsoft.AspNetCore.Testing": "1.0.0-rtm-21431",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0",
-    "Microsoft.Extensions.Logging.Testing": "1.0.0-rtm-21431"
+    "Microsoft.AspNetCore.Testing": "1.0.1",
+    "Microsoft.Extensions.DependencyInjection": "1.0.1",
+    "Microsoft.Extensions.Logging.Testing": "1.0.1"
   },
   "testRunner": "xunit",
   "frameworks": {
