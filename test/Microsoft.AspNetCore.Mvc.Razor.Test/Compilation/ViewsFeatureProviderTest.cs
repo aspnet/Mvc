@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using System.Reflection.Emit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
@@ -67,6 +68,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                     Assert.Equal("/Views/test/Index.cshtml", view.Key);
                     Assert.Equal(typeof(object), view.Value);
                 });
+        }
+
+        [Fact]
+        public void PopulateFeature_ReturnsEmptySequenceIfNoDynamicAssemblyPartHasViewAssembly()
+        {
+            // Arrange
+            var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
+            var assembly = AssemblyBuilder.DefineDynamicAssembly(name,
+                AssemblyBuilderAccess.RunAndCollect);
+
+            var applicationPartManager = new ApplicationPartManager();
+            applicationPartManager.ApplicationParts.Add(new AssemblyPart(assembly));
+            applicationPartManager.FeatureProviders.Add(new ViewsFeatureProvider());
+            var feature = new ViewsFeature();
+
+            // Act
+            applicationPartManager.PopulateFeature(feature);
+
+            // Assert
+            Assert.Empty(feature.Views);
         }
 
         private class TestableViewsFeatureProvider : ViewsFeatureProvider
