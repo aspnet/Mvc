@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             // Arrange 
             var upperCaseLibrary = "Microsoft.AspNetCore.Mvc";
-            var lowerCaseLibrary = "microsoft.aspNetCore.mvc";
+            var mixedCaseLibrary = "microsoft.aspNetCore.mvc";
 
             var dependencyContext = new DependencyContext(
                 new TargetInfo("framework", "runtime", "signature", isPortable: true),
@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 new CompilationLibrary[0],
                 new[]
                 {
-                     GetLibrary(lowerCaseLibrary),
+                     GetLibrary(mixedCaseLibrary),
                      GetLibrary(upperCaseLibrary),
                 },
                 Enumerable.Empty<RuntimeFallbacks>());
