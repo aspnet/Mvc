@@ -89,11 +89,10 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         {
             // Arrange
             var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
-            var builder = AssemblyBuilder.DefineDynamicAssembly(name,
+            var assembly = AssemblyBuilder.DefineDynamicAssembly(name,
                 AssemblyBuilderAccess.RunAndCollect);
-            var module = builder.DefineDynamicModule("Main");
 
-            var part = new AssemblyPart(builder);
+            var part = new AssemblyPart(assembly);
 
             // Act
             var references = part.GetReferencePaths().ToList();

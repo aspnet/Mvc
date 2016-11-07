@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Xunit;
 using System.Reflection.Emit;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 {
@@ -71,21 +71,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
         }
 
         [Fact]
-        public void GetViewInfoContainerType_ReturnsNullForEmptyDynamicAssembly()
+        public void PopulateFeature_ReturnsEmptySequenceIfNoDynamicAssemblyPartHasViewAssembly()
         {
             // Arrange
             var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
-            var builder = AssemblyBuilder.DefineDynamicAssembly(name,
+            var assembly = AssemblyBuilder.DefineDynamicAssembly(name,
                 AssemblyBuilderAccess.RunAndCollect);
-            var module = builder.DefineDynamicModule("Main");
 
-            var provider = new TestableViewsFeatureProvider2();
+            var applicationPartManager = new ApplicationPartManager();
+            applicationPartManager.ApplicationParts.Add(new AssemblyPart(assembly));
+            applicationPartManager.FeatureProviders.Add(new ViewsFeatureProvider());
+            var feature = new ViewsFeature();
 
             // Act
-            var type = provider.TestGetViewInfoContainerType(new AssemblyPart(builder));
+            applicationPartManager.PopulateFeature(feature);
 
             // Assert
-            Assert.Null(type);
+            Assert.Empty(feature.Views);
         }
 
         private class TestableViewsFeatureProvider : ViewsFeatureProvider
@@ -99,14 +101,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             protected override Type GetViewInfoContainerType(AssemblyPart assemblyPart) =>
                 _containerLookup[assemblyPart];
-        }
-
-        private class TestableViewsFeatureProvider2 : ViewsFeatureProvider
-        {
-
-            public Type TestGetViewInfoContainerType(AssemblyPart assemblyPart) =>
-                GetViewInfoContainerType(assemblyPart);
-
         }
 
         private class ViewInfoContainer1 : ViewInfoContainer
