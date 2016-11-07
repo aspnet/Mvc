@@ -380,7 +380,7 @@
     <value>'{0}' requires the response cache middleware.</value>
   </data>
   <data name="CandidateResolver_DifferentCasedReference" xml:space="preserve">
-    <value>Duplicate entry for library reference {0} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.</value>
+    <value>A duplicate entry for library reference {0} was found. Please check that all package references in all projects use the same casing for the same package references.</value>
     <comment>{0} is the dependency name.</comment>
   </data>
 </root>

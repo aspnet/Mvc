@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             typeof(DefaultAssemblyPartDiscoveryProviderTests).GetTypeInfo().Assembly;
 
         [Fact]
-        public void CandidateResolver_ThrowsDifferentCaseAssemblyReference()
+        public void CandidateResolver_ThrowsIfDependencyContextContainsDuplicateRuntimeLibraryNames()
         {
             // Arrange 
             var upperCaseLibrary = "Microsoft.AspNetCore.Mvc";
@@ -33,10 +33,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 Enumerable.Empty<RuntimeFallbacks>());
 
             // Act
-            Exception exception = Assert.Throws<InvalidOperationException>(() => DefaultAssemblyPartDiscoveryProvider.GetCandidateLibraries(dependencyContext));
+            var exception = Assert.Throws<InvalidOperationException>(() => DefaultAssemblyPartDiscoveryProvider.GetCandidateLibraries(dependencyContext));
 
             // Assert
-            Assert.Equal($"Duplicate entry for library reference {upperCaseLibrary} found. A common cause for this issue is difference in casings for the same package identifier in different project.json files.", exception.Message);
+            Assert.Equal($"A duplicate entry for library reference {upperCaseLibrary} was found. Please check that all package references in all projects use the same casing for the same package references.", exception.Message);
         }
 
         [Fact]
