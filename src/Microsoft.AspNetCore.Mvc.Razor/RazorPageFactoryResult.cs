@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             ExpirationTokens = expirationTokens;
             RazorPageFactory = null;
-            IsPrecompiledView = false;
+            IsPrecompiled = false;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public RazorPageFactoryResult(
             Func<IRazorPage> razorPageFactory,
             IList<IChangeToken> expirationTokens)
-            : this(razorPageFactory, expirationTokens, isPrecompiledView: false)
+            : this(razorPageFactory, expirationTokens, isPrecompiled: false)
         {
         }
 
@@ -48,11 +48,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </summary>
         /// <param name="razorPageFactory">The <see cref="IRazorPage"/> factory.</param>
         /// <param name="expirationTokens">One or more <see cref="IChangeToken"/> instances.</param>
-        /// <param name="isPrecompiledView">True if precompiled view found, false otherwise</param>
+        /// <param name="isPrecompiled"><c>true</c> if the view is precompiled, <c>false</c> otherwise.</param>
         public RazorPageFactoryResult(
             Func<IRazorPage> razorPageFactory,
             IList<IChangeToken> expirationTokens,
-            bool isPrecompiledView)
+            bool isPrecompiled)
         {
             if (razorPageFactory == null)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             RazorPageFactory = razorPageFactory;
             ExpirationTokens = expirationTokens;
-            IsPrecompiledView = isPrecompiledView;
+            IsPrecompiled = isPrecompiled;
         }
 
         /// <summary>
@@ -87,8 +87,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public bool Success => RazorPageFactory != null;
 
         /// <summary>
-        /// Gets a value that determines if a precompiled view was found.
+        /// Gets a value that determines if the view is precompiled.
         /// </summary>
-        public bool IsPrecompiledView { get; }
+        public bool IsPrecompiled { get; }
     }
 }

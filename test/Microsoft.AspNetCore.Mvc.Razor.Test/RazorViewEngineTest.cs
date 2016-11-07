@@ -1294,7 +1294,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             var pageFactory = new Mock<IRazorPageFactoryProvider>();
             pageFactory
                 .Setup(p => p.CreateFactory(relativePath))
-                .Returns(new RazorPageFactoryResult(() => Mock.Of<IRazorPage>(), new IChangeToken[0], isPrecompiledView: true))
+                .Returns(new RazorPageFactoryResult(() => Mock.Of<IRazorPage>(), new IChangeToken[0], isPrecompiled: true))
                 .Verifiable();
 
             var viewEngine = new RazorViewEngine(
@@ -1308,7 +1308,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             var result = viewEngine.CreateCacheResult(null, relativePath, false);
 
             // Assert
-            Assert.Equal($"Using precompiled view for '{relativePath}'.", sink.Writes[0].State.ToString());
+            var logMessage = Assert.Single(sink.Writes);
+            Assert.Equal($"Using precompiled view for '{relativePath}'.", logMessage.State.ToString());
         }
 
         [Theory]

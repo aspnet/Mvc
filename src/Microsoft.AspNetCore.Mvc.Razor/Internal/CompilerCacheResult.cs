@@ -33,11 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         /// </summary>
         /// <param name="relativePath">Path of the view file relative to the application base.</param>
         /// <param name="compilationResult">The <see cref="Compilation.CompilationResult"/>.</param>
-        /// <param name="isPrecompiledView">True if precompiled view found, false otherwise</param>
-        public CompilerCacheResult(string relativePath, CompilationResult compilationResult, bool isPrecompiledView)
+        /// <param name="isPrecompiled"><c>true</c> if the view is precompiled, <c>false</c> otherwise.</param>
+        public CompilerCacheResult(string relativePath, CompilationResult compilationResult, bool isPrecompiled)
             : this(relativePath, compilationResult, EmptyArray<IChangeToken>.Instance)
         {
-            IsPrecompiledView = isPrecompiledView;
+            IsPrecompiled = isPrecompiled;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             PageFactory = Expression
                 .Lambda<Func<IRazorPage>>(objectInitializeExpression)
                 .Compile();
-            IsPrecompiledView = false;
+            IsPrecompiled = false;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             ExpirationTokens = expirationTokens;
             PageFactory = null;
-            IsPrecompiledView = false;
+            IsPrecompiled = false;
         }
 
         /// <summary>
@@ -104,8 +104,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         public Func<IRazorPage> PageFactory { get; }
 
         /// <summary>
-        /// Gets a value that determines if a precompiled view was found.
+        /// Gets a value that determines if the view is precompiled.
         /// </summary>
-        public bool IsPrecompiledView { get; }
+        public bool IsPrecompiled { get; }
     }
 }
