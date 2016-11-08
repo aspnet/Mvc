@@ -1307,7 +1307,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// Unable to create type {0}. The class is either abstract or no constructor was found.
+        /// Unable to create an instance of type '{0}'. The type specified in {1} must not be abstract and must have a parameterless constructor.
         /// </summary>
         internal static string MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType
         {
@@ -1315,11 +1315,11 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// Unable to create type {0}. The class is either abstract or no constructor was found.
+        /// Unable to create an instance of type '{0}'. The type specified in {1} must not be abstract and must have a parameterless constructor.
         /// </summary>
-        internal static string FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(object p0)
+        internal static string FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(object p0, object p1)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType"), p0);
+            return string.Format(CultureInfo.CurrentCulture, GetString("MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType"), p0, p1);
         }
 
         /// <summary>

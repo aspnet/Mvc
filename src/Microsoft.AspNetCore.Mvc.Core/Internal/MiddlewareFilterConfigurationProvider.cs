@@ -23,10 +23,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(configurationType));
             }
 
-            if (!HasDefaultConstructor(configurationType.GetTypeInfo()))
+            if (!HasParameterlessConstructor(configurationType.GetTypeInfo()))
             {
-                throw new MissingMethodException(
-                    Resources.FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(configurationType));
+                throw new InvalidOperationException(
+                    Resources.FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(configurationType, nameof(configurationType)));
             }
 
             var instance = Activator.CreateInstance(configurationType);
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return methodInfo;
         }
 
-        private bool HasDefaultConstructor(TypeInfo modelTypeInfo)
+        private bool HasParameterlessConstructor(TypeInfo modelTypeInfo)
         {
             return !modelTypeInfo.IsAbstract && modelTypeInfo.GetConstructor(Type.EmptyTypes) != null;
         }
