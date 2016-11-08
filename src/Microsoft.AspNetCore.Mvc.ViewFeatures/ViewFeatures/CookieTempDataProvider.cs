@@ -63,6 +63,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var cookieOptions = new CookieOptions()
             {
+                // Check for PathBase as it can empty in which case the clients would not send the cookie
+                // in subsequent requests.
                 Path = string.IsNullOrEmpty(_options.Value.Path) ? GetPathBase(context) : _options.Value.Path,
                 Domain = string.IsNullOrEmpty(_options.Value.Domain) ? null : _options.Value.Domain,
                 HttpOnly = true,

@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             IEnumerable<string> setCookieValues;
             Assert.True(response.Headers.TryGetValues(HeaderNames.SetCookie, out setCookieValues));
             setCookieValues = setCookieValues.Where(cookie => cookie.Contains(CookieTempDataProvider.CookieName));
-
+            Assert.NotEmpty(setCookieValues);
             // Verify that all the cookies from CookieTempDataProvider are within the maximum size
             foreach (var cookie in setCookieValues)
             {
@@ -50,8 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             }
 
             var cookieTempDataProviderCookies = setCookieValues
-                .Select(setCookieValue => SetCookieHeaderValue.Parse(setCookieValue))
-                .Where(setCookieHeader => setCookieHeader.Name == CookieTempDataProvider.CookieName);
+                .Select(setCookieValue => SetCookieHeaderValue.Parse(setCookieValue));
             foreach (var cookieTempDataProviderCookie in cookieTempDataProviderCookies)
             {
                 Assert.NotNull(cookieTempDataProviderCookie.Value);
