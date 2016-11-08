@@ -13,17 +13,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class MiddlewareFilterConfigurationProviderTest
     {
-        [Fact]
-        public void CreateConfigureDelegate_ThrowsIfNoConstructorFoundForType()
+        [Theory]
+        [InlineData(typeof(AbstractType))]
+        [InlineData(typeof(NoParameterlessConstructor))]
+        [InlineData(typeof(IDisposable))]
+        public void CreateConfigureDelegate_ThrowsIfTypeCannotBeInstantiated(Type configurationType)
         {
             // Arrange
             var provider = new MiddlewareFilterConfigurationProvider();
 
             // Act
-            var exception = Assert.Throws<InvalidOperationException>(() => provider.CreateConfigureDelegate(typeof(AbstractType_NoConstructor)));
+            var exception = Assert.Throws<InvalidOperationException>(() => provider.CreateConfigureDelegate(configurationType));
 
             // Assert
-            Assert.Equal($"Unable to create an instance of type '{typeof(AbstractType_NoConstructor)}'. The type specified in configurationType must not be abstract and must have a parameterless constructor.", exception.Message);
+            Assert.Equal($"Unable to create an instance of type '{configurationType}'. The type specified in configurationType must not be abstract and must have a parameterless constructor.", exception.Message);
         }
 
         [Fact]
@@ -188,8 +191,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private abstract class AbstractType_NoConstructor
+        private abstract class AbstractType
         {
+        }
+
+        private class NoParameterlessConstructor
+        {
+            private NoParameterlessConstructor(object A)
+            {
+            }
         }
     }
 }

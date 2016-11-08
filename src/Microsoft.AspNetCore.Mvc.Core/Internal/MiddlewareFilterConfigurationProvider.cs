@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return methodInfo;
         }
 
-        private bool HasParameterlessConstructor(TypeInfo modelTypeInfo)
+        private static bool HasParameterlessConstructor(TypeInfo modelTypeInfo)
         {
             return !modelTypeInfo.IsAbstract && modelTypeInfo.GetConstructor(Type.EmptyTypes) != null;
         }
