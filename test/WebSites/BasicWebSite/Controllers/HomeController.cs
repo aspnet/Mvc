@@ -45,6 +45,11 @@ namespace BasicWebSite.Controllers
             return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" });
         }
 
+        public IActionResult RedirectToRouteUsingRouteNameAndFragment()
+        {
+            return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" }, fragment: "test");
+        }
+
         public IActionResult RedirectToRouteUsingRouteName()
         {
             return RedirectToRoute("OrdersApi", new { id = 10 });
