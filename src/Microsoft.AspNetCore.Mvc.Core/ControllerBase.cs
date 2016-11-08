@@ -469,9 +469,28 @@ namespace Microsoft.AspNetCore.Mvc
             string controllerName,
             object routeValues)
         {
-            return new RedirectToActionResult(actionName, controllerName, routeValues)
+            return RedirectToAction(actionName, controllerName, routeValues, fragment: null);
+        }
+
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToAction(
+            string actionName,
+            string controllerName,
+            string fragment)
+        {
+            return RedirectToAction(actionName, controllerName, routeValues: null, fragment: fragment);
+        }
+
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToAction(
+            string actionName,
+            string controllerName,
+            object routeValues,
+            string fragment)
+        {
+            return new RedirectToActionResult(actionName, controllerName, routeValues, fragment)
             {
-                UrlHelper = Url,
+                UrlHelper = Url
             };
         }
 
@@ -1082,7 +1101,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Creates a <see cref="AcceptedAtRouteResult"/> object that produces an Accepted (202) response.
         /// </summary>
-        /// <param name="routeName">The name of the route to use for generating the URL.</param>       
+        /// <param name="routeName">The name of the route to use for generating the URL.</param>
         /// <returns>The created <see cref="AcceptedAtRouteResult"/> for the response.</returns>
         [NonAction]
         public virtual AcceptedAtRouteResult AcceptedAtRoute(string routeName)

@@ -23,12 +23,32 @@ namespace Microsoft.AspNetCore.Mvc
             string actionName,
             string controllerName,
             object routeValues,
+            string fragment)
+            : this(actionName, controllerName, routeValues, permanent: false, fragment: fragment)
+        {
+        }
+
+        public RedirectToActionResult(
+            string actionName,
+            string controllerName,
+            object routeValues,
             bool permanent)
+            : this(actionName, controllerName, routeValues, permanent, fragment: null)
+        {
+        }
+
+        public RedirectToActionResult(
+            string actionName,
+            string controllerName,
+            object routeValues,
+            bool permanent,
+            string fragment)
         {
             ActionName = actionName;
             ControllerName = controllerName;
             RouteValues = routeValues == null ? null : new RouteValueDictionary(routeValues);
             Permanent = permanent;
+            Fragment = fragment;
         }
 
         /// <summary>
@@ -52,6 +72,8 @@ namespace Microsoft.AspNetCore.Mvc
         public RouteValueDictionary RouteValues { get; set; }
 
         public bool Permanent { get; set; }
+
+        public string Fragment { get; set; }
 
         /// <inheritdoc />
         public override void ExecuteResult(ActionContext context)
