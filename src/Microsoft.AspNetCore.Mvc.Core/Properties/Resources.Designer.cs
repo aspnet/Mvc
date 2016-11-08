@@ -1307,6 +1307,22 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
+        /// Unable to create type {0}. The class is either abstract or no constructor was found.
+        /// </summary>
+        internal static string MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType
+        {
+            get { return GetString("MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType"); }
+        }
+
+        /// <summary>
+        /// Unable to create type {0}. The class is either abstract or no constructor was found.
+        /// </summary>
+        internal static string FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType"), p0);
+        }
+
+        /// <summary>
         /// An {0} cannot be created without a valid instance of {1}.
         /// </summary>
         internal static string AuthorizeFilter_AuthorizationPolicyCannotBeCreated
