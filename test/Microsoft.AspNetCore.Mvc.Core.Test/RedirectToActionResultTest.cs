@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc
             // Verifying if Redirect was called with the specific Url and parameter flag.
             // Thus we verify that the Url returned by UrlHelper is passed properly to
             // Redirect method and that the method is called exactly once.
-            httpResponse.Verify(r => r.Redirect(expectedUrl, expectedPermanentFlag), Times.Exactly(2));
+            httpResponse.Verify(r => r.Redirect(expectedUrl, expectedPermanentFlag), Times.Exactly(1));
         }
 
         private static IUrlHelper GetMockUrlHelper(string returnValue)

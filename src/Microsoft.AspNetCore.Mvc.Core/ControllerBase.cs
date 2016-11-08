@@ -552,6 +552,24 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Redirects to the specified action with <see cref="RedirectToActionResult.Permanent"/> set to true
+        /// using the specified <paramref name="actionName"/>,
+        /// <paramref name="controllerName"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPermanent(
+            string actionName,
+            string controllerName,
+            string fragment)
+        {
+            return RedirectToActionPermanent(actionName, controllerName, routeValues: null, fragment: fragment);
+        }
+
+        /// <summary>
+        /// Redirects to the specified action with <see cref="RedirectToActionResult.Permanent"/> set to true
         /// using the specified <paramref name="actionName"/>, <paramref name="controllerName"/>,
         /// and <paramref name="routeValues"/>.
         /// </summary>
@@ -565,13 +583,34 @@ namespace Microsoft.AspNetCore.Mvc
             string controllerName,
             object routeValues)
         {
+            return RedirectToActionPermanent(actionName, controllerName, routeValues, fragment: null);
+        }
+
+        /// <summary>
+        /// Redirects to the specified action with <see cref="RedirectToActionResult.Permanent"/> set to true
+        /// using the specified <paramref name="actionName"/>, <paramref name="controllerName"/>,
+        /// <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPermanent(
+            string actionName,
+            string controllerName,
+            object routeValues,
+            string fragment)
+        {
             return new RedirectToActionResult(
                 actionName,
                 controllerName,
                 routeValues,
-                permanent: true)
+                permanent: true,
+                fragment: fragment)
             {
-                UrlHelper = Url,
+                UrlHelper = Url
             };
         }
 
