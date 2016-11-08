@@ -197,7 +197,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private class NoParameterlessConstructor
         {
-            private NoParameterlessConstructor(object A)
+            public NoParameterlessConstructor(object a)
             {
             }
         }
