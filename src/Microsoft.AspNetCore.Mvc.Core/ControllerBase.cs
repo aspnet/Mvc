@@ -472,6 +472,14 @@ namespace Microsoft.AspNetCore.Mvc
             return RedirectToAction(actionName, controllerName, routeValues, fragment: null);
         }
 
+        /// <summary>
+        /// Redirects to the specified action using the specified <paramref name="actionName"/>,
+        /// <paramref name="controllerName"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
         public virtual RedirectToActionResult RedirectToAction(
             string actionName,
@@ -481,6 +489,16 @@ namespace Microsoft.AspNetCore.Mvc
             return RedirectToAction(actionName, controllerName, routeValues: null, fragment: fragment);
         }
 
+        /// <summary>
+        /// Redirects to the specified action using the specified <paramref name="actionName"/>,
+        /// <paramref name="controllerName"/>, <paramref name="routeValues"/>,
+        /// and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
         public virtual RedirectToActionResult RedirectToAction(
             string actionName,
