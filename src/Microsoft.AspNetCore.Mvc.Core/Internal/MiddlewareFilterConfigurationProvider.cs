@@ -23,6 +23,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(configurationType));
             }
 
+            if (!HasDefaultConstructor(configurationType.GetTypeInfo()))
+            {
+                throw new MissingMethodException(
+                    Resources.FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(configurationType));
+            }
+
             var instance = Activator.CreateInstance(configurationType);
             var configureDelegateBuilder = GetConfigureDelegateBuilder(configurationType);
             return configureDelegateBuilder.Build(instance);
@@ -64,6 +70,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         returnType.Name));
             }
             return methodInfo;
+        }
+
+        private bool HasDefaultConstructor(TypeInfo modelTypeInfo)
+        {
+            return !modelTypeInfo.IsAbstract && modelTypeInfo.GetConstructor(Type.EmptyTypes) != null;
         }
 
         private class ConfigureBuilder

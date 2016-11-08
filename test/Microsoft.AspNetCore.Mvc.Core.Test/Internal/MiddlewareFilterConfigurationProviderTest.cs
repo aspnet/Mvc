@@ -14,6 +14,19 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class MiddlewareFilterConfigurationProviderTest
     {
         [Fact]
+        public void CreateConfigureDelegate_ThrowsIfNoConstructorFoundForType()
+        {
+            // Arrange
+            var provider = new MiddlewareFilterConfigurationProvider();
+
+            // Act
+            var exception = Assert.Throws<MissingMethodException>(() => provider.CreateConfigureDelegate(typeof(AbstractType_NoConstructor)));
+
+            // Assert
+            Assert.Equal($"Unable to create type {typeof(AbstractType_NoConstructor)}. The class is either abstract or no constructor was found.", exception.Message);
+        }
+
+        [Fact]
         public void ValidConfigure_DoesNotThrow()
         {
             // Arrange
@@ -173,6 +186,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
 
             }
+        }
+
+        private abstract class AbstractType_NoConstructor
+        {
         }
     }
 }
