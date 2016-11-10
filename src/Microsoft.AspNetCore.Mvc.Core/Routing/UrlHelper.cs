@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 valuesDictionary["controller"] = actionContext.Controller;
             }
 
-            var virtualPathData = GetVirtualPathData(routeName: null, values: valuesDictionary);
+            var virtualPathData = GetVirtualPathData(routeName: actionContext.RouteName, values: valuesDictionary);
             return GenerateUrl(actionContext.Protocol, actionContext.Host, virtualPathData, actionContext.Fragment);
         }
 

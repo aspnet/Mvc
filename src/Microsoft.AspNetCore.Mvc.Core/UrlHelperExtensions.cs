@@ -157,10 +157,12 @@ namespace Microsoft.AspNetCore.Mvc
             return helper.Action(action, controller, values, protocol, host, fragment: null);
         }
 
+
+
         /// <summary>
         /// Generates a URL with an absolute path for an action method, which contains the specified
         /// <paramref name="action"/> name, <paramref name="controller"/> name, route <paramref name="values"/>,
-        /// <paramref name="protocol"/> to use, <paramref name="host"/> name, and <paramref name="fragment"/>.
+        /// <paramref name="protocol"/> to use, <paramref name="host"/> name and <paramref name="fragment"/>.
         /// Generates an absolute URL if the <paramref name="protocol"/> and <paramref name="host"/> are
         /// non-<c>null</c>.
         /// </summary>
@@ -186,6 +188,41 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(helper));
             }
 
+            return helper.Action(action, controller, values, protocol, host, fragment, routeName: null);
+        }
+
+        /// <summary>
+        /// Generates a URL with an absolute path for an action method, which contains the specified
+        /// <paramref name="action"/> name, <paramref name="controller"/> name, route <paramref name="values"/>,
+        /// <paramref name="protocol"/> to use, <paramref name="host"/> name, <paramref name="fragment"/>
+        /// and uses route with specified <paramref name="routeName"/>.
+        /// Generates an absolute URL if the <paramref name="protocol"/> and <paramref name="host"/> are
+        /// non-<c>null</c>.
+        /// </summary>
+        /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="action">The name of the action method.</param>
+        /// <param name="controller">The name of the controller.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
+        /// <param name="host">The host name for the URL.</param>
+        /// <param name="fragment">The fragment for the URL.</param>
+        /// <param name="routeName">The name of the route to be used.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Action(
+            this IUrlHelper helper,
+            string action,
+            string controller,
+            object values,
+            string protocol,
+            string host,
+            string fragment,
+            string routeName)
+        {
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper));
+            }
+
             return helper.Action(new UrlActionContext()
             {
                 Action = action,
@@ -193,7 +230,8 @@ namespace Microsoft.AspNetCore.Mvc
                 Host = host,
                 Values = values,
                 Protocol = protocol,
-                Fragment = fragment
+                Fragment = fragment,
+                RouteName = routeName
             });
         }
 
