@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Evolution;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {

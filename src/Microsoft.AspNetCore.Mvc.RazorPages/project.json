@@ -1,6 +1,6 @@
 ﻿{
   "description": "ASP.NET Core MVC Razor Pages.",
-  "version": "1.1.0-*",
+  "version": "1.0.0-*",
   "packOptions": {
     "repository": {
       "type": "git",

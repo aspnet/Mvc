@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Razor.Evolution;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
