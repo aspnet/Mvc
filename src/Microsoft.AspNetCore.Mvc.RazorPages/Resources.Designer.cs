@@ -60,11 +60,29 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages {
         }
         
         /// <summary>
+        ///    Looks up a localized string similar to Page created by &apos;{0}&apos; must be an instance of &apos;{1}&apos;..
+        /// </summary>
+        public static string ActivatedInstance_MustBeAnInstanceOf {
+            get {
+                return ResourceManager.GetString("ActivatedInstance_MustBeAnInstanceOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///    Looks up a localized string similar to The @page directive for the Razor page at {0} cannot override the relative path prefix..
         /// </summary>
         public static string PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable {
             get {
                 return ResourceManager.GetString("PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    Looks up a localized string similar to The &apos;{0}&apos; property of &apos;{1}&apos; must not be null..
+        /// </summary>
+        public static string PropertyOfTypeCannotBeNull {
+            get {
+                return ResourceManager.GetString("PropertyOfTypeCannotBeNull", resourceCulture);
             }
         }
         
