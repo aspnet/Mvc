@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -23,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Arrange
             var pageContext = new PageContext
             {
-                ActionDescriptor = new PageActionDescriptor
+                ActionDescriptor = new CompiledPageActionDescriptor
                 {
                     PageTypeInfo = typeof(object).GetTypeInfo(),
                 }
@@ -44,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Arrange
             var pageContext = new PageContext
             {
-                ActionDescriptor = new PageActionDescriptor
+                ActionDescriptor = new CompiledPageActionDescriptor
                 {
                     PageTypeInfo = typeof(TestPage).GetTypeInfo(),
                 }
@@ -65,7 +66,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Arrange
             var pageContext = new PageContext
             {
-                ActionDescriptor = new PageActionDescriptor
+                ActionDescriptor = new CompiledPageActionDescriptor
                 {
                     PageTypeInfo = typeof(TestPage).GetTypeInfo(),
                 }
@@ -97,11 +98,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Arrange
             var pageContext = new PageContext
             {
-                ActionDescriptor = new PageActionDescriptor
+                ActionDescriptor = new CompiledPageActionDescriptor
                 {
                     PageTypeInfo = typeof(ViewDataTestPage).GetTypeInfo(),
+                    ModelTypeInfo = typeof(ViewDataTestPageModel).GetTypeInfo(),
                 },
-                ModelType = typeof(ViewDataTestPageModel).GetTypeInfo(),
             };
 
             var pageFactory = CreatePageFactory();
@@ -154,12 +155,22 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             [RazorInject]
             public ViewDataDictionary<TestPage> ViewData { get; set; }
+
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ViewDataTestPage : Page
         {
             [RazorInject]
             public ViewDataDictionary<ViewDataTestPageModel> ViewData { get; set; }
+
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ViewDataTestPageModel

@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using Microsoft.AspNetCore.Mvc.Internal;
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
@@ -12,52 +12,48 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     /// </summary>
     public class DefaultPageActivator : IPageActivator
     {
-        private readonly ITypeActivatorCache _typeActivatorCache;
+        private readonly ConcurrentDictionary<Type, Func<object>> _typeActivatorCache;
 
         /// <summary>
         /// Creates a new <see cref="DefaultPageActivator"/>.
         /// </summary>
-        /// <param name="typeActivatorCache">The <see cref="ITypeActivatorCache"/>.</param>
-        public DefaultPageActivator(ITypeActivatorCache typeActivatorCache)
+        public DefaultPageActivator()
         {
-            if (typeActivatorCache == null)
-            {
-                throw new ArgumentNullException(nameof(typeActivatorCache));
-            }
-
-            _typeActivatorCache = typeActivatorCache;
+            _typeActivatorCache = new ConcurrentDictionary<Type, Func<object>>();
         }
 
         /// <inheritdoc />
-        public virtual object Create(PageContext PageContext)
+        public virtual object Create(PageContext pageContext)
         {
-            if (PageContext == null)
+            if (pageContext == null)
             {
-                throw new ArgumentNullException(nameof(PageContext));
+                throw new ArgumentNullException(nameof(pageContext));
             }
 
-            if (PageContext.ActionDescriptor == null)
+            if (pageContext.ActionDescriptor == null)
             {
-                throw new ArgumentException(string.Format(
-                    CultureInfo.CurrentCulture, 
-                    Resources.PropertyOfTypeCannotBeNull, 
-                    nameof(PageContext.ActionDescriptor),
-                    nameof(PageContext)));
+                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(pageContext.ActionDescriptor),
+                    nameof(pageContext)),
+                    nameof(pageContext));
             }
 
-            var PageTypeInfo = PageContext.ActionDescriptor.PageTypeInfo;
-
-            if (PageTypeInfo == null)
+            var pageTypeInfo = pageContext.ActionDescriptor.PageTypeInfo?.AsType();
+            if (pageTypeInfo == null)
             {
-                throw new ArgumentException(string.Format(
-                    CultureInfo.CurrentCulture,
-                    Resources.PropertyOfTypeCannotBeNull,
-                    nameof(PageContext.ActionDescriptor.PageTypeInfo),
-                    nameof(PageContext.ActionDescriptor)));
+                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(pageContext.ActionDescriptor.PageTypeInfo),
+                    nameof(pageContext.ActionDescriptor)),
+                    nameof(pageContext));
             }
 
-            var serviceProvider = PageContext.HttpContext.RequestServices;
-            return _typeActivatorCache.CreateInstance<object>(serviceProvider, PageTypeInfo.AsType());
+            Func<object> pageFactory;
+            if (!_typeActivatorCache.TryGetValue(pageTypeInfo, out pageFactory))
+            {
+                pageFactory = _typeActivatorCache.GetOrAdd(pageTypeInfo, CreatePageFactory(pageTypeInfo));
+            }
+
+            return pageFactory();
         }
 
         /// <inheritdoc />
@@ -74,6 +70,17 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             }
 
             (page as IDisposable)?.Dispose();
+        }
+
+        private static Func<object> CreatePageFactory(Type pageTypeInfo)
+        {
+            // new Page();
+            var newExpression = Expression.New(pageTypeInfo);
+            // () => new Page();
+            var pageFactory = Expression
+                .Lambda<Func<object>>(newExpression)
+                .Compile();
+            return pageFactory;
         }
     }
 }

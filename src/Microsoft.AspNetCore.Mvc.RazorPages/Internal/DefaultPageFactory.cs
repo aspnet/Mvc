@@ -42,15 +42,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var page = _pageActivator.Create(context) as Page;
             if (page == null)
             {
-                throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture,
-                    Resources.ActivatedInstance_MustBeAnInstanceOf,
+                throw new InvalidOperationException(Resources.FormatActivatedInstance_MustBeAnInstanceOf(
                     _pageActivator.GetType().FullName,
                     typeof(Page).FullName));
             }
 
             page.PageContext = context;
-            var modelType = context.ModelType?.AsType() ?? page.GetType();
+            var modelType = context.ActionDescriptor.ModelTypeInfo?.AsType() ?? page.GetType();
             _razorPagePropertyActivator.Activate(page, context, modelType);
 
             return page;
