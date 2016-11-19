@@ -10,6 +10,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     /// </summary>
     public class CompiledPageActionDescriptor : PageActionDescriptor
     {
+        private PageActionDescriptor actionDescriptor;
+
+        public CompiledPageActionDescriptor(PageActionDescriptor actionDescriptor)
+            : base(actionDescriptor)
+        {
+        }
+
         /// <summary>
         /// Gets or sets the <see cref="TypeInfo"/> of the page.
         /// </summary>

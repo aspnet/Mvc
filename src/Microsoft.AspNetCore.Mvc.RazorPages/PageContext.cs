@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.IO;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
@@ -11,6 +14,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     public class PageContext : ViewContext
     {
         private CompiledPageActionDescriptor _actionDescriptor;
+
+        public PageContext(
+            ActionContext actionContext,
+            ViewDataDictionary viewData,
+            ITempDataDictionary tempDataDictionary,
+            HtmlHelperOptions htmlHelperOptions)
+            : base(actionContext, NullView.Instance, viewData, tempDataDictionary, TextWriter.Null, htmlHelperOptions)
+        {
+        }
 
         /// <summary>
         /// Gets or sets the <see cref="PageActionDescriptor"/>.
@@ -27,5 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 base.ActionDescriptor = value;
             }
         }
+
+        public 
     }
 }

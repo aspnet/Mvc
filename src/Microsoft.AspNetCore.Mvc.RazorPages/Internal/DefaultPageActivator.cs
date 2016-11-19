@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -12,48 +11,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     /// </summary>
     public class DefaultPageActivator : IPageActivator
     {
-        private readonly ConcurrentDictionary<Type, Func<object>> _typeActivatorCache;
-
-        /// <summary>
-        /// Creates a new <see cref="DefaultPageActivator"/>.
-        /// </summary>
-        public DefaultPageActivator()
-        {
-            _typeActivatorCache = new ConcurrentDictionary<Type, Func<object>>();
-        }
-
         /// <inheritdoc />
-        public virtual object Create(PageContext pageContext)
+        public virtual Func<PageContext, object> Create(CompiledPageActionDescriptor actionDescriptor)
         {
-            if (pageContext == null)
+            if (actionDescriptor == null)
             {
-                throw new ArgumentNullException(nameof(pageContext));
+                throw new ArgumentNullException(nameof(actionDescriptor));
             }
 
-            if (pageContext.ActionDescriptor == null)
-            {
-                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
-                    nameof(pageContext.ActionDescriptor),
-                    nameof(pageContext)),
-                    nameof(pageContext));
-            }
-
-            var pageTypeInfo = pageContext.ActionDescriptor.PageTypeInfo?.AsType();
+            var pageTypeInfo = actionDescriptor.PageTypeInfo?.AsType();
             if (pageTypeInfo == null)
             {
                 throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
-                    nameof(pageContext.ActionDescriptor.PageTypeInfo),
-                    nameof(pageContext.ActionDescriptor)),
-                    nameof(pageContext));
+                    nameof(actionDescriptor.PageTypeInfo),
+                    nameof(actionDescriptor)),
+                    nameof(actionDescriptor));
             }
 
-            Func<object> pageFactory;
-            if (!_typeActivatorCache.TryGetValue(pageTypeInfo, out pageFactory))
-            {
-                pageFactory = _typeActivatorCache.GetOrAdd(pageTypeInfo, CreatePageFactory(pageTypeInfo));
-            }
-
-            return pageFactory();
+            return CreatePageFactory(pageTypeInfo);
         }
 
         /// <inheritdoc />
@@ -72,13 +47,16 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             (page as IDisposable)?.Dispose();
         }
 
-        private static Func<object> CreatePageFactory(Type pageTypeInfo)
+        private static Func<PageContext, object> CreatePageFactory(Type pageTypeInfo)
         {
+            var parameter = Expression.Parameter(typeof(PageContext), "pageContext");
+
             // new Page();
             var newExpression = Expression.New(pageTypeInfo);
+
             // () => new Page();
             var pageFactory = Expression
-                .Lambda<Func<object>>(newExpression)
+                .Lambda<Func<PageContext, object>>(newExpression, parameter)
                 .Compile();
             return pageFactory;
         }

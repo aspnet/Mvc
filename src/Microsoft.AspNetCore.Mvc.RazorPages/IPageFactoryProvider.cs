@@ -1,19 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
     /// <summary>
     /// Provides methods for creation and disposal of Razor pages.
     /// </summary>
-    public interface IPageFactory
+    public interface IPageFactoryProvider
     {
         /// <summary>
-        /// Creates a new Razor page for the specified <paramref name="context"/>.
+        /// Creates a factory for producing Razor pages for the specified <see cref="PageContext"/>.
         /// </summary>
-        /// <param name="context">The <see cref="PageContext"/>.</param>
-        /// <returns>The Razor page.</returns>
-        object CreatePage(PageContext context);
+        /// <param name="descriptor">The <see cref="CompiledPageActionDescriptor"/>.</param>
+        /// <returns>The Razor page factory.</returns>
+        Func<PageContext, object> CreatePage(CompiledPageActionDescriptor descriptor);
 
         /// <summary>
         /// Releases a Razor page.

@@ -10,6 +10,23 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     public class PageActionDescriptor : ActionDescriptor
     {
         /// <summary>
+        /// Initializes a new instance of <see cref="PageActionDescriptor"/>.
+        /// </summary>
+        public PageActionDescriptor()
+        {
+        }
+
+        /// <summary>
+        /// A copy constructor for <see cref="PageActionDescriptor"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="PageActionDescriptor"/> to copy from.</param>
+        public PageActionDescriptor(PageActionDescriptor other)
+        {
+            RelativePath = other.RelativePath;
+            ViewEnginePath = other.ViewEnginePath;
+        }
+
+        /// <summary>
         /// Gets or sets the application root relative path for the page.
         /// </summary>
         public string RelativePath { get; set; }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
     /// <summary>
@@ -11,8 +13,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <summary>
         /// Creates a Razor page.
         /// </summary>
-        /// <param name="context">The <see cref="PageContext"/>.</param>
-        object Create(PageContext context);
+        /// <param name="descriptor">The <see cref="CompiledPageActionDescriptor"/>.</param>
+        Func<PageContext, object> Create(CompiledPageActionDescriptor descriptor);
 
         /// <summary>
         /// Releases a Razor page.

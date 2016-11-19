@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
+using System.Reflection;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
-    public class DefaultPageFactory : IPageFactory
+    public class DefaultPageFactory : IPageFactoryProvider
     {
         private readonly IPageActivator _pageActivator;
         private readonly RazorPagePropertyActivator _razorPagePropertyActivator;
@@ -37,21 +37,25 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 modelExpressionProvider);
         }
 
-        public virtual object CreatePage(PageContext context)
+        public virtual Func<PageContext, object> CreatePage(CompiledPageActionDescriptor actionDescriptor)
         {
-            var page = _pageActivator.Create(context) as Page;
-            if (page == null)
+            if (!typeof(Page).GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo))
             {
                 throw new InvalidOperationException(Resources.FormatActivatedInstance_MustBeAnInstanceOf(
                     _pageActivator.GetType().FullName,
                     typeof(Page).FullName));
             }
 
-            page.PageContext = context;
-            var modelType = context.ActionDescriptor.ModelTypeInfo?.AsType() ?? page.GetType();
-            _razorPagePropertyActivator.Activate(page, context, modelType);
+            var activatorFactory = _pageActivator.Create(actionDescriptor);
+            var modelType = actionDescriptor.ModelTypeInfo?.AsType() ?? actionDescriptor.PageTypeInfo.GetType();
 
-            return page;
+            return (context) =>
+            {
+                var page = activatorFactory(context) as Page;
+                page.PageContext = context;
+                _razorPagePropertyActivator.Activate(page, context, modelType);
+                return page;
+            };
         }
 
         public void ReleasePage(PageContext context, object page)
