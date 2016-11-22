@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
         /// <param name="attribute">The attribute to create an adapter for.</param>
         /// <param name="stringLocalizer">The localizer to provide to the adapter.</param>
         /// <returns>An <see cref="IAttributeAdapter"/> for the given attribute.</returns>
-        public IAttributeAdapter GetAttributeAdapter(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
+        public virtual IAttributeAdapter GetAttributeAdapter(ValidationAttribute attribute, IStringLocalizer stringLocalizer)
         {
             if (attribute == null)
             {
