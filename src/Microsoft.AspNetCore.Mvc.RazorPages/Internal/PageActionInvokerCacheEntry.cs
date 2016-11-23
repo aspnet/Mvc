@@ -11,17 +11,17 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         public PageActionInvokerCacheEntry(
             CompiledPageActionDescriptor actionDescriptor,
             Func<PageContext, object> pageFactory,
-            IFilterMetadata[] filters)
+            Func<PageContext, IFilterMetadata[]> filterProvider)
         {
             ActionDescriptor = actionDescriptor;
             PageFactory = pageFactory;
-            Filters = filters;
+            FilterProvider = filterProvider;
         }
 
         public CompiledPageActionDescriptor ActionDescriptor { get; }
 
         public Func<PageContext, object> PageFactory { get; }
 
-        public IFilterMetadata[] Filters { get; }
+        Func<PageContext, IFilterMetadata[]> FilterProvider { get; }
     }
 }

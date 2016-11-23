@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Testing;
@@ -10,53 +13,36 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     public class DefaultPageActivatorTest
     {
         [Fact]
-        public void Create_ThrowsIfActionDescriptorIsNull()
-        {
-            // Arrange
-            var context = new PageContext();
-            var activator = new DefaultPageActivator();
-
-            // Act & Assert
-            ExceptionAssert.ThrowsArgument(
-                () => activator.Create(context),
-                "pageContext",
-                "The 'ActionDescriptor' property of 'pageContext' must not be null.");
-        }
-
-        [Fact]
         public void Create_ThrowsIfPageTypeInfoIsNull()
         {
             // Arrange
-            var context = new PageContext()
-            {
-                ActionDescriptor = new CompiledPageActionDescriptor(),
-            };
+            var descriptor = new CompiledPageActionDescriptor();
             var activator = new DefaultPageActivator();
 
             // Act & Assert
             ExceptionAssert.ThrowsArgument(
-                () => activator.Create(context),
-                "pageContext",
-                "The 'PageTypeInfo' property of 'ActionDescriptor' must not be null.");
+                () => activator.Create(descriptor),
+                "actionDescriptor",
+                "The 'PageTypeInfo' property of 'actionDescriptor' must not be null.");
         }
 
         [Theory]
         [InlineData(typeof(TestPage))]
         [InlineData(typeof(PageWithMultipleConstructors))]
-        public void Create_ReturnsInstanceOfPage(Type type)
+        public void Create_ReturnsFactoryForPage(Type type)
         {
             // Arrange
-            var context = new PageContext
+            var pageContext = new PageContext();
+            var descriptor = new CompiledPageActionDescriptor
             {
-                ActionDescriptor = new CompiledPageActionDescriptor
-                {
-                    PageTypeInfo = type.GetTypeInfo(),
-                }
+                PageTypeInfo = type.GetTypeInfo(),
             };
+            
             var activator = new DefaultPageActivator();
 
             // Act
-            var instance = activator.Create(context);
+            var factory = activator.Create(descriptor);
+            var instance = factory(pageContext);
 
             // Assert
             Assert.NotNull(instance);
@@ -67,17 +53,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         public void Create_ThrowsIfTypeDoesNotHaveParameterlessConstructor()
         {
             // Arrange
-            var context = new PageContext
+            var descriptor = new CompiledPageActionDescriptor
             {
-                ActionDescriptor = new CompiledPageActionDescriptor
-                {
-                    PageTypeInfo = typeof(PageWithoutParameterlessConstructor).GetTypeInfo(),
-                }
+                PageTypeInfo = typeof(PageWithoutParameterlessConstructor).GetTypeInfo(),
             };
+            var pageContext = new PageContext();
             var activator = new DefaultPageActivator();
 
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => activator.Create(context));
+            Assert.Throws<ArgumentException>(() => activator.Create(descriptor));
         }
 
         [Fact]

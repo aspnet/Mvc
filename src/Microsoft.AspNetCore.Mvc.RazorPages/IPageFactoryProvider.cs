@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// </summary>
         /// <param name="descriptor">The <see cref="CompiledPageActionDescriptor"/>.</param>
         /// <returns>The Razor page factory.</returns>
-        Func<PageContext, object> CreatePage(CompiledPageActionDescriptor descriptor);
+        Func<PageContext, object> CreatePageFactory(CompiledPageActionDescriptor descriptor);
 
         /// <summary>
         /// Releases a Razor page.

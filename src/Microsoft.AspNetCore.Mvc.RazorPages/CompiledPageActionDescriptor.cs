@@ -10,8 +10,18 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     /// </summary>
     public class CompiledPageActionDescriptor : PageActionDescriptor
     {
-        private PageActionDescriptor actionDescriptor;
+        /// <summary>
+        /// Initializes an empty <see cref="CompiledPageActionDescriptor"/>.
+        /// </summary>
+        public CompiledPageActionDescriptor()
+        {
+        }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CompiledPageActionDescriptor"/>
+        /// from the specified <paramref name="actionDescriptor"/> instance.
+        /// </summary>
+        /// <param name="actionDescriptor">The <see cref="PageActionDescriptor"/>.</param>
         public CompiledPageActionDescriptor(PageActionDescriptor actionDescriptor)
             : base(actionDescriptor)
         {

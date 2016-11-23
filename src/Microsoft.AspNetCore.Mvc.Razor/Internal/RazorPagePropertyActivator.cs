@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
@@ -18,105 +16,70 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     public class RazorPagePropertyActivator
     {
-        private delegate ViewDataDictionary CreateViewDataNested(ViewDataDictionary source);
-        private delegate ViewDataDictionary CreateViewDataRoot(
-            IModelMetadataProvider metadataProvider,
-            ModelStateDictionary modelState);
-
-        private readonly ConcurrentDictionary<Type, PageActivationInfo> _activationInfo;
-        private readonly IModelMetadataProvider _metadataProvider;
-
-        // Value accessors for common singleton properties activated in a RazorPage.
-        private Func<ViewContext, object> _urlHelperAccessor;
-        private Func<ViewContext, object> _jsonHelperAccessor;
-        private Func<ViewContext, object> _diagnosticSourceAccessor;
-        private Func<ViewContext, object> _htmlEncoderAccessor;
-        private Func<ViewContext, object> _modelExpressionProviderAccessor;
+        private delegate ViewDataDictionary CreateViewDataNestedDelegate(ViewDataDictionary source);
+        private delegate ViewDataDictionary CreateViewDataRootDelegate(ModelStateDictionary modelState);
 
         public RazorPagePropertyActivator(
+            Type pageType,
+            Type modelType,
             IModelMetadataProvider metadataProvider,
-            IUrlHelperFactory urlHelperFactory,
-            IJsonHelper jsonHelper,
-            DiagnosticSource diagnosticSource,
-            HtmlEncoder htmlEncoder,
-            IModelExpressionProvider modelExpressionProvider)
+            PropertyValueAccessors propertyValueAccessors)
         {
-            _activationInfo = new ConcurrentDictionary<Type, PageActivationInfo>();
-            _metadataProvider = metadataProvider;
-            _urlHelperAccessor = context => urlHelperFactory.GetUrlHelper(context);
-            _jsonHelperAccessor = context => jsonHelper;
-            _diagnosticSourceAccessor = context => diagnosticSource;
-            _htmlEncoderAccessor = context => htmlEncoder;
-            _modelExpressionProviderAccessor = context => modelExpressionProvider;
+            var viewDataType = typeof(ViewDataDictionary<>).MakeGenericType(modelType);
+            ViewDataDictionaryType = viewDataType;
+            CreateViewDataNested = GetCreateViewDataNested(viewDataType);
+            CreateViewDataRoot = GetCreateViewDataRoot(viewDataType, metadataProvider);
+
+            PropertyActivators = PropertyActivator<ViewContext>.GetPropertiesToActivate(
+                    pageType,
+                    typeof(RazorInjectAttribute),
+                    propertyInfo => CreateActivateInfo(propertyInfo, propertyValueAccessors),
+                    includeNonPublic: true);
         }
 
-        public void Activate(IRazorPage page, ViewContext context, Type modelType)
-        {
-            if (page == null)
-            {
-                throw new ArgumentNullException(nameof(page));
-            }
+        private PropertyActivator<ViewContext>[] PropertyActivators { get; }
 
+        private Type ViewDataDictionaryType { get; }
+
+        private CreateViewDataNestedDelegate CreateViewDataNested { get; }
+
+        private CreateViewDataRootDelegate CreateViewDataRoot { get; }
+
+        public void Activate(object page, ViewContext context)
+        {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            PageActivationInfo activationInfo;
-            if (!_activationInfo.TryGetValue(page.GetType(), out activationInfo))
-            {
-                activationInfo = _activationInfo.GetOrAdd(
-                    page.GetType(),
-                    CreateViewActivationInfo(page.GetType(), modelType));
-            }
+            context.ViewData = CreateViewDataDictionary(context);
 
-            context.ViewData = CreateViewDataDictionary(context, activationInfo);
-
-            for (var i = 0; i < activationInfo.PropertyActivators.Length; i++)
+            for (var i = 0; i < PropertyActivators.Length; i++)
             {
-                var activateInfo = activationInfo.PropertyActivators[i];
+                var activateInfo = PropertyActivators[i];
                 activateInfo.Activate(page, context);
             }
         }
 
-        private ViewDataDictionary CreateViewDataDictionary(ViewContext context, PageActivationInfo activationInfo)
+        private ViewDataDictionary CreateViewDataDictionary(ViewContext context)
         {
             // Create a ViewDataDictionary<TModel> if the ViewContext.ViewData is not set or the type of
             // ViewContext.ViewData is an incompatible type.
             if (context.ViewData == null)
             {
                 // Create ViewDataDictionary<TModel>(IModelMetadataProvider, ModelStateDictionary).
-                return activationInfo.CreateViewDataRoot(
-                    _metadataProvider,
-                    context.ModelState);
+                return CreateViewDataRoot(context.ModelState);
             }
-            else if (context.ViewData.GetType() != activationInfo.ViewDataDictionaryType)
+            else if (context.ViewData.GetType() != ViewDataDictionaryType)
             {
                 // Create ViewDataDictionary<TModel>(ViewDataDictionary).
-                return activationInfo.CreateViewDataNested(context.ViewData);
+                return CreateViewDataNested(context.ViewData);
             }
 
             return context.ViewData;
         }
 
-        private PageActivationInfo CreateViewActivationInfo(Type type, Type modelType)
-        {
-            var viewDataType = typeof(ViewDataDictionary<>).MakeGenericType(modelType);
-
-            return new PageActivationInfo
-            {
-                ViewDataDictionaryType = viewDataType,
-                CreateViewDataNested = GetCreateViewDataNested(viewDataType),
-                CreateViewDataRoot = GetCreateViewDataRoot(viewDataType),
-                PropertyActivators = PropertyActivator<ViewContext>.GetPropertiesToActivate(
-                    type,
-                    typeof(RazorInjectAttribute),
-                    CreateActivateInfo,
-                    includeNonPublic: true)
-            };
-        }
-
-        private CreateViewDataNested GetCreateViewDataNested(Type viewDataDictionaryType)
+        private static CreateViewDataNestedDelegate GetCreateViewDataNested(Type viewDataDictionaryType)
         {
             var parameterTypes = new Type[] { typeof(ViewDataDictionary) };
             var matchingConstructor = viewDataDictionaryType.GetConstructor(parameterTypes);
@@ -127,30 +90,39 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var castNewCall = Expression.Convert(
                 newExpression,
                 typeof(ViewDataDictionary));
-            var lambda = Expression.Lambda<CreateViewDataNested>(castNewCall, parameters);
+            var lambda = Expression.Lambda<CreateViewDataNestedDelegate>(castNewCall, parameters);
             return lambda.Compile();
         }
 
-        private CreateViewDataRoot GetCreateViewDataRoot(Type viewDataDictionaryType)
+        private static CreateViewDataRootDelegate GetCreateViewDataRoot(
+            Type viewDataDictionaryType,
+            IModelMetadataProvider provider)
         {
-            var parameterTypes = new Type[] {
+            var parameterTypes = new[]
+            {
                 typeof(IModelMetadataProvider),
-                typeof(ModelStateDictionary) };
+                typeof(ModelStateDictionary)
+            };
             var matchingConstructor = viewDataDictionaryType.GetConstructor(parameterTypes);
             Debug.Assert(matchingConstructor != null);
 
-            var parameters = new ParameterExpression[] {
-                Expression.Parameter(parameterTypes[0]),
-                Expression.Parameter(parameterTypes[1]) };
+            var parameterExpression = Expression.Parameter(parameterTypes[1]);
+            var parameters = new Expression[]
+            {
+                Expression.Constant(provider),
+                parameterExpression
+            };
             var newExpression = Expression.New(matchingConstructor, parameters);
             var castNewCall = Expression.Convert(
                 newExpression,
                 typeof(ViewDataDictionary));
-            var lambda = Expression.Lambda<CreateViewDataRoot>(castNewCall, parameters);
+            var lambda = Expression.Lambda<CreateViewDataRootDelegate>(castNewCall, parameterExpression);
             return lambda.Compile();
         }
 
-        private PropertyActivator<ViewContext> CreateActivateInfo(PropertyInfo property)
+        private static PropertyActivator<ViewContext> CreateActivateInfo(
+            PropertyInfo property,
+            PropertyValueAccessors valueAccessors)
         {
             Func<ViewContext, object> valueAccessor;
             if (typeof(ViewDataDictionary).IsAssignableFrom(property.PropertyType))
@@ -165,23 +137,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 // W.r.t. specificity of above condition: Users are much more likely to inject their own
                 // IUrlHelperFactory than to create a class implementing IUrlHelper (or a sub-interface) and inject
                 // that. But the second scenario is supported. (Note the class must implement ICanHasViewContext.)
-                valueAccessor = _urlHelperAccessor;
+                valueAccessor = valueAccessors.UrlHelperAccessor;
             }
             else if (property.PropertyType == typeof(IJsonHelper))
             {
-                valueAccessor = _jsonHelperAccessor;
+                valueAccessor = valueAccessors.JsonHelperAccessor;
             }
             else if (property.PropertyType == typeof(DiagnosticSource))
             {
-                valueAccessor = _diagnosticSourceAccessor;
+                valueAccessor = valueAccessors.DiagnosticSourceAccessor;
             }
             else if (property.PropertyType == typeof(HtmlEncoder))
             {
-                valueAccessor = _htmlEncoderAccessor;
+                valueAccessor = valueAccessors.HtmlEncoderAccessor;
             }
             else if (property.PropertyType == typeof(IModelExpressionProvider))
             {
-                valueAccessor = _modelExpressionProviderAccessor;
+                valueAccessor = valueAccessors.ModelExpressionProviderAccessor;
             }
             else
             {
@@ -198,17 +170,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             return new PropertyActivator<ViewContext>(property, valueAccessor);
         }
 
-        private class PageActivationInfo
+        public class PropertyValueAccessors
         {
-            public PropertyActivator<ViewContext>[] PropertyActivators { get; set; }
+            public Func<ViewContext, object> UrlHelperAccessor { get; set; }
 
-            public Type ViewDataDictionaryType { get; set; }
+            public Func<ViewContext, object> JsonHelperAccessor { get; set; }
 
-            public CreateViewDataNested CreateViewDataNested { get; set; }
+            public Func<ViewContext, object> DiagnosticSourceAccessor { get; set; }
 
-            public CreateViewDataRoot CreateViewDataRoot { get; set; }
+            public Func<ViewContext, object> HtmlEncoderAccessor { get; set; }
 
-            public Action<object, object> ViewDataDictionarySetter { get; set; }
+            public Func<ViewContext, object> ModelExpressionProviderAccessor { get; set; }
         }
     }
 }

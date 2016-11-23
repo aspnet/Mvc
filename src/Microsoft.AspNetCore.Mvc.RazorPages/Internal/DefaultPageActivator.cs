@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     /// <summary>
-    /// <see cref="IPageActivator"/> that uses type activation to create Pages.
+    /// <see cref="IPageActivatorProvider"/> that uses type activation to create Pages.
     /// </summary>
-    public class DefaultPageActivator : IPageActivator
+    public class DefaultPageActivator : IPageActivatorProvider
     {
         /// <inheritdoc />
         public virtual Func<PageContext, object> Create(CompiledPageActionDescriptor actionDescriptor)

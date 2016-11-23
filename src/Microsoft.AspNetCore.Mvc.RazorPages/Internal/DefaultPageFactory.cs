@@ -15,11 +15,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public class DefaultPageFactory : IPageFactoryProvider
     {
-        private readonly IPageActivator _pageActivator;
-        private readonly RazorPagePropertyActivator _razorPagePropertyActivator;
+        private readonly IPageActivatorProvider _pageActivator;
+        private readonly IModelMetadataProvider _modelMetadataProvider;
+        private readonly RazorPagePropertyActivator.PropertyValueAccessors _propertyAccessors;
 
         public DefaultPageFactory(
-            IPageActivator pageActivator,
+            IPageActivatorProvider pageActivator,
             IModelMetadataProvider metadataProvider,
             IUrlHelperFactory urlHelperFactory,
             IJsonHelper jsonHelper,
@@ -28,16 +29,18 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             IModelExpressionProvider modelExpressionProvider)
         {
             _pageActivator = pageActivator;
-            _razorPagePropertyActivator = new RazorPagePropertyActivator(
-                metadataProvider,
-                urlHelperFactory,
-                jsonHelper,
-                diagnosticSource,
-                htmlEncoder,
-                modelExpressionProvider);
+            _modelMetadataProvider = metadataProvider;
+            _propertyAccessors = new RazorPagePropertyActivator.PropertyValueAccessors
+            {
+                UrlHelperAccessor = context => urlHelperFactory.GetUrlHelper(context),
+                JsonHelperAccessor = context => jsonHelper,
+                DiagnosticSourceAccessor = context => diagnosticSource,
+                HtmlEncoderAccessor = context => htmlEncoder,
+                ModelExpressionProviderAccessor = context => modelExpressionProvider,
+            };
         }
 
-        public virtual Func<PageContext, object> CreatePage(CompiledPageActionDescriptor actionDescriptor)
+        public virtual Func<PageContext, object> CreatePageFactory(CompiledPageActionDescriptor actionDescriptor)
         {
             if (!typeof(Page).GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo))
             {
@@ -47,13 +50,18 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             }
 
             var activatorFactory = _pageActivator.Create(actionDescriptor);
-            var modelType = actionDescriptor.ModelTypeInfo?.AsType() ?? actionDescriptor.PageTypeInfo.GetType();
+            var modelType = actionDescriptor.ModelTypeInfo?.AsType() ?? actionDescriptor.PageTypeInfo.AsType();
+            var propertyActivator = new RazorPagePropertyActivator(
+                actionDescriptor.PageTypeInfo.AsType(),
+                modelType,
+                _modelMetadataProvider,
+                _propertyAccessors);
 
             return (context) =>
             {
                 var page = activatorFactory(context) as Page;
                 page.PageContext = context;
-                _razorPagePropertyActivator.Activate(page, context, modelType);
+                propertyActivator.Activate(page, context);
                 return page;
             };
         }

@@ -8,10 +8,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     /// <summary>
     /// Provides methods to create a Razor page.
     /// </summary>
-    public interface IPageActivator
+    public interface IPageActivatorProvider
     {
         /// <summary>
-        /// Creates a Razor page.
+        /// Creates a Razor page activator.
         /// </summary>
         /// <param name="descriptor">The <see cref="CompiledPageActionDescriptor"/>.</param>
         Func<PageContext, object> Create(CompiledPageActionDescriptor descriptor);

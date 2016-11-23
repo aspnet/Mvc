@@ -15,6 +15,16 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     {
         private CompiledPageActionDescriptor _actionDescriptor;
 
+        /// <summary>
+        /// Creates an empty <see cref="ViewContext"/>.
+        /// </summary>
+        /// <remarks>
+        /// The default constructor is provided for unit test purposes only.
+        /// </remarks>
+        public PageContext()
+        {
+        }
+
         public PageContext(
             ActionContext actionContext,
             ViewDataDictionary viewData,
@@ -39,7 +49,5 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 base.ActionDescriptor = value;
             }
         }
-
-        public 
     }
 }

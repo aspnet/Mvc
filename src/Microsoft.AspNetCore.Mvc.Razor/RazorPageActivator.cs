@@ -19,8 +19,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     {
         // Name of the "public TModel Model" property on RazorPage<TModel>
         private const string ModelPropertyName = "Model";
-        private readonly RazorPagePropertyActivator _razorPagePropertyActivator;
-        private readonly ConcurrentDictionary<Type, Type> _modelTypeLookup;
+        private readonly ConcurrentDictionary<Type, RazorPagePropertyActivator> _activationInfo;
+        private readonly IModelMetadataProvider _metadataProvider;
+
+        // Value accessors for common singleton properties activated in a RazorPage.
+        private readonly RazorPagePropertyActivator.PropertyValueAccessors _propertyAccessors;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RazorPageActivator"/> class.
@@ -33,15 +36,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             HtmlEncoder htmlEncoder,
             IModelExpressionProvider modelExpressionProvider)
         {
-            _razorPagePropertyActivator = new RazorPagePropertyActivator(
-                metadataProvider,
-                urlHelperFactory,
-                jsonHelper,
-                diagnosticSource,
-                htmlEncoder,
-                modelExpressionProvider);
+            _activationInfo = new ConcurrentDictionary<Type, RazorPagePropertyActivator>();
+            _metadataProvider = metadataProvider;
 
-            _modelTypeLookup = new ConcurrentDictionary<Type, Type>();
+            _propertyAccessors = new RazorPagePropertyActivator.PropertyValueAccessors
+            {
+                UrlHelperAccessor = context => urlHelperFactory.GetUrlHelper(context),
+                JsonHelperAccessor = context => jsonHelper,
+                DiagnosticSourceAccessor = context => diagnosticSource,
+                HtmlEncoderAccessor = context => htmlEncoder,
+                ModelExpressionProviderAccessor = context => modelExpressionProvider,
+            };
         }
 
         /// <inheritdoc />
@@ -57,23 +62,30 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var type = page.GetType();
-            Type modelType;
-            if (!_modelTypeLookup.TryGetValue(type, out modelType))
+            var pageType = page.GetType();
+            RazorPagePropertyActivator propertyActivator;
+            if (!_activationInfo.TryGetValue(pageType, out propertyActivator))
             {
                 // Look for a property named "Model". If it is non-null, we'll assume this is
                 // the equivalent of TModel Model property on RazorPage<TModel>
-                var modelProperty = type.GetRuntimeProperty(ModelPropertyName);
+                var modelProperty = pageType.GetRuntimeProperty(ModelPropertyName);
                 if (modelProperty == null)
                 {
-                    var message = Resources.FormatViewCannotBeActivated(type.FullName, GetType().FullName);
+                    var message = Resources.FormatViewCannotBeActivated(pageType.FullName, GetType().FullName);
                     throw new InvalidOperationException(message);
                 }
 
-                modelType = _modelTypeLookup.GetOrAdd(type, modelProperty.PropertyType);
+                var modelType = modelProperty.PropertyType;
+                propertyActivator = new RazorPagePropertyActivator(
+                    pageType,
+                    modelType,
+                    _metadataProvider,
+                    _propertyAccessors);
+
+                propertyActivator = _activationInfo.GetOrAdd(pageType, propertyActivator);
             }
 
-            _razorPagePropertyActivator.Activate(page, context, modelType);
+            propertyActivator.Activate(page, context);
         }
     }
 }

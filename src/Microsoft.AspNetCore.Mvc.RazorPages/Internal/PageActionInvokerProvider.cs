@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -13,9 +14,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public class PageActionInvokerProvider : IActionInvokerProvider
     {
-        private readonly ConcurrentDictionary<PageActionDescriptor, PageActionInvokerCacheEntry> _pageCache;
         private readonly IPageLoader _loader;
         private readonly IPageFactoryProvider _pageFactoryProvider;
+        private readonly IActionDescriptorCollectionProvider _collectionProvider;
+        private readonly IFilterProvider[] _filterProviders;
+        private volatile InnerCache _currentCache;
 
         public PageActionInvokerProvider(
             IPageLoader loader,
@@ -24,11 +27,29 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             IEnumerable<IFilterProvider> filterProviders)
         {
             _loader = loader;
+            _collectionProvider = collectionProvider;
             _pageFactoryProvider = pageFactoryProvider;
-            _pageCache = new ConcurrentDictionary<PageActionDescriptor, PageActionInvokerCacheEntry>();
+            _filterProviders = filterProviders.ToArray();
         }
 
         public int Order { get; } = -1000;
+
+        private InnerCache CurrentCache
+        {
+            get
+            {
+                var current = _currentCache;
+                var actionDescriptors = _collectionProvider.ActionDescriptors;
+
+                if (current == null || current.Version != actionDescriptors.Version)
+                {
+                    current = new InnerCache(actionDescriptors.Version);
+                    _currentCache = current;
+                }
+
+                return current;
+            }
+        }
 
         public void OnProvidersExecuted(ActionInvokerProviderContext context)
         {
@@ -38,17 +59,20 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 return;
             }
 
+            var cache = CurrentCache;
             PageActionInvokerCacheEntry cacheEntry;
-            if (!_pageCache.TryGetValue(actionDescriptor, out cacheEntry))
+            if (!cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
             {
-                cacheEntry = _pageCache.GetOrAdd(actionDescriptor, CreateCacheEntry(actionDescriptor));
+                cacheEntry = CreateCacheEntry(context);
+                cacheEntry = cache.Entries.GetOrAdd(actionDescriptor, cacheEntry);
             }
 
             context.Result = new PageActionInvoker(cacheEntry, context.ActionContext);
         }
 
-        private PageActionInvokerCacheEntry CreateCacheEntry(PageActionDescriptor actionDescriptor)
+        private PageActionInvokerCacheEntry CreateCacheEntry(ActionInvokerProviderContext context)
         {
+            var actionDescriptor = (PageActionDescriptor)context.ActionContext.ActionDescriptor;
             var compiledType = _loader.Load(actionDescriptor).GetTypeInfo();
             var modelType = compiledType.GetProperty("Model")?.PropertyType.GetTypeInfo();
 
@@ -60,12 +84,25 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             return new PageActionInvokerCacheEntry(
                 compiledActionDescriptor,
-                _pageFactoryProvider.CreatePage(compiledActionDescriptor),
-                new IFilterMetadata[0]);
+                _pageFactoryProvider.CreatePageFactory(compiledActionDescriptor),
+                PageFilterFactoryProvider.GetFilterFactory(_filterProviders, context));
         }
 
         public void OnProvidersExecuting(ActionInvokerProviderContext context)
         {
+        }
+
+        private class InnerCache
+        {
+            public InnerCache(int version)
+            {
+                Version = version;
+            }
+
+            public ConcurrentDictionary<ActionDescriptor, PageActionInvokerCacheEntry> Entries { get; } =
+                new ConcurrentDictionary<ActionDescriptor, PageActionInvokerCacheEntry>();
+
+            public int Version { get; }
         }
     }
 }
