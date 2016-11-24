@@ -134,8 +134,6 @@ namespace Microsoft.AspNetCore.Mvc
             var services = new ServiceCollection();
             var mockManager = new Mock<ApplicationPartManager>(MockBehavior.Strict);
             services.AddSingleton(mockManager.Object);
-            mockManager = new Mock<ApplicationPartManager>(MockBehavior.Strict);
-            services.AddSingleton(mockManager.Object);
 
             var manager = new ApplicationPartManager();
             services.AddSingleton(manager);
@@ -175,8 +173,6 @@ namespace Microsoft.AspNetCore.Mvc
             // Arrange
             var services = new ServiceCollection();
             var environment = new Mock<IHostingEnvironment>(MockBehavior.Strict);
-            services.AddSingleton<IHostingEnvironment>(environment.Object);
-            environment = new Mock<IHostingEnvironment>(MockBehavior.Strict);
             services.AddSingleton<IHostingEnvironment>(environment.Object);
 
             environment = new Mock<IHostingEnvironment>(MockBehavior.Strict);
