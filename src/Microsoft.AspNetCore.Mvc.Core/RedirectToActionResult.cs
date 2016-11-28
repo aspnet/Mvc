@@ -19,6 +19,14 @@ namespace Microsoft.AspNetCore.Mvc
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToActionResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="actionName">The name of the action to use for generating the URL.</param>
+        /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToActionResult(
             string actionName,
             string controllerName,
@@ -37,6 +45,15 @@ namespace Microsoft.AspNetCore.Mvc
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToActionResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="actionName">The name of the action to use for generating the URL.</param>
+        /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToActionResult(
             string actionName,
             string controllerName,
