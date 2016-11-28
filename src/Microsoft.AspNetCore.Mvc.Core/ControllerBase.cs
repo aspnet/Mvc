@@ -478,7 +478,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="actionName">The name of the action.</param>
         /// <param name="controllerName">The name of the controller.</param>
-        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
         public virtual RedirectToActionResult RedirectToAction(
@@ -497,7 +497,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="actionName">The name of the action.</param>
         /// <param name="controllerName">The name of the controller.</param>
         /// <param name="routeValues">The parameters for a route.</param>
-        /// <param name="fragment">The fragment to add to the URL</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
         public virtual RedirectToActionResult RedirectToAction(
