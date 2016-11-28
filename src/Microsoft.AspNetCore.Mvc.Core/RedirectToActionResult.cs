@@ -12,6 +12,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ActionResult"/> that returns a Found (302)
     /// or Moved Permanently (301) response with a Location header.
+    /// Targets a controller action.
     /// </summary>
     public class RedirectToActionResult : ActionResult, IKeepTempDataResult
     {
