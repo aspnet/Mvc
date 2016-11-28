@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc
         public bool Permanent { get; set; }
 
         /// <summary>
-        /// Gets or sets the fragment to add to the URL
+        /// Gets or sets the fragment to add to the URL.
         /// </summary>
         public string Fragment { get; set; }
 
