@@ -508,7 +508,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             return new RedirectToActionResult(actionName, controllerName, routeValues, fragment)
             {
-                UrlHelper = Url
+                UrlHelper = Url,
             };
         }
 
@@ -610,7 +610,7 @@ namespace Microsoft.AspNetCore.Mvc
                 permanent: true,
                 fragment: fragment)
             {
-                UrlHelper = Url
+                UrlHelper = Url,
             };
         }
 
@@ -678,7 +678,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             return new RedirectToRouteResult(routeName, routeValues, fragment)
             {
-                UrlHelper = Url
+                UrlHelper = Url,
             };
         }
 
@@ -749,7 +749,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             return new RedirectToRouteResult(routeName, routeValues, permanent: true, fragment: fragment)
             {
-                UrlHelper = Url
+                UrlHelper = Url,
             };
         }
 
