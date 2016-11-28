@@ -103,6 +103,9 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public RouteValueDictionary RouteValues { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether the redirect is permanent.
+        /// </summary>
         public bool Permanent { get; set; }
 
         /// <summary>
