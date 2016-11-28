@@ -11,11 +11,22 @@ namespace Microsoft.AspNetCore.Mvc
 {
     public class RedirectToRouteResult : ActionResult, IKeepTempDataResult
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeValues">The parameters for the route.</param>
         public RedirectToRouteResult(object routeValues)
             : this(routeName: null, routeValues: routeValues)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
         public RedirectToRouteResult(
             string routeName,
             object routeValues)
@@ -23,6 +34,13 @@ namespace Microsoft.AspNetCore.Mvc
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
+        /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
         public RedirectToRouteResult(
             string routeName,
             object routeValues,
