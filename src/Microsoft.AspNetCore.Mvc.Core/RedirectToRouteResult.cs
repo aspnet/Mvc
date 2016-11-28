@@ -31,6 +31,13 @@ namespace Microsoft.AspNetCore.Mvc
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToRouteResult(
             string routeName,
             object routeValues,
@@ -39,6 +46,14 @@ namespace Microsoft.AspNetCore.Mvc
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
+        /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToRouteResult(
             string routeName,
             object routeValues,
