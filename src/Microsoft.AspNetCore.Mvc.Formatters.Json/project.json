@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.JsonPatch": "1.2.0-*",
+    "Microsoft.AspNetCore.Mvc.ApiExplorer": "1.2.0-*",
     "Microsoft.AspNetCore.Mvc.Core": {
       "target": "project"
     },

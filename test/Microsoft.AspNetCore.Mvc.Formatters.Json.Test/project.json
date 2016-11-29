@@ -5,6 +5,7 @@
   "dependencies": {
     "dotnet-test-xunit": "2.2.0-*",
     "Microsoft.AspNetCore.Http": "1.2.0-*",
+    "Microsoft.AspNetCore.JsonPatch": "1.2.0-*",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "target": "project"
     },
