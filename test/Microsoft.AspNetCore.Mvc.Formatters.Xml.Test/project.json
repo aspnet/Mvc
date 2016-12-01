@@ -9,7 +9,9 @@
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "target": "project"
     },
-    "Microsoft.DotNet.InternalAbstractions": "1.0.0"
+    "Microsoft.DotNet.InternalAbstractions": "1.0.0",
+    "Microsoft.Extensions.DependencyInjection": "1.2.0-*",
+    "Microsoft.Extensions.Logging.Testing": "1.2.0-*"
   },
   "testRunner": "xunit",
   "frameworks": {
