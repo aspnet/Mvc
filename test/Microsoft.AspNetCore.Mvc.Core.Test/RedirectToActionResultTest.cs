@@ -88,19 +88,14 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var expectedUrl = "/Home/SampleAction#test";
-            var expectedPermanentFlag = false;
+            var expectedStatusCode = StatusCodes.Status302Found;
 
-            var httpContext = new Mock<HttpContext>();
-            httpContext
-                .SetupGet(o => o.RequestServices)
-                .Returns(CreateServices().BuildServiceProvider());
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = CreateServices().BuildServiceProvider(),
+            };
 
-            var httpResponse = new Mock<HttpResponse>();
-            httpContext
-                .Setup(o => o.Response)
-                .Returns(httpResponse.Object);
-
-            var actionContext = new ActionContext(httpContext.Object, new RouteData(), new ActionDescriptor());
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             var urlHelper = GetMockUrlHelper(expectedUrl);
             var result = new RedirectToActionResult("SampleAction", "Home", null, false, "test")
@@ -112,10 +107,8 @@ namespace Microsoft.AspNetCore.Mvc
             await result.ExecuteResultAsync(actionContext);
 
             // Assert
-            // Verifying if Redirect was called with the specific Url and parameter flag.
-            // Thus we verify that the Url returned by UrlHelper is passed properly to
-            // Redirect method and that the method is called exactly once.
-            httpResponse.Verify(r => r.Redirect(expectedUrl, expectedPermanentFlag), Times.Exactly(1));
+            Assert.Equal(expectedStatusCode, httpContext.Response.StatusCode);
+            Assert.Equal(expectedUrl, httpContext.Response.Headers["Location"]);
         }
 
         private static IUrlHelper GetMockUrlHelper(string returnValue)
