@@ -721,7 +721,7 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Redirects to the specified route with <see cref="RedirectToRouteResult.Permanent"/> set to true
-        /// using the specified <paramref name="routeName"/>, and <paramref name="fragment"/>.
+        /// using the specified <paramref name="routeName"/> and <paramref name="fragment"/>.
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
