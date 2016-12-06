@@ -35,19 +35,9 @@ namespace BasicWebSite.Controllers
             return RedirectToAction("ActionReturningTask");
         }
 
-        public IActionResult RedirectToActionWithFragment()
-        {
-            return RedirectToAction("ActionReturningTask", "Home", null, "test");
-        }
-
         public IActionResult RedirectToRouteActionAsMethodAction()
         {
             return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" });
-        }
-
-        public IActionResult RedirectToRouteUsingRouteNameAndFragment()
-        {
-            return RedirectToRoutePermanent("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" }, fragment: "test");
         }
 
         public IActionResult RedirectToRouteUsingRouteName()
