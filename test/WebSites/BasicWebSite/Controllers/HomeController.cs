@@ -37,7 +37,7 @@ namespace BasicWebSite.Controllers
 
         public IActionResult RedirectToActionWithFragment()
         {
-            return RedirectToAction("ActionReturningTask", "Home", fragment: "test");
+            return RedirectToAction("ActionReturningTask", "Home", null, "test");
         }
 
         public IActionResult RedirectToRouteActionAsMethodAction()
@@ -47,7 +47,7 @@ namespace BasicWebSite.Controllers
 
         public IActionResult RedirectToRouteUsingRouteNameAndFragment()
         {
-            return RedirectToRoute("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" }, fragment: "test");
+            return RedirectToRoutePermanent("ActionAsMethod", new { action = "ActionReturningTask", controller = "Home" }, fragment: "test");
         }
 
         public IActionResult RedirectToRouteUsingRouteName()
