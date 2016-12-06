@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         private object _model;
         private Func<object, object> _modelAccessor;
-        private List<ModelExplorer> _properties;
+        private ModelExplorer[] _properties;
 
         /// <summary>
         /// Creates a new <see cref="ModelExplorer"/>.
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// </remarks>
         public IEnumerable<ModelExplorer> Properties => PropertiesInternal;
 
-        private IReadOnlyList<ModelExplorer> PropertiesInternal
+        private ModelExplorer[] PropertiesInternal
         {
             get
             {
@@ -209,7 +209,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     var properties = metadata.Properties;
                     var propertyHelpers = PropertyHelper.GetProperties(ModelType);
 
-                    _properties = new List<ModelExplorer>(properties.Count);
+                    _properties = new ModelExplorer[properties.Count];
                     for (var i = 0; i < properties.Count; i++)
                     {
                         var propertyMetadata = properties[i];
@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         }
 
                         Debug.Assert(propertyHelper != null);
-                        _properties.Add(CreateExplorerForProperty(propertyMetadata, propertyHelper));
+                        _properties[i] = CreateExplorerForProperty(propertyMetadata, propertyHelper);
                     }
                 }
 
@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(name));
             }
 
-            for (var i = 0; i < PropertiesInternal.Count; i++)
+            for (var i = 0; i < PropertiesInternal.Length; i++)
             {
                 var property = PropertiesInternal[i];
                 if (string.Equals(name, property.Metadata.PropertyName, StringComparison.Ordinal))
