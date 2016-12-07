@@ -12,11 +12,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             CompiledPageActionDescriptor actionDescriptor,
             Func<PageContext, object> pageFactory,
             Action<PageContext, object> releasePage,
+            Func<PageContext, object> modelFactory,
+            Action<PageContext, object> releaseModel,
             Func<PageContext, IFilterMetadata[]> filterProvider)
         {
             ActionDescriptor = actionDescriptor;
             PageFactory = pageFactory;
             ReleasePage = releasePage;
+            ModelFactory = modelFactory;
+            ReleaseModel = releaseModel;
             FilterProvider = filterProvider;
         }
 
@@ -29,6 +33,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         /// </summary>
         public Action<PageContext, object> ReleasePage { get; }
 
-        Func<PageContext, IFilterMetadata[]> FilterProvider { get; }
+        public Func<PageContext, object> ModelFactory { get; }
+
+        /// <summary>
+        /// The action invoked to release a model. This may be <c>null</c>.
+        /// </summary>
+        public Action<PageContext, object> ReleaseModel { get; }
+
+        public Func<PageContext, IFilterMetadata[]> FilterProvider { get; }
     }
 }
