@@ -1420,6 +1420,36 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         }
 
         [Theory]
+        [InlineData("/Views/Home/Index.cshtml", "../Shared/_Partial.cshtml")]
+        [InlineData("/Views/Home/Index.cshtml", "..\\Shared\\_Partial.cshtml")]
+        [InlineData("/Areas/MyArea/Views/Home/Index.cshtml", "../../../../Views/Shared/_Partial.cshtml")]
+        [InlineData("/Views/Accounts/Users.cshtml", "../Test/../Shared/_Partial.cshtml")]
+        public void GetAbsolutePath_ResolvesPathTraversals(string executingFilePath, string pagePath)
+        {
+            // Arrange
+            var viewEngine = CreateViewEngine();
+
+            // Act
+            var result = viewEngine.GetAbsolutePath(executingFilePath, pagePath);
+
+            // Assert
+            Assert.Equal("/Views/Shared/_Partial.cshtml", result);
+        }
+
+        [Fact]
+        public void GetAbsolutePath_DoesNotResolvePathIfTraversalsEscapeTheRoot()
+        {
+            // Arrange
+            var viewEngine = CreateViewEngine();
+
+            // Act
+            var result = viewEngine.GetAbsolutePath("/Index.cshtml", "../Shared/_Layout.cshtml");
+
+            // Assert
+            Assert.Equal("/../Shared/_Layout.cshtml", result);
+        }
+
+        [Theory]
         [InlineData(null, "/Page")]
         [InlineData(null, "~/Folder/Page.cshtml")]
         [InlineData(null, "/Folder1/Folder2/Page.rzr")]
