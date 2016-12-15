@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
             {
                 foreach (var parameterDescription in result.ParameterDescriptions)
                 {
-                    if (typeof(IJsonPatchDocument).GetTypeInfo().IsAssignableFrom(parameterDescription.Type))
+                    if (typeof(IJsonPatchDocument).GetTypeInfo().IsAssignableFrom(parameterDescription.Type) && parameterDescription.SerializationType == typeof(Operation[]))
                     {
                         parameterDescription.Type = typeof(Operation[]);
                     }

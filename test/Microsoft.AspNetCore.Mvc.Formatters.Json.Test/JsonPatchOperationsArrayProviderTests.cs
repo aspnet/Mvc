@@ -20,7 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
             var provider = new JsonPatchOperationsArrayProvider();
             var jsonPatchParameterDescription = new ApiParameterDescription
             {
-                Type = typeof(JsonPatchDocument)
+                Type = typeof(JsonPatchDocument),
+                SerializationType = typeof(Operation[])
             };
 
             var stringParameterDescription = new ApiParameterDescription
@@ -42,8 +43,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
 
             // Assert
             Assert.Equal(2, apiDescription.ParameterDescriptions.Count);
-            Assert.True(apiDescription.ParameterDescriptions.Any(d => d.Type == typeof(Operation[])));
-            Assert.False(apiDescription.ParameterDescriptions.Any(d => d.Type == typeof(IJsonPatchDocument)));
+
+            Assert.Collection(apiDescription.ParameterDescriptions,
+                description => Assert.Equal(typeof(Operation[]), description.Type),
+                description => Assert.NotEqual(typeof(IJsonPatchDocument), description.Type));
         }
     }
 }

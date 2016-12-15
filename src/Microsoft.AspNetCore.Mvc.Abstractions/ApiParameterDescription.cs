@@ -35,5 +35,10 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// Gets or sets the parameter type.
         /// </summary>
         public Type Type { get; set; }
+
+        /// <summary>
+        /// Gets or sets the parameter serialization type.
+        /// </summary>
+        public Type SerializationType { get; set; }
     }
 }
