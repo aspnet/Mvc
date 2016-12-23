@@ -14,149 +14,149 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
-	/// <summary>
-	/// <see cref="ITagHelper"/> implementation targeting &lt;img&gt; elements that supports file versioning.
-	/// </summary>
-	/// <remarks>
-	/// The tag helper won't process for cases with just the 'src' attribute.
-	/// </remarks>
-	[HtmlTargetElement(
-		"img",
-		Attributes = AppendVersionAttributeName + "," + SrcAttributeName,
-		TagStructure = TagStructure.WithoutEndTag)]
-	[HtmlTargetElement(
-		"img",
-		Attributes = FallbackSrcAttributeName + "," + SrcAttributeName,
-		TagStructure = TagStructure.WithoutEndTag)]
-	public class ImageTagHelper : UrlResolutionTagHelper
-	{
-		private static readonly string Namespace = typeof(ImageTagHelper).Namespace;
+    /// <summary>
+    /// <see cref="ITagHelper"/> implementation targeting &lt;img&gt; elements that supports file versioning.
+    /// </summary>
+    /// <remarks>
+    /// The tag helper won't process for cases with just the 'src' attribute.
+    /// </remarks>
+    [HtmlTargetElement(
+        "img",
+        Attributes = AppendVersionAttributeName + "," + SrcAttributeName,
+        TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement(
+        "img",
+        Attributes = FallbackSrcAttributeName + "," + SrcAttributeName,
+        TagStructure = TagStructure.WithoutEndTag)]
+    public class ImageTagHelper : UrlResolutionTagHelper
+    {
+        private static readonly string Namespace = typeof(ImageTagHelper).Namespace;
 
-		private const string AppendVersionAttributeName = "asp-append-version";
-		private const string SrcAttributeName = "src";
-		private const string FallbackSrcAttributeName = "asp-fallback-src";
-		private const string OnErrorAttributeName = "onerror";
+        private const string AppendVersionAttributeName = "asp-append-version";
+        private const string SrcAttributeName = "src";
+        private const string FallbackSrcAttributeName = "asp-fallback-src";
+        private const string OnErrorAttributeName = "onerror";
 
-		private FileVersionProvider _fileVersionProvider;
+        private FileVersionProvider _fileVersionProvider;
 
-		/// <summary>
-		/// Creates a new <see cref="ImageTagHelper"/>.
-		/// </summary>
-		/// <param name="hostingEnvironment">The <see cref="IHostingEnvironment"/>.</param>
-		/// <param name="cache">The <see cref="IMemoryCache"/>.</param>
-		/// <param name="htmlEncoder">The <see cref="HtmlEncoder"/> to use.</param>
-		/// <param name="urlHelperFactory">The <see cref="IUrlHelperFactory"/>.</param>
-		public ImageTagHelper(
-			IHostingEnvironment hostingEnvironment,
-			IMemoryCache cache,
-			HtmlEncoder htmlEncoder,
-			IUrlHelperFactory urlHelperFactory)
-			: base(urlHelperFactory, htmlEncoder)
-		{
-			HostingEnvironment = hostingEnvironment;
-			Cache = cache;
-		}
+        /// <summary>
+        /// Creates a new <see cref="ImageTagHelper"/>.
+        /// </summary>
+        /// <param name="hostingEnvironment">The <see cref="IHostingEnvironment"/>.</param>
+        /// <param name="cache">The <see cref="IMemoryCache"/>.</param>
+        /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/> to use.</param>
+        /// <param name="urlHelperFactory">The <see cref="IUrlHelperFactory"/>.</param>
+        public ImageTagHelper(
+            IHostingEnvironment hostingEnvironment,
+            IMemoryCache cache,
+            HtmlEncoder htmlEncoder,
+            IUrlHelperFactory urlHelperFactory)
+            : base(urlHelperFactory, htmlEncoder)
+        {
+            HostingEnvironment = hostingEnvironment;
+            Cache = cache;
+        }
 
-		/// <inheritdoc />
-		public override int Order
-		{
-			get
-			{
-				return -1000;
-			}
-		}
+        /// <inheritdoc />
+        public override int Order
+        {
+            get
+            {
+                return -1000;
+            }
+        }
 
-		/// <summary>
-		/// Source of the image.
-		/// </summary>
-		/// <remarks>
-		/// Passed through to the generated HTML in all cases.
-		/// </remarks>
-		[HtmlAttributeName(SrcAttributeName)]
-		public string Src { get; set; }
+        /// <summary>
+        /// Source of the image.
+        /// </summary>
+        /// <remarks>
+        /// Passed through to the generated HTML in all cases.
+        /// </remarks>
+        [HtmlAttributeName(SrcAttributeName)]
+        public string Src { get; set; }
 
-		/// <summary>
-		/// Value indicating if file version should be appended to the src urls.
-		/// </summary>
-		/// <remarks>
-		/// If <c>true</c> then a query string "v" with the encoded content of the file is added.
-		/// </remarks>
-		[HtmlAttributeName(AppendVersionAttributeName)]
-		public bool AppendVersion { get; set; }
+        /// <summary>
+        /// Value indicating if file version should be appended to the src urls.
+        /// </summary>
+        /// <remarks>
+        /// If <c>true</c> then a query string "v" with the encoded content of the file is added.
+        /// </remarks>
+        [HtmlAttributeName(AppendVersionAttributeName)]
+        public bool AppendVersion { get; set; }
 
-		/// <summary>
-		/// The URL of the Image tag to fallback to in the case the primary one fails
-		/// </summary>
-		/// <remarks>
-		/// Utilizes the onerror JavaScript handler for fallback
-		/// </remarks>
-		[HtmlAttributeName(FallbackSrcAttributeName)]
-		public string FallbackSrc { get; set; }
+        /// <summary>
+        /// The URL of the Image tag to fallback to in the case the primary one fails
+        /// </summary>
+        /// <remarks>
+        /// Utilizes the onerror JavaScript handler for fallback
+        /// </remarks>
+        [HtmlAttributeName(FallbackSrcAttributeName)]
+        public string FallbackSrc { get; set; }
 
-		protected IHostingEnvironment HostingEnvironment { get; }
+        protected IHostingEnvironment HostingEnvironment { get; }
 
-		protected IMemoryCache Cache { get; }
+        protected IMemoryCache Cache { get; }
 
-		/// <inheritdoc />
-		public override void Process(TagHelperContext context, TagHelperOutput output)
-		{
-			if (context == null)
-			{
-				throw new ArgumentNullException(nameof(context));
-			}
+        /// <inheritdoc />
+        public override void Process(TagHelperContext context, TagHelperOutput output)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-			if (output == null)
-			{
-				throw new ArgumentNullException(nameof(output));
-			}
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
 
-			output.CopyHtmlAttribute(SrcAttributeName, context);
-			ProcessUrlAttribute(SrcAttributeName, output);
+            output.CopyHtmlAttribute(SrcAttributeName, context);
+            ProcessUrlAttribute(SrcAttributeName, output);
 
-			if (AppendVersion)
-			{
-				EnsureFileVersionProvider();
+            if (AppendVersion)
+            {
+                EnsureFileVersionProvider();
 
-				// Retrieve the TagHelperOutput variation of the "src" attribute in case other TagHelpers in the
-				// pipeline have touched the value. If the value is already encoded this ImageTagHelper may
-				// not function properly.
-				Src = output.Attributes[SrcAttributeName].Value as string;
+                // Retrieve the TagHelperOutput variation of the "src" attribute in case other TagHelpers in the
+                // pipeline have touched the value. If the value is already encoded this ImageTagHelper may
+                // not function properly.
+                Src = output.Attributes[SrcAttributeName].Value as string;
 
-				output.Attributes.SetAttribute(SrcAttributeName, _fileVersionProvider.AddFileVersionToPath(Src));
-			}
+                output.Attributes.SetAttribute(SrcAttributeName, _fileVersionProvider.AddFileVersionToPath(Src));
+            }
 
-			//Retrieve any existing onerror handler code
-			var onError = output.Attributes[OnErrorAttributeName]?.Value as string;
+            //Retrieve any existing onerror handler code
+            var onError = output.Attributes[OnErrorAttributeName]?.Value as string;
 
-			//Check if there's a fallback source and no onerror handler
-			if (!string.IsNullOrWhiteSpace(FallbackSrc) && string.IsNullOrWhiteSpace(onError))
-			{
-				string resolvedUrl;
-				if (TryResolveUrl(FallbackSrc, out resolvedUrl))
-				{
-					FallbackSrc = resolvedUrl;
-				}
+            //Check if there's a fallback source and no onerror handler
+            if (!string.IsNullOrWhiteSpace(FallbackSrc) && string.IsNullOrWhiteSpace(onError))
+            {
+                string resolvedUrl;
+                if (TryResolveUrl(FallbackSrc, out resolvedUrl))
+                {
+                    FallbackSrc = resolvedUrl;
+                }
 
-				if (AppendVersion)
-				{
-					FallbackSrc = _fileVersionProvider.AddFileVersionToPath(FallbackSrc);
-				}
+                if (AppendVersion)
+                {
+                    FallbackSrc = _fileVersionProvider.AddFileVersionToPath(FallbackSrc);
+                }
 
-				//Apply fallback handler code
-				onError = $"this.src = '{FallbackSrc}'";
-				output.Attributes.SetAttribute(OnErrorAttributeName, onError);
-			}
-		}
+                //Apply fallback handler code
+                onError = $"this.src = '{FallbackSrc}'";
+                output.Attributes.SetAttribute(OnErrorAttributeName, onError);
+            }
+        }
 
-		private void EnsureFileVersionProvider()
-		{
-			if (_fileVersionProvider == null)
-			{
-				_fileVersionProvider = new FileVersionProvider(
-					HostingEnvironment.WebRootFileProvider,
-					Cache,
-					ViewContext.HttpContext.Request.PathBase);
-			}
-		}
-	}
+        private void EnsureFileVersionProvider()
+        {
+            if (_fileVersionProvider == null)
+            {
+                _fileVersionProvider = new FileVersionProvider(
+                    HostingEnvironment.WebRootFileProvider,
+                    Cache,
+                    ViewContext.HttpContext.Request.PathBase);
+            }
+        }
+    }
 }
