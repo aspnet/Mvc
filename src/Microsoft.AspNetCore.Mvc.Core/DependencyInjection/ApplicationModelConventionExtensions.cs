@@ -50,6 +50,60 @@ namespace Microsoft.Extensions.DependencyInjection
             conventions.Add(new ActionApplicationModelConvention(actionModelConvention));
         }
 
+        /// <summary>
+        /// Adds a <see cref="IParameterModelConvention"/> to all the parameters in the application.
+        /// </summary>
+        /// <param name="conventions">The list of <see cref="IApplicationModelConvention"/>
+        /// in <see cref="AspNetCore.Mvc.MvcOptions"/>.</param>
+        /// <param name="parameterModelConvention">The <see cref="IParameterModelConvention"/> which needs to be
+        /// added.</param>
+        public static void Add(
+            this IList<IApplicationModelConvention> conventions,
+            IParameterModelConvention parameterModelConvention)
+        {
+            conventions.Add(new ParameterApplicationModelConvention(parameterModelConvention));
+        }
+
+        private class ParameterApplicationModelConvention : IApplicationModelConvention
+        {
+            private IParameterModelConvention _parameterModelConvention;
+
+            /// <summary>
+            /// Initializes a new instance of <see cref="ParameterApplicationModelConvention"/>.
+            /// </summary>
+            /// <param name="parameterModelConvention">The parameter convention to be applied on all parameters
+            /// in the application.</param>
+            public ParameterApplicationModelConvention(IParameterModelConvention parameterModelConvention)
+            {
+                if (parameterModelConvention == null)
+                {
+                    throw new ArgumentNullException(nameof(parameterModelConvention));
+                }
+
+                _parameterModelConvention = parameterModelConvention;
+            }
+
+            /// <inheritdoc />
+            public void Apply(ApplicationModel application)
+            {
+                if (application == null)
+                {
+                    throw new ArgumentNullException(nameof(application));
+                }
+
+                foreach (var controller in application.Controllers)
+                {
+                    foreach (var action in controller.Actions)
+                    {
+                        foreach (var parameter in action.Parameters)
+                        {
+                            _parameterModelConvention.Apply(parameter);
+                        }
+                    }
+                }
+            }
+        }
+
         private class ActionApplicationModelConvention : IApplicationModelConvention
         {
             private IActionModelConvention _actionModelConvention;
