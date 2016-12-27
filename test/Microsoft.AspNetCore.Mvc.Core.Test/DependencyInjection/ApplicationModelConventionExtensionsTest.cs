@@ -33,7 +33,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     foreach (var parameter in action.Parameters)
                     {
-                        Assert.True(parameter.Properties.ContainsKey("TestProperty"));
+                        Assert.Contains("TestProperty", parameter.Properties.Keys);
+                        Assert.Contains("TestValue", parameter.Properties.Values);             
                     }
                 }
             }

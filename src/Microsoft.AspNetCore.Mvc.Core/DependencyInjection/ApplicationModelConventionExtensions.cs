@@ -61,6 +61,16 @@ namespace Microsoft.Extensions.DependencyInjection
             this IList<IApplicationModelConvention> conventions,
             IParameterModelConvention parameterModelConvention)
         {
+            if (conventions == null)
+            {
+                throw new ArgumentNullException(nameof(conventions));
+            }
+
+            if (parameterModelConvention == null)
+            {
+                throw new ArgumentNullException(nameof(parameterModelConvention));
+            }
+
             conventions.Add(new ParameterApplicationModelConvention(parameterModelConvention));
         }
 
@@ -68,11 +78,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             private IParameterModelConvention _parameterModelConvention;
 
-            /// <summary>
-            /// Initializes a new instance of <see cref="ParameterApplicationModelConvention"/>.
-            /// </summary>
-            /// <param name="parameterModelConvention">The parameter convention to be applied on all parameters
-            /// in the application.</param>
             public ParameterApplicationModelConvention(IParameterModelConvention parameterModelConvention)
             {
                 if (parameterModelConvention == null)
