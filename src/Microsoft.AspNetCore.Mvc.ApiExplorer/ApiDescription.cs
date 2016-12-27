@@ -44,6 +44,9 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// <summary>
         /// Gets the list of possible formats for a request.
         /// </summary>
+        /// <remarks>
+        /// Will be empty if the action does not accept a parameter decorated with the <c>[FromBody]</c> attribute.
+        /// </remarks>
         public IList<ApiRequestFormat> SupportedRequestFormats { get; } = new List<ApiRequestFormat>();
 
         /// <summary>
