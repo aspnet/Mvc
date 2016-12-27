@@ -47,6 +47,16 @@ namespace Microsoft.Extensions.DependencyInjection
             this IList<IApplicationModelConvention> conventions,
             IActionModelConvention actionModelConvention)
         {
+            if (conventions == null)
+            {
+                throw new ArgumentNullException(nameof(conventions));
+            }
+
+            if (actionModelConvention == null)
+            {
+                throw new ArgumentNullException(nameof(actionModelConvention));
+            }
+
             conventions.Add(new ActionApplicationModelConvention(actionModelConvention));
         }
 
@@ -113,11 +123,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             private IActionModelConvention _actionModelConvention;
 
-            /// <summary>
-            /// Initializes a new instance of <see cref="ActionApplicationModelConvention"/>.
-            /// </summary>
-            /// <param name="actionModelConvention">The action convention to be applied on all actions
-            /// in the application.</param>
             public ActionApplicationModelConvention(IActionModelConvention actionModelConvention)
             {
                 if (actionModelConvention == null)
@@ -150,11 +155,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             private IControllerModelConvention _controllerModelConvention;
 
-            /// <summary>
-            /// Initializes a new instance of <see cref="ControllerApplicationModelConvention"/>.
-            /// </summary>
-            /// <param name="controllerConvention">The controller convention to be applied on all controllers
-            /// in the application.</param>
             public ControllerApplicationModelConvention(IControllerModelConvention controllerConvention)
             {
                 if (controllerConvention == null)

@@ -33,8 +33,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     foreach (var parameter in action.Parameters)
                     {
-                        Assert.Contains("TestProperty", parameter.Properties.Keys);
-                        Assert.Contains("TestValue", parameter.Properties.Values);             
+                        var kvp = Assert.Single(parameter.Properties);
+                        Assert.Equal("TestProperty", kvp.Key);
+                        Assert.Equal("TestValue", kvp.Value);
                     }
                 }
             }
@@ -59,7 +60,9 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 foreach (var action in controller.Actions)
                 {
-                    Assert.True(action.Properties.ContainsKey("TestProperty"));
+                    var kvp = Assert.Single(action.Properties);
+                    Assert.Equal("TestProperty", kvp.Key);
+                    Assert.Equal("TestValue", kvp.Value);
                 }
             }
         }
@@ -80,7 +83,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // Assert
             foreach (var controller in app.Controllers)
             {
-                Assert.True(controller.Properties.ContainsKey("TestProperty"));
+                var kvp = Assert.Single(controller.Properties);
+                Assert.Equal("TestProperty", kvp.Key);
+                Assert.Equal("TestValue", kvp.Value);
             }
         }
 
