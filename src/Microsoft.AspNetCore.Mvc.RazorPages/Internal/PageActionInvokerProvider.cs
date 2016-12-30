@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -108,7 +109,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 compiledActionDescriptor,
                 _pageFactoryProvider.CreatePageFactory(compiledActionDescriptor),
                 _pageFactoryProvider.CreatePageDisposer(compiledActionDescriptor),
-                PageFilterFactoryProvider.GetFilterFactory(_filterProviders, context));
+                FilterFactoryProvider.GetFilterFactory(_filterProviders, context.ActionContext));
         }
 
         private class InnerCache

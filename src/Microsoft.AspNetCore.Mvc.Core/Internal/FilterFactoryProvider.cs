@@ -4,29 +4,27 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Internal;
 
-namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
+namespace Microsoft.AspNetCore.Mvc.Internal
 {
-    public static class PageFilterFactoryProvider
+    public static class FilterFactoryProvider
     {
         public static Func<ActionContext, IFilterMetadata[]> GetFilterFactory(
             IFilterProvider[] filterProviders,
-            ActionInvokerProviderContext actionInvokerProviderContext)
+            ActionContext actionContext)
         {
             if (filterProviders == null)
             {
                 throw new ArgumentNullException(nameof(filterProviders));
             }
 
-            if (actionInvokerProviderContext == null)
+            if (actionContext == null)
             {
-                throw new ArgumentNullException(nameof(actionInvokerProviderContext));
+                throw new ArgumentNullException(nameof(actionContext));
             }
 
-            var actionDescriptor = actionInvokerProviderContext.ActionContext.ActionDescriptor;
+            var actionDescriptor = actionContext.ActionDescriptor;
 
             // staticFilterItems is captured as part of the closure.We evaluate it once to determine
             // which of the staticFilters are reusable.
@@ -40,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var allFilterItems = new List<FilterItem>(staticFilterItems);
 
             // Execute the filter factory to determine which static filters can be cached.
-            var filters = internalFilterFactory(allFilterItems, actionInvokerProviderContext.ActionContext);
+            var filters = internalFilterFactory(allFilterItems, actionContext);
 
             // Cache the filter items based on the following criteria
             // 1. Are created statically (ex: via filter attributes, added to global filter list etc.)
@@ -54,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 }
             }
 
-            return (actionContext) =>
+            return (currentActionContext) =>
             {
                 // Reuse the filters cached outside the closure for the very first run. This avoids re-running
                 // filters twice the first time we cache for a page.
@@ -78,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     });
                 }
 
-                return internalFilterFactory(filterItems, actionContext);
+                return internalFilterFactory(filterItems, currentActionContext);
             };
         }
 
