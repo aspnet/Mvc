@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
@@ -33,6 +35,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         context.ValidationMetadata.ValidatorMetadata.Add(attribute);
                     }
                 }
+            }
+
+            // IShouldValidate attributes on a type affect properties in that type, not properties that have that type.
+            // Thus, we ignore context.TypeAttributes for properties and don't check at all for types.
+            if (context.Key.MetadataKind == ModelMetadataKind.Property)
+            {
+                var shouldValidate = context.PropertyAttributes.OfType<IShouldValidate>().FirstOrDefault();
+                if (shouldValidate == null)
+                {
+                    // No [ValidateNever] on the property. Check if container has this attribute.
+                    shouldValidate = context.Key.ContainerType.GetTypeInfo()
+                        .GetCustomAttributes(inherit: true)
+                        .OfType<IShouldValidate>()
+                        .FirstOrDefault();
+                }
+
+                context.ValidationMetadata.ShouldValidate = shouldValidate;
             }
         }
     }
