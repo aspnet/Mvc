@@ -66,43 +66,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _executor = objectMethodExecutor;
         }
 
-        public virtual async Task InvokeAsync()
+        protected override void ReleaseResources()
         {
-            try
+            if (_controller != null)
             {
-                _diagnosticSource.BeforeAction(
-                    _controllerContext.ActionDescriptor,
-                    _controllerContext.HttpContext,
-                    _controllerContext.RouteData);
-
-                using (_logger.ActionScope(_controllerContext.ActionDescriptor))
-                {
-                    _logger.ExecutingAction(_controllerContext.ActionDescriptor);
-
-                    var startTimestamp = _logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
-
-                    try
-                    {
-                        await InvokeFilterPipelineAsync();
-
-                    }
-                    finally
-                    {
-                        if (_controller != null)
-                        {
-                            _controllerFactory.ReleaseController(_controllerContext, _controller);
-                        }
-
-                        _logger.ExecutedAction(_controllerContext.ActionDescriptor, startTimestamp);
-                    }
-                }
-            }
-            finally
-            {
-                _diagnosticSource.AfterAction(
-                    _controllerContext.ActionDescriptor,
-                    _controllerContext.HttpContext,
-                    _controllerContext.RouteData);
+                _controllerFactory.ReleaseController(_controllerContext, _controller);
             }
         }
 
@@ -113,7 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             switch (next)
             {
-                case State.InvokeBegin:
+                case State.ResourceInnerBegin:
                     {
                         goto case State.ExceptionBegin;
                     }
@@ -145,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         else
                         {
                             // There are no exception filters - so jump right to 'inside'.
-                            Debug.Assert(scope == Scope.Invoker);
+                            Debug.Assert(scope == Scope.Resource);
                             goto case State.ActionBegin;
                         }
                     }
@@ -254,7 +222,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         Debug.Assert(state != null);
                         Debug.Assert(_exceptionContext != null);
 
-                        if (scope == Scope.Invoker)
+                        if (scope == Scope.Resource)
                         {
                             Debug.Assert(_exceptionContext.Result != null);
                             _result = _exceptionContext.Result;
@@ -263,11 +231,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var task = InvokeResultAsync(_exceptionContext.Result);
                         if (task.Status != TaskStatus.RanToCompletion)
                         {
-                            next = State.InvokeEnd;
+                            next = State.ResourceInnerEnd;
                             return task;
                         }
 
-                        goto case State.InvokeEnd;
+                        goto case State.ResourceInnerEnd;
                     }
 
                 case State.ExceptionEnd:
@@ -491,7 +459,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             return TaskCache.CompletedTask;
                         }
 
-                        Debug.Assert(scope == Scope.Invoker);
+                        Debug.Assert(scope == Scope.Resource);
                         goto case State.ResultBegin;
                     }
 
@@ -678,10 +646,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         Rethrow(_resultExecutedContext);
 
-                        goto case State.InvokeEnd;
+                        goto case State.ResourceInnerEnd;
                     }
 
-                case State.InvokeEnd:
+                case State.ResourceInnerEnd:
                     {
                         isCompleted = true;
                         return TaskCache.CompletedTask;
@@ -918,12 +886,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // When returning, the `Next` method will set `next` to the state to goto on the subsequent invocation.
             // This is similar to `Task.ContinueWith`, but since we have a fixed number of states we can avoid
             // the overhead of actually using `Task.ContinueWith`.
-            var next = State.InvokeBegin;
+            var next = State.ResourceInnerBegin;
 
             // The `scope` tells the `Next` method who the caller is, and what kind of state to initialize to
             // communicate a result. The outermost scope is `Scope.Invoker` and doesn't require any type
             // of context or result other than throwing.
-            var scope = Scope.Invoker;
+            var scope = Scope.Resource;
 
             // The `state` is used for internal state handling during transitions between states. In practice this
             // means storing a filter instance in `state` and then retrieving it in the next state.
@@ -1009,7 +977,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private enum Scope
         {
-            Invoker,
+            Resource,
             Exception,
             Action,
             Result,
@@ -1017,9 +985,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private enum State
         {
-            InvokeBegin,
-            InvokeBeginOutside,
-            InvokeBeginInside,
+            ResourceInnerBegin,
             ExceptionBegin,
             ExceptionNext,
             ExceptionAsyncBegin,
@@ -1046,7 +1012,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ResultSyncEnd,
             ResultInside,
             ResultEnd,
-            InvokeEnd,
+            ResourceInnerEnd,
         }
     }
 }
