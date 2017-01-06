@@ -2,13 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Xunit;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
 {

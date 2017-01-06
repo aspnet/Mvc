@@ -5,9 +5,9 @@ using System;
 using System.Reflection;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Json
 {
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
                 {
                     if (typeof(IJsonPatchDocument).GetTypeInfo().IsAssignableFrom(parameterDescription.Type))
                     {
-                        parameterDescription.OriginalParameterDescriptor  = AssignOriginalParameterDescriptor();
+                        parameterDescription.OriginalParameterDescriptor  = AssignOriginalParameterDescriptor(parameterDescription.Name);
                         parameterDescription.Type = typeof(Operation[]);
                         parameterDescription.ModelMetadata = _modelMetadataProvider.GetMetadataForType(typeof(Operation[]));
                     }
@@ -53,9 +53,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
         {
         }
 
-        private static ParameterDescriptor AssignOriginalParameterDescriptor()
+        private static ParameterDescriptor AssignOriginalParameterDescriptor(string parameterDescriptionName)
         {
             var originalParameterDescriptor = new ParameterDescriptor();
+            originalParameterDescriptor.Name = parameterDescriptionName;
             originalParameterDescriptor.ParameterType = typeof(IJsonPatchDocument);
             return originalParameterDescriptor;
         }
