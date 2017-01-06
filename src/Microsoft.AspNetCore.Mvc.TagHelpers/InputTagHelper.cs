@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "Url", "url" },
                 { "EmailAddress", "email" },
                 { "Date", "date" },
-                { "DateTime", "datetime" },
+                { "DateTime", "datetime-local" },
                 { "DateTime-local", "datetime-local" },
                 { "Time", "time" },
                 { nameof(Byte), "number" },
@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 { "date", "{0:yyyy-MM-dd}" },
-                { "datetime", "{0:yyyy-MM-ddTHH:mm:ss.fffK}" },
+                { "datetime", "{0:yyyy-MM-ddTHH:mm:ss.fff}" },
                 { "datetime-local", "{0:yyyy-MM-ddTHH:mm:ss.fff}" },
                 { "time", "{0:HH:mm:ss.fff}" },
             };
