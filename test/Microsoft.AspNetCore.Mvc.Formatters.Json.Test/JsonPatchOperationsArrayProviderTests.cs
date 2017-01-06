@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
 {
@@ -17,11 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
         public void OnProvidersExecuting_FindsJsonPatchDocuments_ProvidesOperationsArray()
         {
             // Arrange
-            var provider = new JsonPatchOperationsArrayProvider();
+            var metadataprovider = new TestModelMetadataProvider();
+            var provider = new JsonPatchOperationsArrayProvider(metadataprovider);
             var jsonPatchParameterDescription = new ApiParameterDescription
             {
-                Type = typeof(JsonPatchDocument),
-                SerializationType = typeof(Operation[])
+                Type = typeof(JsonPatchDocument)
             };
 
             var stringParameterDescription = new ApiParameterDescription

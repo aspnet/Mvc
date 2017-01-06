@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 {
@@ -37,8 +38,8 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         public Type Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the parameter serialization type.
+        /// Gets or sets the parameter description.
         /// </summary>
-        public Type SerializationType { get; set; }
+        public ParameterDescriptor OriginalParameterDescriptor { get; set; }
     }
 }
