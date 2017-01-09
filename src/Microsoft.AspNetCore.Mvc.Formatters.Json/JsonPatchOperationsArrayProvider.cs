@@ -41,7 +41,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
                 {
                     if (typeof(IJsonPatchDocument).GetTypeInfo().IsAssignableFrom(parameterDescription.Type))
                     {
-                        parameterDescription.OriginalParameterDescriptor  = AssignOriginalParameterDescriptor(parameterDescription.Name);
                         parameterDescription.Type = typeof(Operation[]);
                         parameterDescription.ModelMetadata = _modelMetadataProvider.GetMetadataForType(typeof(Operation[]));
                     }
@@ -51,14 +50,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
 
         public void OnProvidersExecuted(ApiDescriptionProviderContext context)
         {
-        }
-
-        private static ParameterDescriptor AssignOriginalParameterDescriptor(string parameterDescriptionName)
-        {
-            var originalParameterDescriptor = new ParameterDescriptor();
-            originalParameterDescriptor.Name = parameterDescriptionName;
-            originalParameterDescriptor.ParameterType = typeof(IJsonPatchDocument);
-            return originalParameterDescriptor;
         }
     }
 }

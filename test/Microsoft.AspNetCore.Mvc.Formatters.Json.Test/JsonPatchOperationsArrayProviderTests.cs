@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
+namespace Microsoft.AspNetCore.Mvc.Formatters.Json
 {
     public class JsonPatchOperationsArrayProviderTests
     {
@@ -26,7 +26,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
 
             var stringParameterDescription = new ApiParameterDescription
             {
-                Type = typeof(string)
+                Type = typeof(string),
+                ModelMetadata = null
             };
 
             var apiDescription = new ApiDescription();
@@ -46,7 +47,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Test
 
             Assert.Collection(apiDescription.ParameterDescriptions,
                 description => Assert.Equal(typeof(Operation[]), description.Type),
-                description => Assert.NotEqual(typeof(IJsonPatchDocument), description.Type));
+                description => Assert.Equal(typeof(string), description.Type));
+
+            Assert.Collection(apiDescription.ParameterDescriptions,
+                description => Assert.Equal(typeof(Operation[]), description.ModelMetadata.ModelType),
+                description => Assert.Null(description.ModelMetadata));
         }
     }
 }

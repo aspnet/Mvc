@@ -40,6 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// <summary>
         /// Gets or sets the parameter description.
         /// </summary>
-        public ParameterDescriptor OriginalParameterDescriptor { get; set; }
+        public ParameterDescriptor ParameterDescriptor { get; set; }
     }
 }
