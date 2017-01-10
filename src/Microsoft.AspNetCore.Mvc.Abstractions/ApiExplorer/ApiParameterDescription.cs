@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         public Type Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the parameter description.
+        /// Gets or sets the parameter descriptor.
         /// </summary>
         public ParameterDescriptor ParameterDescriptor { get; set; }
     }

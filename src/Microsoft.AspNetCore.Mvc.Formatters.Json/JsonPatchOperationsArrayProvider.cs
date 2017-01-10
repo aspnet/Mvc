@@ -5,7 +5,6 @@ using System;
 using System.Reflection;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -15,13 +14,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
 
-        public JsonPatchOperationsArrayProvider(
-            IModelMetadataProvider modelMetadataProvider)
+        public JsonPatchOperationsArrayProvider(IModelMetadataProvider modelMetadataProvider)
         {
             _modelMetadataProvider = modelMetadataProvider;
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The order -999 ensures that this provider is executed right after the <c>Microsoft.AspNetCore.Mvc.ApiExplorer.DefaultApiDescriptionProvider</c>.
+        /// </remarks>
         public int Order
         {
             get { return -999; }
@@ -48,6 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
             }
         }
 
+        /// <inheritdoc />
         public void OnProvidersExecuted(ApiDescriptionProviderContext context)
         {
         }

@@ -26,8 +26,16 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// </remarks>
         int Order { get; }
 
+        /// <summary>
+        /// Called to create or modify an API description.
+        /// </summary>
+        /// <param name="context">The <see cref="ApiDescriptionProviderContext"/>.</param>
         void OnProvidersExecuting(ApiDescriptionProviderContext context);
 
+        /// <summary>
+        /// Called after the API description provider executes.
+        /// </summary>
+        /// <param name="context">The <see cref="ApiDescriptionProviderContext"/>.</param>
         void OnProvidersExecuted(ApiDescriptionProviderContext context);
     }
 }

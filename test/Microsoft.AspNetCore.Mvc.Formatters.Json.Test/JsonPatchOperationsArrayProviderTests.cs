@@ -27,11 +27,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
             var stringParameterDescription = new ApiParameterDescription
             {
                 Type = typeof(string),
-                ModelMetadata = null
             };
 
             var apiDescription = new ApiDescription();
-            apiDescription.ParameterDescriptions.Clear();
             apiDescription.ParameterDescriptions.Add(jsonPatchParameterDescription);
             apiDescription.ParameterDescriptions.Add(stringParameterDescription);
 
@@ -43,15 +41,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
             provider.OnProvidersExecuting(apiDescriptionProviderContext);
 
             // Assert
-            Assert.Equal(2, apiDescription.ParameterDescriptions.Count);
-
             Assert.Collection(apiDescription.ParameterDescriptions,
-                description => Assert.Equal(typeof(Operation[]), description.Type),
-                description => Assert.Equal(typeof(string), description.Type));
-
-            Assert.Collection(apiDescription.ParameterDescriptions,
-                description => Assert.Equal(typeof(Operation[]), description.ModelMetadata.ModelType),
-                description => Assert.Null(description.ModelMetadata));
+                description =>
+                {
+                    Assert.Equal(typeof(Operation[]), description.Type);
+                    Assert.Equal(typeof(Operation[]), description.ModelMetadata.ModelType);
+                },
+                description =>
+                {
+                    Assert.Equal(typeof(string), description.Type);
+                });
         }
     }
 }

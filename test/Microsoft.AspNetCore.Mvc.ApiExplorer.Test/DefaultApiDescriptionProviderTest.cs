@@ -216,6 +216,24 @@ namespace Microsoft.AspNetCore.Mvc.Description
             }
         }
 
+        [Fact]
+        public void GetApiDescription_ParameterDescription_IncludesParameterDescriptor()
+        {
+            // Arrange
+            var action = CreateActionDescriptor(nameof(FromBody));
+
+            var expected = new BindingSource("Body", displayName: null, isGreedy: false, isFromRequest: false);
+
+            // Act
+            var descriptions = GetApiDescriptions(action);
+
+            // Assert
+            var description = Assert.Single(descriptions);
+            var parameters = description.ParameterDescriptions;
+            var actionParameterDescriptor = Assert.Single(action.Parameters);
+            var id = Assert.Single(parameters, p => p.ParameterDescriptor == actionParameterDescriptor);
+        }
+
         // Only a parameter which comes from a route or model binding or unknown should
         // include route info.
         [Theory]
