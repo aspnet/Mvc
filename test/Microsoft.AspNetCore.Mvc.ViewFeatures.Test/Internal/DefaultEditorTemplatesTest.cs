@@ -48,8 +48,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     { "url", "__TextBox__ class='text-box single-line' type='url'" },
                     { "Date", "__TextBox__ class='text-box single-line' type='date'" },
                     { "DATE", "__TextBox__ class='text-box single-line' type='date'" },
-                    { "DateTime", "__TextBox__ class='text-box single-line' type='datetime'" },
-                    { "datetime", "__TextBox__ class='text-box single-line' type='datetime'" },
+                    { "DateTime", "__TextBox__ class='text-box single-line' type='datetime-local'" },
+                    { "datetime", "__TextBox__ class='text-box single-line' type='datetime-local'" },
                     { "DateTime-local", "__TextBox__ class='text-box single-line' type='datetime-local'" },
                     { "DATETIME-LOCAL", "__TextBox__ class='text-box single-line' type='datetime-local'" },
                     { "Time", "__TextBox__ class='text-box single-line' type='time'" },
@@ -769,7 +769,6 @@ Environment.NewLine;
         // DateTime-local is not special-cased unless using Html5DateRenderingMode.Rfc3339.
         [Theory]
         [InlineData("date", "{0:d}", "2000-01-02")]
-        [InlineData("datetime", null, "2000-01-02T03:04:05.006+00:00")]
         [InlineData("datetime-local", null, "2000-01-02T03:04:05.006")]
         [InlineData("time", "{0:t}", "03:04:05.006")]
         public void Editor_FindsCorrectDateOrTimeTemplate(string dataTypeName, string editFormatString, string expected)
@@ -823,7 +822,6 @@ Environment.NewLine;
 
         [Theory]
         [InlineData("date", "{0:d}", "2000-01-02")]
-        [InlineData("datetime", null, "2000-01-02T03:04:05.060+00:00")]
         [InlineData("datetime-local", null, "2000-01-02T03:04:05.060")]
         [InlineData("time", "{0:t}", "03:04:05.060")]
         public void Editor_AppliesRfc3339(string dataTypeName, string editFormatString, string expected)
@@ -881,8 +879,6 @@ Environment.NewLine;
         [Theory]
         [InlineData("date", Html5DateRenderingMode.CurrentCulture)]
         [InlineData("date", Html5DateRenderingMode.Rfc3339)]
-        [InlineData("datetime", Html5DateRenderingMode.CurrentCulture)]
-        [InlineData("datetime", Html5DateRenderingMode.Rfc3339)]
         [InlineData("datetime-local", Html5DateRenderingMode.CurrentCulture)]
         [InlineData("datetime-local", Html5DateRenderingMode.Rfc3339)]
         [InlineData("time", Html5DateRenderingMode.CurrentCulture)]
