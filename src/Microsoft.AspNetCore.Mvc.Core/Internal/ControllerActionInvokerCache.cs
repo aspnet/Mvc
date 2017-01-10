@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,19 +47,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var cache = CurrentCache;
             var actionDescriptor = controllerContext.ActionDescriptor;
 
+            IFilterMetadata[] filters;
             Entry cacheEntry;
             if (!cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
             {
+                var filterFactoryResult = FilterFactory.GetAllFilters(_filterProviders, controllerContext);
+                filters = filterFactoryResult.Filters;
+
                 var executor = ObjectMethodExecutor.Create(
                     actionDescriptor.MethodInfo,
                     actionDescriptor.ControllerTypeInfo);
-                var filterFactory = FilterFactoryProvider.GetFilterFactory(_filterProviders, controllerContext);
-                cacheEntry = new Entry(filterFactory, executor);
+
+                cacheEntry = new Entry(filterFactoryResult.CacheableFilters, executor);
                 cacheEntry = cache.Entries.GetOrAdd(actionDescriptor, cacheEntry);
             }
+            else
+            {
+                // Filter instances from statically defined filter descriptors + from filter providers
+                filters = FilterFactory.CreateUncachedFilters(_filterProviders, controllerContext, cacheEntry.FilterItems);
+            }
 
-            // Filter instances from statically defined filter descriptors + from filter providers
-            var filters = cacheEntry.FilterFactory(controllerContext);
             return new ControllerActionInvokerState(filters, cacheEntry.ActionMethodExecutor);
         }
 
@@ -79,13 +85,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private struct Entry
         {
-            public Entry(Func<ActionContext, IFilterMetadata[]> filterFactory, ObjectMethodExecutor executor)
+            public Entry(FilterItem[] items, ObjectMethodExecutor executor)
             {
-                FilterFactory = filterFactory;
+                FilterItems = items;
                 ActionMethodExecutor = executor;
             }
 
-            public Func<ActionContext, IFilterMetadata[]> FilterFactory { get; }
+            public FilterItem[] FilterItems { get; }
 
             public ObjectMethodExecutor ActionMethodExecutor { get; }
         }

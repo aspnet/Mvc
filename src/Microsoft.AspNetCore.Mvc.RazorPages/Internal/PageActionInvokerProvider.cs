@@ -50,8 +50,22 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 return;
             }
 
-            var cacheEntry = GetOrAddCacheEntry(context, actionDescriptor);
-            context.Result = new PageActionInvoker(cacheEntry, context.ActionContext);
+            var cache = CurrentCache;
+            PageActionInvokerCacheEntry cacheEntry;
+
+            IFilterMetadata[] filters;
+            if (!cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
+            {
+                var filterFactoryResult = FilterFactory.GetAllFilters(_filterProviders, context.ActionContext);
+                filters = filterFactoryResult.Filters;
+                cacheEntry = CreateCacheEntry(context, filterFactoryResult.CacheableFilters);
+            }
+            else
+            {
+                filters = FilterFactory.CreateUncachedFilters(_filterProviders, context.ActionContext, cacheEntry.CacheableFilters);
+            }
+
+            context.Result = new PageActionInvoker(cacheEntry, context.ActionContext, filters);
         }
 
         public void OnProvidersExecuted(ActionInvokerProviderContext context)
@@ -76,24 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             }
         }
 
-        // Internal for unit testing
-        internal PageActionInvokerCacheEntry GetOrAddCacheEntry(
-            ActionInvokerProviderContext context,
-            PageActionDescriptor actionDescriptor)
-        {
-            var cache = CurrentCache;
-
-            PageActionInvokerCacheEntry cacheEntry;
-            if (!cache.Entries.TryGetValue(actionDescriptor, out cacheEntry))
-            {
-                cacheEntry = CreateCacheEntry(context);
-                cacheEntry = cache.Entries.GetOrAdd(actionDescriptor, cacheEntry);
-            }
-
-            return cacheEntry;
-        }
-
-        private PageActionInvokerCacheEntry CreateCacheEntry(ActionInvokerProviderContext context)
+        private PageActionInvokerCacheEntry CreateCacheEntry(ActionInvokerProviderContext context, FilterItem[] filters)
         {
             var actionDescriptor = (PageActionDescriptor)context.ActionContext.ActionDescriptor;
             var compiledType = _loader.Load(actionDescriptor).GetTypeInfo();
@@ -109,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 compiledActionDescriptor,
                 _pageFactoryProvider.CreatePageFactory(compiledActionDescriptor),
                 _pageFactoryProvider.CreatePageDisposer(compiledActionDescriptor),
-                FilterFactoryProvider.GetFilterFactory(_filterProviders, context.ActionContext));
+                filters);
         }
 
         private class InnerCache
