@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 { "Text", DefaultEditorTemplates.StringTemplate },
                 { "Url", DefaultEditorTemplates.UrlInputTemplate },
                 { "Date", DefaultEditorTemplates.DateInputTemplate },
-                { "DateTime", DefaultEditorTemplates.DateTimeInputTemplate },
+                { "DateTime", DefaultEditorTemplates.DateTimeLocalInputTemplate },
                 { "DateTime-local", DefaultEditorTemplates.DateTimeLocalInputTemplate },
                 { "Time", DefaultEditorTemplates.TimeInputTemplate },
                 { typeof(byte).Name, DefaultEditorTemplates.NumberInputTemplate },
@@ -186,8 +186,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Not returning type name here for IEnumerable<IFormFile> since we will be returning
             // a more specific name, IEnumerableOfIFormFileName.
             var fieldTypeInfo = fieldType.GetTypeInfo();
+            if (fieldType == typeof(DateTime))
+            {
+                yield return "DateTime-local";
+            }
 
-            if (typeof(IEnumerable<IFormFile>) != fieldType)
+            else if (typeof(IEnumerable<IFormFile>) != fieldType)
             {
                 yield return fieldType.Name;
             }
@@ -207,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 }
                 else if (fieldType == typeof(DateTimeOffset))
                 {
-                    yield return "DateTime";
+                    yield return "DateTime-local";
                 }
 
                 yield return "String";

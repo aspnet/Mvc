@@ -248,6 +248,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Theory]
+        [InlineData("datetime", "datetime")]
         [InlineData(null, "datetime-local")]
         [InlineData("hidden", "hidden")]
         public void Process_GeneratesFormattedOutput(string specifiedType, string expectedType)
