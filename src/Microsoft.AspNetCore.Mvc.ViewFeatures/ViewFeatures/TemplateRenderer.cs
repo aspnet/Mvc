@@ -186,12 +186,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Not returning type name here for IEnumerable<IFormFile> since we will be returning
             // a more specific name, IEnumerableOfIFormFileName.
             var fieldTypeInfo = fieldType.GetTypeInfo();
-            if (fieldType == typeof(DateTime))
-            {
-                yield return "DateTime-local";
-            }
 
-            else if (typeof(IEnumerable<IFormFile>) != fieldType)
+            if (typeof(IEnumerable<IFormFile>) != fieldType)
             {
                 yield return fieldType.Name;
             }
@@ -211,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 }
                 else if (fieldType == typeof(DateTimeOffset))
                 {
-                    yield return "DateTime-local";
+                    yield return "DateTime";
                 }
 
                 yield return "String";

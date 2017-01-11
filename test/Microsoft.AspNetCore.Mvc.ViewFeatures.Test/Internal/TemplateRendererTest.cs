@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     { typeof(string), new string[] { "String" } },
                     { typeof(bool), new string[] { "Boolean", "String" } },
-                    { typeof(DateTime), new string[] { "DateTime-local", "String" } },
+                    { typeof(DateTime), new string[] { "DateTime", "String" } },
                     { typeof(float), new string[] { "Single", "String" } },
                     { typeof(double), new string[] { "Double", "String" } },
                     { typeof(Guid), new string[] { "Guid", "String" } },

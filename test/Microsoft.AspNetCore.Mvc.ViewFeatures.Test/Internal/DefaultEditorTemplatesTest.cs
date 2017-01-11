@@ -768,17 +768,18 @@ Environment.NewLine;
 
         // DateTime-local is not special-cased unless using Html5DateRenderingMode.Rfc3339.
         [Theory]
-        [InlineData("date", "{0:d}", "2000-01-02")]
-        [InlineData("datetime-local", null, "2000-01-02T03:04:05.006")]
-        [InlineData("time", "{0:t}", "03:04:05.006")]
-        public void Editor_FindsCorrectDateOrTimeTemplate(string dataTypeName, string editFormatString, string expected)
+        [InlineData("date", "date", "{0:d}", "2000-01-02")]
+        [InlineData("datetime", "datetime-local", null, "2000-01-02T03:04:05.006")]
+        [InlineData("datetime-local", "datetime-local", null, "2000-01-02T03:04:05.006")]
+        [InlineData("time", "time", "{0:t}", "03:04:05.006")]
+        public void Editor_FindsCorrectDateOrTimeTemplate(string dataTypeName, string expectedType, string editFormatString, string expected)
         {
             // Arrange
             var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
             var expectedInput = "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
-                dataTypeName +
+                expectedType +
                 "]]\" value=\"HtmlEncode[[" + expected + "]]\" />";
 
             var offset = TimeSpan.FromHours(0);
@@ -821,10 +822,11 @@ Environment.NewLine;
         }
 
         [Theory]
-        [InlineData("date", "{0:d}", "2000-01-02")]
-        [InlineData("datetime-local", null, "2000-01-02T03:04:05.060")]
-        [InlineData("time", "{0:t}", "03:04:05.060")]
-        public void Editor_AppliesRfc3339(string dataTypeName, string editFormatString, string expected)
+        [InlineData("date", "date", "{0:d}", "2000-01-02")]
+        [InlineData("datetime", "datetime-local", null, "2000-01-02T03:04:05.060")]
+        [InlineData("datetime-local", "datetime-local", null, "2000-01-02T03:04:05.060")]
+        [InlineData("time", "time", "{0:t}", "03:04:05.060")]
+        public void Editor_AppliesRfc3339(string dataTypeName, string expectedType, string editFormatString, string expected)
         {
             // Arrange
             var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
@@ -832,7 +834,7 @@ Environment.NewLine;
                 "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
-                dataTypeName +
+                expectedType +
                 "]]\" value=\"HtmlEncode[[" + expected + "]]\" />";
 
             // Place DateTime-local value in current timezone.
@@ -877,20 +879,20 @@ Environment.NewLine;
         }
 
         [Theory]
-        [InlineData("date", Html5DateRenderingMode.CurrentCulture)]
-        [InlineData("date", Html5DateRenderingMode.Rfc3339)]
-        [InlineData("datetime-local", Html5DateRenderingMode.CurrentCulture)]
-        [InlineData("datetime-local", Html5DateRenderingMode.Rfc3339)]
-        [InlineData("time", Html5DateRenderingMode.CurrentCulture)]
-        [InlineData("time", Html5DateRenderingMode.Rfc3339)]
-        public void Editor_AppliesNonDefaultEditFormat(string dataTypeName, Html5DateRenderingMode renderingMode)
+        [InlineData("date", "date", Html5DateRenderingMode.CurrentCulture)]
+        [InlineData("date", "date", Html5DateRenderingMode.Rfc3339)]
+        [InlineData("datetime-local", "datetime-local", Html5DateRenderingMode.CurrentCulture)]
+        [InlineData("datetime-local", "datetime-local", Html5DateRenderingMode.Rfc3339)]
+        [InlineData("time", "time", Html5DateRenderingMode.CurrentCulture)]
+        [InlineData("time", "time", Html5DateRenderingMode.Rfc3339)]
+        public void Editor_AppliesNonDefaultEditFormat(string dataTypeName, string expectedType, Html5DateRenderingMode renderingMode)
         {
             // Arrange
             var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
             var expectedInput = "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
-                dataTypeName +
+                expectedType +
                 "]]\" value=\"HtmlEncode[[Formatted as 2000-01-02T03:04:05.0600000+00:00]]\" />";
 
             var offset = TimeSpan.FromHours(0);

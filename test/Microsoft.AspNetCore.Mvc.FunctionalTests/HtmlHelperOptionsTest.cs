@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 <validationMessageElement class=""field-validation-error"">An error occurred.</validationMessageElement>
 <input id=""Prefix!Property1"" name=""Prefix.Property1"" type=""text"" value="""" />
 <div class=""editor-label""><label for=""MyDate"">MyDate</label></div>
-<div class=""editor-field""><input class=""text-box single-line"" id=""MyDate"" name=""MyDate"" type=""datetime-local"" value=""2000-01-02T03:04:05.060&#x2B;00:00"" /> </div>
+<div class=""editor-field""><input class=""text-box single-line"" id=""MyDate"" name=""MyDate"" type=""datetime-local"" value=""2000-01-02T03:04:05.060"" /> </div>
 
 <div class=""validation-summary-errors""><validationSummaryElement>MySummary</validationSummaryElement>
 <ul><li>A model error occurred.</li>
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 <validationMessageElement class=""field-validation-error"">An error occurred.</validationMessageElement>
 <input id=""Prefix!Property1"" name=""Prefix.Property1"" type=""text"" value="""" />
 <div class=""editor-label""><label for=""MyDate"">MyDate</label></div>
-<div class=""editor-field""><input class=""text-box single-line"" id=""MyDate"" name=""MyDate"" type=""datetime-local"" value=""2000-01-02T03:04:05.060&#x2B;00:00"" /> </div>
+<div class=""editor-field""><input class=""text-box single-line"" id=""MyDate"" name=""MyDate"" type=""datetime-local"" value=""2000-01-02T03:04:05.060"" /> </div>
 
 False";
 

@@ -923,23 +923,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Theory]
-        [InlineData("Date", Html5DateRenderingMode.CurrentCulture, "{0:d}", "date")]    // Format from [DataType].
-        [InlineData("Date", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-dd}", "date")]
-        [InlineData("DateTime", Html5DateRenderingMode.CurrentCulture, null, "datetime-local")]
-        [InlineData("DateTime", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local")]
-        [InlineData("DateTimeOffset", Html5DateRenderingMode.CurrentCulture, null, "datetime-local")]
-        [InlineData("DateTimeOffset", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local")]
-        [InlineData("DateTimeLocal", Html5DateRenderingMode.CurrentCulture, null, "datetime-local")]
-        [InlineData("DateTimeLocal", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local")]
-        [InlineData("Time", Html5DateRenderingMode.CurrentCulture, "{0:t}", "time")]    // Format from [DataType].
-        [InlineData("Time", Html5DateRenderingMode.Rfc3339, "{0:HH:mm:ss.fff}", "time")]
-        [InlineData("NullableDate", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-dd}", "date")]
-        [InlineData("NullableDateTime", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local")]
-        [InlineData("NullableDateTimeOffset", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local")]
+        [InlineData("Date", Html5DateRenderingMode.CurrentCulture, "{0:d}", "date", "date")]    // Format from [DataType].
+        [InlineData("Date", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-dd}", "date", "date")]
+        [InlineData("DateTime", Html5DateRenderingMode.CurrentCulture, null, "datetime", "datetime-local")]
+        [InlineData("DateTime", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime", "datetime-local")]
+        [InlineData("DateTimeOffset", Html5DateRenderingMode.CurrentCulture, null, "datetime", "datetime-local")]
+        [InlineData("DateTimeOffset", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime", "datetime-local")]
+        [InlineData("DateTimeLocal", Html5DateRenderingMode.CurrentCulture, null, "datetime-local", "datetime-local")]
+        [InlineData("DateTimeLocal", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime-local", "datetime-local")]
+        [InlineData("Time", Html5DateRenderingMode.CurrentCulture, "{0:t}", "time", "time")]    // Format from [DataType].
+        [InlineData("Time", Html5DateRenderingMode.Rfc3339, "{0:HH:mm:ss.fff}", "time", "time")]
+        [InlineData("NullableDate", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-dd}", "date", "date")]
+        [InlineData("NullableDateTime", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime", "datetime-local")]
+        [InlineData("NullableDateTimeOffset", Html5DateRenderingMode.Rfc3339, "{0:yyyy-MM-ddTHH:mm:ss.fff}", "datetime", "datetime-local")]
         public async Task ProcessAsync_CallsGenerateTextBox_AddsExpectedAttributesForRfc3339(
             string propertyName,
             Html5DateRenderingMode dateRenderingMode,
             string expectedFormat,
+            string dataTypeName,
             string expectedType)
         {
             // Arrange
@@ -968,7 +969,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 { "type", expectedType }
             };
-            var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForProperty<Model>(propertyName).DisplayDetails(dd => dd.DataTypeName = dataTypeName);
             var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var tagHelper = GetTagHelper(
                 htmlGenerator.Object,
