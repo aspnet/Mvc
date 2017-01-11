@@ -222,16 +222,14 @@ namespace Microsoft.AspNetCore.Mvc.Description
             // Arrange
             var action = CreateActionDescriptor(nameof(FromBody));
 
-            var expected = new BindingSource("Body", displayName: null, isGreedy: false, isFromRequest: false);
-
             // Act
             var descriptions = GetApiDescriptions(action);
 
             // Assert
             var description = Assert.Single(descriptions);
-            var parameters = description.ParameterDescriptions;
+            var parameterDescription = Assert.Single(description.ParameterDescriptions);
             var actionParameterDescriptor = Assert.Single(action.Parameters);
-            var id = Assert.Single(parameters, p => p.ParameterDescriptor == actionParameterDescriptor);
+            Assert.Equal(actionParameterDescriptor, parameterDescription.ParameterDescriptor);
         }
 
         // Only a parameter which comes from a route or model binding or unknown should
