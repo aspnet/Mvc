@@ -577,7 +577,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 }
             }
 
-            public override IShouldValidate ShouldValidate
+            public override IPropertyValidationFilter PropertyValidationFilter
             {
                 get
                 {

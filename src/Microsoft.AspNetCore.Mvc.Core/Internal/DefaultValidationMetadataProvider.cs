@@ -37,21 +37,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
             }
 
-            // IShouldValidate attributes on a type affect properties in that type, not properties that have that type.
-            // Thus, we ignore context.TypeAttributes for properties and don't check at all for types.
+            // IPropertyValidationFilter attributes on a type affect properties in that type, not properties that have
+            // that type. Thus, we ignore context.TypeAttributes for properties and not check at all for types.
             if (context.Key.MetadataKind == ModelMetadataKind.Property)
             {
-                var shouldValidate = context.PropertyAttributes.OfType<IShouldValidate>().FirstOrDefault();
-                if (shouldValidate == null)
+                var validationFilter = context.PropertyAttributes.OfType<IPropertyValidationFilter>().FirstOrDefault();
+                if (validationFilter == null)
                 {
-                    // No [ValidateNever] on the property. Check if container has this attribute.
-                    shouldValidate = context.Key.ContainerType.GetTypeInfo()
+                    // No IPropertyValidationFilter attributes on the property.
+                    // Check if container has such an attribute.
+                    validationFilter = context.Key.ContainerType.GetTypeInfo()
                         .GetCustomAttributes(inherit: true)
-                        .OfType<IShouldValidate>()
+                        .OfType<IPropertyValidationFilter>()
                         .FirstOrDefault();
                 }
 
-                context.ValidationMetadata.ShouldValidate = shouldValidate;
+                context.ValidationMetadata.PropertyValidationFilter = validationFilter;
             }
         }
     }

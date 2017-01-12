@@ -246,7 +246,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 var entry = enumerator.Current;
                 var metadata = entry.Metadata;
                 var key = entry.Key;
-                if (metadata.ShouldValidate?.ShouldValidateEntry(entry, parentEntry) == false)
+                if (metadata.PropertyValidationFilter?.ShouldValidateEntry(entry, parentEntry) == false)
                 {
                     SuppressValidation(key);
                     continue;

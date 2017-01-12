@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             Assert.Null(metadata.EnumGroupedDisplayNamesAndValues);
             Assert.Null(metadata.EnumNamesAndValues);
             Assert.Null(metadata.NullDisplayText);
-            Assert.Null(metadata.ShouldValidate);
+            Assert.Null(metadata.PropertyValidationFilter);
             Assert.Null(metadata.SimpleDisplayProperty);
             Assert.Null(metadata.Placeholder);
             Assert.Null(metadata.TemplateHint);
@@ -662,11 +662,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             Assert.True(validateChildren);
         }
 
-        public static TheoryData<IShouldValidate> ShouldValidateData
+        public static TheoryData<IPropertyValidationFilter> ValidationFilterData
         {
             get
             {
-                return new TheoryData<IShouldValidate>
+                return new TheoryData<IPropertyValidationFilter>
                 {
                     null,
                     new ValidateNeverAttribute(),
@@ -675,8 +675,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         }
 
         [Theory]
-        [MemberData(nameof(ShouldValidateData))]
-        public void ShouldValidate_ReflectsShouldValidate_FromValidationMetadata(IShouldValidate value)
+        [MemberData(nameof(ValidationFilterData))]
+        public void PropertyValidationFilter_ReflectsFilter_FromValidationMetadata(IPropertyValidationFilter value)
         {
             // Arrange
             var detailsProvider = new EmptyCompositeMetadataDetailsProvider();
@@ -686,16 +686,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             var cache = new DefaultMetadataDetails(key, new ModelAttributes(new object[0]));
             cache.ValidationMetadata = new ValidationMetadata
             {
-                ShouldValidate = value,
+                PropertyValidationFilter = value,
             };
 
             var metadata = new DefaultModelMetadata(provider, detailsProvider, cache);
 
             // Act
-            var shouldValidate = metadata.ShouldValidate;
+            var validationFilter = metadata.PropertyValidationFilter;
 
             // Assert
-            Assert.Same(value, shouldValidate);
+            Assert.Same(value, validationFilter);
         }
 
         [Fact]

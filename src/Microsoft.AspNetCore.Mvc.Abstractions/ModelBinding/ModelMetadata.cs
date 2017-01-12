@@ -297,11 +297,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public abstract string TemplateHint { get; }
 
         /// <summary>
-        /// Gets an <see cref="IShouldValidate"/> implementation that indicates whether this model should be validated.
-        /// If <c>null</c>, properties with this <see cref="ModelMetadata"/> are validated.
+        /// Gets an <see cref="IPropertyValidationFilter"/> implementation that indicates whether this model should be
+        /// validated. If <c>null</c>, properties with this <see cref="ModelMetadata"/> are validated.
         /// </summary>
         /// <value>Defaults to <c>null</c>.</value>
-        public abstract IShouldValidate ShouldValidate { get; }
+        public virtual IPropertyValidationFilter PropertyValidationFilter => null;
 
         /// <summary>
         /// Gets a value that indicates whether properties or elements of the model should be validated.

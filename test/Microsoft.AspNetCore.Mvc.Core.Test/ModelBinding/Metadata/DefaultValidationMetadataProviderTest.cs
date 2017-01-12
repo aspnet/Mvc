@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
     public class DefaultValidationMetadataProviderTest
     {
         [Fact]
-        public void ShouldValidate_ShouldValidateEntry_False_IfPropertyHasValidateNever()
+        public void PropertyValidationFilter_ShouldValidateEntry_False_IfPropertyHasValidateNever()
         {
             // Arrange
             var provider = new DefaultValidationMetadataProvider();
@@ -25,14 +25,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             provider.CreateValidationMetadata(context);
 
             // Assert
-            Assert.NotNull(context.ValidationMetadata.ShouldValidate);
-            Assert.False(context.ValidationMetadata.ShouldValidate.ShouldValidateEntry(
+            Assert.NotNull(context.ValidationMetadata.PropertyValidationFilter);
+            Assert.False(context.ValidationMetadata.PropertyValidationFilter.ShouldValidateEntry(
                 new ValidationEntry(),
                 new ValidationEntry()));
         }
 
         [Fact]
-        public void ShouldValidate_Null_IfPropertyHasValidateNeverOnItsType()
+        public void PropertyValidationFilter_Null_IfPropertyHasValidateNeverOnItsType()
         {
             // Arrange
             var provider = new DefaultValidationMetadataProvider();
@@ -45,11 +45,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             provider.CreateValidationMetadata(context);
 
             // Assert
-            Assert.Null(context.ValidationMetadata.ShouldValidate);
+            Assert.Null(context.ValidationMetadata.PropertyValidationFilter);
         }
 
         [Fact]
-        public void ShouldValidate_Null_ForType()
+        public void PropertyValidationFilter_Null_ForType()
         {
             // Arrange
             var provider = new DefaultValidationMetadataProvider();
@@ -62,11 +62,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             provider.CreateValidationMetadata(context);
 
             // Assert
-            Assert.Null(context.ValidationMetadata.ShouldValidate);
+            Assert.Null(context.ValidationMetadata.PropertyValidationFilter);
         }
 
         [Fact]
-        public void ShouldValidate_ShouldValidateEntry_False_IfContainingTypeHasValidateNever()
+        public void PropertyValidationFilter_ShouldValidateEntry_False_IfContainingTypeHasValidateNever()
         {
             // Arrange
             var provider = new DefaultValidationMetadataProvider();
@@ -81,14 +81,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             provider.CreateValidationMetadata(context);
 
             // Assert
-            Assert.NotNull(context.ValidationMetadata.ShouldValidate);
-            Assert.False(context.ValidationMetadata.ShouldValidate.ShouldValidateEntry(
+            Assert.NotNull(context.ValidationMetadata.PropertyValidationFilter);
+            Assert.False(context.ValidationMetadata.PropertyValidationFilter.ShouldValidateEntry(
                 new ValidationEntry(),
                 new ValidationEntry()));
         }
 
         [Fact]
-        public void ShouldValidate_ShouldValidateEntry_False_IfContainingTypeInheritsValidateNever()
+        public void PropertyValidationFilter_ShouldValidateEntry_False_IfContainingTypeInheritsValidateNever()
         {
             // Arrange
             var provider = new DefaultValidationMetadataProvider();
@@ -103,8 +103,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             provider.CreateValidationMetadata(context);
 
             // Assert
-            Assert.NotNull(context.ValidationMetadata.ShouldValidate);
-            Assert.False(context.ValidationMetadata.ShouldValidate.ShouldValidateEntry(
+            Assert.NotNull(context.ValidationMetadata.PropertyValidationFilter);
+            Assert.False(context.ValidationMetadata.PropertyValidationFilter.ShouldValidateEntry(
                 new ValidationEntry(),
                 new ValidationEntry()));
         }

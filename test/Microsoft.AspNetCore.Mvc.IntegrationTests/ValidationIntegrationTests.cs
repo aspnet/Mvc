@@ -1448,7 +1448,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal(ModelValidationState.Skipped, state.ValidationState);
         }
 
-        private class ValidateSometimesAttribute : Attribute, IShouldValidate
+        private class ValidateSometimesAttribute : Attribute, IPropertyValidationFilter
         {
             private readonly string _otherProperty;
 

@@ -533,11 +533,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         }
 
         /// <inheritdoc />
-        public override IShouldValidate ShouldValidate
+        public override IPropertyValidationFilter PropertyValidationFilter
         {
             get
             {
-                return ValidationMetadata.ShouldValidate;
+                return ValidationMetadata.PropertyValidationFilter;
             }
         }
 

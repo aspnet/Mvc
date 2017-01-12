@@ -7,9 +7,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
     /// Contract for attributes that determine whether associated properties should be validated. When the attribute is
     /// applied to a property, the validation system calls <see cref="ShouldValidateEntry"/> to determine whether to
     /// validate that property. When applied to a type, the validation system calls <see cref="ShouldValidateEntry"/>
-    /// for each property within that type to determine whether to validate it.
+    /// for each property that type defines to determine whether to validate it.
     /// </summary>
-    public interface IShouldValidate
+    public interface IPropertyValidationFilter
     {
         /// <summary>
         /// Gets an indication whether the <paramref name="entry"/> should be validated.
