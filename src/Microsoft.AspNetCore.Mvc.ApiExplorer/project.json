@@ -23,6 +23,7 @@
     "Microsoft.AspNetCore.Mvc.Core": {
       "target": "project"
     },
+    "Microsoft.AspNetCore.Mvc.Formatters.Json": "1.2.0-*",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
       "version": "1.2.0-*",
       "type": "build"
