@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -27,8 +26,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IApiDescriptionGroupCollectionProvider, ApiDescriptionGroupCollectionProvider>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApiDescriptionProvider, DefaultApiDescriptionProvider>());
-            services.TryAddEnumerable(
-                ServiceDescriptor.Transient<IApiDescriptionProvider, JsonPatchOperationsArrayProvider>());
         }
     }
 }
