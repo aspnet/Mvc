@@ -41,6 +41,7 @@ namespace HtmlGenerationWebSite
                     template: "{controller}/{action}/{id?}",
                     defaults: new { controller = "HtmlGeneration_Home", action = "Index" });
             });
+            app.UseStaticFiles();
         }
 
         public static void Main(string[] args)
