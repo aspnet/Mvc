@@ -1,0 +1,11 @@
+
+var VERSION='0.1'
+var FULL_VERSION='0.1'
+use-standard-lifecycle
+k-standard-goals
+
+#restore-nuget-packages target='initialize'
+    exec program='${Path.Combine(Directory.GetCurrentDirectory(), ".build", "nuget.exe")}' commandline='restore'
+
+#pack-sources target='build-pack'
+    dotnet command='msbuild shared/sources.csproj "/t:Restore;PackAll" /v:n'
