@@ -499,6 +499,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
         }
 
+#if NET451 // Skipping on CoreCLR because of the following issue: https://github.com/Microsoft/vstest/issues/427
         [Fact]
         public async Task KeyValuePairModelBinder_BindsKeyValuePairOfArray_Success()
         {
@@ -542,5 +543,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal("value2", entry.AttemptedValue);
             Assert.Equal("value2", entry.RawValue);
         }
+#endif
     }
 }
