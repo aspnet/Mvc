@@ -14,7 +14,7 @@
     },
     "Microsoft.AspNetCore.Server.IISIntegration": "1.2.0-*",
     "Microsoft.AspNetCore.Server.Kestrel": "1.2.0-*",
-    "Microsoft.AspNetCore.StaticFiles": "1.1.0"
+    "Microsoft.AspNetCore.StaticFiles": "1.2.0-*"
   },
   "frameworks": {
     "net451": {},
