@@ -11,10 +11,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders
     /// content based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
+    /// If the environment is not listed in explicitly identified <see cref="Names"/> or <see cref="Include"/> lists or
+    /// if it is in the <see cref="Exclude"/> list, the content will not be rendered. 
     /// </summary>
     public class EnvironmentTagHelper : TagHelper
     {
         private static readonly char[] NameSeparator = new[] { ',' };
+        private static readonly char[] IncludeEnvironmentsSeparator = new[] { ',' };
+        private static readonly char[] ExcludeEnvironmentsSeparator = new[] { ',' };
 
         /// <summary>
         /// Creates a new <see cref="EnvironmentTagHelper"/>.
@@ -30,12 +34,32 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         /// <summary>
         /// A comma separated list of environment names in which the content should be rendered.
+        /// If the current environment is also in the <see cref="Exclude"/>  list, the content will not be rendered.
         /// </summary>
         /// <remarks>
         /// The specified environment names are compared case insensitively to the current value of
         /// <see cref="IHostingEnvironment.EnvironmentName"/>.
         /// </remarks>
         public string Names { get; set; }
+
+        /// <summary>
+        /// A comma separated list of environment names in which the content should be rendered.
+        /// If the current environment is also in the <see cref="Exclude"/> list, the content will not be rendered.
+        /// </summary>
+        /// <remarks>
+        /// The specified environment names are compared case insensitively to the current value of
+        /// <see cref="IHostingEnvironment.EnvironmentName"/>.
+        /// </remarks>
+        public string Include { get; set; }
+
+        /// <summary>
+        /// A comma separated list of environment names in which the content should not be rendered.
+        /// </summary>
+        /// <remarks>
+        /// The specified environment names are compared case insensitively to the current value of
+        /// <see cref="IHostingEnvironment.EnvironmentName"/>.
+        /// </remarks>
+        public string Exclude { get; set; }
 
         protected IHostingEnvironment HostingEnvironment { get; }
 
@@ -55,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Always strip the outer tag name as we never want <environment> to render
             output.TagName = null;
 
-            if (string.IsNullOrWhiteSpace(Names))
+            if (string.IsNullOrWhiteSpace(Names) && string.IsNullOrWhiteSpace(Include) && string.IsNullOrWhiteSpace(Exclude))
             {
                 // No names specified, do nothing
                 return;
@@ -68,27 +92,75 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            var tokenizer = new StringTokenizer(Names, NameSeparator);
-            var hasEnvironments = false;
-            foreach (var item in tokenizer)
+            var hasExcludeEnvironments = false;
+            if (Exclude != null)
             {
-                var environment = item.Trim();
-                if (environment.HasValue && environment.Length > 0)
+                var tokenizer = new StringTokenizer(Exclude, ExcludeEnvironmentsSeparator);
+                foreach (var item in tokenizer)
                 {
-                    hasEnvironments = true;
-                    if (environment.Equals(currentEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    var environment = item.Trim();
+                    if (environment.HasValue && environment.Length > 0)
                     {
-                        // Matching environment name found, do nothing
-                        return;
+                        hasExcludeEnvironments = true;
+                        if (environment.Equals(currentEnvironmentName))
+                        {
+                            output.SuppressOutput();
+                            return;
+                        }
                     }
                 }
             }
 
-            if (hasEnvironments)
+            var hasEnvironments = false;
+            if (Names != null)
             {
-                // This instance had at least one non-empty environment specified but none of these
+                var tokenizer = new StringTokenizer(Names, NameSeparator);
+                foreach (var item in tokenizer)
+                {
+                    var environment = item.Trim();
+                    if (environment.HasValue && environment.Length > 0)
+                    {
+                        hasEnvironments = true;
+                        if (environment.Equals(currentEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Matching environment name found, do nothing
+                            return;
+                        }
+                    }
+                }
+            }
+
+            var hasIncludeEnvironments = false;
+            if (Include != null)
+            {
+                var tokenizer = new StringTokenizer(Include, IncludeEnvironmentsSeparator);
+                foreach (var item in tokenizer)
+                {
+                    var environment = item.Trim();
+                    if (environment.HasValue && environment.Length > 0)
+                    {
+                        hasIncludeEnvironments = true;
+                        if (environment.Equals(currentEnvironmentName))
+                        {
+                            // Matching environment name found, do nothing
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (hasEnvironments || hasIncludeEnvironments)
+            {
+                // This instance had at least one non-empty environment (name or include) specified but none of these
                 // environments matched the current environment. Suppress the output in this case.
                 output.SuppressOutput();
+                return;
+            }
+
+            if (hasExcludeEnvironments)
+            {
+                // No matching exclude environment name found, do nothing
+                return;
             }
         }
     }
