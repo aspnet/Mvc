@@ -66,7 +66,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
             ShouldShowContent(namesAttribute, environmentName);
         }
 
-
         [Theory]
         [InlineData("", "", "")]
         [InlineData("", null, "Test")]
