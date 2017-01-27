@@ -68,19 +68,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
 
 
         [Theory]
-        [InlineData("", "", "", "Development")]
-        [InlineData("", "", "Test", "Development")]
-        [InlineData("Development", "", "", "Development")]
-        [InlineData("", "Development", "", "Development")]
-        [InlineData("", "Development", "Test", "Development")]
-        [InlineData("Development", "", "Test", "Development")]
-        [InlineData("Development", "Development", "", "Development")]
-        [InlineData("Test", "Development", "", "Development")]
-        [InlineData("Development", "Test", "", "Development")]
-        [InlineData("Development", "Development", "Test", "Development")]
-        [InlineData("Development", "Test", "Test", "Development")]
-        [InlineData("Test", "Development", "Test", "Development")]
-        public void ShouldShowContent_IncludeExcludeSpecified(string namesAttribute, string includeAttribute, string excludeAttribute, string environmentName)
+        [InlineData("", "", "")]
+        [InlineData("", null, "Test")]
+        [InlineData("Development", "", "")]
+        [InlineData("", "Development, Test", "")]
+        [InlineData(null, "development, TEST", "Test")]
+        [InlineData("Development", "", "Test")]
+        [InlineData("Development", "Test, Development", "")]
+        [InlineData("Test", "DEVELOPMENT", null)]
+        [InlineData("Development", "Test", "")]
+        [InlineData("Development", null, "Test")]
+        [InlineData("Development", "Test", "Test")]
+        [InlineData("Test", "Development", "Test")]
+        public void ShouldShowContent_IncludeExcludeSpecified(string namesAttribute, string includeAttribute, string excludeAttribute)
         {
             // Arrange
             var content = "content";
@@ -92,8 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
                 });
             var output = MakeTagHelperOutput("environment", childContent: content);
             var hostingEnvironment = new Mock<IHostingEnvironment>();
-            hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = environmentName;
+            hostingEnvironment.SetupProperty(h => h.EnvironmentName, "Development");
 
             // Act
             var helper = new EnvironmentTagHelper(hostingEnvironment.Object)
@@ -110,22 +109,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
         }
 
         [Theory]
-        [InlineData("", "", "Development", "Development")]
-        [InlineData("", "Development", "Development", "Development")]
-        [InlineData("", "Test", "Development", "Development")]
-        [InlineData("Development", "", "Development", "Development")]
-        [InlineData("Test", "", "Development", "Development")]
-        [InlineData("Development", "Development", "Development", "Development")]
-        [InlineData("Development", "Test", "Development", "Development")]
-        [InlineData("Test", "Development", "Development", "Development")]
-        [InlineData("Test", "Test", "Development", "Development")]
-        [InlineData("", "Test", "Test", "Development")]
-        [InlineData("Test", "", "Test", "Development")]
-        [InlineData("Test", "Test", "Test", "Development")]
-        [InlineData("", "Test", "", "Development")]
-        [InlineData("Test", "", "", "Development")]
-        [InlineData("Test", "Test", "", "Development")]
-        public void DoesNotShowContent_IncludeExcludeSpecified(string namesAttribute, string includeAttribute, string excludeAttribute, string environmentName)
+        [InlineData(null, "", "Development")]
+        [InlineData("", "Development", "development")]
+        [InlineData("", "Test", "Development, test")]
+        [InlineData("Development", "", "Development")]
+        [InlineData("Test", "", "Development")]
+        [InlineData("Development", "Development", "DEVELOPMENT, TEST")]
+        [InlineData("Development", "Test", "Development")]
+        [InlineData("Test", "Development", "Development")]
+        [InlineData("Test", "Test", "Development")]
+        [InlineData("", "Test", "Test")]
+        [InlineData("Test", null, "Test")]
+        [InlineData("Test", "Test", "Test")]
+        [InlineData("", "Test", null)]
+        [InlineData("Test", "", "")]
+        [InlineData("Test", "Test", null)]
+        public void DoesNotShowContent_IncludeExcludeSpecified(string namesAttribute, string includeAttribute, string excludeAttribute)
         {
             // Arrange
             var content = "content";
@@ -137,8 +136,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
                 });
             var output = MakeTagHelperOutput("environment", childContent: content);
             var hostingEnvironment = new Mock<IHostingEnvironment>();
-            hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = environmentName;
+            hostingEnvironment.SetupProperty(h => h.EnvironmentName, "Development");
 
             // Act
             var helper = new EnvironmentTagHelper(hostingEnvironment.Object)
@@ -173,8 +171,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
             var context = MakeTagHelperContext(attributes: new TagHelperAttributeList { { "names", namesAttribute } });
             var output = MakeTagHelperOutput("environment", childContent: content);
             var hostingEnvironment = new Mock<IHostingEnvironment>();
-            hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = environmentName;
+            hostingEnvironment.SetupProperty(h => h.EnvironmentName, environmentName);
 
             // Act
             var helper = new EnvironmentTagHelper(hostingEnvironment.Object)
@@ -199,8 +196,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Test
                 attributes: new TagHelperAttributeList { { "names", namesAttribute } });
             var output = MakeTagHelperOutput("environment", childContent: content);
             var hostingEnvironment = new Mock<IHostingEnvironment>();
-            hostingEnvironment.SetupProperty(h => h.EnvironmentName);
-            hostingEnvironment.Object.EnvironmentName = environmentName;
+            hostingEnvironment.SetupProperty(h => h.EnvironmentName, environmentName);
 
             // Act
             var helper = new EnvironmentTagHelper(hostingEnvironment.Object)

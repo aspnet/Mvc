@@ -11,14 +11,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;environment&gt; elements that conditionally renders
     /// content based on the current value of <see cref="IHostingEnvironment.EnvironmentName"/>.
-    /// If the environment is not listed in explicitly identified <see cref="Names"/> or <see cref="Include"/> lists or
-    /// if it is in the <see cref="Exclude"/> list, the content will not be rendered. 
+    /// If the environment is not listed in the specified <see cref="Names"/> or <see cref="Include"/>, 
+    /// or if it is in <see cref="Exclude"/>, the content will not be rendered.
     /// </summary>
     public class EnvironmentTagHelper : TagHelper
     {
         private static readonly char[] NameSeparator = new[] { ',' };
-        private static readonly char[] IncludeEnvironmentsSeparator = new[] { ',' };
-        private static readonly char[] ExcludeEnvironmentsSeparator = new[] { ',' };
 
         /// <summary>
         /// Creates a new <see cref="EnvironmentTagHelper"/>.
@@ -34,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         /// <summary>
         /// A comma separated list of environment names in which the content should be rendered.
-        /// If the current environment is also in the <see cref="Exclude"/>  list, the content will not be rendered.
+        /// If the current environment is also in the <see cref="Exclude"/> list, the content will not be rendered.
         /// </summary>
         /// <remarks>
         /// The specified environment names are compared case insensitively to the current value of
@@ -53,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string Include { get; set; }
 
         /// <summary>
-        /// A comma separated list of environment names in which the content should not be rendered.
+        /// A comma separated list of environment names in which the content will not be rendered.
         /// </summary>
         /// <remarks>
         /// The specified environment names are compared case insensitively to the current value of
@@ -92,18 +90,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            var hasExcludeEnvironments = false;
             if (Exclude != null)
             {
-                var tokenizer = new StringTokenizer(Exclude, ExcludeEnvironmentsSeparator);
+                var tokenizer = new StringTokenizer(Exclude, NameSeparator);
                 foreach (var item in tokenizer)
                 {
                     var environment = item.Trim();
                     if (environment.HasValue && environment.Length > 0)
                     {
-                        hasExcludeEnvironments = true;
-                        if (environment.Equals(currentEnvironmentName))
+                        if (environment.Equals(currentEnvironmentName, StringComparison.OrdinalIgnoreCase))
                         {
+                            // Matching environment name found, suppress output
                             output.SuppressOutput();
                             return;
                         }
@@ -130,17 +127,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            var hasIncludeEnvironments = false;
             if (Include != null)
             {
-                var tokenizer = new StringTokenizer(Include, IncludeEnvironmentsSeparator);
+                var tokenizer = new StringTokenizer(Include, NameSeparator);
                 foreach (var item in tokenizer)
                 {
                     var environment = item.Trim();
                     if (environment.HasValue && environment.Length > 0)
                     {
-                        hasIncludeEnvironments = true;
-                        if (environment.Equals(currentEnvironmentName))
+                        hasEnvironments = true;
+                        if (environment.Equals(currentEnvironmentName, StringComparison.OrdinalIgnoreCase))
                         {
                             // Matching environment name found, do nothing
                             return;
@@ -149,17 +145,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            if (hasEnvironments || hasIncludeEnvironments)
+            if (hasEnvironments)
             {
                 // This instance had at least one non-empty environment (name or include) specified but none of these
                 // environments matched the current environment. Suppress the output in this case.
                 output.SuppressOutput();
-                return;
-            }
-
-            if (hasExcludeEnvironments)
-            {
-                // No matching exclude environment name found, do nothing
                 return;
             }
         }
