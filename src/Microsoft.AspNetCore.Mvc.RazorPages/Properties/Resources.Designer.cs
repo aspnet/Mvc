@@ -27,19 +27,51 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <summary>
-        /// Path must begin with a forward slash '/'.
+        /// The '{0}' property of '{1}' must not be null.
         /// </summary>
-        internal static string RazorProject_PathMustStartWithForwardSlash
+        internal static string PropertyOfTypeCannotBeNull
         {
-            get { return GetString("RazorProject_PathMustStartWithForwardSlash"); }
+            get { return GetString("PropertyOfTypeCannotBeNull"); }
         }
 
         /// <summary>
-        /// Path must begin with a forward slash '/'.
+        /// The '{0}' property of '{1}' must not be null.
         /// </summary>
-        internal static string FormatRazorProject_PathMustStartWithForwardSlash()
+        internal static string FormatPropertyOfTypeCannotBeNull(object p0, object p1)
         {
-            return GetString("RazorProject_PathMustStartWithForwardSlash");
+            return string.Format(CultureInfo.CurrentCulture, GetString("PropertyOfTypeCannotBeNull"), p0, p1);
+        }
+
+        /// <summary>
+        /// Page created by '{0}' must be an instance of '{1}'.
+        /// </summary>
+        internal static string ActivatedInstance_MustBeAnInstanceOf
+        {
+            get { return GetString("ActivatedInstance_MustBeAnInstanceOf"); }
+        }
+
+        /// <summary>
+        /// Page created by '{0}' must be an instance of '{1}'.
+        /// </summary>
+        internal static string FormatActivatedInstance_MustBeAnInstanceOf(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("ActivatedInstance_MustBeAnInstanceOf"), p0, p1);
+        }
+
+        /// <summary>
+        /// Argument '{0}' is not the same instance used to create '{1}'.
+        /// </summary>
+        internal static string PageViewResult_ContextIsInvalid
+        {
+            get { return GetString("PageViewResult_ContextIsInvalid"); }
+        }
+
+        /// <summary>
+        /// Argument '{0}' is not the same instance used to create '{1}'.
+        /// </summary>
+        internal static string FormatPageViewResult_ContextIsInvalid(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("PageViewResult_ContextIsInvalid"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

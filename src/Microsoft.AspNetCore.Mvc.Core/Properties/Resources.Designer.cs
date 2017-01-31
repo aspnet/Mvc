@@ -427,7 +427,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'.
+        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'. To use a '[' or ']' as a literal string in a route or within a constraint, use '[[' or ']]' instead.
         /// </summary>
         internal static string AttributeRoute_TokenReplacement_ReplacementValueNotFound
         {
@@ -435,7 +435,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'.
+        /// While processing template '{0}', a replacement value for the token '{1}' could not be found. Available tokens: '{2}'. To use a '[' or ']' as a literal string in a route or within a constraint, use '[[' or ']]' instead.
         /// </summary>
         internal static string FormatAttributeRoute_TokenReplacement_ReplacementValueNotFound(object p0, object p1, object p2)
         {
@@ -1384,6 +1384,22 @@ namespace Microsoft.AspNetCore.Mvc.Core
         internal static string FormatMiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType(object p0, object p1)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("MiddlewareFilterConfigurationProvider_CreateConfigureDelegate_CannotCreateType"), p0, p1);
+        }
+
+        /// <summary>
+        /// '{0}' and '{1}' are out of bounds for the string.
+        /// </summary>
+        internal static string Argument_InvalidOffsetLength
+        {
+            get { return GetString("Argument_InvalidOffsetLength"); }
+        }
+
+        /// <summary>
+        /// '{0}' and '{1}' are out of bounds for the string.
+        /// </summary>
+        internal static string FormatArgument_InvalidOffsetLength(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("Argument_InvalidOffsetLength"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

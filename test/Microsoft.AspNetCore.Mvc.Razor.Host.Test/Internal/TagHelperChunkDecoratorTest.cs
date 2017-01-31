@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.Parser.SyntaxTree;
 using Moq;
@@ -13,6 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
 {
     public class TagHelperChunkDecoratorTest
     {
+        #if OLD_RAZOR
         [Fact]
         public void Accept_CorrectlyDecoratesViewComponentChunks()
         {
@@ -63,5 +63,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test
                  resultTagHelperChunk.Descriptors.First().TypeName,
                  StringComparer.Ordinal);
         }
+#endif
     }
 }

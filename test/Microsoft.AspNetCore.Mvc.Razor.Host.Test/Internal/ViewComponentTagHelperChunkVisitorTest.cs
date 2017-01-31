@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.Razor.Host.Internal;
 using Microsoft.AspNetCore.Razor.Chunks;
 using Microsoft.AspNetCore.Razor.CodeGenerators;
 using Xunit;
@@ -12,6 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 {
     public class ViewComponentTagHelperChunkVisitorTest
     {
+        #if OLD_RAZOR
         public static TheoryData CodeGenerationData
         {
             get
@@ -56,5 +56,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host.Test.Internal
 #endif
 
         }
+#endif
     }
 }
