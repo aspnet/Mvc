@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.Extensions.Localization;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -59,13 +58,13 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void AddDefaultFrameworkParts(ApplicationPartManager partManager)
         {
             var mvcTagHelpersAssembly = typeof(InputTagHelper).GetTypeInfo().Assembly;
-            if (!partManager.ApplicationParts.OfType<AssemblyPart>().Any(p => p.Assembly == mvcTagHelpersAssembly))
+            if(!partManager.ApplicationParts.OfType<AssemblyPart>().Any(p => p.Assembly == mvcTagHelpersAssembly))
             {
                 partManager.ApplicationParts.Add(new AssemblyPart(mvcTagHelpersAssembly));
             }
-
+            
             var mvcRazorAssembly = typeof(UrlResolutionTagHelper).GetTypeInfo().Assembly;
-            if (!partManager.ApplicationParts.OfType<AssemblyPart>().Any(p => p.Assembly == mvcRazorAssembly))
+            if(!partManager.ApplicationParts.OfType<AssemblyPart>().Any(p => p.Assembly == mvcRazorAssembly))
             {
                 partManager.ApplicationParts.Add(new AssemblyPart(mvcRazorAssembly));
             }
