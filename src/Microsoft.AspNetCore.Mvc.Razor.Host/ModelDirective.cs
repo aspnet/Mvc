@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Evolution;
@@ -19,6 +20,35 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             return builder;
         }
 
+        public static string GetModelType(DocumentIRNode document)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            var visitor = new Visitor();
+            visitor.Visit(document);
+
+            return GetModelType(visitor);
+        }
+
+        private static string GetModelType(Visitor visitor)
+        {
+            for (var i = visitor.Directives.Count - 1; i >= 0; i--)
+            {
+                var directive = visitor.Directives[i];
+
+                var tokens = directive.Tokens.ToArray();
+                if (tokens.Length >= 1)
+                {
+                    return tokens[0].Content;
+                }
+            }
+
+            return "dynamic";
+        }
+
         private class Pass : IRazorIRPass
         {
             public RazorEngine Engine { get; set; }
@@ -31,11 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
                 var visitor = new Visitor();
                 visitor.Visit(irDocument);
 
-                string modelType = "dynamic";
-                if (visitor.Directives.Count == 1)
-                {
-                    modelType = visitor.Directives.Last().Tokens.First().Content;
-                }
+                var modelType = GetModelType(visitor);
 
                 visitor.Class.BaseType = visitor.Class.BaseType.Replace("<TModel>", "<" + modelType + ">");
 
