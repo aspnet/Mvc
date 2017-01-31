@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
                         });
                     }
                     else
-                    { 
+                    {
                         for (var i = 0; i < node.Children.Count; i++)
                         {
                             var nestedExpression = node.Children[i] as CSharpExpressionIRNode;

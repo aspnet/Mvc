@@ -107,6 +107,38 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
         }
 
         [Fact]
+        public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
+        {
+            // Arrange
+            var codeDocument = CreateDocument(@"
+@model ModelType
+@inject PropertyType<TModel> PropertyName
+");
+
+            var engine = CreateEngine();
+            var pass = new InjectDirective.Pass()
+            {
+                Engine = engine,
+            };
+
+            var irDocument = CreateIRDocument(engine, codeDocument);
+
+            // Act
+            pass.Execute(codeDocument, irDocument);
+
+            // Assert
+            var @class = FindClassNode(irDocument);
+            Assert.NotNull(@class);
+            Assert.Equal(2, @class.Children.Count);
+
+            var statement = Assert.IsType<CSharpStatementIRNode>(@class.Children[1]);
+            Assert.Equal(
+                "[Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]" + Environment.NewLine +
+                "public PropertyType<ModelType> PropertyName { get; private set; }",
+                statement.Content);
+        }
+
+        [Fact]
         public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
         {
             // Arrange
