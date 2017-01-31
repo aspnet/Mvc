@@ -30,8 +30,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IApplicationNameProvider>(new HostingApplicationNameProvider(services));
-
             var builder = services.AddMvcCore();
 
             builder.AddApiExplorer();
