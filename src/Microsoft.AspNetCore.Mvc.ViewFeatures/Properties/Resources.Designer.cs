@@ -86,17 +86,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <summary>
-        /// A view component named '{0}' could not be found.
+        /// A view component named '{0}' could not be found. View components should be a public concrete non-generic class, and should be decorated with {1} or have a class name ending in '{2}'. The class cannot be decorated with {3}.
         /// </summary>
-        internal static string FormatViewComponent_CannotFindComponent(object p0)
+        internal static string FormatViewComponent_CannotFindComponent(object p0, object p1, object p2, object p3)
         {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                GetString("ViewComponent_CannotFindComponent"),
-                p0,
-                nameof(ViewComponentAttribute),
-                ViewComponentConventions.ViewComponentSuffix,
-                nameof(NonViewComponentAttribute));
+            return string.Format(CultureInfo.CurrentCulture, GetString("ViewComponent_CannotFindComponent"), p0, p1, p2, p3);
         }
 
         /// <summary>
