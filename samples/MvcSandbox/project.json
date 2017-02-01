@@ -7,7 +7,6 @@
   "dependencies": {
     "Microsoft.AspNetCore.Diagnostics": "1.2.0-*",
     "Microsoft.AspNetCore.Mvc": "1.2.0-*",
-    "Microsoft.AspNetCore.Razor": "1.2.0-*",
     "Microsoft.AspNetCore.Razor.Runtime": "1.2.0-*",
     "Microsoft.AspNetCore.Server.IISIntegration": "1.2.0-*",
     "Microsoft.AspNetCore.Server.Kestrel": "1.2.0-*",

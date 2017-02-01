@@ -34,6 +34,27 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             return EnumerateFiles(_provider.GetDirectoryContents(path), path, "");
         }
 
+        public RazorProjectItem GetItem(string path)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            if (path.Length == 0 || path[0] != '/')
+            {
+                throw new ArgumentException(Resources.RazorProject_PathMustStartWithForwardSlash);
+            }
+
+            var file = _provider.GetFileInfo(path);
+            if (file.Exists)
+            {
+                return new DefaultRazorProjectItem(file, "", path);
+            }
+
+            return null;
+        }
+
         private IEnumerable<RazorProjectItem> EnumerateFiles(IDirectoryContents directory, string basePath, string prefix)
         {
             if (directory.Exists)
@@ -42,7 +63,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 {
                     if (file.IsDirectory)
                     {
-                        var children = EnumerateFiles(_provider.GetDirectoryContents(file.PhysicalPath), basePath, prefix + "/" + file.Name);
+                        var relativePath = prefix + "/" + file.Name;
+                        var subDirectory = _provider.GetDirectoryContents(relativePath);
+                        var children = EnumerateFiles(subDirectory, basePath, relativePath);
                         foreach (var child in children)
                         {
                             yield return child;
