@@ -34,6 +34,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
             irDocument.DocumentKind = documentKind;
 
+            return ExecuteCore(codeDocument, irDocument);
+        }
+
+        protected virtual DocumentIRNode ExecuteCore(RazorCodeDocument codeDocument, DocumentIRNode irDocument)
+        {
             // Rewrite a use default namespace and class declaration.
             var children = new List<RazorIRNode>(irDocument.Children);
             irDocument.Children.Clear();

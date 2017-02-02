@@ -12,7 +12,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
         protected override string BaseType => "Microsoft.AspNetCore.Mvc.Razor.RazorPage<TModel>";
 
-
         protected override string ClassifyDocument(RazorCodeDocument codeDocument, DocumentIRNode irDocument)
             => DocumentKind;
     }

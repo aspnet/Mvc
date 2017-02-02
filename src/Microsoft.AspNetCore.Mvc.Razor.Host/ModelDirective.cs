@@ -19,6 +19,37 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             return builder;
         }
 
+        public static string GetModelType(DocumentIRNode irDocument)
+        {
+            Visitor visitor;
+            return GetModelType(irDocument, out visitor);
+        }
+
+        private static string GetModelType(DocumentIRNode irDocument, out Visitor visitor)
+        {
+            visitor = new Visitor();
+            visitor.Visit(irDocument);
+
+            string modelType;
+            if (visitor.Directives.Count == 1)
+            {
+                modelType = visitor.Directives.Last().Tokens.First().Content;
+            }
+            else
+            {
+                if (irDocument.DocumentKind == RazorPageDocumentClassifier.DocumentKind)
+                {
+                    modelType = visitor.Class.Name;
+                }
+                else
+                {
+                    modelType = "dynamic";
+                }
+            }
+
+            return modelType;
+        }
+
         private class Pass : IRazorIRPass
         {
             public RazorEngine Engine { get; set; }
@@ -28,14 +59,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
             public DocumentIRNode Execute(RazorCodeDocument codeDocument, DocumentIRNode irDocument)
             {
-                var visitor = new Visitor();
-                visitor.Visit(irDocument);
-
-                string modelType = "dynamic";
-                if (visitor.Directives.Count == 1)
-                {
-                    modelType = visitor.Directives.Last().Tokens.First().Content;
-                }
+                Visitor visitor;
+                var modelType = GetModelType(irDocument, out visitor);
 
                 visitor.Class.BaseType = visitor.Class.BaseType.Replace("<TModel>", "<" + modelType + ">");
 

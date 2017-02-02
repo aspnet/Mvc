@@ -30,18 +30,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             {
                 var visitor = new Visitor();
                 visitor.Visit(irDocument);
+                var modelType = ModelDirective.GetModelType(irDocument);
 
                 for (var i = 0; i < visitor.Directives.Count; i++)
                 {
                     var directive = visitor.Directives[i];
                     var typeName = directive.Tokens.ElementAt(0).Content;;
                     var memberName = directive.Tokens.ElementAt(1).Content;
-
-                    var modelType = "dynamic";
-                    if (visitor.ModelType.Count > 0)
-                    {
-                        modelType = visitor.ModelType.Last().Tokens.First().Content;
-                    }
 
                     typeName = typeName.Replace("<TModel>", "<" + modelType + ">");
 
@@ -65,8 +60,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
             public IList<DirectiveIRNode> Directives { get; } = new List<DirectiveIRNode>();
 
-            public IList<DirectiveIRNode> ModelType { get; } = new List<DirectiveIRNode>();
-
             public override void VisitClass(ClassDeclarationIRNode node)
             {
                 if (Class == null)
@@ -83,11 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
                 {
                     Directives.Add(node);
                 }
-                else if (node.Descriptor == ModelDirective.Directive)
-                {
-                    ModelType.Add(node);
-                }
-            }
+             }
         }
     }
 }

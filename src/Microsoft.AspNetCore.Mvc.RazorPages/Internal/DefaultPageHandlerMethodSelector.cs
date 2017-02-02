@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     {
         public HandlerMethodDescriptor Select(PageContext context)
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }
