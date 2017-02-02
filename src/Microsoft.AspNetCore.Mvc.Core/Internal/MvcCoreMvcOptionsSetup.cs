@@ -83,6 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             options.ModelMetadataDetailsProviders.Add(new SpecialParametersBindingMetadataProvider(typeof(IFormFile)));
             options.ModelMetadataDetailsProviders.Add(new SpecialParametersBindingMetadataProvider(typeof(IFormCollection)));
             options.ModelMetadataDetailsProviders.Add(new SpecialParametersBindingMetadataProvider(typeof(Stream)));
+
             // Set up validators
             options.ModelValidatorProviders.Add(new DefaultModelValidatorProvider());
 
