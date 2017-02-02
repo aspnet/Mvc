@@ -87,6 +87,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             isFromRequest: false);
 
         /// <summary>
+        /// A <see cref="BindingSource"/> for special parameter types that are not user input.
+        /// </summary>
+        public static readonly BindingSource Special = new BindingSource(
+            "Special",
+            Resources.BindingSource_Special,
+            isGreedy: true,
+            isFromRequest: false);
+
+        /// <summary>
         /// Creates a new <see cref="BindingSource"/>.
         /// </summary>
         /// <param name="id">The id, a unique identifier.</param>

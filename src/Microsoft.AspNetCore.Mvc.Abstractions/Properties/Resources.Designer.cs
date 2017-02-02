@@ -171,6 +171,22 @@ namespace Microsoft.AspNetCore.Mvc.Abstractions
         }
 
         /// <summary>
+        /// Special
+        /// </summary>
+        internal static string BindingSource_Special
+        {
+            get { return GetString("BindingSource_Special"); }
+        }
+
+        /// <summary>
+        /// Special
+        /// </summary>
+        internal static string FormatBindingSource_Special()
+        {
+            return GetString("BindingSource_Special");
+        }
+
+        /// <summary>
         /// ModelBinding
         /// </summary>
         internal static string BindingSource_ModelBinding
