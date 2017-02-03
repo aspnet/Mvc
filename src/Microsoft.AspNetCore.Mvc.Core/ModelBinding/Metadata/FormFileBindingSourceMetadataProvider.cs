@@ -3,21 +3,22 @@
 
 using System;
 using System.Reflection;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 {
-    public class SpecialParametersBindingMetadataProvider : IBindingMetadataProvider
+    public class FormFileBindingSourceMetadataProvider : IBindingMetadataProvider
     {
         public Type Type { get; }
 
         /// <summary>
-        /// Creates a new <see cref="SpecialParametersBindingMetadataProvider"/> for the given <paramref name="type"/>.
+        /// Creates a new <see cref="FormFileBindingSourceMetadataProvider"/> for the given <paramref name="type"/>. 
         /// </summary>
         /// <param name="type">
-        /// The <see cref="Type"/>. All properties with this <see cref="Type"/> will have
-        /// <see cref="BindingSource"/> set to <see cref="BindingSource.Special"/>.
+        /// The <see cref="Type"/>. The provider sets <see cref="BindingSource"/> to <see cref="BindingSource.FormFile"/>
+        /// for properties of <see cref="Type"/> <see cref="IFormFile"/> and <see cref="IFormCollection"/>.
         /// </param>
-        public SpecialParametersBindingMetadataProvider(Type type)
+        public FormFileBindingSourceMetadataProvider(Type type)
         {
             if (type == null)
             {
@@ -37,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
             if (Type.IsAssignableFrom(context.Key.ModelType))
             {
-                context.BindingMetadata.BindingSource = BindingSource.Special;
+                context.BindingMetadata.BindingSource = BindingSource.FormFile;
             }
         }
     }

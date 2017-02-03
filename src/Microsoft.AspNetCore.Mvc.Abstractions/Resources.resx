@@ -171,4 +171,7 @@
   <data name="BindingSource_Special" xml:space="preserve">
     <value>Special</value>
   </data>
+  <data name="BindingSource_FormFile" xml:space="preserve">
+    <value>FormFile</value>
+  </data>
 </root>
