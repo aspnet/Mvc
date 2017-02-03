@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </remarks>
         public static IEnumerable<string> GetViewStartLocations(string applicationRelativePath)
         {
-            return GetHierarchicalLocations(applicationRelativePath, ViewStartFileName);
+            return GetHierarchicalPath(applicationRelativePath, ViewStartFileName);
         }
 
         /// <summary>
@@ -53,53 +53,39 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </remarks>
         public static IEnumerable<string> GetViewImportsLocations(string applicationRelativePath)
         {
-            return GetHierarchicalLocations(applicationRelativePath, ViewImportsFileName);
+            return GetHierarchicalPath(applicationRelativePath, ViewImportsFileName);
         }
 
-        /// <summary>
-        /// Gets the locations for <paramref name="fileName"/>s that are applicable to the specified path.
-        /// </summary>
-        /// <param name="applicationRelativePath">The application relative path of the file to locate
-        /// files named <paramref name="fileName"/>.</param>
-        /// <param name="fileName">The file name.</param>
-        /// <returns>A sequence of paths that represent potential <c>_ViewImports</c> locations.</returns>
-        /// <remarks>
-        /// This method returns paths starting from the directory of <paramref name="applicationRelativePath"/> and
-        /// moves upwards until it hits the application root.
-        /// e.g.
-        /// /Views/Home/View.cshtml -> [ /Views/Home/FileName.cshtml, /Views/FileName.cshtml,
-        ///                              /FileName.cshtml ]
-        /// </remarks>
-        public static IEnumerable<string> GetHierarchicalLocations(string applicationRelativePath, string fileName)
+        private static IEnumerable<string> GetHierarchicalPath(string relativePath, string fileName)
         {
-            if (string.IsNullOrEmpty(applicationRelativePath))
+            if (string.IsNullOrEmpty(relativePath))
             {
                 return Enumerable.Empty<string>();
             }
 
-            if (applicationRelativePath.StartsWith("~/", StringComparison.Ordinal))
+            if (relativePath.StartsWith("~/", StringComparison.Ordinal))
             {
-                applicationRelativePath = applicationRelativePath.Substring(2);
+                relativePath = relativePath.Substring(2);
             }
 
-            if (applicationRelativePath.StartsWith("/", StringComparison.Ordinal))
+            if (relativePath.StartsWith("/", StringComparison.Ordinal))
             {
-                applicationRelativePath = applicationRelativePath.Substring(1);
+                relativePath = relativePath.Substring(1);
             }
 
-            if (string.Equals(Path.GetFileName(applicationRelativePath), fileName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(Path.GetFileName(relativePath), fileName, StringComparison.OrdinalIgnoreCase))
             {
                 // If the specified path is for the file hierarchy being constructed, then the first file that applies
                 // to it is in a parent directory.
-                applicationRelativePath = Path.GetDirectoryName(applicationRelativePath);
+                relativePath = Path.GetDirectoryName(relativePath);
 
-                if (string.IsNullOrEmpty(applicationRelativePath))
+                if (string.IsNullOrEmpty(relativePath))
                 {
                     return Enumerable.Empty<string>();
                 }
             }
 
-            var builder = new StringBuilder(applicationRelativePath);
+            var builder = new StringBuilder(relativePath);
             builder.Replace('\\', '/');
 
             if (builder.Length > 0 && builder[0] != '/')

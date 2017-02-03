@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructur
+namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     /// <summary>
     /// Executes a Razor Page.

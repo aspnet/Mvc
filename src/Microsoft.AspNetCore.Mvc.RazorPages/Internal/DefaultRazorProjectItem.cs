@@ -22,6 +22,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         public override string Path { get; }
 
+        public override bool Exists => _fileInfo.Exists;
+
         public override string PhysicalPath => _fileInfo.PhysicalPath;
 
         public override Stream Read()

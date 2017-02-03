@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Primitives;
@@ -270,6 +271,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 tempDataFactory.Object,
                 new TestOptionsManager<HtmlHelperOptions>(),
                 Mock.Of<IPageHandlerMethodSelector>(),
+                Mock.Of<RazorProject>(),
                 new DiagnosticListener("Microsoft.AspNetCore"),
                 NullLoggerFactory.Instance);
         }

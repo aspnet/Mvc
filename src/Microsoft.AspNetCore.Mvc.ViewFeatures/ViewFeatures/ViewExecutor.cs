@@ -236,13 +236,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             using (var writer = WriterFactory.CreateWriter(response.Body, resolvedContentTypeEncoding))
             {
                 var view = viewContext.View;
-                viewContext.Writer = writer;
 
-                DiagnosticSource.BeforeView(view, viewContext);
+                var oldWriter = viewContext.Writer;
+                try
+                {
+                    viewContext.Writer = writer;
 
-                await view.RenderAsync(viewContext);
+                    DiagnosticSource.BeforeView(view, viewContext);
 
-                DiagnosticSource.AfterView(view, viewContext);
+                    await view.RenderAsync(viewContext);
+
+                    DiagnosticSource.AfterView(view, viewContext);
+                }
+                finally
+                {
+                    viewContext.Writer = oldWriter;
+                }
 
                 // Perf: Invoke FlushAsync to ensure any buffered content is asynchronously written to the underlying
                 // response asynchronously. In the absence of this line, the buffer gets synchronously written to the

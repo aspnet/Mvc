@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -35,6 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private readonly ITempDataDictionaryFactory _tempDataFactory;
         private readonly HtmlHelperOptions _htmlHelperOptions;
         private readonly IPageHandlerMethodSelector _selector;
+        private readonly RazorProject _razorProject;
         private readonly DiagnosticSource _diagnosticSource;
         private readonly ILogger<PageActionInvoker> _logger;
         private volatile InnerCache _currentCache;
@@ -51,6 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             ITempDataDictionaryFactory tempDataFactory,
             IOptions<HtmlHelperOptions> htmlHelperOptions,
             IPageHandlerMethodSelector selector,
+            RazorProject razorProject,
             DiagnosticSource diagnosticSource,
             ILoggerFactory loggerFactory)
         {
@@ -65,6 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _tempDataFactory = tempDataFactory;
             _htmlHelperOptions = htmlHelperOptions.Value;
             _selector = selector;
+            _razorProject = razorProject;
             _diagnosticSource = diagnosticSource;
             _logger = loggerFactory.CreateLogger<PageActionInvoker>();
         }
@@ -190,13 +194,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private List<Func<IRazorPage>> GetPageStartFactories(CompiledPageActionDescriptor descriptor)
         {
-            var pageStartPaths = ViewHierarchyUtility.GetHierarchicalLocations(
-                descriptor.ViewEnginePath,
-                PageStartFileName);
             var pageStartFactories = new List<Func<IRazorPage>>();
-            foreach (var path in pageStartPaths)
+            var pageStartItems = _razorProject.FindHierarchicalItems(descriptor.ViewEnginePath, PageStartFileName);
+            foreach (var item in pageStartItems)
             {
-                var factoryResult = _razorPageFactoryProvider.CreateFactory(path);
+                if (!item.Exists)
+                {
+                    continue;
+                }
+                var factoryResult = _razorPageFactoryProvider.CreateFactory(item.Path);
                 if (factoryResult.Success)
                 {
                     pageStartFactories.Insert(0, factoryResult.RazorPageFactory);
