@@ -20,36 +20,22 @@ Microsoft.AspNetCore.Mvc.RouteAttribute</Description>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Abstractions\Microsoft.AspNetCore.Mvc.Abstractions.csproj" />
-  </ItemGroup>
 
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.ResponseCaching.Abstractions" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Routing" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing.DecisionTree.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.ClosedGenericMatcher.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Routing.DecisionTree.Sources" Version="1.2.0-*" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.ClosedGenericMatcher.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.HashCodeCombiner.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.HashCodeCombiner.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.PropertyActivator.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.SecurityHelper.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.PropertyActivator.Sources" Version="1.2.0-*" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.SecurityHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="System.Buffers" Version="4.4.0-*" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.4.0-*" />
   </ItemGroup>

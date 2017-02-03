@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.IntegrationTests
@@ -499,8 +500,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.True(modelState.IsValid);
         }
 
-#if NET451 // Skipping on CoreCLR because of the following issue: https://github.com/Microsoft/vstest/issues/427
-        [Fact]
+        [ConditionalFact]
+        [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason ="https://github.com/Microsoft/vstest/issues/427")]
         public async Task KeyValuePairModelBinder_BindsKeyValuePairOfArray_Success()
         {
             // Arrange
@@ -543,6 +544,5 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Equal("value2", entry.AttemptedValue);
             Assert.Equal("value2", entry.RawValue);
         }
-#endif
     }
 }
