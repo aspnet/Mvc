@@ -16,15 +16,10 @@ System.Web.Http.ApiController</Description>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Core\Microsoft.AspNetCore.Mvc.Core.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Formatters.Json\Microsoft.AspNetCore.Mvc.Formatters.Json.csproj" />
-  </ItemGroup>
 
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="NETStandard.Library" Version="1.6.2-*" />
+    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="System.Runtime.Serialization.Xml" Version="4.4.0-*" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.4.0-*" />
   </ItemGroup>

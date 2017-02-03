@@ -1,0 +1,53 @@
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.711, 218843443228, vstest.console.dll, TestPluginCache: Discovering the extensions using extension path.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:02.776, 218843600751, vstest.console.dll, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Extensions.TrxLogger: Resolving assembly.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:02.776, 218843611416, vstest.console.dll, AssemblyResolver: Microsoft.VisualStudio.TestPlatform.Extensions.TrxLogger: Resolved assembly. 
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.792, 218843646776, vstest.console.dll, TestPluginCache: Discovered the extensions using extension path ''.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.792, 218843655966, vstest.console.dll, TestPluginCache: Discoverers are ''.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.792, 218843656833, vstest.console.dll, TestPluginCache: Executors are ''.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.792, 218843657145, vstest.console.dll, TestPluginCache: Setting providers are ''.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.792, 218843657449, vstest.console.dll, TestPluginCache: Loggers are 'logger://Microsoft/TestPlatform/TrxLogger/v2'.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:02.842, 218843782048, vstest.console.dll, RunTestsArgumentProcessor:Execute: Test run is starting.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.858, 218843866667, vstest.console.dll, Using effective platform:X86 effective framework:.NETCoreApp,Version=v1.1
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.889, 218843967418, vstest.console.dll, RunTestsArgumentProcessor:Execute: Queuing Test run.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.927, 218844038487, vstest.console.dll, TestEngine: Initializing Parallel Execution as MaxCpuCount is set to: 1
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.942, 218844114586, vstest.console.dll, TestRunRequest.ExecuteAsync: Creating test run request.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.958, 218844129030, vstest.console.dll, TestRunRequest.ExecuteAsync: Starting.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:02.958, 218844132547, vstest.console.dll, TestRunRequest.ExecuteAsync: Starting run with settings:TestRunCriteria:
+   KeepAlive=False,FrequencyOfRunStatsChangeEvent=10,RunStatsChangeEventTimeout=00:00:01.5000000,TestCaseFilter=,TestExecutorLauncher=
+   Settingsxml=<RunSettings>
+  <RunConfiguration>
+    <ResultsDirectory>C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\TestResults</ResultsDirectory>
+    <TargetPlatform>X86</TargetPlatform>
+    <TargetFrameworkVersion>.NETCoreApp,Version=v1.1</TargetFrameworkVersion>
+  </RunConfiguration>
+</RunSettings>
+
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.958, 218844132871, vstest.console.dll, TestRunRequest.ExecuteAsync: Wait for the first run request is over.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:02.958, 218844148564, vstest.console.dll, TestRunRequest.ExecuteAsync: Started.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:02.958, 218844150872, vstest.console.dll, TestRunRequest.WaitForCompletion: Waiting with timeout -1.
+TpTrace Information: 0 : 21432, 5, 2017/02/02, 12:46:02.958, 218844156065, vstest.console.dll, ProxyParallelExecutionManager: Triggering test run for next source: C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.dll
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:02.958, 218844165665, vstest.console.dll, ProxyExecutionManager: Test host is non shared. Lazy initialize.
+TpTrace Information: 0 : 21432, 5, 2017/02/02, 12:46:03.092, 218844564985, vstest.console.dll, Listening on port : 28611
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.111, 218844619314, vstest.console.dll, DotnetTestHostmanager: Full path of dotnet.exe is C:\Users\nimullen\AppData\Local\Microsoft\dotnet\dotnet.exe
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.111, 218844620005, vstest.console.dll, DotnetTestHostmanager: Adding  --runtimeconfig "C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.runtimeconfig.json" in args
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.111, 218844620697, vstest.console.dll, DotnetTestHostmanager: Adding  --depsfile "C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.deps.json" in args
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.127, 218844644156, vstest.console.dll, DotnetTestHostmanager: Reading file C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.deps.json to get path of testhost.dll
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.211, 218844903946, vstest.console.dll, DotnetTestHostmanager: Relative path of testhost.dll with respect to package folder is microsoft.testplatform.testhost/15.0.0-preview-20170125-04\lib/netstandard1.5/testhost.dll
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.227, 218844966101, vstest.console.dll, DotnetTestHostmanager: Looking for path microsoft.testplatform.testhost/15.0.0-preview-20170125-04\lib/netstandard1.5/testhost.dll in folder C:\Users\nimullen\.nuget\packages
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.227, 218844967140, vstest.console.dll, DotnetTestHostmanager: Full path of testhost.dll is C:\Users\nimullen\.nuget\packages\microsoft.testplatform.testhost/15.0.0-preview-20170125-04\lib/netstandard1.5/testhost.dll
+TpTrace Verbose: 0 : 21432, 5, 2017/02/02, 12:46:03.227, 218844973005, vstest.console.dll, ProcessHelper: Starting process 'C:\Users\nimullen\AppData\Local\Microsoft\dotnet\dotnet.exe' with command line 'exec --runtimeconfig "C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.runtimeconfig.json" --depsfile "C:\Users\nimullen\Documents\GitHub\Mvc\test\Microsoft.AspNetCore.Mvc.FunctionalTests\bin\Debug\netcoreapp1.1\Microsoft.AspNetCore.Mvc.FunctionalTests.deps.json" "C:\Users\nimullen\.nuget\packages\microsoft.testplatform.testhost/15.0.0-preview-20170125-04\lib/netstandard1.5/testhost.dll" --port 28611 --parentprocessid 21432 --diag testoutput2.host.17-02-02_12-46-03_11184_5.txt'
+TpTrace Information: 0 : 21432, 6, 2017/02/02, 12:46:04.471, 218848659978, vstest.console.dll, Accepted Client request and set the flag
+TpTrace Verbose: 0 : 21432, 4, 2017/02/02, 12:46:04.914, 218849989312, vstest.console.dll, TestRunRequest:SendTestRunMessage: Starting.
+TpTrace Information: 0 : 21432, 4, 2017/02/02, 12:46:04.918, 218849999403, vstest.console.dll, TestRunRequest:SendTestRunMessage: Completed.
+TpTrace Information: 0 : 21432, 3, 2017/02/02, 12:46:04.920, 218850006118, vstest.console.dll, AssemblyResolver: Microsoft.TestPlatform.CoreUtilities.resources: Resolving assembly.
+TpTrace Information: 0 : 21432, 3, 2017/02/02, 12:46:04.921, 218850009074, vstest.console.dll, AssemblyResolver: Microsoft.TestPlatform.CoreUtilities.resources: Resolving assembly.
+TpTrace Verbose: 0 : 21432, 4, 2017/02/02, 12:46:05.108, 218850611849, vstest.console.dll, TestRunRequest:SendTestRunMessage: Starting.
+TpTrace Information: 0 : 21432, 4, 2017/02/02, 12:46:05.108, 218850612412, vstest.console.dll, TestRunRequest:SendTestRunMessage: Completed.
+TpTrace Verbose: 0 : 21432, 4, 2017/02/02, 12:46:05.256, 218851039510, vstest.console.dll, TestRunRequest:SendTestRunStatsChange: Starting.
+TpTrace Information: 0 : 21432, 4, 2017/02/02, 12:46:05.256, 218851041504, vstest.console.dll, TestRunRequest:SendTestRunStatsChange: Completed.
+TpTrace Verbose: 0 : 21432, 4, 2017/02/02, 12:46:05.271, 218851081905, vstest.console.dll, TestRunRequest:TestRunComplete: Starting. IsAborted:False IsCanceled:False.
+TpTrace Information: 0 : 21432, 4, 2017/02/02, 12:46:05.287, 218851102885, vstest.console.dll, TestRunRequest:TestRunComplete: Completed.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:05.292, 218851119184, vstest.console.dll, TestRunRequest.Dispose: Starting.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:05.292, 218851119931, vstest.console.dll, TestRunRequest.Dispose: Completed.
+TpTrace Information: 0 : 21432, 1, 2017/02/02, 12:46:05.292, 218851120306, vstest.console.dll, RunTestsArgumentProcessor:Execute: Test run is completed.
+TpTrace Verbose: 0 : 21432, 1, 2017/02/02, 12:46:05.292, 218851120709, vstest.console.dll, Executor.Execute: Exiting with exit code of 0

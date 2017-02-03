@@ -12,9 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Core\Microsoft.AspNetCore.Mvc.Core.csproj" />
-  </ItemGroup>
 
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="1.2.0-*" />
   </ItemGroup>
 

@@ -15,15 +15,11 @@ Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer</Description>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Razor\Microsoft.AspNetCore.Mvc.Razor.csproj" />
-  </ItemGroup>
 
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Localization" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
