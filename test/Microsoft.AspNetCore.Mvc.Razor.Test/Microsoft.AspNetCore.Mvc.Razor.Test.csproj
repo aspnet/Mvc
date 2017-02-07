@@ -5,7 +5,6 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.1;net451</TargetFrameworks>
     <DefineConstants>$(DefineConstants);SOME_TEST_DEFINE</DefineConstants>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>

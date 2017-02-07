@@ -4,7 +4,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net451;netcoreapp1.1</TargetFrameworks>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
