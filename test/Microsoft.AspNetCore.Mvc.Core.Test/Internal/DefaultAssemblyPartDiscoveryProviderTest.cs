@@ -214,7 +214,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 "microsoft.aspnetcore.mvc.webapicompatshim",
                 "microsoft.aspnetcore.mvc.testcommon",
                 "microsoft.aspnetcore.mvc.core.test",
-                "microsoft.aspnetcore.mvc.testdiagnosticlistener.sources",
             };
 
             var additionalAssemblies = new[]
