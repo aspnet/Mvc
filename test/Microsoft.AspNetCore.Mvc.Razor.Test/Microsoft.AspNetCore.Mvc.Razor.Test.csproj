@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\shared\Microsoft.AspNetCore.Mvc.TestDiagnosticListener.Sources\**\*.cs" />
-    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
