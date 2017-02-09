@@ -57,6 +57,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
             if (bindingContext.Model == null)
             {
+                if (!HasDefaultConstructor(bindingContext.ModelType.GetTypeInfo()))
+                {
+                    return;
+                }
+
                 bindingContext.Model = CreateModel(bindingContext);
             }
 
@@ -402,6 +407,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             {
                 modelState.AddModelError(modelName, exception, bindingContext.ModelMetadata);
             }
+        }
+
+        private bool HasDefaultConstructor(TypeInfo modelTypeInfo)
+        {
+            // The following check causes the ComplexTypeModelBinder to NOT participate in binding structs.
+            // - Reflection does not provide information about the implicit parameterless constructor for a struct.
+            // - Also this binder would eventually fail to construct an instance of the struct as the Linq's
+            //   NewExpression compile fails to construct it.
+            return !modelTypeInfo.IsAbstract && modelTypeInfo.GetConstructor(Type.EmptyTypes) != null;
         }
     }
 }
