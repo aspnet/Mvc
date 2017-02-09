@@ -383,6 +383,120 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Empty(modelState.Keys);
         }
 
+        [Fact]
+        public async Task ActionParameter_ModelPropertyTypeWithNoDefaultConstructor_NoOps()
+        {
+            // Arrange
+            var parameterType = typeof(Class1);
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                Name = "p",
+                ParameterType = parameterType
+            };
+            var testContext = ModelBindingTestHelper.GetTestContext(request =>
+            {
+                request.QueryString = QueryString.Create("Name", "James").Add("Property1.City", "Seattle");
+            });
+            var modelState = testContext.ModelState;
+
+            // Act
+            var result = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(result.IsModelSet);
+            Assert.True(modelState.IsValid);
+            var model = Assert.IsType<Class1>(result.Model);
+            Assert.Null(model.Property1);
+            var keyValuePair = Assert.Single(modelState);
+            Assert.Equal("Name", keyValuePair.Key);
+            Assert.Equal("James", keyValuePair.Value.AttemptedValue);
+            Assert.Equal("James", keyValuePair.Value.RawValue);
+        }
+
+        [Fact]
+        public async Task ActionParameter_BindingToStructModel_WithNoDefaultConstructor_DoesNotCreateModel()
+        {
+            // Arrange
+            var parameterType = typeof(PointStruct);
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                ParameterType = parameterType,
+                Name = "p"
+            };
+            var testContext = ModelBindingTestHelper.GetTestContext();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.Null(modelBindingResult.Model);
+            Assert.False(modelBindingResult.IsModelSet);
+        }
+
+        [Theory]
+        [InlineData(typeof(ClassWithNoDefaultConstructor))]
+        [InlineData(typeof(AbstractClassWithNoDefaultConstructor))]
+        public async Task ActionParameter_NoDefaultConstructor_DoesNotCreateModel(Type parameterType)
+        {
+            // Arrange
+            var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
+            var parameter = new ParameterDescriptor()
+            {
+                ParameterType = parameterType,
+                Name = "p"
+            };
+            var testContext = ModelBindingTestHelper.GetTestContext();
+
+            // Act
+            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.Null(modelBindingResult.Model);
+            Assert.False(modelBindingResult.IsModelSet);
+        }
+
+        private struct PointStruct
+        {
+            public PointStruct(double x, double y)
+            {
+                X = x;
+                Y = y;
+            }
+            public double X { get; }
+            public double Y { get; }
+        }
+
+        private class Class1
+        {
+            public ClassWithNoDefaultConstructor Property1 { get; set; }
+            public string Name { get; set; }
+        }
+
+        private class ClassWithNoDefaultConstructor
+        {
+            public ClassWithNoDefaultConstructor(int id) { }
+            public string City { get; set; }
+        }
+
+        private abstract class AbstractClassWithNoDefaultConstructor
+        {
+            private readonly string _name;
+
+            public AbstractClassWithNoDefaultConstructor()
+                : this("James")
+            {
+            }
+
+            public AbstractClassWithNoDefaultConstructor(string name)
+            {
+                _name = name;
+            }
+
+            public string Name { get; set; }
+        }
+
         private class CustomReadOnlyCollection<T> : ICollection<T>
         {
             private ICollection<T> _original;
