@@ -1091,10 +1091,10 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Null(modelStateEntry.RawValue);
         }
 
-        private class AddressWithNoDefaultConstructor
+        private class AddressWithNoParameterlessConstructor
         {
             private readonly int _id;
-            public AddressWithNoDefaultConstructor(int id)
+            public AddressWithNoParameterlessConstructor(int id)
             {
                 _id = id;
             }
@@ -1103,7 +1103,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task TryUpdateModel_ExistingModelWithNoDefaultConstructor_OverwritesBoundValues()
+        public async Task TryUpdateModel_ExistingModelWithNoParameterlessConstructor_OverwritesBoundValues()
         {
             // Arrange
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -1112,7 +1112,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             });
 
             var modelState = testContext.ModelState;
-            var model = new AddressWithNoDefaultConstructor(10)
+            var model = new AddressWithNoParameterlessConstructor(10)
             {
                 Street = "DefaultStreet",
                 City = "Toronto",

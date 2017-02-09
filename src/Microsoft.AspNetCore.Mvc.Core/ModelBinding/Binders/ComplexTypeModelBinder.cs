@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
@@ -47,6 +48,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 return TaskCache.CompletedTask;
             }
 
+            // The following check causes the ComplexTypeModelBinder to NOT participate in binding structs as 
+            // reflection does not provide information about the implicit parameterless constructor for a struct.
+            var modelTypeInfo = bindingContext.ModelType.GetTypeInfo();
+            if (bindingContext.Model == null
+                && (modelTypeInfo.IsAbstract
+                || modelTypeInfo.GetConstructor(Type.EmptyTypes) == null))
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatComplexTypeModelBinder_NoPrameterlessConstructor(bindingContext.ModelType.FullName));
+            }
+
             // Perf: separated to avoid allocating a state machine when we don't
             // need to go async.
             return BindModelCoreAsync(bindingContext);
@@ -57,11 +69,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // Create model first (if necessary) to avoid reporting errors about properties when activation fails.
             if (bindingContext.Model == null)
             {
-                if (!HasDefaultConstructor(bindingContext.ModelType.GetTypeInfo()))
-                {
-                    return;
-                }
-
                 bindingContext.Model = CreateModel(bindingContext);
             }
 
@@ -407,15 +414,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             {
                 modelState.AddModelError(modelName, exception, bindingContext.ModelMetadata);
             }
-        }
-
-        private bool HasDefaultConstructor(TypeInfo modelTypeInfo)
-        {
-            // The following check causes the ComplexTypeModelBinder to NOT participate in binding structs.
-            // - Reflection does not provide information about the implicit parameterless constructor for a struct.
-            // - Also this binder would eventually fail to construct an instance of the struct as the Linq's
-            //   NewExpression compile fails to construct it.
-            return !modelTypeInfo.IsAbstract && modelTypeInfo.GetConstructor(Type.EmptyTypes) != null;
         }
     }
 }

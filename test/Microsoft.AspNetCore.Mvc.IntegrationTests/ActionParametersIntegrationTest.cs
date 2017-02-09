@@ -384,7 +384,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task ActionParameter_ModelPropertyTypeWithNoDefaultConstructor_NoOps()
+        public async Task ActionParameter_ModelPropertyTypeWithNoParameterlessConstructor_AddsErrorToModelState()
         {
             // Arrange
             var parameterType = typeof(Class1);
@@ -400,22 +400,17 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             });
             var modelState = testContext.ModelState;
 
-            // Act
-            var result = await argumentBinder.BindModelAsync(parameter, testContext);
-
-            // Assert
-            Assert.True(result.IsModelSet);
-            Assert.True(modelState.IsValid);
-            var model = Assert.IsType<Class1>(result.Model);
-            Assert.Null(model.Property1);
-            var keyValuePair = Assert.Single(modelState);
-            Assert.Equal("Name", keyValuePair.Key);
-            Assert.Equal("James", keyValuePair.Value.AttemptedValue);
-            Assert.Equal("James", keyValuePair.Value.RawValue);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
+            Assert.Equal(
+                string.Format(
+                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
+                    typeof(ClassWithNoDefaultConstructor).FullName),
+                exception.Message);
         }
 
         [Fact]
-        public async Task ActionParameter_BindingToStructModel_WithNoDefaultConstructor_DoesNotCreateModel()
+        public async Task ActionParameter_BindingToStructModel_WithNoParameterlessConstructor_DoesNotCreateModel()
         {
             // Arrange
             var parameterType = typeof(PointStruct);
@@ -427,18 +422,19 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
             var testContext = ModelBindingTestHelper.GetTestContext();
 
-            // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
-
-            // Assert
-            Assert.Null(modelBindingResult.Model);
-            Assert.False(modelBindingResult.IsModelSet);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
+            Assert.Equal(
+                string.Format(
+                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
+                    parameterType.FullName),
+                exception.Message);
         }
 
         [Theory]
         [InlineData(typeof(ClassWithNoDefaultConstructor))]
         [InlineData(typeof(AbstractClassWithNoDefaultConstructor))]
-        public async Task ActionParameter_NoDefaultConstructor_DoesNotCreateModel(Type parameterType)
+        public async Task ActionParameter_BindingToTypeWithNoParameterlessConstructor_ThrowsException(Type parameterType)
         {
             // Arrange
             var argumentBinder = ModelBindingTestHelper.GetArgumentBinder();
@@ -449,12 +445,13 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             };
             var testContext = ModelBindingTestHelper.GetTestContext();
 
-            // Act
-            var modelBindingResult = await argumentBinder.BindModelAsync(parameter, testContext);
-
-            // Assert
-            Assert.Null(modelBindingResult.Model);
-            Assert.False(modelBindingResult.IsModelSet);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
+            Assert.Equal(
+                string.Format(
+                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
+                    parameterType.FullName),
+                exception.Message);
         }
 
         private struct PointStruct

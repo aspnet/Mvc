@@ -387,4 +387,7 @@
     <value>Unable to create an instance of type '{0}'. The type specified in {1} must not be abstract and must have a parameterless constructor.</value>
     <comment>0 is the type to configure. 1 is the name of the parameter, configurationType.</comment>
   </data>
+  <data name="ComplexTypeModelBinder_NoPrameterlessConstructor" xml:space="preserve">
+    <value>Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.</value>
+  </data>
 </root>
