@@ -404,8 +404,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
             Assert.Equal(
                 string.Format(
-                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
-                    typeof(ClassWithNoDefaultConstructor).FullName),
+                    "Could not create an instance of type '{0}'. Model bound complex types must not be abstract or " +
+                    "value types and must have a parameterless constructor. Alternatively, set the '{1}' property to" +
+                    " a non-null value in the '{0}' constructor.",
+                    typeof(ClassWithNoDefaultConstructor).FullName,
+                    nameof(Class1.Property1)),
                 exception.Message);
         }
 
@@ -426,8 +429,9 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
             Assert.Equal(
                 string.Format(
-                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
-                    parameterType.FullName),
+                    "Could not create an instance of type '{0}'. Model bound complex types must not be abstract or " +
+                    "value types and must have a parameterless constructor.",
+                    typeof(PointStruct).FullName),
                 exception.Message);
         }
 
@@ -449,7 +453,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => argumentBinder.BindModelAsync(parameter, testContext));
             Assert.Equal(
                 string.Format(
-                    "Could not create an instance of type '{0}' as it's either an abstract type or a struct or does not have a parameterless constructor.",
+                    "Could not create an instance of type '{0}'. Model bound complex types must not be abstract or " +
+                    "value types and must have a parameterless constructor.",
                     parameterType.FullName),
                 exception.Message);
         }
