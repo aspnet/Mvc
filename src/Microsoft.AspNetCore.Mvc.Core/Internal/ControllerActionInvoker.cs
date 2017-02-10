@@ -675,7 +675,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             return task;
                         }
 
-                        goto case State.InvokeEnd;
+                        // Found this while investigating #5594. This is not right, but we think it's harmless
+                        // so we're leaving it here for the patch release. This should go to InvokeEnd if the
+                        // scope is not Resource because that can only happen when there are no resource filters.
+                        goto case State.ResourceEnd;
                     }
 
                 case State.ExceptionEnd:
