@@ -384,7 +384,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         }
 
         [Fact]
-        public async Task ActionParameter_ModelPropertyTypeWithNoParameterlessConstructor_AddsErrorToModelState()
+        public async Task ActionParameter_ModelPropertyTypeWithNoParameterlessConstructor_ThrowsException()
         {
             // Arrange
             var parameterType = typeof(Class1);
@@ -406,14 +406,15 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 string.Format(
                     "Could not create an instance of type '{0}'. Model bound complex types must not be abstract or " +
                     "value types and must have a parameterless constructor. Alternatively, set the '{1}' property to" +
-                    " a non-null value in the '{0}' constructor.",
+                    " a non-null value in the '{2}' constructor.",
                     typeof(ClassWithNoDefaultConstructor).FullName,
-                    nameof(Class1.Property1)),
+                    nameof(Class1.Property1),
+                    typeof(Class1).FullName),
                 exception.Message);
         }
 
         [Fact]
-        public async Task ActionParameter_BindingToStructModel_WithNoParameterlessConstructor_DoesNotCreateModel()
+        public async Task ActionParameter_BindingToStructModel_ThrowsException()
         {
             // Arrange
             var parameterType = typeof(PointStruct);

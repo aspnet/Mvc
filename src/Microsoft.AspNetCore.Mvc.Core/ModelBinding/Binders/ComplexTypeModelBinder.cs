@@ -53,9 +53,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             // This binder would eventually fail to construct an instance of the struct as the Linq's NewExpression
             // compile fails to construct it.
             var modelTypeInfo = bindingContext.ModelType.GetTypeInfo();
-            if (bindingContext.Model == null
-                && (modelTypeInfo.IsAbstract
-                || modelTypeInfo.GetConstructor(Type.EmptyTypes) == null))
+            if (bindingContext.Model == null &&
+                (modelTypeInfo.IsAbstract ||
+                modelTypeInfo.GetConstructor(Type.EmptyTypes) == null))
             {
                 if (bindingContext.IsTopLevelObject)
                 {
@@ -66,7 +66,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 throw new InvalidOperationException(
                     Resources.FormatComplexTypeModelBinder_NoParameterlessConstructor_ForProperty(
                         modelTypeInfo.FullName,
-                        bindingContext.ModelName));
+                        bindingContext.ModelName,
+                        bindingContext.ModelMetadata.ContainerType.FullName));
             }
 
             // Perf: separated to avoid allocating a state machine when we don't
