@@ -21,6 +21,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 var Model = new TestModel();
                 var key = "TestModel";
                 var myModels = new List<TestModel>();
+                var models = new List<TestModel>();
+                var modelTest = new TestModel();
+                var modelType = typeof(TestModel);
 
                 return new TheoryData<Expression, string>
                 {
@@ -55,6 +58,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     {
                         (Expression<Func<TestModel, TestModel>>)(m => Model),
                         string.Empty
+                    },
+                    {
+                        (Expression<Func<TestModel, int>>)(model => models[0].SelectedCategory.CategoryId),
+                        "models[0].SelectedCategory.CategoryId"
+                    },
+                    {
+                        (Expression<Func<TestModel, string>>)(model => modelTest.Name),
+                        "modelTest.Name"
+                    },
+                    {
+                        (Expression<Func<TestModel, Type>>)(model => modelType),
+                        "modelType"
                     },
                     {
                         (Expression<Func<IList<TestModel>, Category>>)(model => model[2].SelectedCategory),
@@ -157,8 +172,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         (Expression<Func<TestModel, string>>)(m => value)
                     },
                     {
-                        // These two expressions are not actually equivalent. However ExpressionHelper returns 
-                        // string.Empty for these two expressions and hence they are considered as equivalent by the 
+                        // These two expressions are not actually equivalent. However ExpressionHelper returns
+                        // string.Empty for these two expressions and hence they are considered as equivalent by the
                         // cache.
                         (Expression<Func<TestModel, string>>)(m => Model),
                         (Expression<Func<TestModel, TestModel>>)(m => m)

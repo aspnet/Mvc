@@ -101,11 +101,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // If parts start with "model", then strip that part away.
             if (part == null || part.NodeType != ExpressionType.Parameter)
             {
+                const string dotModel = ".model";
+                var dotModelLength = dotModel.Length;
+
                 var text = builder.ToString();
-                if (text.StartsWith(".model", StringComparison.OrdinalIgnoreCase))
+                if (text.StartsWith(dotModel, StringComparison.OrdinalIgnoreCase) &&
+                    (text.Length == dotModelLength || text[dotModelLength] == '.' || text[dotModelLength] == '['))
                 {
-                    // 6 is the length of the string ".model".
-                    builder.Remove(0, 6);
+                    builder.Remove(0, dotModelLength);
                 }
             }
 
