@@ -4,11 +4,11 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc": "1.0.2",
+    "Microsoft.AspNetCore.Mvc": "1.0.3",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.1",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.2",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.1",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.2",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.3",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.2",
     "Microsoft.Extensions.DiagnosticAdapter": "1.0.1"
   },
   "frameworks": {
@@ -34,7 +34,7 @@
   },
   "tools": {
     "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-preview4-update1",
       "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
     }
   },

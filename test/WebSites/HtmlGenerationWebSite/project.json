@@ -4,14 +4,14 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc": "1.0.2",
-    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.2",
+    "Microsoft.AspNetCore.Mvc": "1.0.3",
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.3",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
-      "version": "1.0.0-preview4-final"
+      "version": "1.0.0-preview4-update1"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.1",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.2",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.2",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.3",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0"
   },
   "frameworks": {
@@ -38,11 +38,11 @@
   },
   "tools": {
     "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-preview4-update1",
       "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
     },
     "Microsoft.AspNetCore.Razor.Tools": {
-      "version": "1.0.0-*",
+      "version": "1.0.0-preview4-update1",
       "imports": [
         "portable-net45+wp80+win8+wpa81+dnxcore50"
       ]
