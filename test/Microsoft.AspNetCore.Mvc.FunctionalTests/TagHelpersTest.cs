@@ -295,10 +295,10 @@ page:<root>root-content</root>"
 
         [Theory]
         [InlineData("Index")]
-        [InlineData("CustomEncoder")]
-        [InlineData("NullEncoder")]
-        [InlineData("TwoEncoders")]
-        [InlineData("ThreeEncoders")]
+        [InlineData("CustomEncoder", Skip = "aspnet/Mvc#5794")]
+        [InlineData("NullEncoder", Skip = "aspnet/Mvc#5794")]
+        [InlineData("TwoEncoders", Skip = "aspnet/Mvc#5794")]
+        [InlineData("ThreeEncoders", Skip = "aspnet/Mvc#5794")]
         public async Task EncodersPages_ReturnExpectedContent(string actionName)
         {
             // Arrange
