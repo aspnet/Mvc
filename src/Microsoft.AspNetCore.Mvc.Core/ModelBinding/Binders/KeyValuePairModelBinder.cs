@@ -63,9 +63,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 return;
             }
 
+            var modelState = bindingContext.ModelState;
             if (!keyResult.IsModelSet && valueResult.IsModelSet)
             {
-                bindingContext.ModelState.TryAddModelError(
+                var modelStateEntry = bindingContext.ModelStateEntry.GetOrAddModelStateForProperty(
+                    modelState,
+                    "Key",
+                    keyModelName);
+                modelStateEntry.TryAddModelError(
+                    modelState,
                     keyModelName,
                     bindingContext.ModelMetadata.ModelBindingMessageProvider.MissingKeyOrValueAccessor());
                 return;
@@ -73,7 +79,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             if (keyResult.IsModelSet && !valueResult.IsModelSet)
             {
-                bindingContext.ModelState.TryAddModelError(
+                var modelStateEntry = bindingContext.ModelStateEntry.GetOrAddModelStateForProperty(
+                    modelState,
+                    "Value",
+                    valueModelName);
+                modelStateEntry.TryAddModelError(
+                    modelState,
                     valueModelName,
                     bindingContext.ModelMetadata.ModelBindingMessageProvider.MissingKeyOrValueAccessor());
                 return;

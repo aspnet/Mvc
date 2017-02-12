@@ -41,7 +41,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 return TaskCache.CompletedTask;
             }
 
-            bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+            var modelState = bindingContext.ModelState;
+            bindingContext.ModelStateEntry.SetModelValue(modelState, bindingContext.ModelName, valueProviderResult);
 
             try
             {
@@ -78,7 +79,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 // current bindingContext. If not, an error is logged.
                 if (model == null && !bindingContext.ModelMetadata.IsReferenceOrNullableType)
                 {
-                    bindingContext.ModelState.TryAddModelError(
+                    bindingContext.ModelStateEntry.TryAddModelError(
+                        modelState,
                         bindingContext.ModelName,
                         bindingContext.ModelMetadata.ModelBindingMessageProvider.ValueMustNotBeNullAccessor(
                             valueProviderResult.ToString()));
@@ -101,7 +103,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                     exception = ExceptionDispatchInfo.Capture(exception.InnerException).SourceException;
                 }
 
-                bindingContext.ModelState.TryAddModelError(
+                bindingContext.ModelStateEntry.TryAddModelError(
+                    modelState,
                     bindingContext.ModelName,
                     exception,
                     bindingContext.ModelMetadata);

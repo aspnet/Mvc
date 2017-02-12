@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
     /// <summary>
     /// An <see cref="IModelBinder"/> which binds models from the request headers when a model
-    /// has the binding source <see cref="BindingSource.Header"/>/
+    /// has the binding source <see cref="BindingSource.Header"/>.
     /// </summary>
     public class HeaderModelBinder : IModelBinder
     {
@@ -58,7 +58,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
             else
             {
-                bindingContext.ModelState.SetModelValue(
+                bindingContext.ModelStateEntry.SetModelValue(
+                    bindingContext.ModelState,
                     bindingContext.ModelName,
                     request.Headers.GetCommaSeparatedValues(headerName),
                     request.Headers[headerName]);

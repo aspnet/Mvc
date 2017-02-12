@@ -68,13 +68,36 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public abstract string ModelName { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="ModelStateDictionary"/> used to capture <see cref="ModelState"/> values
-        /// for properties in the object graph of the model when binding.
+        /// Gets or sets the <see cref="ModelStateDictionary"/> used to capture
+        /// <see cref="ModelBinding.ModelStateEntry"/> values for properties in the object graph of the model when
+        /// binding.
         /// </summary>
         /// <remarks>
         /// The property setter is provided for unit testing purposes only.
         /// </remarks>
         public abstract ModelStateDictionary ModelState { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="ModelBinding.ModelStateEntry"/> for the current property or collection entry in the
+        /// model's object graph.
+        /// </summary>
+        public virtual ModelStateEntry ModelStateEntry
+        {
+            get
+            {
+                return ModelState.GetOrAddModelState(ModelName);
+            }
+            set
+            {
+                // For back-compatibility, do not use the value. Older subclasses will not correctly handle this
+                // property as scopes are entered and exited. MVC code uses this setter to avoid incorrectly
+                // interpreting FieldName but ModelName is always correct.
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+            }
+        }
 
         /// <summary>
         /// Gets the type of the model.
@@ -131,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Pushes a layer of state onto this context. Model binders will call this as part of recursion when binding properties
         /// or collection items.
         /// </summary>
-        /// <returns>A <see cref="NestedScope"/> scope object which should be used in a using statement where PushContext is called.</returns>        
+        /// <returns>A <see cref="NestedScope"/> scope object which should be used in a using statement where PushContext is called.</returns>
         public abstract NestedScope EnterNestedScope();
 
         /// <summary>
@@ -141,7 +164,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Return value of <see cref="M:EnterNestedScope"/>. Should be disposed
-        /// by caller when child binding context state should be popped off of 
+        /// by caller when child binding context state should be popped off of
         /// the <see cref="ModelBindingContext"/>.
         /// </summary>
         public struct NestedScope : IDisposable

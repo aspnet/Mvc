@@ -505,6 +505,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
         }
 
+        public ModelStateEntry GetOrAddModelState(string key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            return GetOrAddNode(key);
+        }
+
         private ModelStateNode GetNode(string key)
         {
             Debug.Assert(key != null);
@@ -903,6 +913,224 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public override ModelStateEntry GetModelStateForProperty(string propertyName)
                 => GetNode(new StringSegment(propertyName));
+
+            public override ModelStateEntry GetOrAddModelStateForProperty(
+                ModelStateDictionary dictionary,
+                string propertyName,
+                string key)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                if (string.IsNullOrEmpty(propertyName))
+                {
+                    return this;
+                }
+
+                // Check whether propertyName moves a single level. [Bind(Prefix ="junk.junk[0]")] is completely valid.
+                for (var i = 0; i < propertyName.Length; i++)
+                {
+                    var ch = propertyName[i];
+                    if (ch == DelimiterDot)
+                    {
+                        return dictionary.GetOrAddNode(key);
+                    }
+
+                    if (i != 0 && ch == DelimiterOpen)
+                    {
+                        return dictionary.GetOrAddNode(key);
+                    }
+                }
+
+                return GetOrAddNode(new StringSegment(propertyName));
+            }
+
+            public override ModelValidationState GetFieldValidationState(ModelStateDictionary dictionary, string key)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                return GetValidity(this) ?? ModelValidationState.Unvalidated;
+            }
+
+            public override void SetModelValue(
+                ModelStateDictionary dictionary,
+                string key,
+                ValueProviderResult valueProviderResult)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                // Avoid creating a new array for rawValue if there's only one value.
+                object rawValue;
+                if (valueProviderResult == ValueProviderResult.None)
+                {
+                    rawValue = null;
+                }
+                else if (valueProviderResult.Length == 1)
+                {
+                    rawValue = valueProviderResult.Values[0];
+                }
+                else
+                {
+                    rawValue = valueProviderResult.Values.ToArray();
+                }
+
+                SetModelValue(dictionary, key, rawValue, valueProviderResult.ToString());
+            }
+
+            public override void SetModelValue(
+                ModelStateDictionary dictionary,
+                string key,
+                object rawValue,
+                string attemptedValue)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                if (IsContainerNode)
+                {
+                    dictionary.Count++;
+                }
+
+                MarkNonContainerNode();
+                RawValue = rawValue;
+                AttemptedValue = attemptedValue;
+                if (Key == null)
+                {
+                    Key = key;
+                }
+            }
+
+            public override bool TryAddModelError(
+                ModelStateDictionary dictionary,
+                string key,
+                Exception exception,
+                ModelMetadata metadata)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                if (exception == null)
+                {
+                    throw new ArgumentNullException(nameof(exception));
+                }
+
+                if (metadata == null)
+                {
+                    throw new ArgumentNullException(nameof(metadata));
+                }
+
+                if (dictionary.ErrorCount >= dictionary.MaxAllowedErrors - 1)
+                {
+                    dictionary.EnsureMaxErrorsReachedRecorded();
+                    return false;
+                }
+
+                if (exception is FormatException || exception is OverflowException)
+                {
+                    // Convert FormatExceptions and OverflowExceptions to Invalid value messages.
+                    var name = metadata.GetDisplayName();
+                    string errorMessage;
+                    if (IsContainerNode)
+                    {
+                        errorMessage = metadata.ModelBindingMessageProvider.UnknownValueIsInvalidAccessor(name);
+                    }
+                    else
+                    {
+                        errorMessage = metadata.ModelBindingMessageProvider.AttemptedValueIsInvalidAccessor(
+                            AttemptedValue,
+                            name);
+                    }
+
+                    return TryAddModelError(dictionary, key, errorMessage);
+                }
+
+                CountModelError(dictionary, key);
+                Errors.Add(exception);
+
+                return true;
+            }
+
+            public override bool TryAddModelError(ModelStateDictionary dictionary, string key, string errorMessage)
+            {
+                if (dictionary == null)
+                {
+                    throw new ArgumentNullException(nameof(dictionary));
+                }
+
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                if (errorMessage == null)
+                {
+                    throw new ArgumentNullException(nameof(errorMessage));
+                }
+
+                if (dictionary.ErrorCount >= dictionary.MaxAllowedErrors - 1)
+                {
+                    dictionary.EnsureMaxErrorsReachedRecorded();
+                    return false;
+                }
+
+                CountModelError(dictionary, key);
+                Errors.Add(errorMessage);
+
+                return true;
+            }
+
+            private void CountModelError(ModelStateDictionary dictionary, string key)
+            {
+                if (IsContainerNode)
+                {
+                    dictionary.Count++;
+                }
+
+                MarkNonContainerNode();
+                dictionary.ErrorCount++;
+                ValidationState = ModelValidationState.Invalid;
+                if (Key == null)
+                {
+                    Key = key;
+                }
+            }
 
             private int BinarySearch(StringSegment searchKey)
             {

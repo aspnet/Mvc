@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Routing;
 using Moq;
@@ -517,14 +516,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 { nameof(TestController.NullCollectionProperty), new List<string> { "hello", "world" } },
                 { nameof(TestController.StringProperty), "Hello" },
             };
-            var expectedPropertyValues = new Dictionary<string, object>
-            {
-                { nameof(TestController.ArrayProperty), new string[] { "goodbye" } },
-                { nameof(TestController.CollectionProperty), new List<string> { "hello", "world" } },
-                { nameof(TestController.NonCollectionProperty), new Person { Name = "Ginger" } },
-                { nameof(TestController.NullCollectionProperty), null },
-                { nameof(TestController.StringProperty), "Hello" },
-            };
 
             var actionDescriptor = GetActionDescriptor();
             foreach (var keyValuePair in boundPropertyTypes)
@@ -647,7 +638,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var argumentBinder = new DefaultControllerArgumentBinder(
                 metadataProvider,
-                factory.Object, 
+                factory.Object,
                 CreateMockValidator());
 
             var controllerContext = GetControllerContext();
@@ -693,8 +684,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 .Returns(modelBinder.Object);
 
             var argumentBinder = new DefaultControllerArgumentBinder(
-                metadataProvider, 
-                factory.Object, 
+                metadataProvider,
+                factory.Object,
                 CreateMockValidator());
 
             var valueProvider = new SimpleValueProvider

@@ -169,21 +169,31 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 parameter.BindingInfo,
                 parameter.Name);
 
+            var modelState = modelBindingContext.ModelState;
             var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
             if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
                 modelBindingContext.ModelName = parameterModelName;
+                modelBindingContext.ModelStateEntry = modelState.Root.GetOrAddModelStateForProperty(
+                    modelState,
+                    parameterModelName,
+                    parameterModelName);
             }
             else if (modelBindingContext.ValueProvider.ContainsPrefix(parameter.Name))
             {
                 // We have a match for the parameter name, use that as that prefix.
                 modelBindingContext.ModelName = parameter.Name;
+                modelBindingContext.ModelStateEntry = modelState.Root.GetOrAddModelStateForProperty(
+                    modelState,
+                    parameter.Name,
+                    parameter.Name);
             }
             else
             {
                 // No match, fallback to empty string as the prefix.
                 modelBindingContext.ModelName = string.Empty;
+                modelBindingContext.ModelStateEntry = modelState.Root;
             }
 
             await binder.BindModelAsync(modelBindingContext);
