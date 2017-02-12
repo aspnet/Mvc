@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             Assert.Equal("BaseType<Type1>", @class.BaseType);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void ModelDirectivePass_Execute_ReplacesTModelInBaseType_DifferentOrdering()
         {
             // Arrange
