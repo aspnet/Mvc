@@ -5,17 +5,17 @@
   },
   "dependencies": {
     "dotnet-test-xunit": "1.0.0-rc3-000000-01",
-    "Microsoft.AspNetCore.Http": "1.0.1",
-    "Microsoft.AspNetCore.Mvc.DataAnnotations": "1.0.2",
-    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.2",
-    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.2",
+    "Microsoft.AspNetCore.Http": "1.0.2",
+    "Microsoft.AspNetCore.Mvc.DataAnnotations": "1.0.3",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.3",
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.3",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "version": "1.0.0-*",
       "type": "build"
     },
     "Microsoft.AspNetCore.Testing": "1.0.1",
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.1",
-    "Microsoft.Extensions.Logging.Testing": "1.0.1"
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.2",
+    "Microsoft.Extensions.Logging.Testing": "1.0.2"
   },
   "testRunner": "xunit",
   "frameworks": {
@@ -26,7 +26,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.3",
+          "version": "1.0.4",
           "type": "platform"
         },
         "moq.netcore": "4.4.0-beta8",
