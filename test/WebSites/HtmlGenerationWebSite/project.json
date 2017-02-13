@@ -8,7 +8,7 @@
     "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.3",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
-      "version": "1.0.0-preview4-update1"
+      "version": "1.0.0-preview4-final"
     },
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.2",
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.3",
@@ -38,11 +38,11 @@
   },
   "tools": {
     "Microsoft.AspNetCore.Server.IISIntegration.Tools": {
-      "version": "1.0.0-preview4-update1",
+      "version": "1.0.0-preview4-final",
       "imports": "portable-net45+wp80+win8+wpa81+dnxcore50"
     },
     "Microsoft.AspNetCore.Razor.Tools": {
-      "version": "1.0.0-preview4-update1",
+      "version": "1.0.0-preview4-final",
       "imports": [
         "portable-net45+wp80+win8+wpa81+dnxcore50"
       ]

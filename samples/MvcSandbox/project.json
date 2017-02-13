@@ -9,7 +9,7 @@
     "Microsoft.AspNetCore.Mvc": "1.0.3",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
-      "version": "1.0.0-preview4-update1"
+      "version": "1.0.0-preview4-final"
     },
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.2",
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.3",
@@ -25,8 +25,8 @@
     ]
   },
   "tools": {
-    "Microsoft.AspNetCore.Razor.Tools": "1.0.0-preview4-update1",
-    "Microsoft.DotNet.Watcher.Tools": "1.0.0-preview4-update1"
+    "Microsoft.AspNetCore.Razor.Tools": "1.0.0-preview4-final",
+    "Microsoft.DotNet.Watcher.Tools": "1.0.0-preview4-final"
   },
   "frameworks": {
     "net451": {},
