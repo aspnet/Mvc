@@ -8,13 +8,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
     public class SpecialBindingSourceMetadataProviderTests
     {
         [Fact]
-        public void ChecksParameterType_AssignsSpecialBindingSource()
+        public void CreateBindingMetadata_ForMatchingType_SetsBindingSource()
         {
             // Arrange
-            var provider = new SpecialBindingSourceMetadataProvider(typeof(Test));
+            var provider = new SpecialBindingSourceMetadataProvider(typeof(Test), BindingSource.Special);
 
-            var key = ModelMetadataIdentity.ForType(
-                typeof(Test));
+            var key = ModelMetadataIdentity.ForType(typeof(Test));
 
             var context = new BindingMetadataProviderContext(key, new ModelAttributes(new object[0], new object[0]));
 

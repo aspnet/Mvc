@@ -10,15 +10,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
     public class SpecialBindingSourceMetadataProvider : IBindingMetadataProvider
     {
         public Type Type { get; }
+        public BindingSource BindingSource { get; }
 
         /// <summary>
-        /// Creates a new <see cref="SpecialBindingSourceMetadataProvider"/> for the given <paramref name="type"/>. 
+        /// Creates a new <see cref="SpecialBindingSourceMetadataProvider"/> for the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
-        /// The <see cref="Type"/>. The provider sets <see cref="BindingSource"/> to <see cref="BindingSource.Special"/>
-        /// for properties of <see cref="Type"/> <see cref="CancellationToken"/>.
+        /// The <see cref="Type"/>. The provider sets <see cref="BindingSource"/> of the given <see cref="Type"/> or 
+        /// anything assignable to the given <see cref="Type"/>. 
         /// </param>
-        public SpecialBindingSourceMetadataProvider(Type type)
+        /// <param name="bindingSource">
+        /// The <see cref="BindingSource"/> to assign to the given <paramref name="type"/>.
+        /// </param>
+        public SpecialBindingSourceMetadataProvider(Type type, BindingSource bindingSource)
         {
             if (type == null)
             {
@@ -26,6 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             }
 
             Type = type;
+            BindingSource = bindingSource;
         }
 
         /// <inheritdoc />
@@ -38,7 +43,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
             if (Type.IsAssignableFrom(context.Key.ModelType))
             {
-                context.BindingMetadata.BindingSource = BindingSource.Special;
+                context.BindingMetadata.BindingSource = BindingSource;
             }
         }
     }
