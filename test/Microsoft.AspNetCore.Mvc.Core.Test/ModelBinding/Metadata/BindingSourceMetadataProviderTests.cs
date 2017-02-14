@@ -5,13 +5,13 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 {
-    public class SpecialBindingSourceMetadataProviderTests
+    public class BindingSourceMetadataProviderTests
     {
         [Fact]
         public void CreateBindingMetadata_ForMatchingType_SetsBindingSource()
         {
             // Arrange
-            var provider = new SpecialBindingSourceMetadataProvider(typeof(Test), BindingSource.Special);
+            var provider = new BindingSourceMetadataProvider(typeof(Test), BindingSource.Special);
 
             var key = ModelMetadataIdentity.ForType(typeof(Test));
 

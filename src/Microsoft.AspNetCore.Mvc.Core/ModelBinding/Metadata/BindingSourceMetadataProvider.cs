@@ -7,13 +7,10 @@ using System.Threading;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 {
-    public class SpecialBindingSourceMetadataProvider : IBindingMetadataProvider
+    public class BindingSourceMetadataProvider : IBindingMetadataProvider
     {
-        public Type Type { get; }
-        public BindingSource BindingSource { get; }
-
         /// <summary>
-        /// Creates a new <see cref="SpecialBindingSourceMetadataProvider"/> for the given <paramref name="type"/>.
+        /// Creates a new <see cref="BindingSourceMetadataProvider"/> for the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
         /// The <see cref="Type"/>. The provider sets <see cref="BindingSource"/> of the given <see cref="Type"/> or 
@@ -22,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         /// <param name="bindingSource">
         /// The <see cref="BindingSource"/> to assign to the given <paramref name="type"/>.
         /// </param>
-        public SpecialBindingSourceMetadataProvider(Type type, BindingSource bindingSource)
+        public BindingSourceMetadataProvider(Type type, BindingSource bindingSource)
         {
             if (type == null)
             {
@@ -32,6 +29,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             Type = type;
             BindingSource = bindingSource;
         }
+
+        public Type Type { get; }
+        public BindingSource BindingSource { get; }
 
         /// <inheritdoc />
         public void CreateBindingMetadata(BindingMetadataProviderContext context)

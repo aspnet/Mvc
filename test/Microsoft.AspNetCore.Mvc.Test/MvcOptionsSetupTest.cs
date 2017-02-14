@@ -163,19 +163,19 @@ namespace Microsoft.AspNetCore.Mvc
                 provider => Assert.IsType<DefaultValidationMetadataProvider>(provider),
                 provider =>
                 {
-                    var specialParameter = Assert.IsType<SpecialBindingSourceMetadataProvider>(provider);
+                    var specialParameter = Assert.IsType<BindingSourceMetadataProvider>(provider);
                     Assert.Equal(typeof(CancellationToken), specialParameter.Type);
                     Assert.Equal(BindingSource.Special, specialParameter.BindingSource);
                 },
                 provider =>
                 {
-                    var formFileParameter = Assert.IsType<SpecialBindingSourceMetadataProvider>(provider);
+                    var formFileParameter = Assert.IsType<BindingSourceMetadataProvider>(provider);
                     Assert.Equal(typeof(IFormFile), formFileParameter.Type);
                     Assert.Equal(BindingSource.FormFile, formFileParameter.BindingSource);
                 },
                 provider =>
                 {
-                    var formCollectionParameter = Assert.IsType<SpecialBindingSourceMetadataProvider>(provider);
+                    var formCollectionParameter = Assert.IsType<BindingSourceMetadataProvider>(provider);
                     Assert.Equal(typeof(IFormCollection), formCollectionParameter.Type);
                     Assert.Equal(BindingSource.FormFile, formCollectionParameter.BindingSource);
                 },

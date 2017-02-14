@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 {
-    public class SpecialBindingSourceMetadataProviderIntegrationTest
+    public class BindingSourceMetadataProviderIntegrationTest
     {
         [Fact]
         public async Task BindParameter_WithCancellationToken_BindingSourceSpecial()
