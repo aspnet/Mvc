@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Testing.xunit;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -491,7 +492,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             }
         }
 
-        [Theory]
+        [ConditionalTheory]
+        [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason ="https://github.com/Microsoft/vstest/issues/427")]
         [MemberData(nameof(PersonStoreData))]
         public async Task BindParameter_FromFormData_BindsCorrectly(Dictionary<string, StringValues> personStore)
         {

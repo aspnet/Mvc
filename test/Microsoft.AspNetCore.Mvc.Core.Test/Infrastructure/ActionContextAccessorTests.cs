@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             accessor.ActionContext = new ActionContext();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/Microsoft/vstest/issues/419")]
         public void ChangingAppDomainsDoesNotBreak_ActionContextAccessor()
         {
             // Arrange
