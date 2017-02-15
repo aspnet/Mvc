@@ -5,7 +5,7 @@
     "Microsoft.AspNetCore.Http.Extensions": "1.0.2",
     "Microsoft.AspNetCore.Testing": "1.0.1",
     "Microsoft.Extensions.Configuration": "1.0.2",
-    "Microsoft.Extensions.DependencyInjection": "1.0.1"
+    "Microsoft.Extensions.DependencyInjection": "1.0.2"
   },
   "frameworks": {
     "net451": {},

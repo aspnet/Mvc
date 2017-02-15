@@ -6,7 +6,7 @@
     "dotnet-test-xunit": "1.0.0-rc3-000000-01",
     "Microsoft.AspNetCore.Mvc": "1.0.3",
     "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.3",
-    "Microsoft.Extensions.DependencyInjection": "1.0.1",
+    "Microsoft.Extensions.DependencyInjection": "1.0.2",
     "Microsoft.Extensions.Logging": "1.0.2",
     "xunit": "2.1.0"
   },

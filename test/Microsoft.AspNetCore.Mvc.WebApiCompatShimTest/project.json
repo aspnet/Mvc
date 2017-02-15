@@ -8,7 +8,7 @@
     "Microsoft.AspNetCore.Mvc.WebApiCompatShim": "1.0.3",
     "Microsoft.AspNetCore.Testing": "1.0.1",
     "Microsoft.Extensions.Logging.Testing": "1.0.2",
-    "Microsoft.Extensions.DependencyInjection": "1.0.1",
+    "Microsoft.Extensions.DependencyInjection": "1.0.2",
     "xunit": "2.1.0"
   },
   "testRunner": "xunit",

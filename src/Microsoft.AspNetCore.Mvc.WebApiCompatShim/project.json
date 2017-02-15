@@ -44,7 +44,7 @@
       ],
       "dependencies": {
         "System.Net.Http": "4.1.1",
-        "System.Runtime.Serialization.Xml": "4.1.1",
+        "System.Runtime.Serialization.Xml": "4.1.2",
         "System.Xml.XmlSerializer": "4.0.11"
       }
     }

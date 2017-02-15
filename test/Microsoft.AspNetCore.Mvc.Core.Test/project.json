@@ -18,8 +18,8 @@
       "type": "build"
     },
     "Microsoft.AspNetCore.Testing": "1.0.1",
-    "Microsoft.Extensions.DependencyInjection": "1.0.1",
-    "Microsoft.Extensions.DiagnosticAdapter": "1.0.1",
+    "Microsoft.Extensions.DependencyInjection": "1.0.2",
+    "Microsoft.Extensions.DiagnosticAdapter": "1.0.2",
     "Microsoft.Extensions.Logging.Testing": "1.0.2",
     "Microsoft.Extensions.Logging": "1.0.2"
   },
