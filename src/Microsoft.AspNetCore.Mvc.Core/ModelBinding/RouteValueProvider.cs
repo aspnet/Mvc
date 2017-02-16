@@ -13,6 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class RouteValueProvider : BindingSourceValueProvider
     {
+        private readonly CultureInfo _culture;
         private readonly RouteValueDictionary _values;
         private PrefixContainer _prefixContainer;
 
@@ -24,6 +25,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public RouteValueProvider(
             BindingSource bindingSource,
             RouteValueDictionary values)
+            : this(bindingSource, values, CultureInfo.InvariantCulture)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="RouteValueProvider"/>.
+        /// </summary>
+        /// <param name="bindingSource">The <see cref="BindingSource"/> of the data.</param>
+        /// <param name="values">The values.</param>
+        /// <param name="culture">The culture to return with ValueProviderResult instances.</param>
+        public RouteValueProvider(
+            BindingSource bindingSource,
+            RouteValueDictionary values,
+            CultureInfo culture)
             : base(bindingSource)
         {
             if (bindingSource == null)
@@ -37,6 +52,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             }
 
             _values = values;
+            _culture = culture;
+        }
+
+        public CultureInfo Culture
+        {
+            get
+            {
+                return _culture;
+            }
         }
 
         protected PrefixContainer PrefixContainer
@@ -70,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (_values.TryGetValue(key, out value))
             {
                 var stringValue = value as string ?? value?.ToString() ?? string.Empty;
-                return new ValueProviderResult(stringValue, CultureInfo.InvariantCulture);
+                return new ValueProviderResult(stringValue, _culture);
             }
             else
             {
