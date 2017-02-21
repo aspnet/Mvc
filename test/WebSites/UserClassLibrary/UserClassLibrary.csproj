@@ -3,7 +3,8 @@
   <Import Project="..\..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net451;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>net452;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.3</TargetFrameworks>
     <AssemblyName>UserClassLibrary</AssemblyName>
     <PackageId>UserClassLibrary</PackageId>
   </PropertyGroup>
