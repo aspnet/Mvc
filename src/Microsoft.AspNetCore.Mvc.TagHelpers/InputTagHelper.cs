@@ -254,7 +254,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         private void GenerateCheckBox(ModelExplorer modelExplorer, TagHelperOutput output)
         {
-            if (typeof(bool) != modelExplorer.ModelType)
+            var isValidBool = false;
+            if (modelExplorer.ModelType == typeof(string))
+            {
+                bool potentialBool;
+                isValidBool = bool.TryParse(modelExplorer.Model.ToString(), out potentialBool);
+            }
+
+            if (typeof(bool) != modelExplorer.ModelType && !isValidBool)
             {
                 throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidExpressionResult(
                     "<input>",
