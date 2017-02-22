@@ -22,8 +22,8 @@ Microsoft.AspNetCore.Mvc.IActionResult</Description>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="Microsoft.CSharp" Version="4.4.0-*" />
-    <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.4.0-*" />
+    <PackageReference Include="Microsoft.CSharp" Version="$(CoreFxVersion)-*" />
+    <PackageReference Include="System.ComponentModel.TypeConverter" Version="$(CoreFxVersion)-*" />
   </ItemGroup>
 
 </Project>

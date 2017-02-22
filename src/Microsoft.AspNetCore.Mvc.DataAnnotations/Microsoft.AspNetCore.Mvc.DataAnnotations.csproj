@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.Extensions.ClosedGenericMatcher.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.CopyOnWriteDictionary.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="1.2.0-*" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.0-*" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="$(CoreFxVersion)-*" />
   </ItemGroup>
 
 </Project>

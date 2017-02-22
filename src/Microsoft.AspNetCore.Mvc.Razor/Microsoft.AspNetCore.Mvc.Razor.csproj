@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <PackageReference Include="System.Runtime.Loader" Version="4.4.0-*" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(CoreFxVersion)-*" />
   </ItemGroup>
 
 </Project>

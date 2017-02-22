@@ -20,8 +20,8 @@ System.Web.Http.ApiController</Description>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
-    <PackageReference Include="System.Runtime.Serialization.Xml" Version="4.4.0-*" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="4.4.0-*" />
+    <PackageReference Include="System.Runtime.Serialization.Xml" Version="$(CoreFxVersion)-*" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="$(CoreFxVersion)-*" />
   </ItemGroup>
 
 </Project>
