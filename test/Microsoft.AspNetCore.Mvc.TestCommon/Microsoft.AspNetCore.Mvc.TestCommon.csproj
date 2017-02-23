@@ -4,7 +4,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net452;netstandard1.6</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard1.6</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,22 +4,21 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.1;net452</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp1.1</TargetFrameworks>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\shared\Microsoft.AspNetCore.Mvc.TestDiagnosticListener.Sources\**\*.cs" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc\Microsoft.AspNetCore.Mvc.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.TestCommon\Microsoft.AspNetCore.Mvc.TestCommon.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.TestDiagnosticListener\Microsoft.AspNetCore.Mvc.TestDiagnosticListener.csproj" />
 
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.ResponseCaching" Version="1.0.0-*" />
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Logging.Testing" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
@@ -27,8 +26,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0-*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(CoreFxVersion)-*" />
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
 </Project>

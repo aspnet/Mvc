@@ -57,8 +57,6 @@ namespace ControllersFromServicesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDeveloperExceptionPage();
-
             app.UseCultureReplacer();
 
             app.UseMvc(routes =>

@@ -1,4 +1,3 @@
 {
-  /* This is a workaround for https://github.com/Microsoft/vstest/issues/196. */
   "shadowCopy": false
 }

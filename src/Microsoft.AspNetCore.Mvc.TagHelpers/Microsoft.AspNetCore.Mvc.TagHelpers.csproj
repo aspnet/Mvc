@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
- 
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup>
@@ -25,5 +24,4 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="1.2.0-*" PrivateAssets="All" />
   </ItemGroup>
-
 </Project>
