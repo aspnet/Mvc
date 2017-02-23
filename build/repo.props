@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <ExcludeFromTest Include="$(RepositoryRoot)test\Microsoft.AspNetCore.Mvc.TestCommon\*.csproj" />
+    <!-- Exclude with and without extra slash in case DefaultItems.targets is fixed. -->
+    <ExcludeSolutions Include="$(RepositoryRoot)\Mvc.*Fun.sln" />
+    <ExcludeSolutions Include="$(RepositoryRoot)Mvc.*Fun.sln" />
+  </ItemGroup>
+</Project>

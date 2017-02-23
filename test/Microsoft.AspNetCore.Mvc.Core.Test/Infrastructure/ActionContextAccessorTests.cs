@@ -16,13 +16,18 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             accessor.ActionContext = new ActionContext();
         }
 
-        [Fact(Skip = "https://github.com/Microsoft/vstest/issues/419")]
+        [Fact]
         public void ChangingAppDomainsDoesNotBreak_ActionContextAccessor()
         {
             // Arrange
             var accessor = new ActionContextAccessor();
             var context = new ActionContext();
-            var domain = AppDomain.CreateDomain("newDomain");
+            var setupInfo = new AppDomainSetup
+            {
+                ApplicationBase = AppDomain.CurrentDomain.BaseDirectory
+            };
+
+            var domain = AppDomain.CreateDomain("newDomain", securityInfo: null, info: setupInfo);
 
             // Act
             domain.DoCallBack(DomainFunc);

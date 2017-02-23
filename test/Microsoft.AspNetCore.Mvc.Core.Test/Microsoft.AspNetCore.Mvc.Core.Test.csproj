@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.1;net452</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp1.1</TargetFrameworks>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,10 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
     <PackageReference Include="System.Xml.XmlDocument" Version="$(CoreFxVersion)-*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
 </Project>
