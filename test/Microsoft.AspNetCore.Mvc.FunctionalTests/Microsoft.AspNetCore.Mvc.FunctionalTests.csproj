@@ -1,16 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.1;</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES;FUNCTIONAL_TESTS</DefineConstants>
+    <TargetFrameworks>netcoreapp1.1;net452</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp1.1</TargetFrameworks>
     <PackageTargetFallback>$(PackageTargetFallback);portable-net451+win8</PackageTargetFallback>
+
+    <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
+    <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
+    <DefineConstants>$(DefineConstants);FUNCTIONAL_TESTS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="compiler\resources\**\*" />
     <Compile Include="..\Microsoft.AspNetCore.Mvc.Formatters.Xml.Test\XmlAssert.cs" />
+    <EmbeddedResource Include="compiler\resources\**\*" />
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,7 +44,6 @@
     <PackageReference Include="Microsoft.AspNetCore.ChunkingCookieManager.Sources" Version="1.2.0-*" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Logging.Testing" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
@@ -52,7 +55,7 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
-  <!-- 
+  <!--
   Our functional tests utilize DependencyContext.Load which looks next to a dll for a deps.json. For each of our test
   applications they need to have their corresponding deps.json placed next to their .dll in order to work.
   -->

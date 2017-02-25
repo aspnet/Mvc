@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <Import Project="..\..\build\common.props" />
 
   <PropertyGroup>
@@ -11,7 +10,6 @@
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc\Microsoft.AspNetCore.Mvc.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc.Formatters.Xml\Microsoft.AspNetCore.Mvc.Formatters.Xml.csproj" />
 
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
@@ -20,12 +18,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0-*" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(CoreFxVersion)-*" />
-  </ItemGroup>
-
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
-
 </Project>

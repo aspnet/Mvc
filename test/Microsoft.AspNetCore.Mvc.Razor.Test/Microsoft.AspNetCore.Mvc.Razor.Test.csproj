@@ -20,7 +20,6 @@
 
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.TagHelpers.Testing.Sources" Version="1.2.0-*" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.DotNet.InternalAbstractions" Version="1.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Logging.Testing" Version="1.2.0-*" />
