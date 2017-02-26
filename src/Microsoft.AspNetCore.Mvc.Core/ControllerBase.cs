@@ -899,6 +899,22 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Creates an <see cref="NotFoundObjectResult"/> if the passed value is null that produces a Not Found (404) response, otherwise
+        /// creates an <see cref="OkResult"/> that produces an OK (200) response.
+        /// </summary>
+        /// <returns>The created <see cref="IActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual IActionResult OkOrNotFound(object value)
+        {
+            if (value == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(value);
+        }
+
+        /// <summary>
         /// Creates an <see cref="BadRequestResult"/> that produces a Bad Request (400) response.
         /// </summary>
         /// <returns>The created <see cref="BadRequestResult"/> for the response.</returns>
