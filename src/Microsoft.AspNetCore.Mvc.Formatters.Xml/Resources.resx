@@ -126,4 +126,7 @@
   <data name="WrapperProvider_MismatchType" xml:space="preserve">
     <value>The object to be wrapped must be of type '{0}' but was of type '{1}'.</value>
   </data>
+  <data name="XmlFromater_WasNotSetup_To_Mvc" xml:space="preserve">
+    <value>XML formatter {0} was not added MVC, use proper  AddXml...Formatters() extension.</value>
+  </data>
 </root>
