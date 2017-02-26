@@ -211,9 +211,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Arrange
             var excludeAssemblies = new string[]
             {
-                "microsoft.aspnetcore.mvc.webapicompatshim",
-                "microsoft.aspnetcore.mvc.testcommon",
                 "microsoft.aspnetcore.mvc.core.test",
+                "microsoft.aspnetcore.mvc.testcommon",
+                "microsoft.aspnetcore.mvc.testdiagnosticlistener",
+                "microsoft.aspnetcore.mvc.webapicompatshim",
             };
 
             var additionalAssemblies = new[]
