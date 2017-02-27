@@ -1,9 +1,10 @@
-﻿{
+{
   "buildOptions": {
     "emitEntryPoint": true,
     "preserveCompilationContext": true
   },
   "dependencies": {
+    "Microsoft.AspNetCore.Authentication.Cookies": "1.2.0-*",
     "Microsoft.AspNetCore.Mvc": "1.2.0-*",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": {
       "target": "project"
