@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
@@ -233,15 +234,40 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             for (var i = 0; i < methods.Length; i++)
             {
                 var method = methods[i];
-                if (method.Name.StartsWith("OnGet", StringComparison.Ordinal) ||
-                    method.Name.StartsWith("OnPost", StringComparison.Ordinal))
+                string httpMethod;
+                var formActionStart = 0;
+                if (method.Name.StartsWith("OnGet", StringComparison.OrdinalIgnoreCase))
                 {
-                    actionDescriptor.HandlerMethods.Add(new HandlerMethodDescriptor()
-                    {
-                        Method = method,
-                        Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
-                    });
+                    httpMethod = "GET";
+                    formActionStart = "OnGet".Length;
                 }
+                else if (method.Name.StartsWith("OnPost", StringComparison.OrdinalIgnoreCase))
+                {
+                    httpMethod = "POST";
+                    formActionStart = "OnPost".Length;
+                }
+                else
+                {
+                    continue;
+                }
+
+                var formActionLength = method.Name.Length - formActionStart;
+                if (method.Name.EndsWith("Async", StringComparison.OrdinalIgnoreCase))
+                {
+                    formActionLength -= "Async".Length;
+                }
+
+                var formAction = new StringSegment(method.Name, formActionStart, formActionLength);
+
+                var handlerMethodDescriptor = new HandlerMethodDescriptor
+                {
+                    Method = method,
+                    Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
+                    FormAction = formAction,
+                    HttpMethod = httpMethod,
+                };
+
+                actionDescriptor.HandlerMethods.Add(handlerMethodDescriptor);
             }
         }
 

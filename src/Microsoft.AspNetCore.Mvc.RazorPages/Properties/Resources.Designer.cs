@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <summary>
-        /// Unsupported handler method type '{0}'.
+        /// Unsupported handler method return type '{0}'.
         /// </summary>
         internal static string UnsupportedHandlerMethodType
         {
@@ -99,11 +99,27 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <summary>
-        /// Unsupported handler method type '{0}'.
+        /// Unsupported handler method return type '{0}'.
         /// </summary>
         internal static string FormatUnsupportedHandlerMethodType(object p0)
         {
             return string.Format(CultureInfo.CurrentCulture, GetString("UnsupportedHandlerMethodType"), p0);
+        }
+
+        /// <summary>
+        /// Multiple handlers matched. The following handlers matched route data and had all constraints satisfied:{0}{0}{1}
+        /// </summary>
+        internal static string AmbiguousHandler
+        {
+            get { return GetString("AmbiguousHandler"); }
+        }
+
+        /// <summary>
+        /// Multiple handlers matched. The following handlers matched route data and had all constraints satisfied:{0}{0}{1}
+        /// </summary>
+        internal static string FormatAmbiguousHandler(object p0, object p1)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("AmbiguousHandler"), p0, p1);
         }
 
         private static string GetString(string name, params string[] formatterNames)

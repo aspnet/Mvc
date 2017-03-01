@@ -135,4 +135,7 @@
   <data name="UnsupportedHandlerMethodType" xml:space="preserve">
     <value>Unsupported handler method return type '{0}'.</value>
   </data>
+  <data name="AmbiguousHandler" xml:space="preserve">
+    <value>Multiple handlers matched. The following handlers matched route data and had all constraints satisfied:{0}{0}{1}</value>
+  </data>
 </root>
