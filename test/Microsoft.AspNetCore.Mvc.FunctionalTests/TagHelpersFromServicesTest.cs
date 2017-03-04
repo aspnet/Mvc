@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var responseText = await response.Content.ReadAsStringAsync();
 
             // Assert
-            Assert.Equal(expected, responseText.Trim());
+            Assert.Equal(expected, responseText.Trim(), ignoreLineEndingDifferences: true);
         }
     }
 }
