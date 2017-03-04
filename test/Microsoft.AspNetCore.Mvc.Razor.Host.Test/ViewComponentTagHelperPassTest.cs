@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.AspNetCore.Razor.Evolution.Intermediate;
 using Microsoft.AspNetCore.Razor.Evolution.Legacy;
 using Xunit;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host
 {
@@ -111,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             Assert.Equal(3, @class.Children.Count);
 
             var vcthClass = Assert.IsType<CSharpStatementIRNode>(@class.Children[2]);
-            Assert.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
+            AssertLines.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
 public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
 {
     private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _helper = null;
@@ -192,7 +193,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
             Assert.Equal(3, @class.Children.Count);
 
             var vcthClass = Assert.IsType<CSharpStatementIRNode>(@class.Children[2]);
-            Assert.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
+            AssertLines.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
 public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
 {
     private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _helper = null;
@@ -286,7 +287,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
             Assert.Equal(3, @class.Children.Count);
 
             var vcthClass = Assert.IsType<CSharpStatementIRNode>(@class.Children[2]);
-            Assert.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
+            AssertLines.Equal(@"[Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""tagcloud"")]
 public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
 {
     private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper _helper = null;
