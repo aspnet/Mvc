@@ -21,4 +21,10 @@
     <PackageReference Include="NETStandard.Library" Version="$(NetStandardImplicitPackageVersion)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SourceLink.Create.GitHub" Version="2.0.0-*" PrivateAssets="all" />
+    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.0.0-*" />
+    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.0.0-*" />
+  </ItemGroup>
+
 </Project>
