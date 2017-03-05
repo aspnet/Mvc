@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Evolution;
 using Microsoft.AspNetCore.Razor.Evolution.Intermediate;
 using Microsoft.AspNetCore.Razor.Evolution.Legacy;
 using Xunit;
-using Microsoft.AspNetCore.Mvc.TestCommon;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Host
 {
