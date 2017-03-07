@@ -116,13 +116,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [Theory]
         [InlineData("bad")]
         [InlineData("notbool")]
-        [InlineData(null)]
         public void CheckBoxHandlesNonParsableStringsAsBoolsCorrectly(
             string possibleBool)
         {
             // Arrange
             var originalContent = "original content";
             var originalTagName = "input";
+            string forAttributeName = "asp-for";
+
+            var expected = Resources.FormatInputTagHelper_InvalidExpressionResult(
+                "<input>",
+                forAttributeName,
+                possibleBool.GetType().FullName,
+                typeof(bool).FullName,
+                "type",
+                "checkbox");
 
             var attributes = new TagHelperAttributeList
             {
@@ -145,7 +153,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
-            Assert.Throws<InvalidOperationException>(() => tagHelper.Process(context, output));
+            // Act and Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tagHelper.Process(context, output));
+            Assert.Equal(expected, ex.Message);
         }
 
         [Theory]
