@@ -116,6 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [Theory]
         [InlineData("bad")]
         [InlineData("notbool")]
+        [InlineData(null)]
         public void CheckBoxHandlesNonParsableStringsAsBoolsCorrectly(
             string possibleBool)
         {
@@ -144,26 +145,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
-            Type exceptionType = null;
-            try
-            {
-                // Act
-                tagHelper.Process(context, output);
-            }
-            catch(Exception ex)
-            {
-                exceptionType = ex.GetType();
-            }
-            // Assert
-            Assert.NotNull(exceptionType);
-            Assert.Equal(exceptionType, typeof(InvalidOperationException));
+            Assert.Throws<InvalidOperationException>(() => tagHelper.Process(context, output));
         }
 
         [Theory]
         [InlineData("trUE")]
         [InlineData("FAlse")]
         public void CheckBoxHandlesParsableStringsAsBoolsCorrectly(
-        string possibleBool)
+            string possibleBool)
         {
             // Arrange
             var originalContent = "original content";
@@ -190,18 +179,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
-            Type exceptionType = null;
-            try
-            {
-                // Act
-                tagHelper.Process(context, output);
-            }
-            catch (Exception ex)
-            {
-                exceptionType = ex.GetType();
-            }
+            // Act
+            var ex = Record.Exception(() => tagHelper.Process(context, output));
+            
             // Assert
-            Assert.Null(exceptionType);
+            Assert.Null(ex);
         }
 
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
