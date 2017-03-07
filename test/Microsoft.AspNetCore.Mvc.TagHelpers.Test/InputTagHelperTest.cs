@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Arrange
             var originalContent = "original content";
             var originalTagName = "input";
-            string forAttributeName = "asp-for";
+            var forAttributeName = "asp-for";
 
             var expected = Resources.FormatInputTagHelper_InvalidExpressionResult(
                 "<input>",
