@@ -3,6 +3,13 @@
   <Import Project="..\version.props" />
 
   <PropertyGroup>
+    <ProjectParentDirectory>$([System.IO.Path]::GetDirectoryName('$(MSBuildProjectDirectory)'))</ProjectParentDirectory>
+    <ProjectParentDirectoryName>$([System.IO.Path]::GetFileName('$(ProjectParentDirectory)'))</ProjectParentDirectoryName>
+  </PropertyGroup>
+
+  <Import Project="sourcelink.props" Condition="'$(ProjectParentDirectoryName)' == 'src'" />
+
+  <PropertyGroup>
     <Product>Microsoft ASP.NET Core MVC</Product>
     <RepositoryUrl>https://github.com/aspnet/Mvc</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

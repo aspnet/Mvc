@@ -1,6 +1,8 @@
 <Project>
 
   <PropertyGroup>
+    <!-- enable on TeamCity -->
+    <SourceLinkCreate Condition="'$(SourceLinkCreate)' == '' and '$(BUILD_NUMBER)' != ''">true</SourceLinkCreate>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
