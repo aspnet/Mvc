@@ -113,6 +113,97 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Null(output.TagName); // Cleared
         }
 
+        [Theory]
+        [InlineData("bad")]
+        [InlineData("notbool")]
+        public void CheckBoxHandlesNonParsableStringsAsBoolsCorrectly(
+            string possibleBool)
+        {
+            // Arrange
+            var originalContent = "original content";
+            var originalTagName = "input";
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+
+            var context = new TagHelperContext(
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                originalTagName,
+                attributes,
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+            output.Content.AppendHtml(originalContent);
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
+            var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
+
+            Type exceptionType = null;
+            try
+            {
+                // Act
+                tagHelper.Process(context, output);
+            }
+            catch(Exception ex)
+            {
+                exceptionType = ex.GetType();
+            }
+            // Assert
+            Assert.NotNull(exceptionType);
+            Assert.Equal(exceptionType, typeof(InvalidOperationException));
+        }
+
+        [Theory]
+        [InlineData("trUE")]
+        [InlineData("FAlse")]
+        public void CheckBoxHandlesParsableStringsAsBoolsCorrectly(
+        string possibleBool)
+        {
+            // Arrange
+            var originalContent = "original content";
+            var originalTagName = "input";
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+
+            var context = new TagHelperContext(
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                originalTagName,
+                attributes,
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+            output.Content.AppendHtml(originalContent);
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
+            var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
+
+            Type exceptionType = null;
+            try
+            {
+                // Act
+                tagHelper.Process(context, output);
+            }
+            catch (Exception ex)
+            {
+                exceptionType = ex.GetType();
+            }
+            // Assert
+            Assert.Null(exceptionType);
+        }
+
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
         // model accessor, expression path / id, expected value.
         public static TheoryData<object, Type, object, NameAndId, string> TestDataSet

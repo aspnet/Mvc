@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             if (modelExplorer.ModelType == typeof(string))
             {
                 bool potentialBool;
-                isValidBool = bool.TryParse(modelExplorer.Model.ToString(), out potentialBool);
+                isValidBool = bool.TryParse(modelExplorer.Model?.ToString() ?? string.Empty, out potentialBool);
             }
 
             if (typeof(bool) != modelExplorer.ModelType && !isValidBool)
