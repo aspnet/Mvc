@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Mvc.Rendering
+namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public sealed class TempDataAttribute : Attribute
