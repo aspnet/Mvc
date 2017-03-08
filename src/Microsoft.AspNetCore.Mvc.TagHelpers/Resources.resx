@@ -130,7 +130,7 @@
     <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' must be of type '{3}' or '{4}' that can be parsed as a '{3}' if '{5}' is '{6}'.</value>
   </data>
   <data name="InputTagHelper_InvalidStringResult" xml:space="preserve">
-    <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' is of type '{3}' for {5} but cannot be parsed as a '{4}'.</value>
+    <value>Unexpected expression result value '{1}' for {0}. '{1}' cannot be parsed as a '{2}'.</value>
   </data>
   <data name="InputTagHelper_ValueRequired" xml:space="preserve">
     <value>'{1}' must not be null for {0} if '{2}' is '{3}'.</value>

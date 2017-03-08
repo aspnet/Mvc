@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Unexpected '{1}' expression result type '{2}' for {0}. '{1}' is of type '{3}' for {5} but cannot be parsed as a '{4}'.
+        /// Unexpected expression result value '{1}' for {0}. '{1}' cannot be parsed as a '{2}'.
         /// </summary>
         internal static string InputTagHelper_InvalidStringResult
         {
@@ -83,11 +83,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Unexpected '{1}' expression result type '{2}' for {0}. '{1}' is of type '{3}' for {5} but cannot be parsed as a '{4}'.
+        /// Unexpected expression result value '{1}' for {0}. '{1}' cannot be parsed as a '{2}'.
         /// </summary>
-        internal static string FormatInputTagHelper_InvalidStringResult(object p0, object p1, object p2, object p3, object p4, object p5)
+        internal static string FormatInputTagHelper_InvalidStringResult(object p0, object p1, object p2)
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("InputTagHelper_InvalidStringResult"), p0, p1, p2, p3, p4, p5);
+            return string.Format(CultureInfo.CurrentCulture, GetString("InputTagHelper_InvalidStringResult"), p0, p1, p2);
         }
 
         /// <summary>

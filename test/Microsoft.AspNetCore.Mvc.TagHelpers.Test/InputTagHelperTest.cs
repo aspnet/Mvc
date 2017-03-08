@@ -125,12 +125,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             const string forAttributeName = "asp-for";
 
             var expected = Resources.FormatInputTagHelper_InvalidStringResult(
-                "<input>",
                 forAttributeName,
-                possibleBool.GetType().FullName,
-                typeof(string).FullName,
-                typeof(bool).FullName,
-                "checkbox");
+                possibleBool,
+                typeof(bool).FullName);
 
             var attributes = new TagHelperAttributeList
             {
@@ -216,9 +213,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             const string isCheckedAttr = " checked=\"HtmlEncode[[checked]]\"";
             var isChecked = (bool.Parse(possibleBool) ? isCheckedAttr : string.Empty);
             var expectedContent = $"{content}<input{isChecked} class=\"HtmlEncode[[form-control]]\" " +
-                                           "id=\"HtmlEncode[[IsACar]]\" name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" " +
-                                           "value=\"HtmlEncode[[true]]\" /><input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" " +
-                                           "value=\"HtmlEncode[[false]]\" />";
+                "id=\"HtmlEncode[[IsACar]]\" name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" " +
+                "value=\"HtmlEncode[[true]]\" /><input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" " +
+                "value=\"HtmlEncode[[false]]\" />";
 
 
             var attributes = new TagHelperAttributeList
