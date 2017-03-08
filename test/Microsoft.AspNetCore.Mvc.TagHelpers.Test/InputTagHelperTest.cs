@@ -120,9 +120,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string possibleBool)
         {
             // Arrange
-            var originalContent = "original content";
-            var originalTagName = "input";
-            var forAttributeName = "asp-for";
+            const string content = "original content";
+            const string tagName = "input";
+            const string forAttributeName = "asp-for";
 
             var expected = Resources.FormatInputTagHelper_InvalidExpressionResult(
                 "<input>",
@@ -143,13 +143,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                originalTagName,
+                tagName,
                 attributes,
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.Content.AppendHtml(originalContent);
+            output.Content.AppendHtml(content);
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
@@ -165,8 +165,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string possibleBool)
         {
             // Arrange
-            var originalContent = "original content";
-            var originalTagName = "input";
+            const string content = "original content";
+            const string tagName = "input";
+            const string isChecked = " checked=\"HtmlEncode[[checked]]\"";
+            var expectedContent = content + "<input" + (bool.Parse(possibleBool) ? isChecked : string.Empty) + " class=\"HtmlEncode[[form-control]]\" " +
+                                           "id=\"HtmlEncode[[IsACar]]\" name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" " +
+                                           "value=\"HtmlEncode[[true]]\" /><input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" " +
+                                           "value=\"HtmlEncode[[false]]\" />";
+
 
             var attributes = new TagHelperAttributeList
             {
@@ -179,13 +185,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                originalTagName,
+                tagName,
                 attributes,
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.Content.AppendHtml(originalContent);
+            output.Content.AppendHtml(content);
             var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
@@ -194,6 +200,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             
             // Assert
             Assert.Null(ex);
+
+            Assert.Empty(output.Attributes);    // Moved to Content and cleared
+            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(TagMode.SelfClosing, output.TagMode);
+            Assert.Null(output.TagName);       // Cleared
         }
 
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
