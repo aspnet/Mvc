@@ -9,9 +9,6 @@ using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
-    /// <summary>
-    /// A filter that saves properties with the <see cref="TempDataAttribute"/>. 
-    /// </summary>
     public class SaveTempDataPropertyFilter : ISaveTempDataCallback, IActionFilter
     {
         private readonly ITempDataDictionaryFactory _factory;
@@ -23,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _factory = factory;
         }
 
-        public static readonly string Prefix = "TempDataProperty-";
+        public string Prefix = "TempDataProperty-";
 
         public object Subject { get; set; }
 
