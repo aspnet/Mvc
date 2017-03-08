@@ -255,21 +255,43 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private void GenerateCheckBox(ModelExplorer modelExplorer, TagHelperOutput output)
         {
             var isValidBool = false;
-            if (modelExplorer.ModelType == typeof(string))
+            if (modelExplorer.ModelType == typeof(bool))
+            {
+                isValidBool = true;
+            }
+            else if (modelExplorer.ModelType == typeof(string))
             {
                 bool potentialBool;
                 isValidBool = bool.TryParse(modelExplorer.Model?.ToString() ?? string.Empty, out potentialBool);
             }
 
-            if (typeof(bool) != modelExplorer.ModelType && !isValidBool)
+            if (!isValidBool)
             {
-                throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidExpressionResult(
-                    "<input>",
-                    ForAttributeName,
-                    modelExplorer.ModelType.FullName,
-                    typeof(bool).FullName,
-                    "type",
-                    "checkbox"));
+                if (modelExplorer.ModelType == typeof(string))
+                {
+                    if (modelExplorer.Model != null)
+                    {
+                        throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidStringResult(
+                            "<input>",
+                            ForAttributeName,
+                            modelExplorer.ModelType.FullName,
+                            typeof(string).FullName,
+                            typeof(bool).FullName,
+                            "checkbox"));
+                    }
+                }
+                else if (modelExplorer.ModelType != typeof(bool))
+                {
+                    throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidExpressionResult(
+                       "<input>",
+                       ForAttributeName,
+                       modelExplorer.ModelType.FullName,
+                       typeof(bool).FullName,
+                       typeof(string).FullName,
+                       "type",
+                       "checkbox"));
+                }
+                
             }
 
             // Prepare to move attributes from current element to <input type="checkbox"/> generated just below.

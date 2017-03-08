@@ -127,7 +127,10 @@
     <value>Cannot override the '{1}' attribute for {0}. A {0} with a specified '{1}' must not have attributes starting with '{7}' or an '{2}', '{3}', '{4}', '{5}', or '{6}' attribute.</value>
   </data>
   <data name="InputTagHelper_InvalidExpressionResult" xml:space="preserve">
-    <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' must be of type '{3}' if '{4}' is '{5}'.</value>
+    <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' must be of type '{3}' or '{4}' that can be parsed as a '{3}' if '{5}' is '{6}'.</value>
+  </data>
+  <data name="InputTagHelper_InvalidStringResult" xml:space="preserve">
+    <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' is of type '{3}' for {5} but cannot be parsed as a '{4}'.</value>
   </data>
   <data name="InputTagHelper_ValueRequired" xml:space="preserve">
     <value>'{1}' must not be null for {0} if '{2}' is '{3}'.</value>
@@ -152,5 +155,8 @@
   </data>
   <data name="FormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified" xml:space="preserve">
     <value>Cannot determine a '{4}' attribute for &lt;{0}&gt;. &lt;{0}&gt; elements with a specified '{1}' must not have an '{2}', '{3}', or '{5}' attribute.</value>
+  </data>
+  <data name="FormatInputTagHelper_InvalidStringResult" xml:space="preserve">
+    <value>Unexpected '{1}' expression result type '{2}' for {0}. '{1}' is of type '{3}' for {5} but cannot be parsed as a '{4}'.</value>
   </data>
 </root>

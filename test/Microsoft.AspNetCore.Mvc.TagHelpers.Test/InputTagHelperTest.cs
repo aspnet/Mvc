@@ -124,11 +124,57 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             const string tagName = "input";
             const string forAttributeName = "asp-for";
 
+            var expected = Resources.FormatInputTagHelper_InvalidStringResult(
+                "<input>",
+                forAttributeName,
+                possibleBool.GetType().FullName,
+                typeof(string).FullName,
+                typeof(bool).FullName,
+                "checkbox");
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+            };
+
+            var context = new TagHelperContext(
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                tagName,
+                attributes,
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+            output.Content.AppendHtml(content);
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
+            var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
+
+            // Act and Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => tagHelper.Process(context, output));
+            Assert.Equal(expected, ex.Message);
+        }
+
+        [Theory]
+        [InlineData(10)]
+        [InlineData(1337)]
+        public void CheckBoxHandlesInvalidDataTypesCorrectly(
+            int possibleBool)
+        {
+            // Arrange
+            const string content = "original content";
+            const string tagName = "input";
+            const string forAttributeName = "asp-for";
+
             var expected = Resources.FormatInputTagHelper_InvalidExpressionResult(
                 "<input>",
                 forAttributeName,
                 possibleBool.GetType().FullName,
                 typeof(bool).FullName,
+                typeof(string).FullName,
                 "type",
                 "checkbox");
 
@@ -167,8 +213,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Arrange
             const string content = "original content";
             const string tagName = "input";
-            const string isChecked = " checked=\"HtmlEncode[[checked]]\"";
-            var expectedContent = content + "<input" + (bool.Parse(possibleBool) ? isChecked : string.Empty) + " class=\"HtmlEncode[[form-control]]\" " +
+            const string isCheckedAttr = " checked=\"HtmlEncode[[checked]]\"";
+            var isChecked = (bool.Parse(possibleBool) ? isCheckedAttr : string.Empty);
+            var expectedContent = $"{content}<input{isChecked} class=\"HtmlEncode[[form-control]]\" " +
                                            "id=\"HtmlEncode[[IsACar]]\" name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" " +
                                            "value=\"HtmlEncode[[true]]\" /><input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" " +
                                            "value=\"HtmlEncode[[false]]\" />";
@@ -196,15 +243,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = GetTagHelper(htmlGenerator, model: possibleBool, propertyName: nameof(Model.IsACar));
 
             // Act
-            var ex = Record.Exception(() => tagHelper.Process(context, output));
+            tagHelper.Process(context, output);
             
             // Assert
-            Assert.Null(ex);
-
-            Assert.Empty(output.Attributes);    // Moved to Content and cleared
+            Assert.Empty(output.Attributes);
             Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Null(output.TagName);       // Cleared
+            Assert.Null(output.TagName);
         }
 
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
