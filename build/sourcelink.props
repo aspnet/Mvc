@@ -1,15 +1,13 @@
 <Project>
 
   <PropertyGroup>
-    <!-- enable on TeamCity -->
-    <SourceLinkCreate Condition="'$(SourceLinkCreate)' == '' and '$(BUILD_NUMBER)' != ''">true</SourceLinkCreate>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SourceLink.Create.GitHub" Version="2.0.0" PrivateAssets="all" />
-    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.0.0" />
-    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.0.0" />
+    <PackageReference Include="SourceLink.Create.GitHub" Version="2.0.1" PrivateAssets="all" />
+    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.0.1" />
+    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.0.1" />
   </ItemGroup>
 
 </Project>
