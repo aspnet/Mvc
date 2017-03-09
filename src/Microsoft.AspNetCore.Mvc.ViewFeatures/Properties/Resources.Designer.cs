@@ -902,9 +902,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// '{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.
         /// </summary>
         internal static string FormatViewEnginesAreRequired(object p0, object p1, object p2)
+        /// <summary>
+        /// TempData property {0} is not declared as a primitive type or string.
+        /// </summary>
+        internal static string TempDataProperties_PrimitiveTypeOrString
         {
-            return string.Format(CultureInfo.CurrentCulture, GetString("ViewEnginesAreRequired"), p0, p1, p2);
+            get => GetString("TempDataProperties_PrimitiveTypeOrString");
         }
+
+        /// <summary>
+        /// TempData property {0} is not declared as a primitive type or string.
+        /// </summary>
+        internal static string FormatTempDataProperties_PrimitiveTypeOrString(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PrimitiveTypeOrString"), p0);
+
+        /// <summary>
+        /// TempData property {0} does not have a public getter or setter.
+        /// </summary>
+        internal static string TempDataProperties_PublicGetterSetter
+        {
+            get => GetString("TempDataProperties_PublicGetterSetter");
+        }
+
+        /// <summary>
+        /// TempData property {0} does not have a public getter or setter.
+        /// </summary>
+        internal static string FormatTempDataProperties_PublicGetterSetter(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PublicGetterSetter"), p0);
 
         private static string GetString(string name, params string[] formatterNames)
         {

@@ -286,4 +286,10 @@
   <data name="ViewEnginesAreRequired" xml:space="preserve">
     <value>'{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.</value>
   </data>
+  <data name="TempDataProperties_PrimitiveTypeOrString" xml:space="preserve">
+    <value>TempData property {0} is not declared as a primitive type or string.</value>
+  </data>
+  <data name="TempDataProperties_PublicGetterSetter" xml:space="preserve">
+    <value>TempData property {0} does not have a public getter or setter.</value>
+  </data>
 </root>

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -13,8 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     {
         private readonly ITempDataDictionaryFactory _factory;
 
-        internal IList<PropertyHelper> PropertyHelpers { get; set; }
-
         public SaveTempDataPropertyFilter(ITempDataDictionaryFactory factory)
         {
             _factory = factory;
@@ -25,6 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public object Subject { get; set; }
 
         public IDictionary<PropertyInfo, object> OriginalValues { get; set; }
+
+        internal IList<PropertyHelper> PropertyHelpers { get; set; }
 
         public void OnTempDataSaving(ITempDataDictionary tempData)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             Subject = context.Controller;
             var tempData = _factory.GetTempData(context.HttpContext);
-            var properties = GetSubjectProperties();
+            var properties = PropertyHelpers.Select(p => p.Property).ToArray();
             OriginalValues = new Dictionary<PropertyInfo, object>();
 
             foreach (var property in properties)
@@ -57,43 +58,23 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                 OriginalValues[property] = value;
 
-                // TODO: Clarify what behavior should be for null values here
-                if (value != null && property.PropertyType.IsAssignableFrom(value.GetType()))
+                var propertyInfo = property.PropertyType.GetTypeInfo();
+
+                if (value != null)
                 {
                     property.SetValue(Subject, value);
+                }
+
+                else if (propertyInfo.IsGenericTypeDefinition &&
+                    propertyInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    property.SetValue(Subject, null);
                 }
             }
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-        }
-
-        private IEnumerable<PropertyInfo> GetSubjectProperties()
-        {
-            var properties = new List<PropertyInfo>();
-            foreach (var propertyHelper in PropertyHelpers)
-            {
-                if (!(propertyHelper.Property.SetMethod != null &&
-                    propertyHelper.Property.SetMethod.IsPublic &&
-                    propertyHelper.Property.GetMethod != null &&
-                    propertyHelper.Property.GetMethod.IsPublic))
-                {
-                    throw new InvalidOperationException("TempData properties must have a public getter and setter.");
-                }
-
-                if (!(propertyHelper.Property.PropertyType.GetTypeInfo().IsPrimitive || propertyHelper.Property.PropertyType == typeof(string)))
-                {
-                    throw new InvalidOperationException("TempData properties must be declared as primitive types or string only.");
-                }
-
-                else
-                {
-                    properties.Add(propertyHelper.Property);
-                }
-            }
-
-            return properties;
         }
     }
 }
