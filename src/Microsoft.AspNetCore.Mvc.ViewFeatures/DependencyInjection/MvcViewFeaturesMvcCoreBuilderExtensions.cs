@@ -198,6 +198,11 @@ namespace Microsoft.Extensions.DependencyInjection
             //
             // Temp Data
             //
+            services.TryAddEnumerable(
+                ServiceDescriptor.Transient<IApplicationModelProvider, TempDataApplicationModelProvider>());
+            services.TryAddSingleton<SaveTempDataFilter>();
+            services.TryAddTransient<SaveTempDataPropertyFilter>();
+
             // This does caching so it should stay singleton
             services.TryAddSingleton<ITempDataProvider, CookieTempDataProvider>();
 
@@ -209,10 +214,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // These are stateless so their lifetime isn't really important.
             services.TryAddSingleton<ITempDataDictionaryFactory, TempDataDictionaryFactory>();
-            services.TryAddEnumerable(
-                ServiceDescriptor.Transient<IApplicationModelProvider, TempDataApplicationModelProvider>());
-            services.TryAddSingleton<SaveTempDataFilter>();
-            services.TryAddSingleton<SaveTempDataPropertyFilter>();
             services.TryAddSingleton(ArrayPool<ViewBufferValue>.Shared);
             services.TryAddScoped<IViewBufferScope, MemoryPoolViewBufferScope>();
         }

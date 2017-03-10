@@ -30,22 +30,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             foreach (var controllerModel in context.Result.Controllers)
             {
-                SaveTempDataPropertyFilterProvider provider = null;
-                var properties = PropertyHelper.GetVisibleProperties(controllerModel.ControllerType.AsType());
-                properties = GetSubjectProperties(properties).ToArray();
-                for (int i = 0; i < properties.Length; i++)
+                SaveTempDataPropertyFilterFactory provider = null;
+                var propertyHelpers = PropertyHelper.GetVisibleProperties(controllerModel.ControllerType.AsType());
+                for (int i = 0; i < propertyHelpers.Length; i++)
                 {
-                    if (properties[i].Property.GetCustomAttribute<TempDataAttribute>() != null)
+                    if (propertyHelpers[i].Property.GetCustomAttribute<TempDataAttribute>() != null
+                        && ValidateProperty(propertyHelpers[i]))
                     {
                         if (provider == null)
                         {
-                            provider = new SaveTempDataPropertyFilterProvider()
+                            provider = new SaveTempDataPropertyFilterFactory()
                             {
                                 TempDataProperties = new List<PropertyHelper>()
                             };
                         }
 
-                        provider.TempDataProperties.Add(properties[i]);
+                        provider.TempDataProperties.Add(propertyHelpers[i]);
                     }
                 }
 
@@ -56,32 +56,28 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
         }
 
-        private IEnumerable<PropertyHelper> GetSubjectProperties(PropertyHelper[] propertyHelpers)
+        private bool ValidateProperty(PropertyHelper propertyHelper)
         {
-            var properties = new List<PropertyHelper>();
-            foreach (var propertyHelper in propertyHelpers)
+            var property = propertyHelper.Property;
+            if (!(property.SetMethod != null &&
+                property.SetMethod.IsPublic &&
+                property.GetMethod != null &&
+                property.GetMethod.IsPublic))
             {
-                var property = propertyHelper.Property;
-                if (!(property.SetMethod != null &&
-                    property.SetMethod.IsPublic &&
-                    property.GetMethod != null &&
-                    property.GetMethod.IsPublic))
-                {
-                    throw new InvalidOperationException(Resources.FormatTempDataProperties_PublicGetterSetter(property.Name));
-                }
-
-                if (!(property.PropertyType.GetTypeInfo().IsPrimitive || property.PropertyType == typeof(string)))
-                {
-                    throw new InvalidOperationException(Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name));
-                }
-
-                else
-                {
-                    properties.Add(propertyHelper);
-                }
+                throw new InvalidOperationException(
+                    Resources.FormatTempDataProperties_PublicGetterSetter(property.Name));
             }
 
-            return properties;
+            if (!(property.PropertyType.GetTypeInfo().IsPrimitive || property.PropertyType == typeof(string)))
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name));
+            }
+
+            else
+            {
+                return true;
+            }
         }
     }
 }

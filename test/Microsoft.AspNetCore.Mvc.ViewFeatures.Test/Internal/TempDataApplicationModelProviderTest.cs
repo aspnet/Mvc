@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Assert
             var controller = Assert.Single(context.Result.Controllers);
-            Assert.Single(controller.Filters, f => f is SaveTempDataPropertyFilterProvider);
+            Assert.Single(controller.Filters, f => f is SaveTempDataPropertyFilterFactory);
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Assert
             var controller = Assert.Single(context.Result.Controllers);
-            Assert.Single(controller.Filters, f => f is SaveTempDataPropertyFilterProvider);
+            Assert.Single(controller.Filters, f => f is SaveTempDataPropertyFilterFactory);
         }
 
         [Fact]

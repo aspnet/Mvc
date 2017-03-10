@@ -77,6 +77,79 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(expected, body);
         }
 
+        [Fact]
+        public async Task TempDataPropertyAttribute_TempDataKept()
+        {
+            // Arrange
+            var Message = "Success (from Temp Data)";
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("FullName", "Bob"),
+                new KeyValuePair<string, string>("id", "1"),
+            };
+
+            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act 1
+            var response = await Client.PostAsync("TempDataProperty/CreateNoRedirect", content);
+
+            // Assert 1
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Act 2
+            response = await Client.SendAsync(GetRequest("TempDataProperty/TempDataKept", response));
+
+            // Assert 2
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(Message, body);
+
+            // Act 3
+            response = await Client.SendAsync(GetRequest("TempDataProperty/ReadTempData", response));
+
+            // Assert 3
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(Message, body);
+        }
+
+        [Fact]
+        public async Task TempDataPropertyAttribute_TempDataNotKept()
+        {
+            // Arrange
+            var Message = "Success (from Temp Data)";
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("FullName", "Bob"),
+                new KeyValuePair<string, string>("id", "1"),
+            };
+
+            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act 1
+            var response = await Client.PostAsync("TempDataProperty/CreateNoRedirect", content);
+
+            // Assert 1
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // Act 2
+            response = await Client.SendAsync(GetRequest("TempDataProperty/ReadTempData", response));
+
+            // Assert 2
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(Message, body);
+
+            // Act 3
+            response = await Client.SendAsync(GetRequest("TempDataProperty/ReadTempData", response));
+
+            // Assert 3
+            body = await response.Content.ReadAsStringAsync();
+            Assert.Empty(body);
+        }
+
         public HttpRequestMessage GetRequest(string path, HttpResponseMessage response)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);

@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
-    public class SaveTempDataPropertyFilterProvider : IFilterFactory
+    public class SaveTempDataPropertyFilterFactory : IFilterFactory
     {
         internal IList<PropertyHelper> TempDataProperties { get; set; }
 

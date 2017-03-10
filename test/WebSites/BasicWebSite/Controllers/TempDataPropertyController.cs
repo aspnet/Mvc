@@ -50,5 +50,25 @@ namespace BasicWebSite.Controllers
         {
             return $"{Message} for person {person.FullName} with id {person.id}.";
         }
+
+        public void CreateNoRedirect(Person person)
+        {
+            if (ModelState.IsValid)
+            {
+                // save to db
+                Message = "Success (from Temp Data)";
+            }
+        }
+
+        public string TempDataKept()
+        {
+            TempData.Keep();
+            return Message;
+        }
+
+        public string ReadTempData()
+        {
+            return Message;
+        }
     }
 }
