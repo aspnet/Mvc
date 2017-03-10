@@ -17,6 +17,8 @@ namespace RazorPagesWebSite
                 {
                     options.AuthorizePage("/HelloWorldWithAuth", string.Empty);
                 });
+
+            services.AddAntiforgery();
         }
 
         public void Configure(IApplicationBuilder app)

@@ -19,6 +19,19 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
+        public async Task OnPost_IgnoresIgnoreAntiforgeryTokenOnOnGet()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/IgnoreOnGet");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
         public async Task Page_SetsPath()
         {
             // Arrange
