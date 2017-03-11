@@ -19,6 +19,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
+        public async Task Page_WithEmptyTemplate()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/PageWithEmptyTemplate");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("The template was an empty string.", content.Trim());
+        }
+
+        [Fact]
         public async Task Page_SetsPath()
         {
             // Arrange
@@ -61,6 +77,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello, World!", content.Trim());
+        }
+
+        [Fact]
+        public async Task RouteWithInt_Parses()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RouteWithInt/Path/1");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Hello, 1!", content.Trim());
         }
 
         [Fact]

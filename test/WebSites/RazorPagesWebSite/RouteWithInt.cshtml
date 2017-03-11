@@ -1,0 +1,12 @@
+﻿@page "path/{id}"
+
+@functions{
+    public void OnGet(int id)
+    {
+        Id = id;
+    }
+
+    public int Id { get; set; }
+}
+
+Hello, @Id!
