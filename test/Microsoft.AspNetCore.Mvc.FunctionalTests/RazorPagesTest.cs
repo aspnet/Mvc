@@ -19,6 +19,19 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
+        public async Task Page_TemplateWithWrongSlash()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TemplateWrongSlash/path\\wrong");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
         public async Task Page_WithEmptyTemplate()
         {
             // Arrange
@@ -217,9 +230,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             request = new HttpRequestMessage(HttpMethod.Get, response.Headers.Location);
             request.Headers.Add("Cookie", GetCookie(response));
 
-            // Act2
+            // Act 2
             response = await Client.SendAsync(request);
 
+            // Assert 2
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hi1", content.Trim());
         }
@@ -241,9 +255,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             request = new HttpRequestMessage(HttpMethod.Get, response.Headers.Location);
             request.Headers.Add("Cookie", GetCookie(response));
 
-            // Act2
+            // Act 2
             response = await Client.SendAsync(request);
 
+            // Assert 2
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hi2", content.Trim());
         }
@@ -266,13 +281,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             var setCookie = response.Headers.GetValues("Set-Cookie").ToArray();
             return setCookie[0].Split(';').First();
-        }
-
-        public class CookieMetadata
-        {
-            public string Key { get; set; }
-
-            public string Value { get; set; }
         }
     }
 }
