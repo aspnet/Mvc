@@ -185,6 +185,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 modelReleaser = _modelFactoryProvider.CreateModelDisposer(compiledActionDescriptor);
             }
 
+            if(compiledActionDescriptor.FilterDescriptors != null && compiledActionDescriptor.FilterDescriptors.Count > 0)
+            {
+                cachedFilters = cachedFilters
+                    .Concat(compiledActionDescriptor.FilterDescriptors
+                        .Select(f => new FilterItem(f))).ToArray();
+            }
+
             var pageStartFactories = GetPageStartFactories(compiledActionDescriptor);
 
             return new PageActionInvokerCacheEntry(
@@ -226,10 +233,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 var method = type.GetMethod(methodName);
                 if (method != null && !method.IsGenericMethod)
                 {
+                    var filters = method.GetCustomAttributes().OfType<IFilterMetadata>();
+                    var filterDescriptors = filters.Select(f => new FilterDescriptor(f, FilterScope.Action)).ToList();
+
+                    if (actionDescriptor.FilterDescriptors == null)
+                    {
+                        actionDescriptor.FilterDescriptors = filterDescriptors;
+                    }
+                    else
+                    {
+                        var fullDescriptors = actionDescriptor.FilterDescriptors.Concat(filterDescriptors).ToList();
+                        actionDescriptor.FilterDescriptors = fullDescriptors;
+                    }
+
                     actionDescriptor.HandlerMethods.Add(new HandlerMethodDescriptor()
                     {
                         Method = method,
                         Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
+                        Filters = method.GetCustomAttributes().OfType<IFilterMetadata>()
                     });
                 }
             }
