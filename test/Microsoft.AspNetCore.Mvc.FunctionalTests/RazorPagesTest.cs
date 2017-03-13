@@ -19,19 +19,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
-        public async Task Page_TemplateWithWrongSlash()
-        {
-            // Arrange
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TemplateWrongSlash/path\\wrong");
-
-            // Act
-            var response = await Client.SendAsync(request);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
         public async Task Page_WithEmptyTemplate()
         {
             // Arrange
