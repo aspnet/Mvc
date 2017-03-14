@@ -8,6 +8,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
 {
     public interface ITagHelperComponent
     {
+        /// <summary>
+        /// Set to <c>true</c> if <see cref="ITagHelperComponent"/> applies to the given <see cref="TagHelperContext"/>.
+        /// </summary>
+        /// <param name="context">Contains information associated with the current HTML tag.</param>
         bool AppliesTo(TagHelperContext context);
 
         /// <summary>
