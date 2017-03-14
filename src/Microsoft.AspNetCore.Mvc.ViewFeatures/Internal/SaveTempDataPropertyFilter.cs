@@ -13,18 +13,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class SaveTempDataPropertyFilter : ISaveTempDataCallback, IActionFilter
     {
         private readonly ITempDataDictionaryFactory _factory;
+        private const string Prefix = "TempDataProperty-";
 
         public SaveTempDataPropertyFilter(ITempDataDictionaryFactory factory)
         {
             _factory = factory;
-        }
-
-        public string Prefix = "TempDataProperty-";
+        }        
 
         public object Subject { get; set; }
 
         public IDictionary<PropertyInfo, object> OriginalValues { get; set; }
 
+        // Cannot be public as <c>PropertyHelper</c> is an internal shared source type
         internal IList<PropertyHelper> PropertyHelpers { get; set; }
 
         public void OnTempDataSaving(ITempDataDictionary tempData)
@@ -58,15 +58,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                 OriginalValues[property] = value;
 
-                var propertyInfo = property.PropertyType.GetTypeInfo();
+                var propertyTypeInfo = property.PropertyType.GetTypeInfo();
 
                 if (value != null)
                 {
                     property.SetValue(Subject, value);
                 }
 
-                else if (propertyInfo.IsGenericTypeDefinition &&
-                    propertyInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
+                else if (propertyTypeInfo.IsGenericTypeDefinition &&
+                    propertyTypeInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     property.SetValue(Subject, null);
                 }

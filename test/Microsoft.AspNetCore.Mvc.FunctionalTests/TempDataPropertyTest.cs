@@ -25,13 +25,13 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task TempDataPropertyAttribute_RetainsTempDataWithView()
         {
             // Arrange
-            var Message = "Success (from Temp Data)";
+            var message = "Success (from Temp Data)";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
-            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
@@ -53,13 +53,13 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task TempDataPropertyAttribute_RetainsTempDataWithoutView()
         {
             // Arrange
-            var Message = "Success (from Temp Data)";
+            var message = "Success (from Temp Data)";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
-            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
@@ -81,14 +81,14 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task TempDataPropertyAttribute_TempDataKept()
         {
             // Arrange
-            var Message = "Success (from Temp Data)";
+            var message = "Success (from Temp Data)";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
 
-            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert 2
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(Message, body);
+            Assert.Equal(message, body);
 
             // Act 3
             response = await Client.SendAsync(GetRequest("TempDataProperty/ReadTempData", response));
@@ -111,21 +111,21 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert 3
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(Message, body);
+            Assert.Equal(message, body);
         }
 
         [Fact]
         public async Task TempDataPropertyAttribute_TempDataNotKept()
         {
             // Arrange
-            var Message = "Success (from Temp Data)";
+            var message = "Success (from Temp Data)";
             var nameValueCollection = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
 
-            var expected = $"{Message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert 2
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(Message, body);
+            Assert.Equal(message, body);
 
             // Act 3
             response = await Client.SendAsync(GetRequest("TempDataProperty/ReadTempData", response));
@@ -153,8 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpRequestMessage GetRequest(string path, HttpResponseMessage response)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);
-            IEnumerable<string> values;
-            if (response.Headers.TryGetValues("Set-Cookie", out values))
+            if (response.Headers.TryGetValues("Set-Cookie", out var values))
             {
                 foreach (var cookie in SetCookieHeaderValue.ParseList(values.ToList()))
                 {

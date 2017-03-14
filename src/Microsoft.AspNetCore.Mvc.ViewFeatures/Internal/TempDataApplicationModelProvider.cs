@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class TempDataApplicationModelProvider : IApplicationModelProvider
     {
         /// <inheritdoc />
-        public int Order { get { return -1000 + 10; } }
+        public int Order => -1000 + 10;
 
         /// <inheritdoc />
         public void OnProvidersExecuted(ApplicationModelProviderContext context)
@@ -32,11 +32,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             {
                 SaveTempDataPropertyFilterFactory provider = null;
                 var propertyHelpers = PropertyHelper.GetVisibleProperties(controllerModel.ControllerType.AsType());
-                for (int i = 0; i < propertyHelpers.Length; i++)
+                for (var i = 0; i < propertyHelpers.Length; i++)
                 {
-                    if (propertyHelpers[i].Property.GetCustomAttribute<TempDataAttribute>() != null
-                        && ValidateProperty(propertyHelpers[i]))
+                    if (propertyHelpers[i].Property.GetCustomAttribute<TempDataAttribute>() != null)
                     {
+                        ValidateProperty(propertyHelpers[i]);
                         if (provider == null)
                         {
                             provider = new SaveTempDataPropertyFilterFactory()
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
         }
 
-        private bool ValidateProperty(PropertyHelper propertyHelper)
+        private void ValidateProperty(PropertyHelper propertyHelper)
         {
             var property = propertyHelper.Property;
             if (!(property.SetMethod != null &&
@@ -72,11 +72,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             {
                 throw new InvalidOperationException(
                     Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name));
-            }
-
-            else
-            {
-                return true;
             }
         }
     }

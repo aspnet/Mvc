@@ -87,7 +87,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             Assert.Equal("TempData property Test is not declared as a primitive type or string.", exception.Message);
         }
 
-
         public class TestController_OneTempDataProperty
         {
             public string Test { get; set; }

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             // Arrange
             var httpContext = new DefaultHttpContext();
-            var tempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
+            var tempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
             {
                 ["TempDataProperty-TestString"] = "FirstValue"
             };
@@ -29,17 +29,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             factory.Setup(f => f.GetTempData(httpContext))
                 .Returns(tempData);
 
-
             var filter = new SaveTempDataPropertyFilter(factory.Object);
 
             var controller = new TestController();
+            var controllerType = controller.GetType().GetTypeInfo();
 
-            var propertyHelper1 = new PropertyHelper(controller.GetType().GetTypeInfo().GetProperty("TestString"));
-            var propertyHelper2 = new PropertyHelper(controller.GetType().GetTypeInfo().GetProperty("TestString2"));
+            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty("TestString"));
+            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty("TestString2"));
             var propertyHelpers = new List<PropertyHelper>
             {
                 propertyHelper1,
-                propertyHelper2
+                propertyHelper2,
             };
 
             filter.PropertyHelpers = propertyHelpers;
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     HttpContext = httpContext,
                     RouteData = new RouteData(),
-                    ActionDescriptor = new ActionDescriptor()
+                    ActionDescriptor = new ActionDescriptor(),
                 },
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             // Arrange
             var httpContext = new DefaultHttpContext();
-            var tempData = new TempDataDictionary(httpContext, new NullTempDataProvider())
+            var tempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
             {
                 ["TempDataProperty-TestString"] = "FirstValue"
             };
@@ -81,12 +81,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var filter = new SaveTempDataPropertyFilter(factory.Object);
             var controller = new TestController();
-            var propertyHelper1 = new PropertyHelper(controller.GetType().GetTypeInfo().GetProperty("TestString"));
-            var propertyHelper2 = new PropertyHelper(controller.GetType().GetTypeInfo().GetProperty("TestString2"));
+            var controllerType = controller.GetType().GetTypeInfo();
+
+            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty("TestString"));
+            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty("TestString2"));
             var propertyHelpers = new List<PropertyHelper>
             {
                 propertyHelper1,
-                propertyHelper2
+                propertyHelper2,
             };
 
             filter.PropertyHelpers = propertyHelpers;
@@ -96,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 {
                     HttpContext = httpContext,
                     RouteData = new RouteData(),
-                    ActionDescriptor = new ActionDescriptor()
+                    ActionDescriptor = new ActionDescriptor(),
                 },
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
@@ -120,16 +122,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             public string TestString2 { get; set; }
         }
 
-        private class NullTempDataProvider : ITempDataProvider
-        {
-            public IDictionary<string, object> LoadTempData(HttpContext context)
-            {
-                return null;
-            }
+        //private class NullTempDataProvider : ITempDataProvider
+        //{
+        //    public IDictionary<string, object> LoadTempData(HttpContext context)
+        //    {
+        //        return null;
+        //    }
 
-            public void SaveTempData(HttpContext context, IDictionary<string, object> values)
-            {
-            }
-        }
+        //    public void SaveTempData(HttpContext context, IDictionary<string, object> values)
+        //    {
+        //    }
+        //}
     }
 }
