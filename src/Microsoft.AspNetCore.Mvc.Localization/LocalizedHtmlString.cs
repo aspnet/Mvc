@@ -33,18 +33,6 @@ namespace Microsoft.AspNetCore.Mvc.Localization
         /// <param name="value">The string resource.</param>
         /// <param name="isResourceNotFound">A flag that indicates if the resource is not found.</param>
         public LocalizedHtmlString(string name, string value, bool isResourceNotFound)
-            : this(name, value, isResourceNotFound, arguments: EmptyArray<string>.Instance)
-        {
-        }
-
-        /// <summary>
-        /// Creates an instance of <see cref="LocalizedHtmlString"/>.
-        /// </summary>
-        /// <param name="name">The name of the string resource.</param>
-        /// <param name="value">The string resource.</param>
-        /// <param name="isResourceNotFound">A flag that indicates if the resource is not found.</param>
-        /// <param name="arguments">The values to format the <paramref name="value"/> with.</param>
-        public LocalizedHtmlString(string name, string value, bool isResourceNotFound, params object[] arguments)
         {
             if (name == null)
             {
@@ -56,14 +44,26 @@ namespace Microsoft.AspNetCore.Mvc.Localization
                 throw new ArgumentNullException(nameof(value));
             }
 
+            Name = name;
+            Value = value;
+            IsResourceNotFound = isResourceNotFound;
+        }
+
+        /// <summary>
+        /// Creates an instance of <see cref="LocalizedHtmlString"/>.
+        /// </summary>
+        /// <param name="name">The name of the string resource.</param>
+        /// <param name="value">The string resource.</param>
+        /// <param name="isResourceNotFound">A flag that indicates if the resource is not found.</param>
+        /// <param name="arguments">The values to format the <paramref name="value"/> with.</param>
+        public LocalizedHtmlString(string name, string value, bool isResourceNotFound, params object[] arguments)
+            : this(name, value, isResourceNotFound)
+        {
             if (arguments == null)
             {
                 throw new ArgumentNullException(nameof(arguments));
             }
 
-            Name = name;
-            Value = value;
-            IsResourceNotFound = isResourceNotFound;
             _arguments = arguments;
         }
 
@@ -95,8 +95,12 @@ namespace Microsoft.AspNetCore.Mvc.Localization
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            var formattableString = new HtmlFormattableString(Value, _arguments);
-            formattableString.WriteTo(writer, encoder);
+            IHtmlContent htmlContent;
+            if (_arguments != null)
+                htmlContent = new HtmlFormattableString(Value, _arguments);
+            else
+                htmlContent = new HtmlString(Value);
+            htmlContent.WriteTo(writer, encoder);
         }
     }
 }

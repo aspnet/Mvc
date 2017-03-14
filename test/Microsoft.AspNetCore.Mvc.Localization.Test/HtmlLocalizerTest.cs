@@ -11,6 +11,7 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
+using Microsoft.AspNetCore.Html;
 
 namespace Microsoft.AspNetCore.Mvc.Localization.Test
 {
@@ -156,6 +157,32 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
             // Assert
             Assert.NotNull(exception);
             Assert.Equal("Input string was not in a correct format.", exception.Message);
+        }
+
+        /// <summary>
+        /// This tests that LocalizedString instances containing curly braces (e.g. JSON or code snippets) can be used without a FormatException when no arguments are provided.
+        /// </summary>
+        [Fact]
+        public void HtmlLocalizer_HtmlWithJsonText_ReturnsLocalizedHtmlString()
+        {
+            // Arrange
+            var localizedString = new LocalizedString("ExampleJson", "example JSON: {\"foo\":\"bar\"}");
+            var stringLocalizer = new Mock<IStringLocalizer>();
+            stringLocalizer.Setup(s => s["ExampleJson"]).Returns(localizedString);
+
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer.Object);
+
+            // Act
+            var localizedHtmlString = htmlLocalizer.GetHtml("ExampleJson");
+
+            // Assert
+            Assert.Equal(localizedString.Name, localizedHtmlString.Name);
+            Assert.Equal(localizedString.Value, localizedHtmlString.Value);
+            using (var writer = new StringWriter())
+            {
+                localizedHtmlString.WriteTo(writer, new HtmlTestEncoder());
+                Assert.Equal(localizedHtmlString.Value, writer.ToString());
+            }
         }
 
         [Fact]
