@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 throw new ArgumentNullException(nameof(codeDocument));
             }
 
-            _logger.GeneratedCodeToAssemblyCompilationStart(codeDocument.Source.FileName);
+            _logger.GeneratedCodeToAssemblyCompilationStart(codeDocument.Source.Filename);
 
             var startTimestamp = _logger.IsEnabled(LogLevel.Debug) ? Stopwatch.GetTimestamp() : 0;
 
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     var assembly = LoadAssembly(assemblyStream, pdbStream);
                     var type = assembly.GetExportedTypes().FirstOrDefault(a => !a.IsNested);
 
-                    _logger.GeneratedCodeToAssemblyCompilationEnd(codeDocument.Source.FileName, startTimestamp);
+                    _logger.GeneratedCodeToAssemblyCompilationEnd(codeDocument.Source.Filename, startTimestamp);
 
                     return new CompilationResult(type);
                 }
@@ -172,7 +172,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             if (diagnostic.Location == Location.None)
             {
-                return codeDocument.Source.FileName;
+                return codeDocument.Source.Filename;
             }
 
             return diagnostic.Location.GetMappedLineSpan().Path;
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         private static string GetContent(RazorCodeDocument codeDocument, string filePath)
         {
-            if (filePath == codeDocument.Source.FileName)
+            if (filePath == codeDocument.Source.Filename)
             {
                 var chars = new char[codeDocument.Source.Length];
                 codeDocument.Source.CopyTo(0, chars, 0, chars.Length);
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             for (var i = 0; i < codeDocument.Imports.Count; i++)
             {
                 var import = codeDocument.Imports[i];
-                if (filePath == import.FileName)
+                if (filePath == import.Filename)
                 {
                     var chars = new char[codeDocument.Source.Length];
                     codeDocument.Source.CopyTo(0, chars, 0, chars.Length);
