@@ -11,7 +11,6 @@ using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
-using Microsoft.AspNetCore.Html;
 
 namespace Microsoft.AspNetCore.Mvc.Localization.Test
 {
@@ -21,37 +20,37 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
         public void HtmlLocalizer_UseIndexer_ReturnsLocalizedHtmlString()
         {
             // Arrange
-            var localizedString = new LocalizedString("Hello", "Bonjour");
-            var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s["Hello"]).Returns(localizedString);
+            var stringLocalizer = new TestStringLocalizer();
 
-            var htmlLocalizer = new HtmlLocalizer(stringLocalizer.Object);
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
 
             // Act
-            var actualLocalizedHtmlString = htmlLocalizer["Hello"];
+            var actualLocalizedHtmlString = htmlLocalizer["Test"];
 
             // Assert
-            Assert.Equal(localizedString.Name, actualLocalizedHtmlString.Name);
-            Assert.Equal(localizedString.Value, actualLocalizedHtmlString.Value);
+            Assert.Equal("Test", actualLocalizedHtmlString.Name);
+            Assert.Equal("Hello Test", actualLocalizedHtmlString.Value);
         }
 
         [Fact]
         public void HtmlLocalizer_UseIndexerWithArguments_ReturnsLocalizedHtmlString()
         {
             // Arrange
-            var localizedString = new LocalizedString("Hello", "Bonjour test");
+            var stringLocalizer = new TestStringLocalizer();
 
-            var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s["Hello"]).Returns(localizedString);
-
-            var htmlLocalizer = new HtmlLocalizer(stringLocalizer.Object);
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
 
             // Act
-            var actualLocalizedHtmlString = htmlLocalizer["Hello", "test"];
+            var actualLocalizedHtmlString = htmlLocalizer["Name {0}", "test"];
 
             // Assert
-            Assert.Equal(localizedString.Name, actualLocalizedHtmlString.Name);
-            Assert.Equal(localizedString.Value, actualLocalizedHtmlString.Value);
+            Assert.Equal("Name {0}", actualLocalizedHtmlString.Name);
+            Assert.Equal("Hello Name {0}", actualLocalizedHtmlString.Value);
+            using (var writer = new StringWriter())
+            {
+                actualLocalizedHtmlString.WriteTo(writer, new HtmlTestEncoder());
+                Assert.Equal("Hello Name HtmlEncode[[test]]", writer.ToString());
+            }
         }
 
         public static IEnumerable<object[]> HtmlData
@@ -142,13 +141,10 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
         public void HtmlLocalizer_HtmlWithInvalidResourceString_ContentThrowsException(string format)
         {
             // Arrange
-            var localizedString = new LocalizedString("Hello", format);
+            var stringLocalizer = new TestStringLocalizer();
 
-            var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s["Hello"]).Returns(localizedString);
-
-            var htmlLocalizer = new HtmlLocalizer(stringLocalizer.Object);
-            var content = htmlLocalizer.GetHtml("Hello", new object[] { });
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
+            var content = htmlLocalizer.GetHtml(format, new object[] { });
 
             // Act
             var exception = Assert.Throws<FormatException>(
@@ -166,22 +162,20 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
         public void HtmlLocalizer_HtmlWithJsonText_ReturnsLocalizedHtmlString()
         {
             // Arrange
-            var localizedString = new LocalizedString("ExampleJson", "example JSON: {\"foo\":\"bar\"}");
-            var stringLocalizer = new Mock<IStringLocalizer>();
-            stringLocalizer.Setup(s => s["ExampleJson"]).Returns(localizedString);
+            var stringLocalizer = new TestStringLocalizer();
 
-            var htmlLocalizer = new HtmlLocalizer(stringLocalizer.Object);
+            var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
 
             // Act
-            var localizedHtmlString = htmlLocalizer.GetHtml("ExampleJson");
+            var localizedHtmlString = htmlLocalizer.GetHtml("example JSON: {\"foo\":\"bar\"}");
 
             // Assert
-            Assert.Equal(localizedString.Name, localizedHtmlString.Name);
-            Assert.Equal(localizedString.Value, localizedHtmlString.Value);
+            Assert.Equal("example JSON: {\"foo\":\"bar\"}", localizedHtmlString.Name);
+            Assert.Equal("Hello example JSON: {\"foo\":\"bar\"}", localizedHtmlString.Value);
             using (var writer = new StringWriter())
             {
                 localizedHtmlString.WriteTo(writer, new HtmlTestEncoder());
-                Assert.Equal(localizedHtmlString.Value, writer.ToString());
+                Assert.Equal("Hello example JSON: {\"foo\":\"bar\"}", writer.ToString());
             }
         }
 
@@ -277,9 +271,5 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
             Assert.Equal("World", allLocalizedStrings[0].Value);
             Assert.Equal("Bar", allLocalizedStrings[1].Value);
         }
-    }
-
-    public class TestClass
-    {
     }
 }

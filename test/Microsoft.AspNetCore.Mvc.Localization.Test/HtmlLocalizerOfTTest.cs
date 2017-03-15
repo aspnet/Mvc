@@ -1,12 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Globalization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.PlatformAbstractions;
-using Microsoft.Extensions.WebEncoders.Testing;
 using Moq;
 using Xunit;
 
@@ -57,5 +51,9 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
             // Assert
             Assert.Equal(localizedString, actualLocalizedString);
         }
+    }
+
+    public class TestClass
+    {
     }
 }

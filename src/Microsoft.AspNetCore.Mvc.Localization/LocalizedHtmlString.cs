@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.Localization
 {
@@ -22,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Localization
         /// <param name="name">The name of the string resource.</param>
         /// <param name="value">The string resource.</param>
         public LocalizedHtmlString(string name, string value)
-            : this(name, value, isResourceNotFound: false, arguments: EmptyArray<string>.Instance)
+            : this(name, value, isResourceNotFound: false)
         {
         }
 
@@ -97,9 +96,13 @@ namespace Microsoft.AspNetCore.Mvc.Localization
 
             IHtmlContent htmlContent;
             if (_arguments != null)
+            {
                 htmlContent = new HtmlFormattableString(Value, _arguments);
+            }
             else
+            {
                 htmlContent = new HtmlString(Value);
+            }
             htmlContent.WriteTo(writer, encoder);
         }
     }
