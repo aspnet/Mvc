@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,6 +18,38 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         public HttpClient Client { get; }
+
+        [Fact]
+        public async Task Page_SetsPath()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/PathSet");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Path: /PathSet.cshtml", content.Trim());
+        }
+
+        // Tests that RazorPage includes InvalidTagHelperIndexerAssignment which is called when the page has an indexer
+        // Issue https://github.com/aspnet/Mvc/issues/5920
+        [Fact]
+        public async Task TagHelper_InvalidIndexerDoesNotFail()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TagHelpers");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+                // Assert
+            var content = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.StartsWith("<a href=\"/Show?id=2\">Post title</a>", content.Trim());
+        }
 
         [Fact]
         public async Task NoPage_NotFound()
@@ -82,6 +115,31 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task HelloWorldWithPageModelHandler_CanPostContent()
+        {
+            // Arrange
+            var getRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost/HelloWorldWithPageModelHandler?message=message");
+            var getResponse = await Client.SendAsync(getRequest);
+            var getResponseBody = await getResponse.Content.ReadAsStringAsync();
+            var formToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(getResponseBody, "/HelloWorlWithPageModelHandler");
+            var cookie = AntiforgeryTestHelper.RetrieveAntiforgeryCookie(getResponse);
+
+
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, "http://localhost/HelloWorldWithPageModelHandler");
+            postRequest.Headers.Add("Cookie", cookie.Key + "=" + cookie.Value);
+            postRequest.Headers.Add("RequestVerificationToken", formToken);
+
+            // Act
+            var response = await Client.SendAsync(postRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith("Hello, You posted!", content.Trim());
+        }
+
+        [Fact]
         public async Task HelloWorldWithPageModelHandler_CanGetContent()
         {
             // Arrange
@@ -94,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var content = await response.Content.ReadAsStringAsync();
-            Assert.Equal("Hello, pagemodel!", content.Trim());
+            Assert.StartsWith("Hello, pagemodel!", content.Trim());
         }
 
         [Fact]
@@ -189,6 +247,35 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal("/Login?ReturnUrl=%2FHelloWorldWithAuth", response.Headers.Location.PathAndQuery);
+        }
+
+
+        [Fact]
+        public async Task PageStart_IsDiscoveredWhenRootDirectoryIsNotSpecified()
+        {
+            // Test for https://github.com/aspnet/Mvc/issues/5915
+            //Arrange
+            var expected = $"Hello from _PageStart{Environment.NewLine}Hello from /Pages/WithPageStart/Index.cshtml!";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/WithPageStart");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task PageImport_IsDiscoveredWhenRootDirectoryIsNotSpecified()
+        {
+            // Test for https://github.com/aspnet/Mvc/issues/5915
+            //Arrange
+            var expected = "Hello from CustomService!";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/WithPageImport");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
         }
 
         private static string GetCookie(HttpResponseMessage response)
