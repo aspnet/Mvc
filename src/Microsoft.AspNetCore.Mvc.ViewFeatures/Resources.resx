@@ -287,9 +287,9 @@
     <value>'{0}.{1}' must not be empty. At least one '{2}' is required to locate a view for rendering.</value>
   </data>
   <data name="TempDataProperties_PrimitiveTypeOrString" xml:space="preserve">
-    <value>The {0} property with {1} is invalid. A property using {1} must be of primitive or string type.</value>
+    <value>The '{0}.{1}' property with {2} is invalid. A property using {2} must be of primitive or string type.</value>
   </data>
   <data name="TempDataProperties_PublicGetterSetter" xml:space="preserve">
-    <value>The {0} property with {1} is invalid. A property using {1} must have a public getter and setter.</value>
+    <value>The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public getter and setter.</value>
   </data>
 </root>

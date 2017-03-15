@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 provider.OnProvidersExecuting(context);
             });
 
-            Assert.Equal($"The {nameof(TestController_PrivateSet.Test)} property with TempDataAttribute is invalid. A property using TempDataAttribute must have a public getter and setter.", exception.Message);
+            Assert.Equal($"The '{typeof(TestController_PrivateSet).FullName}.{nameof(TestController_NonPrimitiveType.Test)}' property with TempDataAttribute is invalid. A property using TempDataAttribute must have a public getter and setter.", exception.Message);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 provider.OnProvidersExecuting(context);
             });
 
-            Assert.Equal($"The {nameof(TestController_NonPrimitiveType.Test)} property with TempDataAttribute is invalid. A property using TempDataAttribute must be of primitive or string type.", exception.Message);
+            Assert.Equal($"The '{typeof(TestController_NonPrimitiveType).FullName}.{nameof(TestController_NonPrimitiveType.Test)}' property with TempDataAttribute is invalid. A property using TempDataAttribute must be of primitive or string type.", exception.Message);
         }
 
         public class TestController_OneTempDataProperty

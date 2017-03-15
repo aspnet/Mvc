@@ -66,13 +66,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 property.GetMethod.IsPublic))
             {
                 throw new InvalidOperationException(
-                    Resources.FormatTempDataProperties_PublicGetterSetter(property.Name, "TempDataAttribute"));
+                    Resources.FormatTempDataProperties_PublicGetterSetter(property.DeclaringType.FullName, property.Name, "TempDataAttribute"));
             }
 
             if (!(property.PropertyType.GetTypeInfo().IsPrimitive || property.PropertyType == typeof(string)))
             {
                 throw new InvalidOperationException(
-                    Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name, "TempDataAttribute"));
+                    Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.DeclaringType.FullName, property.Name, "TempDataAttribute"));
             }
         }
     }
