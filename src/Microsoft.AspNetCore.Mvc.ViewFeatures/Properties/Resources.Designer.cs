@@ -805,8 +805,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <summary>
         /// TempData property {0} is not declared as a primitive type or string.
         /// </summary>
-        internal static string FormatTempDataProperties_PrimitiveTypeOrString(object p0)
-            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PrimitiveTypeOrString"), p0);
+        internal static string FormatTempDataProperties_PrimitiveTypeOrString(object p0, object p1)
+            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PrimitiveTypeOrString"), p0, p1);
 
         /// <summary>
         /// TempData property {0} does not have a public getter or setter.
@@ -819,8 +819,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <summary>
         /// TempData property {0} does not have a public getter or setter.
         /// </summary>
-        internal static string FormatTempDataProperties_PublicGetterSetter(object p0)
-            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PublicGetterSetter"), p0);
+        internal static string FormatTempDataProperties_PublicGetterSetter(object p0, object p1)
+            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PublicGetterSetter"), p0, p1);
 
         private static string GetString(string name, params string[] formatterNames)
         {

@@ -4,6 +4,7 @@
 using BasicWebSite.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.Net;
 
 namespace BasicWebSite.Controllers
 {
@@ -15,28 +16,14 @@ namespace BasicWebSite.Controllers
         [HttpPost]
         public IActionResult CreateForView(Person person)
         {
-            if (ModelState.IsValid)
-            {
-                // save to db
-                Message = "Success (from Temp Data)";
-                return RedirectToAction("DetailsView", person);
-            }
-
-            Message = "Failure (from Temp Data)";
+            Message = "Success (from Temp Data)";
             return RedirectToAction("DetailsView", person);
         }
 
         [HttpPost]
         public IActionResult Create(Person person)
         {
-            if (ModelState.IsValid)
-            {
-                // save to db
-                Message = "Success (from Temp Data)";
-                return RedirectToAction("Details", person);
-            }
-
-            Message = "Failure (from Temp Data)";
+            Message = "Success (from Temp Data)";
             return RedirectToAction("Details", person);
         }
 
@@ -51,13 +38,10 @@ namespace BasicWebSite.Controllers
             return $"{Message} for person {person.FullName} with id {person.id}.";
         }
 
-        public void CreateNoRedirect(Person person)
+        public StatusCodeResult CreateNoRedirect(Person person)
         {
-            if (ModelState.IsValid)
-            {
-                // save to db
-                Message = "Success (from Temp Data)";
-            }
+            Message = "Success (from Temp Data)";
+            return new OkResult();
         }
 
         public string TempDataKept()

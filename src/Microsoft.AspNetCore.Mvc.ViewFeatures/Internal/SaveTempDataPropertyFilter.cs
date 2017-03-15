@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public SaveTempDataPropertyFilter(ITempDataDictionaryFactory factory)
         {
             _factory = factory;
-        }        
+        }
 
         public object Subject { get; set; }
 
@@ -47,13 +46,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
+            if (PropertyHelpers == null)
+            {
+                throw new ArgumentNullException(nameof(PropertyHelpers));
+            }
+
             Subject = context.Controller;
             var tempData = _factory.GetTempData(context.HttpContext);
-            var properties = PropertyHelpers.Select(p => p.Property).ToArray();
+
             OriginalValues = new Dictionary<PropertyInfo, object>();
 
-            foreach (var property in properties)
+            for (var i = 0; i < PropertyHelpers.Count; i++)
             {
+                var property = PropertyHelpers[i].Property;
                 var value = tempData[Prefix + property.Name];
 
                 OriginalValues[property] = value;
@@ -62,13 +67,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
                 if (value != null)
                 {
-                    property.SetValue(Subject, value);
+                    PropertyHelpers[i].SetValue(Subject, value);
                 }
 
                 else if (propertyTypeInfo.IsGenericTypeDefinition &&
                     propertyTypeInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    property.SetValue(Subject, null);
+                    PropertyHelpers[i].SetValue(Subject, null);
                 }
             }
         }

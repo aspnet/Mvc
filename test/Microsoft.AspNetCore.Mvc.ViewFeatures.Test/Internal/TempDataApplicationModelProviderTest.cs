@@ -2,25 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
     public class TempDataApplicationModelProviderTest
     {
-        [Fact]
-        public void CreateControllerModelWithOneTempDataProperty_TempDataAttributeAddsTempDataFilter()
+        [Theory]
+        [InlineData(typeof(TestController_OneTempDataProperty))]
+        [InlineData(typeof(TestController_TwoTempDataProperties))]
+        public void AddsTempDataPropertyFilter_ForTempDataAttributeProperties(Type type)
         {
             // Arrange
             var provider = new TempDataApplicationModelProvider();
             var defaultProvider = new DefaultApplicationModelProvider(new TestOptionsManager<MvcOptions>());
 
-            var context = new ApplicationModelProviderContext(new[] { typeof(TestController_OneTempDataProperty).GetTypeInfo() });
+            var context = new ApplicationModelProviderContext(new[] { type.GetTypeInfo() });
             defaultProvider.OnProvidersExecuting(context);
 
             // Act
@@ -32,21 +33,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void CreateControllerModelWithTwoTempDataProperties_TempDataAttributeAddsTempDataFilter()
+        public void InitializeFilterFactory_WithExpectedPropertyHelpers_ForTempDataAttributeProperties()
         {
             // Arrange
             var provider = new TempDataApplicationModelProvider();
             var defaultProvider = new DefaultApplicationModelProvider(new TestOptionsManager<MvcOptions>());
 
-            var context = new ApplicationModelProviderContext(new[] { typeof(TestController_TwoTempDataProperties).GetTypeInfo() });
+            var context = new ApplicationModelProviderContext(new[] { typeof(TestController_OneTempDataProperty).GetTypeInfo() });
             defaultProvider.OnProvidersExecuting(context);
 
             // Act
             provider.OnProvidersExecuting(context);
+            var controller = context.Result.Controllers.SingleOrDefault();
+            var filter = controller.Filters.OfType<SaveTempDataPropertyFilterFactory>();
+            var saveTempDataPropertyFilterFactory = filter.SingleOrDefault();
 
             // Assert
-            var controller = Assert.Single(context.Result.Controllers);
-            Assert.Single(controller.Filters, f => f is SaveTempDataPropertyFilterFactory);
+            Assert.NotNull(saveTempDataPropertyFilterFactory);
+            var tempDataPropertyHelper = Assert.Single(saveTempDataPropertyFilterFactory.TempDataProperties);
+            Assert.Equal("Test2", tempDataPropertyHelper.Name);
+            Assert.NotNull(tempDataPropertyHelper.Property.GetCustomAttribute<TempDataAttribute>());
         }
 
         [Fact]
@@ -65,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 provider.OnProvidersExecuting(context);
             });
 
-            Assert.Equal("TempData property Test does not have a public getter or setter.", exception.Message);
+            Assert.Equal($"The {nameof(TestController_PrivateSet.Test)} property with TempDataAttribute is invalid. A property using TempDataAttribute must have a public getter and setter.", exception.Message);
         }
 
         [Fact]
@@ -84,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 provider.OnProvidersExecuting(context);
             });
 
-            Assert.Equal("TempData property Test is not declared as a primitive type or string.", exception.Message);
+            Assert.Equal($"The {nameof(TestController_NonPrimitiveType.Test)} property with TempDataAttribute is invalid. A property using TempDataAttribute must be of primitive or string type.", exception.Message);
         }
 
         public class TestController_OneTempDataProperty
@@ -114,18 +120,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             [TempData]
             public object Test { get; set; }
-        }
-
-        private class NullTempDataProvider : ITempDataProvider
-        {
-            public IDictionary<string, object> LoadTempData(HttpContext context)
-            {
-                return null;
-            }
-
-            public void SaveTempData(HttpContext context, IDictionary<string, object> values)
-            {
-            }
         }
     }
 }

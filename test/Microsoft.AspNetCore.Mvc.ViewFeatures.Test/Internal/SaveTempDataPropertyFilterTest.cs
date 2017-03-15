@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class SaveTempDataPropertyFilterTest
     {
         [Fact]
-        public void OnTempDataSaving_ControllerUpdatesTempData()
+        public void SaveTempDataPropertyFilter_PopulatesTempDataWithValuesFromControllerProperty()
         {
             // Arrange
             var httpContext = new DefaultHttpContext();
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void OnTempDataSaving_ControllerReadsTempData()
+        public void SaveTempDataPropertyFilter_ReadsTempDataFromTempDataDictionary()
         {
             // Arrange
             var httpContext = new DefaultHttpContext();
@@ -121,17 +121,5 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             [TempData]
             public string TestString2 { get; set; }
         }
-
-        //private class NullTempDataProvider : ITempDataProvider
-        //{
-        //    public IDictionary<string, object> LoadTempData(HttpContext context)
-        //    {
-        //        return null;
-        //    }
-
-        //    public void SaveTempData(HttpContext context, IDictionary<string, object> values)
-        //    {
-        //    }
-        //}
     }
 }

@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
@@ -13,6 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
     public class TempDataApplicationModelProvider : IApplicationModelProvider
     {
         /// <inheritdoc />
+        /// <remarks>This order ensures that <see cref="TempDataApplicationModelProvider"/> runs after the <see cref="DefaultApplicationModelProvider"/>.</remarks>
         public int Order => -1000 + 10;
 
         /// <inheritdoc />
@@ -30,28 +31,28 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             foreach (var controllerModel in context.Result.Controllers)
             {
-                SaveTempDataPropertyFilterFactory provider = null;
+                SaveTempDataPropertyFilterFactory factory = null;
                 var propertyHelpers = PropertyHelper.GetVisibleProperties(controllerModel.ControllerType.AsType());
                 for (var i = 0; i < propertyHelpers.Length; i++)
                 {
                     if (propertyHelpers[i].Property.GetCustomAttribute<TempDataAttribute>() != null)
                     {
                         ValidateProperty(propertyHelpers[i]);
-                        if (provider == null)
+                        if (factory == null)
                         {
-                            provider = new SaveTempDataPropertyFilterFactory()
+                            factory = new SaveTempDataPropertyFilterFactory()
                             {
                                 TempDataProperties = new List<PropertyHelper>()
                             };
                         }
 
-                        provider.TempDataProperties.Add(propertyHelpers[i]);
+                        factory.TempDataProperties.Add(propertyHelpers[i]);
                     }
                 }
 
-                if (provider != null)
+                if (factory != null)
                 {
-                    controllerModel.Filters.Add(provider);
+                    controllerModel.Filters.Add(factory);
                 }
             }
         }
@@ -65,13 +66,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 property.GetMethod.IsPublic))
             {
                 throw new InvalidOperationException(
-                    Resources.FormatTempDataProperties_PublicGetterSetter(property.Name));
+                    Resources.FormatTempDataProperties_PublicGetterSetter(property.Name, "TempDataAttribute"));
             }
 
             if (!(property.PropertyType.GetTypeInfo().IsPrimitive || property.PropertyType == typeof(string)))
             {
                 throw new InvalidOperationException(
-                    Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name));
+                    Resources.FormatTempDataProperties_PrimitiveTypeOrString(property.Name, "TempDataAttribute"));
             }
         }
     }

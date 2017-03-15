@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
-            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.\r\n";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
