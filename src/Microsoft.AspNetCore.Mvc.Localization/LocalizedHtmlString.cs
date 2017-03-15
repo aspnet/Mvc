@@ -98,12 +98,12 @@ namespace Microsoft.AspNetCore.Mvc.Localization
             if (_arguments != null)
             {
                 htmlContent = new HtmlFormattableString(Value, _arguments);
+                htmlContent.WriteTo(writer, encoder);
             }
             else
             {
-                htmlContent = new HtmlString(Value);
+                writer.Write(Value);
             }
-            htmlContent.WriteTo(writer, encoder);
         }
     }
 }
