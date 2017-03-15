@@ -25,11 +25,11 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Test
             var htmlLocalizer = new HtmlLocalizer(stringLocalizer);
 
             // Act
-            var actualLocalizedHtmlString = htmlLocalizer["Test"];
+            var actualLocalizedHtmlString = htmlLocalizer["Test <i>html</i>"];
 
             // Assert
-            Assert.Equal("Test", actualLocalizedHtmlString.Name);
-            Assert.Equal("Hello Test", actualLocalizedHtmlString.Value);
+            Assert.Equal("Test <i>html</i>", actualLocalizedHtmlString.Name);
+            Assert.Equal("Hello Test <i>html</i>", actualLocalizedHtmlString.Value);
         }
 
         [Fact]

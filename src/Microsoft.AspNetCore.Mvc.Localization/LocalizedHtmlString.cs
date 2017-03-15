@@ -93,11 +93,10 @@ namespace Microsoft.AspNetCore.Mvc.Localization
             {
                 throw new ArgumentNullException(nameof(encoder));
             }
-
-            IHtmlContent htmlContent;
+            
             if (_arguments != null)
             {
-                htmlContent = new HtmlFormattableString(Value, _arguments);
+                var htmlContent = new HtmlFormattableString(Value, _arguments);
                 htmlContent.WriteTo(writer, encoder);
             }
             else
