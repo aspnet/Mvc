@@ -4,7 +4,7 @@
     <CoreFxVersion>4.3.0</CoreFxVersion>
     <DependencyModelVersion>1.1.0</DependencyModelVersion>
     <JsonNetVersion>9.0.1</JsonNetVersion>
-    <MoqVersion>4.7.1</MoqVersion>
+    <MoqVersion>4.6.36-alpha</MoqVersion>
     <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
     <RazorCodeAnalysisVersion>1.0.0-*</RazorCodeAnalysisVersion>
     <RoslynVersion>1.3.0</RoslynVersion>
