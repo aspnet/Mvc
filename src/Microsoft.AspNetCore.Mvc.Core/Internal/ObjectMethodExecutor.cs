@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 _executor = GetExecutor(methodInfo, targetTypeInfo);
             }
 
-            _parameterDefaultValues = GetParameterDefaultValues(methodInfo);
+            _parameterDefaultValues = GetParameterDefaultValues(ActionParameters);
         }
 
         private delegate Task<object> ActionExecutorAsync(object target, object[] parameters);
@@ -214,10 +214,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return CastToObject<T>(task);
         }
 
-        private static object[] GetParameterDefaultValues(MethodInfo method)
+        private static object[] GetParameterDefaultValues(ParameterInfo[] parameters)
         {
-            var parameters = method.GetParameters();
-
             var values = new object[parameters.Length];
 
             for (var i = 0; i < parameters.Length; i++)
