@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 var isReferenceTypeOrNullable = !propertyTypeInfo.IsValueType || Nullable.GetUnderlyingType(property.GetType()) != null;
                 if (value != null || isReferenceTypeOrNullable)
                 {
-                    PropertyHelpers[i].SetValue(Subject, value);
+                    property.SetValue(Subject, value);
                 }
             }
         }
