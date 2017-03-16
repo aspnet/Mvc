@@ -22,8 +22,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private static readonly Action<ILogger, string, Exception> _precompiledViewFound;
 
         private static readonly Action<ILogger, string, string, Exception> _tagHelperComponentAppliesTo;
-        private static readonly Action<ILogger, string, Exception> _componentInitialized;
-        private static readonly Action<ILogger, string, Exception> _componentProcessed;
+        private static readonly Action<ILogger, string, Exception> _tagHelperComponentInitialized;
+        private static readonly Action<ILogger, string, Exception> _tagHelperComponentProcessed;
 
         static MvcRazorLoggerExtensions()
         {
@@ -67,12 +67,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 1,
                 "Tag helper component '{ComponentName}' applies to '{HtmlElement}' HTML element.");
 
-            _componentInitialized = LoggerMessage.Define<string>(
+            _tagHelperComponentInitialized = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 2,
                 "Tag helper component '{ComponentName}' initialized.");
 
-            _componentProcessed = LoggerMessage.Define<string>(
+            _tagHelperComponentProcessed = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 3,
                 "Tag helper component '{ComponentName}' processed.");
@@ -119,14 +119,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             _tagHelperComponentAppliesTo(logger, componentName, htmlElement, null);
         }
 
-        public static void ComponentInitialized(this ILogger logger, string componentName)
+        public static void TagHelperComponentInitialized(this ILogger logger, string componentName)
         {
-            _componentInitialized(logger, componentName, null);
+            _tagHelperComponentInitialized(logger, componentName, null);
         }
 
-        public static void ComponentProcessed(this ILogger logger, string componentName)
+        public static void TagHelperComponentProcessed(this ILogger logger, string componentName)
         {
-            _componentProcessed(logger, componentName, null);
+            _tagHelperComponentProcessed(logger, componentName, null);
         }
 
         public static void GeneratedCodeToAssemblyCompilationEnd(this ILogger logger, string filePath, long startTimestamp)

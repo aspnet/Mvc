@@ -3,7 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace RazorWebSite

@@ -5,21 +5,20 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
+namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     /// <summary>
-    /// A <see cref="TagHelperComponentTagHelper"/> targeting &lt;body&gt; and &lt;head&gt; elements.
+    /// A <see cref="TagHelperComponentTagHelper"/> targeting &lt;head&gt; HTML element.
     /// </summary>
-    [HtmlTargetElement("body")]
     [HtmlTargetElement("head")]
-    public class BodyHeadTagHelper : TagHelperComponentTagHelper
+    public class HeadTagHelper : TagHelperComponentTagHelper
     {
         /// <summary>
-        /// Creates a new <see cref="BodyHeadTagHelper"/>.
+        /// Creates a new <see cref="HeadTagHelper"/>.
         /// </summary>
         /// <param name="components">The list of <see cref="ITagHelperComponent"/>.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public BodyHeadTagHelper(IEnumerable<ITagHelperComponent> components, ILoggerFactory loggerFactory)
+        public HeadTagHelper(IEnumerable<ITagHelperComponent> components, ILoggerFactory loggerFactory)
             : base(components, loggerFactory)
         {
         }

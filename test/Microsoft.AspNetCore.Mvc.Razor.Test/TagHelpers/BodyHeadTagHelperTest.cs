@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
+namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     public class BodyHeadTagHelperTest
     {
         [Fact]
-        public async Task ProcessAsync_InjectsScript_GeneratesExpectedOutput()
+        public async Task ProcessAsync_AppliesToHTMLElement_GeneratesExpectedOutput()
         {
             // Arrange
             var tagHelperContext = new TagHelperContext(
@@ -31,20 +31,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var bodyHeadTagHelper = new BodyHeadTagHelper(new List<ITagHelperComponent>()
+            var headTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, NullLoggerFactory.Instance);
 
             // Act
-            await bodyHeadTagHelper.ProcessAsync(tagHelperContext, output);
+            headTagHelper.Init(tagHelperContext);
+            await headTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
             Assert.Equal("<script>'This was injected!!'</script>", output.PostContent.GetContent(), StringComparer.Ordinal);
         }
 
         [Fact]
-        public async Task ProcessAsync_DoesNotInjectScript_GeneratesExpectedOutput()
+        public async Task ProcessAsync_DoesNotApplyToHTMLElement_GeneratesExpectedOutput()
         {
             // Arrange
             var tagHelperContext = new TagHelperContext(
@@ -60,20 +61,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var bodyHeadTagHelper = new BodyHeadTagHelper(new List<ITagHelperComponent>()
+            var bodyTagHelper = new BodyTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, NullLoggerFactory.Instance);
 
             // Act
-            await bodyHeadTagHelper.ProcessAsync(tagHelperContext, output);
+            bodyTagHelper.Init(tagHelperContext);
+            await bodyTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
             Assert.Empty(output.PostContent.GetContent());
         }
 
         [Fact]
-        public void Init_LogsComponentAppliesToAndInitialized()
+        public void Init_LogsTagHelperComponentAppliesToHTMLElement()
         {
             // Arrange
             var sink = new TestSink();
@@ -91,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var bodyHeadTagHelper = new BodyHeadTagHelper(new List<ITagHelperComponent>()
+            var bodyHeadTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, loggerFactory);
@@ -101,6 +103,36 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
 
             // Assert
             Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' applies to 'head' HTML element.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
+        }
+
+        [Fact]
+        public void Init_LogsTagHelperComponentInitialized()
+        {
+            // Arrange
+            var sink = new TestSink();
+            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
+            var tagHelperContext = new TagHelperContext(
+                "head",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                "head",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            var bodyHeadTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
+            {
+                new TestHeadTagHelperComponent()
+            }, loggerFactory);
+
+            // Act
+            bodyHeadTagHelper.Init(tagHelperContext);
+
+            // Assert
             Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' initialized.", sink.Writes[1].State.ToString(), StringComparer.Ordinal);
         }
 
@@ -123,13 +155,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var bodyHeadTagHelper = new BodyHeadTagHelper(new List<ITagHelperComponent>()
+            var headTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, loggerFactory);
 
             // Act
-            await bodyHeadTagHelper.ProcessAsync(tagHelperContext, output);
+            await headTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert           
             Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' processed.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);

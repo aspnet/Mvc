@@ -4,18 +4,18 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
+namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     public interface ITagHelperComponent
     {
         /// <summary>
-        /// Set to <c>true</c> if <see cref="ITagHelperComponent"/> applies to the given <see cref="TagHelperContext"/>.
+        /// Returns <c>true</c> to indicate if <see cref="ITagHelperComponent"/> applies to the given <see cref="TagHelperContext"/>.
         /// </summary>
         /// <param name="context">Contains information associated with the current HTML tag.</param>
         bool AppliesTo(TagHelperContext context);
 
         /// <summary>
-        /// When a set of<see cref= "ITagHelperComponent" />s are executed, their<see cref="Init(TagHelperContext)"/>'s
+        /// When a set of<see cref= "ITagHelperComponent" />s are executed, their <see cref="Init(TagHelperContext)"/>'s
         /// are first invoked in the specified <see cref="Order"/>; then their
         /// <see cref="ProcessAsync(TagHelperContext, TagHelperOutput)"/>'s are invoked in the specified
         /// <see cref="Order"/>. Lower values are executed first.

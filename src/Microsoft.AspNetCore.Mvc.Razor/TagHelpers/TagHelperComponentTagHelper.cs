@@ -9,11 +9,10 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
+namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     public abstract class TagHelperComponentTagHelper : TagHelper
     {
-        private readonly IList<ITagHelperComponent> _components;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -29,33 +28,49 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent
                 throw new ArgumentNullException(nameof(components));
             }
 
-            _components = components.OrderBy(p => p.Order).ToList();
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+
+            }
+
+            Components = components.OrderBy(p => p.Order).ToList();
             _logger = loggerFactory.CreateLogger<TagHelperComponentTagHelper>();
         }
+
+        public IList<ITagHelperComponent> Components { get; set; }
 
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
-            foreach (var component in _components)
+            var applicableComponents = new List<ITagHelperComponent>();
+            using (_logger.BeginScope(_logger.IsEnabled(LogLevel.Debug)))
             {
-                if (component.AppliesTo(context))
+                for (var i = 0; i < Components.Count; i++)
                 {
-                    _logger.TagHelperComponentAppliesTo(component.GetType().ToString(), context.TagName);
-                    component.Init(context);
-                    _logger.ComponentInitialized(component.GetType().ToString());
+                    if (Components[i].AppliesTo(context))
+                    {
+                        _logger.TagHelperComponentAppliesTo(Components[i].ToString(), context.TagName);
+                        applicableComponents.Add(Components[i]);
+                        Components[i].Init(context);
+                        _logger.TagHelperComponentInitialized(Components[i].ToString());
+                    }
                 }
             }
+
+            Components.Clear();
+            Components = applicableComponents.OrderBy(p => p.Order).ToList();
         }
 
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            foreach (var component in _components)
+            for (var i = 0; i < Components.Count; i++)
             {
-                if (component.AppliesTo(context))
+                await Components[i].ProcessAsync(context, output);
+                if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    await component.ProcessAsync(context, output);
-                    _logger.ComponentProcessed(component.GetType().ToString());
+                    _logger.TagHelperComponentProcessed(Components[i].GetType().ToString());
                 }
             }
         }

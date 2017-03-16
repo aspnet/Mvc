@@ -84,7 +84,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 
             Assert.Contains("@addTagHelper Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor",
                 importContent);
-            Assert.Contains("@addTagHelper Microsoft.AspNetCore.Mvc.Razor.TagHelperComponent.BodyHeadTagHelper, Microsoft.AspNetCore.Mvc.Razor",
+            Assert.Contains("@addTagHelper Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor",
+                importContent);
+            Assert.Contains("@addTagHelper Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor",
                 importContent);
         }
 
