@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -47,12 +48,29 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var controller = context.Result.Controllers.SingleOrDefault();
             var filter = controller.Filters.OfType<SaveTempDataPropertyFilterFactory>();
             var saveTempDataPropertyFilterFactory = filter.SingleOrDefault();
+            var expected = typeof(TestController_OneTempDataProperty).GetProperty(nameof(TestController_OneTempDataProperty.Test2));
 
             // Assert
             Assert.NotNull(saveTempDataPropertyFilterFactory);
             var tempDataPropertyHelper = Assert.Single(saveTempDataPropertyFilterFactory.TempDataProperties);
-            Assert.Equal("Test2", tempDataPropertyHelper.Name);
-            Assert.NotNull(tempDataPropertyHelper.Property.GetCustomAttribute<TempDataAttribute>());
+            Assert.Same(expected, tempDataPropertyHelper.Property);
+        }
+
+        [Fact]
+        public void DoesNotInitializeFilterFactory_ThrowsInvalidOperationException_NonPrimitiveType()
+        {
+            // Arrange
+            var provider = new TempDataApplicationModelProvider();
+            var defaultProvider = new DefaultApplicationModelProvider(new TestOptionsManager<MvcOptions>());
+
+            var context = new ApplicationModelProviderContext(new[] { typeof(TestController_OneValid_OneInvalidProperty).GetTypeInfo() });
+            defaultProvider.OnProvidersExecuting(context);
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+                provider.OnProvidersExecuting(context));
+
+            Assert.Equal($"The '{typeof(TestController_OneValid_OneInvalidProperty).FullName}.{nameof(TestController_OneValid_OneInvalidProperty.Test2)}' property with {nameof(TempDataAttribute)} is invalid. A property using {nameof(TempDataAttribute)} must be of primitive or string type.", exception.Message);
         }
 
         [Fact]
@@ -67,9 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() =>
-            {
-                provider.OnProvidersExecuting(context);
-            });
+                provider.OnProvidersExecuting(context));
 
             Assert.Equal($"The '{typeof(TestController_PrivateSet).FullName}.{nameof(TestController_NonPrimitiveType.Test)}' property with {nameof(TempDataAttribute)} is invalid. A property using {nameof(TempDataAttribute)} must have a public getter and setter.", exception.Message);
         }
@@ -86,9 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() =>
-            {
-                provider.OnProvidersExecuting(context);
-            });
+                provider.OnProvidersExecuting(context));
 
             Assert.Equal($"The '{typeof(TestController_NonPrimitiveType).FullName}.{nameof(TestController_NonPrimitiveType.Test)}' property with {nameof(TempDataAttribute)} is invalid. A property using {nameof(TempDataAttribute)} must be of primitive or string type.", exception.Message);
         }
@@ -107,16 +121,25 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             public string Test { get; set; }
 
             [TempData]
-            public string Test2 { get; set; }
+            public int Test2 { get; set; }
         }
 
-        public class TestController_PrivateSet : Controller
+        public class TestController_OneValid_OneInvalidProperty
+        {
+            [TempData]
+            public int Test { get; set; }
+
+            [TempData]
+            public IList<string> Test2 { get; set; }
+        }
+
+        public class TestController_PrivateSet
         {
             [TempData]
             public string Test { get; private set; }
         }
 
-        public class TestController_NonPrimitiveType : Controller
+        public class TestController_NonPrimitiveType
         {
             [TempData]
             public object Test { get; set; }

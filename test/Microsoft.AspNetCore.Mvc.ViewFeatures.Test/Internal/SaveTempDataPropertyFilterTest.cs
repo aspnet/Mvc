@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var httpContext = new DefaultHttpContext();
             var tempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
             {
-                ["TempDataProperty-TestString"] = "FirstValue"
+                ["TempDataProperty-Test"] = "FirstValue"
             };
 
             var factory = new Mock<ITempDataDictionaryFactory>();
@@ -34,8 +34,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var controller = new TestController();
             var controllerType = controller.GetType().GetTypeInfo();
 
-            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty("TestString"));
-            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty("TestString2"));
+            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty(nameof(TestController.Test)));
+            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty(nameof(TestController.Test2)));
             var propertyHelpers = new List<PropertyHelper>
             {
                 propertyHelper1,
@@ -56,13 +56,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act
             filter.OnActionExecuting(context);
-            controller.TestString = "SecondValue";
+            controller.Test = "SecondValue";
             filter.OnTempDataSaving(tempData);
 
             // Assert
-            Assert.Equal("SecondValue", controller.TestString);
-            Assert.Equal("SecondValue", tempData["TempDataProperty-TestString"]);
-            Assert.Null(controller.TestString2);
+            Assert.Equal("SecondValue", controller.Test);
+            Assert.Equal("SecondValue", tempData["TempDataProperty-Test"]);
+            Assert.Equal(0, controller.Test2);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var httpContext = new DefaultHttpContext();
             var tempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
             {
-                ["TempDataProperty-TestString"] = "FirstValue"
+                ["TempDataProperty-Test"] = "FirstValue"
             };
 
             var factory = new Mock<ITempDataDictionaryFactory>();
@@ -83,8 +83,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var controller = new TestController();
             var controllerType = controller.GetType().GetTypeInfo();
 
-            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty("TestString"));
-            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty("TestString2"));
+            var propertyHelper1 = new PropertyHelper(controllerType.GetProperty(nameof(TestController.Test)));
+            var propertyHelper2 = new PropertyHelper(controllerType.GetProperty(nameof(TestController.Test2)));
             var propertyHelpers = new List<PropertyHelper>
             {
                 propertyHelper1,
@@ -109,17 +109,17 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             filter.OnTempDataSaving(tempData);
 
             // Assert
-            Assert.Equal("FirstValue", controller.TestString);
-            Assert.Null(controller.TestString2);
+            Assert.Equal("FirstValue", controller.Test);
+            Assert.Equal(0, controller.Test2);
         }
 
         public class TestController : Controller
         {
             [TempData]
-            public string TestString { get; set; }
+            public string Test { get; set; }
 
             [TempData]
-            public string TestString2 { get; set; }
+            public int Test2 { get; set; }
         }
     }
 }

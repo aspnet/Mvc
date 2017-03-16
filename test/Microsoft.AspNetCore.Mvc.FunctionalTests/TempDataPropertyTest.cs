@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 new KeyValuePair<string, string>("FullName", "Bob"),
                 new KeyValuePair<string, string>("id", "1"),
             };
-            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.\r\n";
+            var expected = $"{message} for person {nameValueCollection[0].Value} with id {nameValueCollection[1].Value}.";
             var content = new FormUrlEncodedContent(nameValueCollection);
 
             // Act 1
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert 2
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal(expected, body);
+            Assert.Equal(expected, body.ToString().Trim());
         }
 
         [Fact]
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Empty(body);
         }
 
-        public HttpRequestMessage GetRequest(string path, HttpResponseMessage response)
+        private HttpRequestMessage GetRequest(string path, HttpResponseMessage response)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, path);
             if (response.Headers.TryGetValues("Set-Cookie", out var values))

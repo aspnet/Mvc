@@ -32,12 +32,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             foreach (var controllerModel in context.Result.Controllers)
             {
                 SaveTempDataPropertyFilterFactory factory = null;
-                var propertyHelpers = PropertyHelper.GetVisibleProperties(controllerModel.ControllerType.AsType());
+                var propertyHelpers = PropertyHelper.GetVisibleProperties(type: controllerModel.ControllerType.AsType());
                 for (var i = 0; i < propertyHelpers.Length; i++)
                 {
-                    if (propertyHelpers[i].Property.GetCustomAttribute<TempDataAttribute>() != null)
+                    var propertyHelper = propertyHelpers[i];
+                    if (propertyHelper.Property.IsDefined(typeof(TempDataAttribute)))
                     {
-                        ValidateProperty(propertyHelpers[i]);
+                        ValidateProperty(propertyHelper);
                         if (factory == null)
                         {
                             factory = new SaveTempDataPropertyFilterFactory()
@@ -46,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                             };
                         }
 
-                        factory.TempDataProperties.Add(propertyHelpers[i]);
+                        factory.TempDataProperties.Add(propertyHelper);
                     }
                 }
 

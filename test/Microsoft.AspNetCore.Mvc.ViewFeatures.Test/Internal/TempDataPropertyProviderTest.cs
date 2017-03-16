@@ -51,9 +51,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() =>
-            {
-                provider.LoadAndTrackChanges(controller, controller.TempData);
-            });
+                provider.LoadAndTrackChanges(controller, controller.TempData));
+
             Assert.Equal("TempData properties must have a public getter and setter.", exception.Message);
         }
 
@@ -74,9 +73,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(() =>
-            {
-                provider.LoadAndTrackChanges(controller, controller.TempData);
-            });
+                provider.LoadAndTrackChanges(controller, controller.TempData));
+
             Assert.Equal("TempData properties must be declared as primitive types or string only.", exception.Message);
         }
 
