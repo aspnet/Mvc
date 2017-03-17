@@ -341,8 +341,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 _pageContext.ViewData.Model = _model;
             }
 
-            if (CacheEntry.PropertyBinder != null)
+            if (CacheEntry.PropertyBinder != null &&
+                !string.Equals(_pageContext.HttpContext.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
             {
+                // Don't bind properties on GET requests
                 await CacheEntry.PropertyBinder(_page, _model);
             }
 

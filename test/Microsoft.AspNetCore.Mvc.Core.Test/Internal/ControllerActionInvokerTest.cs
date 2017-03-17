@@ -3177,14 +3177,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var parameterBinder = new TestParameterBinder(arguments);
 
-            return CreateInvoker(filters, actionDescriptor, parameterBinder, _controller, maxAllowedErrorsInModelState);
+            return CreateInvoker(filters, actionDescriptor, _controller, parameterBinder, maxAllowedErrorsInModelState);
         }
 
         private TestControllerActionInvoker CreateInvoker(
             IFilterMetadata[] filters,
             ControllerActionDescriptor actionDescriptor,
-            ParameterBinder parameterBinder,
-            object controller = null,
+            object controller,
+            ParameterBinder parameterBinder = null,
             int maxAllowedErrorsInModelState = 200,
             List<IValueProviderFactory> valueProviderFactories = null,
             RouteData routeData = null,

@@ -7,7 +7,7 @@
     [FromRoute]
     public int Id { get; set; }
 }
-Id = @Id, Name = @UserModel.Name, Age = @UserModel.Age
+Id = @Id, Name = @UserModel?.Name, Age = @UserModel?.Age
 @Html.ValidationSummary()
 <form action="">
     @Html.AntiForgeryToken()

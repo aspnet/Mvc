@@ -1,5 +1,5 @@
-﻿@page "{id:int}"
-@model PageModelWithPropertyBinding
+﻿@page
+@model PageModelWithPropertyAndArgumentBinding
 Id = @Model.Id, Name = @Model.UserModel?.Name, Age = @Model.UserModel?.Age
 @Html.ValidationSummary()
 

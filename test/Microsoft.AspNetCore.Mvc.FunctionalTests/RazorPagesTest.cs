@@ -541,9 +541,59 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             }
         }
 
+        [Fact]
+        public async Task HandlerMethodArgumentsAndPropertiesAreModelBound()
+        {
+            // Arrange
+            var expected = "Id = 11, Name = Test-Name, Age = 32";
+            var request = new HttpRequestMessage(HttpMethod.Post, "Pages/PropertyBinding/PageWithPropertyAndArgumentBinding?id=11")
+            {
+                Content = new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+                {
+                    new KeyValuePair<string, string>("Name", "Test-Name"),
+                    new KeyValuePair<string, string>("Age", "32"),
+                }),
+            };
+            await AddAntiforgeryHeaders(request);
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith(expected, content.Trim());
+        }
+
+        [Fact]
+        public async Task PagePropertiesAreNotBoundInGetRequests()
+        {
+            // Arrange
+            var expected = "Id = 11, Name = , Age =";
+            var validationError = "The Name field is required.";
+            var request = new HttpRequestMessage(HttpMethod.Get, "Pages/PropertyBinding/PageWithPropertyAndArgumentBinding?id=11")
+            {
+                Content = new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+                {
+                    new KeyValuePair<string, string>("Name", "Test-Name"),
+                    new KeyValuePair<string, string>("Age", "32"),
+                }),
+            };
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith(expected, content.Trim());
+            Assert.DoesNotContain(validationError, content);
+        }
+
         private async Task AddAntiforgeryHeaders(HttpRequestMessage request)
         {
             var getResponse = await Client.GetAsync(request.RequestUri);
+            Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
             var getResponseBody = await getResponse.Content.ReadAsStringAsync();
             var formToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(getResponseBody, "");
             var cookie = AntiforgeryTestHelper.RetrieveAntiforgeryCookie(getResponse);
