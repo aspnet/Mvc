@@ -60,6 +60,11 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public object Value { get; set; }
 
+        /// <summary>
+        /// Gets or sets the declared type of the value to be formatted.
+        /// </summary>
+        public Type DeclaredType { get; set; }
+
         /// <inheritdoc />
         public override Task ExecuteResultAsync(ActionContext context)
         {

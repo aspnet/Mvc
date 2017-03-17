@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
                     jsonWriter.CloseOutput = false;
 
                     var jsonSerializer = JsonSerializer.Create(serializerSettings);
-                    jsonSerializer.Serialize(jsonWriter, result.Value);
+                    jsonSerializer.Serialize(jsonWriter, result.Value, result.DeclaredType);
                 }
             }
 

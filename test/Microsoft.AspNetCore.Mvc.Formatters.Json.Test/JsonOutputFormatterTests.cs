@@ -77,6 +77,33 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         [Fact]
+        public async Task Using_TypeNameHandlingAuto_AppliesTypeNameToRoot()
+        {
+            // Arrange
+            var person = new User() { FullName = "John", age = 35 };
+            var outputFormatterContext = GetOutputFormatterContext(person, typeof(object));
+
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto
+            };
+            var expectedOutput = JsonConvert.SerializeObject(person, typeof(object), settings);
+            var jsonFormatter = new JsonOutputFormatter(settings, ArrayPool<char>.Shared);
+
+            // Act
+            await jsonFormatter.WriteResponseBodyAsync(outputFormatterContext, Encoding.UTF8);
+
+            // Assert
+            var body = outputFormatterContext.HttpContext.Response.Body;
+
+            Assert.NotNull(body);
+            body.Position = 0;
+
+            var content = new StreamReader(body, Encoding.UTF8).ReadToEnd();
+            Assert.Equal(expectedOutput, content);
+        }
+
+        [Fact]
         public async Task ChangesTo_SerializerSettings_AfterSerialization_DoNotAffectSerialization()
         {
             // Arrange
