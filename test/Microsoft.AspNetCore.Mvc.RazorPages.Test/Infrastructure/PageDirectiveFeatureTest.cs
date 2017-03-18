@@ -12,6 +12,17 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     public class PageDirectiveFeatureTest
     {
         [Fact]
+        public void TryGetPageDirective_EmptyTemplate()
+        {
+            // Arrange
+            var projectItem = new TestRazorProjectItem(@"@page """"");
+
+            // Act & Assert
+            Assert.True(PageDirectiveFeature.TryGetPageDirective(projectItem, out string template));
+            Assert.Equal("", template);
+        }
+
+        [Fact]
         public void TryGetPageDirective_FindsTemplate()
         {
             // Arrange

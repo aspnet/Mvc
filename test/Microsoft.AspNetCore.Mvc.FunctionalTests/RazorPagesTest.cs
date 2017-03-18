@@ -20,6 +20,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
+        public async Task Page_WithEmptyTemplate()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/PageWithEmptyTemplate");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("The template was an empty string.", content.Trim());
+        }
+
+        [Fact]
         public async Task Page_SetsPath()
         {
             // Arrange
@@ -80,6 +96,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello, World!", content.Trim());
+        }
+
+        [Fact]
+        public async Task RouteWithInt_Parses()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RouteWithInt/Path/1");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Hello, 1!", content.Trim());
         }
 
         [Fact]
@@ -204,9 +236,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             request = new HttpRequestMessage(HttpMethod.Get, response.Headers.Location);
             request.Headers.Add("Cookie", GetCookie(response));
 
-            // Act2
+            // Act 2
             response = await Client.SendAsync(request);
 
+            // Assert 2
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hi1", content.Trim());
         }
@@ -228,9 +261,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             request = new HttpRequestMessage(HttpMethod.Get, response.Headers.Location);
             request.Headers.Add("Cookie", GetCookie(response));
 
-            // Act2
+            // Act 2
             response = await Client.SendAsync(request);
 
+            // Assert 2
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hi2", content.Trim());
         }
@@ -282,13 +316,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             var setCookie = response.Headers.GetValues("Set-Cookie").ToArray();
             return setCookie[0].Split(';').First();
-        }
-
-        public class CookieMetadata
-        {
-            public string Key { get; set; }
-
-            public string Value { get; set; }
         }
     }
 }
