@@ -648,6 +648,67 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal(2, calls);
         }
 
+        [Fact]
+        public async Task ProcessAsync_ExceptionInProcessing_DoNotThrowInSubsequentRequests()
+        {
+            // Arrange
+            var id = "unique-id";
+            var childContent = "some-content";
+            var cache = new MemoryCache(new MemoryCacheOptions());
+
+            var tagHelperContext1 = GetTagHelperContext(id);
+            var tagHelperContext2 = GetTagHelperContext(id);
+
+            var tagHelperOutput1 = new TagHelperOutput(
+                "cache",
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    throw new Exception();
+                });
+
+            var tagHelperOutput2 = new TagHelperOutput(
+                "cache",
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetHtmlContent(childContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+
+            var cacheTagHelper1 = new CacheTagHelper(cache, new HtmlTestEncoder())
+            {
+                ViewContext = GetViewContext(),
+                Enabled = true,
+                ExpiresAfter = TimeSpan.FromHours(1.0)
+            };
+
+            var cacheTagHelper2 = new CacheTagHelper(cache, new HtmlTestEncoder())
+            {
+                ViewContext = GetViewContext(),
+                Enabled = true,
+                ExpiresAfter = TimeSpan.FromHours(1.0)
+            };
+
+            // Act
+
+            await Assert.ThrowsAsync<Exception>(() => cacheTagHelper1.ProcessAsync(tagHelperContext1, tagHelperOutput1));
+
+            await cacheTagHelper2.ProcessAsync(tagHelperContext2, tagHelperOutput2);
+
+            // Assert
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.False(tagHelperOutput1.IsContentModified);
+            Assert.Empty(tagHelperOutput1.Content.GetContent());
+
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.True(tagHelperOutput2.IsContentModified);
+            Assert.Equal(childContent, tagHelperOutput2.Content.GetContent());
+        }
+
         private static ViewContext GetViewContext()
         {
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
