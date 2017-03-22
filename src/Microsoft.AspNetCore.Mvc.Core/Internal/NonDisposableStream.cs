@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             return _innerStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
-#if NET451
+#if NET46
         /// <inheritdoc />
         public override IAsyncResult BeginRead(
             byte[] buffer,
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             return _innerStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
-#if NET451
+#if NET46
         /// <inheritdoc />
         public override IAsyncResult BeginWrite(
             byte[] buffer,
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             _innerStream.WriteByte(value);
         }
-#if NET451
+#if NET46
         /// <inheritdoc />
         public override void Close()
         {

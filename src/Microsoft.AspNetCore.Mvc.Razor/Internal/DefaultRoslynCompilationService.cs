@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         public static Assembly LoadAssembly(MemoryStream assemblyStream, MemoryStream pdbStream)
         {
             var assembly =
-#if NET451
+#if NET46
                 Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
 #else
                 System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyStream, pdbStream);

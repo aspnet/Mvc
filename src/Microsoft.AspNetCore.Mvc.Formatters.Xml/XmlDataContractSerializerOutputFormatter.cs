@@ -131,7 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             try
             {
-#if NET451
+#if NET46
                 // Verify that type is a valid data contract by forcing the serializer to try to create a data contract
                 FormattingUtilities.XsdDataContractExporter.GetRootElementName(type);
 #endif
