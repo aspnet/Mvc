@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 #elif NETCOREAPP2_0
 #else
-    #error The target frameworks need to be updated
+#error The target frameworks need to be updated
 #endif
 
         [Fact]

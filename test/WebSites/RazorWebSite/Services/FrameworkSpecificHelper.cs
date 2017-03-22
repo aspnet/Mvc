@@ -24,7 +24,7 @@ namespace RazorWebSite
 #endif
 
 #if NETCOREAPP2_0_CUSTOM_DEFINE
-        public string ExecuteNetCoreApp1_1Operation()
+        public string ExecuteNetCoreApp2_0Operation()
         {
             return "This method is only defined in NETCOREAPP2_0";
         }
