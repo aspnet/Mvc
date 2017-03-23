@@ -23,13 +23,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 PageTypeInfo = typeof(PageWithNoBoundProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -44,13 +45,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 PageTypeInfo = typeof(PageWithNoBoundProperties).GetTypeInfo(),
                 ModelTypeInfo = typeof(PageModelWithNoBoundProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+
             var binder = new ParameterBinder(
                 TestModelMetadataProvider.CreateDefaultProvider(),
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -64,13 +67,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 PageTypeInfo = typeof(PageWithNoVisibleBoundProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -85,13 +89,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 PageTypeInfo = typeof(object).GetTypeInfo(),
                 ModelTypeInfo = typeof(PageModelWithNoVisibleBoundProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -105,13 +110,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 PageTypeInfo = typeof(PageWithReadOnlyProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -126,13 +132,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 PageTypeInfo = typeof(PageWithReadOnlyProperties).GetTypeInfo(),
                 ModelTypeInfo = typeof(PageModelWithReadOnlyProperties).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
             // Act
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
 
             // Assert
             Assert.Null(factory);
@@ -146,12 +153,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 PageTypeInfo = typeof(PageWithProperty).GetTypeInfo(),
             };
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var binder = new TestParameterBinder(new Dictionary<string, object>
             {
                 { nameof(PageWithProperty.Id), 10 },
                 { nameof(PageWithProperty.RouteDifferentValue), "route-value" }
             });
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),
@@ -208,7 +216,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 { nameof(PageModelWithProperty.Id), 10 },
                 { nameof(PageModelWithProperty.RouteDifferentValue), "route-value" }
             });
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),
@@ -270,7 +279,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 { nameof(PageModelWithModelBinderAttribute.PropertyWithBinderType), expected },
             });
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),
@@ -303,7 +313,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 ModelTypeInfo = typeof(PageModelWithPropertyFilterAttribute).GetTypeInfo(),
             };
             var binder = new TestParameterBinder(new Dictionary<string, object>());
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),
@@ -335,7 +346,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 ModelTypeInfo = typeof(PageModelWithDefaultValue).GetTypeInfo(),
             };
             var binder = new TestParameterBinder(new Dictionary<string, object>());
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),
@@ -364,7 +376,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 { nameof(PageModelWithDefaultValue.PropertyWithDefaultValue), expected },
             });
-            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, actionDescriptor);
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var factory = PagePropertyBinderFactory.GetModelBinderFactory(binder, modelMetadataProvider, actionDescriptor);
             var page = new PageWithProperty
             {
                 PageContext = new PageContext(),

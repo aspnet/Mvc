@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -21,6 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private readonly IControllerFactory _controllerFactory;
         private readonly ParameterBinder _parameterBinder;
+        private readonly IModelMetadataProvider _modelMetadataProvider;
 
         private readonly ControllerContext _controllerContext;
         private readonly ObjectMethodExecutor _executor;
@@ -39,6 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public ControllerActionInvoker(
             IControllerFactory controllerFactory,
             ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
             ILogger logger,
             DiagnosticSource diagnosticSource,
             ControllerContext controllerContext,
@@ -64,6 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             _controllerFactory = controllerFactory;
             _parameterBinder = parameterBinder;
+            _modelMetadataProvider = modelMetadataProvider;
             _controllerContext = controllerContext;
             _executor = objectMethodExecutor;
         }
@@ -986,12 +988,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return TaskCache.CompletedTask;
             }
 
-            return BindArgumentsCoreAsync(_parameterBinder, _controllerContext, _controller, _arguments);
+            return BindArgumentsCoreAsync(_parameterBinder, _modelMetadataProvider, _controllerContext, _controller, _arguments);
         }
 
         // Intentionally static internal for unit testing
         internal static async Task BindArgumentsCoreAsync(
             ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
             ControllerContext controllerContext, 
             object controller, 
             Dictionary<string, object> arguments)
@@ -1018,7 +1021,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return;
             }
 
-            var modelMetadataProvider = parameterBinder.ModelMetadataProvider;
             var controllerType = controller.GetType();
             ModelMetadata controllerMetadata = null;
             for (var i = 0; i < propertyDescriptors.Count; i++)

@@ -13,6 +13,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </summary>
     public class ParameterBinder
     {
+        private readonly IModelMetadataProvider _modelMetadataProvider;
+        private readonly IModelBinderFactory _modelBinderFactory;
+        private readonly IObjectModelValidator _validator;
+
         /// <summary>
         /// Initializes a new instance of <see cref="ParameterDescriptor"/>.
         /// </summary>
@@ -39,25 +43,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(validator));
             }
 
-            ModelMetadataProvider = modelMetadataProvider;
-            ModelBinderFactory = modelBinderFactory;
-            Validator = validator;
+            _modelMetadataProvider = modelMetadataProvider;
+            _modelBinderFactory = modelBinderFactory;
+            _validator = validator;
         }
-
-        /// <summary>
-        /// The <see cref="IModelMetadataProvider"/>.
-        /// </summary>
-        public IModelMetadataProvider ModelMetadataProvider { get; }
-
-        /// <summary>
-        /// The <see cref="IModelBinderFactory"/>.
-        /// </summary>
-        public IModelBinderFactory ModelBinderFactory { get; }
-
-        /// <summary>
-        /// The <see cref="IObjectModelValidator"/>.
-        /// </summary>
-        public IObjectModelValidator Validator { get; }
 
         /// <summary>
         /// Initializes and binds a model specified by <paramref name="parameter"/>.
@@ -103,8 +92,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            var metadata = ModelMetadataProvider.GetMetadataForType(parameter.ParameterType);
-            var binder = ModelBinderFactory.CreateBinder(new ModelBinderFactoryContext()
+            var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            var binder = _modelBinderFactory.CreateBinder(new ModelBinderFactoryContext()
             {
                 BindingInfo = parameter.BindingInfo,
                 Metadata = metadata,
@@ -141,7 +130,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var modelBindingResult = modelBindingContext.Result;
             if (modelBindingResult.IsModelSet)
             {
-                Validator.Validate(
+                _validator.Validate(
                     actionContext,
                     modelBindingContext.ValidationState,
                     modelBindingContext.ModelName,

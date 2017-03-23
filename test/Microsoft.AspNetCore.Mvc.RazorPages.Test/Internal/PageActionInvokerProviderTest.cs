@@ -800,8 +800,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 razorProject = Mock.Of<RazorProject>();
             }
 
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var parameterBinder = new ParameterBinder(
-                TestModelMetadataProvider.CreateDefaultProvider(),
+                modelMetadataProvider,
                 TestModelBinderFactory.CreateDefault(),
                 Mock.Of<IObjectModelValidator>());
 
@@ -813,6 +814,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 actionDescriptorProvider,
                 new IFilterProvider[0],
                 parameterBinder,
+                modelMetadataProvider,
                 tempDataFactory.Object,
                 new TestOptionsManager<MvcOptions>(),
                 new TestOptionsManager<HtmlHelperOptions>(),

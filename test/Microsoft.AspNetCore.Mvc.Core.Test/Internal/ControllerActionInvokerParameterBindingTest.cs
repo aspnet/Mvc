@@ -46,6 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -81,6 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -125,6 +127,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -165,6 +168,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -216,6 +220,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -260,6 +265,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -310,6 +316,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -348,6 +355,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -382,6 +390,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -422,6 +431,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -458,6 +468,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -534,6 +545,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -612,6 +624,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 controllerContext,
                 controller,
                 arguments);
@@ -739,6 +752,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             await ControllerActionInvoker.BindArgumentsCoreAsync(
                 parameterBinder.Object,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 testContext,
                 new TestController(),
                 arguments);

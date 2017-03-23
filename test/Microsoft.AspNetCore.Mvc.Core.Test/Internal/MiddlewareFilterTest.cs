@@ -284,6 +284,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 filters,
                 new MockControllerFactory(controller ?? this),
                 new TestParameterBinder(actionParameters: null),
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 new NullLoggerFactory().CreateLogger<ControllerActionInvoker>(),
                 diagnosticSource,
                 actionContext,
@@ -394,6 +395,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 IFilterMetadata[] filters,
                 MockControllerFactory controllerFactory,
                 ParameterBinder parameterBinder,
+                IModelMetadataProvider modelMetadataProvider,
                 ILogger logger,
                 DiagnosticSource diagnosticSource,
                 ActionContext actionContext,
@@ -402,6 +404,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 : base(
                       controllerFactory,
                       parameterBinder,
+                      modelMetadataProvider,
                       logger,
                       diagnosticSource,
                       CreatControllerContext(actionContext, valueProviderFactories, maxAllowedErrorsInModelState),

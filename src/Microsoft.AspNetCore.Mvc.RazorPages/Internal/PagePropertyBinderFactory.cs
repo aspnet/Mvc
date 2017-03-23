@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     {
         public static Func<Page, object, Task> GetModelBinderFactory(
             ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
             CompiledPageActionDescriptor actionDescriptor)
         {
             if (parameterBinder == null)
@@ -30,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             var bindPropertiesOnPage = actionDescriptor.ModelTypeInfo == null;
             var target = bindPropertiesOnPage ? actionDescriptor.PageTypeInfo : actionDescriptor.ModelTypeInfo;
-            var propertiesToBind = GetPropertiesToBind(parameterBinder.ModelMetadataProvider, target);
+            var propertiesToBind = GetPropertiesToBind(modelMetadataProvider, target);
 
             if (propertiesToBind.Count == 0)
             {
@@ -85,76 +86,38 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             TypeInfo handlerSourceTypeInfo)
         {
             var handlerType = handlerSourceTypeInfo.AsType();
-            var handlerMetadata = modelMetadataProvider.GetMetadataForType(handlerType);
-            if (handlerMetadata.Properties.Count == 0)
-            {
-                return EmptyArray<PropertyBindingInfo>.Instance;
-            }
-
-            PropertyHelper[] propertyInfo = null;
+            var properties = PropertyHelper.GetVisibleProperties(type: handlerType);
+            var typeMetadata = modelMetadataProvider.GetMetadataForType(handlerType);
 
             var propertyBindingInfo = new List<PropertyBindingInfo>();
-            for (var i = 0; i < handlerMetadata.Properties.Count; i++)
+            for (var i = 0; i < properties.Length; i++)
             {
-                var propertyMetadata = handlerMetadata.Properties[i];
-                if (propertyMetadata.IsReadOnly)
-                {
-                    continue;
-                }
-
-                BindingInfo bindingInfo;
-                if (propertyMetadata.BindingSource != null)
-                {
-                    bindingInfo = new BindingInfo()
-                    {
-                        BinderModelName = propertyMetadata.BinderModelName,
-                        BinderType = propertyMetadata.BinderType,
-                        BindingSource = propertyMetadata.BindingSource,
-                        PropertyFilterProvider = propertyMetadata.PropertyFilterProvider,
-                    };
-                }
-                else
-                {
-                    if (propertyInfo == null)
-                    {
-                        propertyInfo = PropertyHelper.GetVisibleProperties(type: handlerSourceTypeInfo.AsType());
-                    }
-                    bindingInfo = GetBindingInfoFromProperty(propertyInfo, propertyMetadata);
-                }
+                var property = properties[i];
+                var bindingInfo = BindingInfo.GetBindingInfo(property.Property.GetCustomAttributes());
 
                 if (bindingInfo == null)
                 {
                     continue;
                 }
-                
+
+                var propertyMetadata = typeMetadata.Properties[property.Name] ??
+                        modelMetadataProvider.GetMetadataForProperty(handlerType, property.Name);
+                if (propertyMetadata == null)
+                {
+                    continue;
+                }
+
                 var parameterDescriptor = new ParameterDescriptor
                 {
                     BindingInfo = bindingInfo,
-                    Name = propertyMetadata.PropertyName,
-                    ParameterType = propertyMetadata.ModelType,
+                    Name = property.Name,
+                    ParameterType = property.Property.PropertyType,
                 };
 
                 propertyBindingInfo.Add(new PropertyBindingInfo(parameterDescriptor, propertyMetadata));
             }
 
             return propertyBindingInfo;
-        }
-
-        private static BindingInfo GetBindingInfoFromProperty(
-            PropertyHelper[] properties, 
-            ModelMetadata propertyMetadata)
-        {
-            for (var i = 0; i < properties.Length; i++)
-            {
-                var propertyHelper = properties[i];
-                if (string.Equals(propertyMetadata.PropertyName, propertyHelper.Name, StringComparison.Ordinal) &&
-                    propertyMetadata.ModelType == propertyHelper.Property.PropertyType)
-                {
-                    return BindingInfo.GetBindingInfo(propertyHelper.Property.GetCustomAttributes());
-                }
-            }
-
-            return null;
         }
 
         private static async Task<CompositeValueProvider> GetCompositeValueProvider(PageContext pageContext)

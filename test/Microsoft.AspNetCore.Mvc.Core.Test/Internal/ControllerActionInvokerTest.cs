@@ -2920,7 +2920,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var metadataProvider = new EmptyModelMetadataProvider();
 
-            var argumentBinder = new ParameterBinder(
+            var parameterBinder = new ParameterBinder(
                 metadataProvider,
                 TestModelBinderFactory.CreateDefault(metadataProvider),
                 new DefaultObjectValidator(metadataProvider, new IModelValidatorProvider[0]));
@@ -2933,7 +2933,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var invoker = new ControllerActionInvoker(
                 controllerFactory.Object,
-                argumentBinder,
+                parameterBinder,
+                metadataProvider,
                 new NullLoggerFactory().CreateLogger<ControllerActionInvoker>(),
                 new DiagnosticListener("Microsoft.AspNetCore"),
                 controllerContext,
@@ -3207,7 +3208,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 NullLogger<ContentResultExecutor>.Instance,
                 new MemoryPoolHttpResponseStreamWriterFactory(ArrayPool<byte>.Shared, ArrayPool<char>.Shared)));
 
-
             httpContext.Response.Body = new MemoryStream();
             httpContext.RequestServices = services.BuildServiceProvider();
 
@@ -3260,6 +3260,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 filters,
                 new MockControllerFactory(controller ?? this),
                 parameterBinder,
+                TestModelMetadataProvider.CreateDefaultProvider(),
                 logger,
                 diagnosticSource,
                 actionContext,
@@ -3485,6 +3486,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 IFilterMetadata[] filters,
                 MockControllerFactory controllerFactory,
                 ParameterBinder parameterBinder,
+                IModelMetadataProvider modelMetadataProvider,
                 ILogger logger,
                 DiagnosticSource diagnosticSource,
                 ActionContext actionContext,
@@ -3493,6 +3495,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 : base(
                       controllerFactory,
                       parameterBinder,
+                      modelMetadataProvider,
                       logger,
                       diagnosticSource,
                       CreatControllerContext(actionContext, valueProviderFactories, maxAllowedErrorsInModelState),
