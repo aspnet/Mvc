@@ -43,23 +43,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
-            var applicableComponents = new List<ITagHelperComponent>();
             using (_logger.BeginScope(_logger.IsEnabled(LogLevel.Debug)))
             {
                 for (var i = 0; i < Components.Count; i++)
-                {
-                    if (Components[i].AppliesTo(context))
-                    {
-                        _logger.TagHelperComponentAppliesTo(Components[i].ToString(), context.TagName);
-                        applicableComponents.Add(Components[i]);
-                        Components[i].Init(context);
-                        _logger.TagHelperComponentInitialized(Components[i].ToString());
-                    }
+                {                    
+                    Components[i].Init(context);
+                    _logger.TagHelperComponentInitialized(Components[i].ToString());
                 }
             }
 
             Components.Clear();
-            Components = applicableComponents.OrderBy(p => p.Order).ToList();
+            Components = Components.OrderBy(p => p.Order).ToList();
         }
 
         /// <inheritdoc />
