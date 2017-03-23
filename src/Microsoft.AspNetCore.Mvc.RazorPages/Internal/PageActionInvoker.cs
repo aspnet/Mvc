@@ -314,7 +314,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             if (CacheEntry.PageStartFactories == null || CacheEntry.PageStartFactories.Count == 0)
             {
-                pageStarts = EmptyArray<IRazorPage>.Instance;
+                pageStarts = Array.Empty<IRazorPage>();
             }
             else
             {
@@ -357,7 +357,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 propertyFilter.OriginalValues = originalValues;
                 propertyFilter.Subject = _page;
-                propertyFilter.Prefix = TempDataPropertyProvider.Prefix;
             }
 
             IActionResult result = null;
