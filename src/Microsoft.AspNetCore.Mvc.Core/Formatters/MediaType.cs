@@ -222,6 +222,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public bool MatchesAllSubTypes => SubType.Equals("*", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
+        /// Gets whether this <see cref="MediaType"/> matches all subtypes, ignoring any structured syntax suffix.
+        /// </summary>
+        public bool MatchesAllSubTypesWithoutSuffix => SubTypeWithoutSuffix.Equals("*", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Gets whether this <see cref="MediaType"/> matches all nonempty structured syntax suffixes.
+        /// </summary>
+        public bool MatchesAllNonemptySubTypeSuffixes => SubTypeSuffix.Equals("*", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
         /// Gets the <see cref="System.Text.Encoding"/> of the <see cref="MediaType"/> if it has one.
         /// </summary>
         public Encoding Encoding => GetEncodingFromCharset(GetParameter("charset"));
@@ -242,7 +252,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public bool IsSubsetOf(MediaType set)
         {
             return (set.MatchesAllTypes || set.Type.Equals(Type, StringComparison.OrdinalIgnoreCase)) &&
-                (set.MatchesAllSubTypes || set.SubType.Equals(SubType, StringComparison.OrdinalIgnoreCase)) &&
+                MatchesSubtypePattern(set) &&
                 ContainsAllParameters(set._parameterParser);
         }
 
@@ -413,6 +423,37 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         private static string CreateMediaTypeWithEncoding(StringSegment mediaType, Encoding encoding)
         {
             return $"{mediaType.Value}; charset={encoding.WebName}";
+        }
+
+        private bool MatchesSubtypePattern(MediaType subtypePattern)
+        {
+            if (subtypePattern.MatchesAllSubTypes)
+            {
+                return true;
+            }
+
+            if (subtypePattern.SubTypeSuffix.HasValue)
+            {
+                if (SubTypeSuffix.HasValue)
+                {
+                    // Both the pattern and the media type being checked have suffixes, so both parts must match.
+                    var matchesSubtypeWithoutSuffix = subtypePattern.MatchesAllSubTypesWithoutSuffix ||
+                        subtypePattern.SubTypeWithoutSuffix.Equals(SubTypeWithoutSuffix, StringComparison.OrdinalIgnoreCase);
+                    var matchesSubtypeSuffix = subtypePattern.MatchesAllNonemptySubTypeSuffixes ||
+                        subtypePattern.SubTypeSuffix.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
+
+                    return matchesSubtypeWithoutSuffix && matchesSubtypeSuffix;
+                }
+                else
+                {
+                    // The pattern has a suffix, but the media type being checked doesn't. We never consider this to match.
+                    return false;
+                }
+            }
+            else
+            {
+                return subtypePattern.SubType.Equals(SubType, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         private bool ContainsAllParameters(MediaTypeParameterParser setParameters)

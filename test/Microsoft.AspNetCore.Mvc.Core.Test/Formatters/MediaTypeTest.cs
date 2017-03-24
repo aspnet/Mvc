@@ -209,6 +209,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/*", "application/entitytype+json;v=2")]
         [InlineData("application/*;v=2", "application/entitytype+json;v=2")]
         [InlineData("*/*", "application/json")]
+        [InlineData("application/entity+json", "application/entity+json")]
+        [InlineData("application/*+json", "application/entity+json")]
+        [InlineData("application/entity+*", "application/entity+json")]
+        [InlineData("application/*+*", "application/entity+json")]
+        [InlineData("application/*", "application/entity+json")]
         public void IsSubsetOf_ReturnsTrueWhenExpected(string set, string subset)
         {
             // Arrange
@@ -229,6 +234,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/*", "text/json")]
         [InlineData("application/*;v=2", "application/json")]
         [InlineData("application/*;v=2", "application/json;v=1")]
+        [InlineData("application/entity+json", "application/entity+txt")]
+        [InlineData("application/entity+json", "application/entity.v2+json")]
+        [InlineData("application/*+json", "application/entity+txt")]
+        [InlineData("application/entity+*", "application/entity.v2+json")]
+        [InlineData("application/*+*", "application/json")]
         public void IsSubsetOf_ReturnsFalseWhenExpected(string set, string subset)
         {
             // Arrange
@@ -296,6 +306,44 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             // Assert
             Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData("*/*", true)]
+        [InlineData("text/*", true)]
+        [InlineData("text/*+suffix", true)]
+        [InlineData("text/*+", true)]
+        [InlineData("text/*+*", true)]
+        [InlineData("text/json+suffix", false)]
+        [InlineData("*/json+*", false)]
+        public void MatchesAllSubTypesWithoutSuffix_ReturnsExpectedResult(string value, bool expectedReturnValue)
+        {
+            // Arrange
+            var mediaType = new MediaType(value);
+
+            // Act
+            var result = mediaType.MatchesAllSubTypesWithoutSuffix;
+
+            // Assert
+            Assert.Equal(expectedReturnValue, result);
+        }
+
+        [Theory]
+        [InlineData("*/*", false)]
+        [InlineData("text/*", false)]
+        [InlineData("text/*+", false)]
+        [InlineData("text/*+suffix", false)]
+        [InlineData("text/entity+*", true)]
+        public void MatchesAllNonemptySubTypeSuffixes_ReturnsExpectedResult(string value, bool expectedReturnValue)
+        {
+            // Arrange
+            var mediaType = new MediaType(value);
+
+            // Act
+            var result = mediaType.MatchesAllNonemptySubTypeSuffixes;
+
+            // Assert
+            Assert.Equal(expectedReturnValue, result);
         }
 
         [Theory]
