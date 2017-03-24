@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 using Xunit;
@@ -14,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/json")]
         [InlineData("application /json")]
         [InlineData(" application / json ")]
-        public void Constructor_CanParseParameterlessMediaTypes(string mediaType)
+        public void Constructor_CanParseParameterlessSuffixlessMediaTypes(string mediaType)
         {
             // Arrange & Act
             var result = new MediaType(mediaType, 0, mediaType.Length);
@@ -24,23 +25,54 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.Equal(new StringSegment("json"), result.SubType);
         }
 
+        public static IEnumerable<string[]> MediaTypesWithSuffixes
+        {
+            get
+            {
+                return new List<string[]>
+                {
+                    // See https://tools.ietf.org/html/rfc6838#section-4.2 for allowed names spec
+                    new[] { "application/json", "json", null },
+                    new[] { "application/json+", "json", null },
+                    new[] { "application/+json", null, "json" },
+                    new[] { "application/entitytype+json", "entitytype", "json" },
+                    new[] { "  application /  vnd.com-pany.some+entity!.v2+js.#$&^_n  ; q=\"0.3+1\"", "vnd.com-pany.some+entity!.v2", "js.#$&^_n" },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof (MediaTypesWithSuffixes))]
+        public void Constructor_CanParseSuffixedMediaTypes(
+            string mediaType,
+            string expectedSubTypeWithoutSuffix,
+            string expectedSubtypeSuffix)
+        {
+            // Arrange & Act
+            var result = new MediaType(mediaType);
+
+            // Assert
+            Assert.Equal(new StringSegment(expectedSubTypeWithoutSuffix), result.SubTypeWithoutSuffix);
+            Assert.Equal(new StringSegment(expectedSubtypeSuffix), result.SubTypeSuffix);
+        }
+
         public static TheoryData<string> MediaTypesWithParameters
         {
             get
             {
                 return new TheoryData<string>
                 {
-                    "application/json;format=pretty;charset=utf-8;q=0.8",
-                    "application/json;format=pretty;charset=\"utf-8\";q=0.8",
-                    "application/json;format=pretty;charset=utf-8; q=0.8 ",
-                    "application/json;format=pretty;charset=utf-8 ; q=0.8 ",
-                    "application/json;format=pretty; charset=utf-8 ; q=0.8 ",
-                    "application/json;format=pretty ; charset=utf-8 ; q=0.8 ",
-                    "application/json; format=pretty ; charset=utf-8 ; q=0.8 ",
-                    "application/json; format=pretty ; charset=utf-8 ; q=  0.8 ",
-                    "application/json; format=pretty ; charset=utf-8 ; q  =  0.8 ",
-                    " application /  json; format =  pretty ; charset = utf-8 ; q  =  0.8 ",
-                    " application /  json; format =  \"pretty\" ; charset = \"utf-8\" ; q  =  \"0.8\" ",
+                    "application/json+bson;format=pretty;charset=utf-8;q=0.8",
+                    "application/json+bson;format=pretty;charset=\"utf-8\";q=0.8",
+                    "application/json+bson;format=pretty;charset=utf-8; q=0.8 ",
+                    "application/json+bson;format=pretty;charset=utf-8 ; q=0.8 ",
+                    "application/json+bson;format=pretty; charset=utf-8 ; q=0.8 ",
+                    "application/json+bson;format=pretty ; charset=utf-8 ; q=0.8 ",
+                    "application/json+bson; format=pretty ; charset=utf-8 ; q=0.8 ",
+                    "application/json+bson; format=pretty ; charset=utf-8 ; q=  0.8 ",
+                    "application/json+bson; format=pretty ; charset=utf-8 ; q  =  0.8 ",
+                    " application /  json+bson; format =  pretty ; charset = utf-8 ; q  =  0.8 ",
+                    " application /  json+bson; format =  \"pretty\" ; charset = \"utf-8\" ; q  =  \"0.8\" ",
                 };
             }
         }
@@ -54,7 +86,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             // Assert
             Assert.Equal(new StringSegment("application"), result.Type);
-            Assert.Equal(new StringSegment("json"), result.SubType);
+            Assert.Equal(new StringSegment("json+bson"), result.SubType);
+            Assert.Equal(new StringSegment("json"), result.SubTypeWithoutSuffix);
+            Assert.Equal(new StringSegment("bson"), result.SubTypeSuffix);
             Assert.Equal(new StringSegment("pretty"), result.GetParameter("format"));
             Assert.Equal(new StringSegment("0.8"), result.GetParameter("q"));
             Assert.Equal(new StringSegment("utf-8"), result.GetParameter("charset"));

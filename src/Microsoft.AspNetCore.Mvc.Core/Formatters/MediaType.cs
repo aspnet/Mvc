@@ -76,6 +76,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             {
                 Type = new StringSegment();
                 SubType = new StringSegment();
+                SubTypeWithoutSuffix = new StringSegment();
+                SubTypeSuffix = new StringSegment();
                 return;
             }
             else
@@ -88,11 +90,25 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             if (subTypeLength == 0)
             {
                 SubType = new StringSegment();
+                SubTypeWithoutSuffix = new StringSegment();
+                SubTypeSuffix = new StringSegment();
                 return;
             }
             else
             {
                 SubType = subType;
+                
+                var subtypeWithoutSuffixLength = TryGetSuffixLength(subType, out var subtypeSuffixLength)
+                    ? subType.Length - subtypeSuffixLength - 1
+                    : subType.Length;
+
+                SubTypeWithoutSuffix = subtypeWithoutSuffixLength > 0
+                    ? subType.Subsegment(0, subtypeWithoutSuffixLength)
+                    : new StringSegment();
+
+                SubTypeSuffix = subtypeSuffixLength > 0
+                    ? subType.Subsegment(subtypeWithoutSuffixLength + 1, subtypeSuffixLength)
+                    : new StringSegment();
             }
 
             _parameterParser = new MediaTypeParameterParser(mediaType, offset + typeLength + subTypeLength, length);
@@ -158,6 +174,23 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             return current - offset;
         }
 
+        private static bool TryGetSuffixLength(StringSegment subType, out int suffixLength)
+        {
+            // Find the last instance of '+', if there is one
+            var startPos = subType.Offset + subType.Length - 1;
+            for (var currentPos = startPos; currentPos >= subType.Offset; currentPos--)
+            {
+                if (subType.Buffer[currentPos] == '+')
+                {
+                    suffixLength = startPos - currentPos;
+                    return true;
+                }
+            }
+
+            suffixLength = 0;
+            return false;
+        }
+
         /// <summary>
         /// Gets the type of the <see cref="MediaType"/>.
         /// </summary>
@@ -172,6 +205,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Gets the subtype of the <see cref="MediaType"/>.
         /// </summary>
         public StringSegment SubType { get; private set; }
+
+        /// <summary>
+        /// Gets the subtype of the <see cref="MediaType"/>, excluding any structured syntax suffix.
+        /// </summary>
+        public StringSegment SubTypeWithoutSuffix { get; private set; }
+
+        /// <summary>
+        /// Gets the structured syntax suffix of the <see cref="MediaType"/> if it has one.
+        /// </summary>
+        public StringSegment SubTypeSuffix { get; private set; }
 
         /// <summary>
         /// Gets whether this <see cref="MediaType"/> matches all subtypes.
