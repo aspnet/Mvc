@@ -3,12 +3,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace RazorWebSite
 {
-    public class TestHeadTagHelperComponent : ITagHelperComponent
+    public class TestHeadTagHelperComponent : TagHelperComponent
     {
         public TestHeadTagHelperComponent()
         {
@@ -16,13 +15,9 @@ namespace RazorWebSite
 
         public bool AppliesTo(TagHelperContext context) => string.Equals("head", context.TagName, StringComparison.OrdinalIgnoreCase);
 
-        public int Order => 1;
+        public override int Order => 1;
 
-        public void Init(TagHelperContext context)
-        {
-        }
-
-        public Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+        public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             var customAttribute = new TagHelperAttribute("inject");
             context.AllAttributes.TryGetAttribute("inject", out customAttribute);
