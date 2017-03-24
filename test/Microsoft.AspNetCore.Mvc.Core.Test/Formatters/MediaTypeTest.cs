@@ -205,6 +205,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/json", "application/json;format=indent;charset=utf-8")]
         [InlineData("application/json;format=indent;charset=utf-8", "application/json;format=indent;charset=utf-8")]
         [InlineData("application/json;charset=utf-8;format=indent", "application/json;format=indent;charset=utf-8")]
+        [InlineData("application/*", "application/json")]
+        [InlineData("application/*", "application/entitytype+json;v=2")]
+        [InlineData("application/*;v=2", "application/entitytype+json;v=2")]
+        [InlineData("*/*", "application/json")]
         public void IsSubsetOf_ReturnsTrueWhenExpected(string set, string subset)
         {
             // Arrange
@@ -222,6 +226,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/json;charset=utf-8", "application/json")]
         [InlineData("application/json;format=indent;charset=utf-8", "application/json")]
         [InlineData("application/json;format=indent;charset=utf-8", "application/json;charset=utf-8")]
+        [InlineData("application/*", "text/json")]
+        [InlineData("application/*;v=2", "application/json")]
+        [InlineData("application/*;v=2", "application/json;v=1")]
         public void IsSubsetOf_ReturnsFalseWhenExpected(string set, string subset)
         {
             // Arrange
