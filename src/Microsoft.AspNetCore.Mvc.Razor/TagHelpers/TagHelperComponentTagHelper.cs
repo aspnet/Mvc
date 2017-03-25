@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             }
 
             Components = components.OrderBy(p => p.Order).ToList();
-            _logger = loggerFactory.CreateLogger<TagHelperComponentTagHelper>();
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         public IList<ITagHelperComponent> Components { get; set; }
@@ -43,16 +43,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
-            using (_logger.BeginScope(_logger.IsEnabled(LogLevel.Debug)))
+            for (var i = 0; i < Components.Count; i++)
             {
-                for (var i = 0; i < Components.Count; i++)
-                {                    
-                    Components[i].Init(context);
+                Components[i].Init(context);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
                     _logger.TagHelperComponentInitialized(Components[i].ToString());
                 }
             }
 
-            Components.Clear();
             Components = Components.OrderBy(p => p.Order).ToList();
         }
 

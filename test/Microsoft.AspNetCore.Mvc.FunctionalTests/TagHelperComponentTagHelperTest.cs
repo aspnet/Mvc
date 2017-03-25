@@ -29,7 +29,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var outputFile = "compiler/resources/RazorWebSite.TagHelperComponent.Index.html";
             var expectedContent =
                 await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
-            //var expected = $"<head inject=\"true\">\r\nHello from Tag Helper Component\r\n<script>'This was injected!!'</script></head>";
 
             // Act
             var response = await Client.SendAsync(request);
@@ -37,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            //Assert.Equal(expected, content);
+
 #if GENERATE_BASELINES
             ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
 #else

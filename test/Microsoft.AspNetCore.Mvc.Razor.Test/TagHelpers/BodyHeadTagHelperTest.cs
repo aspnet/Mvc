@@ -75,37 +75,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public void Init_LogsTagHelperComponentAppliesToHTMLElement()
-        {
-            // Arrange
-            var sink = new TestSink();
-            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
-            var tagHelperContext = new TagHelperContext(
-                "head",
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
-                items: new Dictionary<object, object>(),
-                uniqueId: "test");
-
-            var output = new TagHelperOutput(
-                "head",
-                attributes: new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
-                    new DefaultTagHelperContent()));
-
-            var bodyHeadTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
-            {
-                new TestHeadTagHelperComponent()
-            }, loggerFactory);
-
-            // Act
-            bodyHeadTagHelper.Init(tagHelperContext);
-
-            // Assert
-            Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' applies to 'head' HTML element.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
-        }
-
-        [Fact]
         public void Init_LogsTagHelperComponentInitialized()
         {
             // Arrange
@@ -133,7 +102,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             bodyHeadTagHelper.Init(tagHelperContext);
 
             // Assert
-            Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' initialized.", sink.Writes[1].State.ToString(), StringComparer.Ordinal);
+            Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' initialized.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
         }
 
         [Fact]
@@ -174,8 +143,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             {
             }
 
-            public bool AppliesTo(TagHelperContext context) => string.Equals("head", context.TagName, StringComparison.OrdinalIgnoreCase);
-
             public int Order => 1;
 
             public void Init(TagHelperContext context)
@@ -184,7 +151,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 
             public Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
             {
-                output.PostContent.AppendHtml("<script>'This was injected!!'</script>");
+                if (context.TagName == "head")
+                {
+                    output.PostContent.AppendHtml("<script>'This was injected!!'</script>");
+                }
+
                 return Task.FromResult(0);
             }
         }
