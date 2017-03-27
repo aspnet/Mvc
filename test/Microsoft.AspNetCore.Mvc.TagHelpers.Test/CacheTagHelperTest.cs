@@ -660,7 +660,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var counter = 0;
 
-            Func<bool, HtmlEncoder, Task<TagHelperContent>> getChildContentAsync = (useCachedResult, encoder) =>
+            Task<TagHelperContent> GetChildContentAsync(bool useCachedResult, HtmlEncoder encoder)
             {
                 counter++;
                 if (counter < 3)
@@ -675,18 +675,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagHelperContent.SetHtmlContent(childContent);
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 }
-            };
-
+            }
+            
             var tagHelperContext1 = GetTagHelperContext(id);
             var tagHelperContext2 = GetTagHelperContext(id);
             var tagHelperContext3 = GetTagHelperContext(id);
             var tagHelperContext4 = GetTagHelperContext(id);
 
-
-            var tagHelperOutput1 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
-            var tagHelperOutput2 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
-            var tagHelperOutput3 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
-            var tagHelperOutput4 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
+            var tagHelperOutput1 = new TagHelperOutput("cache", new TagHelperAttributeList(), GetChildContentAsync);
+            var tagHelperOutput2 = new TagHelperOutput("cache", new TagHelperAttributeList(), GetChildContentAsync);
+            var tagHelperOutput3 = new TagHelperOutput("cache", new TagHelperAttributeList(), GetChildContentAsync);
+            var tagHelperOutput4 = new TagHelperOutput("cache", new TagHelperAttributeList(), GetChildContentAsync);
 
             var cacheTagHelper = new CacheTagHelper(cache, new HtmlTestEncoder())
             {
