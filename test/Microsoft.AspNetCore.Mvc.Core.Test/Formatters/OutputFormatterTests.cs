@@ -75,6 +75,37 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.False(result);
         }
 
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(false, false)]
+        public void CanWriteResult_MatchesWildcardsOnlyWhenContentTypeProvidedByServer(
+            bool contentTypeProvidedByServer, bool shouldMatchWildcards)
+        {
+            // Arrange
+            var formatter = new TypeSpecificFormatter();
+            formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/*+xml"));
+            formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/*+json"));
+            formatter.SupportedTypes.Add(typeof(string));
+
+            var requestedContentType = "application/vnd.test.entity+json;v=2";
+            var context = new OutputFormatterWriteContext(
+                new DefaultHttpContext(),
+                new TestHttpResponseStreamWriterFactory().CreateWriter,
+                typeof(string),
+                "Hello, world!")
+            {
+                ContentType = new StringSegment(requestedContentType),
+                ContentTypeIsServerDefined = contentTypeProvidedByServer,
+            };
+
+            // Act
+            var result = formatter.CanWriteResult(context);
+
+            // Assert
+            Assert.Equal(shouldMatchWildcards, result);
+            Assert.Equal(requestedContentType, context.ContentType.ToString());
+        }
+
         [Fact]
         public void GetSupportedContentTypes_ReturnsAllContentTypes_WithContentTypeNull()
         {
