@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
@@ -647,6 +648,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             Assert.Equal(2, calls);
         }
+        
 
         [Fact]
         public async Task ProcessAsync_ExceptionInProcessing_DoNotThrowInSubsequentRequests()
@@ -656,26 +658,35 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var childContent = "some-content";
             var cache = new MemoryCache(new MemoryCacheOptions());
 
-            var tagHelperContext = GetTagHelperContext(id);
-
             var counter = 0;
 
-            var tagHelperOutput = new TagHelperOutput(
-                "cache",
-                new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) =>
+            Func<bool, HtmlEncoder, Task<TagHelperContent>> getChildContentAsync = (useCachedResult, encoder) =>
+            {
+                counter++;
+                if (counter < 3)
                 {
-                    counter++;
-                    if (counter < 3) {
-                        // throw on first two calls
-                        throw new Exception();
-                    } else {
-                        // produce content on third call
-                        var tagHelperContent = new DefaultTagHelperContent();
-                        tagHelperContent.SetHtmlContent(childContent);
-                        return Task.FromResult<TagHelperContent>(tagHelperContent);
-                    }
-                });
+                    // throw on first two calls
+                    throw new Exception();
+                }
+                else
+                {
+                    // produce content on third call
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetHtmlContent(childContent);
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                }
+            };
+
+            var tagHelperContext1 = GetTagHelperContext(id);
+            var tagHelperContext2 = GetTagHelperContext(id);
+            var tagHelperContext3 = GetTagHelperContext(id);
+            var tagHelperContext4 = GetTagHelperContext(id);
+
+
+            var tagHelperOutput1 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
+            var tagHelperOutput2 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
+            var tagHelperOutput3 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
+            var tagHelperOutput4 = new TagHelperOutput("cache", new TagHelperAttributeList(), getChildContentAsync);
 
             var cacheTagHelper = new CacheTagHelper(cache, new HtmlTestEncoder())
             {
@@ -684,28 +695,53 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 ExpiresAfter = TimeSpan.FromHours(1.0)
             };
 
-            // Act
+            // Act - 1
 
-            await Assert.ThrowsAsync<Exception>(() => cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput));
+            await Assert.ThrowsAsync<Exception>(() => cacheTagHelper.ProcessAsync(tagHelperContext1, tagHelperOutput1));
 
-            Assert.Empty(tagHelperOutput.PreContent.GetContent());
-            Assert.Empty(tagHelperOutput.PostContent.GetContent());
-            Assert.False(tagHelperOutput.IsContentModified);
-            Assert.Empty(tagHelperOutput.Content.GetContent());
+            // Assert - 1
 
-            await Assert.ThrowsAsync<Exception>(() => cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput));
+            Assert.Equal(1, counter);
+            Assert.Empty(tagHelperOutput1.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput1.PostContent.GetContent());
+            Assert.False(tagHelperOutput1.IsContentModified);
+            Assert.Empty(tagHelperOutput1.Content.GetContent());
 
-            Assert.Empty(tagHelperOutput.PreContent.GetContent());
-            Assert.Empty(tagHelperOutput.PostContent.GetContent());
-            Assert.False(tagHelperOutput.IsContentModified);
-            Assert.Empty(tagHelperOutput.Content.GetContent());
+            // Act - 2
 
-            await cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput);
+            await Assert.ThrowsAsync<Exception>(() => cacheTagHelper.ProcessAsync(tagHelperContext2, tagHelperOutput2));
 
-            Assert.Empty(tagHelperOutput.PreContent.GetContent());
-            Assert.Empty(tagHelperOutput.PostContent.GetContent());
-            Assert.True(tagHelperOutput.IsContentModified);
-            Assert.Equal(childContent, tagHelperOutput.Content.GetContent());
+            // Assert - 2
+
+            Assert.Equal(2, counter);
+            Assert.Empty(tagHelperOutput2.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput2.PostContent.GetContent());
+            Assert.False(tagHelperOutput2.IsContentModified);
+            Assert.Empty(tagHelperOutput2.Content.GetContent());
+
+            // Act - 3
+
+            await cacheTagHelper.ProcessAsync(tagHelperContext3, tagHelperOutput3);
+
+            // Assert - 3
+
+            Assert.Equal(3, counter);
+            Assert.Empty(tagHelperOutput3.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput3.PostContent.GetContent());
+            Assert.True(tagHelperOutput3.IsContentModified);
+            Assert.Equal(childContent, tagHelperOutput3.Content.GetContent());
+
+            // Act - 4
+
+            await cacheTagHelper.ProcessAsync(tagHelperContext4, tagHelperOutput4);
+
+            // Assert - 4
+
+            Assert.Equal(3, counter);
+            Assert.Empty(tagHelperOutput4.PreContent.GetContent());
+            Assert.Empty(tagHelperOutput4.PostContent.GetContent());
+            Assert.True(tagHelperOutput4.IsContentModified);
+            Assert.Equal(childContent, tagHelperOutput4.Content.GetContent());
         }
 
         private static ViewContext GetViewContext()
