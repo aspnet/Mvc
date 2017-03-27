@@ -242,6 +242,23 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public StringSegment Charset => GetParameter("charset");
 
         /// <summary>
+        /// Determines whether the current <see cref="MediaType"/> contains a wildcard.
+        /// </summary>
+        /// <returns>
+        /// <c>true</c> if this <see cref="MediaType"/> contains a wildcard; otherwise <c>false</c>.
+        /// </returns>
+        public bool HasWildcard
+        {
+            get
+            {
+                return MatchesAllTypes ||
+                    MatchesAllSubTypesWithoutSuffix ||
+                    MatchesAllNonemptySubTypeSuffixes ||
+                    GetParameter("*").Equals("*", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        /// <summary>
         /// Determines whether the current <see cref="MediaType"/> is a subset of the <paramref name="set"/>
         /// <see cref="MediaType"/>.
         /// </summary>
@@ -469,6 +486,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     break;
                 }
 
+                if (setParameter.HasName("*"))
+                {
+                    // A parameter named "*" has no effect on media type matching, as it is only used as an indication
+                    // that the entire media type string should be treated as a wildcard.
+                    continue;
+                }
+
                 // Copy the parser as we need to iterate multiple times over it.
                 // We can do this because it's a struct
                 var subSetParameters = _parameterParser;
@@ -536,8 +560,19 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
                 if (nameLength == 0 || OffsetIsOutOfRange(current, input.Length) || input[current] != '=')
                 {
-                    parsedValue = default(MediaTypeParameter);
-                    return 0;
+                    if (current == input.Length && name.Equals("*", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // As a special case, we allow a trailing ";*" to indicate a wildcard
+                        // string allowing any other parameters. It's the same as ";*=*".
+                        var asterisk = new StringSegment("*");
+                        parsedValue = new MediaTypeParameter(asterisk, asterisk);
+                        return current - startIndex;
+                    }
+                    else
+                    {
+                        parsedValue = default(MediaTypeParameter);
+                        return 0;
+                    }
                 }
 
                 StringSegment value;

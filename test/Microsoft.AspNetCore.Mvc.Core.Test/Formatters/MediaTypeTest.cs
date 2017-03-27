@@ -208,6 +208,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/*", "application/json")]
         [InlineData("application/*", "application/entitytype+json;v=2")]
         [InlineData("application/*;v=2", "application/entitytype+json;v=2")]
+        [InlineData("application/json;*", "application/json;v=2")]
+        [InlineData("application/json;v=2;*", "application/json;v=2;charset=utf-8")]
         [InlineData("*/*", "application/json")]
         [InlineData("application/entity+json", "application/entity+json")]
         [InlineData("application/*+json", "application/entity+json")]
@@ -234,6 +236,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/*", "text/json")]
         [InlineData("application/*;v=2", "application/json")]
         [InlineData("application/*;v=2", "application/json;v=1")]
+        [InlineData("application/json;v=2;*", "application/json;v=1")]
         [InlineData("application/entity+json", "application/entity+txt")]
         [InlineData("application/entity+json", "application/entity.v2+json")]
         [InlineData("application/*+json", "application/entity+txt")]
@@ -341,6 +344,28 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             // Act
             var result = mediaType.MatchesAllNonemptySubTypeSuffixes;
+
+            // Assert
+            Assert.Equal(expectedReturnValue, result);
+        }
+
+        [Theory]
+        [InlineData("*/*", true)]
+        [InlineData("text/*", true)]
+        [InlineData("text/entity+*", true)]
+        [InlineData("text/*+json", true)]
+        [InlineData("text/entity+json;*", true)]
+        [InlineData("text/entity+json;v=3;*", true)]
+        [InlineData("text/entity+json;v=3;q=0.8", false)]
+        [InlineData("text/json", false)]
+        [InlineData("text/json;param=*", false)] // * is the literal value of the param
+        public void HasWildcard_ReturnsTrueWhenExpected(string value, bool expectedReturnValue)
+        {
+            // Arrange
+            var mediaType = new MediaType(value);
+
+            // Act
+            var result = mediaType.HasWildcard;
 
             // Assert
             Assert.Equal(expectedReturnValue, result);
