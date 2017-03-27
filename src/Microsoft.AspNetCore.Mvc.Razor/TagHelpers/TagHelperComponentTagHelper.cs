@@ -33,8 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 throw new ArgumentNullException(nameof(loggerFactory));
 
             }
-
-            Components = components.OrderBy(p => p.Order).ToList();
+            Components = components.ToList();
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
@@ -43,16 +42,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
+            Components = Components.OrderBy(p => p.Order).ToList();
             for (var i = 0; i < Components.Count; i++)
             {
                 Components[i].Init(context);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.TagHelperComponentInitialized(Components[i].ToString());
+                    _logger.TagHelperComponentInitialized(Components[i].GetType().FullName);
                 }
             }
-
-            Components = Components.OrderBy(p => p.Order).ToList();
         }
 
         /// <inheritdoc />
@@ -63,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 await Components[i].ProcessAsync(context, output);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.TagHelperComponentProcessed(Components[i].GetType().ToString());
+                    _logger.TagHelperComponentProcessed(Components[i].GetType().FullName);
                 }
             }
         }

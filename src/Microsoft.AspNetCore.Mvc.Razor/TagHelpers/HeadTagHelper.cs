@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     /// <summary>
-    /// A <see cref="TagHelperComponentTagHelper"/> targeting &lt;head&gt; HTML element.
+    /// A <see cref="TagHelperComponentTagHelper"/> targeting the &lt;head&gt; HTML element.
     /// </summary>
     [HtmlTargetElement("head")]
     public class HeadTagHelper : TagHelperComponentTagHelper

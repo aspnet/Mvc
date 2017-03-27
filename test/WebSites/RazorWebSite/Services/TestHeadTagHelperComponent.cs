@@ -8,19 +8,13 @@ namespace RazorWebSite
 {
     public class TestHeadTagHelperComponent : TagHelperComponent
     {
-        public TestHeadTagHelperComponent()
-        {
-        }
-
         public override int Order => 1;
 
         public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
             if (context.TagName == "head")
-            {
-                var customAttribute = new TagHelperAttribute("inject");
-                context.AllAttributes.TryGetAttribute("inject", out customAttribute);
-                if (customAttribute?.Value.ToString() == "true")
+            {               
+                if (output.Attributes.ContainsName("inject"))
                 {
                     output.PostContent.AppendHtml("<script>'This was injected!!'</script>");
                 }

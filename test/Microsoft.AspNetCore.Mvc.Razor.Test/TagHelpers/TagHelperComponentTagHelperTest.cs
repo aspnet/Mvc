@@ -6,74 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
-    public class BodyHeadTagHelperTest
+    public class TagHelperComponentTagHelperTest
     {
-        [Fact]
-        public async Task ProcessAsync_AppliesToHTMLElement_GeneratesExpectedOutput()
-        {
-            // Arrange
-            var tagHelperContext = new TagHelperContext(
-                "head",
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
-                items: new Dictionary<object, object>(),
-                uniqueId: "test");
-
-            var output = new TagHelperOutput(
-                "head",
-                attributes: new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
-                    new DefaultTagHelperContent()));
-
-            var headTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
-            {
-                new TestHeadTagHelperComponent()
-            }, NullLoggerFactory.Instance);
-
-            // Act
-            headTagHelper.Init(tagHelperContext);
-            await headTagHelper.ProcessAsync(tagHelperContext, output);
-
-            // Assert
-            Assert.Equal("<script>'This was injected!!'</script>", output.PostContent.GetContent(), StringComparer.Ordinal);
-        }
-
-        [Fact]
-        public async Task ProcessAsync_DoesNotApplyToHTMLElement_GeneratesExpectedOutput()
-        {
-            // Arrange
-            var tagHelperContext = new TagHelperContext(
-                "body",
-                allAttributes: new TagHelperAttributeList(
-                    Enumerable.Empty<TagHelperAttribute>()),
-                items: new Dictionary<object, object>(),
-                uniqueId: "test");
-
-            var output = new TagHelperOutput(
-                "body",
-                attributes: new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
-                    new DefaultTagHelperContent()));
-
-            var bodyTagHelper = new BodyTagHelper(new List<ITagHelperComponent>()
-            {
-                new TestHeadTagHelperComponent()
-            }, NullLoggerFactory.Instance);
-
-            // Act
-            bodyTagHelper.Init(tagHelperContext);
-            await bodyTagHelper.ProcessAsync(tagHelperContext, output);
-
-            // Assert
-            Assert.Empty(output.PostContent.GetContent());
-        }
-
         [Fact]
         public void Init_LogsTagHelperComponentInitialized()
         {
@@ -93,13 +33,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var bodyHeadTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, loggerFactory);
 
             // Act
-            bodyHeadTagHelper.Init(tagHelperContext);
+            testTagHelperComponentTagHelper.Init(tagHelperContext);
 
             // Assert
             Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' initialized.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
@@ -124,25 +64,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var headTagHelper = new HeadTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
             {
                 new TestHeadTagHelperComponent()
             }, loggerFactory);
 
             // Act
-            await headTagHelper.ProcessAsync(tagHelperContext, output);
+            await testTagHelperComponentTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert           
             Assert.Equal($"Tag helper component '{typeof(TestHeadTagHelperComponent)}' processed.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
         }
 
-
         private class TestHeadTagHelperComponent : ITagHelperComponent
         {
-            public TestHeadTagHelperComponent()
-            {
-            }
-
             public int Order => 1;
 
             public void Init(TagHelperContext context)
@@ -157,6 +92,45 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 }
 
                 return Task.FromResult(0);
+            }
+        }
+
+        private class TestTagHelperComponentTagHelper : TagHelperComponentTagHelper
+        {            
+            public TestTagHelperComponentTagHelper(
+                IEnumerable<ITagHelperComponent> components,
+                ILoggerFactory loggerFactory                )
+                : base(components, loggerFactory)
+            {               
+            }           
+        }
+
+        private class CallbackTagHelperComponentTagHelper : TagHelperComponentTagHelper
+        {
+            private readonly Action _initCallback;
+            private readonly Action _processAsyncCallback;
+
+            public CallbackTagHelperComponentTagHelper(
+                IEnumerable<ITagHelperComponent> components,
+                ILoggerFactory loggerFactory,
+                Action initCallback,
+                Action processAsyncCallback)
+                : base(components, loggerFactory)
+            {
+                _initCallback = initCallback;
+                _processAsyncCallback = processAsyncCallback;
+            }
+
+            public override void Init(TagHelperContext context)
+            {
+                _initCallback();
+            }
+
+            public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
+            {
+                _processAsyncCallback();
+
+                return base.ProcessAsync(context, output);
             }
         }
     }
