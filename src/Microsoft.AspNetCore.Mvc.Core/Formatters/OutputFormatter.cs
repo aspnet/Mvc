@@ -53,19 +53,36 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             if (contentType == null)
             {
                 // If contentType is null, then any type we support is valid.
-                return SupportedMediaTypes;
+                contentType = "*/*";
             }
-            else
+            
+            List<string> mediaTypes = null;
+
+            var parsedContentType = new MediaType(contentType);
+
+            foreach (var mediaType in SupportedMediaTypes)
             {
-                List<string> mediaTypes = null;
-
-                var parsedContentType = new MediaType(contentType);
-
-                // Confirm this formatter supports a more specific media type than requested e.g. OK if "text/*"
-                // requested and formatter supports "text/plain". Treat contentType like it came from an Accept header.
-                foreach (var mediaType in SupportedMediaTypes)
+                var parsedMediaType = new MediaType(mediaType);
+                if (parsedMediaType.HasWildcard)
                 {
-                    var parsedMediaType = new MediaType(mediaType);
+                    // For supported media types that are wildcard patterns, confirm that the requested
+                    // media type satisfies the wildcard pattern (e.g., if "text/entity+json;v=2" requested
+                    // and formatter supports "text/*+json").
+                    // Treat contentType like it came from a [Produces] attribute.
+                    if (parsedContentType.IsSubsetOf(parsedMediaType))
+                    {
+                        if (mediaTypes == null)
+                        {
+                            mediaTypes = new List<string>();
+                        }
+
+                        mediaTypes.Add(contentType);
+                    }
+                }
+                else
+                {
+                    // Confirm this formatter supports a more specific media type than requested e.g. OK if "text/*"
+                    // requested and formatter supports "text/plain". Treat contentType like it came from an Accept header.
                     if (parsedMediaType.IsSubsetOf(parsedContentType))
                     {
                         if (mediaTypes == null)
@@ -76,9 +93,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                         mediaTypes.Add(mediaType);
                     }
                 }
-
-                return mediaTypes;
             }
+
+            return mediaTypes;
         }
 
         /// <inheritdoc />
