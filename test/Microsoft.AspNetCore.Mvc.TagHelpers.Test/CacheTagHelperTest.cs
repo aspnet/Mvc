@@ -676,7 +676,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     return Task.FromResult<TagHelperContent>(tagHelperContent);
                 }
             }
-            
+
             var tagHelperContext1 = GetTagHelperContext(id);
             var tagHelperContext2 = GetTagHelperContext(id);
             var tagHelperContext3 = GetTagHelperContext(id);
