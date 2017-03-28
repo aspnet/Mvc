@@ -109,6 +109,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             }, NullLoggerFactory.Instance);
 
             // Act
+            testTagHelperComponentTagHelper.Init(tagHelperContext);
             await testTagHelperComponentTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert

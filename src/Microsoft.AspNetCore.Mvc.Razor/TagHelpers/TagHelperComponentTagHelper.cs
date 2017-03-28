@@ -56,7 +56,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            _components = _components.OrderBy(p => p.Order);
             foreach (var component in _components)
             {
                 await component.ProcessAsync(context, output);
