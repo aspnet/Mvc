@@ -22,6 +22,7 @@ namespace RazorWebSite
             var updateableFileProvider = new UpdateableFileProvider();
             services.AddSingleton(updateableFileProvider);
             services.AddSingleton<ITagHelperComponent, TestHeadTagHelperComponent>();
+            services.AddSingleton<ITagHelperComponent, TestBodyTagHelperComponent>();
 
             services
                 .AddMvc()

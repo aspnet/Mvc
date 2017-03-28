@@ -24,9 +24,33 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task InjectsTestHeadTagHelperComponent()
         {
             // Arrange
-            var url = "http://localhost/TagHelperComponent/Index";
+            var url = "http://localhost/TagHelperComponent/GetHead";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            var outputFile = "compiler/resources/RazorWebSite.TagHelperComponent.Index.html";
+            var outputFile = "compiler/resources/RazorWebSite.TagHelperComponent.Head.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            // Act
+            var response = await Client.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+#if GENERATE_BASELINES
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
+        [Fact]
+        public async Task InjectsTestBodyTagHelperComponent()
+        {
+            // Arrange
+            var url = "http://localhost/TagHelperComponent/GetBody";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var outputFile = "compiler/resources/RazorWebSite.TagHelperComponent.Body.html";
             var expectedContent =
                 await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
 

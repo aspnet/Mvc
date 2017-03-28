@@ -8,9 +8,14 @@ namespace RazorWebSite
     public class TagHelperComponentController : Controller
     {
         // GET: /<controller>/
-        public IActionResult Index()
+        public IActionResult GetHead()
         {
-            return View();
+            return View("Head");
+        }
+
+        public IActionResult GetBody()
+        {
+            return View("Body");
         }
     }
 }
