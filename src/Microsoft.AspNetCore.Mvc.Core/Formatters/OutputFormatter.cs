@@ -49,16 +49,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             {
                 return null;
             }
-
-            if (contentType == null)
-            {
-                // If contentType is null, then any type we support is valid.
-                contentType = "*/*";
-            }
             
             List<string> mediaTypes = null;
 
-            var parsedContentType = new MediaType(contentType);
+            var parsedContentType = contentType != null ? new MediaType(contentType) : default(MediaType);
 
             foreach (var mediaType in SupportedMediaTypes)
             {
@@ -69,7 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     // media type satisfies the wildcard pattern (e.g., if "text/entity+json;v=2" requested
                     // and formatter supports "text/*+json").
                     // Treat contentType like it came from a [Produces] attribute.
-                    if (parsedContentType.IsSubsetOf(parsedMediaType))
+                    if (contentType != null && parsedContentType.IsSubsetOf(parsedMediaType))
                     {
                         if (mediaTypes == null)
                         {
@@ -83,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 {
                     // Confirm this formatter supports a more specific media type than requested e.g. OK if "text/*"
                     // requested and formatter supports "text/plain". Treat contentType like it came from an Accept header.
-                    if (parsedMediaType.IsSubsetOf(parsedContentType))
+                    if (contentType == null || parsedMediaType.IsSubsetOf(parsedContentType))
                     {
                         if (mediaTypes == null)
                         {

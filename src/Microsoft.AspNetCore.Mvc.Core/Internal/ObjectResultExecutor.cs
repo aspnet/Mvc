@@ -473,8 +473,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var contentType = contentTypes[i];
                 var parsedContentType = new MediaType(contentType);
-                if (parsedContentType.MatchesAllTypes ||
-                    parsedContentType.MatchesAllSubTypes)
+                if (parsedContentType.HasWildcard)
                 {
                     var message = Resources.FormatObjectResult_MatchAllContentType(
                         contentType,
