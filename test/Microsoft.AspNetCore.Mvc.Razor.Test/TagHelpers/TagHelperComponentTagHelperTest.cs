@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             {
                 new CallbackTagHelperComponent(
                     order: 2,
-                    initCallback: null,
+                    initCallback: () => { },
                     processAsyncCallback: () =>
                     {
                         Assert.Equal(1, incrementer);
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     }),
                 new CallbackTagHelperComponent(
                     order: 3,
-                    initCallback: null,
+                    initCallback: () => { },
                     processAsyncCallback: () =>
                     {
                         Assert.Equal(2, incrementer);
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     }),
                 new CallbackTagHelperComponent(
                     order: 1,
-                    initCallback: null,
+                    initCallback: () => { },
                     processAsyncCallback: () =>
                     {
                         Assert.Equal(0, incrementer);
