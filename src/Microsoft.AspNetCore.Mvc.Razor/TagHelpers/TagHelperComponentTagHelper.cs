@@ -31,8 +31,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
-
             }
+            
             Components = components.ToList();
             _logger = loggerFactory.CreateLogger(GetType());
         }
