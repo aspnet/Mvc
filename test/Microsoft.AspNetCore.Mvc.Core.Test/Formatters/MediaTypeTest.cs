@@ -33,8 +33,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 {
                     // See https://tools.ietf.org/html/rfc6838#section-4.2 for allowed names spec
                     new[] { "application/json", "json", null },
-                    new[] { "application/json+", "json", null },
-                    new[] { "application/+json", null, "json" },
+                    new[] { "application/json+", "json", "" },
+                    new[] { "application/+json", "", "json" },
                     new[] { "application/entitytype+json", "entitytype", "json" },
                     new[] { "  application /  vnd.com-pany.some+entity!.v2+js.#$&^_n  ; q=\"0.3+1\"", "vnd.com-pany.some+entity!.v2", "js.#$&^_n" },
                 };
