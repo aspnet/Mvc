@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     {
         private readonly ILogger _logger;
 
+        private IEnumerable<ITagHelperComponent> _components;
+
         /// <summary>
         /// Creates a new <see cref="TagHelperComponentTagHelper"/>.
         /// </summary>
@@ -32,23 +34,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
-            
-            Components = components.ToList();
+
+            _components = components;
             _logger = loggerFactory.CreateLogger(GetType());
         }
-
-        public IList<ITagHelperComponent> Components { get; set; }
 
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
-            Components = Components.OrderBy(p => p.Order).ToList();
-            for (var i = 0; i < Components.Count; i++)
+            _components = _components.OrderBy(p => p.Order);
+            foreach (var component in _components)
             {
-                Components[i].Init(context);
+                component.Init(context);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.TagHelperComponentInitialized(Components[i].GetType().FullName);
+                    _logger.TagHelperComponentInitialized(component.GetType().FullName);
                 }
             }
         }
@@ -56,12 +56,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            for (var i = 0; i < Components.Count; i++)
+            foreach (var component in _components)
             {
-                await Components[i].ProcessAsync(context, output);
+                await component.ProcessAsync(context, output);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.TagHelperComponentProcessed(Components[i].GetType().FullName);
+                    _logger.TagHelperComponentProcessed(component.GetType().FullName);
                 }
             }
         }

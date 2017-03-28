@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     public class TagHelperComponentTagHelperTest
     {
         [Fact]
-        public void Initialized_InOrder()
+        public void Init_InvokesComponentsInitInCorrectOrder()
         {
             // Arrange            
             var tagHelperContext = new TagHelperContext(
@@ -27,16 +27,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 uniqueId: "test");
 
             var incrementer = 0;
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
-                new CallbackTagHelperComponent(
-                    order: 1,
-                    initCallback: () =>
-                    {
-                        Assert.Equal(0, incrementer);
-                        incrementer++;
-                    },
-                    processAsyncCallback: null),
                 new CallbackTagHelperComponent(
                     order: 2,
                     initCallback: () =>
@@ -53,6 +45,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                         incrementer++;
                     },
                     processAsyncCallback: null),
+                new CallbackTagHelperComponent(
+                    order: 1,
+                    initCallback: () =>
+                    {
+                        Assert.Equal(0, incrementer);
+                        incrementer++;
+                    },
+                    processAsyncCallback: null),
             }, NullLoggerFactory.Instance);
 
             // Act
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public async void Processed_InOrder()
+        public async void ProcessAsync_InvokesComponentsProcessAsyncInCorrectOrder()
         {
             // Arrange            
             var tagHelperContext = new TagHelperContext(
@@ -80,16 +80,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     new DefaultTagHelperContent()));
 
             var incrementer = 0;
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
-                new CallbackTagHelperComponent(
-                    order: 1,
-                    initCallback: null,
-                    processAsyncCallback: () =>
-                    {
-                        Assert.Equal(0, incrementer);
-                        incrementer++;
-                    }),
                 new CallbackTagHelperComponent(
                     order: 2,
                     initCallback: null,
@@ -104,6 +96,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     processAsyncCallback: () =>
                     {
                         Assert.Equal(2, incrementer);
+                        incrementer++;
+                    }),
+                new CallbackTagHelperComponent(
+                    order: 1,
+                    initCallback: null,
+                    processAsyncCallback: () =>
+                    {
+                        Assert.Equal(0, incrementer);
                         incrementer++;
                     }),
             }, NullLoggerFactory.Instance);
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public void Init_TagHelperComponent()
+        public void Init_InvokesTagHelperComponentInit()
         {
             // Arrange            
             var tagHelperContext = new TagHelperContext(
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
                 new TestTagHelperComponent()
             }, NullLoggerFactory.Instance);
@@ -145,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_TagHelperComponent()
+        public async Task ProcessAsync_InvokesTagHelperComponentProcessAsync()
         {
             // Arrange
             var tagHelperContext = new TagHelperContext(
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
                 new TestTagHelperComponent()
             }, NullLoggerFactory.Instance);
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
                 new TestTagHelperComponent()
             }, loggerFactory);
@@ -205,7 +205,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_LogsComponentProcessed()
+        public async Task ProcessAsync_LogsTagHelperComponentProcessed()
         {
             // Arrange
             var sink = new TestSink();
@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new List<ITagHelperComponent>()
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(new []
             {
                 new TestTagHelperComponent()
             }, loggerFactory);
