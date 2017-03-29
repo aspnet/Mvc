@@ -13,7 +13,7 @@ namespace RazorWebSite
 
         public override Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-            if (context.TagName.Equals("body", StringComparison.Ordinal) && output.Attributes.ContainsName("inject"))
+            if (string.Equals(context.TagName, "body", StringComparison.Ordinal) && output.Attributes.ContainsName("inject"))
             {
                 output.PostContent.AppendHtml("<script>'This was injected!!'</script>");
             }
