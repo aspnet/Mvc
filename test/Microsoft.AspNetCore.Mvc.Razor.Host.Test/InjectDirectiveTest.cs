@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
 {
     public class InjectDirectiveTest
     {
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void InjectDirectivePass_Execute_DefinesProperty()
         {
             // Arrange
@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             Assert.Equal("PropertyName", node.MemberName);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void InjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
         {
             // Arrange
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             Assert.Equal("PropertyName", node.MemberName);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
         {
             // Arrange
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             Assert.Equal("PropertyName", node.MemberName);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
         {
             // Arrange

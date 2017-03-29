@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Host
             }
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void ViewComponentTagHelperPass_Execute_CreatesViewComponentTagHelper()
         {
             // Arrange
@@ -123,7 +123,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
                 ignoreLineEndingDifferences: true);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void ViewComponentTagHelperPass_Execute_CreatesViewComponentTagHelper_WithIndexer()
         {
             // Arrange
@@ -194,7 +194,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
                 ignoreLineEndingDifferences: true);
         }
 
-        [Fact]
+        [Fact(Skip = "aspnet/Mvc#5794")]
         public void ViewComponentTagHelperPass_Execute_CreatesViewComponentTagHelper_Nested()
         {
             // Arrange
