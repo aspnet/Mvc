@@ -142,5 +142,65 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(expected, response.Trim());
         }
+
+        [Fact]
+        public async Task PageRoute_UsingSpecifiedPageNameToRoute()
+        {
+            // Arrange
+            var expected = 
+@"<a href=""/Accounts/List/42"">Link</a>
+<a href=""/Accounts/List/42"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingSpecificName");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task Pages_WithAliasesCanBeRoutedToByDefaultName()
+        {
+            // Arrange
+            var expected =
+@"<a href=""/Accounts/List/87"">Link</a>
+<a href=""/Accounts/List/87"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingDefaultNameForPageWithAlias");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task PageRoute_UsingDefaultPageNameToRoute()
+        {
+            // Arrange
+            var expected = 
+@"<a href=""/Routes/Sibling"">Link</a>
+<a href=""/Routes/Sibling"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingDefaultName");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task PageRoute_UsingPageNameConfiguredViaStartup()
+        {
+            // Arrange
+            var expected = 
+@"<a href=""/Routes/NameConfiguredAtStartup"">Link</a>
+<a href=""/Routes/NameConfiguredAtStartup"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingStartupConfiguredName");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
     }
 }

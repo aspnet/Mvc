@@ -69,6 +69,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public string ViewEnginePath { get; }
 
         /// <summary>
+        /// Gets or sets the logical name for the page.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// Gets the applicable <see cref="IFilterMetadata"/> instances.
         /// </summary>
         public IList<IFilterMetadata> Filters { get; }

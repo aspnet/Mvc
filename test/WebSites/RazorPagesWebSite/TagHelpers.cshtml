@@ -10,7 +10,7 @@
         public Post post = new Post { Id = 2, Title = "Post title" };
 }
 
-<a asp-route-page="/Show" asp-route-id="@post.Id">@post.Title</a>
+<a asp-route-page="Show" asp-route-id="@post.Id">@post.Title</a>
 
 <!-- Tests that RazorPage includes InvalidTagHelperIndexerAssignment which is called when the page has an indexer
      Issue https://github.com/aspnet/Mvc/issues/5920 -->

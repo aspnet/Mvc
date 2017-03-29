@@ -18,6 +18,7 @@ namespace RazorPagesWebSite
                     options.RootDirectory = "/Pages";
                     options.AuthorizePage("/Conventions/Auth");
                     options.AuthorizeFolder("/Conventions/AuthFolder");
+                    options.SetPageName("/Routes/NameConfiguredAtStartup", "StartupName");
                 });
         }
 

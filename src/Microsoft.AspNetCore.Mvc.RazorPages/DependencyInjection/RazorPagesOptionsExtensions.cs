@@ -170,6 +170,27 @@ namespace Microsoft.Extensions.DependencyInjection
         public static RazorPagesOptions AuthorizeFolder(this RazorPagesOptions options, string folderPath) =>
             AuthorizeFolder(options, folderPath, policy: string.Empty);
 
+        public static RazorPagesOptions SetPageName(this RazorPagesOptions options, string path, string name)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(path));
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(name));
+            }
+
+            options.Conventions.Add(new PageConvention(path, model => model.Name = name));
+            return options;
+        }
+
         private class PageConvention : IPageApplicationModelConvention
         {
             private readonly string _path;

@@ -65,7 +65,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     }
 
                     var viewEnginePath = GetViewEnginePath(rootDirectory, page.Path);
-                    var model = new PageApplicationModel(page.Path, viewEnginePath);
+                    var model = new PageApplicationModel(page.Path, viewEnginePath)
+                    {
+                        Name = page.Name,
+                    };
                     PageSelectorModel.PopulateDefaults(model, page.RoutePrefix);
 
                     cachedApplicationModels.Add(model);

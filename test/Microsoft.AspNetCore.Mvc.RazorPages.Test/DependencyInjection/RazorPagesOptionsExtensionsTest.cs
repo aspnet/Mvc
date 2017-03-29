@@ -242,6 +242,38 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
         }
 
+        [Fact]
+        public void SetPageName_AddsPageNameToPage()
+        {
+            // Arrange
+            var options = new RazorPagesOptions();
+            var pageApplicationModels = new[]
+            {
+                new PageApplicationModel("/Pages/Index.cshtml", "/Index")
+                {
+                    Name = "/Index",
+                },
+                new PageApplicationModel("/Pages/Users/Account.cshtml", "/Users/Account")
+                {
+                    Name = "/Users/Account",
+                },
+                new PageApplicationModel("/Pages/Users/Contact.cshtml", "/Users/Contact")
+                {
+                    Name = "/Users/Contact",
+                },
+            };
+
+            // Act
+            options.SetPageName("/Users/Account", "CustomPageName");
+            ApplyConventions(options, pageApplicationModels);
+
+            // Assert
+            Assert.Collection(pageApplicationModels,
+                model => Assert.Equal("/Index", model.Name),
+                model => Assert.Equal("CustomPageName", model.Name),
+                model => Assert.Equal("/Users/Contact", model.Name));
+        }
+
         private static void ApplyConventions(RazorPagesOptions options, PageApplicationModel[] models)
         {
             foreach (var convention in options.Conventions)
