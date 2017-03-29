@@ -11,6 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     /// A <see cref="TagHelperComponentTagHelper"/> targeting the &lt;head&gt; HTML element.
     /// </summary>
     [HtmlTargetElement("head")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class HeadTagHelper : TagHelperComponentTagHelper
     {
         /// <summary>

@@ -11,6 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     /// A <see cref="TagHelperComponentTagHelper"/> targeting the &lt;body&gt; HTML element.
     /// </summary>
     [HtmlTargetElement("body")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public class BodyTagHelper : TagHelperComponentTagHelper
     {
         /// <summary>
