@@ -253,17 +253,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public bool MatchesAllSubTypesWithoutSuffix => SubTypeWithoutSuffix.Equals("*", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
-        /// Gets whether this <see cref="MediaType"/> matches all nonempty structured syntax suffixes.
-        /// </summary>
-        /// <example>
-        /// For the media type <c>"application/vnd.example+*"</c>, this property is <c>true</c>.
-        /// </example>
-        /// <example>
-        /// For the media type <c>"application/vnd.example+json"</c>, this property is <c>false</c>.
-        /// </example>
-        public bool MatchesAllNonemptySubTypeSuffixes => SubTypeSuffix.Equals("*", StringComparison.OrdinalIgnoreCase);
-
-        /// <summary>
         /// Gets the <see cref="System.Text.Encoding"/> of the <see cref="MediaType"/> if it has one.
         /// </summary>
         public Encoding Encoding => GetEncodingFromCharset(GetParameter("charset"));
@@ -285,7 +274,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             {
                 return MatchesAllTypes ||
                     MatchesAllSubTypesWithoutSuffix ||
-                    MatchesAllNonemptySubTypeSuffixes ||
                     GetParameter("*").Equals("*", StringComparison.OrdinalIgnoreCase);
             }
         }
@@ -516,8 +504,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
         private bool MatchesSubtypeSuffix(MediaType set)
         {
-            return set.MatchesAllNonemptySubTypeSuffixes ||
-                set.SubTypeSuffix.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
+            // We don't have support for wildcards on suffixes alone (e.g., "application/entity+*")
+            // because there's no clear use case for it.
+            return set.SubTypeSuffix.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool ContainsAllParameters(MediaTypeParameterParser setParameters)

@@ -213,8 +213,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("*/*", "application/json")]
         [InlineData("application/entity+json", "application/entity+json")]
         [InlineData("application/*+json", "application/entity+json")]
-        [InlineData("application/entity+*", "application/entity+json")]
-        [InlineData("application/*+*", "application/entity+json")]
         [InlineData("application/*", "application/entity+json")]
         public void IsSubsetOf_ReturnsTrueWhenExpected(string set, string subset)
         {
@@ -242,6 +240,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("application/*+json", "application/entity+txt")]
         [InlineData("application/entity+*", "application/entity.v2+json")]
         [InlineData("application/*+*", "application/json")]
+        [InlineData("application/entity+*", "application/entity+json")] // We don't allow suffixes to be wildcards
+        [InlineData("application/*+*", "application/entity+json")] // We don't allow suffixes to be wildcards
         public void IsSubsetOf_ReturnsFalseWhenExpected(string set, string subset)
         {
             // Arrange
@@ -332,27 +332,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         [Theory]
-        [InlineData("*/*", false)]
-        [InlineData("text/*", false)]
-        [InlineData("text/*+", false)]
-        [InlineData("text/*+suffix", false)]
-        [InlineData("text/entity+*", true)]
-        public void MatchesAllNonemptySubTypeSuffixes_ReturnsExpectedResult(string value, bool expectedReturnValue)
-        {
-            // Arrange
-            var mediaType = new MediaType(value);
-
-            // Act
-            var result = mediaType.MatchesAllNonemptySubTypeSuffixes;
-
-            // Assert
-            Assert.Equal(expectedReturnValue, result);
-        }
-
-        [Theory]
         [InlineData("*/*", true)]
         [InlineData("text/*", true)]
-        [InlineData("text/entity+*", true)]
+        [InlineData("text/entity+*", false)] // We don't support wildcards on suffixes
         [InlineData("text/*+json", true)]
         [InlineData("text/entity+json;*", true)]
         [InlineData("text/entity+json;v=3;*", true)]

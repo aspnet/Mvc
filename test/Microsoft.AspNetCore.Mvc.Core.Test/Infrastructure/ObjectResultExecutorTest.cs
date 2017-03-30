@@ -513,8 +513,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [InlineData(new[] { "*/*" }, "*/*")]
         [InlineData(new[] { "application/xml", "*/*", "application/json" }, "*/*")]
         [InlineData(new[] { "*/*", "application/json" }, "*/*")]
-        [InlineData(new[] { "application/*+json", "application/json" }, "application/*+json")]
-        [InlineData(new[] { "application/entity+json", "application/entity+*" }, "application/entity+*")]
+        [InlineData(new[] { "application/json", "application/*+json" }, "application/*+json")]
         [InlineData(new[] { "application/entiy+json;*", "application/json" }, "application/entiy+json;*")]
         public async Task ExecuteAsync_MatchAllContentType_Throws(string[] contentTypes, string invalidContentType)
         {

@@ -117,7 +117,6 @@ namespace Microsoft.AspNetCore.Mvc.Test
         [InlineData("application/xml, */*, application/json", "*/*")]
         [InlineData("*/*, application/json", "*/*")]
         [InlineData("application/*+json", "application/*+json")]
-        [InlineData("application/entity+*", "application/entity+*")]
         [InlineData("application/json;v=1;*", "application/json;v=1;*")]
         public void ProducesAttribute_InvalidContentType_Throws(string content, string invalidContentType)
         {
