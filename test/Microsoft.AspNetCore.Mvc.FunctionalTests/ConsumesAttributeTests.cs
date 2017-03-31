@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
                 "http://localhost/ConsumesAttribute_MediaTypeSuffix/CreateProduct");
-            request.Content = new StringContent(input, Encoding.UTF8, "application/vnd.test.entiy+json");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/vnd.example+json");
 
             // Act
             var response = await Client.SendAsync(request);
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var request = new HttpRequestMessage(
                 HttpMethod.Post,
                 "http://localhost/ConsumesAttribute_MediaTypeSuffix/CreateProduct");
-            request.Content = new StringContent(input, Encoding.UTF8, "application/vnd.test.entiy+xml");
+            request.Content = new StringContent(input, Encoding.UTF8, "application/vnd.example+xml");
 
             // Act
             var response = await Client.SendAsync(request);
