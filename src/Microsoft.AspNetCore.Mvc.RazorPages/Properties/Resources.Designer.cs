@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             => GetString("PathMustBeAnAppRelativePath");
 
         /// <summary>
-        /// No route matches the supplied values.
+        /// No page named '{0}' matches the supplied values.
         /// </summary>
         internal static string NoRoutesMatched
         {
@@ -131,10 +131,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <summary>
-        /// No route matches the supplied values.
+        /// No page named '{0}' matches the supplied values.
         /// </summary>
-        internal static string FormatNoRoutesMatched()
-            => GetString("NoRoutesMatched");
+        internal static string FormatNoRoutesMatched(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("NoRoutesMatched"), p0);
 
         private static string GetString(string name, params string[] formatterNames)
         {

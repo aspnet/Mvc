@@ -9,14 +9,27 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Test
 {
-    public class UrlHelperExtensionsTest
+    public class PageUrlHelperExtensionsTest
     {
         [Fact]
         public void Page_WithName_Works()
         {
             // Arrange
             UrlRouteContext actual = null;
+            var routeData = new RouteData
+            {
+                Values =
+                {
+                    { "page", "ambient-page" },
+                }
+            };
+            var actionContext = new ActionContext
+            {
+                RouteData = routeData,
+            };
             var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.SetupGet(h => h.ActionContext)
+                .Returns(actionContext);
             urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
                 .Callback((UrlRouteContext context) => actual = context);
 
@@ -181,6 +194,53 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test
                 {
                     Assert.Equal("page", value.Key);
                     Assert.Equal("TestPage", value.Value);
+                });
+            Assert.Equal("https", actual.Protocol);
+            Assert.Equal("mytesthost", actual.Host);
+            Assert.Equal("#toc", actual.Fragment);
+        }
+
+        [Fact]
+        public void Page_UsesAmbientRouteValue_WhenPageIsNull()
+        {
+            // Arrange
+            UrlRouteContext actual = null;
+            var routeData = new RouteData
+            {
+                Values =
+                {
+                    { "page", "ambient-page" },
+                }
+            };
+            var actionContext = new ActionContext
+            {
+                RouteData = routeData,
+            };
+           
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.SetupGet(p => p.ActionContext)
+                .Returns(actionContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext context) => actual = context);
+
+            // Act
+            string page = null;
+            urlHelper.Object.Page(page, new { id = 13 }, "https", "mytesthost", "#toc");
+
+            // Assert
+            urlHelper.Verify();
+            Assert.NotNull(actual);
+            Assert.Null(actual.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
+                value =>
+                {
+                    Assert.Equal("id", value.Key);
+                    Assert.Equal(13, value.Value);
+                },
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal("ambient-page", value.Value);
                 });
             Assert.Equal("https", actual.Protocol);
             Assert.Equal("mytesthost", actual.Host);

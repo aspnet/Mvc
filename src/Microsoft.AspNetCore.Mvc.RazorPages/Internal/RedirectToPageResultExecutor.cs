@@ -35,12 +35,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 result.PageName,
                 result.RouteValues,
                 result.Protocol,
-                host: null,
+                result.Host,
                 fragment: result.Fragment);
 
             if (string.IsNullOrEmpty(destinationUrl))
             {
-                throw new InvalidOperationException(Resources.NoRoutesMatched);
+                throw new InvalidOperationException(Resources.FormatNoRoutesMatched(result.PageName));
             }
 
             _logger.RedirectToPageResultExecuting(result.PageName);

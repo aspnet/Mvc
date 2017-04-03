@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// Razor Page specific extensions for <see cref="IUrlHelper"/>.
     /// </summary>
-    public static class UrlHelperExtensions
+    public static class PageUrlHelperExtensions
     {
         /// <summary>
         /// Generates a URL with an absolute path for the specified <paramref name="page"/>.
@@ -88,10 +88,21 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(urlHelper));
             }
 
-            var routeValues = new RouteValueDictionary(values)
+            var routeValues = new RouteValueDictionary(values);
+            if (page == null)
             {
-                ["page"] = page
-            };
+                var ambientValues = urlHelper.ActionContext.RouteData.Values;
+                if (!routeValues.ContainsKey("page") &&
+                    ambientValues.TryGetValue("page", out var value))
+                {
+                    routeValues["page"] = value;
+                }
+            }
+            else
+            {
+                routeValues["page"] = page;
+            }
+
             return urlHelper.RouteUrl(
                 routeName: null,
                 values: routeValues,

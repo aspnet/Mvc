@@ -53,15 +53,11 @@ namespace Microsoft.Extensions.DependencyInjection
         // Internal for testing.
         internal static void AddServices(IServiceCollection services)
         {
-            //
             // Options
-            //
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<RazorPagesOptions>, RazorPagesOptionsSetup>());
 
-            //
             // Action Invoker
-            //
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IActionDescriptorProvider, PageActionDescriptorProvider>());
             services.TryAddSingleton<IActionDescriptorChangeProvider, PageActionDescriptorChangeProvider>();
@@ -69,9 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IActionInvokerProvider, PageActionInvokerProvider>());
 
-            //
             // Page and Page model creation and activation
-            //
             services.TryAddSingleton<IPageModelActivatorProvider, DefaultPageModelActivatorProvider>();
             services.TryAddSingleton<IPageModelFactoryProvider, DefaultPageModelFactoryProvider>();
 
@@ -81,9 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IPageLoader, DefaultPageLoader>();
             services.TryAddSingleton<IPageHandlerMethodSelector, DefaultPageHandlerMethodSelector>();
 
-            //
             // Page model binding
-            //
             services.TryAddSingleton<PageArgumentBinder, DefaultPageArgumentBinder>();
 
             // Action executors

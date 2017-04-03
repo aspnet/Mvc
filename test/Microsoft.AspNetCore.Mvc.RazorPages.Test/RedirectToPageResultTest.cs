@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             // Act & Assert
             await ExceptionAssert.ThrowsAsync<InvalidOperationException>(
                 () => result.ExecuteResultAsync(actionContext),
-                "No route matches the supplied values.");
+                "No page named 'some-page' matches the supplied values.");
         }
 
         [Theory]

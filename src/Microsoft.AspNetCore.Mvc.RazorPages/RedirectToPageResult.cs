@@ -117,6 +117,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// </summary>
         public string Protocol { get; set; }
 
+        /// <summary>
+        /// Gets os sets the host name of the URL.
+        /// </summary>
+        public string Host { get; set; }
+
         /// <inheritdoc />
         public override void ExecuteResult(ActionContext context)
         {
@@ -127,7 +132,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
 
             if (string.IsNullOrEmpty(PageName))
             {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(PageName));
+                throw new InvalidOperationException(
+                    Resources.FormatPropertyOfTypeCannotBeNull(nameof(PageName), nameof(RedirectToPageResult)));
             }
 
             var executor = context.HttpContext.RequestServices.GetRequiredService<RedirectToPageResultExecutor>();
