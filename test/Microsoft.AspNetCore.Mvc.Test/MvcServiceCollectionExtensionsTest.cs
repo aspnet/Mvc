@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.ApplicationFeature;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -213,7 +214,8 @@ namespace Microsoft.AspNetCore.Mvc
                 feature => Assert.IsType<ControllerFeatureProvider>(feature),
                 feature => Assert.IsType<ViewComponentFeatureProvider>(feature),
                 feature => Assert.IsType<MetadataReferenceFeatureProvider>(feature),
-                feature => Assert.IsType<ViewsFeatureProvider>(feature));
+                feature => Assert.IsType<ViewsFeatureProvider>(feature),
+                feature => Assert.IsType<CompiledPageFeatureProvider>(feature));
         }
 
         [Fact]
@@ -417,6 +419,14 @@ namespace Microsoft.AspNetCore.Mvc
                         {
                             typeof(DefaultApiDescriptionProvider),
                             typeof(JsonPatchOperationsArrayProvider),
+                        }
+                    },
+                    {
+                        typeof(IPageApplicationModelProvider),
+                        new[]
+                        {
+                            typeof(CompiledPageApplicationModelProvider),
+                            typeof(RazorProjectPageApplicationModelProvider),
                         }
                     },
                 };
