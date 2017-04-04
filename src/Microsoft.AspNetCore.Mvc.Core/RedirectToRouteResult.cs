@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
@@ -60,6 +61,23 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
         /// <param name="routeValues">The parameters for the route.</param>
+        /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
+        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the intial request's method.</param>
+        public RedirectToRouteResult(
+            string routeName,
+            object routeValues,
+            bool permanent,
+            bool preserveMethod)
+            : this(routeName, routeValues, permanent, preserveMethod, fragment: null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToRouteResult(
             string routeName,
@@ -82,9 +100,29 @@ namespace Microsoft.AspNetCore.Mvc
             object routeValues,
             bool permanent,
             string fragment)
+            : this(routeName, routeValues, permanent, preserveMethod: false, fragment: fragment)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RedirectToRouteResult"/> with the values
+        /// provided.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for the route.</param>
+        /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
+        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the intial request's method.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        public RedirectToRouteResult(
+            string routeName,
+            object routeValues,
+            bool permanent,
+            bool preserveMethod,
+            string fragment)
         {
             RouteName = routeName;
             RouteValues = routeValues == null ? null : new RouteValueDictionary(routeValues);
+            PreserveMethod = preserveMethod;
             Permanent = permanent;
             Fragment = fragment;
         }
@@ -108,6 +146,11 @@ namespace Microsoft.AspNetCore.Mvc
         /// Gets or sets an indication that the redirect is permanent.
         /// </summary>
         public bool Permanent { get; set; }
+
+        /// <summary>
+        /// Gets or sets an indication that the redirect preserves initial request method.
+        /// </summary>
+        public bool PreserveMethod { get; set; }
 
         /// <summary>
         /// Gets or sets the fragment to add to the URL.

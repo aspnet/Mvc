@@ -287,7 +287,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToAction("Action", "Home", routeValues, "test");
+            var result = controller.RedirectToAction("Action", "Home", routeValues, fragment: "test");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToActionPermanent("Action", "Home", routeValues, "test");
+            var result = controller.RedirectToActionPermanent("Action", "Home", routeValues, fragment: "test");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);

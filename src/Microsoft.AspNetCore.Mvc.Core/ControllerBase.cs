@@ -328,7 +328,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <returns>The created <see cref="NoContentResult"/> object for the response.</returns>
         [NonAction]
         public virtual NoContentResult NoContent()
-        {                                                                                                                              
+        {
             return new NoContentResult();
         }
 
@@ -388,6 +388,42 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Creates a <see cref="RedirectResult"/> object with <see cref="RedirectResult.Permanent"/> set to false
+        /// and <see cref="RedirectResult.PreserveMethod"/> set to true (<see cref="StatusCodes.Status307TemporaryRedirect"/>) 
+        /// using the specified <paramref name="url"/>.
+        /// </summary>
+        /// <param name="url">The URL to redirect to.</param>
+        /// <returns>The created <see cref="RedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectResult RedirectPreserveMethod(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
+            }
+
+            return new RedirectResult(url, permanent: false, preserveMethod: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="RedirectResult"/> object with <see cref="RedirectResult.Permanent"/> set to true
+        /// and <see cref="RedirectResult.PreserveMethod"/> set to true (<see cref="StatusCodes.Status308PermanentRedirect"/>) 
+        /// using the specified <paramref name="url"/>.
+        /// </summary>
+        /// <param name="url">The URL to redirect to.</param>
+        /// <returns>The created <see cref="RedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectResult RedirectPermanentPreserveMethod(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
+            }
+
+            return new RedirectResult(url, permanent: true, preserveMethod: true);
+        }
+
+        /// <summary>
         /// Creates a <see cref="LocalRedirectResult"/> object that redirects 
         /// (<see cref="StatusCodes.Status302Found"/>) to the specified local <paramref name="localUrl"/>.
         /// </summary>
@@ -419,6 +455,42 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             return new LocalRedirectResult(localUrl, permanent: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="LocalRedirectResult"/> object with <see cref="LocalRedirectResult.Permanent"/> set to
+        /// false and <see cref="LocalRedirectResult.PreserveMethod"/> set to true 
+        /// (<see cref="StatusCodes.Status307TemporaryRedirect"/>) using the specified <paramref name="localUrl"/>.
+        /// </summary>
+        /// <param name="localUrl">The local URL to redirect to.</param>
+        /// <returns>The created <see cref="LocalRedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual LocalRedirectResult LocalRedirectPreserveMethod(string localUrl)
+        {
+            if (string.IsNullOrEmpty(localUrl))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
+            }
+
+            return new LocalRedirectResult(localUrl, permanent: false, preserveMethod: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="LocalRedirectResult"/> object with <see cref="LocalRedirectResult.Permanent"/> set to
+        /// true and <see cref="LocalRedirectResult.PreserveMethod"/> set to true 
+        /// (<see cref="StatusCodes.Status308PermanentRedirect"/>) using the specified <paramref name="localUrl"/>.
+        /// </summary>
+        /// <param name="localUrl">The local URL to redirect to.</param>
+        /// <returns>The created <see cref="LocalRedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual LocalRedirectResult LocalRedirectPermanentPreserveMethod(string localUrl)
+        {
+            if (string.IsNullOrEmpty(localUrl))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
+            }
+
+            return new LocalRedirectResult(localUrl, permanent: true, preserveMethod: true);
         }
 
         /// <summary>
@@ -509,6 +581,30 @@ namespace Microsoft.AspNetCore.Mvc
             string fragment)
         {
             return new RedirectToActionResult(actionName, controllerName, routeValues, fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status307TemporaryRedirect"/>) to the specified action with 
+        /// <see cref="RedirectToActionResult.Permanent"/> set to false using the specified <paramref name="actionName"/>, 
+        /// <paramref name="controllerName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>       
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
+        /// <remarks>At least the <paramref name="actionName"/> must be specified.</remarks>
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPreserveMethod(
+            string actionName,
+            string controllerName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToActionResult(actionName, controllerName, routeValues, permanent: false, preserveMethod: true, fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -619,6 +715,36 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status308PermanentRedirect"/>) to the specified action with 
+        /// <see cref="RedirectToActionResult.Permanent"/> set to true using the specified <paramref name="actionName"/>, 
+        /// <paramref name="controllerName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
+        /// <remarks>At least the <paramref name="actionName"/> must be specified.</remarks>
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPermanentPreserveMethod(
+            string actionName,
+            string controllerName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToActionResult(
+                actionName,
+                controllerName,
+                routeValues,
+                permanent: true,
+                preserveMethod: true,
+                fragment: fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
         /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified route using the specified <paramref name="routeName"/>.
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
@@ -681,6 +807,33 @@ namespace Microsoft.AspNetCore.Mvc
             string fragment)
         {
             return new RedirectToRouteResult(routeName, routeValues, fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status307TemporaryRedirect"/>) to the specified route with 
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to false using the specified <paramref name="routeName"/>,
+        /// <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>
+        /// <remarks>At least the <paramref name="routeName"/> or the <paramref name="routeValues"/> must be specified.</remarks>
+        [NonAction]
+        public virtual RedirectToRouteResult RedirectToRoutePreserveMethod(
+            string routeName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            if (routeName == null && routeValues == null)
+            {
+                // Throw
+            }
+
+            return new RedirectToRouteResult(routeName, routeValues, permanent: false, preserveMethod: true, fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -754,6 +907,33 @@ namespace Microsoft.AspNetCore.Mvc
             string fragment)
         {
             return new RedirectToRouteResult(routeName, routeValues, permanent: true, fragment: fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status308PermanentRedirect"/>) to the specified route with
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to true using the specified <paramref name="routeName"/>,
+        /// <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>
+        /// <remarks>At least the <paramref name="routeName"/> or the <paramref name="routeValues"/> must be specified.</remarks>
+        [NonAction]
+        public virtual RedirectToRouteResult RedirectToRoutePermanentPreserveMethod(
+            string routeName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            if (routeName == null && routeValues == null)
+            {
+                // Throw
+            }
+
+            return new RedirectToRouteResult(routeName, routeValues, permanent: true, preserveMethod: true, fragment: fragment)
             {
                 UrlHelper = Url,
             };

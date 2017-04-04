@@ -23,6 +23,11 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         public RedirectResult(string url, bool permanent)
+            : this(url, permanent, preserveMethod: false)
+        {
+        }
+
+        public RedirectResult(string url, bool permanent, bool preserveMethod)
         {
             if (url == null)
             {
@@ -35,10 +40,13 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             Permanent = permanent;
+            PreserveMethod = preserveMethod;
             Url = url;
         }
 
         public bool Permanent { get; set; }
+
+        public bool PreserveMethod { get; set; }
 
         public string Url
         {
