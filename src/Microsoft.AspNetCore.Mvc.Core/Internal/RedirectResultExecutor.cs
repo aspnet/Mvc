@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
@@ -40,7 +41,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             _logger.RedirectResultExecuting(destinationUrl);
-            context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
+            if (result.PreserveMethod == false)
+            {
+                context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
+            }
+
+            else
+            {
+                if (result.Permanent)
+                {
+                    context.HttpContext.Response.StatusCode = 308;
+                }
+                else
+                {
+                    context.HttpContext.Response.StatusCode = 307;
+                }
+
+                context.HttpContext.Response.Headers[HeaderNames.Location] = destinationUrl;
+            }
         }
     }
 }
