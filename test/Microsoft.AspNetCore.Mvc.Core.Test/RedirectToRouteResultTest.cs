@@ -121,14 +121,14 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var expectedUrl = "/SampleAction#test";
-            var expectedStatusCode = StatusCodes.Status301MovedPermanently;
+            var expectedStatusCode = StatusCodes.Status308PermanentRedirect;
 
             var httpContext = GetHttpContext();
 
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             var urlHelper = GetMockUrlHelper(expectedUrl);
-            var result = new RedirectToRouteResult("Sample", null, true, "test")
+            var result = new RedirectToRouteResult("Sample", null, true, true, "test")
             {
                 UrlHelper = urlHelper,
             };

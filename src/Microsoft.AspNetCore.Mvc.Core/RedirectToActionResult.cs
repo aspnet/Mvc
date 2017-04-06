@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
@@ -11,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionResult"/> that returns a Found (302)
-    /// or Moved Permanently (301) response with a Location header.
+    /// An <see cref="ActionResult"/> that returns a Found (302), Moved Permanently (301), Temporary Redirect(307),
+    /// or Permanent Redirect(308) response with a Location header.
     /// Targets a controller action.
     /// </summary>
     public class RedirectToActionResult : ActionResult, IKeepTempDataResult
@@ -74,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
-        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the intial request's method.</param>
+        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) or permanent redirect (308) preserve the intial request method.</param>
         public RedirectToActionResult(
             string actionName,
             string controllerName,
@@ -112,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="controllerName">The name of the controller to use for generating the URL.</param>
         /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="permanent">If set to true, makes the redirect permanent (301). Otherwise a temporary redirect is used (302).</param>
-        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) and permanent redirect (308) preserve the intial request's method.</param>
+        /// <param name="preserveMethod">If set to true, make the temporary redirect (307) and permanent redirect (308) preserve the intial request method.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
         public RedirectToActionResult(
             string actionName,
@@ -156,7 +155,7 @@ namespace Microsoft.AspNetCore.Mvc
         public bool Permanent { get; set; }
 
         /// <summary>
-        /// Gets or sets an indication that the redirect preserves initial request method.
+        /// Gets or sets an indication that the redirect preserves the initial request method.
         /// </summary>
         public bool PreserveMethod { get; set; }
 

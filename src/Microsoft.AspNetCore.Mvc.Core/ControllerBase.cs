@@ -594,7 +594,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="actionName">The name of the action.</param>
         /// <param name="controllerName">The name of the controller.</param>
-        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>       
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
@@ -722,7 +722,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <param name="actionName">The name of the action.</param>
         /// <param name="controllerName">The name of the controller.</param>
-        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>        
         [NonAction]
@@ -818,7 +818,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// set to true, using the specified <paramref name="routeName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
-        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
         /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>       
         [NonAction]
@@ -912,7 +912,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// set to true, using the specified <paramref name="routeName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
-        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
         /// <param name="fragment">The fragment to add to the URL.</param>
         /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>       
         [NonAction]

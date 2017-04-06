@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
@@ -46,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             _logger.RedirectToRouteResultExecuting(destinationUrl, result.RouteName);
-            if (result.PreserveMethod == false)
+            if (!result.PreserveMethod)
             {
                 context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
             }
@@ -55,11 +56,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 if (result.Permanent)
                 {
-                    context.HttpContext.Response.StatusCode = 308;
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status308PermanentRedirect;
                 }
                 else
                 {
-                    context.HttpContext.Response.StatusCode = 307;
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status307TemporaryRedirect;
                 }
 
                 context.HttpContext.Response.Headers[HeaderNames.Location] = destinationUrl;

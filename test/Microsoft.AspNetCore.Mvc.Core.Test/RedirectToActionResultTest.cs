@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             // Arrange
             var expectedUrl = "/Home/SampleAction#test";
-            var expectedStatusCode = StatusCodes.Status302Found;
+            var expectedStatusCode = StatusCodes.Status307TemporaryRedirect;
 
             var httpContext = new DefaultHttpContext
             {
@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
             var urlHelper = GetMockUrlHelper(expectedUrl);
-            var result = new RedirectToActionResult("SampleAction", "Home", null, false, "test")
+            var result = new RedirectToActionResult("SampleAction", "Home", null, false, true, "test")
             {
                 UrlHelper = urlHelper,
             };

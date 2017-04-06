@@ -9,7 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// An <see cref="ActionResult"/> that returns a redirect to the supplied local URL.
+    /// An <see cref="ActionResult"/> that returns a Found (302), Moved Permanently (301), Temporary Redirect(307),
+    /// or Permanent Redirect(308) response with a Location header to the supplied local URL.
     /// </summary>
     public class LocalRedirectResult : ActionResult
     {
@@ -61,7 +62,7 @@ namespace Microsoft.AspNetCore.Mvc
         public bool Permanent { get; set; }
 
         /// <summary>
-        /// Gets or sets an indication that the redirect preserves initial request method.
+        /// Gets or sets an indication that the redirect preserves the initial request method.
         /// </summary>
         public bool PreserveMethod { get; set; }
 
