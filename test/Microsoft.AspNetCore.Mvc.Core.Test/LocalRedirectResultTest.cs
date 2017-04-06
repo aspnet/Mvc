@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc
             var url = "/test/url";
 
             // Act
-            var result = new LocalRedirectResult(url, permanent: true);
+            var result = new LocalRedirectResult(url, permanent: true, preserveMethod: true);
 
             // Assert
             Assert.True(result.PreserveMethod);
