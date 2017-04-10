@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc.DataAnnotations.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Test;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Routing;
@@ -290,7 +289,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var resultTemporary = controller.RedirectToActionPreserveMethod("SampleAction");
+            var resultTemporary = controller.RedirectToActionPreserveMethod(actionName: "SampleAction");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultTemporary);
@@ -322,7 +321,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod("SampleAction");
+            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod(actionName: "SampleAction");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultPermanent);
@@ -361,7 +360,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var controller = new TestableController();
 
             // Act
-            var resultTemporary = controller.RedirectToActionPreserveMethod("SampleAction", controllerName);
+            var resultTemporary = controller.RedirectToActionPreserveMethod(actionName: "SampleAction", controllerName: controllerName);
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultTemporary);
@@ -375,8 +374,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void RedirectToActionPermanent_WithParameterActionAndControllerName_SetsEqualNames(
-            string controllerName)
+        public void RedirectToActionPermanent_WithParameterActionAndControllerName_SetsEqualNames(string controllerName)
         {
             // Arrange
             var controller = new TestableController();
@@ -396,14 +394,13 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [InlineData("")]
         [InlineData(null)]
         [InlineData("SampleController")]
-        public void RedirectToActionPermanentPreserveMethod_WithParameterActionAndControllerName_SetsEqualNames(
-    string controllerName)
+        public void RedirectToActionPermanentPreserveMethod_WithParameterActionAndControllerName_SetsEqualNames(string controllerName)
         {
             // Arrange
             var controller = new TestableController();
 
             // Act
-            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod("SampleAction", controllerName);
+            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod(actionName: "SampleAction", controllerName: controllerName);
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultPermanent);
@@ -437,14 +434,17 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPreserveMethod_WithParameterActionControllerRouteValues_SetsResultProperties(
-     object routeValues,
-     IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
 
             // Act
-            var resultTemporary = controller.RedirectToActionPreserveMethod("SampleAction", "SampleController", routeValues);
+            var resultTemporary = controller.RedirectToActionPreserveMethod(
+                actionName: "SampleAction",
+                controllerName: "SampleController",
+                routeValues: routeValues);
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultTemporary);
@@ -482,17 +482,17 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPermanentPreserveMethod_WithParameterActionControllerRouteValues_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
 
             // Act
             var resultPermanent = controller.RedirectToActionPermanentPreserveMethod(
-                "SampleAction",
-                "SampleController",
-                routeValues);
+                actionName: "SampleAction",
+                controllerName: "SampleController",
+                routeValues: routeValues);
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultPermanent);
@@ -526,8 +526,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPreserveMethod_WithParameterActionAndRouteValues_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
@@ -556,7 +556,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToAction("Action", "Home", routeValues, fragment: "test");
+            var result = controller.RedirectToAction("Action", "Home", routeValues, "test");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
@@ -571,8 +571,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPreserveMethod_WithParameterActionAndControllerAndRouteValuesAndFragment_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
         {
             // Arrange
             var controller = new TestableController();
@@ -581,7 +581,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToActionPreserveMethod("Action", "Home", routeValues, fragment: "test");
+            var result = controller.RedirectToActionPreserveMethod("Action", "Home", routeValues, "test");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
@@ -616,14 +616,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPermanentPreserveMethod_WithParameterActionAndRouteValues_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
 
             // Act
-            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod(null, routeValues: routeValues);
+            var resultPermanent = controller.RedirectToActionPermanentPreserveMethod(actionName: null, routeValues: routeValues);
 
             // Assert
             Assert.IsType<RedirectToActionResult>(resultPermanent);
@@ -661,8 +661,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToActionPermanentPreserveMethod_WithParameterActionAndControllerAndRouteValuesAndFragment_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
         {
             // Arrange
             var controller = new TestableController();
@@ -671,7 +671,11 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToActionPermanentPreserveMethod("Action", "Home", routeValues, fragment: "test");
+            var result = controller.RedirectToActionPermanentPreserveMethod(
+                actionName: "Action",
+                controllerName: "Home",
+                routeValues: routeValues,
+                fragment: "test");
 
             // Assert
             Assert.IsType<RedirectToActionResult>(result);
@@ -705,8 +709,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePreserveMethod_WithParameterRouteValues_SetsResultEqualRouteValues(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
@@ -747,8 +751,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePreserveMethod_WithParameterRouteNameAndRouteValuesAndFragment_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
         {
             // Arrange
             var controller = new TestableController();
@@ -756,7 +760,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToRoutePreserveMethod("TestRoute", routeValues, "test");
+            var result = controller.RedirectToRoutePreserveMethod(routeName: "TestRoute", routeValues: routeValues, fragment: "test");
 
             // Assert
             Assert.IsType<RedirectToRouteResult>(result);
@@ -789,8 +793,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePermanentPreserveMethod_WithParameterRouteValues_SetsResultEqualRouteValuesAndPermanent(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
@@ -831,8 +835,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePermanentPreserveMethod_WithParameterRouteNameAndRouteValuesAndFragment_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expectedRouteValues)
         {
             // Arrange
             var controller = new TestableController();
@@ -840,7 +844,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
             var expectedFragment = "test";
 
             // Act
-            var result = controller.RedirectToRoutePermanentPreserveMethod("TestRoute", routeValues, "test");
+            var result = controller.RedirectToRoutePermanentPreserveMethod(routeName: "TestRoute", routeValues: routeValues, fragment: "test");
 
             // Assert
             Assert.IsType<RedirectToRouteResult>(result);
@@ -943,8 +947,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePreserveMethod_WithParameterRouteNameAndRouteValues_SetsResultSameRouteNameAndRouteValues(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
@@ -985,15 +989,15 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
         [Theory]
         [MemberData(nameof(RedirectTestData))]
         public void RedirectToRoutePermanentPreserveMethod_WithParameterRouteNameAndRouteValues_SetsResultProperties(
-    object routeValues,
-    IEnumerable<KeyValuePair<string, object>> expected)
+            object routeValues,
+            IEnumerable<KeyValuePair<string, object>> expected)
         {
             // Arrange
             var controller = new TestableController();
             var routeName = "CustomRouteName";
 
             // Act
-            var resultPermanent = controller.RedirectToRoutePermanentPreserveMethod(routeName, routeValues);
+            var resultPermanent = controller.RedirectToRoutePermanentPreserveMethod(routeName: routeName, routeValues: routeValues);
 
             // Assert
             Assert.IsType<RedirectToRouteResult>(resultPermanent);

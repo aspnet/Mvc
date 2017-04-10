@@ -42,23 +42,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             _logger.RedirectResultExecuting(destinationUrl);
-            if (!result.PreserveMethod)
-            {
-                context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
-            }
 
+            if (result.PreserveMethod)
+            {
+                context.HttpContext.Response.StatusCode = result.Permanent ?
+                    StatusCodes.Status308PermanentRedirect : StatusCodes.Status307TemporaryRedirect;
+                context.HttpContext.Response.Headers[HeaderNames.Location] = destinationUrl;
+            }
             else
             {
-                if (result.Permanent)
-                {
-                    context.HttpContext.Response.StatusCode = StatusCodes.Status308PermanentRedirect;
-                }
-                else
-                {
-                    context.HttpContext.Response.StatusCode = StatusCodes.Status307TemporaryRedirect;
-                }
-
-                context.HttpContext.Response.Headers[HeaderNames.Location] = destinationUrl;
+                context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
             }
         }
     }
