@@ -402,7 +402,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
             }
 
-            return new RedirectResult(url, permanent: false, preserveMethod: true);
+            return new RedirectResult(url: url, permanent: false, preserveMethod: true);
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
             }
 
-            return new RedirectResult(url, permanent: true, preserveMethod: true);
+            return new RedirectResult(url: url, permanent: true, preserveMethod: true);
         }
 
         /// <summary>
@@ -472,7 +472,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
             }
 
-            return new LocalRedirectResult(localUrl, permanent: false, preserveMethod: true);
+            return new LocalRedirectResult(localUrl: localUrl, permanent: false, preserveMethod: true);
         }
 
         /// <summary>
@@ -490,7 +490,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
             }
 
-            return new LocalRedirectResult(localUrl, permanent: true, preserveMethod: true);
+            return new LocalRedirectResult(localUrl: localUrl, permanent: true, preserveMethod: true);
         }
 
         /// <summary>
@@ -599,12 +599,18 @@ namespace Microsoft.AspNetCore.Mvc
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         [NonAction]
         public virtual RedirectToActionResult RedirectToActionPreserveMethod(
-            string actionName,
+            string actionName = null,
             string controllerName = null,
             object routeValues = null,
             string fragment = null)
         {
-            return new RedirectToActionResult(actionName, controllerName, routeValues, permanent: false, preserveMethod: true, fragment: fragment)
+            return new RedirectToActionResult(
+                actionName: actionName,
+                controllerName: controllerName,
+                routeValues: routeValues,
+                permanent: false,
+                preserveMethod: true,
+                fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -727,15 +733,15 @@ namespace Microsoft.AspNetCore.Mvc
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>        
         [NonAction]
         public virtual RedirectToActionResult RedirectToActionPermanentPreserveMethod(
-            string actionName,
+            string actionName = null,
             string controllerName = null,
             object routeValues = null,
             string fragment = null)
         {
             return new RedirectToActionResult(
-                actionName,
-                controllerName,
-                routeValues,
+                actionName: actionName,
+                controllerName: controllerName,
+                routeValues: routeValues,
                 permanent: true,
                 preserveMethod: true,
                 fragment: fragment)
@@ -827,7 +833,12 @@ namespace Microsoft.AspNetCore.Mvc
             object routeValues = null,
             string fragment = null)
         {
-            return new RedirectToRouteResult(routeName, routeValues, permanent: false, preserveMethod: true, fragment: fragment)
+            return new RedirectToRouteResult(
+                routeName: routeName,
+                routeValues: routeValues,
+                permanent: false,
+                preserveMethod: true,
+                fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -921,7 +932,12 @@ namespace Microsoft.AspNetCore.Mvc
             object routeValues = null,
             string fragment = null)
         {
-            return new RedirectToRouteResult(routeName, routeValues, permanent: true, preserveMethod: true, fragment: fragment)
+            return new RedirectToRouteResult(
+                routeName: routeName,
+                routeValues: routeValues,
+                permanent: true,
+                preserveMethod: true,
+                fragment: fragment)
             {
                 UrlHelper = Url,
             };
