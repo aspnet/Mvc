@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.SignOutResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext.Authentication;
+            var authentication = context.HttpContext;
             
             for (var i = 0; i < AuthenticationSchemes.Count; i++)
             {

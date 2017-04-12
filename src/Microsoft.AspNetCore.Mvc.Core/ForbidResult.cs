@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.ForbidResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext.Authentication;
+            var authentication = context.HttpContext;
 
             if (AuthenticationSchemes != null && AuthenticationSchemes.Count > 0)
             {
@@ -114,7 +114,8 @@ namespace Microsoft.AspNetCore.Mvc
             }
             else
             {
-                await authentication.ForbidAsync(Properties);
+                // TODO: switch to use sugar in: https://github.com/aspnet/HttpAbstractions/pull/815
+                await authentication.ForbidAsync(scheme: null, properties: Properties);
             }
         }
     }
