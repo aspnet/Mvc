@@ -1,6 +1,6 @@
 {
   "description": "ASP.NET Core MVC API explorer functionality for discovering metadata such as the list of controllers and actions, and their URLs and allowed HTTP methods.",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "packOptions": {
     "repository": {
       "type": "git",
@@ -20,13 +20,13 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc.Core": "1.1.2",
+    "Microsoft.AspNetCore.Mvc.Core": "1.1.3",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
-      "version": "1.1.0-rtm-22752",
+      "version": "1.1.1",
       "type": "build"
     },
     "Microsoft.Extensions.PropertyHelper.Sources": {
-      "version": "1.1.0-rtm-22752",
+      "version": "1.1.1",
       "type": "build"
     },
     "NETStandard.Library": "1.6.1"
