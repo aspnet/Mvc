@@ -14,49 +14,53 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     /// </summary>
     public class RazorViewEngineOptionsSetup : IConfigureOptions<RazorViewEngineOptions>
     {
+        private readonly IHostingEnvironment _hostingEnvironment;
+
         /// <summary>
         /// Initializes a new instance of <see cref="RazorViewEngineOptions"/>.
         /// </summary>
         /// <param name="hostingEnvironment"><see cref="IHostingEnvironment"/> for the application.</param>
-        public RazorViewEngineOptionsSetup(
-            IHostingEnvironment hostingEnvironment)
-            : base(options => ConfigureRazor(options, hostingEnvironment))
+        public RazorViewEngineOptionsSetup(IHostingEnvironment hostingEnvironment)
         {
-        }
-
-        private static void ConfigureRazor(
-            RazorViewEngineOptions razorOptions,
-            IHostingEnvironment hostingEnvironment)
-        {
-            if (hostingEnvironment.ContentRootFileProvider != null)
+            if (hostingEnvironment == null)
             {
-                razorOptions.FileProviders.Add(hostingEnvironment.ContentRootFileProvider);
+                throw new ArgumentNullException(nameof(hostingEnvironment));
             }
 
-            var compilationOptions = razorOptions.CompilationOptions;
+            _hostingEnvironment = hostingEnvironment;
+        }
+
+        public void Configure(RazorViewEngineOptions options)
+        {
+            if (_hostingEnvironment.ContentRootFileProvider != null)
+            {
+                options.FileProviders.Add(_hostingEnvironment.ContentRootFileProvider);
+            }
+
+            var compilationOptions = options.CompilationOptions;
             string configurationSymbol;
 
-            if (hostingEnvironment.IsDevelopment())
+            if (_hostingEnvironment.IsDevelopment())
             {
                 configurationSymbol = "DEBUG";
-                razorOptions.CompilationOptions = compilationOptions.WithOptimizationLevel(OptimizationLevel.Debug);
+                options.CompilationOptions = compilationOptions.WithOptimizationLevel(OptimizationLevel.Debug);
             }
             else
             {
                 configurationSymbol = "RELEASE";
-                razorOptions.CompilationOptions = compilationOptions.WithOptimizationLevel(OptimizationLevel.Release);
+                options.CompilationOptions = compilationOptions.WithOptimizationLevel(OptimizationLevel.Release);
             }
 
-            var parseOptions = razorOptions.ParseOptions;
-            razorOptions.ParseOptions = parseOptions.WithPreprocessorSymbols(
+            var parseOptions = options.ParseOptions;
+            options.ParseOptions = parseOptions.WithPreprocessorSymbols(
                 parseOptions.PreprocessorSymbolNames.Concat(new[] { configurationSymbol }));
 
-            razorOptions.ViewLocationFormats.Add("/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
-            razorOptions.ViewLocationFormats.Add("/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
+            options.ViewLocationFormats.Add("/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
+            options.ViewLocationFormats.Add("/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
 
-            razorOptions.AreaViewLocationFormats.Add("/Areas/{2}/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
-            razorOptions.AreaViewLocationFormats.Add("/Areas/{2}/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
-            razorOptions.AreaViewLocationFormats.Add("/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
+            options.AreaViewLocationFormats.Add("/Areas/{2}/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
+            options.AreaViewLocationFormats.Add("/Areas/{2}/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
+            options.AreaViewLocationFormats.Add("/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
         }
     }
 }
