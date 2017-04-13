@@ -4,8 +4,8 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc": "1.0.3",
-    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.3",
+    "Microsoft.AspNetCore.Mvc": "1.0.4",
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.4",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
       "version": "1.0.0-preview4-final"
