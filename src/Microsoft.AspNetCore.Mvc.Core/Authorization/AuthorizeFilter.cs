@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 {
                     var scheme = effectivePolicy.AuthenticationSchemes[i];
                     var result = await context.HttpContext.AuthenticateAsync(scheme);
-                    if (result != null)
+                    if (result.Succeeded)
                     {
                         newPrincipal = SecurityHelper.MergeUserPrincipal(newPrincipal, result.Principal);
                     }
