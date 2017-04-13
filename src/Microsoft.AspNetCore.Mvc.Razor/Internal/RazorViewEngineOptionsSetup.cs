@@ -12,7 +12,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     /// <summary>
     /// Sets up default options for <see cref="RazorViewEngineOptions"/>.
     /// </summary>
-    [Obsolete("This type is for internal use and will be removed in a future version.")]
     public class RazorViewEngineOptionsSetup : ConfigureOptions<RazorViewEngineOptions>
     {
         /// <summary>
