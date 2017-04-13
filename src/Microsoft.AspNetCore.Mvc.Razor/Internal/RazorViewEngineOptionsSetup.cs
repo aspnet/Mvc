@@ -32,6 +32,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         public void Configure(RazorViewEngineOptions options)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             if (_hostingEnvironment.ContentRootFileProvider != null)
             {
                 options.FileProviders.Add(_hostingEnvironment.ContentRootFileProvider);
