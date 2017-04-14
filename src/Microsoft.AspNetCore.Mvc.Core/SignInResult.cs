@@ -88,8 +88,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.SignInResultExecuting(AuthenticationScheme, Principal);
 
-            var authentication = context.HttpContext;
-            await authentication.SignInAsync(AuthenticationScheme, Principal, Properties);
+            await context.HttpContext.SignInAsync(AuthenticationScheme, Principal, Properties);
         }
     }
 }

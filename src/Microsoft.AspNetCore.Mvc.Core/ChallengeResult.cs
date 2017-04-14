@@ -103,18 +103,16 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.ChallengeResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext;
             if (AuthenticationSchemes != null && AuthenticationSchemes.Count > 0)
             {
                 foreach (var scheme in AuthenticationSchemes)
                 {
-                    await authentication.ChallengeAsync(scheme, Properties);
+                    await context.HttpContext.ChallengeAsync(scheme, Properties);
                 }
             }
             else
             {
-                // TODO: switch to use sugar in: https://github.com/aspnet/HttpAbstractions/pull/815
-                await authentication.ChallengeAsync(scheme: null, properties: Properties);
+                await context.HttpContext.ChallengeAsync(Properties);
             }
         }
     }

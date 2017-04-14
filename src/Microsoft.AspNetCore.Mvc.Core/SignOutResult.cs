@@ -106,11 +106,9 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.SignOutResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext;
-            
             for (var i = 0; i < AuthenticationSchemes.Count; i++)
             {
-                await authentication.SignOutAsync(AuthenticationSchemes[i], Properties);
+                await context.HttpContext.SignOutAsync(AuthenticationSchemes[i], Properties);
             }
         }
     }

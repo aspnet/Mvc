@@ -103,19 +103,16 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.ForbidResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext;
-
             if (AuthenticationSchemes != null && AuthenticationSchemes.Count > 0)
             {
                 for (var i = 0; i < AuthenticationSchemes.Count; i++)
                 {
-                    await authentication.ForbidAsync(AuthenticationSchemes[i], Properties);
+                    await context.HttpContext.ForbidAsync(AuthenticationSchemes[i], Properties);
                 }
             }
             else
             {
-                // TODO: switch to use sugar in: https://github.com/aspnet/HttpAbstractions/pull/815
-                await authentication.ForbidAsync(scheme: null, properties: Properties);
+                await context.HttpContext.ForbidAsync(Properties);
             }
         }
     }
