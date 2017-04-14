@@ -126,5 +126,25 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.Equal("From Header - HelloWorld", body);
         }
+
+        [Fact]
+        public async Task ActionModelSuppressedForPathMatching_CannotBeRouted()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("Home/CannotBeRouted");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task ActionModelNotSuppressedForPathMatching_CanBeRouted()
+        {
+            // Arrange & Act
+            var response = await Client.GetStringAsync("Home/CanBeRouted");
+
+            // Assert
+            Assert.Equal("Hello world", response);
+        }
     }
 }

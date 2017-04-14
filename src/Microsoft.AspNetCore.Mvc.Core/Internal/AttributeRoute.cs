@@ -88,6 +88,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // action by expected route values, and then use the TemplateBinder to generate the link.
             foreach (var routeInfo in routeInfos)
             {
+                if (!routeInfo.MapOutbound)
+                {
+                    continue;
+                }
+
                 var defaults = new RouteValueDictionary();
                 foreach (var kvp in routeInfo.ActionDescriptor.RouteValues)
                 {
@@ -111,6 +116,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         "An error occurred while adding a route to the route builder. " +
                         $"Route name '{routeInfo.RouteName}' and template '{routeInfo.RouteTemplate.TemplateText}'.",
                         routeCreationException);
+                }
+            }
+
+            // Trim RouteInfo instances that do not partipate in inbound-routing.
+            for (var i = routeInfos.Count - 1; i >= 0; i--)
+            {
+                if (!routeInfos[i].MapInbound)
+                {
+                    routeInfos.RemoveAt(i);
                 }
             }
 
@@ -194,8 +208,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             try
             {
-                RouteTemplate parsedTemplate;
-                if (!templateCache.TryGetValue(action.AttributeRouteInfo.Template, out parsedTemplate))
+                if (!templateCache.TryGetValue(action.AttributeRouteInfo.Template, out var parsedTemplate))
                 {
                     // Parsing with throw if the template is invalid.
                     parsedTemplate = TemplateParser.Parse(action.AttributeRouteInfo.Template);
@@ -203,6 +216,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
 
                 routeInfo.RouteTemplate = parsedTemplate;
+                routeInfo.MapInbound = !action.AttributeRouteInfo.SuppressForPathMatching;
+                routeInfo.MapOutbound = !action.AttributeRouteInfo.SuppressForLinkGeneration;
             }
             catch (Exception ex)
             {
@@ -243,6 +258,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public string RouteName { get; set; }
 
             public RouteTemplate RouteTemplate { get; set; }
+
+            public bool MapInbound { get; set; }
+
+            public bool MapOutbound { get; set; }
         }
 
         private class RouteInfoEqualityComparer : IEqualityComparer<RouteInfo>

@@ -42,15 +42,27 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             Name = other.Name;
             Order = other.Order;
             Template = other.Template;
+            SuppressForLinkGeneration = other.SuppressForLinkGeneration;
+            SuppressForPathMatching = other.SuppressForPathMatching;
         }
 
-        public IRouteTemplateProvider Attribute { get; private set; }
+        public IRouteTemplateProvider Attribute { get;}
 
         public string Template { get; set; }
 
         public int? Order { get; set; }
 
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if this model participates in link generation.
+        /// </summary>
+        public bool SuppressForLinkGeneration { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if this model participates in path matching (inbound routing).
+        /// </summary>
+        public bool SuppressForPathMatching { get; set; }
 
         public bool IsAbsoluteTemplate
         {
@@ -96,6 +108,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                 Template = combinedTemplate,
                 Order = right.Order ?? left.Order,
                 Name = ChooseName(left, right),
+                SuppressForLinkGeneration = left.SuppressForLinkGeneration || right.SuppressForLinkGeneration,
+                SuppressForPathMatching = left.SuppressForPathMatching || right.SuppressForPathMatching,
             };
         }
 

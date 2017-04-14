@@ -26,5 +26,15 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// route by provided route data.
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if this model participates in link generation.
+        /// </summary>
+        public bool SuppressForLinkGeneration { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if this model participates in path matching (inbound routing).
+        /// </summary>
+        public bool SuppressForPathMatching { get; set; }
     }
 }
