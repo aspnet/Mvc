@@ -20,13 +20,13 @@ namespace ErrorPageMiddlewareWebSite
 
         private static async Task ThrowNullReferenceException()
         {
-            await Task.Delay(2);
+            await Task.Delay(0);
             throw new NullReferenceException("Foo cannot be null");
         }
 
         private static async Task ThrowIndexOutOfRangeException()
         {
-            await Task.Delay(2);
+            await Task.Delay(0);
             throw new IndexOutOfRangeException("Index is out of range");
         }
     }
