@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             {
                 Name = "products",
                 Order = 5,
-                SuppressForLinkGeneration = true,
-                SuppressForPathMatching = true,
+                SuppressLinkGeneration = true,
+                SuppressPathMatching = true,
             };
 
             // Act
@@ -288,7 +288,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var combined = AttributeRouteModel.CombineAttributeRouteModel(left, right);
 
             // Assert
-            Assert.False(combined.SuppressForLinkGeneration);
+            Assert.False(combined.SuppressLinkGeneration);
         }
 
         [Theory]
@@ -300,16 +300,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             // Arrange
             var left = new AttributeRouteModel
             {
-                SuppressForLinkGeneration = leftSuppress,
+                SuppressLinkGeneration = leftSuppress,
             };
             var right = new AttributeRouteModel
             {
-                SuppressForLinkGeneration = rightSuppress,
+                SuppressLinkGeneration = rightSuppress,
             };
             var combined = AttributeRouteModel.CombineAttributeRouteModel(left, right);
 
             // Assert
-            Assert.True(combined.SuppressForLinkGeneration);
+            Assert.True(combined.SuppressLinkGeneration);
         }
 
         [Fact]
@@ -321,7 +321,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var combined = AttributeRouteModel.CombineAttributeRouteModel(left, right);
 
             // Assert
-            Assert.False(combined.SuppressForPathMatching);
+            Assert.False(combined.SuppressPathMatching);
         }
 
         [Theory]
@@ -333,16 +333,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             // Arrange
             var left = new AttributeRouteModel
             {
-                SuppressForPathMatching = leftSuppress,
+                SuppressPathMatching = leftSuppress,
             };
             var right = new AttributeRouteModel
             {
-                SuppressForPathMatching = rightSuppress,
+                SuppressPathMatching = rightSuppress,
             };
             var combined = AttributeRouteModel.CombineAttributeRouteModel(left, right);
 
             // Assert
-            Assert.True(combined.SuppressForPathMatching);
+            Assert.True(combined.SuppressPathMatching);
         }
 
         public static IEnumerable<object[]> CombineNamesTestData

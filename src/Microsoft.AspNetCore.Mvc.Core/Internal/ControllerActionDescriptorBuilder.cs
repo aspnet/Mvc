@@ -378,8 +378,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     Template = combinedRoute.Template,
                     Order = combinedRoute.Order ?? DefaultAttributeRouteOrder,
                     Name = combinedRoute.Name,
-                    SuppressForLinkGeneration = combinedRoute.SuppressForLinkGeneration,
-                    SuppressForPathMatching = combinedRoute.SuppressForPathMatching,
+                    SuppressLinkGeneration = combinedRoute.SuppressLinkGeneration,
+                    SuppressPathMatching = combinedRoute.SuppressPathMatching,
                 };
             }
         }
