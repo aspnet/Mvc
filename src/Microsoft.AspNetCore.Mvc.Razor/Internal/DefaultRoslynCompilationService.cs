@@ -132,12 +132,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                         {
                             // DependencyModel had no references specified and the user did not use the
                             // CompilationCallback to add extra references. It is likely that the user did not specify
-                            // preserveCompilationContext in the app's project.json.
+                            // preserveCompilationContext in the app's project file.
                             throw new InvalidOperationException(
                                 Resources.FormatCompilation_DependencyContextIsNotSpecified(
                                     fileInfo.RelativePath,
-                                    "project.json",
-                                    "preserveCompilationContext"));
+                                    "Microsoft.NET.Sdk.Web",
+                                    "PreserveCompilationContext"));
                         }
 
                         return GetCompilationFailedResult(
