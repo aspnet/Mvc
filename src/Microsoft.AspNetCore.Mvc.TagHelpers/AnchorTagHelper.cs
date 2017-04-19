@@ -16,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("a", Attributes = ActionAttributeName)]
     [HtmlTargetElement("a", Attributes = ControllerAttributeName)]
     [HtmlTargetElement("a", Attributes = AreaAttributeName)]
+    [HtmlTargetElement("a", Attributes = PageAttributeName)]
     [HtmlTargetElement("a", Attributes = FragmentAttributeName)]
     [HtmlTargetElement("a", Attributes = HostAttributeName)]
     [HtmlTargetElement("a", Attributes = ProtocolAttributeName)]
@@ -27,6 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ActionAttributeName = "asp-action";
         private const string ControllerAttributeName = "asp-controller";
         private const string AreaAttributeName = "asp-area";
+        private const string PageAttributeName = "asp-page";
         private const string FragmentAttributeName = "asp-fragment";
         private const string HostAttributeName = "asp-host";
         private const string ProtocolAttributeName = "asp-protocol";
@@ -78,6 +80,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string Area { get; set; }
 
         /// <summary>
+        /// The name of the page.
+        /// </summary>
+        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        [HtmlAttributeName(PageAttributeName)]
+        public string Page { get; set; }
+
+        /// <summary>
         /// The protocol for the URL, such as &quot;http&quot; or &quot;https&quot;.
         /// </summary>
         [HtmlAttributeName(ProtocolAttributeName)]
@@ -99,7 +108,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// Name of the route.
         /// </summary>
         /// <remarks>
-        /// Must be <c>null</c> if <see cref="Action"/> or <see cref="Controller"/> is non-<c>null</c>.
+        /// Must be <c>null</c> if one of <see cref="Action"/>, <see cref="Controller"/>, <see cref="Area"/> 
+        /// or <see cref="Page"/> is non-<c>null</c>.
         /// </remarks>
         [HtmlAttributeName(RouteAttributeName)]
         public string Route { get; set; }
@@ -158,6 +168,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Action != null ||
                     Controller != null ||
                     Area != null ||
+                    Page != null ||
                     Route != null ||
                     Protocol != null ||
                     Host != null ||
@@ -167,7 +178,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     // User specified an href and one of the bound attributes; can't determine the href attribute.
                     throw new InvalidOperationException(
                         Resources.FormatAnchorTagHelper_CannotOverrideHref(
+                            Href,
                             "<a>",
+                            RouteValuesPrefix,
                             ActionAttributeName,
                             ControllerAttributeName,
                             AreaAttributeName,
@@ -175,8 +188,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             ProtocolAttributeName,
                             HostAttributeName,
                             FragmentAttributeName,
-                            RouteValuesPrefix,
-                            Href));
+                            PageAttributeName));
                 }
             }
             else
@@ -189,13 +201,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 if (Area != null)
                 {
-                    if (routeValues == null)
-                    {
-                        routeValues = new RouteValueDictionary();
-                    }
+                    SetRouteValue(ref routeValues, "area", Area);
+                }
 
-                    // Unconditionally replace any value from asp-route-area.
-                    routeValues["area"] = Area;
+                if (Page != null)
+                {
+                    SetRouteValue(ref routeValues, "page", Page);
                 }
 
                 TagBuilder tagBuilder;
@@ -241,6 +252,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     output.MergeAttributes(tagBuilder);
                 }
             }
+        }
+
+        private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)
+        {
+            if (routeValues == null)
+            {
+                routeValues = new RouteValueDictionary();
+            }
+
+            // Unconditionally replace any value from asp-route-area.
+            routeValues[name] = value;
         }
     }
 }

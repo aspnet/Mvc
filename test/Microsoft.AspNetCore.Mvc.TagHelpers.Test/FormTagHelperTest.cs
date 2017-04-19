@@ -201,8 +201,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         // Fixes Roslyn bug with lambdas
                         generator.ToString();
 
-                        var routeValueDictionary = (Dictionary<string, object>)routeValues;
-
+                        var routeValueDictionary = Assert.IsType<RouteValueDictionary>(routeValues);
                         Assert.Equal(2, routeValueDictionary.Count);
                         var routeValue = Assert.Single(routeValueDictionary, attr => attr.Key.Equals("val"));
                         Assert.Equal("hello", routeValue.Value);
@@ -552,7 +551,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Setup(mock => mock.GenerateRouteForm(
                     viewContext,
                     "Default",
-                    It.Is<Dictionary<string, object>>(m => string.Equals(m["name"], "value")),
+                    It.Is<RouteValueDictionary>(m => string.Equals(m["name"], "value")),
                     null,
                     null))
                 .Returns(new TagBuilder("form"))
@@ -580,6 +579,146 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.True(output.Content.GetContent().Length == 0);
             Assert.Empty(output.PostContent.GetContent());
             Assert.Empty(output.PostElement.GetContent());
+        }
+
+        [Fact]
+        public async Task ProcessAsync_InvokesHtmlGeneratorWithPageRouteArgument()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            generator
+                .Setup(mock => mock.GenerateForm(
+                    viewContext,
+                    null,
+                    null,
+                    It.Is<RouteValueDictionary>(m => string.Equals(m["page"], "/Home/Admin/Post")),
+                    null,
+                    null))
+                .Returns(new TagBuilder("form"))
+                .Verifiable();
+            var formTagHelper = new FormTagHelper(generator.Object)
+            {
+                Antiforgery = false,
+                ViewContext = viewContext,
+                Page = "/Home/Admin/Post",
+            };
+
+            // Act & Assert
+            await formTagHelper.ProcessAsync(context, output);
+            generator.Verify();
+        }
+
+        [Fact]
+        public async Task ProcessAsync_OverridesPageValueInRouteDictionaryWithExplicitlySpecifiedPage()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            generator
+                .Setup(mock => mock.GenerateForm(
+                    viewContext,
+                    null,
+                    null,
+                    It.Is<RouteValueDictionary>(m => string.Equals(m["page"], "/Home/Admin/Post")),
+                    null,
+                    null))
+                .Returns(new TagBuilder("form"))
+                .Verifiable();
+            var formTagHelper = new FormTagHelper(generator.Object)
+            {
+                Antiforgery = false,
+                ViewContext = viewContext,
+                Page = "/Home/Admin/Post",
+                RouteValues = new Dictionary<string, string>
+                {
+                    { "page", "different-value" },
+                },
+            };
+
+            // Act & Assert
+            await formTagHelper.ProcessAsync(context, output);
+            generator.Verify();
+        }
+
+        [Fact]
+        public async Task ProcessAsync_AppendsPageToExistingRouteValues()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            generator
+                .Setup(mock => mock.GenerateForm(
+                    viewContext,
+                    null,
+                    null,
+                    It.Is<RouteValueDictionary>(m =>
+                        m.Count == 2 &&
+                        string.Equals(m["page"], "/Home/Admin/Post") &&
+                        string.Equals(m["id"], "10")),
+                    null,
+                    null))
+                .Returns(new TagBuilder("form"))
+                .Verifiable();
+            var formTagHelper = new FormTagHelper(generator.Object)
+            {
+                Antiforgery = false,
+                ViewContext = viewContext,
+                Page = "/Home/Admin/Post",
+                RouteValues = new Dictionary<string, string>
+                {
+                    { "id", "10" },
+                },
+            };
+
+            // Act & Assert
+            await formTagHelper.ProcessAsync(context, output);
+            generator.Verify();
         }
 
         [Theory]
@@ -638,6 +777,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [Theory]
         [InlineData("Action")]
         [InlineData("Controller")]
+        [InlineData("Page")]
         [InlineData("asp-route-")]
         public async Task ProcessAsync_ThrowsIfActionConflictsWithBoundAttributes(string propertyName)
         {
@@ -660,8 +800,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             var expectedErrorMessage = "Cannot override the 'action' attribute for <form>. A <form> with a specified " +
-                                       "'action' must not have attributes starting with 'asp-route-' or an " +
-                                       "'asp-action', 'asp-controller', 'asp-fragment', 'asp-area', or 'asp-route' attribute.";
+                "'action' must not have attributes starting with 'asp-route-' or an " +
+                "'asp-action', 'asp-controller', 'asp-fragment', 'asp-area', 'asp-route' or 'asp-page' attribute.";
 
             var context = new TagHelperContext(
                 tagName: "form",

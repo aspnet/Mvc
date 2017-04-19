@@ -144,6 +144,32 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task FormTagHelper_WithPage_GeneratesLinksToSelf()
+        {
+            //Arrange
+            var expected = "<form method=\"POST\" action=\"\">";
+
+            // Act
+            var response = await Client.GetStringAsync("/FormTagHelper/SelfPost");
+
+            // Assert
+            Assert.Contains(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task FormTagHelper_WithPage_AllowsPostingToAnotherPage()
+        {
+            //Arrange
+            var expected = "<form method=\"POST\" action=\"/FormTagHelper/SelfPost/10\">";
+
+            // Act
+            var response = await Client.GetStringAsync("/FormTagHelper/CrossPost");
+
+            // Assert
+            Assert.Contains(expected, response.Trim());
+        }
+
+        [Fact]
         public async Task RedirectFromPage_RedirectsToPathWithoutIndexSegment()
         {
             //Arrange

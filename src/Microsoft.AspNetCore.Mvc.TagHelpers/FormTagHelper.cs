@@ -7,6 +7,7 @@ using System.ComponentModel;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Routing;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
@@ -16,6 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("form", Attributes = ActionAttributeName)]
     [HtmlTargetElement("form", Attributes = AntiforgeryAttributeName)]
     [HtmlTargetElement("form", Attributes = AreaAttributeName)]
+    [HtmlTargetElement("form", Attributes = PageAttributeName)]
     [HtmlTargetElement("form", Attributes = FragmentAttributeName)]
     [HtmlTargetElement("form", Attributes = ControllerAttributeName)]
     [HtmlTargetElement("form", Attributes = RouteAttributeName)]
@@ -26,6 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ActionAttributeName = "asp-action";
         private const string AntiforgeryAttributeName = "asp-antiforgery";
         private const string AreaAttributeName = "asp-area";
+        private const string PageAttributeName = "asp-page";
         private const string FragmentAttributeName = "asp-fragment";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
@@ -71,6 +74,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(AreaAttributeName)]
         public string Area { get; set; }
+
+        /// <summary>
+        /// The name of the page.
+        /// </summary>
+        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        [HtmlAttributeName(PageAttributeName)]
+        public string Page { get; set; }
 
         /// <summary>
         /// Whether the antiforgery token should be generated.
@@ -156,6 +166,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Action != null ||
                     Controller != null ||
                     Area != null ||
+                    Page != null ||
                     Fragment != null ||
                     Route != null ||
                     (_routeValues != null && _routeValues.Count > 0))
@@ -163,14 +174,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     // User also specified bound attributes we cannot use.
                     throw new InvalidOperationException(
                         Resources.FormatFormTagHelper_CannotOverrideAction(
-                            "<form>",
                             HtmlActionAttributeName,
+                            "<form>",
+                            RouteValuesPrefix,
                             ActionAttributeName,
                             ControllerAttributeName,
                             FragmentAttributeName,
                             AreaAttributeName,
                             RouteAttributeName,
-                            RouteValuesPrefix));
+                            PageAttributeName));
                 }
 
                 // User is using the FormTagHelper like a normal <form> tag. Antiforgery default should be false to
@@ -179,26 +191,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
             else
             {
-                IDictionary<string, object> routeValues = null;
+                RouteValueDictionary routeValues = null;
                 if (_routeValues != null && _routeValues.Count > 0)
                 {
-                    // Convert from Dictionary<string, string> to Dictionary<string, object>.
-                    routeValues = new Dictionary<string, object>(_routeValues.Count, StringComparer.OrdinalIgnoreCase);
-                    foreach (var routeValue in _routeValues)
-                    {
-                        routeValues.Add(routeValue.Key, routeValue.Value);
-                    }
+                    routeValues = new RouteValueDictionary(_routeValues);
                 }
 
                 if (Area != null)
                 {
-                    if (routeValues == null)
-                    {
-                        routeValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-                    }
-
                     // Unconditionally replace any value from asp-route-area.
-                    routeValues["area"] = Area;
+                    SetRouteValue(ref routeValues, "area", Area);
+                }
+
+                if (Page != null)
+                {
+                    SetRouteValue(ref routeValues, "page", Page);
                 }
 
                 TagBuilder tagBuilder;
@@ -259,6 +266,18 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     output.PostContent.AppendHtml(antiforgeryTag);
                 }
             }
+        }
+
+
+        private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)
+        {
+            if (routeValues == null)
+            {
+                routeValues = new RouteValueDictionary();
+            }
+
+            // Unconditionally replace any value from asp-route-area.
+            routeValues[name] = value;
         }
     }
 }
