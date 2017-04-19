@@ -63,32 +63,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         public HttpResponse Response => HttpContext?.Response;
 
         /// <summary>
-        /// Gets or sets the <see cref="PageArgumentBinder"/>.
-        /// </summary>
-        public PageArgumentBinder Binder
-        {
-            get
-            {
-                if (_binder == null)
-                {
-                    _binder = PageContext.HttpContext.RequestServices.GetRequiredService<PageArgumentBinder>();
-                }
-
-                return _binder;
-            }
-
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _binder = value;
-            }
-        }
-
-        /// <summary>
         /// Gets the <see cref="AspNetCore.Routing.RouteData"/> for the executing action.
         /// </summary>
         public RouteData RouteData

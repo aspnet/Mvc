@@ -31,32 +31,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         private IUrlHelper _urlHelper;
 
         /// <summary>
-        /// Gets or sets the <see cref="PageArgumentBinder"/>.
-        /// </summary>
-        public PageArgumentBinder Binder
-        {
-            get
-            {
-                if (_binder == null)
-                {
-                    _binder = HttpContext?.RequestServices?.GetRequiredService<PageArgumentBinder>();
-                }
-
-                return _binder;
-            }
-
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _binder = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the <see cref="IUrlHelper"/>.
         /// </summary>
         public IUrlHelper Url
