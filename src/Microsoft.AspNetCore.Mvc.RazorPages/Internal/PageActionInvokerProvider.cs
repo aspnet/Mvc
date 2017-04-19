@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -203,7 +202,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 modelReleaser,
                 propertyBinder,
                 viewStartFactories,
-                cachedFilters);
+                cachedFilters,
+                _parameterBinder);
         }
 
         // Internal for testing.
@@ -264,16 +264,42 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
                 var formAction = new StringSegment(method.Name, formActionStart, formActionLength);
 
+                var methodParameters = method.GetParameters();
+                var parameters = new HandlerParameter[methodParameters.Length];
+
+                for (var j = 0; j < methodParameters.Length; j++)
+                {
+                    var parameter = methodParameters[j];
+
+                    parameters[j] = new HandlerParameter(parameter.Name, parameter.ParameterType, GetDefaultValue(parameter));
+                }
+
                 var handlerMethodDescriptor = new HandlerMethodDescriptor
                 {
                     Method = method,
                     Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
                     FormAction = formAction,
                     HttpMethod = httpMethod,
+                    Parameters = parameters
                 };
 
                 actionDescriptor.HandlerMethods.Add(handlerMethodDescriptor);
             }
+        }
+
+        private static object GetDefaultValue(ParameterInfo methodParameter)
+        {
+            object defaultValue = null;
+            if (methodParameter.HasDefaultValue)
+            {
+                defaultValue = methodParameter.DefaultValue;
+            }
+            else if (methodParameter.ParameterType.GetTypeInfo().IsValueType)
+            {
+                defaultValue = Activator.CreateInstance(methodParameter.ParameterType);
+            }
+
+            return defaultValue;
         }
 
         private static bool IsValidHandler(MethodInfo methodInfo)

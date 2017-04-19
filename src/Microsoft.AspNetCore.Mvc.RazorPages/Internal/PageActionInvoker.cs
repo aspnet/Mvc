@@ -374,8 +374,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var handler = _selector.Select(_pageContext);
             if (handler != null)
             {
+                var arguments = await GetArguments(handler);
+
                 var executor = handler.Executor;
-                result = await executor(_page, _model);
+                result = await executor(_page, _model, arguments);
             }
 
             if (result == null)
@@ -384,6 +386,44 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             }
 
             await result.ExecuteResultAsync(_pageContext);
+        }
+
+        private async Task<object[]> GetArguments(HandlerMethodDescriptor handler)
+        {
+            var arguments = new object[handler.Parameters.Length];
+            for (var i = 0; i < handler.Parameters.Length; i++)
+            {
+                var parameter = handler.Parameters[i];
+                var valueProvider = await GetCompositeValueProvider(_page.PageContext);
+                var parameterDescriptor = new ParameterDescriptor
+                {
+                    Name = parameter.Name,
+                    ParameterType = parameter.Type
+                };
+
+                var result = await CacheEntry.ParameterBinder.BindModelAsync(
+                    _page.PageContext,
+                    valueProvider,
+                    parameterDescriptor,
+                    null);
+
+                arguments[i] = result.IsModelSet ? result.Model : parameter.DefaultValue;
+            }
+
+            return arguments;
+        }
+
+        private static async Task<CompositeValueProvider> GetCompositeValueProvider(PageContext pageContext)
+        {
+            var factories = pageContext.ValueProviderFactories;
+            var valueProviderFactoryContext = new ValueProviderFactoryContext(pageContext);
+            for (var i = 0; i < factories.Count; i++)
+            {
+                var factory = factories[i];
+                await factory.CreateValueProviderAsync(valueProviderFactoryContext);
+            }
+
+            return new CompositeValueProvider(valueProviderFactoryContext.ValueProviders);
         }
 
         private async Task InvokeNextExceptionFilterAsync()

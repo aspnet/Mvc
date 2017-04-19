@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -19,7 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Action<PageContext, object> releaseModel,
             Func<Page, object, Task> propertyBinder,
             IReadOnlyList<Func<IRazorPage>> viewStartFactories,
-            FilterItem[] cacheableFilters)
+            FilterItem[] cacheableFilters,
+            ParameterBinder parameterBinder)
         {
             ActionDescriptor = actionDescriptor;
             PageFactory = pageFactory;
@@ -29,6 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             PropertyBinder = propertyBinder;
             ViewStartFactories = viewStartFactories;
             CacheableFilters = cacheableFilters;
+            ParameterBinder = parameterBinder;
         }
 
         public CompiledPageActionDescriptor ActionDescriptor { get; }
@@ -52,6 +55,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         /// This may be <c>null</c>.
         /// </summary>
         public Func<Page, object, Task> PropertyBinder { get; }
+
+        public ParameterBinder ParameterBinder { get; }
 
         /// <summary>
         /// Gets the applicable ViewStart pages.

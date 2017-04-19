@@ -353,7 +353,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 null,
                 null,
                 null,
-                new FilterItem[0]);
+                new FilterItem[0],
+                null);
             var invoker = CreateInvoker(
                 new[] { filter1.Object, filter2.Object, filter3.Object },
                 actionDescriptor,
@@ -408,7 +409,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 null,
                 null,
                 null,
-                new FilterItem[0]);
+                new FilterItem[0],
+                null);
             var invoker = CreateInvoker(
                 new IFilterMetadata[] { filter1.Object, filter2.Object, filter3.Object },
                 actionDescriptor,
@@ -607,7 +609,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 (c, model) => { (model as IDisposable)?.Dispose(); },
                 null,
                 null,
-                new FilterItem[0]);
+                new FilterItem[0],
+                null);
 
             var invoker = new PageActionInvoker(
                 selector,

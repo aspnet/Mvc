@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -29,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null);
+            var actionResultTask = executor(new TestPage(), null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -49,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null);
+            var actionResultTask = executor(new TestPage(), null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<ViewResult>(actionResult);
         }
@@ -69,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null);
+            var actionResultTask = executor(new TestPage(), null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("Hello 0", contentResult.Content);
@@ -91,7 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(page, null);
+            var actionResultTask = executor(page, null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(page.SideEffects);
@@ -113,7 +114,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(page, null);
+            var actionResultTask = executor(page, null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(page.SideEffects);
@@ -134,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null);
+            var actionResultTask = executor(new TestPage(), null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -154,7 +155,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null);
+            var actionResultTask = executor(new TestPage(), null, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("value", contentResult.Content);
@@ -176,7 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel());
+            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -197,7 +198,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel());
+            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<ViewResult>(actionResult);
         }
@@ -218,7 +219,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel());
+            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("Hello 0", contentResult.Content);
@@ -241,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), model);
+            var actionResultTask = executor(new EmptyPage(), model, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(model.SideEffects);
@@ -264,10 +265,32 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), model);
+            var actionResultTask = executor(new EmptyPage(), model, GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(model.SideEffects);
+        }
+
+        private static object[] GetArguments(MethodInfo methodInfo)
+        {
+            var parameters = methodInfo.GetParameters();
+
+            return parameters.Select(s => GetDefaultValue(s)).ToArray();
+        }
+
+        private static object GetDefaultValue(ParameterInfo methodParameter)
+        {
+            object defaultValue = null;
+            if (methodParameter.HasDefaultValue)
+            {
+                defaultValue = methodParameter.DefaultValue;
+            }
+            else if (methodParameter.ParameterType.GetTypeInfo().IsValueType)
+            {
+                defaultValue = Activator.CreateInstance(methodParameter.ParameterType);
+            }
+
+            return defaultValue;
         }
 
         [Fact]
@@ -286,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel());
+            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -307,7 +330,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel());
+            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), GetArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("value", contentResult.Content);

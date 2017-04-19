@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public static class ExecutorFactory
     {
-        public static Func<Page, object, Task<IActionResult>> CreateExecutor(
+        public static Func<Page, object, object[], Task<IActionResult>> CreateExecutor(
             CompiledPageActionDescriptor actionDescriptor,
             MethodInfo method)
         {
@@ -28,19 +28,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var methodIsDeclaredOnPage = method.DeclaringType.GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo);
             var handler = CreateHandlerMethod(method);
 
-            return async (page, model) =>
+            return async (page, model, arguments) =>
             {
-                var arguments = new object[handler.Parameters.Length];
-                for (var i = 0; i < handler.Parameters.Length; i++)
-                {
-                    var parameter = handler.Parameters[i];
-                    arguments[i] = await page.Binder.BindModelAsync(
-                        page.PageContext,
-                        parameter.Type,
-                        parameter.DefaultValue,
-                        parameter.Name);
-                }
-
                 var receiver = methodIsDeclaredOnPage ? page : model;
                 var result = await handler.Execute(receiver, arguments);
                 return result;
@@ -236,22 +225,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 return Task.FromResult(_thunk(receiver, arguments));
             }
-        }
-
-        private struct HandlerParameter
-        {
-            public HandlerParameter(string name, Type type, object defaultValue)
-            {
-                Name = name;
-                Type = type;
-                DefaultValue = defaultValue;
-            }
-
-            public string Name { get; }
-
-            public Type Type { get; }
-
-            public object DefaultValue { get; }
         }
     }
 }
