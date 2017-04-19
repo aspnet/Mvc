@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.Language;
@@ -146,13 +148,17 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             PageActionInvokerCacheEntry cacheEntry,
             IFilterMetadata[] filters)
         {
-            var tempData = _tempDataFactory.GetTempData(actionContext.HttpContext);
-            var pageContext = new PageContext(
-                actionContext,
+            var pageContext = new PageContext(actionContext);
+
+            var viewContext = new ViewContext(
+                pageContext,
+                NullView.Instance, 
                 new ViewDataDictionary(_modelMetadataProvider, actionContext.ModelState),
-                tempData,
+                _tempDataFactory.GetTempData(actionContext.HttpContext),
+                TextWriter.Null, 
                 _htmlHelperOptions);
 
+            pageContext.ViewContext = viewContext;
             pageContext.ActionDescriptor = cacheEntry.ActionDescriptor;
 
             return new PageActionInvoker(

@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Routing;
 using Moq;
 using Xunit;
@@ -31,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var page = new TestPageString()
             {
                 Test = "TestString",
-                ViewContext = CreateViewContext(httpContext, tempData)
+                PageContext = CreatePageContext(httpContext, tempData)
             };
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
@@ -65,7 +67,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var page = new TestPageString()
             {
-                ViewContext = CreateViewContext(httpContext, tempData)
+                PageContext = CreatePageContext(httpContext, tempData)
             };
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData, filterFactory: false);
@@ -87,7 +89,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var page = new TestPageString()
             {
                 Test = "TestString",
-                ViewContext = CreateViewContext(httpContext, tempData)
+                PageContext = CreatePageContext(httpContext, tempData)
             };
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
@@ -116,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var page = new TestPageString()
             {
-                ViewContext = CreateViewContext(httpContext, tempData)
+                PageContext = CreatePageContext(httpContext, tempData)
             };
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
@@ -153,7 +155,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             var page = new TestPageString()
             {
-                ViewContext = CreateViewContext(httpContext, tempData)
+                PageContext = CreatePageContext(httpContext, tempData)
             };
 
             var provider = CreatePageSaveTempDataPropertyFilter(httpContext, tempData: tempData);
@@ -177,18 +179,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             Assert.Null(page.Test2);
         }
 
-        private static PageContext CreateViewContext(HttpContext httpContext, ITempDataDictionary tempData)
+        private static PageContext CreatePageContext(HttpContext httpContext, ITempDataDictionary tempData)
         {
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
             var metadataProvider = new EmptyModelMetadataProvider();
             var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
-            var viewContext = new PageContext(
-                actionContext,
-                viewData,
-                tempData,
+
+            var pageContext = new PageContext(actionContext);
+            pageContext.ViewContext = new ViewContext(
+                pageContext, 
+                NullView.Instance, 
+                viewData, tempData, 
+                TextWriter.Null, 
                 new HtmlHelperOptions());
 
-            return viewContext;
+            return pageContext;
         }
 
         private PageSaveTempDataPropertyFilter CreatePageSaveTempDataPropertyFilter(

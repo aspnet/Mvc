@@ -335,7 +335,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             if (_model != null)
             {
-                _pageContext.ViewData.Model = _model;
+                _pageContext.ViewContext.ViewData.Model = _model;
             }
 
             if (CacheEntry.PropertyBinder != null &&

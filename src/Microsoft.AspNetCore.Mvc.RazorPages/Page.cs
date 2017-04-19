@@ -32,10 +32,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <inheritdoc />
         public override ViewContext ViewContext
         {
-            get => PageContext;
+            get => PageContext.ViewContext;
             set
             {
-                PageContext = (PageContext)value;
+                PageContext.ViewContext = value;
             }
         }
 

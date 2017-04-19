@@ -563,18 +563,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 routeData = new RouteData();
             }
-
-            var actionContext = new ActionContext(
-                httpContext: httpContext,
-                routeData: routeData,
-                actionDescriptor: actionDescriptor);
-            var pageContext = new PageContext(
-                actionContext,
-                new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()),
-                Mock.Of<ITempDataDictionary>(),
-                new HtmlHelperOptions())
+            
+            var pageContext = new PageContext()
             {
-                ActionDescriptor = actionDescriptor
+                ActionDescriptor = actionDescriptor,
+                HttpContext = httpContext,
+                RouteData = routeData,
             };
 
             if (selector == null)

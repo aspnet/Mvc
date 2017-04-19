@@ -51,12 +51,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         {
             if (result.Model != null)
             {
-                pageContext.ViewData.Model = result.Model;
+                pageContext.ViewContext.ViewData.Model = result.Model;
             }
 
             var view = new RazorView(_razorViewEngine, _razorPageActivator, pageContext.ViewStarts, result.Page, _htmlEncoder);
-            pageContext.View = view;
-            return ExecuteAsync(pageContext, result.ContentType, result.StatusCode);
+            pageContext.ViewContext.View = view;
+            return base.ExecuteAsync(pageContext.ViewContext, result.ContentType, result.StatusCode);
         }
     }
 }

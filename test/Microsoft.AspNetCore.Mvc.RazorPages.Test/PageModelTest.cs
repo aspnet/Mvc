@@ -1408,7 +1408,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             var modelMetadataProvider = new EmptyModelMetadataProvider();
             var viewDataDictionary = new ViewDataDictionary(modelMetadataProvider, modelState);
             var tempData = Mock.Of<ITempDataDictionary>();
-            var pageContext = new PageContext(actionContext, viewDataDictionary, tempData, new HtmlHelperOptions());
+            var pageContext = new PageContext()
+            {
+                ActionDescriptor = new CompiledPageActionDescriptor(),
+                HttpContext = new DefaultHttpContext(),
+                RouteData = new RouteData(),
+
+            };
 
             var page = new TestPage
             {
@@ -1445,10 +1451,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             httpContext.RequestServices = new ServiceCollection()
                 .AddSingleton(urlHelperFactory.Object)
                 .BuildServiceProvider();
-            var actionContext = new ActionContext
-            {
-                HttpContext = httpContext,
-            };
+
             var pageContext = new PageContext
             {
                 HttpContext = httpContext,
