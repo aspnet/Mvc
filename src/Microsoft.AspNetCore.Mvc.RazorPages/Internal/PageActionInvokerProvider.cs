@@ -264,27 +264,34 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
                 var formAction = new StringSegment(method.Name, formActionStart, formActionLength);
 
-                var methodParameters = method.GetParameters();
-                var parameters = new HandlerParameter[methodParameters.Length];
-
-                for (var j = 0; j < methodParameters.Length; j++)
-                {
-                    var parameter = methodParameters[j];
-
-                    parameters[j] = new HandlerParameter(parameter.Name, parameter.ParameterType, GetDefaultValue(parameter));
-                }
+                var parameters = GetHandlerParameters(method);
 
                 var handlerMethodDescriptor = new HandlerMethodDescriptor
                 {
                     Method = method,
-                    Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
+                    Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method, parameters),
                     FormAction = formAction,
                     HttpMethod = httpMethod,
-                    Parameters = parameters
+                    Parameters = parameters,
                 };
 
                 actionDescriptor.HandlerMethods.Add(handlerMethodDescriptor);
             }
+        }
+
+        private static HandlerParameter[] GetHandlerParameters(MethodInfo methodInfo)
+        {
+            var methodParameters = methodInfo.GetParameters();
+            var parameters = new HandlerParameter[methodParameters.Length];
+
+            for (var i = 0; i < methodParameters.Length; i++)
+            {
+                var parameter = methodParameters[i];
+
+                parameters[i] = new HandlerParameter(parameter.Name, parameter.ParameterType, GetDefaultValue(parameter));
+            }
+
+            return parameters;
         }
 
         private static object GetDefaultValue(ParameterInfo methodParameter)

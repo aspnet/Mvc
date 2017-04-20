@@ -14,7 +14,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     {
         public static Func<Page, object, object[], Task<IActionResult>> CreateExecutor(
             CompiledPageActionDescriptor actionDescriptor,
-            MethodInfo method)
+            MethodInfo method,
+            HandlerParameter[] parameters)
         {
             if (actionDescriptor == null)
             {
@@ -26,8 +27,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 throw new ArgumentNullException(nameof(method));
             }
 
+            if (parameters == null)
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
             var methodIsDeclaredOnPage = method.DeclaringType.GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo);
-            var handler = CreateHandlerMethod(method);
+            var handler = CreateHandlerMethod(method, parameters);
 
             return async (page, model, arguments) =>
             {
@@ -37,26 +43,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             };
         }
 
-        private static HandlerMethod CreateHandlerMethod(MethodInfo method)
+        private static HandlerMethod CreateHandlerMethod(MethodInfo method, HandlerParameter[] parameters)
         {
             var methodParameters = method.GetParameters();
-            var parameters = new HandlerParameter[methodParameters.Length];
-
-            for (var i = 0; i < methodParameters.Length; i++)
-            {
-                var methodParameter = methodParameters[i];
-                object defaultValue = null;
-                if (methodParameter.HasDefaultValue)
-                {
-                    defaultValue = methodParameter.DefaultValue;
-                }
-                else if (methodParameter.ParameterType.GetTypeInfo().IsValueType)
-                {
-                    defaultValue = Activator.CreateInstance(methodParameter.ParameterType);
-                }
-
-                parameters[i] = new HandlerParameter(methodParameter.Name, methodParameter.ParameterType, defaultValue);
-            }
 
             var returnType = method.ReturnType;
             var returnTypeInfo = method.ReturnType.GetTypeInfo();

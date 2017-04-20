@@ -11,11 +11,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -353,8 +353,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 null,
                 null,
                 null,
-                new FilterItem[0],
-                null);
+                new FilterItem[0]);
             var invoker = CreateInvoker(
                 new[] { filter1.Object, filter2.Object, filter3.Object },
                 actionDescriptor,
@@ -409,8 +408,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 null,
                 null,
                 null,
-                new FilterItem[0],
-                null);
+                new FilterItem[0]);
             var invoker = CreateInvoker(
                 new IFilterMetadata[] { filter1.Object, filter2.Object, filter3.Object },
                 actionDescriptor,
@@ -609,9 +607,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 (c, model) => { (model as IDisposable)?.Dispose(); },
                 null,
                 null,
-                new FilterItem[0],
-                null);
-
+                new FilterItem[0]);
+            
             var invoker = new PageActionInvoker(
                 selector,
                 diagnosticSource,
@@ -619,8 +616,41 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 pageContext,
                 filters,
                 valueProviderFactories.AsReadOnly(),
-                cacheEntry);
+                cacheEntry,
+                GetParameterBinder());
             return invoker;
+        }
+
+        private static ParameterBinder GetParameterBinder(
+            IModelBinderFactory factory = null,
+            IObjectModelValidator validator = null)
+        {
+            if (validator == null)
+            {
+                validator = CreateMockValidator();
+            }
+
+            if (factory == null)
+            {
+                factory = TestModelBinderFactory.CreateDefault();
+            }
+
+            return new ParameterBinder(
+                TestModelMetadataProvider.CreateDefaultProvider(),
+                factory,
+                validator);
+        }
+
+        private static IObjectModelValidator CreateMockValidator()
+        {
+            var mockValidator = new Mock<IObjectModelValidator>(MockBehavior.Strict);
+            mockValidator
+                .Setup(o => o.Validate(
+                    It.IsAny<ActionContext>(),
+                    It.IsAny<ValidationStateDictionary>(),
+                    It.IsAny<string>(),
+                    It.IsAny<object>()));
+            return mockValidator.Object;
         }
 
         private class TestPageResultExecutor : PageResultExecutor

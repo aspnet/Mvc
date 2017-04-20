@@ -394,7 +394,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private async Task<object[]> GetArguments(HandlerMethodDescriptor handler)
         {
             var arguments = new object[handler.Parameters.Length];
-            var valueProvider = await GetCompositeValueProvider(_page.PageContext);
+            var valueProvider = await CompositeValueProvider.CreateAsync(_pageContext, _pageContext.ValueProviderFactories);
 
             for (var i = 0; i < handler.Parameters.Length; i++)
             {
@@ -402,32 +402,19 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 var parameterDescriptor = new ParameterDescriptor
                 {
                     Name = parameter.Name,
-                    ParameterType = parameter.Type
+                    ParameterType = parameter.Type,
                 };
 
                 var result = await _parameterBinder.BindModelAsync(
                     _page.PageContext,
                     valueProvider,
                     parameterDescriptor,
-                    null);
+                    value: null);
 
                 arguments[i] = result.IsModelSet ? result.Model : parameter.DefaultValue;
             }
 
             return arguments;
-        }
-
-        private static async Task<CompositeValueProvider> GetCompositeValueProvider(PageContext pageContext)
-        {
-            var factories = pageContext.ValueProviderFactories;
-            var valueProviderFactoryContext = new ValueProviderFactoryContext(pageContext);
-            for (var i = 0; i < factories.Count; i++)
-            {
-                var factory = factories[i];
-                await factory.CreateValueProviderAsync(valueProviderFactoryContext);
-            }
-
-            return new CompositeValueProvider(valueProviderFactoryContext.ValueProviders);
         }
 
         private async Task InvokeNextExceptionFilterAsync()
