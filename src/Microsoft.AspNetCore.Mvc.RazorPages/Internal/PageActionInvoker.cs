@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     {
         private readonly IPageHandlerMethodSelector _selector;
         private readonly PageContext _pageContext;
+        private readonly ParameterBinder _parameterBinder;
 
         private Page _page;
         private object _model;
@@ -34,7 +35,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             PageContext pageContext,
             IFilterMetadata[] filterMetadata,
             IList<IValueProviderFactory> valueProviderFactories,
-            PageActionInvokerCacheEntry cacheEntry)
+            PageActionInvokerCacheEntry cacheEntry,
+            ParameterBinder parameterBinder)
             : base(
                   diagnosticSource,
                   logger,
@@ -45,6 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _selector = handlerMethodSelector;
             _pageContext = pageContext;
             CacheEntry = cacheEntry;
+            _parameterBinder = parameterBinder;
         }
 
         public PageActionInvokerCacheEntry CacheEntry { get; }
@@ -402,7 +405,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     ParameterType = parameter.Type
                 };
 
-                var result = await CacheEntry.ParameterBinder.BindModelAsync(
+                var result = await _parameterBinder.BindModelAsync(
                     _page.PageContext,
                     valueProvider,
                     parameterDescriptor,

@@ -24,7 +24,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
     public abstract class PageModel
     {
-        private PageArgumentBinder _binder;
         private IObjectModelValidator _objectValidator;
         private IModelMetadataProvider _metadataProvider;
         private IModelBinderFactory _modelBinderFactory;

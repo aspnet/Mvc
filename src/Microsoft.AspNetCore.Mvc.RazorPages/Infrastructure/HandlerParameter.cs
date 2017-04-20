@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
+namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     public struct HandlerParameter
     {

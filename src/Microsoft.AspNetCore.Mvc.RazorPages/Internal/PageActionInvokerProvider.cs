@@ -161,7 +161,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 pageContext,
                 filters,
                 new CopyOnWriteList<IValueProviderFactory>(_valueProviderFactories),
-                cacheEntry);
+                cacheEntry,
+                _parameterBinder);
         }
 
         private PageActionInvokerCacheEntry CreateCacheEntry(
@@ -202,8 +203,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 modelReleaser,
                 propertyBinder,
                 viewStartFactories,
-                cachedFilters,
-                _parameterBinder);
+                cachedFilters);
         }
 
         // Internal for testing.
