@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public static class ExecutorFactory
     {
-        public static Func<Page, object, object[], Task<IActionResult>> CreateExecutor(
+        public static Func<object, object[], Task<IActionResult>> CreateExecutor(
             CompiledPageActionDescriptor actionDescriptor,
             MethodInfo method,
             HandlerParameter[] parameters)
@@ -35,9 +35,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var methodIsDeclaredOnPage = method.DeclaringType.GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo);
             var handler = CreateHandlerMethod(method, parameters);
 
-            return async (page, model, arguments) =>
+            return async (receiver, arguments) =>
             {
-                var receiver = methodIsDeclaredOnPage ? page : model;
                 var result = await handler.Execute(receiver, arguments);
                 return result;
             };

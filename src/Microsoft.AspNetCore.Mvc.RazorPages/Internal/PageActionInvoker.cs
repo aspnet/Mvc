@@ -380,7 +380,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 var arguments = await GetArguments(handler);
 
                 var executor = handler.Executor;
-                result = await executor(_page, _model, arguments);
+                result = await executor(handler.OnPage ? _page : _model, arguments);
             }
 
             if (result == null)

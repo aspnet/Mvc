@@ -4,7 +4,6 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.RazorPages.Internal;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
@@ -13,12 +12,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     {
         public MethodInfo Method { get; set; }
 
-        public Func<Page, object, object[], Task<IActionResult>> Executor { get; set; }
+        public Func<object, object[], Task<IActionResult>> Executor { get; set; }
 
         public string HttpMethod { get; set; }
 
         public StringSegment FormAction { get; set; }
 
         public HandlerParameter[] Parameters { get; set; }
+
+        public bool OnPage { get; set; }
     }
 }

@@ -273,6 +273,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     FormAction = formAction,
                     HttpMethod = httpMethod,
                     Parameters = parameters,
+                    OnPage = actionDescriptor.PageTypeInfo == type,
                 };
 
                 actionDescriptor.HandlerMethods.Add(handlerMethodDescriptor);

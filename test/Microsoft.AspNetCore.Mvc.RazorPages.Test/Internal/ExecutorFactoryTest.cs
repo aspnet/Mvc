@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null, null);
+            var actionResultTask = executor(new TestPage(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null, null);
+            var actionResultTask = executor(new TestPage(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<ViewResult>(actionResult);
         }
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null, CreateArguments(methodInfo));
+            var actionResultTask = executor(new TestPage(), CreateArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("Hello 0", contentResult.Content);
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(page, null, null);
+            var actionResultTask = executor(page, null);
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(page.SideEffects);
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(page, null, null);
+            var actionResultTask = executor(page, null);
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(page.SideEffects);
@@ -136,7 +136,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null, null);
+            var actionResultTask = executor(new TestPage(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new TestPage(), null, CreateArguments(methodInfo));
+            var actionResultTask = executor(new TestPage(), CreateArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("value", contentResult.Content);
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), null);
+            var actionResultTask = executor(new TestPageModel(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), null);
+            var actionResultTask = executor(new TestPageModel(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<ViewResult>(actionResult);
         }
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), CreateArguments(methodInfo));
+            var actionResultTask = executor(new TestPageModel(), CreateArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("Hello 0", contentResult.Content);
@@ -243,7 +243,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), model, null);
+            var actionResultTask = executor(model, null);
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(model.SideEffects);
@@ -266,7 +266,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), model, null);
+            var actionResultTask = executor(model, null);
             var actionResult = await actionResultTask;
             Assert.Null(actionResult);
             Assert.True(model.SideEffects);
@@ -288,7 +288,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), null);
+            var actionResultTask = executor(new TestPageModel(), null);
             var actionResult = await actionResultTask;
             Assert.IsType<EmptyResult>(actionResult);
         }
@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Test.Internal
 
             // Assert
             Assert.NotNull(executor);
-            var actionResultTask = executor(new EmptyPage(), new TestPageModel(), CreateArguments(methodInfo));
+            var actionResultTask = executor(new TestPageModel(), CreateArguments(methodInfo));
             var actionResult = await actionResultTask;
             var contentResult = Assert.IsType<ContentResult>(actionResult);
             Assert.Equal("value", contentResult.Content);
