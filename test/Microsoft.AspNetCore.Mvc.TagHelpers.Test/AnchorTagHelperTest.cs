@@ -649,8 +649,88 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 "a",
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
-            var expectedErrorMessage = "Cannot determine an 'href' attribute for <a>. An <a> with a specified " +
-                "'asp-route' must not have an 'asp-action' or 'asp-controller' attribute.";
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'href' attribute for <a>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
+
+            var context = new TagHelperContext(
+                tagName: "test",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => anchorTagHelper.ProcessAsync(context, output));
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_ThrowsIfRouteAndPageProvided()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+
+            var anchorTagHelper = new AnchorTagHelper(htmlGenerator)
+            {
+                Route = "Default",
+                Page = "Page",
+            };
+
+            var output = new TagHelperOutput(
+                "a",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'href' attribute for <a>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
+
+            var context = new TagHelperContext(
+                tagName: "test",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => anchorTagHelper.ProcessAsync(context, output));
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_ThrowsIfActionAndPageProvided()
+        {
+            // Arrange
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+
+            var anchorTagHelper = new AnchorTagHelper(htmlGenerator)
+            {
+                Action = "Action",
+                Page = "Page",
+            };
+
+            var output = new TagHelperOutput(
+                "a",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'href' attribute for <a>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
 
             var context = new TagHelperContext(
                 tagName: "test",

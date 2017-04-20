@@ -792,21 +792,6 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
         }
 
         [Fact]
-        public async Task PageRoute_UsingDefaultPageNameToRoute()
-        {
-            // Arrange
-            var expected = 
-@"<a href=""/Routes/Sibling"">Link</a>
-<a href=""/Routes/Sibling"">Link</a>";
-
-            // Act
-            var response = await Client.GetStringAsync("/Routes/RouteUsingDefaultName");
-
-            // Assert
-            Assert.Equal(expected, response.Trim());
-        }
-
-        [Fact]
         public async Task Controller_RedirectToPage()
         {
             // Arrange

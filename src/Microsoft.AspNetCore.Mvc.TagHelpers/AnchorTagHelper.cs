@@ -61,28 +61,37 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <summary>
         /// The name of the action method.
         /// </summary>
-        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        /// <remarks>
+        /// Must be <c>null</c> if <see cref="Route"/> or <see cref="Page"/> is non-<c>null</c>.
+        /// </remarks>
         [HtmlAttributeName(ActionAttributeName)]
         public string Action { get; set; }
 
         /// <summary>
         /// The name of the controller.
         /// </summary>
-        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        /// <remarks>
+        /// Must be <c>null</c> if <see cref="Route"/> or <see cref="Page"/> is non-<c>null</c>.
+        /// </remarks>
         [HtmlAttributeName(ControllerAttributeName)]
         public string Controller { get; set; }
 
         /// <summary>
         /// The name of the area.
         /// </summary>
-        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        /// <remarks>
+        /// Must be <c>null</c> if <see cref="Route"/> or <see cref="Page"/> is non-<c>null</c>.
+        /// </remarks>
         [HtmlAttributeName(AreaAttributeName)]
         public string Area { get; set; }
 
         /// <summary>
         /// The name of the page.
         /// </summary>
-        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
+        /// <remarks>
+        /// Must be <c>null</c> if <see cref="Route"/> or <see cref="Action"/>, <see cref="Controller"/>
+        /// or <see cref="Area"/> is non-<c>null</c>.
+        /// </remarks>
         [HtmlAttributeName(PageAttributeName)]
         public string Page { get; set; }
 
@@ -144,12 +153,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         /// <inheritdoc />
         /// <remarks>Does nothing if user provides an <c>href</c> attribute.</remarks>
-        /// <exception cref="InvalidOperationException">
-        /// Thrown if <c>href</c> attribute is provided and <see cref="Action"/>, <see cref="Controller"/>,
-        /// <see cref="Fragment"/>, <see cref="Host"/>, <see cref="Protocol"/>, or <see cref="Route"/> are
-        /// non-<c>null</c> or if the user provided <c>asp-route-*</c> attributes. Also thrown if <see cref="Route"/>
-        /// and one or both of <see cref="Action"/> and <see cref="Controller"/> are non-<c>null</c>.
-        /// </exception>
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             if (context == null)
@@ -190,68 +193,71 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             FragmentAttributeName,
                             PageAttributeName));
                 }
+
+                return;
+            }
+
+            var routeLink = Route != null;
+            var actionLink = Controller != null || Action != null;
+            var pageLink = Page != null;
+
+            if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
+            {
+                var message = string.Join(
+                    Environment.NewLine,
+                    Resources.FormatCannotDetermineAttributeFor(Href, "<a>"),
+                    RouteAttributeName,
+                    ControllerAttributeName + ", " + ActionAttributeName,
+                    PageAttributeName);
+
+                throw new InvalidOperationException(message);
+            }
+
+            RouteValueDictionary routeValues = null;
+            if (_routeValues != null && _routeValues.Count > 0)
+            {
+                routeValues = new RouteValueDictionary(_routeValues);
+            }
+
+            if (Area != null)
+            {
+                // Unconditionally replace any value from asp-route-area.
+                SetRouteValue(ref routeValues, "area", Area);
+            }
+
+            if (Page != null)
+            {
+                SetRouteValue(ref routeValues, "page", Page);
+            }
+
+            TagBuilder tagBuilder;
+            if (Route == null)
+            {
+                tagBuilder = Generator.GenerateActionLink(
+                    ViewContext,
+                    linkText: string.Empty,
+                    actionName: Action,
+                    controllerName: Controller,
+                    protocol: Protocol,
+                    hostname: Host,
+                    fragment: Fragment,
+                    routeValues: routeValues,
+                    htmlAttributes: null);
             }
             else
             {
-                RouteValueDictionary routeValues = null;
-                if (_routeValues != null && _routeValues.Count > 0)
-                {
-                    routeValues = new RouteValueDictionary(_routeValues);
-                }
-
-                if (Area != null)
-                {
-                    SetRouteValue(ref routeValues, "area", Area);
-                }
-
-                if (Page != null)
-                {
-                    SetRouteValue(ref routeValues, "page", Page);
-                }
-
-                TagBuilder tagBuilder;
-                if (Route == null)
-                {
-                    tagBuilder = Generator.GenerateActionLink(
-                        ViewContext,
-                        linkText: string.Empty,
-                        actionName: Action,
-                        controllerName: Controller,
-                        protocol: Protocol,
-                        hostname: Host,
-                        fragment: Fragment,
-                        routeValues: routeValues,
-                        htmlAttributes: null);
-                }
-                else if (Action != null || Controller != null)
-                {
-                    // Route and Action or Controller were specified. Can't determine the href attribute.
-                    throw new InvalidOperationException(
-                        Resources.FormatAnchorTagHelper_CannotDetermineHrefRouteActionOrControllerSpecified(
-                            "<a>",
-                            RouteAttributeName,
-                            ActionAttributeName,
-                            ControllerAttributeName,
-                            Href));
-                }
-                else
-                {
-                    tagBuilder = Generator.GenerateRouteLink(
-                        ViewContext,
-                        linkText: string.Empty,
-                        routeName: Route,
-                        protocol: Protocol,
-                        hostName: Host,
-                        fragment: Fragment,
-                        routeValues: routeValues,
-                        htmlAttributes: null);
-                }
-
-                if (tagBuilder != null)
-                {
-                    output.MergeAttributes(tagBuilder);
-                }
+                tagBuilder = Generator.GenerateRouteLink(
+                    ViewContext,
+                    linkText: string.Empty,
+                    routeName: Route,
+                    protocol: Protocol,
+                    hostName: Host,
+                    fragment: Fragment,
+                    routeValues: routeValues,
+                    htmlAttributes: null);
             }
+
+            output.MergeAttributes(tagBuilder);
         }
 
         private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)
@@ -261,7 +267,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 routeValues = new RouteValueDictionary();
             }
 
-            // Unconditionally replace any value from asp-route-area.
             routeValues[name] = value;
         }
     }

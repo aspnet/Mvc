@@ -78,7 +78,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <summary>
         /// The name of the page.
         /// </summary>
-        /// <remarks>Must be <c>null</c> if <see cref="Route"/> is non-<c>null</c>.</remarks>
         [HtmlAttributeName(PageAttributeName)]
         public string Page { get; set; }
 
@@ -191,6 +190,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
             else
             {
+                var routeLink = Route != null;
+                var actionLink = Controller != null || Action != null;
+                var pageLink = Page != null;
+
+                if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
+                {
+                    var message = string.Join(
+                        Environment.NewLine,
+                        Resources.FormatCannotDetermineAttributeFor(HtmlActionAttributeName, "<form>"),
+                        RouteAttributeName,
+                        ControllerAttributeName + ", " + ActionAttributeName,
+                        PageAttributeName);
+
+                    throw new InvalidOperationException(message);
+                }
+
                 RouteValueDictionary routeValues = null;
                 if (_routeValues != null && _routeValues.Count > 0)
                 {
@@ -220,18 +235,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         method: null,
                         htmlAttributes: null);
                 }
-                else if (Action != null || Controller != null)
-                {
-                    // Route and Action or Controller were specified. Can't determine the action attribute.
-                    throw new InvalidOperationException(
-                        Resources.FormatFormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified(
-                            "<form>",
-                            RouteAttributeName,
-                            ActionAttributeName,
-                            ControllerAttributeName,
-                            HtmlActionAttributeName,
-                            FragmentAttributeName));
-                }
                 else
                 {
                     tagBuilder = Generator.GenerateRouteForm(
@@ -243,19 +246,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         htmlAttributes: null);
                 }
 
-                if (tagBuilder != null)
+                output.MergeAttributes(tagBuilder);
+                if (tagBuilder.HasInnerHtml)
                 {
-                    output.MergeAttributes(tagBuilder);
-                    if (tagBuilder.HasInnerHtml)
-                    {
-                        output.PostContent.AppendHtml(tagBuilder.InnerHtml);
-                    }
+                    output.PostContent.AppendHtml(tagBuilder.InnerHtml);
                 }
 
-                if (string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase))
-                {
-                    antiforgeryDefault = false;
-                }
+                antiforgeryDefault = !string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase);
             }
 
             if (Antiforgery ?? antiforgeryDefault)
@@ -267,7 +264,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
         }
-
 
         private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)
         {

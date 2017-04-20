@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var expected = "<form method=\"POST\" action=\"\">";
 
             // Act
-            var response = await Client.GetStringAsync("/FormTagHelper/SelfPost");
+            var response = await Client.GetStringAsync("/TagHelper/SelfPost");
 
             // Assert
             Assert.Contains(expected, response.Trim());
@@ -160,13 +160,29 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task FormTagHelper_WithPage_AllowsPostingToAnotherPage()
         {
             //Arrange
-            var expected = "<form method=\"POST\" action=\"/FormTagHelper/SelfPost/10\">";
+            var expected = "<form method=\"POST\" action=\"/TagHelper/SelfPost/10\">";
 
             // Act
-            var response = await Client.GetStringAsync("/FormTagHelper/CrossPost");
+            var response = await Client.GetStringAsync("/TagHelper/CrossPost");
 
             // Assert
             Assert.Contains(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task FormActionTagHelper_WithPage_AllowsPostingToAnotherPage()
+        {
+            //Arrange
+            var expected = 
+@"<button formaction=""/TagHelper/CrossPost/10"" />
+<input type=""submit"" formaction=""/TagHelper/CrossPost/10"" />
+<input type=""image"" formaction=""/TagHelper/CrossPost/10"" />";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/FormAction");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
         }
 
         [Fact]
@@ -195,6 +211,19 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task PageRoute_UsingDefaultPageNameToRoute()
+        {
+            // Arrange
+            var expected = @"<a href=""/Routes/Sibling/10"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingDefaultName");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
         }
     }
 }

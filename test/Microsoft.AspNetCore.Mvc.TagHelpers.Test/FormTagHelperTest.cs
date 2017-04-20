@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
@@ -832,8 +831,80 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 "form",
                 attributes: new TagHelperAttributeList(),
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
-            var expectedErrorMessage = "Cannot determine an 'action' attribute for <form>. A <form> with a specified " +
-                "'asp-route' must not have an 'asp-action', 'asp-controller', or 'asp-fragment' attribute.";
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'action' attribute for <form>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
+
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => formTagHelper.ProcessAsync(context, output));
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_ThrowsIfRouteAndPageProvided()
+        {
+            // Arrange
+            var formTagHelper = new FormTagHelper(new TestableHtmlGenerator(new EmptyModelMetadataProvider()))
+            {
+                Route = "Default",
+                Page = "Page",
+            };
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'action' attribute for <form>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
+
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => formTagHelper.ProcessAsync(context, output));
+
+            Assert.Equal(expectedErrorMessage, ex.Message);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_ThrowsIfActionAndPageProvided()
+        {
+            // Arrange
+            var formTagHelper = new FormTagHelper(new TestableHtmlGenerator(new EmptyModelMetadataProvider()))
+            {
+                Action = "Default",
+                Page = "Page",
+            };
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(null));
+            var expectedErrorMessage = string.Join(
+                Environment.NewLine,
+                "Cannot determine the 'action' attribute for <form>. The following attributes are mutually exclusive:",
+                "asp-route",
+                "asp-controller, asp-action",
+                "asp-page");
 
             var context = new TagHelperContext(
                 tagName: "form",
