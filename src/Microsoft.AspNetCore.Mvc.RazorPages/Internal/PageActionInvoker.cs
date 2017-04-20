@@ -391,10 +391,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private async Task<object[]> GetArguments(HandlerMethodDescriptor handler)
         {
             var arguments = new object[handler.Parameters.Length];
+            var valueProvider = await GetCompositeValueProvider(_page.PageContext);
+
             for (var i = 0; i < handler.Parameters.Length; i++)
             {
                 var parameter = handler.Parameters[i];
-                var valueProvider = await GetCompositeValueProvider(_page.PageContext);
                 var parameterDescriptor = new ParameterDescriptor
                 {
                     Name = parameter.Name,
