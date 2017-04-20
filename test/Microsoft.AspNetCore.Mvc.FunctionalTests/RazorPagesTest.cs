@@ -713,6 +713,20 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
         }
 
         [Fact]
+        public async Task PageRoute_UsingSpecifiedPageNameToRoute()
+        {
+            // Arrange
+            var expected = 
+@"<a href=""/Pages/Accounts/List/42"">Link</a>
+<a href=""/Pages/Accounts/List/42"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/Routes/RouteUsingSpecificName");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+        [Fact]
         public async Task RedirectFromPageWorks()
         {
             // Arrange
@@ -739,7 +753,6 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
             Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
             Assert.Equal(expected, response.Headers.Location.ToString());
         }
-
 
         [Fact]
         public async Task RedirectToSelfWorks()

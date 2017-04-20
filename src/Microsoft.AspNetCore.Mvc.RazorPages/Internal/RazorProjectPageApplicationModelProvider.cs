@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     continue;
                 }
 
-                if (!PageDirectiveFeature.TryGetPageDirective(item, out var routeTemplate))
+                if (!PageDirectiveFeature.TryGetPageDirective(item, out var directive))
                 {
                     // .cshtml pages without @page are not RazorPages.
                     continue;
@@ -46,7 +46,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 var pageApplicationModel = new PageApplicationModel(
                     relativePath: item.CombinedPath,
                     viewEnginePath: item.PathWithoutExtension);
-                PageSelectorModel.PopulateDefaults(pageApplicationModel, routeTemplate);
+
+                pageApplicationModel.Name = directive.Name;
+
+                PageSelectorModel.PopulateDefaults(pageApplicationModel, directive.RouteTemplate);
 
                 context.Results.Add(pageApplicationModel);
             }

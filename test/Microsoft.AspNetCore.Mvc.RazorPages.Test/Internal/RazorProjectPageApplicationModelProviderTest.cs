@@ -175,5 +175,40 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     Assert.Equal("/Pages/Index.cshtml", model.RelativePath);
                 });
         }
+
+        [Fact]
+        public void OnProvidersExecuting_ReadsPageName()
+        {
+            // Arrange
+            var fileProvider = new TestFileProvider();
+            fileProvider.AddDirectoryContent("/",
+                new[]
+                {
+                    fileProvider.AddFile("/Home.cshtml", "@page \"Route-template\" \"some-name\""),
+                    fileProvider.AddFile("/Index.cshtml", "@page \"template1\" \"different-name\""),
+                });
+
+            var project = new TestRazorProject(fileProvider);
+
+            var optionsManager = new TestOptionsManager<RazorPagesOptions>();
+            var provider = new RazorProjectPageApplicationModelProvider(project, optionsManager);
+            var context = new PageApplicationModelProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            Assert.Collection(context.Results,
+                model =>
+                {
+                    Assert.Equal("/Home.cshtml", model.RelativePath);
+                    Assert.Equal("some-name", model.Name);
+                },
+                model =>
+                {
+                    Assert.Equal("/Index.cshtml", model.RelativePath);
+                    Assert.Equal("different-name", model.Name);
+                });
+        }
     }
 }

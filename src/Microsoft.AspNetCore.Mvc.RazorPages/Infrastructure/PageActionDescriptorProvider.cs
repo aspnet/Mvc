@@ -81,25 +81,45 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
             foreach (var selector in model.Selectors)
             {
-                actions.Add(new PageActionDescriptor()
+                var order = selector.AttributeRouteModel.Order ?? 0;
+                var attributeRouteInfo = new AttributeRouteInfo()
                 {
-                    AttributeRouteInfo = new AttributeRouteInfo()
-                    {
-                        Name = selector.AttributeRouteModel.Name,
-                        Order = selector.AttributeRouteModel.Order ?? 0,
-                        Template = selector.AttributeRouteModel.Template,
-                    },
-                    DisplayName = $"Page: {model.ViewEnginePath}",
-                    FilterDescriptors = filters,
-                    Properties = new Dictionary<object, object>(model.Properties),
-                    RelativePath = model.RelativePath,
-                    RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "page", model.ViewEnginePath},
-                    },
-                    ViewEnginePath = model.ViewEnginePath,
-                });
+                    Name = selector.AttributeRouteModel.Name,
+                    Order = order,
+                    Template = selector.AttributeRouteModel.Template,
+                };
+                actions.Add(CreateDescriptor(model, filters, attributeRouteInfo, model.ViewEnginePath));
+
+                if (!string.IsNullOrEmpty(model.Name) && 
+                    !string.Equals(model.Name, model.ViewEnginePath, StringComparison.Ordinal))
+                {
+                    var descriptor = CreateDescriptor(model, filters, attributeRouteInfo, model.Name);
+                    // Register the alias as an action descriptor that ony participates in link generation.
+                    descriptor.AttributeRouteInfo.SuppressPathMatching = true;
+                    actions.Add(descriptor);
+                }
             }
+        }
+
+        private static PageActionDescriptor CreateDescriptor(
+            PageApplicationModel model,
+            List<FilterDescriptor> filters,
+            AttributeRouteInfo attributeRouteInfo,
+            string pageValue)
+        {
+            return new PageActionDescriptor()
+            {
+                AttributeRouteInfo = attributeRouteInfo,
+                DisplayName = $"Page: {model.RelativePath}",
+                FilterDescriptors = filters,
+                Properties = new Dictionary<object, object>(model.Properties),
+                RelativePath = model.RelativePath,
+                RouteValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "page", pageValue },
+                },
+                ViewEnginePath = model.ViewEnginePath,
+            };
         }
     }
 }

@@ -14,9 +14,19 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             RoutePrefix = routePrefix;
         }
 
+        public CompiledPageInfo(string path, Type compiledType, string routePrefix, string name)
+        {
+            Path = path;
+            CompiledType = compiledType;
+            RoutePrefix = routePrefix;
+            Name = name;
+        }
+
         public string Path { get; }
 
         public string RoutePrefix { get; }
+
+        public string Name { get; }
 
         public Type CompiledType { get; }
     }

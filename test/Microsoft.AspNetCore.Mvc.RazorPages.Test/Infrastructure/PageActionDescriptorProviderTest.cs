@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.RazorPages.Internal;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -25,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var applicationModelProvider = new TestPageApplicationModelProvider();
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor<MvcOptions>(),
+                new TestOptionsManager<MvcOptions>(),
                 GetRazorPagesOptions());
             var context = new ActionDescriptorProviderContext();
 
@@ -56,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var applicationModelProvider = new TestPageApplicationModelProvider(model);
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor<MvcOptions>(),
+                new TestOptionsManager<MvcOptions>(),
                 GetRazorPagesOptions());
             var context = new ActionDescriptorProviderContext();
 
@@ -76,34 +77,34 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         {
             // Arrange
             var applicationModelProvider = new TestPageApplicationModelProvider(
-                new PageApplicationModel("/base-path/Test.cshtml", "/base-path/Test")
+                new PageApplicationModel("/base-path/Test.cshtml", "/base-path/Test/Home")
                 {
                     Selectors =
                     {
-                        CreateSelectorModel("base-path/Test/Home")
+                        CreateSelectorModel("/base-path/Test/Home")
                     }
                 },
                 new PageApplicationModel("/base-path/Index.cshtml", "/base-path/Index")
                 {
                     Selectors =
                     {
-                         CreateSelectorModel("base-path/Index"),
-                         CreateSelectorModel("base-path/"),
+                         CreateSelectorModel("/base-path/Index"),
+                         CreateSelectorModel("/base-path/"),
                     }
                 },
                 new PageApplicationModel("/base-path/Admin/Index.cshtml", "/base-path/Admin/Index")
                 {
                     Selectors =
                     {
-                         CreateSelectorModel("base-path/Admin/Index"),
-                         CreateSelectorModel("base-path/Admin"),
+                         CreateSelectorModel("/base-path/Admin/Index"),
+                         CreateSelectorModel("/base-path/Admin"),
                     }
                 },
                 new PageApplicationModel("/base-path/Admin/User.cshtml", "/base-path/Admin/User")
                 {
                     Selectors =
                     {
-                         CreateSelectorModel("base-path/Admin/User"),
+                         CreateSelectorModel("/base-path/Admin/User"),
                     },
                 });
 
@@ -111,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor<MvcOptions>(),
+                new TestOptionsManager<MvcOptions>(),
                 options);
             var context = new ActionDescriptorProviderContext();
 
@@ -120,23 +121,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
             // Assert
             Assert.Collection(context.Results,
-                result => Assert.Equal("base-path/Test/Home", result.AttributeRouteInfo.Template),
-                result => Assert.Equal("base-path/Index", result.AttributeRouteInfo.Template),
-                result => Assert.Equal("base-path/", result.AttributeRouteInfo.Template),
-                result => Assert.Equal("base-path/Admin/Index", result.AttributeRouteInfo.Template),
-                result => Assert.Equal("base-path/Admin", result.AttributeRouteInfo.Template),
-                result => Assert.Equal("base-path/Admin/User", result.AttributeRouteInfo.Template));
-        }
-
-        private static SelectorModel CreateSelectorModel(string template)
-        {
-            return new SelectorModel
-            {
-                AttributeRouteModel = new AttributeRouteModel
-                {
-                    Template = template,
-                }
-            };
+                result => Assert.Equal("/base-path/Test/Home", result.AttributeRouteInfo.Template),
+                result => Assert.Equal("/base-path/Index", result.AttributeRouteInfo.Template),
+                result => Assert.Equal("/base-path/", result.AttributeRouteInfo.Template),
+                result => Assert.Equal("/base-path/Admin/Index", result.AttributeRouteInfo.Template),
+                result => Assert.Equal("/base-path/Admin", result.AttributeRouteInfo.Template),
+                result => Assert.Equal("/base-path/Admin/User", result.AttributeRouteInfo.Template));
         }
 
         [Fact]
@@ -155,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor<MvcOptions>(),
+                new TestOptionsManager<MvcOptions>(),
                 GetRazorPagesOptions());
             var context = new ActionDescriptorProviderContext();
 
@@ -188,7 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var applicationModelProvider = new TestPageApplicationModelProvider(CreateModel());
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor(options),
+                new TestOptionsManager<MvcOptions>(options),
                 GetRazorPagesOptions());
             var context = new ActionDescriptorProviderContext();
 
@@ -224,7 +214,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var applicationModelProvider = new TestPageApplicationModelProvider(CreateModel());
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor(options),
+                new TestOptionsManager<MvcOptions>(options),
                 GetRazorPagesOptions());
             var context = new ActionDescriptorProviderContext();
 
@@ -277,7 +267,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var applicationModelProvider = new TestPageApplicationModelProvider(CreateModel());
             var provider = new PageActionDescriptorProvider(
                 new[] { applicationModelProvider },
-                GetAccessor(options),
+                new TestOptionsManager<MvcOptions>(options),
                 razorOptions);
             var context = new ActionDescriptorProviderContext();
 
@@ -310,29 +300,84 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 });
         }
 
-        private static PageApplicationModel CreateModel()
+        [Fact]
+        public void GetDescriptors_AddsActionDescriptorForPageName()
         {
-            return new PageApplicationModel("/Home.cshtml", "/Home")
-            {
-                Selectors =
+            // Arrange
+            var model = CreateModel();
+            model.Name = "Some-Name";
+            var applicationModelProvider = new TestPageApplicationModelProvider(model);
+            var options = GetRazorPagesOptions();
+
+            var provider = new PageActionDescriptorProvider(
+                new[] { applicationModelProvider },
+                new TestOptionsManager<MvcOptions>(),
+                options);
+            var context = new ActionDescriptorProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            Assert.Collection(context.Results,
+                result =>
                 {
-                    new SelectorModel
-                    {
-                        AttributeRouteModel = new AttributeRouteModel
-                        {
-                            Template = "Home",
-                        }
-                    }
-                }
-            };
+                    Assert.Equal("/Home", result.AttributeRouteInfo.Template);
+                    Assert.False(result.AttributeRouteInfo.SuppressLinkGeneration);
+                    Assert.False(result.AttributeRouteInfo.SuppressPathMatching);
+                    var routeValue = Assert.Single(result.RouteValues);
+                    Assert.Equal("page", routeValue.Key);
+                    Assert.Equal("/Home", routeValue.Value);
+                },
+                result =>
+                {
+                    Assert.Equal("/Home", result.AttributeRouteInfo.Template);
+                    Assert.False(result.AttributeRouteInfo.SuppressLinkGeneration);
+                    Assert.True(result.AttributeRouteInfo.SuppressPathMatching);
+                    var routeValue = Assert.Single(result.RouteValues);
+                    Assert.Equal("page", routeValue.Key);
+                    Assert.Equal("Some-Name", routeValue.Value);
+                });
         }
 
-        private static IOptions<TOptions> GetAccessor<TOptions>(TOptions options = null)
-            where TOptions : class, new()
+        [Fact]
+        public void GetDescriptors_AddsActionDescriptorForPageName_ConfiguredByPageConvention()
         {
-            var accessor = new Mock<IOptions<TOptions>>();
-            accessor.SetupGet(a => a.Value).Returns(options ?? new TOptions());
-            return accessor.Object;
+            // Arrange
+            var model = CreateModel();
+            var applicationModelProvider = new TestPageApplicationModelProvider(model);
+            var options = new RazorPagesOptions();
+            options.SetPageName("/Test", "ConventionName");
+
+            var provider = new PageActionDescriptorProvider(
+                new[] { applicationModelProvider },
+                new TestOptionsManager<MvcOptions>(),
+                new TestOptionsManager<RazorPagesOptions>(options));
+            var context = new ActionDescriptorProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            Assert.Collection(context.Results,
+                result =>
+                {
+                    Assert.Equal("/Home", result.AttributeRouteInfo.Template);
+                    Assert.False(result.AttributeRouteInfo.SuppressLinkGeneration);
+                    Assert.False(result.AttributeRouteInfo.SuppressPathMatching);
+                    var routeValue = Assert.Single(result.RouteValues);
+                    Assert.Equal("page", routeValue.Key);
+                    Assert.Equal("/Home", routeValue.Value);
+                },
+                result =>
+                {
+                    Assert.Equal("/Home", result.AttributeRouteInfo.Template);
+                    Assert.False(result.AttributeRouteInfo.SuppressLinkGeneration);
+                    Assert.True(result.AttributeRouteInfo.SuppressPathMatching);
+                    var routeValue = Assert.Single(result.RouteValues);
+                    Assert.Equal("page", routeValue.Key);
+                    Assert.Equal("ConventionName", routeValue.Value);
+                });
         }
 
         private static IOptions<RazorPagesOptions> GetRazorPagesOptions()
@@ -348,6 +393,28 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             };
 
             return new DefaultRazorProjectItem(testFileInfo, basePath, path);
+        }
+
+        private static PageApplicationModel CreateModel()
+        {
+            return new PageApplicationModel("/Home.cshtml", "/Home")
+            {
+                Selectors =
+                {
+                    CreateSelectorModel("Home"),
+                }
+            };
+        }
+
+        private static SelectorModel CreateSelectorModel(string template)
+        {
+            return new SelectorModel
+            {
+                AttributeRouteModel = new AttributeRouteModel
+                {
+                    Template = template,
+                }
+            };
         }
 
         private class TestPageApplicationModelProvider : IPageApplicationModelProvider
