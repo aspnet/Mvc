@@ -2,21 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
-    public struct HandlerParameter
+    public class HandlerParameter : ParameterDescriptor
     {
-        public HandlerParameter(string name, Type type, object defaultValue)
+        public HandlerParameter(string name, Type parameterType, object defaultValue)
         {
             Name = name;
-            Type = type;
+            ParameterType = parameterType;
             DefaultValue = defaultValue;
         }
-
-        public string Name { get; }
-
-        public Type Type { get; }
 
         public object DefaultValue { get; }
     }

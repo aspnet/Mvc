@@ -399,16 +399,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             for (var i = 0; i < handler.Parameters.Length; i++)
             {
                 var parameter = handler.Parameters[i];
-                var parameterDescriptor = new ParameterDescriptor
-                {
-                    Name = parameter.Name,
-                    ParameterType = parameter.Type,
-                };
 
                 var result = await _parameterBinder.BindModelAsync(
                     _page.PageContext,
                     valueProvider,
-                    parameterDescriptor,
+                    parameter,
                     value: null);
 
                 arguments[i] = result.IsModelSet ? result.Model : parameter.DefaultValue;
