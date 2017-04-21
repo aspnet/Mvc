@@ -36,9 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private const string ControllerKey = "controller";
         private const string PageKey = "page";
 
-        private const string ParentDirectoryToken = "..";
         private static readonly TimeSpan _cacheExpirationDuration = TimeSpan.FromMinutes(20);
-        private static readonly char[] _pathSeparators = new[] { '/', '\\' };
 
         private readonly IRazorPageFactoryProvider _pageFactory;
         private readonly IRazorPageActivator _pageActivator;
@@ -345,59 +343,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 // path relative to currently-executing view, if any.
                 // Not yet executing a view. Start in app root.
                 absolutePath = "/" + pagePath;
-            }
-            else
-            {
-                // Get directory name (including final slash) but do not use Path.GetDirectoryName() to preserve path
-                // normalization.
-                var index = executingFilePath.LastIndexOf('/');
-                Debug.Assert(index >= 0);
-                absolutePath = executingFilePath.Substring(0, index + 1) + pagePath;
-                if (!RequiresPathResolution(pagePath))
-                {
-                    return absolutePath;
-                }
+                return ViewEnginePath.ResolvePath(absolutePath);
             }
 
-            if (!RequiresPathResolution(pagePath))
-            {
-                return absolutePath;
-            }
-
-            var pathSegments = new List<StringSegment>();
-            var tokenizer = new StringTokenizer(absolutePath, _pathSeparators);
-            foreach (var segment in tokenizer)
-            {
-                if (segment.Length == 0)
-                {
-                    // Ignore multiple directory separators
-                    continue;
-                }
-                if (segment.Equals(ParentDirectoryToken, StringComparison.Ordinal))
-                {
-                    if (pathSegments.Count == 0)
-                    {
-                        // Don't resolve the path if we ever escape the file system root. We can't reason about it in a
-                        // consistent way.
-                        return absolutePath;
-                    }
-                    pathSegments.RemoveAt(pathSegments.Count - 1);
-                }
-                else
-                {
-                    pathSegments.Add(segment);
-                }
-            }
-
-            var builder = new StringBuilder();
-            for (var i = 0; i < pathSegments.Count; i++)
-            {
-                var segment = pathSegments[i];
-                builder.Append('/');
-                builder.Append(segment.Buffer, segment.Offset, segment.Length);
-            }
-
-            return builder.ToString();
+            return ViewEnginePath.CombinePath(executingFilePath, pagePath);
         }
 
         // internal for tests
@@ -584,11 +533,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             // Though ./ViewName looks like a relative path, framework searches for that view using view locations.
             return name.EndsWith(ViewExtension, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool RequiresPathResolution(string path)
-        {
-            return path.IndexOf(ParentDirectoryToken, StringComparison.Ordinal) != -1;
         }
     }
 }
