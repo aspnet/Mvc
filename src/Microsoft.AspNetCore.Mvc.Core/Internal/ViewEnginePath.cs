@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Internal
+namespace Microsoft.AspNetCore.Mvc.Core.Internal
 {
     public static class ViewEnginePath
     {
@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             if (index == first.Length - 1)
             {
                 // If the first ends in a trailing slash e.g. "/Home/", assume it's a directory.
-                result = first + "/" + second;
+                result = first + second;
             }
             else
             {

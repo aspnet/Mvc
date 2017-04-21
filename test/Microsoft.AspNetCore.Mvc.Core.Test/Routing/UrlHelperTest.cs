@@ -1052,7 +1052,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 .Callback((UrlRouteContext context) => actual = context);
 
             // Act
-            urlHelper.Object.Page("TestPage");
+            urlHelper.Object.Page("/TestPage");
 
             // Assert
             urlHelper.Verify();
@@ -1062,7 +1062,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 value =>
                 {
                     Assert.Equal("page", value.Key);
-                    Assert.Equal("TestPage", value.Value);
+                    Assert.Equal("/TestPage", value.Value);
                 });
             Assert.Null(actual.Host);
             Assert.Null(actual.Protocol);
@@ -1354,6 +1354,138 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 });
         }
 
+        [Theory]
+        [InlineData("Sibling", "/Dir1/Dir2/Sibling")]
+        [InlineData("Dir3/Sibling", "/Dir1/Dir2/Dir3/Sibling")]
+        [InlineData("Dir4/Dir5/Index", "/Dir1/Dir2/Dir4/Dir5/Index")]
+        public void Page_CalculatesPathRelativeToViewEnginePath_WhenNotRooted(string pageName, string expected)
+        {
+            // Arrange
+            UrlRouteContext actual = null;
+            var routeData = new RouteData();
+            var actionContext = GetActionContextForPage("/Dir1/Dir2/About");
+            
+            var urlHelper = CreateMockUrlHelper(actionContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext context) => actual = context);
+
+            // Act
+            urlHelper.Object.Page(pageName);
+
+            // Assert
+            urlHelper.Verify();
+            Assert.NotNull(actual);
+            Assert.Null(actual.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal(expected, value.Value);
+                });
+        }
+
+        [Fact]
+        public void Page_CalculatesPathRelativeToViewEnginePath_ForIndexPagePaths()
+        {
+            // Arrange
+            var expected = "/Dir1/Dir2/Sibling";
+            UrlRouteContext actual = null;
+            var actionContext = GetActionContextForPage("/Dir1/Dir2/");
+
+            var urlHelper = CreateMockUrlHelper(actionContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext context) => actual = context);
+
+            // Act
+            urlHelper.Object.Page("Sibling");
+
+            // Assert
+            urlHelper.Verify();
+            Assert.NotNull(actual);
+            Assert.Null(actual.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal(expected, value.Value);
+                });
+        }
+
+        [Fact]
+        public void Page_CalculatesPathRelativeToViewEnginePath_WhenNotRooted_ForPageAtRoot()
+        {
+            // Arrange
+            var expected = "/SiblingName";
+            UrlRouteContext actual = null;
+            var routeData = new RouteData();
+            var actionContext = new ActionContext
+            {
+                ActionDescriptor = new ActionDescriptor
+                {
+                    RouteValues = new Dictionary<string, string>
+                    {
+                        { "page", "/Home" },
+                    },
+                },
+                RouteData = new RouteData
+                {
+                    Values =
+                    {
+                        [ "page" ] = "/Home"
+                    },
+                },
+            };
+
+            var urlHelper = CreateMockUrlHelper(actionContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext context) => actual = context);
+
+            // Act
+            urlHelper.Object.Page("SiblingName");
+
+            // Assert
+            urlHelper.Verify();
+            Assert.NotNull(actual);
+            Assert.Null(actual.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal(expected, value.Value);
+                });
+        }
+
+        [Fact]
+        public void Page_ReturnsPathAsIs_IfRouteValueDoesNotIncludePageKey()
+        {
+            // Arrange
+            var expected = "SiblingName";
+            UrlRouteContext actual = null;
+            var routeData = new RouteData();
+            var actionContext = new ActionContext
+            {
+                RouteData = new RouteData(),
+            };
+
+            var urlHelper = CreateMockUrlHelper(actionContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext context) => actual = context);
+
+            // Act
+            urlHelper.Object.Page(expected);
+
+            // Assert
+            urlHelper.Verify();
+            Assert.NotNull(actual);
+            Assert.Null(actual.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal(expected, value.Value);
+                });
+        }
+
         private static Mock<IUrlHelper> CreateMockUrlHelper(ActionContext context = null)
         {
             if (context == null)
@@ -1511,6 +1643,27 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             routeBuilder.Routes.Add(mockHttpRoute.Object);
             return routeBuilder.Build();
+        }
+
+        private static ActionContext GetActionContextForPage(string page)
+        {
+            return new ActionContext
+            {
+                ActionDescriptor = new ActionDescriptor
+                {
+                    RouteValues = new Dictionary<string, string>
+                    {
+                        { "page", page },
+                    },
+                },
+                RouteData = new RouteData
+                {
+                    Values =
+                    {
+                        [ "page" ] = page
+                    },
+                },
+            };
         }
 
         private class PassThroughRouter : IRouter

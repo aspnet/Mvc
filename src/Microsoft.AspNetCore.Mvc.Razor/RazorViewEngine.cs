@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Razor.Language;
@@ -98,41 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// produces consistently cased results.
         /// </remarks>
         public static string GetNormalizedRouteValue(ActionContext context, string key)
-        {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            object routeValue;
-            if (!context.RouteData.Values.TryGetValue(key, out routeValue))
-            {
-                return null;
-            }
-
-            var actionDescriptor = context.ActionDescriptor;
-            string normalizedValue = null;
-
-            string value;
-            if (actionDescriptor.RouteValues.TryGetValue(key, out value) &&
-                !string.IsNullOrEmpty(value))
-            {
-                normalizedValue = value;
-            }
-
-            var stringRouteValue = routeValue?.ToString();
-            if (string.Equals(normalizedValue, stringRouteValue, StringComparison.OrdinalIgnoreCase))
-            {
-                return normalizedValue;
-            }
-
-            return stringRouteValue;
-        }
+            => NormalizedRouteValue.GetNormalizedRouteValue(context, key);
 
         /// <inheritdoc />
         public RazorPageResult FindPage(ActionContext context, string pageName)
