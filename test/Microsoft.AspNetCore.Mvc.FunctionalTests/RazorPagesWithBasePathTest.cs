@@ -147,7 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task FormTagHelper_WithPage_GeneratesLinksToSelf()
         {
             //Arrange
-            var expected = "<form method=\"POST\" action=\"\">";
+            var expected = "<form method=\"POST\" action=\"/TagHelper/SelfPost/10\">";
 
             // Act
             var response = await Client.GetStringAsync("/TagHelper/SelfPost");

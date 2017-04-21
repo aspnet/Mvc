@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures
@@ -38,6 +39,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             object htmlAttributes)
         {
             var tagBuilder = generator.GenerateRouteForm(viewContext, routeName, routeValues, method, htmlAttributes);
+
+            // Append the fragment to action
+            if (fragment != null)
+            {
+                tagBuilder.Attributes["action"] += "#" + fragment;
+            }
+
+            return tagBuilder;
+        }
+
+        public static TagBuilder GeneratePageForm(
+            this IHtmlGenerator generator,
+            ViewContext viewContext,
+            string pageName,
+            object routeValues,
+            string fragment,
+            string method,
+            object htmlAttributes)
+        {
+            var tagBuilder = generator.GeneratePageForm(viewContext, pageName, routeValues, method, htmlAttributes);
 
             // Append the fragment to action
             if (fragment != null)

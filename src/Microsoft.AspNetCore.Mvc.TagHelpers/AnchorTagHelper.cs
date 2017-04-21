@@ -225,26 +225,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 SetRouteValue(ref routeValues, "area", Area);
             }
 
-            if (Page != null)
-            {
-                SetRouteValue(ref routeValues, "page", Page);
-            }
-
             TagBuilder tagBuilder;
-            if (Route == null)
+            if (pageLink)
             {
-                tagBuilder = Generator.GenerateActionLink(
+                tagBuilder = Generator.GeneratePageLink(
                     ViewContext,
                     linkText: string.Empty,
-                    actionName: Action,
-                    controllerName: Controller,
+                    pageName: Page,
                     protocol: Protocol,
                     hostname: Host,
                     fragment: Fragment,
                     routeValues: routeValues,
                     htmlAttributes: null);
             }
-            else
+            else if (routeLink)
             {
                 tagBuilder = Generator.GenerateRouteLink(
                     ViewContext,
@@ -255,6 +249,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     fragment: Fragment,
                     routeValues: routeValues,
                     htmlAttributes: null);
+            }
+            else
+            {
+                tagBuilder = Generator.GenerateActionLink(
+                   ViewContext,
+                   linkText: string.Empty,
+                   actionName: Action,
+                   controllerName: Controller,
+                   protocol: Protocol,
+                   hostname: Host,
+                   fragment: Fragment,
+                   routeValues: routeValues,
+                   htmlAttributes: null);
             }
 
             output.MergeAttributes(tagBuilder);

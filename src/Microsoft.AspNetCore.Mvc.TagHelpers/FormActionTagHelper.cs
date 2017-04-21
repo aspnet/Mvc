@@ -234,18 +234,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 SetRouteValue(ref routeValues, "page", Page);
             }
 
-            if (Route == null)
+            var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
+            string url;
+            if (pageLink)
             {
-                var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
-                var url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
-                output.Attributes.SetAttribute(FormAction, url);
+                url = urlHelper.Page(Page, routeValues, protocol: null, host: null, fragment: Fragment);
+            }
+            else if (routeLink)
+            {
+                url = urlHelper.RouteUrl(Route, routeValues, protocol: null, host: null, fragment: Fragment);
             }
             else
             {
-                var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
-                var url = urlHelper.RouteUrl(Route, routeValues, protocol: null, host: null, fragment: Fragment);
-                output.Attributes.SetAttribute(FormAction, url);
+                url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
             }
+
+            output.Attributes.SetAttribute(FormAction, url);
         }
 
         private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)

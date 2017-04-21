@@ -214,17 +214,37 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 if (Area != null)
                 {
-                    // Unconditionally replace any value from asp-route-area.
-                    SetRouteValue(ref routeValues, "area", Area);
-                }
+                    if (routeValues == null)
+                    {
+                        routeValues = new RouteValueDictionary();
+                    }
 
-                if (Page != null)
-                {
-                    SetRouteValue(ref routeValues, "page", Page);
+                    // Unconditionally replace any value from asp-route-area.
+                    routeValues["area"] = Area;
                 }
 
                 TagBuilder tagBuilder;
-                if (Route == null)
+                if (pageLink)
+                {
+                    tagBuilder = Generator.GeneratePageForm(
+                        ViewContext,
+                        Page,
+                        routeValues,
+                        Fragment,
+                        method: null,
+                        htmlAttributes: null);
+                }
+                else if (routeLink)
+                {
+                    tagBuilder = Generator.GenerateRouteForm(
+                        ViewContext,
+                        Route,
+                        routeValues,
+                        Fragment,
+                        method: null,
+                        htmlAttributes: null);
+                }
+                else
                 {
                     tagBuilder = Generator.GenerateForm(
                         ViewContext,
@@ -232,16 +252,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         Controller,
                         Fragment,
                         routeValues,
-                        method: null,
-                        htmlAttributes: null);
-                }
-                else
-                {
-                    tagBuilder = Generator.GenerateRouteForm(
-                        ViewContext,
-                        Route,
-                        routeValues,
-                        Fragment,
                         method: null,
                         htmlAttributes: null);
                 }
@@ -263,17 +273,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     output.PostContent.AppendHtml(antiforgeryTag);
                 }
             }
-        }
-
-        private static void SetRouteValue(ref RouteValueDictionary routeValues, string name, string value)
-        {
-            if (routeValues == null)
-            {
-                routeValues = new RouteValueDictionary();
-            }
-
-            // Unconditionally replace any value from asp-route-area.
-            routeValues[name] = value;
         }
     }
 }
