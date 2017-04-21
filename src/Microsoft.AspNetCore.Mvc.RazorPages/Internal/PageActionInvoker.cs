@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var handler = _selector.Select(_pageContext);
             if (handler != null)
             {
-                var arguments = await GetArguments(handler);
+                var arguments = await GetArgumentsAsync(handler);
 
                 var executor = handler.Executor;
                 result = await executor(handler.OnPage ? _page : _model, arguments);
@@ -391,7 +391,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             await result.ExecuteResultAsync(_pageContext);
         }
 
-        private async Task<object[]> GetArguments(HandlerMethodDescriptor handler)
+        private async Task<object[]> GetArgumentsAsync(HandlerMethodDescriptor handler)
         {
             var arguments = new object[handler.Parameters.Length];
             var valueProvider = await CompositeValueProvider.CreateAsync(_pageContext, _pageContext.ValueProviderFactories);

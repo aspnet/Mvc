@@ -608,7 +608,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 null,
                 null,
                 new FilterItem[0]);
-            
+
             var invoker = new PageActionInvoker(
                 selector,
                 diagnosticSource,

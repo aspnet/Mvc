@@ -15,6 +15,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             DefaultValue = defaultValue;
         }
 
-        public object DefaultValue { get; }
+        public object DefaultValue { get; set; }
     }
 }
