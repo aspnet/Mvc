@@ -1100,7 +1100,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 .Callback((UrlRouteContext context) => actual = context);
 
             // Act
-            urlHelper.Object.Page("TestPage", values);
+            urlHelper.Object.Page("/TestPage", values);
 
             // Assert
             urlHelper.Verify();
@@ -1115,7 +1115,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 value =>
                 {
                     Assert.Equal("page", value.Key);
-                    Assert.Equal("TestPage", value.Value);
+                    Assert.Equal("/TestPage", value.Value);
                 });
             Assert.Null(actual.Host);
             Assert.Null(actual.Protocol);
@@ -1132,7 +1132,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 .Callback((UrlRouteContext context) => actual = context);
 
             // Act
-            urlHelper.Object.Page("TestPage", new { id = 13 }, "https");
+            urlHelper.Object.Page("/TestPage", new { id = 13 }, "https");
 
             // Assert
             urlHelper.Verify();
@@ -1147,7 +1147,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 value =>
                 {
                     Assert.Equal("page", value.Key);
-                    Assert.Equal("TestPage", value.Value);
+                    Assert.Equal("/TestPage", value.Value);
                 });
             Assert.Equal("https", actual.Protocol);
             Assert.Null(actual.Host);
@@ -1164,7 +1164,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 .Callback((UrlRouteContext context) => actual = context);
 
             // Act
-            urlHelper.Object.Page("TestPage", new { id = 13 }, "https", "mytesthost");
+            urlHelper.Object.Page("/TestPage", new { id = 13 }, "https", "mytesthost");
 
             // Assert
             urlHelper.Verify();
@@ -1179,7 +1179,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 value =>
                 {
                     Assert.Equal("page", value.Key);
-                    Assert.Equal("TestPage", value.Value);
+                    Assert.Equal("/TestPage", value.Value);
                 });
             Assert.Equal("https", actual.Protocol);
             Assert.Equal("mytesthost", actual.Host);
@@ -1196,7 +1196,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 .Callback((UrlRouteContext context) => actual = context);
 
             // Act
-            urlHelper.Object.Page("TestPage", new { id = 13 }, "https", "mytesthost", "#toc");
+            urlHelper.Object.Page("/TestPage", new { id = 13 }, "https", "mytesthost", "#toc");
 
             // Assert
             urlHelper.Verify();
@@ -1211,7 +1211,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 value =>
                 {
                     Assert.Equal("page", value.Key);
-                    Assert.Equal("TestPage", value.Value);
+                    Assert.Equal("/TestPage", value.Value);
                 });
             Assert.Equal("https", actual.Protocol);
             Assert.Equal("mytesthost", actual.Host);
@@ -1456,7 +1456,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         }
 
         [Fact]
-        public void Page_ReturnsPathAsIs_IfRouteValueDoesNotIncludePageKey()
+        public void Page_Throws_IfRouteValueDoesNotIncludePageKey()
         {
             // Arrange
             var expected = "SiblingName";
@@ -1471,29 +1471,17 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
                 .Callback((UrlRouteContext context) => actual = context);
 
-            // Act
-            urlHelper.Object.Page(expected);
-
-            // Assert
-            urlHelper.Verify();
-            Assert.NotNull(actual);
-            Assert.Null(actual.RouteName);
-            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values),
-                value =>
-                {
-                    Assert.Equal("page", value.Key);
-                    Assert.Equal(expected, value.Value);
-                });
+            // Act & Assert
+            var ex = Assert.Throws<InvalidOperationException>(() => urlHelper.Object.Page(expected));
+            Assert.Equal($"The relative page path '{expected}' can only be from the context of executing a Razor page."
+                + " Specify a root relative path with a leading '/' to calculate it in the current context.", ex.Message);
         }
 
         private static Mock<IUrlHelper> CreateMockUrlHelper(ActionContext context = null)
         {
             if (context == null)
             {
-                context = new ActionContext
-                {
-                    RouteData = new RouteData(),
-                };
+                context = GetActionContextForPage("/Page");
             }
 
             var urlHelper = new Mock<IUrlHelper>();

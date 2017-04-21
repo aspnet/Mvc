@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
@@ -452,7 +453,8 @@ namespace Microsoft.AspNetCore.Mvc
                 var currentPagePath = NormalizedRouteValue.GetNormalizedRouteValue(actionContext, "page");
                 if (string.IsNullOrEmpty(currentPagePath))
                 {
-                    return pageName;
+                    // Disallow the use sibling page routing, a Razor page specific feature, from a non-page action.
+                    throw new InvalidOperationException(Resources.FormatUrlHelper_RelativePagePathIsNotSupported(pageName));
                 }
 
                 return ViewEnginePath.CombinePath(currentPagePath, pageName);
