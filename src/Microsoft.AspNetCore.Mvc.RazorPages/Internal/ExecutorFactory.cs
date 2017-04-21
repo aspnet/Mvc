@@ -5,15 +5,17 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public static class ExecutorFactory
     {
-        public static Func<Page, object, Task<IActionResult>> CreateExecutor(
+        public static Func<object, object[], Task<IActionResult>> CreateExecutor(
             CompiledPageActionDescriptor actionDescriptor,
-            MethodInfo method)
+            MethodInfo method,
+            HandlerParameter[] parameters)
         {
             if (actionDescriptor == null)
             {
@@ -25,48 +27,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 throw new ArgumentNullException(nameof(method));
             }
 
-            var methodIsDeclaredOnPage = method.DeclaringType.GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo);
-            var handler = CreateHandlerMethod(method);
-
-            return async (page, model) =>
+            if (parameters == null)
             {
-                var arguments = new object[handler.Parameters.Length];
-                for (var i = 0; i < handler.Parameters.Length; i++)
-                {
-                    var parameter = handler.Parameters[i];
-                    arguments[i] = await page.Binder.BindModelAsync(
-                        page.PageContext,
-                        parameter.Type,
-                        parameter.DefaultValue,
-                        parameter.Name);
-                }
+                throw new ArgumentNullException(nameof(parameters));
+            }
 
-                var receiver = methodIsDeclaredOnPage ? page : model;
+            var methodIsDeclaredOnPage = method.DeclaringType.GetTypeInfo().IsAssignableFrom(actionDescriptor.PageTypeInfo);
+            var handler = CreateHandlerMethod(method, parameters);
+
+            return async (receiver, arguments) =>
+            {
                 var result = await handler.Execute(receiver, arguments);
                 return result;
             };
         }
 
-        private static HandlerMethod CreateHandlerMethod(MethodInfo method)
+        private static HandlerMethod CreateHandlerMethod(MethodInfo method, HandlerParameter[] parameters)
         {
             var methodParameters = method.GetParameters();
-            var parameters = new HandlerParameter[methodParameters.Length];
-
-            for (var i = 0; i < methodParameters.Length; i++)
-            {
-                var methodParameter = methodParameters[i];
-                object defaultValue = null;
-                if (methodParameter.HasDefaultValue)
-                {
-                    defaultValue = methodParameter.DefaultValue;
-                }
-                else if (methodParameter.ParameterType.GetTypeInfo().IsValueType)
-                {
-                    defaultValue = Activator.CreateInstance(methodParameter.ParameterType);
-                }
-
-                parameters[i] = new HandlerParameter(methodParameter.Name, methodParameter.ParameterType, defaultValue);
-            }
 
             var returnType = method.ReturnType;
             var returnTypeInfo = method.ReturnType.GetTypeInfo();
@@ -103,7 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     unpackExpressions[i] = Expression.Convert(
                         Expression.ArrayIndex(arguments, Expression.Constant(i)),
-                        parameters[i].Type);
+                        parameters[i].ParameterType);
                 }
 
                 return unpackExpressions;
@@ -236,22 +214,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 return Task.FromResult(_thunk(receiver, arguments));
             }
-        }
-
-        private struct HandlerParameter
-        {
-            public HandlerParameter(string name, Type type, object defaultValue)
-            {
-                Name = name;
-                Type = type;
-                DefaultValue = defaultValue;
-            }
-
-            public string Name { get; }
-
-            public Type Type { get; }
-
-            public object DefaultValue { get; }
         }
     }
 }
