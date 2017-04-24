@@ -18,6 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("form", Attributes = AntiforgeryAttributeName)]
     [HtmlTargetElement("form", Attributes = AreaAttributeName)]
     [HtmlTargetElement("form", Attributes = PageAttributeName)]
+    [HtmlTargetElement("form", Attributes = PageHandlerAttributeName)]
     [HtmlTargetElement("form", Attributes = FragmentAttributeName)]
     [HtmlTargetElement("form", Attributes = ControllerAttributeName)]
     [HtmlTargetElement("form", Attributes = RouteAttributeName)]
@@ -29,6 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string AntiforgeryAttributeName = "asp-antiforgery";
         private const string AreaAttributeName = "asp-area";
         private const string PageAttributeName = "asp-page";
+        private const string PageHandlerAttributeName = "asp-page-handler";
         private const string FragmentAttributeName = "asp-fragment";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
@@ -80,6 +82,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(PageAttributeName)]
         public string Page { get; set; }
+
+        /// <summary>
+        /// The name of the page handler.
+        /// </summary>
+        [HtmlAttributeName(PageHandlerAttributeName)]
+        public string PageHandler { get; set; }
 
         /// <summary>
         /// Whether the antiforgery token should be generated.
@@ -166,6 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     Controller != null ||
                     Area != null ||
                     Page != null ||
+                    PageHandler != null ||
                     Fragment != null ||
                     Route != null ||
                     (_routeValues != null && _routeValues.Count > 0))
@@ -192,7 +201,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 var routeLink = Route != null;
                 var actionLink = Controller != null || Action != null;
-                var pageLink = Page != null;
+                var pageLink = Page != null || PageHandler != null;
 
                 if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
                 {
@@ -229,6 +238,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     tagBuilder = Generator.GeneratePageForm(
                         ViewContext,
                         Page,
+                        PageHandler,
                         routeValues,
                         Fragment,
                         method: null,
