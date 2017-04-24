@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -41,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
         /// <param name="rootDirectory">The application relative path to use as the root directory.</param>
-        /// <returns></returns>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder WithRazorPagesRoot(this IMvcBuilder builder, string rootDirectory)
         {
             if (builder == null)
@@ -54,7 +55,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(rootDirectory));
             }
 
+            if (rootDirectory[0] != '/')
+            {
+                throw new ArgumentException(Resources.PathMustBeAnAppRelativePath, nameof(rootDirectory));
+            }
+
             builder.Services.Configure<RazorPagesOptions>(options => options.RootDirectory = rootDirectory);
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures Razor Pages to be rooted at the content root (<see cref="IHostingEnvironment.ContentRootPath"/>).
+        /// </summary>
+        /// <param name="builder">The <see cref="IMvcCoreBuilder"/>.</param>
+        /// <returns>The <see cref="IMvcBuilder"/>.</returns>
+        public static IMvcBuilder WithRazorPagesAtContentRoot(this IMvcBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.Services.Configure<RazorPagesOptions>(options => options.RootDirectory = "/");
             return builder;
         }
     }
