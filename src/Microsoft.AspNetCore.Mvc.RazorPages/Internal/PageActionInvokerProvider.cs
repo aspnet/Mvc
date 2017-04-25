@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -15,8 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
-using Microsoft.AspNetCore.Razor.Evolution;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -25,7 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public class PageActionInvokerProvider : IActionInvokerProvider
     {
-        private const string PageStartFileName = "_PageStart.cshtml";
+        private const string ViewStartFileName = "_ViewStart.cshtml";
+
         private readonly IPageLoader _loader;
         private readonly IPageFactoryProvider _pageFactoryProvider;
         private readonly IPageModelFactoryProvider _modelFactoryProvider;
@@ -39,7 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private readonly HtmlHelperOptions _htmlHelperOptions;
         private readonly RazorPagesOptions _razorPagesOptions;
         private readonly IPageHandlerMethodSelector _selector;
-        private readonly TempDataPropertyProvider _propertyProvider;
         private readonly RazorProject _razorProject;
         private readonly DiagnosticSource _diagnosticSource;
         private readonly ILogger<PageActionInvoker> _logger;
@@ -59,7 +59,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             IOptions<HtmlHelperOptions> htmlHelperOptions,
             IOptions<RazorPagesOptions> razorPagesOptions,
             IPageHandlerMethodSelector selector,
-            TempDataPropertyProvider propertyProvider,
             RazorProject razorProject,
             DiagnosticSource diagnosticSource,
             ILoggerFactory loggerFactory)
@@ -77,7 +76,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _htmlHelperOptions = htmlHelperOptions.Value;
             _razorPagesOptions = razorPagesOptions.Value;
             _selector = selector;
-            _propertyProvider = propertyProvider;
             _razorProject = razorProject;
             _diagnosticSource = diagnosticSource;
             _logger = loggerFactory.CreateLogger<PageActionInvoker>();
@@ -159,13 +157,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             return new PageActionInvoker(
                 _selector,
-                _propertyProvider,
                 _diagnosticSource,
                 _logger,
                 pageContext,
                 filters,
                 new CopyOnWriteList<IValueProviderFactory>(_valueProviderFactories),
-                cacheEntry);
+                cacheEntry,
+                _parameterBinder);
         }
 
         private PageActionInvokerCacheEntry CreateCacheEntry(
@@ -184,19 +182,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             Func<PageContext, object> modelFactory = null;
             Action<PageContext, object> modelReleaser = null;
-            if (compiledActionDescriptor.ModelTypeInfo == null)
+            if (compiledActionDescriptor.ModelTypeInfo != compiledActionDescriptor.PageTypeInfo)
             {
-                PopulateHandlerMethodDescriptors(compiledActionDescriptor.PageTypeInfo, compiledActionDescriptor);
-            }
-            else
-            {
-                PopulateHandlerMethodDescriptors(compiledActionDescriptor.ModelTypeInfo, compiledActionDescriptor);
-
                 modelFactory = _modelFactoryProvider.CreateModelFactory(compiledActionDescriptor);
                 modelReleaser = _modelFactoryProvider.CreateModelDisposer(compiledActionDescriptor);
             }
 
-            var pageStartFactories = GetPageStartFactories(compiledActionDescriptor);
+            var viewStartFactories = GetViewStartFactories(compiledActionDescriptor);
+
+            var executors = GetExecutors(compiledActionDescriptor);
 
             return new PageActionInvokerCacheEntry(
                 compiledActionDescriptor,
@@ -205,119 +199,61 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 modelFactory,
                 modelReleaser,
                 propertyBinder,
-                pageStartFactories,
+                executors,
+                viewStartFactories,
                 cachedFilters);
         }
 
         // Internal for testing.
-        internal List<Func<IRazorPage>> GetPageStartFactories(CompiledPageActionDescriptor descriptor)
+        internal List<Func<IRazorPage>> GetViewStartFactories(CompiledPageActionDescriptor descriptor)
         {
-            var pageStartFactories = new List<Func<IRazorPage>>();
-            var pageStartItems = _razorProject.FindHierarchicalItems(
+            var viewStartFactories = new List<Func<IRazorPage>>();
+            var viewStartItems = _razorProject.FindHierarchicalItems(
                 _razorPagesOptions.RootDirectory,
                 descriptor.RelativePath,
-                PageStartFileName);
-            foreach (var item in pageStartItems)
+                ViewStartFileName);
+            foreach (var item in viewStartItems)
             {
-                if (item.Exists)
+                var factoryResult = _razorPageFactoryProvider.CreateFactory(item.Path);
+                if (factoryResult.Success)
                 {
-                    var factoryResult = _razorPageFactoryProvider.CreateFactory(item.Path);
-                    if (factoryResult.Success)
-                    {
-                        pageStartFactories.Insert(0, factoryResult.RazorPageFactory);
-                    }
+                    viewStartFactories.Insert(0, factoryResult.RazorPageFactory);
                 }
             }
 
-            return pageStartFactories;
+            return viewStartFactories;
         }
 
-        // Internal for testing.
-        internal static void PopulateHandlerMethodDescriptors(TypeInfo type, CompiledPageActionDescriptor actionDescriptor)
+        private static object GetDefaultValue(ParameterInfo methodParameter)
         {
-            var methods = type.GetMethods();
-            for (var i = 0; i < methods.Length; i++)
+            object defaultValue = null;
+            if (methodParameter.HasDefaultValue)
             {
-                var method = methods[i];
-                if (!IsValidHandler(method))
-                {
-                    continue;
-                }
-
-                string httpMethod;
-                int formActionStart;
-
-                if (method.Name.StartsWith("OnGet", StringComparison.Ordinal))
-                {
-                    httpMethod = "GET";
-                    formActionStart = "OnGet".Length;
-                }
-                else if (method.Name.StartsWith("OnPost", StringComparison.Ordinal))
-                {
-                    httpMethod = "POST";
-                    formActionStart = "OnPost".Length;
-                }
-                else
-                {
-                    continue;
-                }
-
-                var formActionLength = method.Name.Length - formActionStart;
-                if (method.Name.EndsWith("Async", StringComparison.OrdinalIgnoreCase))
-                {
-                    formActionLength -= "Async".Length;
-                }
-
-                var formAction = new StringSegment(method.Name, formActionStart, formActionLength);
-
-                var handlerMethodDescriptor = new HandlerMethodDescriptor
-                {
-                    Method = method,
-                    Executor = ExecutorFactory.CreateExecutor(actionDescriptor, method),
-                    FormAction = formAction,
-                    HttpMethod = httpMethod,
-                };
-
-                actionDescriptor.HandlerMethods.Add(handlerMethodDescriptor);
+                defaultValue = methodParameter.DefaultValue;
             }
+            else if (methodParameter.ParameterType.GetTypeInfo().IsValueType)
+            {
+                defaultValue = Activator.CreateInstance(methodParameter.ParameterType);
+            }
+
+            return defaultValue;
         }
 
-        private static bool IsValidHandler(MethodInfo methodInfo)
+        private static Func<object, object[], Task<IActionResult>>[] GetExecutors(CompiledPageActionDescriptor actionDescriptor)
         {
-            // The SpecialName bit is set to flag members that are treated in a special way by some compilers
-            // (such as property accessors and operator overloading methods).
-            if (methodInfo.IsSpecialName)
+            if (actionDescriptor.HandlerMethods == null || actionDescriptor.HandlerMethods.Count == 0)
             {
-                return false;
+                return Array.Empty<Func<object, object[], Task<IActionResult>>>();
             }
 
-            // Overriden methods from Object class, e.g. Equals(Object), GetHashCode(), etc., are not valid.
-            if (methodInfo.GetBaseDefinition().DeclaringType == typeof(object))
+            var results = new Func<object, object[], Task<IActionResult>>[actionDescriptor.HandlerMethods.Count];
+
+            for (var i = 0; i < actionDescriptor.HandlerMethods.Count; i++)
             {
-                return false;
+                results[i] = ExecutorFactory.CreateExecutor(actionDescriptor.HandlerMethods[i]);
             }
 
-            if (methodInfo.IsStatic)
-            {
-                return false;
-            }
-
-            if (methodInfo.IsAbstract)
-            {
-                return false;
-            }
-
-            if (methodInfo.IsConstructor)
-            {
-                return false;
-            }
-
-            if (methodInfo.IsGenericMethod)
-            {
-                return false;
-            }
-
-            return methodInfo.IsPublic;
+            return results;
         }
 
         internal class InnerCache

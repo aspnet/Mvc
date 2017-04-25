@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
@@ -31,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -68,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor,
                     },
@@ -110,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -135,26 +136,26 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void Select_ReturnsNullWhenNoHandlerMatchesFormAction()
+        public void Select_ReturnsNullWhenNoHandlerMatchesHandler()
         {
             // Arrange
             var descriptor1 = new HandlerMethodDescriptor
             {
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Add"),
+                Name = "Add",
             };
 
             var descriptor2 = new HandlerMethodDescriptor
             {
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Delete"),
+                Name = "Delete",
             };
 
             var pageContext = new PageContext
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -164,7 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     Values =
                     {
-                        { "formaction", "update" }
+                        { "handler", "update" }
                     }
                 },
                 HttpContext = new DefaultHttpContext
@@ -185,26 +186,26 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void Select_ReturnsHandlerThatMatchesFormAction()
+        public void Select_ReturnsHandlerThatMatchesHandler()
         {
             // Arrange
             var descriptor1 = new HandlerMethodDescriptor
             {
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Add"),
+                Name = "Add",
             };
 
             var descriptor2 = new HandlerMethodDescriptor
             {
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Delete"),
+                Name = "Delete",
             };
 
             var pageContext = new PageContext
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -214,7 +215,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     Values =
                     {
-                        { "formaction", "Add" }
+                        { "handler", "Add" }
                     }
                 },
                 HttpContext = new DefaultHttpContext
@@ -235,13 +236,154 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void Select_ReturnsHandlerWithMatchingHttpMethodWithoutAFormAction()
+        public void Select_HandlerFromQueryString()
         {
             // Arrange
             var descriptor1 = new HandlerMethodDescriptor
             {
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Subscribe"),
+                Name = "Add",
+            };
+
+            var descriptor2 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Delete",
+            };
+
+            var pageContext = new PageContext
+            {
+                ActionDescriptor = new CompiledPageActionDescriptor
+                {
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
+                    {
+                        descriptor1,
+                        descriptor2,
+                    },
+                },
+                RouteData = new RouteData(),
+                HttpContext = new DefaultHttpContext
+                {
+                    Request =
+                    {
+                        Method = "Post",
+                        QueryString = new QueryString("?handler=Delete"),
+                    },
+                },
+            };
+            var selector = new DefaultPageHandlerMethodSelector();
+
+            // Act
+            var actual = selector.Select(pageContext);
+
+            // Assert
+            Assert.Same(descriptor2, actual);
+        }
+
+        [Fact]
+        public void Select_HandlerConsidersRouteDataFirst()
+        {
+            // Arrange
+            var descriptor1 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Add",
+            };
+
+            var descriptor2 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Delete",
+            };
+
+            var pageContext = new PageContext
+            {
+                ActionDescriptor = new CompiledPageActionDescriptor
+                {
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
+                    {
+                        descriptor1,
+                        descriptor2,
+                    },
+                },
+                RouteData = new RouteData
+                {
+                    Values =
+                    {
+                        { "handler", "Add" }
+                    }
+                },
+                HttpContext = new DefaultHttpContext
+                {
+                    Request =
+                    {
+                        Method = "Post",
+                        QueryString = new QueryString("?handler=Delete"),
+                    },
+                },
+            };
+            var selector = new DefaultPageHandlerMethodSelector();
+
+            // Act
+            var actual = selector.Select(pageContext);
+
+            // Assert
+            Assert.Same(descriptor1, actual);
+        }
+
+        [Fact]
+        public void Select_HandlerMultipleTimesInQueryString_UsesFirst()
+        {
+            // Arrange
+            var descriptor1 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Add",
+            };
+
+            var descriptor2 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Delete",
+            };
+
+            var pageContext = new PageContext
+            {
+                ActionDescriptor = new CompiledPageActionDescriptor
+                {
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
+                    {
+                        descriptor1,
+                        descriptor2,
+                    },
+                },
+                RouteData = new RouteData(),
+                HttpContext = new DefaultHttpContext
+                {
+                    Request =
+                    {
+                        Method = "Post",
+                        QueryString = new QueryString("?handler=Delete&handler=Add"),
+                    },
+                },
+            };
+            var selector = new DefaultPageHandlerMethodSelector();
+
+            // Act
+            var actual = selector.Select(pageContext);
+
+            // Assert
+            Assert.Same(descriptor2, actual);
+        }
+
+        [Fact]
+        public void Select_ReturnsHandlerWithMatchingHttpMethodWithoutAHandler()
+        {
+            // Arrange
+            var descriptor1 = new HandlerMethodDescriptor
+            {
+                HttpMethod = "POST",
+                Name = "Subscribe",
             };
 
             var descriptor2 = new HandlerMethodDescriptor
@@ -253,7 +395,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -263,7 +405,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     Values =
                     {
-                        { "formaction", "Add" }
+                        { "handler", "Add" }
                     }
                 },
                 HttpContext = new DefaultHttpContext
@@ -284,18 +426,18 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void Select_WithoutFormAction_ThrowsIfMoreThanOneHandlerMatches()
+        public void Select_WithoutHandler_ThrowsIfMoreThanOneHandlerMatches()
         {
             // Arrange
             var descriptor1 = new HandlerMethodDescriptor
             {
-                Method = GetType().GetMethod(nameof(Post)),
+                MethodInfo = GetType().GetMethod(nameof(Post)),
                 HttpMethod = "POST",
             };
 
             var descriptor2 = new HandlerMethodDescriptor
             {
-                Method = GetType().GetMethod(nameof(PostAsync)),
+                MethodInfo = GetType().GetMethod(nameof(PostAsync)),
                 HttpMethod = "POST",
             };
 
@@ -308,7 +450,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -328,7 +470,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(() => selector.Select(pageContext));
-            var methods = descriptor1.Method + ", " + descriptor2.Method;
+            var methods = descriptor1.MethodInfo + ", " + descriptor2.MethodInfo;
             var message = "Multiple handlers matched. The following handlers matched route data and had all constraints satisfied:" +
                 Environment.NewLine + Environment.NewLine + methods;
 
@@ -336,21 +478,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void Select_WithFormAction_ThrowsIfMoreThanOneHandlerMatches()
+        public void Select_WithHandler_ThrowsIfMoreThanOneHandlerMatches()
         {
             // Arrange
             var descriptor1 = new HandlerMethodDescriptor
             {
-                Method = GetType().GetMethod(nameof(Post)),
+                MethodInfo = GetType().GetMethod(nameof(Post)),
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Add"),
+                Name = "Add",
             };
 
             var descriptor2 = new HandlerMethodDescriptor
             {
-                Method = GetType().GetMethod(nameof(PostAsync)),
+                MethodInfo = GetType().GetMethod(nameof(PostAsync)),
                 HttpMethod = "POST",
-                FormAction = new StringSegment("Add"),
+                Name = "Add",
             };
 
             var descriptor3 = new HandlerMethodDescriptor
@@ -362,7 +504,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             {
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
-                    HandlerMethods =
+                    HandlerMethods = new List<HandlerMethodDescriptor>()
                     {
                         descriptor1,
                         descriptor2,
@@ -373,7 +515,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     Values =
                     {
-                        { "formaction", "Add" }
+                        { "handler", "Add" }
                     }
                 },
                 HttpContext = new DefaultHttpContext
@@ -388,7 +530,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(() => selector.Select(pageContext));
-            var methods = descriptor1.Method + ", " + descriptor2.Method;
+            var methods = descriptor1.MethodInfo + ", " + descriptor2.MethodInfo;
             var message = "Multiple handlers matched. The following handlers matched route data and had all constraints satisfied:" +
                 Environment.NewLine + Environment.NewLine + methods;
 

@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Contains(expectedCompilationContent, content);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/Mvc/issues/6120")]
         public async Task RuntimeErrorAreListedByErrorPageMiddleware()
         {
             // The desktop CLR does not correctly read the stack trace from portable PDBs. However generating full pdbs
@@ -135,6 +135,24 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var content = await response.Content.ReadAsStringAsync();
             Assert.Contains("Loader Exceptions:", content);
             Assert.Contains(expectedMessage, content);
+        }
+
+        [Fact]
+        public async void AggregateException_FlattensInnerExceptions()
+        {
+            // Arrange
+            var aggregateException = "AggregateException: One or more errors occurred.";
+            var nullReferenceException = "NullReferenceException: Foo cannot be null";
+            var indexOutOfRangeException = "IndexOutOfRangeException: Index is out of range";
+
+            // Act
+            var response = await Client.GetAsync("http://localhost/AggregateException");
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Contains(aggregateException, content);
+            Assert.Contains(nullReferenceException, content);
+            Assert.Contains(indexOutOfRangeException, content);
         }
     }
 }

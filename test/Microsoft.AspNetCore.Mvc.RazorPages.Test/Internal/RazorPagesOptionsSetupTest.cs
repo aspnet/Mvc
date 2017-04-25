@@ -26,8 +26,22 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             // Assert
             Assert.Collection(applicationModel.Filters,
-                filter => Assert.IsType<SaveTempDataPropertyFilterFactory>(filter),
+                filter => Assert.IsType<PageSaveTempDataPropertyFilterFactory>(filter),
                 filter => Assert.IsType<AutoValidateAntiforgeryTokenAttribute>(filter));
+        }
+
+        [Fact]
+        public void Configure_SetsRazorPagesRoot()
+        {
+            // Arrange
+            var options = new RazorPagesOptions();
+            var setup = new RazorPagesOptionsSetup();
+
+            // Act
+            setup.Configure(options);
+
+            // Assert
+            Assert.Equal("/Pages", options.RootDirectory);
         }
     }
 }

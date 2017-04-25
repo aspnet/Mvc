@@ -11,24 +11,23 @@ namespace RazorPagesWebSite
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddCookieAuthentication(options => options.LoginPath = "/Login")
                 .AddMvc()
                 .AddCookieTempDataProvider()
                 .AddRazorPagesOptions(options =>
                 {
                     options.AuthorizePage("/HelloWorldWithAuth");
-                });
+                    options.AuthorizeFolder("/Pages/Admin");
+                    options.AllowAnonymousToPage("/Pages/Admin/Login");
+                })
+                .WithRazorPagesAtContentRoot();
         }
 
         public void Configure(IApplicationBuilder app)
         {
             app.UseCultureReplacer();
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                LoginPath = "/Login",
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true
-            });
+            app.UseAuthentication();
 
             app.UseStaticFiles();
 

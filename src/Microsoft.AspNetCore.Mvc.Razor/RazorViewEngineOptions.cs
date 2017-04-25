@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     /// </summary>
     public class RazorViewEngineOptions
     {
-        private CSharpParseOptions _parseOptions = new CSharpParseOptions(LanguageVersion.CSharp6);
+        private CSharpParseOptions _parseOptions = new CSharpParseOptions(LanguageVersion.CSharp7);
         private CSharpCompilationOptions _compilationOptions =
             new CSharpCompilationOptions(CodeAnalysis.OutputKind.DynamicallyLinkedLibrary);
         private Action<RoslynCompilationContext> _compilationCallback = c => { };
@@ -91,6 +91,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </para>
         /// </remarks>
         public IList<string> AreaViewLocationFormats { get; } = new List<string>();
+
+        public IList<string> PageViewLocationFormats { get; } = new List<string>();
 
         /// <summary>
         /// Gets the <see cref="MetadataReference" /> instances that should be included in Razor compilation, along with

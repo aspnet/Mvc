@@ -4,28 +4,24 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Routing;
 
 namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
     /// <summary>
     /// <see cref="ITagHelper"/> implementation targeting &lt;form&gt; elements.
     /// </summary>
-    [HtmlTargetElement("form", Attributes = ActionAttributeName)]
-    [HtmlTargetElement("form", Attributes = AntiforgeryAttributeName)]
-    [HtmlTargetElement("form", Attributes = AreaAttributeName)]
-    [HtmlTargetElement("form", Attributes = FragmentAttributeName)]
-    [HtmlTargetElement("form", Attributes = ControllerAttributeName)]
-    [HtmlTargetElement("form", Attributes = RouteAttributeName)]
-    [HtmlTargetElement("form", Attributes = RouteValuesDictionaryName)]
-    [HtmlTargetElement("form", Attributes = RouteValuesPrefix + "*")]
+    [HtmlTargetElement("form")]
     public class FormTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
         private const string AntiforgeryAttributeName = "asp-antiforgery";
         private const string AreaAttributeName = "asp-area";
+        private const string PageAttributeName = "asp-page";
         private const string FragmentAttributeName = "asp-fragment";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
@@ -71,6 +67,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(AreaAttributeName)]
         public string Area { get; set; }
+
+        /// <summary>
+        /// The name of the page.
+        /// </summary>
+        [HtmlAttributeName(PageAttributeName)]
+        public string Page { get; set; }
 
         /// <summary>
         /// Whether the antiforgery token should be generated.
@@ -143,19 +145,25 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 throw new ArgumentNullException(nameof(output));
             }
+
             if (Method != null)
             {
                 output.CopyHtmlAttribute(nameof(Method), context);
+            }
+            else
+            {
+                Method = "get";
             }
 
             var antiforgeryDefault = true;
 
             // If "action" is already set, it means the user is attempting to use a normal <form>.
-            if (output.Attributes.ContainsName(HtmlActionAttributeName))
+            if (output.Attributes.TryGetAttribute(HtmlActionAttributeName, out var actionAttribute))
             {
                 if (Action != null ||
                     Controller != null ||
                     Area != null ||
+                    Page != null ||
                     Fragment != null ||
                     Route != null ||
                     (_routeValues != null && _routeValues.Count > 0))
@@ -163,46 +171,102 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     // User also specified bound attributes we cannot use.
                     throw new InvalidOperationException(
                         Resources.FormatFormTagHelper_CannotOverrideAction(
-                            "<form>",
                             HtmlActionAttributeName,
+                            "<form>",
+                            RouteValuesPrefix,
                             ActionAttributeName,
                             ControllerAttributeName,
                             FragmentAttributeName,
                             AreaAttributeName,
                             RouteAttributeName,
-                            RouteValuesPrefix));
+                            PageAttributeName));
                 }
 
-                // User is using the FormTagHelper like a normal <form> tag. Antiforgery default should be false to
-                // not force the antiforgery token on the user.
-                antiforgeryDefault = false;
+                string attributeValue = null;
+                switch (actionAttribute.Value)
+                {
+                    case HtmlString htmlString:
+                        attributeValue = htmlString.ToString();
+                        break;
+                    case string stringValue:
+                        attributeValue = stringValue;
+                        break;
+                }
+
+                if (string.IsNullOrEmpty(attributeValue))
+                {
+                    // User is using the FormTagHelper like a normal <form> tag that has an empty or complex IHtmlContent action attribute.
+                    // e.g. <form action="" method="post"> or <form action="@CustomUrlIHtmlContent" method="post">
+
+                    // Antiforgery default is already set to true
+                }
+                else
+                {
+                    // User is likely using the <form> element to submit to another site. Do not send an antiforgery token to unknown sites.
+                    antiforgeryDefault = false;
+                }
             }
             else
             {
-                IDictionary<string, object> routeValues = null;
+                var routeLink = Route != null;
+                var actionLink = Controller != null || Action != null;
+                var pageLink = Page != null;
+
+                if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
+                {
+                    var message = string.Join(
+                        Environment.NewLine,
+                        Resources.FormatCannotDetermineAttributeFor(HtmlActionAttributeName, "<form>"),
+                        RouteAttributeName,
+                        ControllerAttributeName + ", " + ActionAttributeName,
+                        PageAttributeName);
+
+                    throw new InvalidOperationException(message);
+                }
+
+                RouteValueDictionary routeValues = null;
                 if (_routeValues != null && _routeValues.Count > 0)
                 {
-                    // Convert from Dictionary<string, string> to Dictionary<string, object>.
-                    routeValues = new Dictionary<string, object>(_routeValues.Count, StringComparer.OrdinalIgnoreCase);
-                    foreach (var routeValue in _routeValues)
-                    {
-                        routeValues.Add(routeValue.Key, routeValue.Value);
-                    }
+                    routeValues = new RouteValueDictionary(_routeValues);
                 }
 
                 if (Area != null)
                 {
                     if (routeValues == null)
                     {
-                        routeValues = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                        routeValues = new RouteValueDictionary();
                     }
 
                     // Unconditionally replace any value from asp-route-area.
                     routeValues["area"] = Area;
                 }
 
-                TagBuilder tagBuilder;
-                if (Route == null)
+                TagBuilder tagBuilder = null;
+                if (Action == null && Controller == null && Route == null && _routeValues == null && Fragment == null && Area == null && Page == null)
+                {
+                    // Empty form tag such as <form></form>. Let it flow to the output as-is and only handle anti-forgery.
+                }
+                else if (pageLink)
+                {
+                    tagBuilder = Generator.GeneratePageForm(
+                        ViewContext,
+                        Page,
+                        routeValues,
+                        Fragment,
+                        method: null,
+                        htmlAttributes: null);
+                }
+                else if (routeLink)
+                {
+                    tagBuilder = Generator.GenerateRouteForm(
+                        ViewContext,
+                        Route,
+                        routeValues,
+                        Fragment,
+                        method: null,
+                        htmlAttributes: null);
+                }
+                else
                 {
                     tagBuilder = Generator.GenerateForm(
                         ViewContext,
@@ -210,28 +274,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         Controller,
                         Fragment,
                         routeValues,
-                        method: null,
-                        htmlAttributes: null);
-                }
-                else if (Action != null || Controller != null)
-                {
-                    // Route and Action or Controller were specified. Can't determine the action attribute.
-                    throw new InvalidOperationException(
-                        Resources.FormatFormTagHelper_CannotDetermineActionWithRouteAndActionOrControllerSpecified(
-                            "<form>",
-                            RouteAttributeName,
-                            ActionAttributeName,
-                            ControllerAttributeName,
-                            HtmlActionAttributeName,
-                            FragmentAttributeName));
-                }
-                else
-                {
-                    tagBuilder = Generator.GenerateRouteForm(
-                        ViewContext,
-                        Route,
-                        routeValues,
-                        Fragment,
                         method: null,
                         htmlAttributes: null);
                 }
@@ -244,11 +286,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         output.PostContent.AppendHtml(tagBuilder.InnerHtml);
                     }
                 }
+            }
 
-                if (string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase))
-                {
-                    antiforgeryDefault = false;
-                }
+            if (string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase))
+            {
+                antiforgeryDefault = false;
             }
 
             if (Antiforgery ?? antiforgeryDefault)

@@ -33,6 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [InlineData("text/*", false)]
         [InlineData("text/xml", false)]
         [InlineData("application/xml", false)]
+        [InlineData("application/some.entity+json", true)]
+        [InlineData("application/some.entity+json;v=2", true)]
+        [InlineData("application/some.entity+xml", false)]
+        [InlineData("application/some.entity+*", false)]
+        [InlineData("text/some.entity+json", false)]
         [InlineData("", false)]
         [InlineData(null, false)]
         [InlineData("invalid", false)]
@@ -335,6 +340,40 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.False(modelState.ContainsKey("age"));
             var error = Assert.Single(modelState[""].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
+        }
+
+        [Theory]
+        [InlineData("null", true, true)]
+        [InlineData("null", false, false)]
+        [InlineData(" ", true, true)]
+        [InlineData(" ", false, false)]
+        public async Task ReadAsync_WithInputThatDeserializesToNull_SetsModelOnlyIfAllowingEmptyInput(string content, bool allowEmptyInput, bool expectedIsModelSet)
+        {
+            // Arrange
+            var logger = GetLogger();
+            var formatter =
+                new JsonInputFormatter(logger, _serializerSettings, ArrayPool<char>.Shared, _objectPoolProvider);
+            var contentBytes = Encoding.UTF8.GetBytes(content);
+
+            var modelState = new ModelStateDictionary();
+            var httpContext = GetHttpContext(contentBytes);
+            var provider = new EmptyModelMetadataProvider();
+            var metadata = provider.GetMetadataForType(typeof(object));
+            var context = new InputFormatterContext(
+                httpContext,
+                modelName: string.Empty,
+                modelState: modelState,
+                metadata: metadata,
+                readerFactory: new TestHttpRequestStreamReaderFactory().CreateReader,
+                treatEmptyInputAsDefaultValue: allowEmptyInput);
+
+            // Act
+            var result = await formatter.ReadAsync(context);
+
+            // Assert
+            Assert.False(result.HasError);
+            Assert.Equal(expectedIsModelSet, result.IsModelSet);
+            Assert.Null(result.Model);
         }
 
         [Fact]

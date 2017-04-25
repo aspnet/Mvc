@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -13,6 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
     public class RazorPagesTest : IClassFixture<MvcTestFixture<RazorPagesWebSite.Startup>>
     {
+        private static readonly Assembly _resourcesAssembly = typeof(RazorPagesTest).GetTypeInfo().Assembly;
+
         public RazorPagesTest(MvcTestFixture<RazorPagesWebSite.Startup> fixture)
         {
             Client = fixture.Client;
@@ -21,7 +25,56 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
-        public async Task Page_Handler_FormAction()
+        public async Task Page_SimpleForms_RenderAntiforgery()
+        {
+            // Arrange
+            var expectedMediaType = MediaTypeHeaderValue.Parse("text/html; charset=utf-8");
+            var outputFile = "compiler/resources/RazorPagesWebSite.SimpleForms.html";
+            var expectedContent = await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            // Act
+            var response = await Client.GetAsync("http://localhost/SimpleForms");
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedMediaType, response.Content.Headers.ContentType);
+
+            responseContent = responseContent.Trim();
+
+            var forgeryToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(responseContent, "SimpleForms");
+#if GENERATE_BASELINES
+            // Reverse usual substitution and insert a format item into the new file content.
+            responseContent = responseContent.Replace(forgeryToken, "{0}");
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            expectedContent = string.Format(expectedContent, forgeryToken);
+            Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
+        [Fact]
+        public async Task Page_Handler_HandlerFromQueryString()
+        {
+            // Arrange & Act
+            var content = await Client.GetStringAsync("http://localhost/HandlerTestPage?handler=Customer");
+
+            // Assert
+            Assert.StartsWith("Method: OnGetCustomer", content.Trim());
+        }
+
+        [Fact]
+        public async Task Page_Handler_HandlerRouteDataChosenOverQueryString()
+        {
+            // Arrange & Act
+            var content = await Client.GetStringAsync("http://localhost/HandlerTestPage/Customer?handler=ViewCustomer");
+
+            // Assert
+            Assert.StartsWith("Method: OnGetCustomer", content.Trim());
+        }
+
+        [Fact]
+        public async Task Page_Handler_Handler()
         {
             // Arrange & Act
             var content = await Client.GetStringAsync("http://localhost/HandlerTestPage/Customer");
@@ -53,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task Page_Handler_AsyncFormAction()
+        public async Task Page_Handler_AsyncHandler()
         {
             // Arrange & Act
             var content = await Client.GetStringAsync("http://localhost/HandlerTestPage/ViewCustomer");
@@ -93,9 +146,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("CustomActionResult", content);
         }
 
-
         [Fact]
-        public async Task PageModel_Handler_FormAction()
+        public async Task PageModel_Handler_Handler()
         {
             // Arrange & Act
             var content = await Client.GetStringAsync("http://localhost/ModelHandlerTestPage/Customer");
@@ -127,7 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task PageModel_Handler_AsyncFormAction()
+        public async Task PageModel_Handler_AsyncHandler()
         {
             // Arrange & Act
             var content = await Client.GetStringAsync("http://localhost/ModelHandlerTestPage/ViewCustomer");
@@ -165,6 +217,35 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal("CustomActionResult", content);
+        }
+
+        [Fact]
+        public async Task RouteData_StringValueOnIntProp_ExpectsNotFound()
+        {
+            // Arrange
+            var routeRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RouteData/pizza");
+
+            // Act
+            var routeResponse = await Client.SendAsync(routeRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, routeResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task RouteData_IntProperty_IsCoerced()
+        {
+            // Arrange
+            var routeRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RouteData/5");
+
+            // Act
+            var routeResponse = await Client.SendAsync(routeRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, routeResponse.StatusCode);
+
+            var content = await routeResponse.Content.ReadAsStringAsync();
+            Assert.Equal("From RouteData: 5", content.Trim());
         }
 
         [Fact]
@@ -386,6 +467,69 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task TempData_TempDataPropertyOnPageModel_IsPopulatedFromTempData()
+        {
+            // Arrange 1
+            var url = "http://localhost/TempData/SetMessageAndRedirect";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act 1
+            var response = await Client.SendAsync(request);
+
+            // Assert 1
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+
+            // Act 2
+            request = new HttpRequestMessage(HttpMethod.Get, response.Headers.Location);
+            request.Headers.Add("Cookie", GetCookie(response));
+            response = await Client.SendAsync(request);
+
+            // Assert 2
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith("Message: Secret Message", content.Trim());
+            Assert.EndsWith("TempData: Secret Message", content.Trim());
+        }
+
+        [Fact]
+        public async Task TempData_TempDataPropertyOnPageModel_PopulatesTempData()
+        {
+            // Arrange 1
+            var getRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TempData/TempDataPageModelProperty");
+            var getResponse = await Client.SendAsync(getRequest);
+            var getResponseBody = await getResponse.Content.ReadAsStringAsync();
+            var formToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(getResponseBody, "/TempData/TempDataPageModelProperty");
+            var cookie = AntiforgeryTestHelper.RetrieveAntiforgeryCookie(getResponse);
+
+            var url = "http://localhost/TempData/TempDataPageModelProperty";
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("Cookie", cookie.Key + "=" + cookie.Value);
+            request.Headers.Add("RequestVerificationToken", formToken);
+
+            // Act 1
+            var response = await Client.SendAsync(request);
+
+            // Assert 1
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith("Message: Secret post", content.Trim());
+            Assert.EndsWith("TempData:", content.Trim());
+
+            // Arrange 2
+            request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TempData/TempDataPageModelProperty");
+            request.Headers.Add("Cookie", GetCookie(response));
+
+            // Act 2
+            response = await Client.SendAsync(request);
+
+            // Assert 2
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith("Message: Secret post", content.Trim());
+            Assert.EndsWith("TempData: Secret post", content.Trim());
+        }
+
+        [Fact]
         public async Task AuthorizePage_AddsAuthorizationForSpecificPages()
         {
             // Arrange
@@ -399,30 +543,45 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("/Login?ReturnUrl=%2FHelloWorldWithAuth", response.Headers.Location.PathAndQuery);
         }
 
+        [Fact]
+        public async Task AuthorizePage_AllowAnonymousForSpecificPages()
+        {
+            // Arrange
+            var url = "/Pages/Admin/Login";
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Login Page", content);
+        }
 
         [Fact]
-        public async Task PageStart_IsDiscoveredWhenRootDirectoryIsNotSpecified()
+        public async Task ViewStart_IsDiscoveredWhenRootDirectoryIsNotSpecified()
         {
             // Test for https://github.com/aspnet/Mvc/issues/5915
             //Arrange
-            var expected = $"Hello from _PageStart{Environment.NewLine}Hello from /Pages/WithPageStart/Index.cshtml!";
+            var expected = $"Hello from _ViewStart{Environment.NewLine}Hello from /Pages/WithViewStart/Index.cshtml!";
 
             // Act
-            var response = await Client.GetStringAsync("/Pages/WithPageStart");
+            var response = await Client.GetStringAsync("/Pages/WithViewStart");
 
             // Assert
             Assert.Equal(expected, response.Trim());
         }
 
         [Fact]
-        public async Task PageImport_IsDiscoveredWhenRootDirectoryIsNotSpecified()
+        public async Task ViewImport_IsDiscoveredWhenRootDirectoryIsNotSpecified()
         {
             // Test for https://github.com/aspnet/Mvc/issues/5915
             // Arrange
             var expected = "Hello from CustomService!";
 
             // Act
-            var response = await Client.GetStringAsync("/Pages/WithPageImport");
+            var response = await Client.GetStringAsync("/Pages/WithViewImport");
 
             // Assert
             Assert.Equal(expected, response.Trim());
@@ -591,6 +750,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task PageProperty_WithSupportsGet_BoundInGet()
+        {
+            // Arrange
+            var expected = "<p>11</p>";
+            var request = new HttpRequestMessage(HttpMethod.Get, "Pages/PropertyBinding/BindPropertyWithGet?value=11");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.StartsWith(expected, content.Trim());
+        }
+
+        [Fact]
         public async Task PagePropertiesAreInjected()
         {
             // Arrange
@@ -601,6 +776,209 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
 
             // Act
             var response = await Client.GetStringAsync("InjectedPageProperties");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task RedirectFromPageWorks()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/Redirect/10";
+
+            // Act
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectFromPage");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectFromPageModelWorks()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/Redirect/12";
+
+            // Act
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectFromModel");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+
+        [Fact]
+        public async Task RedirectToSelfWorks()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/RedirectToSelf?user=37";
+            var request = new HttpRequestMessage(HttpMethod.Post, "/Pages/Redirects/RedirectToSelf")
+            {
+                Content = new FormUrlEncodedContent(new KeyValuePair<string, string>[]
+                {
+                    new KeyValuePair<string, string>("value", "37"),
+                }),
+            };
+
+            // Act
+            await AddAntiforgeryHeaders(request);
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectDoesNotIncludeHandlerByDefault()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/RedirectFromHandler";
+
+            // Act
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectFromHandler/RedirectToPage/10");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToOtherHandlersWorks()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/RedirectFromHandler/RedirectToPage/11";
+
+            // Act
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectFromHandler/RedirectToAnotherHandler/11");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task Controller_RedirectToPage()
+        {
+            // Arrange
+            var expected = "/RedirectToController?param=17";
+
+            // Act
+            var response = await Client.GetAsync("/RedirectToPage");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task Page_RedirectToController()
+        {
+            // Arrange
+            var expected = "/RedirectToPage?param=92";
+
+            // Act
+            var response = await Client.GetAsync("/RedirectToController");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToSibling_Works()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/Redirect/10";
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectToSibling/RedirectToRedirect");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToSibling_RedirectsToIndexPage_WithoutIndexSegment()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects";
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectToSibling/RedirectToIndex");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToSibling_RedirectsToSubDirectory()
+        {
+            // Arrange
+            var expected = "/Pages/Redirects/SubDir/SubDirPage";
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectToSibling/RedirectToSubDir");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToSibling_RedirectsToParentDirectory()
+        {
+            // Arrange
+            var expected = "/Pages/Conventions/AuthFolder";
+            var response = await Client.GetAsync("/Pages/Redirects/RedirectToSibling/RedirectToParent");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task TagHelpers_SupportSiblingRoutes()
+        {
+            // Arrange
+var expected = 
+@"<form method=""post"" action=""/Pages/TagHelper/CrossPost""></form>
+<a href=""/Pages/TagHelper/SelfPost/12"" />
+<input type=""image"" formaction=""/Pages/TagHelper/CrossPost#my-fragment"" />";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/TagHelper/SiblingLinks");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task TagHelpers_SupportSubDirectoryRoutes()
+        {
+            // Arrange
+var expected = 
+@"<form method=""post"" action=""/Pages/TagHelper/SubDir/SubDirPage""></form>
+<a href=""/Pages/TagHelper/SubDir/SubDirPage/12"" />
+<input type=""image"" formaction=""/Pages/TagHelper/SubDir/SubDirPage#my-fragment"" />";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/TagHelper/SubDirectoryLinks");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task TagHelpers_SupportsPathNavigation()
+        {
+            // Arrange
+var expected = 
+@"<form method=""post"" action=""/HelloWorld""></form>
+<a href=""/Pages/Redirects/RedirectToIndex"" />
+<input type=""image"" formaction=""/Pages/Admin#my-fragment"" />";
+
+            // Act
+            var response = await Client.GetStringAsync("/Pages/TagHelper/PathTraversalLinks");
 
             // Assert
             Assert.Equal(expected, response.Trim());
