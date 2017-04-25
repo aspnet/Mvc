@@ -51,7 +51,11 @@
     "System.Buffers": "4.0.0"
   },
   "frameworks": {
-    "net451": {},
+    "net451": {
+      "frameworkAssemblies": {
+        "System.Configuration": ""
+      }
+    },
     "netstandard1.6": {
       "dependencies": {
         "System.Runtime.Serialization.Primitives": "4.1.1"
