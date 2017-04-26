@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         }
 
         [Fact]
-        public void PageFactorySetsNestedVidewDataDictionaryWhenContextHasANonNullDictionary()
+        public void PageFactorySetsNestedViewDataDictionaryWhenContextHasANonNullDictionary()
         {
             // Arrange
             var modelMetadataProvider = new EmptyModelMetadataProvider();
@@ -180,10 +180,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 {
                     PageTypeInfo = typeof(TestPage).GetTypeInfo()
                 },
-                ViewData = new ViewDataDictionary(modelMetadataProvider, new ModelStateDictionary())
+                ViewContext = new ViewContext()
                 {
-                    { "test-key", "test-value" },
-                }
+
+                },
+            };
+
+            pageContext.ViewContext.ViewData = new ViewDataDictionary(modelMetadataProvider, new ModelStateDictionary())
+            {
+                { "test-key", "test-value" },
             };
 
             var factoryProvider = CreatePageFactory();

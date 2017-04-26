@@ -2,24 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
     /// <summary>
     /// The context associated with the current request for a Razor page.
     /// </summary>
-    public class PageContext : ViewContext
+    public class PageContext : ActionContext
     {
         private CompiledPageActionDescriptor _actionDescriptor;
         private Page _page;
+        private ViewContext _viewContext;
         private IList<IValueProviderFactory> _valueProviderFactories;
 
         /// <summary>
@@ -36,17 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// Initializes a new instance of <see cref="PageContext"/>.
         /// </summary>
         /// <param name="actionContext">The <see cref="ActionContext"/>.</param>
-        /// <param name="viewData">The <see cref="ViewDataDictionary"/>.</param>
-        /// <param name="tempDataDictionary">The <see cref="ITempDataDictionary"/>.</param>
-        /// <param name="htmlHelperOptions">The <see cref="HtmlHelperOptions"/> to apply to this instance.</param>
-        public PageContext(
-            ActionContext actionContext,
-            ViewDataDictionary viewData,
-            ITempDataDictionary tempDataDictionary,
-            HtmlHelperOptions htmlHelperOptions)
-            : base(actionContext, NullView.Instance, viewData, tempDataDictionary, TextWriter.Null, htmlHelperOptions)
+        public PageContext(ActionContext actionContext)
+            : base(actionContext)
         {
         }
+        
 
         /// <summary>
         /// Gets or sets the <see cref="PageActionDescriptor"/>.
@@ -64,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             }
         }
 
-        public Page Page
+        public virtual Page Page
         {
             get { return _page; }
             set
@@ -75,6 +66,23 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 }
 
                 _page = value;
+            }
+        }
+
+        public virtual ViewContext ViewContext
+        {
+            get
+            {
+                return _viewContext;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                _viewContext = value;
             }
         }
 

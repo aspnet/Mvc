@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
@@ -24,13 +25,19 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         public void PagePropertiesArePopulatedFromContext()
         {
             // Arrange
-            var httpContext = new DefaultHttpContext();
-            var modelState = new ModelStateDictionary();
-            var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor(), modelState);
-            var modelMetadataProvider = new EmptyModelMetadataProvider();
-            var viewDataDictionary = new ViewDataDictionary(modelMetadataProvider, modelState);
-            var tempData = Mock.Of<ITempDataDictionary>();
-            var pageContext = new PageContext(actionContext, viewDataDictionary, tempData, new HtmlHelperOptions());
+            var pageContext = new PageContext()
+            {
+                ActionDescriptor = new CompiledPageActionDescriptor(),
+                HttpContext = new DefaultHttpContext(),
+                RouteData = new RouteData(),
+                
+            };
+
+            pageContext.ViewContext = new ViewContext()
+            {
+                TempData = Mock.Of<ITempDataDictionary>(),
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), pageContext.ModelState),
+            };
 
             var page = new TestPage
             {
@@ -38,12 +45,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             };
 
             // Act & Assert
-            Assert.Same(pageContext, page.ViewContext);
-            Assert.Same(httpContext, page.HttpContext);
-            Assert.Same(httpContext.Request, page.Request);
-            Assert.Same(httpContext.Response, page.Response);
-            Assert.Same(modelState, page.ModelState);
-            Assert.Same(tempData, page.TempData);
+            Assert.Same(pageContext.ViewContext, page.ViewContext);
+            Assert.Same(pageContext.HttpContext, page.HttpContext);
+            Assert.Same(pageContext.HttpContext.Request, page.Request);
+            Assert.Same(pageContext.HttpContext.Response, page.Response);
+            Assert.Same(pageContext.ModelState, page.ModelState);
+            Assert.Same(pageContext.ViewContext.TempData, page.TempData);
         }
 
         [Fact]

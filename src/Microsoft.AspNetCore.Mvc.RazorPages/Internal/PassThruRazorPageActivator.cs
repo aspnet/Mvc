@@ -22,10 +22,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var razorView = (RazorView)context.View;
             if (ReferenceEquals(page, razorView.RazorPage))
             {
-                var pageContext = (PageContext)context;
+                var actionDescriptor = (CompiledPageActionDescriptor)context.ActionDescriptor;
                 var vddType = typeof(ViewDataDictionary<>);
 
-                var modelTypeInfo = pageContext.ActionDescriptor.ModelTypeInfo ?? pageContext.ActionDescriptor.PageTypeInfo;
+                var modelTypeInfo = actionDescriptor.ModelTypeInfo ?? actionDescriptor.PageTypeInfo;
 
 
                 vddType = vddType.MakeGenericType(modelTypeInfo.AsType());

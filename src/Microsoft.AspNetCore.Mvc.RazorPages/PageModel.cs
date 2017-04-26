@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <summary>
         /// Gets the <see cref="ViewContext"/>.
         /// </summary>
-        public ViewContext ViewContext => PageContext;
+        public ViewContext ViewContext => PageContext?.ViewContext;
 
         /// <summary>
         /// Gets the <see cref="Http.HttpContext"/>.
@@ -106,7 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// Gets the <see cref="ITempDataDictionary"/> from the <see cref="PageContext"/>.
         /// </summary>
         /// <remarks>Returns null if <see cref="PageContext"/> is null.</remarks>
-        public ITempDataDictionary TempData => PageContext?.TempData;
+        public ITempDataDictionary TempData => PageContext?.ViewContext.TempData;
 
         private IObjectModelValidator ObjectValidator
         {
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <summary>
         /// Gets the <see cref="ViewDataDictionary"/>.
         /// </summary>
-        public ViewDataDictionary ViewData => PageContext?.ViewData;
+        public ViewDataDictionary ViewData => PageContext?.ViewContext.ViewData;
 
         /// <summary>
         /// Updates the specified <paramref name="model"/> instance using values from the <see cref="PageModel"/>'s current
