@@ -20,7 +20,7 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Routing.Abstractions": "1.0.3",
+    "Microsoft.AspNetCore.Routing.Abstractions": "1.0.4",
     "Microsoft.Extensions.ClosedGenericMatcher.Sources": {
       "version": "1.0.1",
       "type": "build"
@@ -37,7 +37,7 @@
       "version": "1.0.1",
       "type": "build"
     },
-    "Microsoft.Net.Http.Headers": "1.0.2"
+    "Microsoft.Net.Http.Headers": "1.0.3"
   },
   "frameworks": {
     "net451": {},

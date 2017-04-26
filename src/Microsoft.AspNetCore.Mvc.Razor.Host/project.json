@@ -22,7 +22,7 @@
     "xmlDoc": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Razor.Runtime": "1.0.2",
+    "Microsoft.AspNetCore.Razor.Runtime": "1.0.3",
     "Microsoft.Extensions.Caching.Memory": "1.0.2",
     "Microsoft.Extensions.FileProviders.Physical": "1.0.1",
     "Microsoft.Extensions.PropertyHelper.Sources": {
