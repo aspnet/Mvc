@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+#if NET451
+using System.Configuration;
+using System.Linq;
+#endif
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -68,6 +72,10 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
+        [InlineData("", "//", "/test")]
+        [InlineData("", "/\\", "/test")]
+        [InlineData("", "//foo", "/test")]
+        [InlineData("", "/\\foo", "/test")]
         [InlineData("", "Home/About", "/Home/About")]
         [InlineData("/myapproot", "http://www.example.com", "/test")]
         public void Execute_Throws_ForNonLocalUrl(
@@ -90,6 +98,50 @@ namespace Microsoft.AspNetCore.Mvc
                 "The supplied URL is not local. A URL with an absolute path is considered local if it does not " +
                 "have a host/authority part. URLs using virtual paths ('~/') are also local.",
                 exception.Message);
+        }
+
+        [Theory]
+        [InlineData("", "~//", "//")]
+        [InlineData("", "~/\\", "/\\")]
+        [InlineData("", "~//foo", "//foo")]
+        [InlineData("", "~/\\foo", "/\\foo")]
+        public void Execute_Throws_ForNonLocalUrlTilde(
+            string appRoot,
+            string contentPath,
+            string expectedPath)
+        {
+            // Arrange
+            var httpResponse = new Mock<HttpResponse>();
+            httpResponse.Setup(o => o.Redirect(expectedPath, false))
+                        .Verifiable();
+
+            var httpContext = GetHttpContext(appRoot, contentPath, expectedPath, httpResponse.Object);
+            var actionContext = GetActionContext(httpContext);
+            var result = new LocalRedirectResult(contentPath);
+
+            var relaxedLocalRedirectValidation = false;
+
+#if NET451
+            var value = ConfigurationManager.AppSettings.GetValues(UrlHelper.UseRelaxedLocalRedirectValidationSwitch)?.FirstOrDefault();
+            var success = bool.TryParse(value, out relaxedLocalRedirectValidation);
+#else
+            var success = AppContext.TryGetSwitch(UrlHelper.UseRelaxedLocalRedirectValidationSwitch, out relaxedLocalRedirectValidation);
+#endif
+
+            // Act & Assert
+            if (relaxedLocalRedirectValidation)
+            {
+                result.ExecuteResult(actionContext);
+                httpResponse.Verify();
+            }
+            else
+            {
+                var exception = Assert.Throws<InvalidOperationException>(() => result.ExecuteResult(actionContext));
+                Assert.Equal(
+                    "The supplied URL is not local. A URL with an absolute path is considered local if it does not " +
+                    "have a host/authority part. URLs using virtual paths ('~/') are also local.",
+                    exception.Message);
+            }
         }
 
         private static ActionContext GetActionContext(HttpContext httpContext)
