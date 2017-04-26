@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+#if NET451
+using System.Configuration;
+using System.Linq;
+#endif
 using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     /// </summary>
     public class UrlHelper : IUrlHelper
     {
+        internal const string UseRelaxedLocalRedirectValidationSwitch = "Switch.Microsoft.AspNetCore.Mvc.UseRelaxedLocalRedirectValidation";
 
         // Perf: Share the StringBuilder object across multiple calls of GenerateURL for this UrlHelper
         private StringBuilder _stringBuilder;
@@ -102,14 +107,61 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// <inheritdoc />
         public virtual bool IsLocalUrl(string url)
         {
-            return
-                !string.IsNullOrEmpty(url) &&
+            if (string.IsNullOrEmpty(url))
+            {
+                return false;
+            }
 
-                // Allows "/" or "/foo" but not "//" or "/\".
-                ((url[0] == '/' && (url.Length == 1 || (url[1] != '/' && url[1] != '\\'))) ||
+            // Allows "/" or "/foo" but not "//" or "/\".
+            if (url[0] == '/')
+            {
+                // url is exactly "/"
+                if (url.Length == 1)
+                {
+                    return true;
+                }
 
-                // Allows "~/" or "~/foo".
-                (url.Length > 1 && url[0] == '~' && url[1] == '/'));
+                // url doesn't start with "//" or "/\"
+                if (url[1] != '/' && url[1] != '\\')
+                {
+                    return true;
+                }
+
+                return false;                    
+            }
+
+            // Allows "~/" or "~/foo" but not "~//" or "~/\".
+            if (url[0] == '~' && url.Length > 1 && url[1] == '/')
+            {
+                // url is exactly "~/"
+                if (url.Length == 2)
+                {
+                    return true;
+                }
+
+                // url doesn't start with "~//" or "~/\"
+                if (url[2] != '/' && url[2] != '\\')
+                {
+                    return true;
+                }
+
+                var relaxedLocalRedirectValidation = false;
+
+#if NET451
+                var value = ConfigurationManager.AppSettings.GetValues(UseRelaxedLocalRedirectValidationSwitch)?.FirstOrDefault();
+                var success = bool.TryParse(value, out relaxedLocalRedirectValidation);
+#else
+                var success = AppContext.TryGetSwitch(UseRelaxedLocalRedirectValidationSwitch, out relaxedLocalRedirectValidation);
+#endif
+                if (relaxedLocalRedirectValidation)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return false;
         }
 
         /// <inheritdoc />

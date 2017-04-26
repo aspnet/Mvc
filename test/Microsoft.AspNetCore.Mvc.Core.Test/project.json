@@ -38,6 +38,10 @@
         "System.Diagnostics.TraceSource": "4.3.0"
       }
     },
-    "net451": {}
+    "net451": {
+      "frameworkAssemblies": {
+        "System.Configuration": ""
+      }
+    }
   }
 }

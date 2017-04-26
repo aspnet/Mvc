@@ -59,7 +59,11 @@
     "System.Diagnostics.DiagnosticSource": "4.3.1"
   },
   "frameworks": {
-    "net451": {},
+    "net451": {
+      "frameworkAssemblies": {
+        "System.Configuration": ""
+      }
+    },
     "netstandard1.6": {}
   }
 }

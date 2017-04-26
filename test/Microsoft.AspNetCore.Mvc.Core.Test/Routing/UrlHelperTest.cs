@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+#if NET451
+using System.Configuration;
+using System.Linq;
+# endif
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -259,6 +263,70 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             // Assert
             Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData("~//www.example.com")]
+        [InlineData("~//www.example.com?")]
+        [InlineData("~//www.example.com:80")]
+        [InlineData("~//www.example.com/foobar.html")]
+        [InlineData("~///www.example.com")]
+        [InlineData("~//////www.example.com")]
+        public void IsLocalUrl_RejectsTokenUrlsWithMissingSchemeName(string url)
+        {
+            // Arrange
+            var helper = CreateUrlHelper("www.mysite.com");
+
+            // Act
+            var result = helper.IsLocalUrl(url);
+
+            // Assert
+            var relaxedLocalRedirectValidation = false;
+
+#if NET451
+            var value = ConfigurationManager.AppSettings.GetValues(UrlHelper.UseRelaxedLocalRedirectValidationSwitch)?.FirstOrDefault();
+            var success = bool.TryParse(value, out relaxedLocalRedirectValidation);
+#else
+            var success = AppContext.TryGetSwitch(UrlHelper.UseRelaxedLocalRedirectValidationSwitch, out relaxedLocalRedirectValidation);
+#endif
+            if (relaxedLocalRedirectValidation)
+            {
+                Assert.True(result);
+            }
+            else
+            {
+                Assert.False(result);
+            }
+        }
+
+        [Theory]
+        [InlineData("~/\\")]
+        [InlineData("~/\\foo")]
+        public void IsLocalUrl_RejectsInvalidTokenUrls(string url)
+        {
+            // Arrange
+            var helper = CreateUrlHelper("www.mysite.com");
+
+            // Act
+            var result = helper.IsLocalUrl(url);
+
+            // Assert
+            var relaxedLocalRedirectValidation = false;
+
+#if NET451
+            var value = ConfigurationManager.AppSettings.GetValues(UrlHelper.UseRelaxedLocalRedirectValidationSwitch)?.FirstOrDefault();
+            var success = bool.TryParse(value, out relaxedLocalRedirectValidation);
+#else
+            var success = AppContext.TryGetSwitch(UrlHelper.UseRelaxedLocalRedirectValidationSwitch, out relaxedLocalRedirectValidation);
+#endif
+            if (relaxedLocalRedirectValidation)
+            {
+                Assert.True(result);
+            }
+            else
+            {
+                Assert.False(result);
+            }
         }
 
         [Fact]
