@@ -1491,10 +1491,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             };
 
             // Act
-            var result = pageModel.View();
+            var result = pageModel.Page();
 
             // Assert
-            var pageResult = Assert.IsType<PageViewResult>(result);
+            var pageResult = Assert.IsType<PageResult>(result);
             Assert.Same(page, pageResult.Page);
         }
 
