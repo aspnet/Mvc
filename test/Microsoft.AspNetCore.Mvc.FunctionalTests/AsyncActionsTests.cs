@@ -27,19 +27,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task AsyncVoidExceptionAction_ReturnsNothing()
-        {
-            // Act
-            var response = await Client.GetAsync("http://localhost/AsyncActions/AsyncVoidExceptionAction");
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            // Assert
-            // Even though the action threw an exception, we don't get to see it if your return type
-            // is declared as void and it was after an 'await'.
-            Assert.Equal(0, responseBody.Length);
-        }
-
-        [Fact]
         public async Task TaskAction_ReturnsOK()
         {
             // Act

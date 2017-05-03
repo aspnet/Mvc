@@ -31,20 +31,14 @@ namespace BasicWebSite.Controllers
             await Task.Delay(SimulateDelayMilliseconds);
         }
 
-        public async void AsyncVoidExceptionAction()
-        {
-            await Task.Delay(SimulateDelayMilliseconds);
-            throw new CustomException();
-        }
-
         public Task TaskAction()
         {
             return Task.Delay(SimulateDelayMilliseconds);
         }
 
-        public Task TaskExceptionAction()
+        public async Task TaskExceptionAction()
         {
-            return Task.Delay(SimulateDelayMilliseconds);
+            await Task.Delay(SimulateDelayMilliseconds);
             throw new CustomException();
         }
 
