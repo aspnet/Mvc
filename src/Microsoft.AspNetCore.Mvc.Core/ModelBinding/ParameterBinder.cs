@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="parameter">The <see cref="ParameterDescriptor"/></param>
         /// <param name="value">The initial model value.</param>
         /// <returns>The result of model binding.</returns>
-        public virtual async Task<ModelBindingResult> BindModelAsync(
+        public virtual Task<ModelBindingResult> BindModelAsync(
             ActionContext actionContext,
             IValueProvider valueProvider,
             ParameterDescriptor parameter,
@@ -92,23 +92,75 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            var modelMetadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
             var binder = _modelBinderFactory.CreateBinder(new ModelBinderFactoryContext()
             {
                 BindingInfo = parameter.BindingInfo,
-                Metadata = metadata,
+                Metadata = modelMetadata,
                 CacheToken = parameter,
             });
+
+            return BindModelAsync(
+                actionContext,
+                binder,
+                valueProvider,
+                parameter,
+                modelMetadata,
+                value);
+        }
+
+        /// <summary>
+        /// Binds a model specified by <paramref name="parameter"/> using <paramref name="value"/> as the initial value.
+        /// </summary>
+        /// <param name="actionContext">The <see cref="ActionContext"/>.</param>
+        /// <param name="modelBinder">The <see cref="IModelBinder"/>.</param>
+        /// <param name="valueProvider">The <see cref="IValueProvider"/>.</param>
+        /// <param name="parameter">The <see cref="ParameterDescriptor"/></param>
+        /// <param name="modelMetadata">The <see cref="ModelMetadata"/>.</param>
+        /// <param name="value">The initial model value.</param>
+        /// <returns>The result of model binding.</returns>
+        public virtual async Task<ModelBindingResult> BindModelAsync(
+            ActionContext actionContext,
+            IModelBinder modelBinder,
+            IValueProvider valueProvider,
+            ParameterDescriptor parameter,
+            ModelMetadata modelMetadata,
+            object value)
+        {
+            if (actionContext == null)
+            {
+                throw new ArgumentNullException(nameof(actionContext));
+            }
+
+            if (modelBinder == null)
+            {
+                throw new ArgumentNullException(nameof(modelBinder));
+            }
+
+            if (valueProvider == null)
+            {
+                throw new ArgumentNullException(nameof(valueProvider));
+            }
+
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            if (modelMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(modelMetadata));
+            }
 
             var modelBindingContext = DefaultModelBindingContext.CreateBindingContext(
                 actionContext,
                 valueProvider,
-                metadata,
+                modelMetadata,
                 parameter.BindingInfo,
                 parameter.Name);
             modelBindingContext.Model = value;
 
-            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
+            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? modelMetadata.BinderModelName;
             if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
@@ -125,7 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 modelBindingContext.ModelName = string.Empty;
             }
 
-            await binder.BindModelAsync(modelBindingContext);
+            await modelBinder.BindModelAsync(modelBindingContext);
 
             var modelBindingResult = modelBindingContext.Result;
             if (modelBindingResult.IsModelSet)
