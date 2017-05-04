@@ -279,6 +279,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                        "type",
                        "checkbox"));
             }
+
+            // hiddenForCheckboxTag always rendered after the returned element
             var hiddenForCheckboxTag = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
             if (hiddenForCheckboxTag != null)
             {
@@ -296,13 +298,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
             }
 
-            var tagBuilder = Generator.GenerateCheckBox(
+            return Generator.GenerateCheckBox(
                 ViewContext,
                 modelExplorer,
                 For.Name,
                 isChecked: null,
                 htmlAttributes: null);
-            return tagBuilder;
         }
 
         private TagBuilder GenerateRadio(ModelExplorer modelExplorer)

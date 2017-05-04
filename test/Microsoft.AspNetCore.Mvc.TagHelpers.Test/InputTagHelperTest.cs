@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             { "hello", "world" },
                             { "hello", "world2" }
                         },
-                        "hello=\"HtmlEncode[[world]]\""
+                        "hello=\"HtmlEncode[[world]]\" hello=\"HtmlEncode[[world2]]\""
                     },
                     {
                         new TagHelperAttributeList
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             { "hello", "world2" },
                             { "hello", "world3" }
                         },
-                        "hello=\"HtmlEncode[[world]]\""
+                        "hello=\"HtmlEncode[[world]]\" hello=\"HtmlEncode[[world2]]\" hello=\"HtmlEncode[[world3]]\""
                     },
                     {
                         new TagHelperAttributeList
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             { "HelLO", "world" },
                             { "HELLO", "world2" }
                         },
-                        "HelLO=\"HtmlEncode[[world]]\""
+                        "HelLO=\"HtmlEncode[[world]]\" HELLO=\"HtmlEncode[[world2]]\""
                     },
                     {
                         new TagHelperAttributeList
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             { "HELLO", "world2" },
                             { "hello", "world3" }
                         },
-                        "Hello=\"HtmlEncode[[world]]\""
+                        "Hello=\"HtmlEncode[[world]]\" HELLO=\"HtmlEncode[[world2]]\" hello=\"HtmlEncode[[world3]]\""
                     },
                     {
                         new TagHelperAttributeList
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             { "HeLlO", "world" },
                             { "hello", "world2" }
                         },
-                        "HeLlO=\"HtmlEncode[[world]]\""
+                        "HeLlO=\"HtmlEncode[[world]]\" hello=\"HtmlEncode[[world2]]\""
                     },
                 };
             }
@@ -76,27 +76,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         [Theory]
         [MemberData(nameof(MultiAttributeCheckBoxData))]
-        public async Task CheckBoxHandlesMultipleAttributesSameNameCorrectly(
+        public async Task CheckBoxHandlesMultipleAttributesSameNameArePreserved(
             TagHelperAttributeList outputAttributes,
             string expectedAttributeString)
         {
             // Arrange
-            var expectedAttributes = new TagHelperAttributeList
-            {
-                { "type", "checkbox" },
-                { "id", "IsACar" },
-                { "name", "IsACar"},
-                { "valid", "from validation attributes" },
-                { "value", "true"},
-            };
-
-            var allAttributes = outputAttributes.Concat(expectedAttributes).ToList();
-            var expectedTagHelperAttributeList = new TagHelperAttributeList(allAttributes);
-            var expectedPreContent = "original pre-content";
-            var expectedContent = expectedAttributeString;
-            var expectedPostContent = "original post-content";
-            var expectedTagName = "not-input";
-            var expectedPostElement = "<input name=\"IsACar\" type=\"hidden\" value=\"false\" />";
+            var originalContent = "original content";
+            var expectedContent = $"<input {expectedAttributeString} type=\"HtmlEncode[[checkbox]]\" id=\"HtmlEncode[[IsACar]]\" " +
+                $"name=\"HtmlEncode[[IsACar]]\" value=\"HtmlEncode[[true]]\" />" +
+                "<input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" value=\"HtmlEncode[[false]]\" />";
 
             var context = new TagHelperContext(
                 tagName: "input",
@@ -105,36 +93,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                expectedTagName,
+                "input",
                 outputAttributes,
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
             {
                 TagMode = TagMode.SelfClosing,
             };
 
-            output.Content.AppendHtml(expectedAttributeString);
-            output.PreContent.AppendHtml(expectedPreContent);
-            output.PostContent.AppendHtml(expectedPostContent);
-            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider())
-            {
-                ValidationAttributes =
-                {
-                    {  "valid", "from validation attributes" },
-                }
-            };
+            output.Content.AppendHtml(originalContent);
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
             var tagHelper = GetTagHelper(htmlGenerator, model: false, propertyName: nameof(Model.IsACar));
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Equal(expectedTagHelperAttributeList, output.Attributes);
-            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
-            Assert.Equal(expectedContent, output.Content.GetContent());
-            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
-            Assert.Equal(expectedPostElement, output.PostElement.GetContent());
-            Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Equal(expectedTagName, output.TagName);
+            Assert.NotNull(output.PostElement);
+            Assert.Equal(originalContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output));
         }
 
         [Theory]
