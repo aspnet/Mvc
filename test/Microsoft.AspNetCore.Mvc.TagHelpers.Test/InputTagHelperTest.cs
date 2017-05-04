@@ -81,11 +81,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string expectedAttributeString)
         {
             // Arrange
-            var originalContent = "original content";
-            var originalTagName = "not-input";
-            var expectedContent = $"{originalContent}<input {expectedAttributeString} id=\"HtmlEncode[[IsACar]]\" " +
-                "name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" value=\"HtmlEncode[[true]]\" />" +
-                "<input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" value=\"HtmlEncode[[false]]\" />";
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "type", "checkbox" },
+                { "id", "IsACar" },
+                { "name", "IsACar"},
+                { "valid", "from validation attributes" },
+                { "value", "true"},
+            };
+
+            var allAttributes = outputAttributes.Concat(expectedAttributes).ToList();
+            var expectedTagHelperAttributeList = new TagHelperAttributeList(allAttributes);
+            var expectedPreContent = "original pre-content";
+            var expectedContent = expectedAttributeString;
+            var expectedPostContent = "original post-content";
+            var expectedTagName = "not-input";
+            var expectedPostElement = "<input name=\"IsACar\" type=\"hidden\" value=\"false\" />";
 
             var context = new TagHelperContext(
                 tagName: "input",
@@ -94,24 +105,36 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
             var output = new TagHelperOutput(
-                originalTagName,
+                expectedTagName,
                 outputAttributes,
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
             {
                 TagMode = TagMode.SelfClosing,
             };
-            output.Content.AppendHtml(originalContent);
-            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
+
+            output.Content.AppendHtml(expectedAttributeString);
+            output.PreContent.AppendHtml(expectedPreContent);
+            output.PostContent.AppendHtml(expectedPostContent);
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider())
+            {
+                ValidationAttributes =
+                {
+                    {  "valid", "from validation attributes" },
+                }
+            };
             var tagHelper = GetTagHelper(htmlGenerator, model: false, propertyName: nameof(Model.IsACar));
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Empty(output.Attributes); // Moved to Content and cleared
-            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(expectedTagHelperAttributeList, output.Attributes);
+            Assert.Equal(expectedPreContent, output.PreContent.GetContent());
+            Assert.Equal(expectedContent, output.Content.GetContent());
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
+            Assert.Equal(expectedPostElement, output.PostElement.GetContent());
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Null(output.TagName); // Cleared
+            Assert.Equal(expectedTagName, output.TagName);
         }
 
         [Theory]
@@ -211,21 +234,28 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string possibleBool)
         {
             // Arrange
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+                { "type", "checkbox" },
+                { "id", "IsACar" },
+                { "name", "IsACar"},
+                { "value", "true"},
+            };
+
             const string content = "original content";
             const string tagName = "input";
-            const string isCheckedAttr = " checked=\"HtmlEncode[[checked]]\"";
-            var isChecked = (bool.Parse(possibleBool) ? isCheckedAttr : string.Empty);
-            var expectedContent = $"{content}<input{isChecked} class=\"HtmlEncode[[form-control]]\" " +
-                "id=\"HtmlEncode[[IsACar]]\" name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[checkbox]]\" " +
-                "value=\"HtmlEncode[[true]]\" /><input name=\"HtmlEncode[[IsACar]]\" type=\"HtmlEncode[[hidden]]\" " +
-                "value=\"HtmlEncode[[false]]\" />";
-
+            if (possibleBool == "trUE")
+            {
+                expectedAttributes.Add(new TagHelperAttribute("checked", "checked"));
+            }
+            var expectedPostElement = "<input name=\"IsACar\" type=\"hidden\" value=\"false\" />";
 
             var attributes = new TagHelperAttributeList
             {
                 { "class", "form-control" },
             };
-
+            expectedAttributes = new TagHelperAttributeList(expectedAttributes.OrderBy(a => a.Name).ToList());
             var context = new TagHelperContext(
                 tagName: "input",
                 allAttributes: new TagHelperAttributeList(
@@ -245,12 +275,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Act
             tagHelper.Process(context, output);
-            
+
             // Assert
-            Assert.Empty(output.Attributes);
-            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            var outputAttributes = new TagHelperAttributeList(output.Attributes.OrderBy(a => a.Name).ToList());
+            Assert.Equal(expectedAttributes, outputAttributes);
+            Assert.Equal(content, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(expectedPostElement, output.PostElement.GetContent());
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Null(output.TagName);
+            Assert.Equal(tagName, output.TagName);
         }
 
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
@@ -463,11 +495,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public async Task ProcessAsync_CallsGenerateCheckBox_WithExpectedParameters()
         {
             // Arrange
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "class", "form-control" },
+                { "type", "checkbox" },
+                { "id", "IsACar" },
+                { "name", "IsACar"},
+                { "value", "true"},
+            };
             var originalContent = "original content";
             var originalTagName = "not-input";
             var expectedPreContent = "original pre-content";
-            var expectedContent = originalContent + "<input class=\"HtmlEncode[[form-control]]\" /><hidden />";
             var expectedPostContent = "original post-content";
+            var expectedPostElement = "<input name=\"IsACar\" type=\"hidden\" value=\"false\" />";
 
             var context = new TagHelperContext(
                 tagName: "input",
@@ -495,47 +535,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             output.Content.AppendHtml(originalContent);
             output.PostContent.AppendHtml(expectedPostContent);
 
-            var htmlGenerator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
-            var tagHelper = GetTagHelper(htmlGenerator.Object, model: false, propertyName: nameof(Model.IsACar));
+            var htmlGenerator = new TestableHtmlGenerator(new EmptyModelMetadataProvider());
+            var tagHelper = GetTagHelper(htmlGenerator, model: false, propertyName: nameof(Model.IsACar));
             tagHelper.Format = "somewhat-less-null"; // ignored
-
-            var tagBuilder = new TagBuilder("input")
-            {
-                Attributes =
-                {
-                    { "class", "form-control" },
-                },
-                TagRenderMode = TagRenderMode.SelfClosing
-            };
-            htmlGenerator
-                .Setup(mock => mock.GenerateCheckBox(
-                    tagHelper.ViewContext,
-                    tagHelper.For.ModelExplorer,
-                    tagHelper.For.Name,
-                    null,                   // isChecked
-                    It.IsAny<object>()))    // htmlAttributes
-                .Returns(tagBuilder)
-                .Verifiable();
-            htmlGenerator
-                .Setup(mock => mock.GenerateHiddenForCheckbox(
-                    tagHelper.ViewContext,
-                    tagHelper.For.ModelExplorer,
-                    tagHelper.For.Name))
-                .Returns(new TagBuilder("hidden") { TagRenderMode = TagRenderMode.SelfClosing })
-                .Verifiable();
 
             // Act
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            htmlGenerator.Verify();
 
-            Assert.Empty(output.Attributes);    // Moved to Content and cleared
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.Equal(originalContent, HtmlContentUtilities.HtmlContentToString(output.Content));
+            Assert.Equal(expectedPostElement, output.PostElement.GetContent());
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
-            Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
-            Assert.Null(output.TagName);       // Cleared
+            Assert.Equal(originalTagName, output.TagName);
         }
 
         [Theory]
