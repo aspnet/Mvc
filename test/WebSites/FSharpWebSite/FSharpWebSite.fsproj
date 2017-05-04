@@ -8,12 +8,13 @@
 
   <PropertyGroup>
     <!--
-      Signing is normally configured in common.props, we can't import that into an F# project
+      Signing is normally configured in common.props, but we can't import that into an F# project
       because Internal.AspNetCore.Sdk doesn't support it.
     -->
     <AssemblyOriginatorKeyFile>..\..\..\build\Key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
