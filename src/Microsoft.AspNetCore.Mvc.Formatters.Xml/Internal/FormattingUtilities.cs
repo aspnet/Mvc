@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Runtime.Serialization;
 using System.Xml;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
@@ -11,6 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
     public static class FormattingUtilities
     {
         public static readonly int DefaultMaxDepth = 32;
+        public static readonly XsdDataContractExporter XsdDataContractExporter = new XsdDataContractExporter();
 
         /// <summary>
         /// Gets the default Reader Quotas for XmlReader.

@@ -10,6 +10,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class NonDisposableStreamTest
     {
         [Fact]
+        public void InnerStreamIsOpenOnClose()
+        {
+            // Arrange
+            var innerStream = new MemoryStream();
+            var nonDisposableStream = new NonDisposableStream(innerStream);
+
+            // Act
+            nonDisposableStream.Close();
+
+            // Assert
+            Assert.True(innerStream.CanRead);
+        }
+
+        [Fact]
+        public void InnerStreamIsNotFlushedOnClose()
+        {
+            // Arrange
+            var stream = FlushReportingStream.GetThrowingStream();
+
+            var nonDisposableStream = new NonDisposableStream(stream);
+
+            // Act & Assert
+            nonDisposableStream.Close();
+        }
+
+        [Fact]
         public void InnerStreamIsOpenOnDispose()
         {
             // Arrange

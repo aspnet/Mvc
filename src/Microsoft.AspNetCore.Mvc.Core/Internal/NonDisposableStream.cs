@@ -109,6 +109,45 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         /// <inheritdoc />
+        public override IAsyncResult BeginRead(
+            byte[] buffer,
+            int offset,
+            int count,
+            AsyncCallback callback,
+            object state)
+        {
+            return _innerStream.BeginRead(buffer, offset, count, callback, state);
+        }
+
+        /// <inheritdoc />
+        public override int EndRead(IAsyncResult asyncResult)
+        {
+            return _innerStream.EndRead(asyncResult);
+        }
+
+        /// <inheritdoc />
+        public override IAsyncResult BeginWrite(
+            byte[] buffer,
+            int offset,
+            int count,
+            AsyncCallback callback,
+            object state)
+        {
+            return _innerStream.BeginWrite(buffer, offset, count, callback, state);
+        }
+
+        /// <inheritdoc />
+        public override void EndWrite(IAsyncResult asyncResult)
+        {
+            _innerStream.EndWrite(asyncResult);
+        }
+
+        /// <inheritdoc />
+        public override void Close()
+        {
+        }
+
+        /// <inheritdoc />
         public override int ReadByte()
         {
             return _innerStream.ReadByte();

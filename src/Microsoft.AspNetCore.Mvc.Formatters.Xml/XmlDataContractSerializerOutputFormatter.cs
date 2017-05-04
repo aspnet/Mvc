@@ -132,6 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             try
             {
+                // Use FormattingUtilities here when https://github.com/aspnet/Mvc/issues/6235 is resolved.
                 // If the serializer does not support this type it will throw an exception.
                 return new DataContractSerializer(type, _serializerSettings);
             }

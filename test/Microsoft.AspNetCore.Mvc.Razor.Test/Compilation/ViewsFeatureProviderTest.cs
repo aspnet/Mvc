@@ -90,6 +90,23 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             Assert.Empty(feature.Views);
         }
 
+        [Fact]
+        public void PopulateFeature_DoesNotFail_IfAssemblyHasEmptyLocation()
+        {
+            // Arrange
+            var assembly = new AssemblyWithEmptyLocation();
+            var applicationPartManager = new ApplicationPartManager();
+            applicationPartManager.ApplicationParts.Add(new AssemblyPart(assembly));
+            applicationPartManager.FeatureProviders.Add(new ViewsFeatureProvider());
+            var feature = new ViewsFeature();
+
+            // Act
+            applicationPartManager.PopulateFeature(feature);
+
+            // Assert
+            Assert.Empty(feature.Views);
+        }
+
         private class TestableViewsFeatureProvider : ViewsFeatureProvider
         {
             private readonly Dictionary<AssemblyPart, Type> _containerLookup;
@@ -126,6 +143,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                     new ViewInfo("/Areas/Admin/Views/About.cshtml", typeof(int))
                 })
             {
+            }
+        }
+
+        private class AssemblyWithEmptyLocation : Assembly
+        {
+            public override string Location => string.Empty;
+
+            public override string FullName => typeof(ViewsFeatureProviderTest).GetTypeInfo().Assembly.FullName;
+
+            public override IEnumerable<TypeInfo> DefinedTypes
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public override IEnumerable<Module> Modules
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
             }
         }
     }
