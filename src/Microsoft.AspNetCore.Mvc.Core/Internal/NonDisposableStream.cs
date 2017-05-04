@@ -108,49 +108,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return _innerStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
 
-#if NET46
-        /// <inheritdoc />
-        public override IAsyncResult BeginRead(
-            byte[] buffer,
-            int offset,
-            int count,
-            AsyncCallback callback,
-            object state)
-        {
-            return _innerStream.BeginRead(buffer, offset, count, callback, state);
-        }
-
-        /// <inheritdoc />
-        public override int EndRead(IAsyncResult asyncResult)
-        {
-            return _innerStream.EndRead(asyncResult);
-        }
-
-        /// <inheritdoc />
-        public override IAsyncResult BeginWrite(
-            byte[] buffer,
-            int offset,
-            int count,
-            AsyncCallback callback,
-            object state)
-        {
-            return _innerStream.BeginWrite(buffer, offset, count, callback, state);
-        }
-
-        /// <inheritdoc />
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            _innerStream.EndWrite(asyncResult);
-        }
-
-        /// <inheritdoc />
-        public override void Close()
-        {
-        }
-#elif NETSTANDARD1_6
-#else
-#error target frameworks need to be updated.
-#endif
         /// <inheritdoc />
         public override int ReadByte()
         {

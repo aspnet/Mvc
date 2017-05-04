@@ -9,37 +9,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class NonDisposableStreamTest
     {
-#if NET46
-        [Fact]
-        public void InnerStreamIsOpenOnClose()
-        {
-            // Arrange
-            var innerStream = new MemoryStream();
-            var nonDisposableStream = new NonDisposableStream(innerStream);
-
-            // Act
-            nonDisposableStream.Close();
-
-            // Assert
-            Assert.True(innerStream.CanRead);
-        }
-
-        [Fact]
-        public void InnerStreamIsNotFlushedOnClose()
-        {
-            // Arrange
-            var stream = FlushReportingStream.GetThrowingStream();
-
-            var nonDisposableStream = new NonDisposableStream(stream);
-
-            // Act & Assert
-            nonDisposableStream.Close();
-        }
-#elif NETCOREAPP2_0
-#else
-#error The target frameworks need to be updated
-#endif
-
         [Fact]
         public void InnerStreamIsOpenOnDispose()
         {
