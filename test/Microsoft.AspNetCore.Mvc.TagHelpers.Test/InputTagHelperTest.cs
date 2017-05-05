@@ -247,7 +247,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             Assert.Equal(content, HtmlContentUtilities.HtmlContentToString(output.Content));
-            var actualContent = HtmlContentUtilities.HtmlContentToString(output);
             Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output));
             Assert.Equal(expectedPostElement, output.PostElement.GetContent());
         }
@@ -525,9 +524,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Assert
             htmlGenerator.Verify();
 
-            Assert.NotEmpty(output.Attributes);    // Moved to Content and cleared
+            Assert.NotEmpty(output.Attributes);
             Assert.Equal(expectedPreContent, output.PreContent.GetContent());
-            var actualContent = HtmlContentUtilities.HtmlContentToString(output);
             Assert.Equal(originalContent, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output));
             Assert.Equal(expectedPostContent, output.PostContent.GetContent());
