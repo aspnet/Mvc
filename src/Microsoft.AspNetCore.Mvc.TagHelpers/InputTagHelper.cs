@@ -284,7 +284,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
             // Perf: Avoid allocating enumerator
-            // Construct attributes correctly (first attribute wins).
+            // Construct (new) attributes correctly (first attribute wins).
             for (var i = 0; i < output.Attributes.Count; i++)
             {
                 var attribute = output.Attributes[i];
@@ -300,16 +300,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 For.Name,
                 isChecked: null,
                 htmlAttributes: htmlAttributes);
+
             if (checkBoxTag != null)
             {
-                // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
-                // <input type="hidden"/> into the output's Content.
-                output.Attributes.Clear();
-                output.TagName = null;
-
                 var renderingMode =
                     output.TagMode == TagMode.SelfClosing ? TagRenderMode.SelfClosing : TagRenderMode.StartTag;
+
+                var originalContent = System.Text.RegularExpressions.Regex.Replace(output.Content.GetContent(), "<.+?>", string.Empty);
+
+                // Do not generate current element's attributes or tags. Instead put both <input type="checkbox"/> and
+                // <input type="hidden"/> into the output's Content.
+                // Clear output to prevent duplicate "checkbox" and "hidden" tags since they are appended with TagName = null
+                output.Content.Clear();
+                // Merge <input type="checkbox"/> with current element to prevent duplicate checkbox tags
+                output.MergeAttributes(checkBoxTag);
+                output.TagName = null;
+
                 checkBoxTag.TagRenderMode = renderingMode;
+                output.Content.AppendHtml(originalContent);
                 output.Content.AppendHtml(checkBoxTag);
 
                 var hiddenForCheckboxTag = Generator.GenerateHiddenForCheckbox(ViewContext, modelExplorer, For.Name);
