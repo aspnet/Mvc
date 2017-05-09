@@ -3,6 +3,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
@@ -10,6 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
     public class JsonArrayPool<T> : IArrayPool<T>
     {
         private readonly ArrayPool<T> _inner;
+        private readonly List<T[]> _arrayTracker;
 
         public JsonArrayPool(ArrayPool<T> inner)
         {
@@ -19,11 +21,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
             }
 
             _inner = inner;
+            _arrayTracker = new List<T[]>();
         }
 
         public T[] Rent(int minimumLength)
         {
-            return _inner.Rent(minimumLength);
+            var array = _inner.Rent(minimumLength);
+            _arrayTracker.Add(array);
+
+            return array;
         }
 
         public void Return(T[] array)
@@ -33,7 +39,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
                 throw new ArgumentNullException(nameof(array));
             }
 
-            _inner.Return(array);
+            if (_arrayTracker.Contains(array))
+            {
+                _arrayTracker.Remove(array);
+                _inner.Return(array);
+            }
         }
     }
 }
