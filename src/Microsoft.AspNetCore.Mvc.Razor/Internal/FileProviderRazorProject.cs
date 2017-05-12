@@ -19,8 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
         }
 
-        // Internal for unit testing
-        internal FileProviderRazorProject(IFileProvider provider)
+        public FileProviderRazorProject(IFileProvider provider)
         {
             _provider = provider;
         }
@@ -29,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             path = NormalizeAndEnsureValidPath(path);
             var fileInfo = _provider.GetFileInfo(path);
-            return new FileProviderProjectItem(fileInfo, basePath: string.Empty, path: path);
+            return new FileProviderRazorProjectItem(fileInfo, basePath: string.Empty, path: path);
         }
 
         public override IEnumerable<RazorProjectItem> EnumerateItems(string path)
@@ -56,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     }
                     else if (string.Equals(RazorFileExtension, Path.GetExtension(file.Name), StringComparison.OrdinalIgnoreCase))
                     {
-                        yield return new FileProviderProjectItem(file, basePath, prefix + "/" + file.Name);
+                        yield return new FileProviderRazorProjectItem(file, basePath, prefix + "/" + file.Name);
                     }
                 }
             }
