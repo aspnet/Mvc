@@ -7,9 +7,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
-    public class DefaultRazorProjectItem : RazorProjectItem
+    public class FileProviderProjectItem : RazorProjectItem
     {
-        public DefaultRazorProjectItem(IFileInfo fileInfo, string basePath, string path)
+        public FileProviderProjectItem(IFileInfo fileInfo, string basePath, string path)
         {
             FileInfo = fileInfo;
             BasePath = basePath;
