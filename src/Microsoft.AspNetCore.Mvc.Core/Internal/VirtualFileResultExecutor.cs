@@ -31,12 +31,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public virtual Task ExecuteAsync(ActionContext context, VirtualFileResult result)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
             SetHeadersAndLog(context, result);
             return WriteFileAsync(context, result);
         }
 
         protected virtual async Task WriteFileAsync(ActionContext context, VirtualFileResult result)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
             var response = context.HttpContext.Response;
             var fileProvider = GetFileProvider(result);
 

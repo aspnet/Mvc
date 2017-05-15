@@ -65,6 +65,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public virtual async Task ExecuteAsync(ActionContext context, ViewComponentResult viewComponentResult)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (viewComponentResult == null)
+            {
+                throw new ArgumentNullException(nameof(viewComponentResult));
+            }
+
             var response = context.HttpContext.Response;
 
             var viewData = viewComponentResult.ViewData;

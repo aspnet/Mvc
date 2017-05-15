@@ -32,6 +32,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public virtual void Execute(ActionContext context, RedirectResult result)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
             var urlHelper = result.UrlHelper ?? _urlHelperFactory.GetUrlHelper(context);
 
             // IsLocalUrl is called to handle URLs starting with '~/'.
