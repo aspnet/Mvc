@@ -16,13 +16,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
         }
 
-        public Task ExecuteAsync(ActionContext context, FileStreamResult result)
+        public virtual Task ExecuteAsync(ActionContext context, FileStreamResult result)
         {
             SetHeadersAndLog(context, result);
             return WriteFileAsync(context, result);
         }
 
-        private static async Task WriteFileAsync(ActionContext context, FileStreamResult result)
+        protected virtual async Task WriteFileAsync(ActionContext context, FileStreamResult result)
         {
             var response = context.HttpContext.Response;
             var outputStream = response.Body;

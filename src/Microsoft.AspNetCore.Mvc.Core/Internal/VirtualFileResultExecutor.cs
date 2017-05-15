@@ -29,13 +29,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _hostingEnvironment = hostingEnvironment;
         }
 
-        public Task ExecuteAsync(ActionContext context, VirtualFileResult result)
+        public virtual Task ExecuteAsync(ActionContext context, VirtualFileResult result)
         {
             SetHeadersAndLog(context, result);
             return WriteFileAsync(context, result);
         }
 
-        private async Task WriteFileAsync(ActionContext context, VirtualFileResult result)
+        protected virtual async Task WriteFileAsync(ActionContext context, VirtualFileResult result)
         {
             var response = context.HttpContext.Response;
             var fileProvider = GetFileProvider(result);

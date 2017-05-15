@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         protected ILogger Logger { get; }
 
-        protected void SetHeadersAndLog(ActionContext context, FileResult result)
+        protected virtual void SetHeadersAndLog(ActionContext context, FileResult result)
         {
             SetContentType(context, result);
             SetContentDispositionHeader(context, result);

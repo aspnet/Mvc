@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _tempDataDictionaryFactory = tempDataDictionaryFactory;
         }
 
-        public async Task ExecuteAsync(ActionContext context, ViewComponentResult viewComponentResult)
+        public virtual async Task ExecuteAsync(ActionContext context, ViewComponentResult viewComponentResult)
         {
             var response = context.HttpContext.Response;
 
