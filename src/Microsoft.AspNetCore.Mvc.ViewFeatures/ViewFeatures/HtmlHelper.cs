@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (htmlAttributes != null)
             {
-                foreach (var helper in HtmlAttributePropertyHelper.GetProperties(htmlAttributes.GetType().GetTypeInfo()))
+                foreach (var helper in HtmlAttributePropertyHelper.GetProperties(htmlAttributes.GetType()))
                 {
                     dictionary[helper.Name] = helper.GetValue(htmlAttributes);
                 }

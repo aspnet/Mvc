@@ -13,9 +13,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private static readonly ConcurrentDictionary<Type, PropertyHelper[]> ReflectionCache =
             new ConcurrentDictionary<Type, PropertyHelper[]>();
 
-        public static PropertyHelper[] GetProperties(TypeInfo typeInfo)
+        public static new PropertyHelper[] GetProperties(Type type)
         {
-            return GetProperties(typeInfo.AsType(), CreateInstance, ReflectionCache);
+            return GetProperties(type, CreateInstance, ReflectionCache);
         }
 
         private static PropertyHelper CreateInstance(PropertyInfo property)

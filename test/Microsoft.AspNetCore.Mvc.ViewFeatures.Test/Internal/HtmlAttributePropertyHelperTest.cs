@@ -77,8 +77,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var anonymous = new { foo = "bar" };
 
             // Act
-            var helpers1 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType().GetTypeInfo());
-            var helpers2 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType().GetTypeInfo());
+            var helpers1 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType());
+            var helpers2 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType());
 
             // Assert
             Assert.Equal(1, helpers1.Length);
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var anonymous = new { bar_baz1 = "foo" };
 
             // Act
-            var helpers1 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType().GetTypeInfo());
+            var helpers1 = HtmlAttributePropertyHelper.GetProperties(anonymous.GetType());
             var helpers2 = PropertyHelper.GetProperties(anonymous.GetType());
 
             // Assert
