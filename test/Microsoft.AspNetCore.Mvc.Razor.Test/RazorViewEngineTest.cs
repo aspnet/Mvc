@@ -901,7 +901,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
                .Returns(new RazorPageFactoryResult(() => viewStart, new IChangeToken[0]));
 
             var fileProvider = new TestFileProvider();
-            var razorProject = new DefaultRazorProject(fileProvider);
+            var razorProject = new FileProviderRazorProject(fileProvider);
             var viewEngine = CreateViewEngine(pageFactory.Object, razorProject: razorProject);
             var context = GetActionContext(_controllerTestContext);
 
@@ -1349,7 +1349,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
                 Mock.Of<IRazorPageActivator>(),
                 new HtmlTestEncoder(),
                 GetOptionsAccessor(expanders: null),
-                new DefaultRazorProject(new TestFileProvider()),
+                new FileProviderRazorProject(new TestFileProvider()),
                 loggerFactory);
 
             // Act
@@ -1472,6 +1472,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         [InlineData("/Views/Home/Index.cshtml", "..\\Shared\\_Partial.cshtml")]
         [InlineData("/Areas/MyArea/Views/Home/Index.cshtml", "../../../../Views/Shared/_Partial.cshtml")]
         [InlineData("/Views/Accounts/Users.cshtml", "../Test/../Shared/_Partial.cshtml")]
+        [InlineData("Views/Accounts/Users.cshtml", "./../Shared/./_Partial.cshtml")]
         public void GetAbsolutePath_ResolvesPathTraversals(string executingFilePath, string pagePath)
         {
             // Arrange
@@ -1771,7 +1772,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             pageFactory = pageFactory ?? Mock.Of<IRazorPageFactoryProvider>();
             if (razorProject == null)
             {
-                razorProject = new DefaultRazorProject(new TestFileProvider());
+                razorProject = new FileProviderRazorProject(new TestFileProvider());
             }
             return new TestableRazorViewEngine(pageFactory, GetOptionsAccessor(expanders), razorProject);
         }
@@ -1872,7 +1873,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             public TestableRazorViewEngine(
                 IRazorPageFactoryProvider pageFactory,
                 IOptions<RazorViewEngineOptions> optionsAccessor)
-                : this(pageFactory, optionsAccessor, new DefaultRazorProject(new TestFileProvider()))
+                : this(pageFactory, optionsAccessor, new FileProviderRazorProject(new TestFileProvider()))
             {
             }
 

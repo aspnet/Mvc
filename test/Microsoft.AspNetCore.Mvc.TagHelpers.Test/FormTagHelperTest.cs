@@ -26,6 +26,164 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     public class FormTagHelperTest
     {
         [Fact]
+        public async Task ProcessAsync_InvokesGeneratePageForm_WithOnlyPageHandler()
+        {
+            // Arrange
+            var viewContext = CreateViewContext();
+            var context = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList()
+                {
+                    { "asp-handler", "page-handler" },
+                    { "method", "get" }
+                },
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                "form",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
+            generator
+                .Setup(mock => mock.GeneratePageForm(
+                    viewContext,
+                    null,
+                    "page-handler",
+                    null,
+                    null,
+                    null,
+                    null))
+                .Returns(new TagBuilder("form"))
+                .Verifiable();
+            var formTagHelper = new FormTagHelper(generator.Object)
+            {
+                ViewContext = viewContext,
+                PageHandler = "page-handler",
+                Method = "get"
+            };
+
+            // Act & Assert
+            await formTagHelper.ProcessAsync(context, output);
+            generator.Verify();
+        }
+
+        [Fact]
+        public async Task ProcessAsync_ActionAndControllerGenerateAntiforgery()
+        {
+            // Arrange
+            var expectedTagName = "form";
+            var metadataProvider = new TestModelMetadataProvider();
+            var tagHelperContext = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList()
+                {
+                    { "asp-action", "index" },
+                    { "asp-controller", "home" }
+                },
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper
+                .Setup(mock => mock.Action(It.IsAny<UrlActionContext>())).Returns("home/index");
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
+            var viewContext = TestableHtmlGenerator.GetViewContext(
+                model: null,
+                htmlGenerator: htmlGenerator,
+                metadataProvider: metadataProvider);
+            var expectedPostContent = HtmlContentUtilities.HtmlContentToString(
+                htmlGenerator.GenerateAntiforgery(viewContext),
+                HtmlEncoder.Default);
+            var formTagHelper = new FormTagHelper(htmlGenerator)
+            {
+                ViewContext = viewContext,
+                Action = "index",
+                Controller = "home",
+            };
+
+            // Act
+            await formTagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            Assert.Equal(2, output.Attributes.Count);
+            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("method"));
+            Assert.Equal("post", attribute.Value);
+            attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("action"));
+            Assert.Equal("home/index", attribute.Value);
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
+            Assert.Equal(expectedTagName, output.TagName);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_AspAntiforgeryAloneGeneratesProperFormTag()
+        {
+            // Arrange
+            var expectedTagName = "form";
+            var metadataProvider = new TestModelMetadataProvider();
+            var tagHelperContext = new TagHelperContext(
+                tagName: "form",
+                allAttributes: new TagHelperAttributeList()
+                {
+                    { "asp-antiforgery", true }
+                },
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) =>
+                {
+                    var tagHelperContent = new DefaultTagHelperContent();
+                    tagHelperContent.SetContent("Something");
+                    return Task.FromResult<TagHelperContent>(tagHelperContent);
+                });
+            var urlHelper = new Mock<IUrlHelper>();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider, urlHelper.Object);
+            var viewContext = TestableHtmlGenerator.GetViewContext(
+                model: null,
+                htmlGenerator: htmlGenerator,
+                metadataProvider: metadataProvider);
+            viewContext.HttpContext.Request.Path = "/home/index";
+            var expectedPostContent = HtmlContentUtilities.HtmlContentToString(
+                htmlGenerator.GenerateAntiforgery(viewContext),
+                HtmlEncoder.Default);
+            var formTagHelper = new FormTagHelper(htmlGenerator)
+            {
+                ViewContext = viewContext,
+                Antiforgery = true,
+            };
+
+            // Act
+            await formTagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            Assert.Equal(2, output.Attributes.Count);
+            var attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("method"));
+            Assert.Equal("post", attribute.Value);
+            attribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("action"));
+            Assert.Equal("/home/index", attribute.Value);
+            Assert.Empty(output.PreContent.GetContent());
+            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Equal(expectedPostContent, output.PostContent.GetContent());
+            Assert.Equal(expectedTagName, output.TagName);
+        }
+
+        [Fact]
         public async Task ProcessAsync_EmptyHtmlStringActionGeneratesAntiforgery()
         {
             // Arrange
@@ -721,6 +879,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Setup(mock => mock.GeneratePageForm(
                     viewContext,
                     "/Home/Admin/Post",
+                    "page-handler",
                     null,
                     "hello-world",
                     null,
@@ -732,6 +891,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 Antiforgery = false,
                 ViewContext = viewContext,
                 Page = "/Home/Admin/Post",
+                PageHandler = "page-handler",
                 Fragment = "hello-world",
             };
 
@@ -797,6 +957,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [InlineData("Action")]
         [InlineData("Controller")]
         [InlineData("Page")]
+        [InlineData("PageHandler")]
         [InlineData("asp-route-")]
         public async Task ProcessAsync_ThrowsIfActionConflictsWithBoundAttributes(string propertyName)
         {
@@ -820,7 +981,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var expectedErrorMessage = "Cannot override the 'action' attribute for <form>. A <form> with a specified " +
                 "'action' must not have attributes starting with 'asp-route-' or an " +
-                "'asp-action', 'asp-controller', 'asp-fragment', 'asp-area', 'asp-route' or 'asp-page' attribute.";
+                "'asp-action', 'asp-controller', 'asp-fragment', 'asp-area', 'asp-route', 'asp-page' or 'asp-page-handler' attribute.";
 
             var context = new TagHelperContext(
                 tagName: "form",

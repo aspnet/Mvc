@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string AntiforgeryAttributeName = "asp-antiforgery";
         private const string AreaAttributeName = "asp-area";
         private const string PageAttributeName = "asp-page";
+        private const string PageHandlerAttributeName = "asp-page-handler";
         private const string FragmentAttributeName = "asp-fragment";
         private const string ControllerAttributeName = "asp-controller";
         private const string RouteAttributeName = "asp-route";
@@ -73,6 +74,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(PageAttributeName)]
         public string Page { get; set; }
+
+        /// <summary>
+        /// The name of the page handler.
+        /// </summary>
+        [HtmlAttributeName(PageHandlerAttributeName)]
+        public string PageHandler { get; set; }
 
         /// <summary>
         /// Whether the antiforgery token should be generated.
@@ -150,23 +157,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 output.CopyHtmlAttribute(nameof(Method), context);
             }
-            else
-            {
-                Method = "get";
-            }
 
             var antiforgeryDefault = true;
+            var routeableParametersProvided = Action != null ||
+                Controller != null ||
+                Area != null ||
+                Page != null ||
+                PageHandler != null ||
+                Fragment != null ||
+                Route != null ||
+                (_routeValues != null && _routeValues.Count > 0);
 
             // If "action" is already set, it means the user is attempting to use a normal <form>.
             if (output.Attributes.TryGetAttribute(HtmlActionAttributeName, out var actionAttribute))
             {
-                if (Action != null ||
-                    Controller != null ||
-                    Area != null ||
-                    Page != null ||
-                    Fragment != null ||
-                    Route != null ||
-                    (_routeValues != null && _routeValues.Count > 0))
+                if (routeableParametersProvided)
                 {
                     // User also specified bound attributes we cannot use.
                     throw new InvalidOperationException(
@@ -179,7 +184,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             FragmentAttributeName,
                             AreaAttributeName,
                             RouteAttributeName,
-                            PageAttributeName));
+                            PageAttributeName,
+                            PageHandlerAttributeName));
                 }
 
                 string attributeValue = null;
@@ -196,9 +202,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (string.IsNullOrEmpty(attributeValue))
                 {
                     // User is using the FormTagHelper like a normal <form> tag that has an empty or complex IHtmlContent action attribute.
-                    // e.g. <form action="" method="post"> or <form action="@CustomUrlIHtmlContent" method="post">
+                    // e.g. <form action="" method="..."> or <form action="@CustomUrlIHtmlContent" method="...">
 
-                    // Antiforgery default is already set to true
+                    if (string.Equals(Method ?? "get", "get", StringComparison.OrdinalIgnoreCase))
+                    {
+                        antiforgeryDefault = false;
+                    }
+                    else
+                    {
+                        // Antiforgery default is already set to true
+                    }
                 }
                 else
                 {
@@ -210,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 var routeLink = Route != null;
                 var actionLink = Controller != null || Action != null;
-                var pageLink = Page != null;
+                var pageLink = Page != null || PageHandler != null;
 
                 if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
                 {
@@ -242,15 +255,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
 
                 TagBuilder tagBuilder = null;
-                if (Action == null && Controller == null && Route == null && _routeValues == null && Fragment == null && Area == null && Page == null)
+                if (!routeableParametersProvided &&
+                    _routeValues == null &&
+                    // Antiforgery will sometime be set globally via TagHelper Initializers, verify it was provided in the cshtml. 
+                    !context.AllAttributes.ContainsName(AntiforgeryAttributeName))
                 {
-                    // Empty form tag such as <form></form>. Let it flow to the output as-is and only handle anti-forgery.
+                    // A <form> tag that doesn't utilize asp-* attributes. Let it flow to the output.
+                    Method = Method ?? "get";
                 }
                 else if (pageLink)
                 {
                     tagBuilder = Generator.GeneratePageForm(
                         ViewContext,
                         Page,
+                        PageHandler,
                         routeValues,
                         Fragment,
                         method: null,
@@ -286,11 +304,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         output.PostContent.AppendHtml(tagBuilder.InnerHtml);
                     }
                 }
-            }
 
-            if (string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase))
-            {
-                antiforgeryDefault = false;
+                if (string.Equals(Method, "get", StringComparison.OrdinalIgnoreCase))
+                {
+                    antiforgeryDefault = false;
+                }
             }
 
             if (Antiforgery ?? antiforgeryDefault)

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\build\common.props" />
 
@@ -6,11 +6,11 @@
     <Description>Provides compatibility in ASP.NET Core MVC with ASP.NET Web API 2 to simplify migration of existing Web API implementations.
 Commonly used types:
 System.Web.Http.ApiController</Description>
-    <TargetFrameworks>net46;netstandard1.6</TargetFrameworks>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>aspnetcore;aspnetcoremvc;aspnetwebapi</PackageTags>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);portable-net451+win8</PackageTargetFallback>
+    <PackageTargetFallback>$(PackageTargetFallback);portable-net451+win8</PackageTargetFallback>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,8 +20,6 @@ System.Web.Http.ApiController</Description>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="$(WebApiClientVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="$(AspNetCoreVersion)" />
     <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" Version="$(AspNetCoreVersion)" PrivateAssets="All" />
-    <PackageReference Include="System.Runtime.Serialization.Xml" Version="$(CoreFxVersion)" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="$(CoreFxVersion)" />
   </ItemGroup>
 
 </Project>

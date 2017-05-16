@@ -2,16 +2,16 @@
   <PropertyGroup>
     <AspNetCoreVersion>2.0.0-*</AspNetCoreVersion>
     <BenchmarkDotNetVersion>0.10.3</BenchmarkDotNetVersion>
-    <CoreFxVersion>4.3.0</CoreFxVersion>
     <DependencyModelVersion>2.0.0-*</DependencyModelVersion>
-    <InternalAspNetCoreSdkVersion>2.0.0-*</InternalAspNetCoreSdkVersion>
+    <FSharpCoreVersion>4.1.0</FSharpCoreVersion>
+    <FSharpNetSdkVersion>1.0.*</FSharpNetSdkVersion>
+    <InternalAspNetCoreSdkVersion>2.1.0-*</InternalAspNetCoreSdkVersion>
     <JsonNetBsonVersion>1.0.1</JsonNetBsonVersion>
     <MoqVersion>4.7.1</MoqVersion>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <NETStandardImplicitPackageVersion>$(BundledNETStandardPackageVersion)</NETStandardImplicitPackageVersion>
     <RoslynVersion>2.0.0</RoslynVersion>
-    <RuntimeFrameworkVersion>2.0.0-*</RuntimeFrameworkVersion>
-    <TestSdkVersion>15.0.0</TestSdkVersion>
+    <TestSdkVersion>15.3.0-*</TestSdkVersion>
     <WebApiClientVersion>5.2.2</WebApiClientVersion>
-    <XunitVersion>2.2.0</XunitVersion>
+    <XunitVersion>2.3.0-beta2-*</XunitVersion>
   </PropertyGroup>
 </Project>

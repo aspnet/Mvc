@@ -1847,8 +1847,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
                 .BindingDetails((Action<ModelBinding.Metadata.BindingMetadata>)(binding =>
                 {
                     // A real details provider could customize message based on BindingMetadataProviderContext.
-                    binding.ModelBindingMessageProvider.MissingBindRequiredValueAccessor =
-                        name => $"Hurts when '{ name }' is not provided.";
+                    binding.ModelBindingMessageProvider.SetMissingBindRequiredValueAccessor(
+                        name => $"Hurts when '{ name }' is not provided.");
                 }));
 
             var parameterBinder = ModelBindingTestHelper.GetParameterBinder(metadataProvider);
@@ -2677,7 +2677,6 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             // Model
             var model = Assert.IsType<Photo>(modelBindingResult.Model);
             Assert.Equal("1", model.Id);
-            Assert.NotNull(model.Info);
             Assert.Equal("location1", model.Info.Key);
             Assert.NotNull(model.Info.Value);
             Assert.Equal("10,20", model.Info.Value.GpsCoordinates);

@@ -157,16 +157,38 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task FormTagHelper_WithPageHandler_AllowsPostingToSelf()
+        {
+            //Arrange
+            var expected =
+@"<form action=""/TagHelper/PostWithHandler/Edit"" method=""post""><input name=""__RequestVerificationToken"" type=""hidden"" value=""{0}"" /></form>
+<form method=""post"" action=""/TagHelper/PostWithHandler/Edit""><input name=""__RequestVerificationToken"" type=""hidden"" value=""{0}"" /></form>
+<form method=""post"" action=""/TagHelper/PostWithHandler/Edit/10""></form>";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/PostWithHandler");
+
+            // Assert
+            var responseContent = response.Trim();
+            var forgeryToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(responseContent, "/TagHelper/PostWithHandler");
+            var expectedContent = string.Format(expected, forgeryToken);
+
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
         public async Task FormTagHelper_WithPage_AllowsPostingToAnotherPage()
         {
             //Arrange
-            var expected = "<form method=\"POST\" action=\"/TagHelper/SelfPost/10\">";
+            var expected =
+@"<form method=""POST"" action=""/TagHelper/SelfPost/10""></form>
+<form method=""POST"" action=""/TagHelper/PostWithHandler/Delete/10""></form>";
 
             // Act
             var response = await Client.GetStringAsync("/TagHelper/CrossPost");
 
             // Assert
-            Assert.Contains(expected, response.Trim());
+            Assert.Equal(expected, response.Trim());
         }
 
         [Fact]
@@ -176,7 +198,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var expected = 
 @"<button formaction=""/TagHelper/CrossPost/10"" />
 <input type=""submit"" formaction=""/TagHelper/CrossPost/10"" />
-<input type=""image"" formaction=""/TagHelper/CrossPost/10"" />";
+<input type=""image"" formaction=""/TagHelper/CrossPost/10"" />
+<button formaction=""/TagHelper/PostWithHandler/Edit/11"" />
+<input type=""submit"" formaction=""/TagHelper/PostWithHandler/Edit/11"" />
+<input type=""image"" formaction=""/TagHelper/PostWithHandler/Delete/11"" />";
 
             // Act
             var response = await Client.GetStringAsync("/TagHelper/FormAction");

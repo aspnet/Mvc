@@ -147,6 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             ViewContext viewContext,
             string linkText,
             string pageName,
+            string pageHandler,
             string protocol,
             string hostname,
             string fragment,
@@ -164,7 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
-            var url = urlHelper.Page(pageName, routeValues, protocol, hostname, fragment);
+            var url = urlHelper.Page(pageName, pageHandler, routeValues, protocol, hostname, fragment);
             return GenerateLink(linkText, url, htmlAttributes);
         }
 
@@ -311,6 +312,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public virtual TagBuilder GeneratePageForm(
             ViewContext viewContext,
             string pageName,
+            string pageHandler,
             object routeValues,
             string fragment,
             string method,
@@ -321,34 +323,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewContext));
             }
 
-            var defaultMethod = false;
-            if (string.IsNullOrEmpty(method))
-            {
-                defaultMethod = true;
-            }
-            else if (string.Equals(method, "post", StringComparison.OrdinalIgnoreCase))
-            {
-                defaultMethod = true;
-            }
-
-            string action;
-            if (pageName == null && routeValues == null && defaultMethod)
-            {
-                // Submit to the original URL in the special case that user called the BeginForm() overload without
-                // parameters (except for the htmlAttributes parameter). Also reachable in the even-more-unusual case
-                // that user called another BeginForm() overload with default argument values.
-                var request = viewContext.HttpContext.Request;
-                action = request.PathBase + request.Path + request.QueryString;
-                if (fragment != null)
-                {
-                    action += "#" + fragment;
-                }
-            }
-            else
-            {
-                var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
-                action = urlHelper.Page(pageName, values: routeValues,protocol: null, host: null, fragment: fragment);
-            }
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
+            var action = urlHelper.Page(pageName, pageHandler, routeValues, protocol: null, host: null, fragment: fragment);
 
             return GenerateFormCore(viewContext, action, method, htmlAttributes);
         }

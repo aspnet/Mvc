@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc
                 new ActionDescriptor());
 
             var urlHelper = GetUrlHelper(actionContext, expectedUrl);
-            var result = new RedirectToPageResult("/MyPage", new { id = 10, test = "value" }, permanentRedirect)
+            var result = new RedirectToPageResult("/MyPage", null, new { id = 10, test = "value" }, permanentRedirect)
             {
                 UrlHelper = urlHelper,
             };
@@ -75,6 +75,63 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             httpResponse.Verify(r => r.Redirect(expectedUrl, permanentRedirect), Times.Exactly(1));
+        }
+
+        [Fact]
+        public async Task ExecuteResultAsync_LocalRelativePaths()
+        {
+            // Arrange
+            var httpContext = new DefaultHttpContext
+            {
+                RequestServices = CreateServices(),
+            };
+
+            var pageContext = new PageContext
+            {
+                HttpContext = httpContext,
+                RouteData = new RouteData(),
+                ActionDescriptor = new CompiledPageActionDescriptor(),
+            };
+
+            pageContext.RouteData.Values.Add("page", "/A/Redirecting/Page");
+
+            UrlRouteContext context = null;
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.SetupGet(h => h.ActionContext).Returns(pageContext);
+            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
+                .Callback((UrlRouteContext c) => context = c)
+                .Returns("some-value");
+            var values = new { test = "test-value" };
+            var result = new RedirectToPageResult("./", "page-handler", values, true, "test-fragment")
+            {
+                UrlHelper = urlHelper.Object,
+                Protocol = "ftp",
+            };
+
+            // Act
+            await result.ExecuteResultAsync(pageContext);
+
+            // Assert
+            Assert.NotNull(context);
+            Assert.Null(context.RouteName);
+            Assert.Collection(Assert.IsType<RouteValueDictionary>(context.Values),
+                value =>
+                {
+                    Assert.Equal("test", value.Key);
+                    Assert.Equal("test-value", value.Value);
+                },
+                value =>
+                {
+                    Assert.Equal("page", value.Key);
+                    Assert.Equal("/A/Redirecting", value.Value);
+                },
+                value =>
+                {
+                    Assert.Equal("handler", value.Key);
+                    Assert.Equal("page-handler", value.Value);
+                });
+            Assert.Equal("ftp", context.Protocol);
+            Assert.Equal("test-fragment", context.Fragment);
         }
 
         [Fact]
@@ -99,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc
                 .Callback((UrlRouteContext c) => context = c)
                 .Returns("some-value");
             var values = new { test = "test-value" };
-            var result = new RedirectToPageResult("/MyPage", values, true, "test-fragment")
+            var result = new RedirectToPageResult("/MyPage", "page-handler", values, true, "test-fragment")
             {
                 UrlHelper = urlHelper.Object,
                 Protocol = "ftp",
@@ -121,6 +178,11 @@ namespace Microsoft.AspNetCore.Mvc
                 {
                     Assert.Equal("page", value.Key);
                     Assert.Equal("/MyPage", value.Value);
+                },
+                value =>
+                {
+                    Assert.Equal("handler", value.Key);
+                    Assert.Equal("page-handler", value.Value);
                 });
             Assert.Equal("ftp", context.Protocol);
             Assert.Equal("test-fragment", context.Fragment);

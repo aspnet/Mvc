@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
@@ -36,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
         }
 
-        public ObjectMethodExecutor GetViewComponentMethodExecutor(ViewComponentContext viewComponentContext)
+        internal ObjectMethodExecutor GetViewComponentMethodExecutor(ViewComponentContext viewComponentContext)
         {
             var cache = CurrentCache;
             var viewComponentDescriptor = viewComponentContext.ViewComponentDescriptor;
@@ -55,7 +56,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     nameof(ViewComponentDescriptor)));
             }
 
-            executor = ObjectMethodExecutor.Create(viewComponentDescriptor.MethodInfo, viewComponentDescriptor.TypeInfo);
+            var parameterDefaultValues = ParameterDefaultValues
+                .GetParameterDefaultValues(methodInfo);
+
+            executor = ObjectMethodExecutor.Create(
+                viewComponentDescriptor.MethodInfo,
+                viewComponentDescriptor.TypeInfo,
+                parameterDefaultValues);
 
             cache.Entries.TryAdd(viewComponentDescriptor, executor);
             return executor;
