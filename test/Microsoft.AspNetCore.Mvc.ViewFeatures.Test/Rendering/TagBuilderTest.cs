@@ -169,5 +169,74 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
             Assert.False(tagBuilder.HasInnerHtml);
             Assert.NotNull(innerHtml);
         }
+
+        [Fact]
+        public void RenderStartTag_RendersExpectedStartTag()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            var tag = tagBuilder.RenderStartTag();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("<p>", writer.ToString());
+            }
+        }
+
+        [Fact]
+        public void RenderEndTag_RendersExpectedEndTag()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            var tag = tagBuilder.RenderEndTag();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("</p>", writer.ToString());
+            }
+        }
+
+        [Fact]
+        public void RenderSelfClosingTag_RendersExpectedSelfClosingTag()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            var tag = tagBuilder.RenderSelfClosingTag();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("<p />", writer.ToString());
+            }
+        }
+
+        [Fact]
+        public void RenderBody_RendersExpectedBody()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            tagBuilder.InnerHtml.AppendHtml("<span>Hello</span>");
+            var tag = tagBuilder.RenderBody();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("<span>Hello</span>", writer.ToString());
+            }
+        }
     }
 }

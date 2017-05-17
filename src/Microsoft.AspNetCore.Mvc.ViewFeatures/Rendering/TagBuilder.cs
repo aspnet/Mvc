@@ -301,35 +301,21 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
             switch (TagRenderMode)
             {
                 case TagRenderMode.StartTag:
-                    writer.Write("<");
-                    writer.Write(TagName);
-                    AppendAttributes(writer, encoder);
-                    writer.Write(">");
+                    WriteToStartTag(writer, encoder);
                     break;
                 case TagRenderMode.EndTag:
-                    writer.Write("</");
-                    writer.Write(TagName);
-                    writer.Write(">");
+                    WriteToEndTag(writer, encoder);
                     break;
                 case TagRenderMode.SelfClosing:
-                    writer.Write("<");
-                    writer.Write(TagName);
-                    AppendAttributes(writer, encoder);
-                    writer.Write(" />");
+                    WriteToSelfClosingTag(writer, encoder);
                     break;
                 default:
-                    writer.Write("<");
-                    writer.Write(TagName);
-                    AppendAttributes(writer, encoder);
-                    writer.Write(">");
+                    WriteToStartTag(writer, encoder);
                     if (_innerHtml != null)
                     {
                         _innerHtml.WriteTo(writer, encoder);
                     }
-
-                    writer.Write("</");
-                    writer.Write(TagName);
-                    writer.Write(">");
+                    WriteToEndTag(writer, encoder);
                     break;
             }
         }
@@ -341,6 +327,110 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 WriteTo(writer, HtmlEncoder.Default);
                 return writer.ToString();
             }
+        }
+
+        /// <summary>
+        /// Returns the <see cref="IHtmlContent"/> body.
+        /// </summary>
+        /// <returns>The inner <see cref="IHtmlContent"/>.</returns>
+        public IHtmlContent RenderBody()
+        {
+            return _innerHtml;
+        }
+
+        /// <summary>
+        /// Renders the start tag for the given <see cref="TagBuilder"/>.
+        /// </summary>
+        /// <returns>The start tag for the <see cref="TagName"/>.</returns>
+        public IHtmlContent RenderStartTag()
+        {
+            return new StartTag(this);
+        }
+
+        private class StartTag : IHtmlContent
+        {
+            private TagBuilder _tagBuilder;
+
+            public StartTag(TagBuilder tagBuilder)
+            {
+                _tagBuilder = tagBuilder;
+            }
+
+            public void WriteTo(TextWriter writer, HtmlEncoder encoder)
+            {
+                _tagBuilder.WriteToStartTag(writer, encoder);
+            }
+        }
+
+        private void WriteToStartTag(TextWriter writer, HtmlEncoder encoder)
+        {
+            writer.Write("<");
+            writer.Write(TagName);
+            AppendAttributes(writer, encoder);
+            writer.Write(">");
+        }
+
+        /// <summary>
+        /// Renders the end tag for the given <see cref="TagBuilder"/>.
+        /// </summary>
+        /// <returns>The end tag for the <see cref="TagName"/>.</returns>
+        public IHtmlContent RenderEndTag()
+        {
+            return new EndTag(this);
+        }
+
+        private class EndTag : IHtmlContent
+        {
+            private TagBuilder _tagBuilder;
+
+            public EndTag(TagBuilder tagBuilder)
+            {
+                _tagBuilder = tagBuilder;
+            }
+
+            public void WriteTo(TextWriter writer, HtmlEncoder encoder)
+            {
+                _tagBuilder.WriteToEndTag(writer, encoder);
+            }
+        }
+
+        private void WriteToEndTag(TextWriter writer, HtmlEncoder encoder)
+        {
+            writer.Write("</");
+            writer.Write(TagName);
+            writer.Write(">");
+        }
+
+        /// <summary>
+        /// Renders the self-closing tag for the given <see cref="TagBuilder"/>.
+        /// </summary>
+        /// <returns>The self-closing tag for the <see cref="TagName"/>.</returns>
+        public IHtmlContent RenderSelfClosingTag()
+        {
+            return new SelfClosingTag(this);
+        }
+
+        private class SelfClosingTag : IHtmlContent
+        {
+            private TagBuilder _tagBuilder;
+
+            public SelfClosingTag(TagBuilder tagBuilder)
+            {
+                _tagBuilder = tagBuilder;
+            }
+
+            public void WriteTo(TextWriter writer, HtmlEncoder encoder)
+            {
+                _tagBuilder.WriteToSelfClosingTag(writer, encoder);
+            }
+        }
+
+        private void WriteToSelfClosingTag(TextWriter writer, HtmlEncoder encoder)
+        {
+            writer.Write("<");
+            writer.Write(TagName);
+            AppendAttributes(writer, encoder);
+            writer.Write(" />");
         }
 
         private static class Html401IdUtil
