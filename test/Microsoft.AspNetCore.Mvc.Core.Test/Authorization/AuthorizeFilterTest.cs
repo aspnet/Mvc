@@ -202,58 +202,10 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task Invoke_RequireAdminRoleShouldFailWithNoHandlers()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Administrator").Build());
-            var authorizationContext = GetAuthorizationContext(anonymous: false, registerServices: services =>
-            {
-                services.Remove(services.Where(sd => sd.ServiceType == typeof(IAuthorizationHandler)).Single());
-            });
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.IsType<ForbidResult>(authorizationContext.Result);
-        }
-
-        [Fact]
-        public async Task Invoke_RequireAdminAndUserRoleWithNoPolicyShouldSucceed()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Administrator").Build());
-            var authorizationContext = GetAuthorizationContext();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.Null(authorizationContext.Result);
-        }
-
-        [Fact]
         public async Task Invoke_RequireUnknownRoleShouldForbid()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Wut").Build());
-            var authorizationContext = GetAuthorizationContext();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.IsType<ForbidResult>(authorizationContext.Result);
-        }
-
-        [Fact]
-        public async Task Invoke_RequireAdminRoleButFailPolicyShouldForbid()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequireRole("Administrator")
-                .RequireClaim("Permission", "CanViewComment")
-                .Build());
             var authorizationContext = GetAuthorizationContext();
 
             // Act
@@ -269,82 +221,6 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
                 .RequireClaim("Permission", "CanViewComment")
-                .Build());
-            var authorizationContext = GetAuthorizationContext();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.IsType<ForbidResult>(authorizationContext.Result);
-        }
-
-        [Fact]
-        public async Task Invoke_FailedContextShouldNotCheckPermission()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequireClaim("Permission", "CanViewComment")
-                .Build());
-
-
-            var actionContext = new ActionContext(
-                new Mock<HttpContext>().Object,
-                new RouteData(),
-                new ActionDescriptor());
-
-            var authorizationContext = new Filters.AuthorizationFilterContext(
-                actionContext,
-                Enumerable.Empty<IFilterMetadata>().ToList()
-            );
-
-            authorizationContext.Result = new UnauthorizedResult();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert that no exception was thrown (skips trying to resolve IPolicyEvaluator)
-        }
-
-        [Fact]
-        public async Task Invoke_ForbidWhenLookingForClaimInOtherIdentity()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
-                .RequireClaim("Permission", "CanViewComment")
-                .Build());
-            var authorizationContext = GetAuthorizationContext();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.IsType<ForbidResult>(authorizationContext.Result);
-        }
-
-        [Fact]
-        public async Task Invoke_CanLookingForClaimsInMultipleIdentities()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Basic", "Bearer")
-                .RequireClaim("Permission", "CanViewComment")
-                .RequireClaim("Permission", "CupBearer")
-                .Build());
-            var authorizationContext = GetAuthorizationContext();
-
-            // Act
-            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
-
-            // Assert
-            Assert.IsType<ForbidResult>(authorizationContext.Result);
-        }
-
-        [Fact]
-        public async Task Invoke_CanFilterToOnlyBearerScheme()
-        {
-            // Arrange
-            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder("Bearer")
-                .RequireClaim("Permission", "CanViewPage")
                 .Build());
             var authorizationContext = GetAuthorizationContext();
 
