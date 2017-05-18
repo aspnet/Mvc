@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         try
                         {
                             // The entry is set instead of assigning a value to the
-                            // task so that the expiration options are are not impacted
+                            // task so that the expiration options are not impacted
                             // by the time it took to compute it.
 
                             using (var entry = MemoryCache.CreateEntry(cacheKey))
@@ -120,6 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             // If an exception occurs, ensure the other awaiters
                             // render the output by themselves.
                             tcs.SetResult(null);
+                            tokenSource.Dispose();
                         }
                     }
                     else
