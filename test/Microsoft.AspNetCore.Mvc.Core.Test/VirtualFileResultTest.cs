@@ -148,7 +148,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestedNotSatisfiable()
+        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestedIgnored()
         {
             // Arrange
             var path = Path.GetFullPath("helllo.txt");
@@ -183,12 +183,10 @@ namespace Microsoft.AspNetCore.Mvc
             httpResponse.Body.Seek(0, SeekOrigin.Begin);
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
-            Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
-            var contentRange = new ContentRangeHeaderValue(33);
-            Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
+            Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
             Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
-            Assert.Empty(body);
+            Assert.Equal("FilePathResultTestFile contents¡", body);
         }
 
         [Theory]

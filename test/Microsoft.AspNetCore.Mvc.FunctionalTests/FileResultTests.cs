@@ -170,7 +170,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FileFromDisk_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestNotSatisfiable_WithLastModifiedAndEtag()
+        public async Task FileFromDisk_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestIgnored_WithLastModifiedAndEtag()
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://localhost/DownloadFiles/DownloadFromDiskWithFileName_WithLastModifiedAndEtag");
@@ -181,11 +181,11 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+            Assert.Equal("This is a sample text file", body);
         }
 
         [Fact]
@@ -301,11 +301,11 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+            Assert.Equal("This is sample text from a stream", body);
         }
 
         [Fact]
@@ -410,7 +410,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FileFromBinaryData_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestNotSatisfiable()
+        public async Task FileFromBinaryData_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestIgnored()
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://localhost/DownloadFiles/DownloadFromBinaryDataWithFileName_WithEtag");
@@ -421,11 +421,11 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+            Assert.Equal("This is a sample text from a binary array", body);
         }
 
         [Fact]
@@ -501,7 +501,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FileFromEmbeddedResources_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestotSatisfiable()
+        public async Task FileFromEmbeddedResources_ReturnsFileWithFileName_IfRangeHeaderInvalid_RangeRequestIgnored()
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://localhost/EmbeddedFiles/DownloadFileWithFileName_WithEtag");
@@ -512,11 +512,11 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+            Assert.Equal("Sample text file as embedded resource.", body);
             var contentDisposition = response.Content.Headers.ContentDisposition.ToString();
             Assert.NotNull(contentDisposition);
             Assert.Equal("attachment; filename=downloadName.txt; filename*=UTF-8''downloadName.txt", contentDisposition);

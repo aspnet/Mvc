@@ -33,6 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             NotModified,
             ShouldProcess,
             PreconditionFailed,
+            IgnoreRangeRequest
         }
 
         protected ILogger Logger { get; }
@@ -84,7 +85,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     return SetRangeHeaders(context, httpRequestHeaders, fileLength, lastModified, etag);
                 }
-
                 if (preconditionState == PreconditionState.NotModified)
                 {
                     serveBody = false;
@@ -162,6 +162,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var ifNoneMatchState = PreconditionState.Unspecified;
             var ifModifiedSinceState = PreconditionState.Unspecified;
             var ifUnmodifiedSinceState = PreconditionState.Unspecified;
+            var ifRangeState = PreconditionState.Unspecified;
 
             // 14.24 If-Match
             var ifMatch = httpRequestHeaders.IfMatch;
@@ -203,7 +204,28 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ifUnmodifiedSinceState = unmodified ? PreconditionState.ShouldProcess : PreconditionState.PreconditionFailed;
             }
 
-            var state = GetMaxPreconditionState(ifMatchState, ifNoneMatchState, ifModifiedSinceState, ifUnmodifiedSinceState);
+            var ifRangeHeader = httpRequestHeaders.IfRange;
+            if (ifRangeHeader != null)
+            {
+                // If the validator given in the If-Range header field matches the
+                // current validator for the selected representation of the target
+                // resource, then the server SHOULD process the Range header field as
+                // requested.  If the validator does not match, the server MUST ignore
+                // the Range header field.
+                if (ifRangeHeader.LastModified.HasValue)
+                {
+                    if (lastModified.HasValue && lastModified > ifRangeHeader.LastModified)
+                    {
+                        ifRangeState = PreconditionState.IgnoreRangeRequest;
+                    }
+                }
+                else if (etag != null && ifRangeHeader.EntityTag != null && !ifRangeHeader.EntityTag.Compare(etag, useStrongComparison: true))
+                {
+                    ifRangeState = PreconditionState.IgnoreRangeRequest;
+                }
+            }
+
+            var state = GetMaxPreconditionState(ifMatchState, ifNoneMatchState, ifModifiedSinceState, ifUnmodifiedSinceState, ifRangeState);
             return state;
         }
 

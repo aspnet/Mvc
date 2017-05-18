@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestedNotSatisfiable()
+        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestedIgnored()
         {
             // Arrange
             var contentType = "text/plain";
@@ -224,13 +224,11 @@ namespace Microsoft.AspNetCore.Mvc
             httpResponse.Body.Seek(0, SeekOrigin.Begin);
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
-            var contentRange = new ContentRangeHeaderValue(byteArray.Length);
-            Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
+            Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
             Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
-            Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
-            Assert.Empty(body);
+            Assert.Equal("Hello World", body);
         }
 
         [Theory]
