@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task Invoke_EmptyClaimsShouldRejectAnonymousUser()
+        public async Task Invoke_EmptyClaimsShouldChallengeAnonymousUser()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -138,7 +138,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ChallengeResult>(authorizationContext.Result);
         }
 
         [Fact]
@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task Invoke_RequireUnknownRoleShouldFail()
+        public async Task Invoke_RequireUnknownRoleShouldForbid()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireRole("Wut").Build());
@@ -243,11 +243,11 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
-        public async Task Invoke_RequireAdminRoleButFailPolicyShouldFail()
+        public async Task Invoke_RequireAdminRoleButFailPolicyShouldForbid()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
@@ -260,11 +260,11 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
-        public async Task Invoke_InvalidClaimShouldFail()
+        public async Task Invoke_InvalidClaimShouldForbid()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
@@ -276,7 +276,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
@@ -307,7 +307,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task Invoke_FailWhenLookingForClaimInOtherIdentity()
+        public async Task Invoke_ForbidWhenLookingForClaimInOtherIdentity()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder()
@@ -319,7 +319,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             await authorizeFilter.OnAuthorizationAsync(authorizationContext);
 
             // Assert
-            Assert.NotNull(authorizationContext.Result);
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
         }
 
         [Fact]
