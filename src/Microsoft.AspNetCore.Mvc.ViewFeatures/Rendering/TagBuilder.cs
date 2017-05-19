@@ -298,34 +298,42 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 throw new ArgumentNullException(nameof(encoder));
             }
 
-            WriteToHelper(this, writer, encoder, TagRenderMode);
+            WriteTo(this, writer, encoder, TagRenderMode);
         }
 
         /// <summary>
-        /// Returns the <see cref="IHtmlContent"/> body.
+        /// Returns an <see cref="IHtmlContent"/> that renders the body 
+        /// for the given <see cref="TagBuilder"/>.
         /// </summary>
-        /// <returns>The inner <see cref="IHtmlContent"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the body 
+        /// for the given <see cref="TagBuilder"/>.</returns>
         public IHtmlContent RenderBody() => _innerHtml;
 
         /// <summary>
-        /// Renders the start tag for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the start tag 
+        /// for the given <see cref="TagBuilder"/>.
         /// </summary>
-        /// <returns>The start tag for the <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the start tag 
+        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
         public IHtmlContent RenderStartTag() => new RenderTagHtmlContent(this, TagRenderMode.StartTag);
 
         /// <summary>
-        /// Renders the end tag for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the end tag 
+        /// for the given <see cref="TagBuilder"/>.
         /// </summary>
-        /// <returns>The end tag for the <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the end tag 
+        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
         public IHtmlContent RenderEndTag() => new RenderTagHtmlContent(this, TagRenderMode.EndTag);
 
         /// <summary>
-        /// Renders the self-closing tag for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the self-closing tag 
+        /// for the given <see cref="TagBuilder"/>.
         /// </summary>
-        /// <returns>The self-closing tag for the <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the self-closing tag 
+        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
         public IHtmlContent RenderSelfClosingTag() => new RenderTagHtmlContent(this, TagRenderMode.SelfClosing);
 
-        private static void WriteToHelper(
+        private static void WriteTo(
             TagBuilder tagBuilder,
             TextWriter writer,
             HtmlEncoder encoder,
@@ -377,8 +385,8 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
         private class RenderTagHtmlContent : IHtmlContent
         {
-            private TagBuilder _tagBuilder;
-            private TagRenderMode _tagRenderMode;
+            private readonly TagBuilder _tagBuilder;
+            private readonly TagRenderMode _tagRenderMode;
 
             public RenderTagHtmlContent(TagBuilder tagBuilder, TagRenderMode tagRenderMode)
             {
@@ -388,7 +396,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
 
             public void WriteTo(TextWriter writer, HtmlEncoder encoder)
             {
-                WriteToHelper(_tagBuilder, writer, encoder, _tagRenderMode);
+                TagBuilder.WriteTo(_tagBuilder, writer, encoder, _tagRenderMode);
             }
         }
 

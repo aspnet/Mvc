@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.Extensions.WebEncoders.Testing;
 using Xunit;
 
@@ -175,16 +176,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder("p");
-            var tag = tagBuilder.RenderStartTag();
 
             // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
+            var tag = tagBuilder.RenderStartTag();
 
-                // Assert
-                Assert.Equal("<p>", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("<p>", HtmlContentUtilities.HtmlContentToString(tag));
         }
 
         [Fact]
@@ -193,25 +190,13 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
             // Arrange
             var tagBuilder = new TagBuilder("p");
             tagBuilder.TagRenderMode = TagRenderMode.EndTag;
+
+            // Act
             var tag = tagBuilder.RenderStartTag();
 
-            // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
-
-                // Assert
-                Assert.Equal("<p>", writer.ToString());
-            }
-
-            // Act
-            using (var writer = new StringWriter())
-            {
-                tagBuilder.WriteTo(writer, new HtmlTestEncoder());
-
-                // Assert
-                Assert.Equal("</p>", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("<p>", HtmlContentUtilities.HtmlContentToString(tag));
+            Assert.Equal("</p>", HtmlContentUtilities.HtmlContentToString(tagBuilder));
         }
 
         [Fact]
@@ -219,16 +204,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder("p");
-            var tag = tagBuilder.RenderEndTag();
 
             // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
+            var tag = tagBuilder.RenderEndTag();
 
-                // Assert
-                Assert.Equal("</p>", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("</p>", HtmlContentUtilities.HtmlContentToString(tag));
         }
 
         [Fact]
@@ -236,25 +217,14 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder("p");
-            var tag = tagBuilder.RenderEndTag();
+            tagBuilder.TagRenderMode = TagRenderMode.Normal;
 
             // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
+            var tag = tagBuilder.RenderEndTag();
 
-                // Assert
-                Assert.Equal("</p>", writer.ToString());
-            }
-
-            // Act 2
-            using (var writer = new StringWriter())
-            {
-                tagBuilder.WriteTo(writer, new HtmlTestEncoder());
-
-                // Assert 2
-                Assert.Equal("<p></p>", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("</p>", HtmlContentUtilities.HtmlContentToString(tag));
+            Assert.Equal("<p></p>", HtmlContentUtilities.HtmlContentToString(tagBuilder));
         }
 
         [Fact]
@@ -262,16 +232,13 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
         {
             // Arrange
             var tagBuilder = new TagBuilder("p");
-            var tag = tagBuilder.RenderSelfClosingTag();
 
             // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
+            var tag = tagBuilder.RenderSelfClosingTag();
 
-                // Assert
-                Assert.Equal("<p />", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("<p />", HtmlContentUtilities.HtmlContentToString(tag));
+
         }
 
         [Fact]
@@ -280,16 +247,12 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
             // Arrange
             var tagBuilder = new TagBuilder("p");
             tagBuilder.InnerHtml.AppendHtml("<span>Hello</span>");
-            var tag = tagBuilder.RenderBody();
 
             // Act
-            using (var writer = new StringWriter())
-            {
-                tag.WriteTo(writer, new HtmlTestEncoder());
+            var tag = tagBuilder.RenderBody();
 
-                // Assert
-                Assert.Equal("<span>Hello</span>", writer.ToString());
-            }
+            // Assert
+            Assert.Equal("<span>Hello</span>", HtmlContentUtilities.HtmlContentToString(tag));
         }
     }
 }
