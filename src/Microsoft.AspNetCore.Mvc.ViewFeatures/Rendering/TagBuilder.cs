@@ -302,35 +302,27 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         /// <summary>
-        /// Returns an <see cref="IHtmlContent"/> that renders the body 
-        /// for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the body.
         /// </summary>
-        /// <returns>An <see cref="IHtmlContent"/> that renders the body 
-        /// for the given <see cref="TagBuilder"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the body.</returns>
         public IHtmlContent RenderBody() => _innerHtml;
 
         /// <summary>
-        /// Returns an <see cref="IHtmlContent"/> that renders the start tag 
-        /// for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the start tag.
         /// </summary>
-        /// <returns>An <see cref="IHtmlContent"/> that renders the start tag 
-        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the start tag.</returns>
         public IHtmlContent RenderStartTag() => new RenderTagHtmlContent(this, TagRenderMode.StartTag);
 
         /// <summary>
-        /// Returns an <see cref="IHtmlContent"/> that renders the end tag 
-        /// for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the end tag.
         /// </summary>
-        /// <returns>An <see cref="IHtmlContent"/> that renders the end tag 
-        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the end tag.</returns>
         public IHtmlContent RenderEndTag() => new RenderTagHtmlContent(this, TagRenderMode.EndTag);
 
         /// <summary>
-        /// Returns an <see cref="IHtmlContent"/> that renders the self-closing tag 
-        /// for the given <see cref="TagBuilder"/>.
+        /// Returns an <see cref="IHtmlContent"/> that renders the self-closing tag.
         /// </summary>
-        /// <returns>An <see cref="IHtmlContent"/> that renders the self-closing tag 
-        /// for the given <see cref="TagBuilder"/> with the provided <see cref="TagName"/>.</returns>
+        /// <returns>An <see cref="IHtmlContent"/> that renders the self-closing tag.</returns>
         public IHtmlContent RenderSelfClosingTag() => new RenderTagHtmlContent(this, TagRenderMode.SelfClosing);
 
         private static void WriteTo(
