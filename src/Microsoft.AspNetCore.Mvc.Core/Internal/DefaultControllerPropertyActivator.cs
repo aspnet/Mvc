@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.Extensions.Internal;
@@ -13,14 +14,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class DefaultControllerPropertyActivator : IControllerPropertyActivator
     {
-        private readonly object _initializeLock = new object();
+        private static readonly Func<Type, PropertyActivator<ControllerContext>[]> _getPropertiesToActivate =
+            GetPropertiesToActivate;
+        private object _initializeLock = new object();
         private bool _initialized;
         private ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]> _activateActions;
-        private Func<Type, PropertyActivator<ControllerContext>[]> _getPropertiesToActivate;
 
         public void Activate(ControllerContext context, object controller)
         {
-            EnsureInitialized();
+            LazyInitializer.EnsureInitialized(
+                ref _activateActions,
+                ref _initialized,
+                ref _initializeLock);
 
             var controllerType = controller.GetType();
             var propertiesToActivate = _activateActions.GetOrAdd(
@@ -62,20 +67,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             return Activate;
         }
-        private void EnsureInitialized()
-        {
-            lock (_initializeLock)
-            {
-                if (!_initialized)
-                {
-                    _activateActions = new ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]>();
-                    _getPropertiesToActivate = GetPropertiesToActivate;
-                    _initialized = true;
-                }
-            }
-        }
 
-        private PropertyActivator<ControllerContext>[] GetPropertiesToActivate(Type type)
+        private static PropertyActivator<ControllerContext>[] GetPropertiesToActivate(Type type)
         {
             IEnumerable<PropertyActivator<ControllerContext>> activators;
             activators = PropertyActivator<ControllerContext>.GetPropertiesToActivate(

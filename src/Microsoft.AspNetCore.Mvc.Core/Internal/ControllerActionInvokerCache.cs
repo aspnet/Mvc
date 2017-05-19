@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             else
             {
                 // Filter instances from statically defined filter descriptors + from filter providers
-                filters = FilterFactory.CreateUncachedFilters(_filterProviders, controllerContext, cacheEntry.Filters);
+                filters = FilterFactory.CreateUncachedFilters(_filterProviders, controllerContext, cacheEntry.CachedFilters);
             }
 
             return (cacheEntry, filters);

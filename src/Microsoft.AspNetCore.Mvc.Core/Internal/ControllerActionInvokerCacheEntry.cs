@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class ControllerActionInvokerCacheEntry
     {
         internal ControllerActionInvokerCacheEntry(
-            FilterItem[] filters,
+            FilterItem[] cachedFilters,
             Func<ControllerContext, object> controllerFactory,
             Action<ControllerContext, object> controllerReleaser,
             ControllerBinderDelegate controllerBinderDelegate,
@@ -19,11 +19,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ControllerFactory = controllerFactory;
             ControllerReleaser = controllerReleaser;
             ControllerBinderDelegate = controllerBinderDelegate;
-            Filters = filters;
+            CachedFilters = cachedFilters;
             ActionMethodExecutor = actionMethodExecutor;
         }
 
-        public FilterItem[] Filters { get; }
+        public FilterItem[] CachedFilters { get; }
 
         public Func<ControllerContext, object> ControllerFactory { get; }
 

@@ -92,11 +92,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            var modelMetadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
-            var binder = _modelBinderFactory.CreateBinder(new ModelBinderFactoryContext()
+            var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            var binder = _modelBinderFactory.CreateBinder(new ModelBinderFactoryContext
             {
                 BindingInfo = parameter.BindingInfo,
-                Metadata = modelMetadata,
+                Metadata = metadata,
                 CacheToken = parameter,
             });
 
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 binder,
                 valueProvider,
                 parameter,
-                modelMetadata,
+                metadata,
                 value);
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="modelBinder">The <see cref="IModelBinder"/>.</param>
         /// <param name="valueProvider">The <see cref="IValueProvider"/>.</param>
         /// <param name="parameter">The <see cref="ParameterDescriptor"/></param>
-        /// <param name="modelMetadata">The <see cref="ModelMetadata"/>.</param>
+        /// <param name="metadata">The <see cref="ModelMetadata"/>.</param>
         /// <param name="value">The initial model value.</param>
         /// <returns>The result of model binding.</returns>
         public virtual async Task<ModelBindingResult> BindModelAsync(
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             IModelBinder modelBinder,
             IValueProvider valueProvider,
             ParameterDescriptor parameter,
-            ModelMetadata modelMetadata,
+            ModelMetadata metadata,
             object value)
         {
             if (actionContext == null)
@@ -147,20 +147,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            if (modelMetadata == null)
+            if (metadata == null)
             {
-                throw new ArgumentNullException(nameof(modelMetadata));
+                throw new ArgumentNullException(nameof(metadata));
             }
 
             var modelBindingContext = DefaultModelBindingContext.CreateBindingContext(
                 actionContext,
                 valueProvider,
-                modelMetadata,
+                metadata,
                 parameter.BindingInfo,
                 parameter.Name);
             modelBindingContext.Model = value;
 
-            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? modelMetadata.BinderModelName;
+            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
             if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
