@@ -204,22 +204,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ifUnmodifiedSinceState = unmodified ? PreconditionState.ShouldProcess : PreconditionState.PreconditionFailed;
             }
 
-            var ifRangeHeader = httpRequestHeaders.IfRange;
-            if (ifRangeHeader != null)
+            var ifRange = httpRequestHeaders.IfRange;
+            if (ifRange != null)
             {
                 // If the validator given in the If-Range header field matches the
                 // current validator for the selected representation of the target
                 // resource, then the server SHOULD process the Range header field as
                 // requested.  If the validator does not match, the server MUST ignore
                 // the Range header field.
-                if (ifRangeHeader.LastModified.HasValue)
+                if (ifRange.LastModified.HasValue)
                 {
-                    if (lastModified.HasValue && lastModified > ifRangeHeader.LastModified)
+                    if (lastModified.HasValue && lastModified > ifRange.LastModified)
                     {
                         ifRangeState = PreconditionState.IgnoreRangeRequest;
                     }
                 }
-                else if (etag != null && ifRangeHeader.EntityTag != null && !ifRangeHeader.EntityTag.Compare(etag, useStrongComparison: true))
+                else if (etag != null && ifRange.EntityTag != null && !ifRange.EntityTag.Compare(etag, useStrongComparison: true))
                 {
                     ifRangeState = PreconditionState.IgnoreRangeRequest;
                 }

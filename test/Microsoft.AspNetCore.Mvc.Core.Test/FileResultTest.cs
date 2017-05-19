@@ -267,11 +267,12 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        [InlineData("\"Etag\"", "\"NotEtag\"")]
-        [InlineData("\"Etag\"", null)]
-        [InlineData(null, "\"NotEtag\"")]
-        public void GetPreconditionState_ShouldProcess(string ifMatch, string ifNoneMatch)
+        [InlineData("\"Etag\"", "\"NotEtag\"", "\"Etag\"")]
+        [InlineData("\"Etag\"", null, null)]
+        [InlineData(null, "\"NotEtag\"", "\"Etag\"")]
+        public void GetPreconditionState_ShouldProcess(string ifMatch, string ifNoneMatch, string ifRange)
         {
+            // Arrange
             var actionContext = new ActionContext();
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Method = HttpMethods.Get;
@@ -279,7 +280,6 @@ namespace Microsoft.AspNetCore.Mvc
             var lastModified = DateTimeOffset.MinValue;
             lastModified = new DateTimeOffset(lastModified.Year, lastModified.Month, lastModified.Day, lastModified.Hour, lastModified.Minute, lastModified.Second, TimeSpan.FromSeconds(0));
             var etag = new EntityTagHeaderValue("\"Etag\"");
-
             httpRequestHeaders.IfMatch = ifMatch == null ? null : new[]
             {
                 new EntityTagHeaderValue(ifMatch),
@@ -289,10 +289,12 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 new EntityTagHeaderValue(ifNoneMatch),
             };
-
+            httpRequestHeaders.IfRange = ifRange == null ? null : new RangeConditionHeaderValue(ifRange);
             httpRequestHeaders.IfUnmodifiedSince = lastModified;
             httpRequestHeaders.IfModifiedSince = DateTimeOffset.MinValue.AddDays(1);
             actionContext.HttpContext = httpContext;
+
+            // Act
             var state = FileResultExecutorBase.GetPreconditionState(
                 actionContext,
                 httpRequestHeaders,
@@ -309,13 +311,13 @@ namespace Microsoft.AspNetCore.Mvc
         [InlineData(null, null)]
         public void GetPreconditionState_ShouldNotProcess_PreconditionFailed(string ifMatch, string ifNoneMatch)
         {
+            // Arrange
             var actionContext = new ActionContext();
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Method = HttpMethods.Delete;
             var httpRequestHeaders = httpContext.Request.GetTypedHeaders();
             var lastModified = DateTimeOffset.MinValue.AddDays(1);
             var etag = new EntityTagHeaderValue("\"Etag\"");
-
             httpRequestHeaders.IfMatch = ifMatch == null ? null : new[]
             {
                 new EntityTagHeaderValue(ifMatch),
@@ -325,10 +327,11 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 new EntityTagHeaderValue(ifNoneMatch),
             };
-
             httpRequestHeaders.IfUnmodifiedSince = DateTimeOffset.MinValue;
             httpRequestHeaders.IfModifiedSince = DateTimeOffset.MinValue.AddDays(2);
             actionContext.HttpContext = httpContext;
+
+            // Act
             var state = FileResultExecutorBase.GetPreconditionState(
                 actionContext,
                 httpRequestHeaders,
@@ -344,6 +347,7 @@ namespace Microsoft.AspNetCore.Mvc
         [InlineData(null, null)]
         public void GetPreconditionState_ShouldNotProcess_NotModified(string ifMatch, string ifNoneMatch)
         {
+            // Arrange
             var actionContext = new ActionContext();
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Method = HttpMethods.Get;
@@ -351,7 +355,6 @@ namespace Microsoft.AspNetCore.Mvc
             var lastModified = DateTimeOffset.MinValue;
             lastModified = new DateTimeOffset(lastModified.Year, lastModified.Month, lastModified.Day, lastModified.Hour, lastModified.Minute, lastModified.Second, TimeSpan.FromSeconds(0));
             var etag = new EntityTagHeaderValue("\"Etag\"");
-
             httpRequestHeaders.IfMatch = ifMatch == null ? null : new[]
             {
                 new EntityTagHeaderValue(ifMatch),
@@ -363,6 +366,8 @@ namespace Microsoft.AspNetCore.Mvc
             };
             httpRequestHeaders.IfModifiedSince = lastModified;
             actionContext.HttpContext = httpContext;
+
+            // Act
             var state = FileResultExecutorBase.GetPreconditionState(
                 actionContext,
                 httpRequestHeaders,
@@ -371,6 +376,32 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             Assert.Equal(FileResultExecutorBase.PreconditionState.NotModified, state);
+        }
+
+        [Fact]
+        public void GetPreconditionState_ShouldNotProcess_IgnoreRangeRequest()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Method = HttpMethods.Get;
+            var httpRequestHeaders = httpContext.Request.GetTypedHeaders();
+            var lastModified = DateTimeOffset.MinValue;
+            lastModified = new DateTimeOffset(lastModified.Year, lastModified.Month, lastModified.Day, lastModified.Hour, lastModified.Minute, lastModified.Second, TimeSpan.FromSeconds(0));
+            var etag = new EntityTagHeaderValue("\"Etag\"");
+            httpRequestHeaders.IfRange = new RangeConditionHeaderValue("\"NotEtag\"");
+            httpRequestHeaders.IfModifiedSince = lastModified;
+            actionContext.HttpContext = httpContext;
+
+            // Act
+            var state = FileResultExecutorBase.GetPreconditionState(
+                actionContext,
+                httpRequestHeaders,
+                lastModified,
+                etag);
+
+            // Assert
+            Assert.Equal(FileResultExecutorBase.PreconditionState.IgnoreRangeRequest, state);
         }
 
         private static IServiceCollection CreateServices()
