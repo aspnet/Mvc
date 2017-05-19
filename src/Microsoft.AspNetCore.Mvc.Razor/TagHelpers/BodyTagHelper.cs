@@ -18,10 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <summary>
         /// Creates a new <see cref="BodyTagHelper"/>.
         /// </summary>
-        /// <param name="components">The list of <see cref="ITagHelperComponent"/>.</param>
+        /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the list
+        /// of <see cref="ITagHelperComponent"/>s.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public BodyTagHelper(IEnumerable<ITagHelperComponent> components, ILoggerFactory loggerFactory)
-            : base(components, loggerFactory)
+        public BodyTagHelper(ITagHelperComponentManager manager, ILoggerFactory loggerFactory)
+            : base(manager, loggerFactory)
         {
         }
     }

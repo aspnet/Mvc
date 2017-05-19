@@ -1,0 +1,10 @@
+﻿@inject Microsoft.AspNetCore.Mvc.Razor.TagHelpers.ITagHelperComponentManager manager
+<head inject>
+Hello from Head Tag Helper Component
+</head>
+@{ 
+    manager.Add(new TestViewTagHelperComponent());
+}
+<body inject>
+Hello from Body Tag Helper Component
+</body>

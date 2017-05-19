@@ -20,14 +20,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <summary>
         /// Creates a new <see cref="TagHelperComponentTagHelper"/>.
         /// </summary>
-        /// <param name="components">The list of <see cref="ITagHelperComponent"/>.</param>
+        /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the list
+        /// of <see cref="ITagHelperComponent"/>s.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public TagHelperComponentTagHelper(IEnumerable<ITagHelperComponent> components,
+        public TagHelperComponentTagHelper(ITagHelperComponentManager manager,
             ILoggerFactory loggerFactory)
         {
-            if (components == null)
+            if (manager == null)
             {
-                throw new ArgumentNullException(nameof(components));
+                throw new ArgumentNullException(nameof(manager));
             }
 
             if (loggerFactory == null)
@@ -35,14 +36,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _components = components;
+            _components = new List<ITagHelperComponent>(manager.Components.OrderBy(p => p.Order));
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
-            _components = _components.OrderBy(p => p.Order);
             foreach (var component in _components)
             {
                 component.Init(context);
