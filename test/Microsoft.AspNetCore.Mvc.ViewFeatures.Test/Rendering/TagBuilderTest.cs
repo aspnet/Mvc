@@ -188,6 +188,33 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
         }
 
         [Fact]
+        public void RenderStartTag_RendersExpectedStartTag_TagBuilderRendersAsExpected()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            tagBuilder.TagRenderMode = TagRenderMode.EndTag;
+            var tag = tagBuilder.RenderStartTag();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("<p>", writer.ToString());
+            }
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tagBuilder.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("</p>", writer.ToString());
+            }
+        }
+
+        [Fact]
         public void RenderEndTag_RendersExpectedEndTag()
         {
             // Arrange
@@ -201,6 +228,32 @@ namespace Microsoft.AspNetCore.Mvc.Core.Rendering
 
                 // Assert
                 Assert.Equal("</p>", writer.ToString());
+            }
+        }
+
+        [Fact]
+        public void RenderEndTag_RendersExpectedEndTag_TagBuilderRendersAsExpected()
+        {
+            // Arrange
+            var tagBuilder = new TagBuilder("p");
+            var tag = tagBuilder.RenderEndTag();
+
+            // Act
+            using (var writer = new StringWriter())
+            {
+                tag.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert
+                Assert.Equal("</p>", writer.ToString());
+            }
+
+            // Act 2
+            using (var writer = new StringWriter())
+            {
+                tagBuilder.WriteTo(writer, new HtmlTestEncoder());
+
+                // Assert 2
+                Assert.Equal("<p></p>", writer.ToString());
             }
         }
 
