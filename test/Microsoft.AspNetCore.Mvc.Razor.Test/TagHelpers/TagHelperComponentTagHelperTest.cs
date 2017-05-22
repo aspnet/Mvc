@@ -204,15 +204,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 new TestTagHelperComponent()
             });
 
-            testTagHelperComponentManager.Add(new TestAddTagHelperComponent());
-            testTagHelperComponentManager.Add(new TestAddTagHelperComponent());
+            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent());
+            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent());
             var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance);
 
             // Act
             await testTagHelperComponentTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert           
-            Assert.Equal("ProcessedProcessed2Processed2", output.PostContent.GetContent());
+            Assert.Equal("Processed2Processed2Processed", output.PostContent.GetContent());
         }
 
         [Fact]
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 
         private class TestAddTagHelperComponent : ITagHelperComponent
         {
-            public int Order => 2;
+            public int Order => 0;
 
             public void Init(TagHelperContext context)
             {

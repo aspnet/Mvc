@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _components = new List<ITagHelperComponent>(manager.Components.OrderBy(p => p.Order));
+            _components = manager.Components.OrderBy(p => p.Order).ToArray();
             _logger = loggerFactory.CreateLogger(GetType());
         }
 

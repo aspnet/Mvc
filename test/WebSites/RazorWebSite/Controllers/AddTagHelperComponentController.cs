@@ -20,13 +20,13 @@ namespace RazorWebSite.Controllers
 
         public IActionResult AddComponent()
         {
-            _tagHelperComponentManager.Add(new TestTagHelperComponent());
+            _tagHelperComponentManager.Components.Add(new TestTagHelperComponent());
             return View("AddComponent");
         }
 
         private class TestTagHelperComponent : ITagHelperComponent
         {
-            public int Order => 2;
+            public int Order => 0;
 
             public void Init(TagHelperContext context)
             {
@@ -37,7 +37,7 @@ namespace RazorWebSite.Controllers
             {
                 if (string.Equals(context.TagName, "body", StringComparison.Ordinal))
                 {
-                    output.PostContent.AppendHtml("\r\nProcessed TagHelperComponent added from controller.");
+                    output.PostContent.AppendHtml("Processed TagHelperComponent added from controller.\r\n");
                 }
                 return Task.CompletedTask;
             }

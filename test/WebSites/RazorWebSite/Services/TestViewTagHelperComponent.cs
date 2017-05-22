@@ -20,7 +20,7 @@ namespace RazorWebSite
         {
             if (string.Equals(context.TagName, "body", StringComparison.Ordinal))
             {
-                output.PostContent.AppendHtml("\r\nProcessed TagHelperComponent added from view.\r\n");
+                output.PostContent.AppendHtml("Processed TagHelperComponent added from view.\r\n");
             }
             return Task.CompletedTask;
         }

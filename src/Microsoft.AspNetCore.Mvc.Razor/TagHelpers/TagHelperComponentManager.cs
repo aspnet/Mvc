@@ -3,15 +3,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
+    /// <summary>
+    /// The default implementation of the <see cref="ITagHelperComponentManager"/>.
+    /// </summary>
     public class TagHelperComponentManager : ITagHelperComponentManager
     {
-        private List<ITagHelperComponent> _tagHelperComponents;
-
+        /// <summary>
+        /// Creates a new <see cref="TagHelperComponentManager"/>.
+        /// </summary>
+        /// <param name="tagHelperComponents">The collection of <see cref="ITagHelperComponent"/>s.</param>
         public TagHelperComponentManager(IEnumerable<ITagHelperComponent> tagHelperComponents)
         {
             if (tagHelperComponents == null)
@@ -19,14 +24,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperComponents));
             }
 
-            _tagHelperComponents = new List<ITagHelperComponent>(tagHelperComponents);
+            Components = new List<ITagHelperComponent>(tagHelperComponents);
         }
 
-        public IEnumerable<ITagHelperComponent> Components => _tagHelperComponents;
-
-        public void Add(ITagHelperComponent tagHelperComponent)
-        {
-            _tagHelperComponents.Add(tagHelperComponent);
-        }
+        /// <inheritdoc />
+        public ICollection<ITagHelperComponent> Components { get; private set; }
     }
 }

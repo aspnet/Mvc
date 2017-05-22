@@ -6,10 +6,14 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
+    /// <summary>
+    /// Contract used to manage <see cref="ITagHelperComponent"/>s.
+    /// </summary>
     public interface ITagHelperComponentManager
     {
-        IEnumerable<ITagHelperComponent> Components { get; }
-
-        void Add(ITagHelperComponent tagHelperComponent);
+        /// <summary>
+        /// The collection of <see cref="ITagHelperComponent"/>s to manage.
+        /// </summary>
+        ICollection<ITagHelperComponent> Components { get; }
     }
 }

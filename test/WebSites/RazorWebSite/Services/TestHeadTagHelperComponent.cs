@@ -15,7 +15,7 @@ namespace RazorWebSite
         {
             if (string.Equals(context.TagName, "head", StringComparison.Ordinal) && output.Attributes.ContainsName("inject"))
             {
-                output.PostContent.AppendHtml("<script>'This was injected!!'</script>");
+                output.PostContent.AppendHtml("<script>'This was injected!!'</script>\r\n");
             }
 
             return Task.FromResult(0);
