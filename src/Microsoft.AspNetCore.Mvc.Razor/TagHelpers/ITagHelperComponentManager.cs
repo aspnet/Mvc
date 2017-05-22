@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     /// <summary>
-    /// Contract used to manage <see cref="ITagHelperComponent"/>s.
+    /// An implementation of this interface provides the list of <see cref="ITagHelperComponent"/>s
+    /// that will be used by the <see cref="TagHelperComponentTagHelper"/>.
     /// </summary>
     public interface ITagHelperComponentManager
     {
         /// <summary>
-        /// The collection of <see cref="ITagHelperComponent"/>s to manage.
+        /// Gets the list of <see cref="ITagHelperComponent"/>s that will be used by the 
+        /// <see cref="TagHelperComponentTagHelper"/>.
         /// </summary>
         ICollection<ITagHelperComponent> Components { get; }
     }

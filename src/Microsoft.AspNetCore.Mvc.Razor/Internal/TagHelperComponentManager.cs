@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
+namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     /// <summary>
     /// The default implementation of the <see cref="ITagHelperComponentManager"/>.
