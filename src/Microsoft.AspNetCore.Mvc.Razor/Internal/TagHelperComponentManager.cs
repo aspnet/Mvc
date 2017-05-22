@@ -28,6 +28,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         /// <inheritdoc />
-        public ICollection<ITagHelperComponent> Components { get; private set; }
+        public ICollection<ITagHelperComponent> Components { get; }
     }
 }

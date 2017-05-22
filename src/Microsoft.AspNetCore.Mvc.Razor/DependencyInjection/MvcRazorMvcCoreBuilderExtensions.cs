@@ -188,7 +188,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
             services.TryAddSingleton<ITagHelperFactory, DefaultTagHelperFactory>();
 
-            // Provider for TagHelperComponents
+            // TagHelperComponents manager
             services.TryAddScoped<ITagHelperComponentManager, TagHelperComponentManager>();
 
             // Consumed by the Cache tag helper to cache results across the lifetime of the application.

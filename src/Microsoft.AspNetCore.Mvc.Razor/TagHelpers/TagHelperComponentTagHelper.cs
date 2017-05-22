@@ -22,11 +22,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         private IEnumerable<ITagHelperComponent> _components;
 
         /// <summary>
-        /// Creates a new <see cref="TagHelperComponentTagHelper"/>.
+        /// Creates a new <see cref="TagHelperComponentTagHelper"/> and orders the 
+        /// the collection of <see cref="ITagHelperComponent"/>s in <see cref="ITagHelperComponentManager.Components"/>.
         /// </summary>
-        /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the list
+        /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the collection
         /// of <see cref="ITagHelperComponent"/>s.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        /// <remarks>The <see cref="ITagHelperComponentManager.Components"/> are ordered after the 
+        /// creation of the <see cref="ITagHelperComponentManager"/> to position the <see cref="ITagHelperComponent"/>s
+        /// added from controllers and views correctly.</remarks>
         public TagHelperComponentTagHelper(ITagHelperComponentManager manager,
             ILoggerFactory loggerFactory)
         {

@@ -37,7 +37,7 @@ namespace RazorWebSite.Controllers
             {
                 if (string.Equals(context.TagName, "body", StringComparison.Ordinal))
                 {
-                    output.PostContent.AppendHtml("Processed TagHelperComponent added from controller.\r\n");
+                    output.PostContent.AppendHtml("Processed TagHelperComponent added from controller.");
                 }
                 return Task.CompletedTask;
             }

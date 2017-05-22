@@ -28,9 +28,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 uniqueId: "test");
 
             var incrementer = 0;
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
-               new CallbackTagHelperComponent(
+                new CallbackTagHelperComponent(
                     order: 2,
                     initCallback: () =>
                     {
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     new DefaultTagHelperContent()));
 
             var incrementer = 0;
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
                 new CallbackTagHelperComponent(
                     order: 2,
@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
                 new TestTagHelperComponent()
             });
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
                 new TestTagHelperComponent()
             });
@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
                 new TestTagHelperComponent()
             });
@@ -268,7 +268,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
                     new DefaultTagHelperContent()));
 
-            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            var testTagHelperComponentManager = new TagHelperComponentManager(new []
             {
                 new TestTagHelperComponent()
             });
