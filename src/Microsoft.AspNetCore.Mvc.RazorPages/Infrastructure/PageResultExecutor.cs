@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -47,14 +48,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         /// <summary>
         /// Executes a Razor Page asynchronously.
         /// </summary>
-        public virtual Task ExecuteAsync(PageContext pageContext, PageViewResult result)
+        public virtual Task ExecuteAsync(PageContext pageContext, PageResult result)
         {
+            if (pageContext == null)
+            {
+                throw new ArgumentNullException(nameof(pageContext));
+            }
+
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
             if (result.Model != null)
             {
                 pageContext.ViewData.Model = result.Model;
             }
 
-            var view = new RazorView(_razorViewEngine, _razorPageActivator, pageContext.PageStarts, result.Page, _htmlEncoder);
+            var view = new RazorView(_razorViewEngine, _razorPageActivator, pageContext.ViewStarts, result.Page, _htmlEncoder);
             pageContext.View = view;
             return ExecuteAsync(pageContext, result.ContentType, result.StatusCode);
         }

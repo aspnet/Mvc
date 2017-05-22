@@ -7,14 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Razor.Evolution;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -185,12 +185,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         public static Assembly LoadAssembly(MemoryStream assemblyStream, MemoryStream pdbStream)
         {
-            var assembly =
-#if NET451
-                Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
-#else
-                System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyStream, pdbStream);
-#endif
+            var assembly = AssemblyLoadContext.Default.LoadFromStream(assemblyStream, pdbStream);
             return assembly;
         }
 

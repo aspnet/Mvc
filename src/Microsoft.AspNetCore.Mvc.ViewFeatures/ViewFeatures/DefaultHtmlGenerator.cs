@@ -143,6 +143,33 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
+        public virtual TagBuilder GeneratePageLink(
+            ViewContext viewContext,
+            string linkText,
+            string pageName,
+            string pageHandler,
+            string protocol,
+            string hostname,
+            string fragment,
+            object routeValues,
+            object htmlAttributes)
+        {
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
+            if (linkText == null)
+            {
+                throw new ArgumentNullException(nameof(linkText));
+            }
+
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
+            var url = urlHelper.Page(pageName, pageHandler, routeValues, protocol, hostname, fragment);
+            return GenerateLink(linkText, url, htmlAttributes);
+        }
+
+        /// <inheritdoc />
         public virtual IHtmlContent GenerateAntiforgery(ViewContext viewContext)
         {
             if (viewContext == null)
@@ -277,6 +304,27 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
                 action = urlHelper.Action(action: actionName, controller: controllerName, values: routeValues);
             }
+
+            return GenerateFormCore(viewContext, action, method, htmlAttributes);
+        }
+
+        /// <inheritdoc />
+        public virtual TagBuilder GeneratePageForm(
+            ViewContext viewContext,
+            string pageName,
+            string pageHandler,
+            object routeValues,
+            string fragment,
+            string method,
+            object htmlAttributes)
+        {
+            if (viewContext == null)
+            {
+                throw new ArgumentNullException(nameof(viewContext));
+            }
+
+            var urlHelper = _urlHelperFactory.GetUrlHelper(viewContext);
+            var action = urlHelper.Page(pageName, pageHandler, routeValues, protocol: null, host: null, fragment: fragment);
 
             return GenerateFormCore(viewContext, action, method, htmlAttributes);
         }

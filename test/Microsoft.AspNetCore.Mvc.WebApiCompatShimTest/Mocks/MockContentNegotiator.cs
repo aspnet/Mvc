@@ -32,16 +32,7 @@ namespace System.Net.Http.Formatting.Mocks
         public new Encoding SelectResponseCharacterEncoding(HttpRequestMessage request, MediaTypeFormatter formatter)
         {
             return base.SelectResponseCharacterEncoding(request, formatter);
-        }
-
-#if !NETCOREAPP1_1
-
-        public new MediaTypeFormatterMatch MatchMediaTypeMapping(HttpRequestMessage request, MediaTypeFormatter formatter)
-        {
-            return base.MatchMediaTypeMapping(request, formatter);
-        }
-
-#endif
+        }      
 
         public new MediaTypeFormatterMatch MatchAcceptHeader(IEnumerable<MediaTypeWithQualityHeaderValue> sortedAcceptValues, MediaTypeFormatter formatter)
         {

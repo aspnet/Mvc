@@ -40,7 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                LogLevel.Debug,
                3,
                "Request was short circuited at page filter '{PageFilter}'.");
-
         }
 
         public static IDisposable PageScope(this ILogger logger, ActionDescriptor actionDescriptor)
@@ -111,7 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
             {
-                for (int i = 0; i < Count; ++i)
+                for (var i = 0; i < Count; ++i)
                 {
                     yield return this[i];
                 }

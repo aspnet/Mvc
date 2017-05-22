@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-#if NET452
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,6 +47,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         [InlineData("text/*", false)]
         [InlineData("text/json", false)]
         [InlineData("application/json", false)]
+        [InlineData("application/some.entity+xml", true)]
+        [InlineData("application/some.entity+xml;v=2", true)]
+        [InlineData("application/some.entity+json", false)]
+        [InlineData("application/some.entity+*", false)]
+        [InlineData("text/some.entity+json", false)]
         [InlineData("", false)]
         [InlineData("invalid", false)]
         [InlineData(null, false)]
@@ -469,4 +473,3 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         }
     }
 }
-#endif

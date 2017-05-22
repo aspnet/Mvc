@@ -15,6 +15,28 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class RazorPagesOptionsExtensions
     {
         /// <summary>
+        /// Configures the specified <paramref name="factory"/> to apply filters to all Razor Pages.
+        /// </summary>
+        /// <param name="options">The <see cref="RazorPagesOptions"/> to configure.</param>
+        /// <param name="factory">The factory to create filters.</param>
+        /// <returns></returns>
+        public static RazorPagesOptions ConfigureFilter(this RazorPagesOptions options, Func<PageApplicationModel, IFilterMetadata> factory)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            options.Conventions.Add(new FolderConvention("/", model => model.Filters.Add(factory(model))));
+            return options;
+        }
+
+        /// <summary>
         /// Configures the specified <paramref name="filter"/> to apply to all Razor Pages.
         /// </summary>
         /// <param name="options">The <see cref="RazorPagesOptions"/> to configure.</param>
@@ -33,6 +55,52 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             options.Conventions.Add(new FolderConvention("/", model => model.Filters.Add(filter)));
+            return options;
+        }
+
+        /// <summary>
+        /// Adds a <see cref="AllowAnonymousFilter"/> to the page with the specified path.
+        /// </summary>
+        /// <param name="options">The <see cref="RazorPagesOptions"/> to configure.</param>
+        /// <param name="path">The path of the Razor Page.</param>
+        /// <returns>The <see cref="RazorPagesOptions"/>.</returns>
+        public static RazorPagesOptions AllowAnonymousToPage(this RazorPagesOptions options, string path)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(path));
+            }
+
+            var anonymousFilter = new AllowAnonymousFilter();
+            options.Conventions.Add(new PageConvention(path, model => model.Filters.Add(anonymousFilter)));
+            return options;
+        }
+
+        /// <summary>
+        /// Adds a <see cref="AllowAnonymousFilter"/> to all pages under the specified path.
+        /// </summary>
+        /// <param name="options">The <see cref="RazorPagesOptions"/> to configure.</param>
+        /// <param name="folderPath">The folder path.</param>
+        /// <returns>The <see cref="RazorPagesOptions"/>.</returns>
+        public static RazorPagesOptions AllowAnonymousToFolder(this RazorPagesOptions options, string folderPath)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(folderPath));
+            }
+
+            var anonymousFilter = new AllowAnonymousFilter();
+            options.Conventions.Add(new FolderConvention(folderPath, model => model.Filters.Add(anonymousFilter)));
             return options;
         }
 

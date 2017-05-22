@@ -69,6 +69,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, string[], Exception> _noActionsMatched;
 
+        private static readonly Action<ILogger, string, Exception> _redirectToPageResultExecuting;
+
         static MvcCoreLoggerExtensions()
         {
             _actionExecuting = LoggerMessage.Define<string>(
@@ -118,12 +120,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             _authorizationFailure = LoggerMessage.Define<object>(
                 LogLevel.Information,
-                1,
+                3,
                 "Authorization failed for the request at filter '{AuthorizationFilter}'.");
 
             _resourceFilterShortCircuit = LoggerMessage.Define<object>(
                 LogLevel.Debug,
-                2,
+                4,
                 "Request was short circuited at resource filter '{ResourceFilter}'.");
 
             _actionFilterShortCircuit = LoggerMessage.Define<object>(
@@ -225,6 +227,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 LogLevel.Information,
                 1,
                 "Executing RedirectToRouteResult, redirecting to {Destination} from route {RouteName}.");
+
+            _redirectToPageResultExecuting = LoggerMessage.Define<string>(
+                LogLevel.Information,
+                1,
+                "Executing RedirectToPageResult, redirecting to {Page}.");
 
             _noActionsMatched = LoggerMessage.Define<string[]>(
                 LogLevel.Debug,
@@ -499,6 +506,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _redirectToRouteResultExecuting(logger, destination, routeName, null);
         }
 
+        public static void RedirectToPageResultExecuting(this ILogger logger, string page)
+            => _redirectToPageResultExecuting(logger, page, null);
+
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>
         {
             private readonly ActionDescriptor _action;
@@ -539,7 +549,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
             {
-                for (int i = 0; i < Count; ++i)
+                for (var i = 0; i < Count; ++i)
                 {
                     yield return this[i];
                 }

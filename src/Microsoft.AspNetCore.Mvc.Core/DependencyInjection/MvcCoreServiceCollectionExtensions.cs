@@ -145,9 +145,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IActionSelector, ActionSelector>();
             services.TryAddSingleton<ActionConstraintCache>();
 
-            // Performs caching
-            services.TryAddSingleton<IActionSelectorDecisionTreeProvider, ActionSelectorDecisionTreeProvider>();
-
             // Will be cached by the DefaultActionSelector
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IActionConstraintProvider, DefaultActionConstraintProvider>());
@@ -172,7 +169,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 ServiceDescriptor.Transient<IActionInvokerProvider, ControllerActionInvokerProvider>());
 
             // These are stateless
-            services.TryAddSingleton<IControllerArgumentBinder, DefaultControllerArgumentBinder>();
             services.TryAddSingleton<ControllerActionInvokerCache>();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IFilterProvider, DefaultFilterProvider>());
@@ -195,6 +191,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new DefaultObjectValidator(metadataProvider, options.ModelValidatorProviders);
             });
             services.TryAddSingleton<ClientValidatorCache>();
+            services.TryAddSingleton<ParameterBinder>();
 
             //
             // Random Infrastructure
@@ -215,6 +212,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<LocalRedirectResultExecutor>();
             services.TryAddSingleton<RedirectToActionResultExecutor>();
             services.TryAddSingleton<RedirectToRouteResultExecutor>();
+            services.TryAddSingleton<RedirectToPageResultExecutor>();
             services.TryAddSingleton<ContentResultExecutor>();
 
             //

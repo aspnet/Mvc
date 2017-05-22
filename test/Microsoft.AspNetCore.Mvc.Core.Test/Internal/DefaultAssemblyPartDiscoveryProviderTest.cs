@@ -70,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Arrange
             var expected = GetLibrary("MyApplication", "Microsoft.AspNetCore.Server.Kestrel", "Microsoft.AspNetCore.Mvc");
             var deps = new DependencyContext(
-                new TargetInfo("netcoreapp1.1", "rurntime", "signature", isPortable: true),
+                new TargetInfo("netcoreapp2.0", "rurntime", "signature", isPortable: true),
                 CompilationOptions.Default,
                 Enumerable.Empty<CompilationLibrary>(),
                 new[]
@@ -235,35 +235,36 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Arrange
             var excludeAssemblies = new string[]
             {
-                "microsoft.aspnetcore.mvc.core.test",
-                "microsoft.aspnetcore.mvc.testcommon",
-                "microsoft.aspnetcore.mvc.testdiagnosticlistener",
-                "microsoft.aspnetcore.mvc.webapicompatshim",
+                "Microsoft.AspNetCore.Mvc.Core.Test",
+                "Microsoft.AspNetCore.Mvc.TestCommon",
+                "Microsoft.AspNetCore.Mvc.TestDiagnosticListener",
+                "Microsoft.AspNetCore.Mvc.WebApiCompatShim",
             };
 
             var additionalAssemblies = new[]
             {
                 // The following assemblies are not reachable from Microsoft.AspNetCore.Mvc
-                "microsoft.aspnetcore.mvc.taghelpers",
-                "microsoft.aspnetcore.mvc.formatters.xml",
+                "Microsoft.AspNetCore.Mvc.Formatters.Xml",
             };
 
-            var expected = DependencyContext.Load(CurrentAssembly)
+            var dependencyContextLibraries = DependencyContext.Load(CurrentAssembly)
                 .RuntimeLibraries
-                .Where(r => r.Name.StartsWith("microsoft.aspnetcore.mvc", StringComparison.Ordinal) &&
+                .Where(r => r.Name.StartsWith("Microsoft.AspNetCore.Mvc", StringComparison.OrdinalIgnoreCase) &&
                     !excludeAssemblies.Contains(r.Name, StringComparer.OrdinalIgnoreCase))
-                .Select(r => r.Name)
+                .Select(r => r.Name);
+
+            var expected = dependencyContextLibraries
                 .Concat(additionalAssemblies)
-                .Distinct()
-                .OrderBy(p => p, StringComparer.Ordinal);
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
 
             // Act
             var referenceAssemblies = DefaultAssemblyPartDiscoveryProvider
                 .ReferenceAssemblies
-                .OrderBy(p => p, StringComparer.Ordinal);
+                .OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
 
             // Assert
-            Assert.Equal(expected, referenceAssemblies);
+            Assert.Equal(expected, referenceAssemblies, StringComparer.OrdinalIgnoreCase);
         }
 
         private static RuntimeLibrary GetLibrary(string name, params string[] dependencyNames)

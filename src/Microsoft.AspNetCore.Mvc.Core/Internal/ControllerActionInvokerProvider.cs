@@ -15,9 +15,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class ControllerActionInvokerProvider : IActionInvokerProvider
     {
-        private readonly IControllerArgumentBinder _argumentBinder;
         private readonly IControllerFactory _controllerFactory;
         private readonly ControllerActionInvokerCache _controllerActionInvokerCache;
+        private readonly ParameterBinder _parameterBinder;
+        private readonly IModelMetadataProvider _modelMetadataProvider;
         private readonly IReadOnlyList<IValueProviderFactory> _valueProviderFactories;
         private readonly int _maxModelValidationErrors;
         private readonly ILogger _logger;
@@ -26,14 +27,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public ControllerActionInvokerProvider(
             IControllerFactory controllerFactory,
             ControllerActionInvokerCache controllerActionInvokerCache,
-            IControllerArgumentBinder argumentBinder,
+            ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
             IOptions<MvcOptions> optionsAccessor,
             ILoggerFactory loggerFactory,
             DiagnosticSource diagnosticSource)
         {
             _controllerFactory = controllerFactory;
             _controllerActionInvokerCache = controllerActionInvokerCache;
-            _argumentBinder = argumentBinder;
+            _parameterBinder = parameterBinder;
+            _modelMetadataProvider = modelMetadataProvider;
             _valueProviderFactories = optionsAccessor.Value.ValueProviderFactories.ToArray();
             _maxModelValidationErrors = optionsAccessor.Value.MaxModelValidationErrors;
             _logger = loggerFactory.CreateLogger<ControllerActionInvoker>();
@@ -64,14 +67,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 var cacheState = _controllerActionInvokerCache.GetState(controllerContext);
 
-                context.Result = new ControllerActionInvoker(
+                var invoker = new ControllerActionInvoker(
                     _controllerFactory,
-                    _argumentBinder,
+                    _parameterBinder,
+                    _modelMetadataProvider,
                     _logger,
                     _diagnosticSource,
                     controllerContext,
                     cacheState.Filters,
                     cacheState.ActionMethodExecutor);
+
+                context.Result = invoker;
             }
         }
 

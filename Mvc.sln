@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26217.2
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{DAAE4C74-D06F-4874-A166-33305D2643CE}"
 EndProject
@@ -18,10 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Core.Test", "test\Microsoft.AspNetCore.Mvc.Core.Test\Microsoft.AspNetCore.Mvc.Core.Test.csproj", "{A8AA326E-8EE8-4F11-B750-23028E0949D7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Razor.Host", "src\Microsoft.AspNetCore.Mvc.Razor.Host\Microsoft.AspNetCore.Mvc.Razor.Host.csproj", "{520B3AA4-363A-497C-8C15-80423C5AFC85}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Razor.Host.Test", "test\Microsoft.AspNetCore.Mvc.Razor.Host.Test\Microsoft.AspNetCore.Mvc.Razor.Host.Test.csproj", "{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebSites", "WebSites", "{16703B76-C9F7-4C75-AE6C-53D92E308E3C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.FunctionalTests", "test\Microsoft.AspNetCore.Mvc.FunctionalTests\Microsoft.AspNetCore.Mvc.FunctionalTests.csproj", "{323D0C04-B518-4A8F-8A8E-3546AD153D34}"
@@ -37,8 +33,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorWebSite", "test\WebSites\RazorWebSite\RazorWebSite.csproj", "{B07CAF59-11ED-40E3-A5DB-E1178F84FA78}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormatterWebSite", "test\WebSites\FormatterWebSite\FormatterWebSite.csproj", "{62735776-46FF-4170-9392-02E128A69B89}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FAD65E9C-3CF3-4F68-9757-C7358604030B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FiltersWebSite", "test\WebSites\FiltersWebSite\FiltersWebSite.csproj", "{1976AC4A-FEA4-4587-A158-D9F79736D2B6}"
 EndProject
@@ -128,6 +122,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorPagesWebSite", "test\WebSites\RazorPagesWebSite\RazorPagesWebSite.csproj", "{4BA6EC9A-B6D9-41F2-BFDA-D82B22D80352}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Performance", "test\Microsoft.AspNetCore.Mvc.Performance\Microsoft.AspNetCore.Mvc.Performance.csproj", "{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -188,26 +184,6 @@ Global
 		{A8AA326E-8EE8-4F11-B750-23028E0949D7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A8AA326E-8EE8-4F11-B750-23028E0949D7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A8AA326E-8EE8-4F11-B750-23028E0949D7}.Release|x86.ActiveCfg = Release|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Any CPU.Build.0 = Release|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{520B3AA4-363A-497C-8C15-80423C5AFC85}.Release|x86.ActiveCfg = Release|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77}.Release|x86.ActiveCfg = Release|Any CPU
 		{323D0C04-B518-4A8F-8A8E-3546AD153D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{323D0C04-B518-4A8F-8A8E-3546AD153D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{323D0C04-B518-4A8F-8A8E-3546AD153D34}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -782,6 +758,18 @@ Global
 		{4BA6EC9A-B6D9-41F2-BFDA-D82B22D80352}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4BA6EC9A-B6D9-41F2-BFDA-D82B22D80352}.Release|x86.ActiveCfg = Release|Any CPU
 		{4BA6EC9A-B6D9-41F2-BFDA-D82B22D80352}.Release|x86.Build.0 = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Debug|x86.Build.0 = Debug|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|x86.ActiveCfg = Release|Any CPU
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -792,8 +780,6 @@ Global
 		{C48DA9D7-ACB5-4408-AA79-27ECB60A67EF} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
 		{3F6E355E-4869-41D9-943B-D54771221A7F} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{A8AA326E-8EE8-4F11-B750-23028E0949D7} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
-		{520B3AA4-363A-497C-8C15-80423C5AFC85} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
-		{7C4F5973-0491-4028-B1DC-A9BA73FF9F77} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{16703B76-C9F7-4C75-AE6C-53D92E308E3C} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{323D0C04-B518-4A8F-8A8E-3546AD153D34} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{34DF1487-12C6-476C-BE0A-F31DF1939AE5} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
@@ -846,5 +832,6 @@ Global
 		{CF322BE1-E1FE-4CFD-8FCA-16A14B905D53} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
 		{0AB46520-F441-4E01-B444-08F4D23F8B1B} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{4BA6EC9A-B6D9-41F2-BFDA-D82B22D80352} = {16703B76-C9F7-4C75-AE6C-53D92E308E3C}
+		{F16CEE0D-A28E-43BD-802F-99BAFE4BA7CE} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 	EndGlobalSection
 EndGlobal

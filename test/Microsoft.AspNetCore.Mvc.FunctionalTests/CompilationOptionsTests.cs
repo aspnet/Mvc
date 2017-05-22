@@ -22,15 +22,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task CompilationOptions_AreUsedByViewsAndPartials()
         {
             // Arrange
-#if NET452
             var expected =
-@"This method is running from NET452
-This method is only defined in NET452";
-#elif NETCOREAPP1_1
-            var expected =
-@"This method is running from NETCOREAPP1_1
-This method is only defined in NETCOREAPP1_1";
-#endif
+@"This method is running from NETCOREAPP2_0
+This method is only defined in NETCOREAPP2_0";
 
             // Act
             var body = await Client.GetStringAsync("http://localhost/ViewsConsumingCompilationOptions/");

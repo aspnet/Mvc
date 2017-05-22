@@ -4,12 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     public class DefaultPageHandlerMethodSelector : IPageHandlerMethodSelector
     {
-        private const string FormAction = "formaction";
+        private const string Handler = "handler";
 
         public HandlerMethodDescriptor Select(PageContext context)
         {
@@ -46,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
                 if (ambiguousMatches != null)
                 {
-                    var ambiguousMethods = string.Join(", ", ambiguousMatches.Select(m => m.Method));
+                    var ambiguousMethods = string.Join(", ", ambiguousMatches.Select(m => m.MethodInfo));
                     throw new InvalidOperationException(Resources.FormatAmbiguousHandler(Environment.NewLine, ambiguousMethods));
                 }
 
@@ -64,7 +65,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var handlers = context.ActionDescriptor.HandlerMethods;
             List<HandlerMethodDescriptor> handlersToConsider = null;
 
-            var formAction = Convert.ToString(context.RouteData.Values[FormAction]);
+            var handlerName = Convert.ToString(context.RouteData.Values[Handler]);
+
+            if (string.IsNullOrEmpty(handlerName) &&
+                context.HttpContext.Request.Query.TryGetValue(Handler, out StringValues queryValues))
+            {
+                handlerName = queryValues[0];
+            }
+
             for (var i = 0; i < handlers.Count; i++)
             {
                 var handler = handlers[i];
@@ -73,8 +81,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 {
                     continue;
                 }
-                else if (handler.FormAction.HasValue &&
-                    !handler.FormAction.Equals(formAction, StringComparison.OrdinalIgnoreCase))
+                else if (handler.Name != null &&
+                    !handler.Name.Equals(handlerName, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -92,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
         private static int GetScore(HandlerMethodDescriptor descriptor)
         {
-            if (descriptor.FormAction != null)
+            if (descriptor.Name != null)
             {
                 return 2;
             }

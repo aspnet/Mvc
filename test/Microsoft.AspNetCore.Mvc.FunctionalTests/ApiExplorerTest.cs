@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             var description = Assert.Single(result);
-            Assert.Equal(description.GroupName, "ApiExplorerNameSetByConvention");
+            Assert.Equal("ApiExplorerNameSetByConvention", description.GroupName);
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             var description = Assert.Single(result);
-            Assert.Equal(description.GroupName, "SetOnController");
+            Assert.Equal("SetOnController", description.GroupName);
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             var description = Assert.Single(result);
-            Assert.Equal(description.GroupName, "SetOnAction");
+            Assert.Equal("SetOnAction", description.GroupName);
         }
 
         [Fact]
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             var description = Assert.Single(result);
-            Assert.Equal(description.RelativePath, "ApiExplorerRouteAndPathParametersInformation");
+            Assert.Equal("ApiExplorerRouteAndPathParametersInformation", description.RelativePath);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             var description = Assert.Single(result);
-            Assert.Equal(description.RelativePath, "ApiExplorerRouteAndPathParametersInformation/{id}");
+            Assert.Equal("ApiExplorerRouteAndPathParametersInformation/{id}", description.RelativePath);
 
             var parameter = Assert.Single(description.ParameterDescriptions);
             Assert.Equal("id", parameter.Name);
@@ -818,6 +818,25 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task ApiExplorer_ResponseContentType_WildcardMatch()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/ApiExplorerResponseContentType/WildcardMatch");
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<List<ApiExplorerData>>(body);
+
+            // Assert
+            var description = Assert.Single(result);
+            var responseType = Assert.Single(description.SupportedResponseTypes);
+            Assert.Equal(1, responseType.ResponseFormats.Count);
+
+            var responseFormat = responseType.ResponseFormats[0];
+            Assert.Equal("application/hal+json", responseFormat.MediaType);
+            Assert.Equal(typeof(JsonOutputFormatter).FullName, responseFormat.FormatterType);
+        }
+
+        [Fact]
         public async Task ApiExplorer_ResponseContentType_NoMatch()
         {
             // Arrange & Act
@@ -1031,6 +1050,19 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             description = Assert.Single(result);
             Assert.Empty(description.ParameterDescriptions);
             Assert.Equal("ApiExplorerReload/NewIndex", description.RelativePath);
+        }
+
+        [Fact]
+        public async Task ApiExplorer_DoesNotListActionsSuppressedForPathMatching()
+        {
+            // Act
+            var body = await Client.GetStringAsync("ApiExplorerInboundOutbound/SuppressedForLinkGeneration");
+            var result = JsonConvert.DeserializeObject<List<ApiExplorerData>>(body);
+
+            // Assert
+            var description = Assert.Single(result);
+            Assert.Empty(description.ParameterDescriptions);
+            Assert.Equal("ApiExplorerInboundOutbound/SuppressedForLinkGeneration", description.RelativePath);
         }
 
         private IEnumerable<string> GetSortedMediaTypes(ApiExplorerResponseType apiResponseType)

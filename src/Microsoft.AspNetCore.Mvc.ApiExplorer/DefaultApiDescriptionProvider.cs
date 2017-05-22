@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if NETSTANDARD1_6
 using System.Reflection;
-#endif
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -66,6 +64,11 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
             foreach (var action in context.Actions.OfType<ControllerActionDescriptor>())
             {
+                if (action.AttributeRouteInfo != null && action.AttributeRouteInfo.SuppressPathMatching)
+                {
+                    continue;
+                }
+
                 var extensionData = action.GetProperty<ApiDescriptionActionData>();
                 if (extensionData != null)
                 {

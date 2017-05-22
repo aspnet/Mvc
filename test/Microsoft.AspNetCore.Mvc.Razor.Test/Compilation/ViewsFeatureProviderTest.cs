@@ -90,7 +90,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             Assert.Empty(feature.Views);
         }
 
-#if !NETCOREAPP1_1
         [Fact]
         public void PopulateFeature_DoesNotFail_IfAssemblyHasEmptyLocation()
         {
@@ -107,7 +106,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             // Assert
             Assert.Empty(feature.Views);
         }
-#endif
 
         private class TestableViewsFeatureProvider : ViewsFeatureProvider
         {
@@ -118,8 +116,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 _containerLookup = containerLookup;
             }
 
-            protected override Type GetViewInfoContainerType(AssemblyPart assemblyPart) =>
-                _containerLookup[assemblyPart];
+            protected override ViewInfoContainer GetManifest(AssemblyPart assemblyPart)
+            {
+                var type = _containerLookup[assemblyPart];
+                return (ViewInfoContainer)Activator.CreateInstance(type);
+            }
         }
 
         private class ViewInfoContainer1 : ViewInfoContainer
@@ -145,7 +146,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             }
         }
 
-#if !NETCOREAPP1_1
         private class AssemblyWithEmptyLocation : Assembly
         {
             public override string Location => string.Empty;
@@ -168,6 +168,5 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 }
             }
         }
-#endif
     }
 }

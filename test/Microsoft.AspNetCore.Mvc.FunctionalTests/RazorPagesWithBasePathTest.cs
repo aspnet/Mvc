@@ -116,28 +116,136 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task PageStart_IsDiscoveredWhenRootDirectoryIsSpecified()
+        public async Task ViewStart_IsDiscoveredWhenRootDirectoryIsSpecified()
         {
             // Test for https://github.com/aspnet/Mvc/issues/5915
             //Arrange
-            var expected = $"Hello from _PageStart{Environment.NewLine}Hello from /Pages/WithPageStart/Index.cshtml!";
+            var expected = $"Hello from _ViewStart{Environment.NewLine}Hello from /Pages/WithViewStart/Index.cshtml!";
 
             // Act
-            var response = await Client.GetStringAsync("/WithPageStart");
+            var response = await Client.GetStringAsync("/WithViewStart");
 
             // Assert
             Assert.Equal(expected, response.Trim());
         }
 
         [Fact]
-        public async Task PageImport_IsDiscoveredWhenRootDirectoryIsSpecified()
+        public async Task ViewImport_IsDiscoveredWhenRootDirectoryIsSpecified()
         {
             // Test for https://github.com/aspnet/Mvc/issues/5915
             //Arrange
             var expected = "Hello from CustomService!";
 
             // Act
-            var response = await Client.GetStringAsync("/WithPageImport");
+            var response = await Client.GetStringAsync("/WithViewImport");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task FormTagHelper_WithPage_GeneratesLinksToSelf()
+        {
+            //Arrange
+            var expected = "<form method=\"POST\" action=\"/TagHelper/SelfPost/10\">";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/SelfPost");
+
+            // Assert
+            Assert.Contains(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task FormTagHelper_WithPageHandler_AllowsPostingToSelf()
+        {
+            //Arrange
+            var expected =
+@"<form action=""/TagHelper/PostWithHandler/Edit"" method=""post""><input name=""__RequestVerificationToken"" type=""hidden"" value=""{0}"" /></form>
+<form method=""post"" action=""/TagHelper/PostWithHandler/Edit""><input name=""__RequestVerificationToken"" type=""hidden"" value=""{0}"" /></form>
+<form method=""post"" action=""/TagHelper/PostWithHandler/Edit/10""></form>";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/PostWithHandler");
+
+            // Assert
+            var responseContent = response.Trim();
+            var forgeryToken = AntiforgeryTestHelper.RetrieveAntiforgeryToken(responseContent, "/TagHelper/PostWithHandler");
+            var expectedContent = string.Format(expected, forgeryToken);
+
+            Assert.Equal(expectedContent, responseContent, ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public async Task FormTagHelper_WithPage_AllowsPostingToAnotherPage()
+        {
+            //Arrange
+            var expected =
+@"<form method=""POST"" action=""/TagHelper/SelfPost/10""></form>
+<form method=""POST"" action=""/TagHelper/PostWithHandler/Delete/10""></form>";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/CrossPost");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task FormActionTagHelper_WithPage_AllowsPostingToAnotherPage()
+        {
+            //Arrange
+            var expected = 
+@"<button formaction=""/TagHelper/CrossPost/10"" />
+<input type=""submit"" formaction=""/TagHelper/CrossPost/10"" />
+<input type=""image"" formaction=""/TagHelper/CrossPost/10"" />
+<button formaction=""/TagHelper/PostWithHandler/Edit/11"" />
+<input type=""submit"" formaction=""/TagHelper/PostWithHandler/Edit/11"" />
+<input type=""image"" formaction=""/TagHelper/PostWithHandler/Delete/11"" />";
+
+            // Act
+            var response = await Client.GetStringAsync("/TagHelper/FormAction");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task RedirectFromPage_RedirectsToPathWithoutIndexSegment()
+        {
+            //Arrange
+            var expected = "/Redirects";
+
+            // Act
+            var response = await Client.GetAsync("/Redirects/Index");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectFromPage_ToIndex_RedirectsToPathWithoutIndexSegment()
+        {
+            //Arrange
+            var expected = "/Redirects";
+
+            // Act
+            var response = await Client.GetAsync("/Redirects/RedirectToIndex");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task PageRoute_UsingDefaultPageNameToRoute()
+        {
+            // Arrange
+            var expected = @"<a href=""/Routes/Sibling/10"">Link</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("/Routes/RouteUsingDefaultName");
 
             // Assert
             Assert.Equal(expected, response.Trim());

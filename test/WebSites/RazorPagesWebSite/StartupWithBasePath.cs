@@ -11,11 +11,11 @@ namespace RazorPagesWebSite
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddCookieAuthentication(options => options.LoginPath = "/Login")
                 .AddMvc()
                 .AddCookieTempDataProvider()
                 .AddRazorPagesOptions(options =>
                 {
-                    options.RootDirectory = "/Pages";
                     options.AuthorizePage("/Conventions/Auth");
                     options.AuthorizeFolder("/Conventions/AuthFolder");
                 });
@@ -25,12 +25,7 @@ namespace RazorPagesWebSite
         {
             app.UseCultureReplacer();
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                LoginPath = "/Login",
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true
-            });
+            app.UseAuthentication();
 
             app.UseStaticFiles();
 

@@ -14,14 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private readonly CSharpCompilationOptions _compilationOptions;
         private readonly CSharpParseOptions _parseOptions;
         private readonly RazorReferenceManager _referenceManager;
-        private readonly DebugInformationFormat _pdbFormat =
-#if NET451
-            SymbolsUtility.SupportsFullPdbGeneration() ?
-                DebugInformationFormat.Pdb :
-                DebugInformationFormat.PortablePdb;
-#else
-            DebugInformationFormat.PortablePdb;
-#endif
+        private readonly DebugInformationFormat _pdbFormat = DebugInformationFormat.PortablePdb;
 
         public CSharpCompiler(RazorReferenceManager manager, IOptions<RazorViewEngineOptions> optionsAccessor)
         {

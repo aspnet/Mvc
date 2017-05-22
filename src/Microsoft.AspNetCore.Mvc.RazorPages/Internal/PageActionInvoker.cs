@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     {
         private readonly IPageHandlerMethodSelector _selector;
         private readonly PageContext _pageContext;
-        private readonly TempDataPropertyProvider _propertyProvider;
+        private readonly ParameterBinder _parameterBinder;
 
         private Page _page;
         private object _model;
@@ -30,13 +31,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         public PageActionInvoker(
             IPageHandlerMethodSelector handlerMethodSelector,
-            TempDataPropertyProvider propertyProvider,
             DiagnosticSource diagnosticSource,
             ILogger logger,
             PageContext pageContext,
             IFilterMetadata[] filterMetadata,
             IList<IValueProviderFactory> valueProviderFactories,
-            PageActionInvokerCacheEntry cacheEntry)
+            PageActionInvokerCacheEntry cacheEntry,
+            ParameterBinder parameterBinder)
             : base(
                   diagnosticSource,
                   logger,
@@ -45,9 +46,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                   valueProviderFactories)
         {
             _selector = handlerMethodSelector;
-            _propertyProvider = propertyProvider;
             _pageContext = pageContext;
             CacheEntry = cacheEntry;
+            _parameterBinder = parameterBinder;
         }
 
         public PageActionInvokerCacheEntry CacheEntry { get; }
@@ -310,24 +311,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _pageContext.Page = _page;
             _pageContext.ValueProviderFactories = _valueProviderFactories;
 
-            IRazorPage[] pageStarts;
+            IRazorPage[] viewStarts;
 
-            if (CacheEntry.PageStartFactories == null || CacheEntry.PageStartFactories.Count == 0)
+            if (CacheEntry.ViewStartFactories == null || CacheEntry.ViewStartFactories.Count == 0)
             {
-                pageStarts = EmptyArray<IRazorPage>.Instance;
+                viewStarts = Array.Empty<IRazorPage>();
             }
             else
             {
-                pageStarts = new IRazorPage[CacheEntry.PageStartFactories.Count];
-                for (var i = 0; i < pageStarts.Length; i++)
+                viewStarts = new IRazorPage[CacheEntry.ViewStartFactories.Count];
+                for (var i = 0; i < viewStarts.Length; i++)
                 {
-                    var pageFactory = CacheEntry.PageStartFactories[i];
-                    pageStarts[i] = pageFactory();
+                    var pageFactory = CacheEntry.ViewStartFactories[i];
+                    viewStarts[i] = pageFactory();
                 }
             }
-            _pageContext.PageStarts = pageStarts;
+            _pageContext.ViewStarts = viewStarts;
 
-            if (actionDescriptor.ModelTypeInfo == null)
+            if (actionDescriptor.ModelTypeInfo == actionDescriptor.PageTypeInfo)
             {
                 _model = _page;
             }
@@ -341,22 +342,33 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 _pageContext.ViewData.Model = _model;
             }
 
+            if (CacheEntry.PropertyBinder != null)
+            {
+                await CacheEntry.PropertyBinder(_page, _model);
+            }
+
             // This is a workaround for not yet having proper filter for Pages.
-            SaveTempDataPropertyFilter propertyFilter = null;
+            PageSaveTempDataPropertyFilter propertyFilter = null;
             for (var i = 0; i < _filters.Length; i++)
             {
-                propertyFilter = _filters[i] as SaveTempDataPropertyFilter;
+                propertyFilter = _filters[i] as PageSaveTempDataPropertyFilter;
                 if (propertyFilter != null)
                 {
                     break;
                 }
             }
 
-            var originalValues = _propertyProvider.LoadAndTrackChanges(_page, _pageContext.TempData);
             if (propertyFilter != null)
             {
-                propertyFilter.OriginalValues = originalValues;
-                propertyFilter.Subject = _page;
+                object subject = _page;
+
+                if (_model != null)
+                {
+                    subject = _model;
+                }
+
+                propertyFilter.Subject = subject;
+                propertyFilter.ApplyTempDataChanges(_pageContext.HttpContext);
             }
 
             IActionResult result = null;
@@ -364,16 +376,60 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var handler = _selector.Select(_pageContext);
             if (handler != null)
             {
-                var executor = handler.Executor;
-                result = await executor(_page, _model);
+                var arguments = await GetArguments(handler);
+
+                Func<object, object[], Task<IActionResult>> executor = null;
+                for (var i = 0; i < actionDescriptor.HandlerMethods.Count; i++)
+                {
+                    if (object.ReferenceEquals(handler, actionDescriptor.HandlerMethods[i]))
+                    {
+                        executor = CacheEntry.Executors[i];
+                        break;
+                    }
+                }
+
+                var instance = actionDescriptor.ModelTypeInfo == actionDescriptor.HandlerTypeInfo ? _model : _page;
+                result = await executor(instance, arguments);
             }
 
             if (result == null)
             {
-                result = new PageViewResult(_page);
+                result = new PageResult(_page);
             }
 
             await result.ExecuteResultAsync(_pageContext);
+        }
+
+        private async Task<object[]> GetArguments(HandlerMethodDescriptor handler)
+        {
+            var arguments = new object[handler.Parameters.Count];
+            var valueProvider = await CompositeValueProvider.CreateAsync(_pageContext, _pageContext.ValueProviderFactories);
+
+            for (var i = 0; i < handler.Parameters.Count; i++)
+            {
+                var parameter = handler.Parameters[i];
+
+                var result = await _parameterBinder.BindModelAsync(
+                    _page.PageContext,
+                    valueProvider,
+                    parameter,
+                    value: null);
+
+                if (result.IsModelSet)
+                {
+                    arguments[i] = result.Model;
+                }
+                else if (parameter.ParameterInfo.HasDefaultValue)
+                {
+                    arguments[i] = parameter.ParameterInfo.DefaultValue;
+                }
+                else if (parameter.ParameterType.GetTypeInfo().IsValueType)
+                {
+                    arguments[i] = Activator.CreateInstance(parameter.ParameterType);
+                }
+            }
+
+            return arguments;
         }
 
         private async Task InvokeNextExceptionFilterAsync()

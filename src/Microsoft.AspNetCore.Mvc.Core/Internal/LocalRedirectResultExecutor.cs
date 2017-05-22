@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
@@ -29,8 +31,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _urlHelperFactory = urlHelperFactory;
         }
 
-        public void Execute(ActionContext context, LocalRedirectResult result)
+        public virtual void Execute(ActionContext context, LocalRedirectResult result)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
             var urlHelper = result.UrlHelper ?? _urlHelperFactory.GetUrlHelper(context);
 
             // IsLocalUrl is called to handle  Urls starting with '~/'.
@@ -42,7 +54,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             destinationUrl = urlHelper.Content(result.Url);
             _logger.LocalRedirectResultExecuting(destinationUrl);
-            context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
+
+            if (result.PreserveMethod)
+            {
+                context.HttpContext.Response.StatusCode = result.Permanent ?
+                    StatusCodes.Status308PermanentRedirect : StatusCodes.Status307TemporaryRedirect;
+                context.HttpContext.Response.Headers[HeaderNames.Location] = destinationUrl;
+            }
+            else
+            {
+                context.HttpContext.Response.Redirect(destinationUrl, result.Permanent);
+            }
         }
     }
 }

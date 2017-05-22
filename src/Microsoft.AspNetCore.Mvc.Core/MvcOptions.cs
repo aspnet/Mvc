@@ -28,11 +28,23 @@ namespace Microsoft.AspNetCore.Mvc
             InputFormatters = new FormatterCollection<IInputFormatter>();
             OutputFormatters = new FormatterCollection<IOutputFormatter>();
             ModelBinderProviders = new List<IModelBinderProvider>();
-            ModelBindingMessageProvider = new ModelBindingMessageProvider();
+            ModelBindingMessageProvider = new DefaultModelBindingMessageProvider();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
+
+        /// <summary>
+        /// Gets or sets the flag which decides whether body model binding (for example, on an
+        /// action method parameter with <see cref="FromBodyAttribute"/>) should treat empty
+        /// input as valid. <see langword="false"/> by default.
+        /// </summary>
+        /// <example>
+        /// When <see langword="false"/>, actions that model bind the request body (for example,
+        /// using <see cref="FromBodyAttribute"/>) will register an error in the
+        /// <see cref="ModelStateDictionary"/> if the incoming request body is empty.
+        /// </example>
+        public bool AllowEmptyInputInBodyModelBinding { get; set; }
 
         /// <summary>
         /// Gets a Dictionary of CacheProfile Names, <see cref="CacheProfile"/> which are pre-defined settings for
@@ -86,11 +98,11 @@ namespace Microsoft.AspNetCore.Mvc
         public IList<IModelBinderProvider> ModelBinderProviders { get; }
 
         /// <summary>
-        /// Gets the default <see cref="IModelBindingMessageProvider"/>. Changes here are copied to the
+        /// Gets the default <see cref="ModelBinding.Metadata.ModelBindingMessageProvider"/>. Changes here are copied to the
         /// <see cref="ModelMetadata.ModelBindingMessageProvider"/> property of all <see cref="ModelMetadata"/>
         /// instances unless overridden in a custom <see cref="IBindingMetadataProvider"/>.
         /// </summary>
-        public ModelBindingMessageProvider ModelBindingMessageProvider { get; }
+        public DefaultModelBindingMessageProvider ModelBindingMessageProvider { get; }
 
         /// <summary>
         /// Gets a list of <see cref="IMetadataDetailsProvider"/> instances that will be used to

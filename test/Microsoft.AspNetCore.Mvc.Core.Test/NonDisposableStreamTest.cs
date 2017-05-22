@@ -9,7 +9,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class NonDisposableStreamTest
     {
-#if !NETCOREAPP1_1
         [Fact]
         public void InnerStreamIsOpenOnClose()
         {
@@ -23,7 +22,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             Assert.True(innerStream.CanRead);
         }
-#endif
+
+        [Fact]
+        public void InnerStreamIsNotFlushedOnClose()
+        {
+            // Arrange
+            var stream = FlushReportingStream.GetThrowingStream();
+
+            var nonDisposableStream = new NonDisposableStream(stream);
+
+            // Act & Assert
+            nonDisposableStream.Close();
+        }
 
         [Fact]
         public void InnerStreamIsOpenOnDispose()
@@ -48,20 +58,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act & Assert
             nonDisposableStream.Dispose();
         }
-
-#if !NETCOREAPP1_1
-        [Fact]
-        public void InnerStreamIsNotFlushedOnClose()
-        {
-            // Arrange
-            var stream = FlushReportingStream.GetThrowingStream();
-
-            var nonDisposableStream = new NonDisposableStream(stream);
-
-            // Act & Assert
-            nonDisposableStream.Close();
-        }
-#endif
 
         [Fact]
         public void InnerStreamIsNotFlushedOnFlush()

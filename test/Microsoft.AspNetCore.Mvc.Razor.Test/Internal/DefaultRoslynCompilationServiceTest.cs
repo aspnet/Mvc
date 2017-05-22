@@ -2,12 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Reflection;
-using System.Text;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Razor.Evolution;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,6 +18,35 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     public class DefaultRoslynCompilationServiceTest
     {
         [Fact]
+        public void Compile_SucceedsForCSharp7()
+        {
+            // Arrange
+            var content = @"
+public class MyTestType
+{
+    private string _name;
+
+    public string Name
+    {
+        get => _name;
+        set => _name = value ?? throw new System.ArgumentNullException(nameof(value));
+    }
+}";
+            var compilationService = GetRoslynCompilationService();
+
+            var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", "test.cshtml"));
+
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
+
+            // Act
+            var result = compilationService.Compile(codeDocument, csharpDocument);
+
+            // Assert
+            Assert.Equal("MyTestType", result.CompiledType.Name);
+            Assert.Null(result.CompilationFailures);
+        }
+
+        [Fact]
         public void Compile_ReturnsCompilationResult()
         {
             // Arrange
@@ -30,10 +57,7 @@ public class MyTestType  {}";
 
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", "test.cshtml"));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -55,10 +79,7 @@ this should fail";
             var compilationService = GetRoslynCompilationService();
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(fileContent, viewPath));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -82,10 +103,7 @@ this should fail";
             var compilationService = GetRoslynCompilationService();
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(fileContent, viewPath));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -116,10 +134,7 @@ public class MyNonCustomDefinedClass {}
             var compilationService = GetRoslynCompilationService(options: options);
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", viewPath));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -219,13 +234,10 @@ public class MyNonCustomDefinedClass {}
             RoslynCompilationContext usedCompilation = null;
             var options = GetOptions(c => usedCompilation = c);
             var compilationService = GetRoslynCompilationService(options: options);
-            
+
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", "some-relative-path"));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -246,10 +258,7 @@ public class MyNonCustomDefinedClass {}
             var compilationService = GetRoslynCompilationService(options: options);
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", "some-relative-path.cshtml"));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);
@@ -276,10 +285,7 @@ public class MyNonCustomDefinedClass {}
 
             var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create("Hello world", "some-relative-path.cshtml"));
 
-            var csharpDocument = new RazorCSharpDocument()
-            {
-                GeneratedCode = content
-            };
+            var csharpDocument = RazorCSharpDocument.Create(content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>());
 
             // Act
             var result = compilationService.Compile(codeDocument, csharpDocument);

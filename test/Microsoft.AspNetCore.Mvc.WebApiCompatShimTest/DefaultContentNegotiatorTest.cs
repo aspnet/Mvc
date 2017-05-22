@@ -149,12 +149,6 @@ namespace System.Net.Http.Formatting
         {
             get
             {
-#if !NETCOREAPP1_1
-                // Only mapping and accept makes sense with q != 1.0
-                MediaTypeFormatterMatch matchMapping10 = CreateMatch(1.0, MediaTypeFormatterMatchRanking.MatchOnRequestWithMediaTypeMapping);
-                MediaTypeFormatterMatch matchMapping05 = CreateMatch(0.5, MediaTypeFormatterMatchRanking.MatchOnRequestWithMediaTypeMapping);
-#endif
-
                 MediaTypeFormatterMatch matchAccept10 = CreateMatch(1.0, MediaTypeFormatterMatchRanking.MatchOnRequestAcceptHeaderLiteral);
                 MediaTypeFormatterMatch matchAccept05 = CreateMatch(0.5, MediaTypeFormatterMatchRanking.MatchOnRequestAcceptHeaderLiteral);
 
@@ -176,9 +170,6 @@ namespace System.Net.Http.Formatting
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10 }, matchAcceptAllRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10 }, matchAcceptSubTypeRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10, matchAccept10 }, matchAccept10 },
-#if !NETCOREAPP1_1
-                    { new List<MediaTypeFormatterMatch>() { matchType10, matchRequest10, matchAcceptAllRange10, matchAcceptSubTypeRange10, matchAccept10, matchMapping10 }, matchMapping10 },
-#endif
                     { new List<MediaTypeFormatterMatch>() { matchAccept05, matchAccept10 }, matchAccept10 },
                     { new List<MediaTypeFormatterMatch>() { matchAccept10, matchAccept05 }, matchAccept10 },
 
@@ -187,23 +178,6 @@ namespace System.Net.Http.Formatting
 
                     { new List<MediaTypeFormatterMatch>() { matchAcceptAllRange05, matchAcceptAllRange10 }, matchAcceptAllRange10 },
                     { new List<MediaTypeFormatterMatch>() { matchAcceptAllRange10, matchAcceptAllRange05 }, matchAcceptAllRange10 },
-#if !NETCOREAPP1_1
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchMapping10 }, matchMapping10 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping10, matchMapping05 }, matchMapping10 },
-
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAccept05 }, matchMapping05 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping10, matchAccept10 }, matchMapping10 },
-
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAcceptSubTypeRange05 }, matchMapping05 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping10, matchAcceptSubTypeRange10 }, matchMapping10 },
-
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAcceptAllRange05 }, matchMapping05 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping10, matchAcceptAllRange10 }, matchMapping10 },
-
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAccept10 }, matchAccept10 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAcceptSubTypeRange10 }, matchAcceptSubTypeRange10 },
-                    { new List<MediaTypeFormatterMatch>() { matchMapping05, matchAcceptAllRange10 }, matchAcceptAllRange10 },
-#endif
                 };
             }
         }
@@ -251,37 +225,6 @@ namespace System.Net.Http.Formatting
             Assert.Null(result);
         }
 
-#if !NETCOREAPP1_1
-
-        [Fact]
-        public void Negotiate_MediaTypeMappingTakesPrecedenceOverAcceptHeader()
-        {
-            // Prepare the request message
-            _request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-            _request.Headers.Add("Browser", "IE");
-            _request.Headers.Add("Cookie", "ABC");
-
-            // Prepare the formatters
-            List<MediaTypeFormatter> formatters = new List<MediaTypeFormatter>();
-            formatters.Add(new JsonMediaTypeFormatter());
-            formatters.Add(new XmlMediaTypeFormatter());
-            PlainTextFormatter frmtr = new PlainTextFormatter();
-            frmtr.SupportedMediaTypes.Clear();
-            frmtr.MediaTypeMappings.Clear();
-            frmtr.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/xml"));
-            frmtr.MediaTypeMappings.Add(new MyMediaTypeMapping(new MediaTypeHeaderValue(("application/xml"))));
-            formatters.Add(frmtr);
-
-            // Act
-            var result = _negotiator.Negotiate(typeof(string), _request, formatters);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("application/xml", result.MediaType.MediaType);
-            Assert.IsType<PlainTextFormatter>(result.Formatter);
-        }
-
-#endif
 
         [Fact]
         public void Negotiate_ForRequestReturnsFirstMatchingFormatter()
@@ -359,32 +302,6 @@ namespace System.Net.Http.Formatting
             Assert.IsType<JsonMediaTypeFormatter>(result.Formatter);
         }
 
-#if !NETCOREAPP1_1
-
-        [Fact]
-        public void Negotiate_RespectsFormatterOrdering_ForXhrRequestThatDoesNotSpecifyAcceptHeaders()
-        {
-            // Arrange
-            _request.Content = new StringContent("test");
-            _request.Headers.Add("x-requested-with", "XMLHttpRequest");
-
-            MediaTypeFormatterCollection formatters = new MediaTypeFormatterCollection(new MediaTypeFormatter[]
-            {
-                new XmlMediaTypeFormatter(),
-                new JsonMediaTypeFormatter(),
-                new FormUrlEncodedMediaTypeFormatter()
-            });
-
-            // Act
-            var result = _negotiator.Negotiate(typeof(string), _request, formatters);
-
-            // Assert
-            Assert.Equal("application/json", result.MediaType.MediaType);
-            Assert.IsType<JsonMediaTypeFormatter>(result.Formatter);
-        }
-
-#endif
-
         [Fact]
         public void Negotiate_SelectsJsonFormatter_ForXHRAndJsonValueResponse()
         {
@@ -458,38 +375,8 @@ namespace System.Net.Http.Formatting
             }
         }
 
-#if !NETCOREAPP1_1
-
-        [Fact]
-        public void MatchMediaTypeMapping_ReturnsMatch()
-        {
-            // Arrange
-            MockContentNegotiator negotiator = new MockContentNegotiator();
-
-            HttpRequestMessage request = new HttpRequestMessage();
-            MediaTypeHeaderValue mappingMediatype = MediaTypeHeaderValue.Parse("application/other");
-            MockMediaTypeMapping mockMediaTypeMapping = new MockMediaTypeMapping(mappingMediatype, 0.75);
-
-            MockMediaTypeFormatter formatter = new MockMediaTypeFormatter();
-            formatter.MediaTypeMappings.Add(mockMediaTypeMapping);
-
-            // Act
-            MediaTypeFormatterMatch match = negotiator.MatchMediaTypeMapping(request, formatter);
-
-            // Assert
-            Assert.True(mockMediaTypeMapping.WasInvoked);
-            Assert.Same(request, mockMediaTypeMapping.Request);
-
-            Assert.Same(formatter, match.Formatter);
-            Assert.Equal(mockMediaTypeMapping.MediaType, match.MediaType);
-            Assert.Equal(mockMediaTypeMapping.MatchQuality, match.Quality);
-            Assert.Equal(MediaTypeFormatterMatchRanking.MatchOnRequestWithMediaTypeMapping, match.Ranking);
-        }
-
-#endif
-
         [Theory]
-        [MemberData("MatchAcceptHeaderData")]
+        [MemberData(nameof(MatchAcceptHeaderData))]
         public void MatchAcceptHeader_ReturnsMatch(string[] acceptHeaders, string[] supportedMediaTypes, string expectedMediaType, double expectedQuality, int ranking)
         {
             // Arrange
@@ -522,7 +409,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("MatchRequestMediaTypeData")]
+        [MemberData(nameof(MatchRequestMediaTypeData))]
         public void MatchRequestMediaType_ReturnsMatch(string requestMediaType, string[] supportedMediaTypes, string expectedMediaType)
         {
             // Arrange
@@ -556,7 +443,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("ShouldMatchOnTypeData")]
+        [MemberData(nameof(ShouldMatchOnTypeData))]
         public void ShouldMatchOnType_ReturnsExpectedResult(bool excludeMatchOnType, string[] acceptHeaders, bool expectedResult)
         {
             // Arrange
@@ -572,7 +459,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("MatchTypeData")]
+        [MemberData(nameof(MatchTypeData))]
         public void MatchType_ReturnsMatch(string[] supportedMediaTypes, string expectedMediaType)
         {
             // Arrange
@@ -595,7 +482,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("SelectResponseMediaTypeData")]
+        [MemberData(nameof(SelectResponseMediaTypeData))]
         public void SelectResponseMediaTypeFormatter_SelectsMediaType(ICollection<MediaTypeFormatterMatch> matches, MediaTypeFormatterMatch expectedWinner)
         {
             // Arrange
@@ -609,7 +496,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("SelectResponseCharacterEncodingData")]
+        [MemberData(nameof(SelectResponseCharacterEncodingData))]
         public void SelectResponseCharacterEncoding_SelectsEncoding(string[] acceptCharsetHeaders, string requestEncoding, string[] supportedEncodings, string expectedEncoding)
         {
             // Arrange
@@ -777,7 +664,7 @@ namespace System.Net.Http.Formatting
         }
 
         [Theory]
-        [MemberData("UpdateBestMatchData")]
+        [MemberData(nameof(UpdateBestMatchData))]
         public void UpdateBestMatch_SelectsCorrectly(MediaTypeFormatterMatch current, MediaTypeFormatterMatch replacement, bool currentWins)
         {
             // Arrange
@@ -809,30 +696,5 @@ namespace System.Net.Http.Formatting
                 return true;
             }
         }
-
-#if !NETCOREAPP1_1
-
-        private class MyMediaTypeMapping : MediaTypeMapping
-        {
-            public MyMediaTypeMapping(MediaTypeHeaderValue mediaType)
-                : base(mediaType)
-            {
-            }
-
-            public override double TryMatchMediaType(HttpRequestMessage request)
-            {
-                if (request.Headers.Contains("Cookie"))
-                {
-                    return 1.0;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
-
-#endif
-
     }
 }

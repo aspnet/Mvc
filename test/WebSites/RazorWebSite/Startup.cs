@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 
@@ -20,6 +21,9 @@ namespace RazorWebSite
         {
             var updateableFileProvider = new UpdateableFileProvider();
             services.AddSingleton(updateableFileProvider);
+            services.AddSingleton<ITagHelperComponent, TestHeadTagHelperComponent>();
+            services.AddSingleton<ITagHelperComponent, TestBodyTagHelperComponent>();
+
             services
                 .AddMvc()
                 .AddRazorOptions(options =>
@@ -29,9 +33,6 @@ namespace RazorWebSite
                         $"{nameof(RazorWebSite)}.EmbeddedViews"));
                     options.FileProviders.Add(updateableFileProvider);
                     options.ViewLocationExpanders.Add(new NonMainPageViewLocationExpander());
-#if NET452
-                    options.ParseOptions = options.ParseOptions.WithPreprocessorSymbols("NET452", "NET452_CUSTOM_DEFINE");
-#endif
                 })
                 .AddViewOptions(options =>
                 {

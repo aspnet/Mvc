@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Razor.Evolution;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
@@ -15,14 +16,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     {
         private readonly ICompilationService _compilationService;
         private readonly ICompilerCacheProvider _compilerCacheProvider;
-        private readonly MvcRazorTemplateEngine _templateEngine;
+        private readonly RazorTemplateEngine _templateEngine;
         private readonly Func<string, CompilerCacheContext> _getCacheContext;
         private readonly Func<CompilerCacheContext, CompilationResult> _getCompilationResultDelegate;
 
         public RazorCompiler(
             ICompilationService compilationService,
             ICompilerCacheProvider compilerCacheProvider,
-            MvcRazorTemplateEngine templateEngine)
+            RazorTemplateEngine templateEngine)
         {
             _compilationService = compilationService;
             _compilerCacheProvider = compilerCacheProvider;

@@ -2,7 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -331,6 +335,167 @@ namespace Microsoft.AspNetCore.Mvc
                 Host = host,
                 Fragment = fragment
             });
+        }
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(this IUrlHelper urlHelper, string pageName)
+            => Page(urlHelper, pageName, values: null);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="pageHandler">The handler to generate the url for.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(this IUrlHelper urlHelper, string pageName, string pageHandler)
+            => Page(urlHelper, pageName, pageHandler, values: null);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(this IUrlHelper urlHelper, string pageName, object values)
+            => Page(urlHelper, pageName, pageHandler: null, values: values);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="pageHandler">The handler to generate the url for.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(
+            this IUrlHelper urlHelper,
+            string pageName,
+            string pageHandler,
+            object values)
+            => Page(urlHelper, pageName, pageHandler, values, protocol: null);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="pageHandler">The handler to generate the url for.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(
+            this IUrlHelper urlHelper,
+            string pageName,
+            string pageHandler,
+            object values,
+            string protocol)
+            => Page(urlHelper, pageName, pageHandler, values, protocol, host: null, fragment: null);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="pageHandler">The handler to generate the url for.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
+        /// <param name="host">The host name for the URL.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(
+            this IUrlHelper urlHelper,
+            string pageName,
+            string pageHandler,
+            object values,
+            string protocol,
+            string host)
+            => Page(urlHelper, pageName, pageHandler, values, protocol, host, fragment: null);
+
+        /// <summary>
+        /// Generates a URL with an absolute path for the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="urlHelper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="pageName">The page name to generate the url for.</param>
+        /// <param name="pageHandler">The handler to generate the url for.</param>
+        /// <param name="values">An object that contains route values.</param>
+        /// <param name="protocol">The protocol for the URL, such as "http" or "https".</param>
+        /// <param name="host">The host name for the URL.</param>
+        /// <param name="fragment">The fragment for the URL.</param>
+        /// <returns>The generated URL.</returns>
+        public static string Page(
+            this IUrlHelper urlHelper,
+            string pageName,
+            string pageHandler,
+            object values,
+            string protocol,
+            string host,
+            string fragment)
+        {
+            if (urlHelper == null)
+            {
+                throw new ArgumentNullException(nameof(urlHelper));
+            }
+
+            var routeValues = new RouteValueDictionary(values);
+            var ambientValues = urlHelper.ActionContext.RouteData.Values;
+            if (string.IsNullOrEmpty(pageName))
+            {
+                if (!routeValues.ContainsKey("page") &&
+                    ambientValues.TryGetValue("page", out var value))
+                {
+                    routeValues["page"] = value;
+                }
+            }
+            else
+            {
+                routeValues["page"] = CalculatePageName(urlHelper.ActionContext, pageName);
+            }
+
+            if (string.IsNullOrEmpty(pageHandler))
+            {
+                if (!routeValues.ContainsKey("handler") &&
+                    ambientValues.TryGetValue("handler", out var handler))
+                {
+                    // Clear out formaction unless it's explicitly specified in the routeValues.
+                    routeValues["handler"] = null;
+                }
+            }
+            else
+            {
+                routeValues["handler"] = pageHandler;
+            }
+
+            return urlHelper.RouteUrl(
+                routeName: null,
+                values: routeValues,
+                protocol: protocol,
+                host: host,
+                fragment: fragment);
+        }
+
+        private static object CalculatePageName(ActionContext actionContext, string pageName)
+        {
+            Debug.Assert(pageName.Length > 0);
+            // Paths not qualified with a leading slash are treated as relative to the current page.
+            if (pageName[0] != '/')
+            {
+                var currentPagePath = NormalizedRouteValue.GetNormalizedRouteValue(actionContext, "page");
+                if (string.IsNullOrEmpty(currentPagePath))
+                {
+                    // Disallow the use sibling page routing, a Razor page specific feature, from a non-page action.
+                    throw new InvalidOperationException(Resources.FormatUrlHelper_RelativePagePathIsNotSupported(pageName));
+                }
+
+                return ViewEnginePath.CombinePath(currentPagePath, pageName);
+            }
+
+            return pageName;
         }
     }
 }

@@ -18,6 +18,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("button", Attributes = ActionAttributeName)]
     [HtmlTargetElement("button", Attributes = ControllerAttributeName)]
     [HtmlTargetElement("button", Attributes = AreaAttributeName)]
+    [HtmlTargetElement("button", Attributes = PageAttributeName)]
+    [HtmlTargetElement("button", Attributes = PageHandlerAttributeName)]
     [HtmlTargetElement("button", Attributes = FragmentAttributeName)]
     [HtmlTargetElement("button", Attributes = RouteAttributeName)]
     [HtmlTargetElement("button", Attributes = RouteValuesDictionaryName)]
@@ -25,6 +27,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("input", Attributes = ImageActionAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = ImageControllerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = ImageAreaAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImagePageAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = ImagePageHandlerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = ImageFragmentAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = ImageRouteAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = ImageRouteValuesDictionarySelector, TagStructure = TagStructure.WithoutEndTag)]
@@ -32,6 +36,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("input", Attributes = SubmitActionAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = SubmitControllerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = SubmitAreaAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitPageAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement("input", Attributes = SubmitPageHandlerAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = SubmitFragmentAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = SubmitRouteAttributeSelector, TagStructure = TagStructure.WithoutEndTag)]
     [HtmlTargetElement("input", Attributes = SubmitRouteValuesDictionarySelector, TagStructure = TagStructure.WithoutEndTag)]
@@ -41,6 +47,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ActionAttributeName = "asp-action";
         private const string AreaAttributeName = "asp-area";
         private const string ControllerAttributeName = "asp-controller";
+        private const string PageAttributeName = "asp-page";
+        private const string PageHandlerAttributeName = "asp-page-handler";
         private const string FragmentAttributeName = "asp-fragment";
         private const string RouteAttributeName = "asp-route";
         private const string RouteValuesDictionaryName = "asp-all-route-data";
@@ -50,6 +58,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string ImageTypeSelector = "[type=image], ";
         private const string ImageActionAttributeSelector = ImageTypeSelector + ActionAttributeName;
         private const string ImageAreaAttributeSelector = ImageTypeSelector + AreaAttributeName;
+        private const string ImagePageAttributeSelector = ImageTypeSelector + PageAttributeName;
+        private const string ImagePageHandlerAttributeSelector = ImageTypeSelector + PageHandlerAttributeName;
         private const string ImageFragmentAttributeSelector = ImageTypeSelector + FragmentAttributeName;
         private const string ImageControllerAttributeSelector = ImageTypeSelector + ControllerAttributeName;
         private const string ImageRouteAttributeSelector = ImageTypeSelector + RouteAttributeName;
@@ -59,6 +69,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string SubmitTypeSelector = "[type=submit], ";
         private const string SubmitActionAttributeSelector = SubmitTypeSelector + ActionAttributeName;
         private const string SubmitAreaAttributeSelector = SubmitTypeSelector + AreaAttributeName;
+        private const string SubmitPageAttributeSelector = SubmitTypeSelector + PageAttributeName;
+        private const string SubmitPageHandlerAttributeSelector = SubmitTypeSelector + PageHandlerAttributeName;
         private const string SubmitFragmentAttributeSelector = SubmitTypeSelector + FragmentAttributeName;
         private const string SubmitControllerAttributeSelector = SubmitTypeSelector + ControllerAttributeName;
         private const string SubmitRouteAttributeSelector = SubmitTypeSelector + RouteAttributeName;
@@ -105,6 +117,18 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(AreaAttributeName)]
         public string Area { get; set; }
+
+        /// <summary>
+        /// The name of the page.
+        /// </summary>
+        [HtmlAttributeName(PageAttributeName)]
+        public string Page { get; set; }
+
+        /// <summary>
+        /// The name of the page handler.
+        /// </summary>
+        [HtmlAttributeName(PageHandlerAttributeName)]
+        public string PageHandler { get; set; }
 
         /// <summary>
         /// Gets or sets the URL fragment.
@@ -168,6 +192,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 if (Action != null ||
                     Controller != null ||
                     Area != null ||
+                    Page != null ||
+                    PageHandler != null ||
                     Fragment != null ||
                     Route != null ||
                     (_routeValues != null && _routeValues.Count > 0))
@@ -176,60 +202,70 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     // attribute.
                     throw new InvalidOperationException(
                         Resources.FormatFormActionTagHelper_CannotOverrideFormAction(
+                            FormAction,
                             output.TagName,
+                            RouteValuesPrefix,
                             ActionAttributeName,
                             ControllerAttributeName,
                             AreaAttributeName,
                             FragmentAttributeName,
                             RouteAttributeName,
-                            RouteValuesPrefix,
-                            FormAction));
+                            PageAttributeName,
+                            PageHandlerAttributeName));
                 }
+
+                return;
+            }
+
+            var routeLink = Route != null;
+            var actionLink = Controller != null || Action != null;
+            var pageLink = Page != null || PageHandler != null;
+
+            if ((routeLink && actionLink) || (routeLink && pageLink) || (actionLink && pageLink))
+            {
+                var message = string.Join(
+                    Environment.NewLine,
+                    Resources.FormatCannotDetermineAttributeFor(FormAction, '<' + output.TagName + '>'),
+                    RouteAttributeName,
+                    ControllerAttributeName + ", " + ActionAttributeName,
+                    PageAttributeName + ", " + PageHandlerAttributeName);
+
+                throw new InvalidOperationException(message);
+            }
+
+            RouteValueDictionary routeValues = null;
+            if (_routeValues != null && _routeValues.Count > 0)
+            {
+                routeValues = new RouteValueDictionary(_routeValues);
+            }
+
+            if (Area != null)
+            {
+                if (routeValues == null)
+                {
+                    routeValues = new RouteValueDictionary();
+                }
+
+                // Unconditionally replace any value from asp-route-area.
+                routeValues["area"] = Area;
+            }
+
+            var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
+            string url;
+            if (pageLink)
+            {
+                url = urlHelper.Page(Page, PageHandler, routeValues, protocol: null, host: null, fragment: Fragment);
+            }
+            else if (routeLink)
+            {
+                url = urlHelper.RouteUrl(Route, routeValues, protocol: null, host: null, fragment: Fragment);
             }
             else
             {
-                RouteValueDictionary routeValues = null;
-                if (_routeValues != null && _routeValues.Count > 0)
-                {
-                    routeValues = new RouteValueDictionary(_routeValues);
-                }
-
-                if (Area != null)
-                {
-                    if (routeValues == null)
-                    {
-                        routeValues = new RouteValueDictionary();
-                    }
-
-                    // Unconditionally replace any value from asp-route-area.
-                    routeValues["area"] = Area;
-                }
-
-                if (Route == null)
-                {
-                    var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
-                    var url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
-                    output.Attributes.SetAttribute(FormAction, url);
-                }
-                else if (Action != null || Controller != null)
-                {
-                    // Route and Action or Controller were specified. Can't determine the formaction attribute.
-                    throw new InvalidOperationException(
-                        Resources.FormatFormActionTagHelper_CannotDetermineFormActionRouteActionOrControllerSpecified(
-                            output.TagName,
-                            RouteAttributeName,
-                            ActionAttributeName,
-                            ControllerAttributeName,
-                            FormAction,
-                            FragmentAttributeName));
-                }
-                else
-                {
-                    var urlHelper = UrlHelperFactory.GetUrlHelper(ViewContext);
-                    var url = urlHelper.RouteUrl(Route, routeValues, protocol: null, host: null, fragment: Fragment);
-                    output.Attributes.SetAttribute(FormAction, url);
-                }
+                url = urlHelper.Action(Action, Controller, routeValues, protocol: null, host: null, fragment: Fragment);
             }
+
+            output.Attributes.SetAttribute(FormAction, url);
         }
     }
 }

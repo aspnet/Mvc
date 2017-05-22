@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Razor.Evolution;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Caching.Memory;
@@ -35,6 +35,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         private static readonly Dictionary<string, object> _controllerTestContext = new Dictionary<string, object>()
         {
             {"controller", "bar"},
+        };
+
+        private static readonly Dictionary<string, object> _pageTestContext = new Dictionary<string, object>()
+        {
+            {"page", "/Accounts/Index"},
         };
 
         public static IEnumerable<string[]> AbsoluteViewPathData
@@ -782,6 +787,43 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         }
 
         [Fact]
+        public void FindView_CachesValuesIfViewWasFound_ForPages()
+        {
+            // Arrange
+            var page = Mock.Of<IRazorPage>();
+            var pageFactory = new Mock<IRazorPageFactoryProvider>();
+            pageFactory
+               .Setup(p => p.CreateFactory("/Views/Shared/baz.cshtml"))
+               .Returns(new RazorPageFactoryResult(() => page, new IChangeToken[0]))
+               .Verifiable();
+
+            var viewEngine = CreateViewEngine(pageFactory.Object);
+            var context = GetActionContext(_pageTestContext);
+
+            // Act 1
+            var result1 = viewEngine.FindView(context, "baz", isMainPage: false);
+
+            // Assert 1
+            Assert.True(result1.Success);
+            var view1 = Assert.IsType<RazorView>(result1.View);
+            Assert.Same(page, view1.RazorPage);
+            pageFactory.Verify();
+
+            // Act 2
+            pageFactory
+               .Setup(p => p.CreateFactory(It.IsAny<string>()))
+               .Throws(new Exception("Shouldn't be called"));
+
+            var result2 = viewEngine.FindView(context, "baz", isMainPage: false);
+
+            // Assert 2
+            Assert.True(result2.Success);
+            var view2 = Assert.IsType<RazorView>(result2.View);
+            Assert.Same(page, view2.RazorPage);
+            pageFactory.Verify();
+        }
+
+        [Fact]
         public void FindView_InvokesPageFactoryIfChangeTokenExpired()
         {
             // Arrange
@@ -859,7 +901,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
                .Returns(new RazorPageFactoryResult(() => viewStart, new IChangeToken[0]));
 
             var fileProvider = new TestFileProvider();
-            var razorProject = new DefaultRazorProject(fileProvider);
+            var razorProject = new FileProviderRazorProject(fileProvider);
             var viewEngine = CreateViewEngine(pageFactory.Object, razorProject: razorProject);
             var context = GetActionContext(_controllerTestContext);
 
@@ -1307,7 +1349,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
                 Mock.Of<IRazorPageActivator>(),
                 new HtmlTestEncoder(),
                 GetOptionsAccessor(expanders: null),
-                new DefaultRazorProject(new TestFileProvider()),
+                new FileProviderRazorProject(new TestFileProvider()),
                 loggerFactory);
 
             // Act
@@ -1430,6 +1472,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         [InlineData("/Views/Home/Index.cshtml", "..\\Shared\\_Partial.cshtml")]
         [InlineData("/Areas/MyArea/Views/Home/Index.cshtml", "../../../../Views/Shared/_Partial.cshtml")]
         [InlineData("/Views/Accounts/Users.cshtml", "../Test/../Shared/_Partial.cshtml")]
+        [InlineData("Views/Accounts/Users.cshtml", "./../Shared/./_Partial.cshtml")]
         public void GetAbsolutePath_ResolvesPathTraversals(string executingFilePath, string pagePath)
         {
             // Arrange
@@ -1608,6 +1651,108 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             }
         }
 
+        [Fact]
+        public void GetViewLocationFormats_ForControllerWithoutArea_ReturnsDefaultSet()
+        {
+            // Arrange
+            var expected = new string[] { "expected", };
+
+            var viewEngine = new TestableRazorViewEngine(
+                Mock.Of<IRazorPageFactoryProvider>(),
+                GetOptionsAccessor(viewLocationFormats: expected));
+
+            var context = new ViewLocationExpanderContext(
+                new ActionContext(),
+                "Index.cshtml",
+                controllerName: "Home",
+                areaName: null,
+                pageName: "ignored",
+                isMainPage: true);
+
+            // Act
+            var actual = viewEngine.GetViewLocationFormats(context);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void GetViewLocationFormats_ForControllerWithArea_ReturnsAreaSet()
+        {
+            // Arrange
+            var expected = new string[] { "expected", };
+
+            var viewEngine = new TestableRazorViewEngine(
+                Mock.Of<IRazorPageFactoryProvider>(),
+                GetOptionsAccessor(areaViewLocationFormats: expected));
+
+            var context = new ViewLocationExpanderContext(
+                new ActionContext(),
+                "Index.cshtml",
+                controllerName: "Home",
+                areaName: "Admin",
+                pageName: "ignored",
+                isMainPage: true);
+
+            // Act
+            var actual = viewEngine.GetViewLocationFormats(context);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void GetViewLocationFormats_ForPage_ReturnsPageSet()
+        {
+            // Arrange
+            var expected = new string[] { "expected", };
+
+            var viewEngine = new TestableRazorViewEngine(
+                Mock.Of<IRazorPageFactoryProvider>(),
+                GetOptionsAccessor(pageViewLocationFormats: expected));
+
+            var context = new ViewLocationExpanderContext(
+                new ActionContext(),
+                "Index.cshtml",
+                controllerName: null,
+                areaName: null,
+                pageName: "/Some/Page",
+                isMainPage: true);
+
+            // Act
+            var actual = viewEngine.GetViewLocationFormats(context);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        // This isn't a real case we expect to hit in an app, just making sure we have a reasonable default
+        // for a weird configuration. In this case we preserve what we did in 1.0.0.
+        [Fact]
+        public void GetViewLocationFormats_NoRouteValues_ReturnsDefaultSet()
+        {
+            // Arrange
+            var expected = new string[] { "expected", };
+
+            var viewEngine = new TestableRazorViewEngine(
+                Mock.Of<IRazorPageFactoryProvider>(),
+                GetOptionsAccessor(viewLocationFormats: expected));
+
+            var context = new ViewLocationExpanderContext(
+                new ActionContext(),
+                "Index.cshtml",
+                controllerName: null,
+                areaName: null,
+                pageName: null,
+                isMainPage: true);
+
+            // Act
+            var actual = viewEngine.GetViewLocationFormats(context);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
         // Return RazorViewEngine with a page factory provider that is always successful.
         private RazorViewEngine CreateSuccessfulViewEngine()
         {
@@ -1627,7 +1772,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             pageFactory = pageFactory ?? Mock.Of<IRazorPageFactoryProvider>();
             if (razorProject == null)
             {
-                razorProject = new DefaultRazorProject(new TestFileProvider());
+                razorProject = new FileProviderRazorProject(new TestFileProvider());
             }
             return new TestableRazorViewEngine(pageFactory, GetOptionsAccessor(expanders), razorProject);
         }
@@ -1635,14 +1780,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
         private static IOptions<RazorViewEngineOptions> GetOptionsAccessor(
             IEnumerable<IViewLocationExpander> expanders = null,
             IEnumerable<string> viewLocationFormats = null,
-            IEnumerable<string> areaViewLocationFormats = null)
+            IEnumerable<string> areaViewLocationFormats = null,
+            IEnumerable<string> pageViewLocationFormats = null)
         {
-#pragma warning disable 0618
             var optionsSetup = new RazorViewEngineOptionsSetup(Mock.Of<IHostingEnvironment>());
-#pragma warning restore 0618
 
             var options = new RazorViewEngineOptions();
             optionsSetup.Configure(options);
+            options.PageViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
 
             if (expanders != null)
             {
@@ -1669,6 +1814,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
                 foreach (var location in areaViewLocationFormats)
                 {
                     options.AreaViewLocationFormats.Add(location);
+                }
+            }
+
+            if (pageViewLocationFormats != null)
+            {
+                options.PageViewLocationFormats.Clear();
+
+                foreach (var location in pageViewLocationFormats)
+                {
+                    options.PageViewLocationFormats.Add(location);
                 }
             }
 
@@ -1718,7 +1873,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test
             public TestableRazorViewEngine(
                 IRazorPageFactoryProvider pageFactory,
                 IOptions<RazorViewEngineOptions> optionsAccessor)
-                : this(pageFactory, optionsAccessor, new DefaultRazorProject(new TestFileProvider()))
+                : this(pageFactory, optionsAccessor, new FileProviderRazorProject(new TestFileProvider()))
             {
             }
 

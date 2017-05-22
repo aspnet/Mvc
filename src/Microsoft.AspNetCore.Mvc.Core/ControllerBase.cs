@@ -8,8 +8,8 @@ using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="ClaimsPrincipal"/> for user associated with the executing action.
+        /// Gets the <see cref="ClaimsPrincipal"/> for user associated with the executing action.
         /// </summary>
         public ClaimsPrincipal User
         {
@@ -328,7 +328,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <returns>The created <see cref="NoContentResult"/> object for the response.</returns>
         [NonAction]
         public virtual NoContentResult NoContent()
-        {                                                                                                                              
+        {
             return new NoContentResult();
         }
 
@@ -388,6 +388,42 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Creates a <see cref="RedirectResult"/> object with <see cref="RedirectResult.Permanent"/> set to false
+        /// and <see cref="RedirectResult.PreserveMethod"/> set to true (<see cref="StatusCodes.Status307TemporaryRedirect"/>) 
+        /// using the specified <paramref name="url"/>.
+        /// </summary>
+        /// <param name="url">The URL to redirect to.</param>
+        /// <returns>The created <see cref="RedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectResult RedirectPreserveMethod(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
+            }
+
+            return new RedirectResult(url: url, permanent: false, preserveMethod: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="RedirectResult"/> object with <see cref="RedirectResult.Permanent"/> set to true
+        /// and <see cref="RedirectResult.PreserveMethod"/> set to true (<see cref="StatusCodes.Status308PermanentRedirect"/>) 
+        /// using the specified <paramref name="url"/>.
+        /// </summary>
+        /// <param name="url">The URL to redirect to.</param>
+        /// <returns>The created <see cref="RedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectResult RedirectPermanentPreserveMethod(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(url));
+            }
+
+            return new RedirectResult(url: url, permanent: true, preserveMethod: true);
+        }
+
+        /// <summary>
         /// Creates a <see cref="LocalRedirectResult"/> object that redirects 
         /// (<see cref="StatusCodes.Status302Found"/>) to the specified local <paramref name="localUrl"/>.
         /// </summary>
@@ -419,6 +455,42 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             return new LocalRedirectResult(localUrl, permanent: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="LocalRedirectResult"/> object with <see cref="LocalRedirectResult.Permanent"/> set to
+        /// false and <see cref="LocalRedirectResult.PreserveMethod"/> set to true 
+        /// (<see cref="StatusCodes.Status307TemporaryRedirect"/>) using the specified <paramref name="localUrl"/>.
+        /// </summary>
+        /// <param name="localUrl">The local URL to redirect to.</param>
+        /// <returns>The created <see cref="LocalRedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual LocalRedirectResult LocalRedirectPreserveMethod(string localUrl)
+        {
+            if (string.IsNullOrEmpty(localUrl))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
+            }
+
+            return new LocalRedirectResult(localUrl: localUrl, permanent: false, preserveMethod: true);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="LocalRedirectResult"/> object with <see cref="LocalRedirectResult.Permanent"/> set to
+        /// true and <see cref="LocalRedirectResult.PreserveMethod"/> set to true 
+        /// (<see cref="StatusCodes.Status308PermanentRedirect"/>) using the specified <paramref name="localUrl"/>.
+        /// </summary>
+        /// <param name="localUrl">The local URL to redirect to.</param>
+        /// <returns>The created <see cref="LocalRedirectResult"/> for the response.</returns>
+        [NonAction]
+        public virtual LocalRedirectResult LocalRedirectPermanentPreserveMethod(string localUrl)
+        {
+            if (string.IsNullOrEmpty(localUrl))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(localUrl));
+            }
+
+            return new LocalRedirectResult(localUrl: localUrl, permanent: true, preserveMethod: true);
         }
 
         /// <summary>
@@ -509,6 +581,36 @@ namespace Microsoft.AspNetCore.Mvc
             string fragment)
         {
             return new RedirectToActionResult(actionName, controllerName, routeValues, fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status307TemporaryRedirect"/>) to the specified action with 
+        /// <see cref="RedirectToActionResult.Permanent"/> set to false and <see cref="RedirectToActionResult.PreserveMethod"/> 
+        /// set to true, using the specified <paramref name="actionName"/>, <paramref name="controllerName"/>, 
+        /// <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>       
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPreserveMethod(
+            string actionName = null,
+            string controllerName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToActionResult(
+                actionName: actionName,
+                controllerName: controllerName,
+                routeValues: routeValues,
+                permanent: false,
+                preserveMethod: true,
+                fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -619,6 +721,36 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status308PermanentRedirect"/>) to the specified action with 
+        /// <see cref="RedirectToActionResult.Permanent"/> set to true and <see cref="RedirectToActionResult.PreserveMethod"/>
+        /// set to true, using the specified <paramref name="actionName"/>, <paramref name="controllerName"/>, 
+        /// <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="actionName">The name of the action.</param>
+        /// <param name="controllerName">The name of the controller.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>        
+        [NonAction]
+        public virtual RedirectToActionResult RedirectToActionPermanentPreserveMethod(
+            string actionName = null,
+            string controllerName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToActionResult(
+                actionName: actionName,
+                controllerName: controllerName,
+                routeValues: routeValues,
+                permanent: true,
+                preserveMethod: true,
+                fragment: fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
         /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified route using the specified <paramref name="routeName"/>.
         /// </summary>
         /// <param name="routeName">The name of the route.</param>
@@ -681,6 +813,32 @@ namespace Microsoft.AspNetCore.Mvc
             string fragment)
         {
             return new RedirectToRouteResult(routeName, routeValues, fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status307TemporaryRedirect"/>) to the specified route with 
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to false and <see cref="RedirectToRouteResult.PreserveMethod"/>
+        /// set to true, using the specified <paramref name="routeName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>       
+        [NonAction]
+        public virtual RedirectToRouteResult RedirectToRoutePreserveMethod(
+            string routeName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToRouteResult(
+                routeName: routeName,
+                routeValues: routeValues,
+                permanent: false,
+                preserveMethod: true,
+                fragment: fragment)
             {
                 UrlHelper = Url,
             };
@@ -760,8 +918,227 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Returns a file with the specified <paramref name="fileContents" /> as content
-        /// (<see cref="StatusCodes.Status200OK"/>) and the specified <paramref name="contentType" /> as the Content-Type.
+        /// Redirects (<see cref="StatusCodes.Status308PermanentRedirect"/>) to the specified route with
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to true and <see cref="RedirectToRouteResult.PreserveMethod"/>
+        /// set to true, using the specified <paramref name="routeName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="routeName">The name of the route.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>       
+        [NonAction]
+        public virtual RedirectToRouteResult RedirectToRoutePermanentPreserveMethod(
+            string routeName = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            return new RedirectToRouteResult(
+                routeName: routeName,
+                routeValues: routeValues,
+                permanent: true,
+                preserveMethod: true,
+                fragment: fragment)
+            {
+                UrlHelper = Url,
+            };
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName)
+            => RedirectToPage(pageName, routeValues: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="routeValues"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName, object routeValues)
+            => RedirectToPage(pageName, pageHandler: null, routeValues: routeValues, fragment: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="pageHandler"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName, string pageHandler)
+            => RedirectToPage(pageName, pageHandler, routeValues: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName, string pageHandler, object routeValues)
+            => RedirectToPage(pageName, pageHandler, routeValues);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName, string pageHandler, string fragment)
+            => RedirectToPage(pageName, pageHandler, routeValues: null, fragment: fragment);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="routeValues"/> and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/>.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPage(string pageName, string pageHandler, object routeValues, string fragment)
+            => new RedirectToPageResult(pageName, pageHandler, routeValues, fragment);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status301MovedPermanently"/>) to the specified <paramref name="pageName"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/> with <see cref="RedirectToPageResult.Permanent"/> set.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanent(string pageName)
+            => RedirectToPagePermanent(pageName, routeValues: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status301MovedPermanently"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="routeValues"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/> with <see cref="RedirectToPageResult.Permanent"/> set.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanent(string pageName, object routeValues)
+            => RedirectToPagePermanent(pageName, pageHandler: null, routeValues: routeValues, fragment: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status301MovedPermanently"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="pageHandler"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/> with <see cref="RedirectToPageResult.Permanent"/> set.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanent(string pageName, string pageHandler)
+            => RedirectToPagePermanent(pageName, routeValues: null);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status301MovedPermanently"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/> with <see cref="RedirectToPageResult.Permanent"/> set.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanent(string pageName, string pageHandler, string fragment)
+            => RedirectToPagePermanent(pageName, pageHandler, routeValues: null, fragment: fragment);
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status301MovedPermanently"/>) to the specified <paramref name="pageName"/>
+        /// using the specified <paramref name="routeValues"/> and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="routeValues">The parameters for a route.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The <see cref="RedirectToPageResult"/> with <see cref="RedirectToPageResult.Permanent"/> set.</returns>
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanent(
+            string pageName,
+            string pageHandler,
+            object routeValues,
+            string fragment)
+        {
+            return new RedirectToPageResult(pageName, pageHandler, routeValues, permanent: true, fragment: fragment);
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status307TemporaryRedirect"/>) to the specified page with 
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to false and <see cref="RedirectToRouteResult.PreserveMethod"/>
+        /// set to true, using the specified <paramref name="pageName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns> 
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePreserveMethod(
+            string pageName,
+            string pageHandler = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            if (pageName == null)
+            {
+                throw new ArgumentNullException(nameof(pageName));
+            }
+
+            return new RedirectToPageResult(
+                pageName: pageName,
+                pageHandler: pageHandler,
+                routeValues: routeValues,
+                permanent: false,
+                preserveMethod: true,
+                fragment: fragment);
+        }
+
+        /// <summary>
+        /// Redirects (<see cref="StatusCodes.Status308PermanentRedirect"/>) to the specified route with
+        /// <see cref="RedirectToRouteResult.Permanent"/> set to true and <see cref="RedirectToRouteResult.PreserveMethod"/>
+        /// set to true, using the specified <paramref name="pageName"/>, <paramref name="routeValues"/>, and <paramref name="fragment"/>.
+        /// </summary>
+        /// <param name="pageName">The name of the page.</param>
+        /// <param name="pageHandler">The page handler to redirect to.</param>
+        /// <param name="routeValues">The route data to use for generating the URL.</param>
+        /// <param name="fragment">The fragment to add to the URL.</param>
+        /// <returns>The created <see cref="RedirectToRouteResult"/> for the response.</returns>  
+        [NonAction]
+        public virtual RedirectToPageResult RedirectToPagePermanentPreserveMethod(
+            string pageName,
+            string pageHandler = null,
+            object routeValues = null,
+            string fragment = null)
+        {
+            if (pageName == null)
+            {
+                throw new ArgumentNullException(nameof(pageName));
+            }
+
+            return new RedirectToPageResult(
+                pageName: pageName,
+                pageHandler: pageHandler,
+                routeValues: routeValues,
+                permanent: true,
+                preserveMethod: true,
+                fragment: fragment);
+        }
+
+        /// <summary>
+        /// Returns a file with the specified <paramref name="fileContents" /> as content (<see cref="StatusCodes.Status200OK"/>),
+        /// and the specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="fileContents">The file contents.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -774,8 +1151,9 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Returns a file with the specified <paramref name="fileContents" /> as content (<see cref="StatusCodes.Status200OK"/>), the
-        /// specified <paramref name="contentType" /> as the Content-Type and the
-        /// specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// specified <paramref name="contentType" /> as the Content-Type and the specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="fileContents">The file contents.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -788,8 +1166,54 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Returns a file in the specified <paramref name="fileStream" /> (<see cref="StatusCodes.Status200OK"/>)
-        /// with the specified <paramref name="contentType" /> as the Content-Type.
+        /// Returns a file with the specified <paramref name="fileContents" /> as content (<see cref="StatusCodes.Status200OK"/>), 
+        /// and the specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="fileContents">The file contents.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="FileContentResult"/> for the response.</returns>
+        [NonAction]
+        public virtual FileContentResult File(byte[] fileContents, string contentType, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new FileContentResult(fileContents, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+            };
+        }
+
+        /// <summary>
+        /// Returns a file with the specified <paramref name="fileContents" /> as content (<see cref="StatusCodes.Status200OK"/>), the 
+        /// specified <paramref name="contentType" /> as the Content-Type, and the specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="fileContents">The file contents.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="fileDownloadName">The suggested file name.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="FileContentResult"/> for the response.</returns>
+        [NonAction]
+        public virtual FileContentResult File(byte[] fileContents, string contentType, string fileDownloadName, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new FileContentResult(fileContents, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+                FileDownloadName = fileDownloadName,
+            };
+        }
+
+        /// <summary>
+        /// Returns a file in the specified <paramref name="fileStream" /> (<see cref="StatusCodes.Status200OK"/>), with the 
+        /// specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -804,6 +1228,8 @@ namespace Microsoft.AspNetCore.Mvc
         /// Returns a file in the specified <paramref name="fileStream" /> (<see cref="StatusCodes.Status200OK"/>) with the
         /// specified <paramref name="contentType" /> as the Content-Type and the
         /// specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -816,8 +1242,54 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Returns a file in the specified <paramref name="fileStream" /> (<see cref="StatusCodes.Status200OK"/>), 
+        /// and the specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="FileStreamResult"/> for the response.</returns>
+        [NonAction]
+        public virtual FileStreamResult File(Stream fileStream, string contentType, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new FileStreamResult(fileStream, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+            };
+        }
+
+        /// <summary>
+        /// Returns a file in the specified <paramref name="fileStream" /> (<see cref="StatusCodes.Status200OK"/>), the 
+        /// specified <paramref name="contentType" /> as the Content-Type, and the specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="fileStream">The <see cref="Stream"/> with the contents of the file.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="fileDownloadName">The suggested file name.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="FileStreamResult"/> for the response.</returns>
+        [NonAction]
+        public virtual FileStreamResult File(Stream fileStream, string contentType, string fileDownloadName, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new FileStreamResult(fileStream, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+                FileDownloadName = fileDownloadName,
+            };
+        }
+
+        /// <summary>
         /// Returns the file specified by <paramref name="virtualPath" /> (<see cref="StatusCodes.Status200OK"/>) with the
         /// specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="virtualPath">The virtual path of the file to be returned.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -832,6 +1304,8 @@ namespace Microsoft.AspNetCore.Mvc
         /// Returns the file specified by <paramref name="virtualPath" /> (<see cref="StatusCodes.Status200OK"/>) with the
         /// specified <paramref name="contentType" /> as the Content-Type and the
         /// specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="virtualPath">The virtual path of the file to be returned.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -844,8 +1318,54 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Returns the file specified by <paramref name="virtualPath" /> (<see cref="StatusCodes.Status200OK"/>), and the 
+        /// specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="virtualPath">The virtual path of the file to be returned.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="VirtualFileResult"/> for the response.</returns>
+        [NonAction]
+        public virtual VirtualFileResult File(string virtualPath, string contentType, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new VirtualFileResult(virtualPath, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+            };
+        }
+
+        /// <summary>
+        /// Returns the file specified by <paramref name="virtualPath" /> (<see cref="StatusCodes.Status200OK"/>), the 
+        /// specified <paramref name="contentType" /> as the Content-Type, and the specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="virtualPath">The virtual path of the file to be returned.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="fileDownloadName">The suggested file name.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="VirtualFileResult"/> for the response.</returns>
+        [NonAction]
+        public virtual VirtualFileResult File(string virtualPath, string contentType, string fileDownloadName, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new VirtualFileResult(virtualPath, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+                FileDownloadName = fileDownloadName,
+            };
+        }
+
+        /// <summary>
         /// Returns the file specified by <paramref name="physicalPath" /> (<see cref="StatusCodes.Status200OK"/>) with the
         /// specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="physicalPath">The physical path of the file to be returned.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -860,6 +1380,8 @@ namespace Microsoft.AspNetCore.Mvc
         /// Returns the file specified by <paramref name="physicalPath" /> (<see cref="StatusCodes.Status200OK"/>) with the
         /// specified <paramref name="contentType" /> as the Content-Type and the
         /// specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
         /// </summary>
         /// <param name="physicalPath">The physical path of the file to be returned.</param>
         /// <param name="contentType">The Content-Type of the file.</param>
@@ -872,6 +1394,50 @@ namespace Microsoft.AspNetCore.Mvc
             string fileDownloadName)
         {
             return new PhysicalFileResult(physicalPath, contentType) { FileDownloadName = fileDownloadName };
+        }
+
+        /// <summary>
+        /// Returns the file specified by <paramref name="physicalPath" /> (<see cref="StatusCodes.Status200OK"/>), and 
+        /// the specified <paramref name="contentType" /> as the Content-Type.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="physicalPath">The physical path of the file to be returned.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="PhysicalFileResult"/> for the response.</returns>
+        [NonAction]
+        public virtual PhysicalFileResult PhysicalFile(string physicalPath, string contentType, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new PhysicalFileResult(physicalPath, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+            };
+        }
+
+        /// <summary>
+        /// Returns the file specified by <paramref name="physicalPath" /> (<see cref="StatusCodes.Status200OK"/>), the 
+        /// specified <paramref name="contentType" /> as the Content-Type, and the specified <paramref name="fileDownloadName" /> as the suggested file name.
+        /// This supports range requests (<see cref="StatusCodes.Status206PartialContent"/> or
+        /// <see cref="StatusCodes.Status416RangeNotSatisfiable"/> if the range is not satisfiable).
+        /// </summary>
+        /// <param name="physicalPath">The physical path of the file to be returned.</param>
+        /// <param name="contentType">The Content-Type of the file.</param>
+        /// <param name="fileDownloadName">The suggested file name.</param>
+        /// <param name="lastModified">The <see cref="DateTimeOffset"/> of when the file was last modified.</param>
+        /// <param name="entityTag">The <see cref="EntityTagHeaderValue"/> associated with the file.</param>
+        /// <returns>The created <see cref="PhysicalFileResult"/> for the response.</returns>
+        [NonAction]
+        public virtual PhysicalFileResult PhysicalFile(string physicalPath, string contentType, string fileDownloadName, DateTimeOffset? lastModified, EntityTagHeaderValue entityTag)
+        {
+            return new PhysicalFileResult(physicalPath, contentType)
+            {
+                LastModified = lastModified,
+                EntityTag = entityTag,
+                FileDownloadName = fileDownloadName,
+            };
         }
 
         /// <summary>
@@ -1275,7 +1841,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         /// <remarks>
-        /// The behavior of this method depends on the <see cref="AuthenticationManager"/> in use.
+        /// The behavior of this method depends on the <see cref="IAuthenticationService"/> in use.
         /// <see cref="StatusCodes.Status401Unauthorized"/> and <see cref="StatusCodes.Status403Forbidden"/>
         /// are among likely status results.
         /// </remarks>
@@ -1289,7 +1855,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         /// <remarks>
-        /// The behavior of this method depends on the <see cref="AuthenticationManager"/> in use.
+        /// The behavior of this method depends on the <see cref="IAuthenticationService"/> in use.
         /// <see cref="StatusCodes.Status401Unauthorized"/> and <see cref="StatusCodes.Status403Forbidden"/>
         /// are among likely status results.
         /// </remarks>
@@ -1304,7 +1870,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         /// <remarks>
-        /// The behavior of this method depends on the <see cref="AuthenticationManager"/> in use.
+        /// The behavior of this method depends on the <see cref="IAuthenticationService"/> in use.
         /// <see cref="StatusCodes.Status401Unauthorized"/> and <see cref="StatusCodes.Status403Forbidden"/>
         /// are among likely status results.
         /// </remarks>
@@ -1321,7 +1887,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="authenticationSchemes">The authentication schemes to challenge.</param>
         /// <returns>The created <see cref="ChallengeResult"/> for the response.</returns>
         /// <remarks>
-        /// The behavior of this method depends on the <see cref="AuthenticationManager"/> in use.
+        /// The behavior of this method depends on the <see cref="IAuthenticationService"/> in use.
         /// <see cref="StatusCodes.Status401Unauthorized"/> and <see cref="StatusCodes.Status403Forbidden"/>
         /// are among likely status results.
         /// </remarks>

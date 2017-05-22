@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             return _innerStream.ReadAsync(buffer, offset, count, cancellationToken);
         }
-#if NET451
+
         /// <inheritdoc />
         public override IAsyncResult BeginRead(
             byte[] buffer,
@@ -124,7 +124,29 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             return _innerStream.EndRead(asyncResult);
         }
-#endif
+
+        /// <inheritdoc />
+        public override IAsyncResult BeginWrite(
+            byte[] buffer,
+            int offset,
+            int count,
+            AsyncCallback callback,
+            object state)
+        {
+            return _innerStream.BeginWrite(buffer, offset, count, callback, state);
+        }
+
+        /// <inheritdoc />
+        public override void EndWrite(IAsyncResult asyncResult)
+        {
+            _innerStream.EndWrite(asyncResult);
+        }
+
+        /// <inheritdoc />
+        public override void Close()
+        {
+        }
+
         /// <inheritdoc />
         public override int ReadByte()
         {
@@ -166,35 +188,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             return _innerStream.WriteAsync(buffer, offset, count, cancellationToken);
         }
-#if NET451
-        /// <inheritdoc />
-        public override IAsyncResult BeginWrite(
-            byte[] buffer,
-            int offset,
-            int count,
-            AsyncCallback callback,
-            object state)
-        {
-            return _innerStream.BeginWrite(buffer, offset, count, callback, state);
-        }
 
-        /// <inheritdoc />
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            _innerStream.EndWrite(asyncResult);
-        }
-#endif
         /// <inheritdoc />
         public override void WriteByte(byte value)
         {
             _innerStream.WriteByte(value);
         }
-#if NET451
-        /// <inheritdoc />
-        public override void Close()
-        {
-        }
-#endif
+
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {

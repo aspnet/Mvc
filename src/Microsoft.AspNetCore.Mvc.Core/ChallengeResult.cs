@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Initializes a new instance of <see cref="ChallengeResult"/>.
         /// </summary>
         public ChallengeResult()
-            : this(EmptyArray<string>.Instance)
+            : this(Array.Empty<string>())
         {
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="properties"><see cref="AuthenticationProperties"/> used to perform the authentication
         /// challenge.</param>
         public ChallengeResult(AuthenticationProperties properties)
-            : this(EmptyArray<string>.Instance, properties)
+            : this(Array.Empty<string>(), properties)
         {
         }
 
@@ -103,17 +103,16 @@ namespace Microsoft.AspNetCore.Mvc
 
             logger.ChallengeResultExecuting(AuthenticationSchemes);
 
-            var authentication = context.HttpContext.Authentication;
             if (AuthenticationSchemes != null && AuthenticationSchemes.Count > 0)
             {
                 foreach (var scheme in AuthenticationSchemes)
                 {
-                    await authentication.ChallengeAsync(scheme, Properties);
+                    await context.HttpContext.ChallengeAsync(scheme, Properties);
                 }
             }
             else
             {
-                await authentication.ChallengeAsync(Properties);
+                await context.HttpContext.ChallengeAsync(Properties);
             }
         }
     }

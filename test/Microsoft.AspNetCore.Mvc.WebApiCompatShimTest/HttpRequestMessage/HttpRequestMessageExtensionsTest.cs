@@ -278,29 +278,6 @@ namespace System.Net.Http
             Assert.Equal("bin/baz", response.Content.Headers.ContentType.MediaType);
         }
 
-#if !NETCOREAPP1_1
-        // API doesn't exist in CoreCLR.
-        [Fact]
-        public void CreateErrorResponseRangeNotSatisfiable_SetsCorrectStatusCodeAndContentRangeHeader()
-        {
-            // Arrange
-            var context = new DefaultHttpContext();
-            context.RequestServices = CreateServices(new DefaultContentNegotiator());
-
-            var request = CreateRequest(context);
-
-            var expectedContentRange = new ContentRangeHeaderValue(length: 128);
-            var invalidByteRangeException = new InvalidByteRangeException(expectedContentRange);
-
-            // Act
-            var response = request.CreateErrorResponse(invalidByteRangeException);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
-            Assert.Same(expectedContentRange, response.Content.Headers.ContentRange);
-        }
-#endif
-
         private static IServiceProvider CreateServices(
             IContentNegotiator contentNegotiator = null,
             MediaTypeFormatter formatter = null)

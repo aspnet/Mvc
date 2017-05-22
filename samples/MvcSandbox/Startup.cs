@@ -16,7 +16,7 @@ namespace MvcSandbox
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().AddCookieTempDataProvider();
+            services.AddMvc();
 
             services.Insert(0, ServiceDescriptor.Singleton(
                 typeof(IConfigureOptions<AntiforgeryOptions>),
@@ -24,13 +24,10 @@ namespace MvcSandbox
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
-            loggerFactory
-                .AddConsole()
-                .AddDebug();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -43,6 +40,12 @@ namespace MvcSandbox
         {
             var host = new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
+                .ConfigureLogging(factory =>
+                {
+                    factory
+                        .AddConsole()
+                        .AddDebug();
+                })
                 .UseIISIntegration()
                 .UseKestrel()
                 .UseStartup<Startup>()

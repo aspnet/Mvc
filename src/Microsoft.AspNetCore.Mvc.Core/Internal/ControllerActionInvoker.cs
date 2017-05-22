@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Core.Internal;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -18,7 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class ControllerActionInvoker : ResourceInvoker, IActionInvoker
     {
         private readonly IControllerFactory _controllerFactory;
-        private readonly IControllerArgumentBinder _controllerArgumentBinder;
+        private readonly ParameterBinder _parameterBinder;
+        private readonly IModelMetadataProvider _modelMetadataProvider;
 
         private readonly ControllerContext _controllerContext;
         private readonly ObjectMethodExecutor _executor;
@@ -34,9 +37,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private ResultExecutingContext _resultExecutingContext;
         private ResultExecutedContext _resultExecutedContext;
 
-        public ControllerActionInvoker(
+        internal ControllerActionInvoker(
             IControllerFactory controllerFactory,
-            IControllerArgumentBinder controllerArgumentBinder,
+            ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
             ILogger logger,
             DiagnosticSource diagnosticSource,
             ControllerContext controllerContext,
@@ -50,9 +54,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(controllerFactory));
             }
 
-            if (controllerArgumentBinder == null)
+            if (parameterBinder == null)
             {
-                throw new ArgumentNullException(nameof(controllerArgumentBinder));
+                throw new ArgumentNullException(nameof(parameterBinder));
             }
 
             if (objectMethodExecutor == null)
@@ -61,7 +65,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             _controllerFactory = controllerFactory;
-            _controllerArgumentBinder = controllerArgumentBinder;
+            _parameterBinder = parameterBinder;
+            _modelMetadataProvider = modelMetadataProvider;
             _controllerContext = controllerContext;
             _executor = objectMethodExecutor;
         }
@@ -291,7 +296,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         _controller = _controllerFactory.CreateController(controllerContext);
 
                         _arguments = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-                        var task = _controllerArgumentBinder.BindArgumentsAsync(controllerContext, _controller, _arguments);
+
+                        var task = BindArgumentsAsync();
                         if (task.Status != TaskStatus.RanToCompletion)
                         {
                             next = State.ActionNext;
@@ -754,7 +760,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var executor = _executor;
             var controller = _controller;
             var arguments = _arguments;
-            var orderedArguments = ControllerActionExecutor.PrepareArguments(arguments, executor);
+            var orderedArguments = PrepareArguments(arguments, executor);
 
             var diagnosticSource = _diagnosticSource;
             var logger = _logger;
@@ -771,16 +777,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var returnType = executor.MethodReturnType;
                 if (returnType == typeof(void))
                 {
+                    // Sync method returning void
                     executor.Execute(controller, orderedArguments);
                     result = new EmptyResult();
                 }
                 else if (returnType == typeof(Task))
                 {
+                    // Async method returning Task
+                    // Avoid extra allocations by calling Execute rather than ExecuteAsync and casting to Task.
                     await (Task)executor.Execute(controller, orderedArguments);
                     result = new EmptyResult();
                 }
-                else if (executor.TaskGenericType == typeof(IActionResult))
+                else if (returnType == typeof(Task<IActionResult>))
                 {
+                    // Async method returning Task<IActionResult>
+                    // Avoid extra allocations by calling Execute rather than ExecuteAsync and casting to Task<IActionResult>.
                     result = await (Task<IActionResult>)executor.Execute(controller, orderedArguments);
                     if (result == null)
                     {
@@ -788,45 +799,49 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             Resources.FormatActionResult_ActionReturnValueCannotBeNull(typeof(IActionResult)));
                     }
                 }
-                else if (executor.IsTypeAssignableFromIActionResult)
+                else if (IsResultIActionResult(_executor))
                 {
                     if (_executor.IsMethodAsync)
                     {
+                        // Async method returning awaitable-of-IActionResult (e.g., Task<ViewResult>)
+                        // We have to use ExecuteAsync because we don't know the awaitable's type at compile time.
                         result = (IActionResult)await _executor.ExecuteAsync(controller, orderedArguments);
                     }
                     else
                     {
+                        // Sync method returning IActionResult (e.g., ViewResult)
                         result = (IActionResult)_executor.Execute(controller, orderedArguments);
                     }
 
                     if (result == null)
                     {
                         throw new InvalidOperationException(
-                            Resources.FormatActionResult_ActionReturnValueCannotBeNull(_executor.TaskGenericType ?? returnType));
+                            Resources.FormatActionResult_ActionReturnValueCannotBeNull(_executor.AsyncResultType ?? returnType));
                     }
                 }
                 else if (!executor.IsMethodAsync)
                 {
+                    // Sync method returning arbitrary object
                     var resultAsObject = executor.Execute(controller, orderedArguments);
                     result = resultAsObject as IActionResult ?? new ObjectResult(resultAsObject)
                     {
                         DeclaredType = returnType,
                     };
                 }
-                else if (executor.TaskGenericType != null)
+                else if (executor.AsyncResultType == typeof(void))
                 {
-                    var resultAsObject = await executor.ExecuteAsync(controller, orderedArguments);
-                    result = resultAsObject as IActionResult ?? new ObjectResult(resultAsObject)
-                    {
-                        DeclaredType = executor.TaskGenericType,
-                    };
+                    // Async method returning awaitable-of-void
+                    await executor.ExecuteAsync(controller, orderedArguments);
+                    result = new EmptyResult();
                 }
                 else
                 {
-                    // This will be the case for types which have derived from Task and Task<T> or non Task types.
-                    throw new InvalidOperationException(Resources.FormatActionExecutor_UnexpectedTaskInstance(
-                        executor.MethodInfo.Name,
-                        executor.MethodInfo.DeclaringType));
+                    // Async method returning awaitable-of-nonvoid
+                    var resultAsObject = await executor.ExecuteAsync(controller, orderedArguments);
+                    result = resultAsObject as IActionResult ?? new ObjectResult(resultAsObject)
+                    {
+                        DeclaredType = executor.AsyncResultType,
+                    };
                 }
 
                 _result = result;
@@ -840,6 +855,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     controllerContext,
                     result);
             }
+        }
+
+        private static bool IsResultIActionResult(ObjectMethodExecutor executor)
+        {
+            var resultType = executor.AsyncResultType ?? executor.MethodReturnType;
+            return typeof(IActionResult).IsAssignableFrom(resultType);
         }
 
         private async Task InvokeNextResultFilterAsync()
@@ -971,6 +992,104 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw context.Exception;
             }
         }
+
+        private Task BindArgumentsAsync()
+        {
+            // Perf: Avoid allocating async state machines where possible. We only need the state
+            // machine if you need to bind properties or arguments.
+            var actionDescriptor = _controllerContext.ActionDescriptor;
+            if (actionDescriptor.BoundProperties.Count == 0 &&
+                actionDescriptor.Parameters.Count == 0)
+            {
+                return TaskCache.CompletedTask;
+            }
+
+            return BindArgumentsCoreAsync(_parameterBinder, _modelMetadataProvider, _controllerContext, _controller, _arguments);
+        }
+
+        // Intentionally static internal for unit testing
+        internal static async Task BindArgumentsCoreAsync(
+            ParameterBinder parameterBinder,
+            IModelMetadataProvider modelMetadataProvider,
+            ControllerContext controllerContext, 
+            object controller, 
+            Dictionary<string, object> arguments)
+        {
+            var valueProvider = await CompositeValueProvider.CreateAsync(controllerContext);
+
+            var parameters = controllerContext.ActionDescriptor.Parameters;
+            for (var i = 0; i < parameters.Count; i++)
+            {
+                var parameter = parameters[i];
+
+                var result = await parameterBinder.BindModelAsync(controllerContext, valueProvider, parameter);
+                if (result.IsModelSet)
+                {
+                    arguments[parameter.Name] = result.Model;
+                }
+            }
+
+            var propertyDescriptors = controllerContext.ActionDescriptor.BoundProperties;
+            if (propertyDescriptors.Count == 0)
+            {
+                // Perf: Early exit to avoid PropertyHelper lookup in the (common) case where we have no
+                // bound properties.
+                return;
+            }
+
+            var controllerType = controller.GetType();
+            ModelMetadata controllerMetadata = null;
+            for (var i = 0; i < propertyDescriptors.Count; i++)
+            {
+                var property = propertyDescriptors[i];
+
+                var result = await parameterBinder.BindModelAsync(controllerContext, valueProvider, property);
+                if (result.IsModelSet)
+                {
+                    if (controllerMetadata == null)
+                    {
+                        controllerMetadata = modelMetadataProvider.GetMetadataForType(controllerType);
+                    }
+                    var propertyMetadata = controllerMetadata.Properties[property.Name] ??
+                        modelMetadataProvider.GetMetadataForProperty(controllerType, property.Name);
+                    if (propertyMetadata != null)
+                    {
+                        PropertyValueSetter.SetValue(
+                            propertyMetadata,
+                            controller,
+                            result.Model);
+                    }
+                }
+            }
+        }
+
+        private static object[] PrepareArguments(
+            IDictionary<string, object> actionParameters,
+            ObjectMethodExecutor actionMethodExecutor)
+        {
+            var declaredParameterInfos = actionMethodExecutor.MethodParameters;
+            var count = declaredParameterInfos.Length;
+            if (count == 0)
+            {
+                return null;
+            }
+
+            var arguments = new object[count];
+            for (var index = 0; index < count; index++)
+            {
+                var parameterInfo = declaredParameterInfos[index];
+
+                if (!actionParameters.TryGetValue(parameterInfo.Name, out var value))
+                {
+                    value = actionMethodExecutor.GetDefaultValueForParameter(index);
+                }
+
+                arguments[index] = value;
+            }
+
+            return arguments;
+        }
+
 
         private enum Scope
         {

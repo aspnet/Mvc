@@ -41,35 +41,38 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             return context;
         }
 
-        public static DefaultControllerArgumentBinder GetArgumentBinder(
+        public static ParameterBinder GetParameterBinder(
             MvcOptions options = null,
             IModelBinderProvider binderProvider = null)
         {
             if (options == null)
             {
                 var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-                return GetArgumentBinder(metadataProvider, binderProvider);
+                return GetParameterBinder(metadataProvider, binderProvider);
             }
             else
             {
                 var metadataProvider = TestModelMetadataProvider.CreateProvider(options.ModelMetadataDetailsProviders);
-                return GetArgumentBinder(metadataProvider, binderProvider);
+                return GetParameterBinder(metadataProvider, binderProvider, options);
             }
         }
 
-        public static DefaultControllerArgumentBinder GetArgumentBinder(
+        public static ParameterBinder GetParameterBinder(
             IModelMetadataProvider metadataProvider,
-            IModelBinderProvider binderProvider = null)
+            IModelBinderProvider binderProvider = null,
+            MvcOptions mvcOptions = null)
         {
             var services = GetServices();
-            var options = services.GetRequiredService<IOptions<MvcOptions>>();
+            var options = mvcOptions != null
+                ? Options.Create(mvcOptions)
+                : services.GetRequiredService<IOptions<MvcOptions>>();
 
             if (binderProvider != null)
             {
                 options.Value.ModelBinderProviders.Insert(0, binderProvider);
             }
 
-            return new DefaultControllerArgumentBinder(
+            return new ParameterBinder(
                 metadataProvider,
                 new ModelBinderFactory(metadataProvider, options),
                 GetObjectValidator(metadataProvider, options));
