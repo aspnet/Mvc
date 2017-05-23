@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -64,6 +65,11 @@ namespace Microsoft.Extensions.DependencyInjection
             if (!builder.PartManager.FeatureProviders.OfType<MetadataReferenceFeatureProvider>().Any())
             {
                 builder.PartManager.FeatureProviders.Add(new MetadataReferenceFeatureProvider());
+            }
+
+            if (!builder.PartManager.FeatureProviders.OfType<TagHelperFeatureProvider>().Any())
+            {
+                builder.PartManager.FeatureProviders.Add(new TagHelperFeatureProvider());
             }
 
             if (!builder.PartManager.FeatureProviders.OfType<ViewsFeatureProvider>().Any())
