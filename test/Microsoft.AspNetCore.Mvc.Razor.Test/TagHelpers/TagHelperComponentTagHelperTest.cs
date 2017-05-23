@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             await testTagHelperComponentTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert           
-            Assert.Equal("Processed", output.PostContent.GetContent());
+            Assert.Equal("Processed1", output.PostContent.GetContent());
         }
 
         [Fact]
@@ -205,15 +205,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 new TestTagHelperComponent()
             });
 
-            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent());
-            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent());
+            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent(0));
+            testTagHelperComponentManager.Components.Add(new TestAddTagHelperComponent(2));
             var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance);
 
             // Act
             await testTagHelperComponentTagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert           
-            Assert.Equal("Processed2Processed2Processed", output.PostContent.GetContent());
+            Assert.Equal("Processed0Processed1Processed2", output.PostContent.GetContent());
         }
 
         [Fact]
@@ -330,23 +330,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 
             public Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
             {
-                output.PostContent.AppendHtml("Processed");
+                output.PostContent.AppendHtml("Processed1");
                 return Task.CompletedTask;
             }
         }
 
         private class TestAddTagHelperComponent : ITagHelperComponent
         {
-            public int Order => 0;
+            private int _order;
+
+            public TestAddTagHelperComponent(int order)
+            {
+                _order = order;
+            }
+
+            public int Order => _order;
 
             public void Init(TagHelperContext context)
             {
-                context.Items["Key2"] = "Value2";
             }
 
             public Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
             {
-                output.PostContent.AppendHtml("Processed2");
+                output.PostContent.AppendHtml("Processed" + Order);
                 return Task.CompletedTask;
             }
         }

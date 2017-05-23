@@ -8,13 +8,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     /// <summary>
     /// An implementation of this interface provides the collection of <see cref="ITagHelperComponent"/>s
-    /// that will be used by the <see cref="TagHelperComponentTagHelper"/>.
+    /// that will be used by <see cref="TagHelperComponentTagHelper"/>s.
     /// </summary>
     public interface ITagHelperComponentManager
     {
         /// <summary>
-        /// Gets the collection of <see cref="ITagHelperComponent"/>s that will be used by the 
-        /// <see cref="TagHelperComponentTagHelper"/>.
+        /// Gets the collection of <see cref="ITagHelperComponent"/>s that will be used by
+        /// <see cref="TagHelperComponentTagHelper"/>s.
         /// </summary>
         ICollection<ITagHelperComponent> Components { get; }
     }
