@@ -75,6 +75,11 @@ namespace Microsoft.AspNetCore.Mvc
         public FormatterCollection<IInputFormatter> InputFormatters { get; }
 
         /// <summary>
+        /// Gets or sets the flag to buffer the request body in formatters. Default is <c>true</c>.
+        /// </summary>
+        public bool BufferRequestBodyInFormatters { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets the maximum number of validation errors that are allowed by this application before further
         /// errors are ignored.
         /// </summary>

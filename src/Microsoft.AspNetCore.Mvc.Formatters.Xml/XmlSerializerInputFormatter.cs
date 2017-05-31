@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -23,12 +25,24 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
     {
         private ConcurrentDictionary<Type, object> _serializerCache = new ConcurrentDictionary<Type, object>();
         private readonly XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
+        private readonly bool _bufferRequestBody;
 
         /// <summary>
         /// Initializes a new instance of XmlSerializerInputFormatter.
         /// </summary>
         public XmlSerializerInputFormatter()
+            : this(bufferRequestBody: true)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of XmlSerializerInputFormatter.
+        /// </summary>
+        /// <param name="bufferRequestBody">Buffers the entire request body before deserializing it.</param>
+        public XmlSerializerInputFormatter(bool bufferRequestBody)
+        {
+            _bufferRequestBody = bufferRequestBody;
+
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(UTF16EncodingLittleEndian);
 
@@ -65,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         /// <inheritdoc />
-        public override Task<InputFormatterResult> ReadRequestBodyAsync(
+        public override async Task<InputFormatterResult> ReadRequestBodyAsync(
             InputFormatterContext context,
             Encoding encoding)
         {
@@ -80,6 +94,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
 
             var request = context.HttpContext.Request;
+
+            if (_bufferRequestBody)
+            {
+                // XmlSerializer does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
+                // read everything into a buffer, and then seek back to the beginning. 
+                BufferingHelper.EnableRewind(request);
+                Debug.Assert(request.Body.CanSeek);
+
+                await request.Body.CopyToAsync(Stream.Null);
+                request.Body.Seek(0L, SeekOrigin.Begin);
+            }
+
             using (var xmlReader = CreateXmlReader(new NonDisposableStream(request.Body), encoding))
             {
                 var type = GetSerializableType(context.ModelType);
@@ -98,7 +124,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     }
                 }
 
-                return InputFormatterResult.SuccessAsync(deserializedObject);
+                return InputFormatterResult.Success(deserializedObject);
             }
         }
 
