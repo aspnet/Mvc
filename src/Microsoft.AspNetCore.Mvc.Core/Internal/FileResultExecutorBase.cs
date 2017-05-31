@@ -83,11 +83,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             if (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method))
             {
                 var preconditionState = GetPreconditionState(context, httpRequestHeaders, lastModified, etag);
-                if (request.Headers.ContainsKey(HeaderNames.Range) &&
-                    (preconditionState == PreconditionState.Unspecified ||
+                if ((preconditionState == PreconditionState.Unspecified ||
                     preconditionState == PreconditionState.ShouldProcess))
                 {
-                    return SetRangeHeaders(context, httpRequestHeaders, fileLength, lastModified, etag);
+                    return SetRangeHeaders(context, httpRequestHeaders, fileLength);
                 }
                 if (preconditionState == PreconditionState.NotModified)
                 {
@@ -250,16 +249,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private static (RangeItemHeaderValue range, long rangeLength, bool serveBody) SetRangeHeaders(
             ActionContext context,
             RequestHeaders httpRequestHeaders,
-            long? fileLength,
-            DateTimeOffset? lastModified = null,
-            EntityTagHeaderValue etag = null)
+            long? fileLength)
         {
             var response = context.HttpContext.Response;
             var httpResponseHeaders = response.GetTypedHeaders();
 
             // Checked for presence of Range header explicitly before calling this method.
             // Range may be null for parsing errors, multiple ranges and when the file length is missing.
-            var range = fileLength.HasValue ? ParseRange(context, httpRequestHeaders, fileLength.Value, lastModified, etag) : null;
+            var (isRangeRequest, range) = ParseRange(
+                context,
+                httpRequestHeaders,
+                fileLength: fileLength ?? 0L);
+            if (!isRangeRequest)
+            {
+                return (range: null, rangeLength: 0, serveBody: true);
+            }
+
             if (range == null)
             {
                 // 14.16 Content-Range - A server sending a response with status code 416 (Requested range not satisfiable)
@@ -295,30 +300,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return length;
         }
 
-        private static RangeItemHeaderValue ParseRange(
+        private static (bool, RangeItemHeaderValue) ParseRange(
             ActionContext context,
             RequestHeaders httpRequestHeaders,
-            long fileLength,
-            DateTimeOffset? lastModified = null,
-            EntityTagHeaderValue etag = null)
+            long? fileLength)
         {
             var httpContext = context.HttpContext;
             var response = httpContext.Response;
 
-            var range = RangeHelper.ParseRange(httpContext, httpRequestHeaders, lastModified, etag);
-
-            if (range != null)
-            {
-                var normalizedRanges = RangeHelper.NormalizeRanges(range, fileLength);
-                if (normalizedRanges == null || normalizedRanges.Count == 0)
-                {
-                    return null;
-                }
-
-                return normalizedRanges.Single();
-            }
-
-            return null;
+            return RangeHelper.ParseRange(httpContext, httpRequestHeaders, fileLength.Value);
         }
 
         protected static ILogger CreateLogger<T>(ILoggerFactory factory)
