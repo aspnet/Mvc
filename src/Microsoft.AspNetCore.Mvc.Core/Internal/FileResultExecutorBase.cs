@@ -19,7 +19,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private const string AcceptRangeHeaderValue = "bytes";
 
-        // default buffer size as defined in BufferedStream type
         protected const int BufferSize = 64 * 1024;
 
         public FileResultExecutorBase(ILogger logger)
@@ -65,6 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             if (fileLength.HasValue)
             {
                 SetAcceptRangeHeader(context);
+                // Sets the Content-Length header to the file length. This is overwritten for valid range requests with the length of the range.
                 response.ContentLength = fileLength.Value;
             }
 
@@ -278,6 +278,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 fileLength.Value);
 
             response.StatusCode = StatusCodes.Status206PartialContent;
+            // Overwrite the Content-Length header for valid range requests with the range length.
             var rangeLength = SetContentLength(context, range);
             return (range, rangeLength, serveBody: true);
         }
