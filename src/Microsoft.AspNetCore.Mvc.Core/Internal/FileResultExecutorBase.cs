@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private const string AcceptRangeHeaderValue = "bytes";
 
         // default buffer size as defined in BufferedStream type
-        protected const int BufferSize = 0x1000;
+        protected const int BufferSize = 64 * 1024;
 
         public FileResultExecutorBase(ILogger logger)
         {
@@ -40,9 +40,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         protected virtual (RangeItemHeaderValue range, long rangeLength, bool serveBody) SetHeadersAndLog(
             ActionContext context,
-            FileResult result, long?
-            fileLength, DateTimeOffset?
-            lastModified = null,
+            FileResult result,
+            long? fileLength,
+            DateTimeOffset? lastModified = null,
             EntityTagHeaderValue etag = null)
         {
             if (context == null)
@@ -57,15 +57,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             SetContentType(context, result);
             SetContentDispositionHeader(context, result);
             Logger.FileResultExecuting(result.FileDownloadName);
-            if (fileLength.HasValue)
-            {
-                SetAcceptRangeHeader(context);
-            }
 
             var request = context.HttpContext.Request;
             var httpRequestHeaders = request.GetTypedHeaders();
             var response = context.HttpContext.Response;
             var httpResponseHeaders = response.GetTypedHeaders();
+            if (fileLength.HasValue)
+            {
+                SetAcceptRangeHeader(context);
+                response.ContentLength = fileLength.Value;
+            }
+
             if (lastModified.HasValue)
             {
                 httpResponseHeaders.LastModified = lastModified;
