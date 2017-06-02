@@ -89,14 +89,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // If the request is a valid range request, this header is overwritten with the length of the range as part of the 
                 // range processing (see method SetContentLength).
                 response.ContentLength = fileLength.Value;
-                if (IfRangeValid(context, httpRequestHeaders, lastModified, etag) &&
-                    (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method)))
-                {                   
+                if (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method))
+                {
                     if ((preconditionState == PreconditionState.Unspecified ||
                         preconditionState == PreconditionState.ShouldProcess))
                     {
-                        return SetRangeHeaders(context, httpRequestHeaders, fileLength);
-                    }                   
+                        if (IfRangeValid(context, httpRequestHeaders, lastModified, etag))
+                        {
+                            return SetRangeHeaders(context, httpRequestHeaders, fileLength);
+                        }
+                    }
                 }
             }
 
