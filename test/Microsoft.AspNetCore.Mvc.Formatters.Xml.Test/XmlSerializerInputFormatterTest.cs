@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         }
 
         [Fact]
-        public async Task BufferRequestBodyParameterSetToFalse_DoesNotBufferRequestBody()
+        public async Task SuppressInputFormatterBufferingSetToTrue_DoesNotBufferRequestBody()
         {
             // Arrange
             var expectedInt = 10;
@@ -103,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                                 "<sampleString>" + expectedString + "</sampleString>" +
                                 "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
-            var formatter = new XmlSerializerInputFormatter(bufferRequestBody: false);
+            var formatter = new XmlSerializerInputFormatter(suppressInputFormatterBuffering: true);
             var contentBytes = Encoding.UTF8.GetBytes(input);
             var httpContext = new DefaultHttpContext();
             httpContext.Features.Set<IHttpResponseFeature>(new TestResponseFeature());

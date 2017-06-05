@@ -71,13 +71,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         [Fact]
-        public async Task BufferRequestBodyParameterSetToFalse_DoesNotBufferRequestBody()
+        public async Task SuppressInputFormatterBufferingSetToTrue_DoesNotBufferRequestBody()
         {
             // Arrange
             var content = "{name: 'Person Name', Age: '30'}";
             var logger = GetLogger();
             var formatter =
-                new JsonInputFormatter(logger, _serializerSettings, ArrayPool<char>.Shared, _objectPoolProvider, bufferRequestBody: false);
+                new JsonInputFormatter(logger, _serializerSettings, ArrayPool<char>.Shared, _objectPoolProvider, suppressInputFormatterBuffering: true);
             var contentBytes = Encoding.UTF8.GetBytes(content);
 
             var modelState = new ModelStateDictionary();

@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             JsonSerializerSettings serializerSettings,
             ArrayPool<char> charPool,
             ObjectPoolProvider objectPoolProvider)
-            : this(logger, serializerSettings, charPool, objectPoolProvider, bufferRequestBody: true)
+            : this(logger, serializerSettings, charPool, objectPoolProvider, suppressInputFormatterBuffering: false)
         {
         }
 
@@ -48,14 +48,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
         /// </param>/// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
         /// <param name="objectPoolProvider">The <see cref="ObjectPoolProvider"/>.</param>
-        /// <param name="bufferRequestBody">Buffers the entire request body before deserializing it.</param>
+        /// <param name="suppressInputFormatterBuffering">Flag to buffer entire request body before deserializing it.</param>
         public JsonPatchInputFormatter(
             ILogger logger,
             JsonSerializerSettings serializerSettings,
             ArrayPool<char> charPool,
             ObjectPoolProvider objectPoolProvider,
-            bool bufferRequestBody)
-            : base(logger, serializerSettings, charPool, objectPoolProvider, bufferRequestBody)
+            bool suppressInputFormatterBuffering)
+            : base(logger, serializerSettings, charPool, objectPoolProvider, suppressInputFormatterBuffering)
         {
             // Clear all values and only include json-patch+json value.
             SupportedMediaTypes.Clear();

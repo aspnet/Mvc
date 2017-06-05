@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
@@ -26,23 +27,23 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         private DataContractSerializerSettings _serializerSettings;
         private ConcurrentDictionary<Type, object> _serializerCache = new ConcurrentDictionary<Type, object>();
         private readonly XmlDictionaryReaderQuotas _readerQuotas = FormattingUtilities.GetDefaultXmlReaderQuotas();
-        private readonly bool _bufferRequestBody;
+        private readonly bool _suppressInputFormatterBuffering;
 
         /// <summary>
         /// Initializes a new instance of DataContractSerializerInputFormatter
         /// </summary>
         public XmlDataContractSerializerInputFormatter() :
-            this(bufferRequestBody: true)
+            this(suppressInputFormatterBuffering: false)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of DataContractSerializerInputFormatter
         /// </summary>
-        /// <param name="bufferRequestBody">Buffers the entire request body before deserializing it.</param>
-        public XmlDataContractSerializerInputFormatter(bool bufferRequestBody)
+        /// <param name="suppressInputFormatterBuffering">Flag to buffer entire request body before deserializing it.</param>
+        public XmlDataContractSerializerInputFormatter(bool suppressInputFormatterBuffering)
         {
-            _bufferRequestBody = bufferRequestBody;
+            _suppressInputFormatterBuffering = suppressInputFormatterBuffering;
 
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(UTF16EncodingLittleEndian);
@@ -114,14 +115,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var request = context.HttpContext.Request;
 
-            if (_bufferRequestBody)
+            if (request.Body.CanSeek)
+            {
+                request.Body.Seek(0L, SeekOrigin.Begin);
+            }
+            else if (!_suppressInputFormatterBuffering)
             {
                 // XmlDataContractSerializer does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
                 // read everything into a buffer, and then seek back to the beginning. 
                 BufferingHelper.EnableRewind(request);
                 Debug.Assert(request.Body.CanSeek);
 
-                await request.Body.CopyToAsync(Stream.Null);
+                await request.Body.DrainAsync(context.HttpContext.RequestAborted);
                 request.Body.Seek(0L, SeekOrigin.Begin);
             }
 

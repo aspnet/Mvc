@@ -18,15 +18,5 @@ namespace Microsoft.AspNetCore.Mvc
             var ex = Assert.Throws<ArgumentOutOfRangeException>(() => options.MaxModelValidationErrors = -1);
             Assert.Equal("value", ex.ParamName);
         }
-
-        [Fact]
-        public void BufferingRequestBody_EnabledByDefault_ForFormatters()
-        {
-            // Arrange
-            var options = new MvcOptions();
-
-            // Act & Assert
-            Assert.True(options.BufferRequestBodyInFormatters);
-        }
     }
 }

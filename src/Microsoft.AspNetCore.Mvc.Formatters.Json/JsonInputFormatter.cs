@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
@@ -24,7 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         private readonly IArrayPool<char> _charPool;
         private readonly ILogger _logger;
         private readonly ObjectPoolProvider _objectPoolProvider;
-        private readonly bool _bufferRequestBody;
+        private readonly bool _suppressInputFormatterBuffering;
 
         private ObjectPool<JsonSerializer> _jsonSerializerPool;
 
@@ -44,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             JsonSerializerSettings serializerSettings,
             ArrayPool<char> charPool,
             ObjectPoolProvider objectPoolProvider) :
-            this(logger, serializerSettings, charPool, objectPoolProvider, bufferRequestBody: true)
+            this(logger, serializerSettings, charPool, objectPoolProvider, suppressInputFormatterBuffering: false)
         {
             // This constructor by default buffers the request body as its the most secure setting 
         }
@@ -60,13 +61,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
         /// <param name="objectPoolProvider">The <see cref="ObjectPoolProvider"/>.</param>
-        /// <param name="bufferRequestBody">Buffers the entire request body before deserializing it.</param>
+        /// <param name="suppressInputFormatterBuffering">Flag to buffer entire request body before deserializing it.</param>
         public JsonInputFormatter(
             ILogger logger,
             JsonSerializerSettings serializerSettings,
             ArrayPool<char> charPool,
             ObjectPoolProvider objectPoolProvider,
-            bool bufferRequestBody)
+            bool suppressInputFormatterBuffering)
         {
             if (logger == null)
             {
@@ -92,7 +93,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             SerializerSettings = serializerSettings;
             _charPool = new JsonArrayPool<char>(charPool);
             _objectPoolProvider = objectPoolProvider;
-            _bufferRequestBody = bufferRequestBody;
+            _suppressInputFormatterBuffering = suppressInputFormatterBuffering;
 
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(UTF16EncodingLittleEndian);
@@ -128,14 +129,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var request = context.HttpContext.Request;
 
-            if (_bufferRequestBody)
+            if (request.Body.CanSeek)
+            {
+                request.Body.Seek(0L, SeekOrigin.Begin);
+            }
+            else if (!_suppressInputFormatterBuffering)
             {
                 // JSON.Net does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
                 // read everything into a buffer, and then seek back to the beginning. 
                 BufferingHelper.EnableRewind(request);
                 Debug.Assert(request.Body.CanSeek);
 
-                await request.Body.CopyToAsync(Stream.Null);
+                await request.Body.DrainAsync(context.HttpContext.RequestAborted);
                 request.Body.Seek(0L, SeekOrigin.Begin);
             }
 
