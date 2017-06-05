@@ -166,7 +166,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(expectedInt, model.SampleInt);
             Assert.Equal(expectedString, model.sampleString);
 
-            // Reading again should not fail as the request body should have been buffered by the formatter
+            Assert.True(httpContext.Request.Body.CanSeek);
+            httpContext.Request.Body.Seek(0L, SeekOrigin.Begin);
+
             result = await formatter.ReadAsync(context);
 
             // Assert

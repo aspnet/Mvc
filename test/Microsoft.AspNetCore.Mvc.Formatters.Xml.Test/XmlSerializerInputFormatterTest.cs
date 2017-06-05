@@ -75,7 +75,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 XmlConvert.ToDateTime(expectedDateTime, XmlDateTimeSerializationMode.Utc),
                 model.SampleDate);
 
-            // Reading again should not fail as the request body should have been buffered by the formatter
+            Assert.True(httpContext.Request.Body.CanSeek);
+            httpContext.Request.Body.Seek(0L, SeekOrigin.Begin);
+
             result = await formatter.ReadAsync(context);
 
             // Assert

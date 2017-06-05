@@ -59,7 +59,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.Equal("Customer/Name", patchDoc.Operations[0].path);
             Assert.Equal("John", patchDoc.Operations[0].value);
 
-            // Reading again should not fail as the request body should have been buffered by the formatter
+            Assert.True(httpContext.Request.Body.CanSeek);
+            httpContext.Request.Body.Seek(0L, SeekOrigin.Begin);
+
             result = await formatter.ReadAsync(context);
 
             // Assert

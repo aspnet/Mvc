@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
@@ -129,18 +130,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var request = context.HttpContext.Request;
 
-            if (request.Body.CanSeek)
-            {
-                request.Body.Seek(0L, SeekOrigin.Begin);
-            }
-            else if (!_suppressInputFormatterBuffering)
+            if (!request.Body.CanSeek && !_suppressInputFormatterBuffering)
             {
                 // JSON.Net does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
                 // read everything into a buffer, and then seek back to the beginning. 
                 BufferingHelper.EnableRewind(request);
                 Debug.Assert(request.Body.CanSeek);
 
-                await request.Body.DrainAsync(context.HttpContext.RequestAborted);
+                await request.Body.DrainAsync(CancellationToken.None);
                 request.Body.Seek(0L, SeekOrigin.Begin);
             }
 

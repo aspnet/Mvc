@@ -60,7 +60,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.Equal("Person Name", userModel.Name);
             Assert.Equal(30, userModel.Age);
 
-            // Reading again should not fail as the request body should have been buffered by the formatter
+            Assert.True(httpContext.Request.Body.CanSeek);
+            httpContext.Request.Body.Seek(0L, SeekOrigin.Begin);
+
             result = await formatter.ReadAsync(context);
 
             // Assert

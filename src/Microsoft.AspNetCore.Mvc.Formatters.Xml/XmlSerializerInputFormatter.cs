@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -96,18 +97,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
             var request = context.HttpContext.Request;
 
-            if (request.Body.CanSeek)
-            {
-                request.Body.Seek(0L, SeekOrigin.Begin);
-            }
-            else if (!_suppressInputFormatterBuffering)
+            if (!request.Body.CanSeek && !_suppressInputFormatterBuffering)
             {
                 // XmlSerializer does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
                 // read everything into a buffer, and then seek back to the beginning. 
                 BufferingHelper.EnableRewind(request);
                 Debug.Assert(request.Body.CanSeek);
 
-                await request.Body.DrainAsync(context.HttpContext.RequestAborted);
+                await request.Body.DrainAsync(CancellationToken.None);
                 request.Body.Seek(0L, SeekOrigin.Begin);
             }
 
