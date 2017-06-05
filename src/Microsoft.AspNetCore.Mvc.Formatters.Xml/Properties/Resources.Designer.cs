@@ -52,6 +52,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         internal static string FormatWrapperProvider_MismatchType(object p0, object p1)
             => string.Format(CultureInfo.CurrentCulture, GetString("WrapperProvider_MismatchType"), p0, p1);
 
+        /// <summary>
+        ///   The XML formatter {0} was not added MVC, use proper  AddXml...Formatters() extension..
+        /// </summary>
+        public static string XmlFromater_WasNotSetup_To_Mvc(object p0)
+        {
+            return string.Format(CultureInfo.CurrentCulture, GetString("XmlFromater_WasNotSetup_To_Mvc"), p0);
+        }
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

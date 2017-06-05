@@ -6,16 +6,24 @@ using Microsoft.Extensions.Options;
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
 {
     /// <summary>
-    /// A <see cref="IConfigureOptions{TOptions}"/> implementation which will add the
+    /// A <see cref="ConfigureOptions{TOptions}"/> implementation which will add the
     /// XML serializer formatters to <see cref="MvcOptions"/>.
     /// </summary>
-    public class MvcXmlSerializerMvcOptionsSetup : IConfigureOptions<MvcOptions>
+    public class MvcXmlSerializerMvcOptionsSetup : ConfigureOptions<MvcOptions>
     {
+        /// <summary>
+        /// Creates a new <see cref="MvcXmlSerializerMvcOptionsSetup"/>.
+        /// </summary>
+        public MvcXmlSerializerMvcOptionsSetup()
+            : base(ConfigureMvc)
+        {
+        }
+
         /// <summary>
         /// Adds the XML serializer formatters to <see cref="MvcOptions"/>.
         /// </summary>
         /// <param name="options">The <see cref="MvcOptions"/>.</param>
-        public void Configure(MvcOptions options)
+        public static void ConfigureMvc(MvcOptions options)
         {
             options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
             options.InputFormatters.Add(new XmlSerializerInputFormatter());
