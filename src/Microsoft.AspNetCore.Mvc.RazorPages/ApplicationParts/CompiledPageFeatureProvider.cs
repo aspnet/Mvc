@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
@@ -45,30 +46,39 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         /// <returns>The sequence of <see cref="CompiledViewDescriptor"/>.</returns>
         public static IEnumerable<CompiledViewDescriptor> GetCompiledPageDescriptors(IEnumerable<ApplicationPart> parts)
         {
-            var manifests = parts.OfType<AssemblyPart>()
-                .Select(part => CompiledViewManfiest.GetManifestType(part, FullyQualifiedManifestTypeName))
-                .Where(type => type != null)
-                .Select(type => (CompiledPageManifest)Activator.CreateInstance(type));
-
-            foreach (var page in manifests.SelectMany(m => m.CompiledPages))
+            foreach (var assemblyPart in parts.OfType<AssemblyPart>())
             {
-                var normalizedPath = ViewPath.NormalizePath(page.Path);
-
-                var pageAttribute = new RazorPageAttribute(
-                    normalizedPath,
-                    page.CompiledType,
-                    page.RoutePrefix);
-
-                var viewDescriptor = new CompiledViewDescriptor
+                var pageAttributes = GetAttributes(assemblyPart);
+                foreach (var attribute in pageAttributes)
                 {
-                    RelativePath = normalizedPath,
-                    ViewAttribute = pageAttribute,
-                    ExpirationTokens = Array.Empty<IChangeToken>(),
-                    IsPrecompiled = true,
-                };
+                    var relativePath = ViewPath.NormalizePath(attribute.Path);
+                    var pageDescriptor = new CompiledViewDescriptor
+                    {
+                        ExpirationTokens = Array.Empty<IChangeToken>(),
+                        RelativePath = relativePath,
+                        ViewAttribute = attribute,
+                        IsPrecompiled = true,
+                    };
 
-                yield return viewDescriptor;
+                    yield return pageDescriptor;
+                }
             }
+        }
+
+        private static IEnumerable<RazorPageAttribute> GetAttributes(AssemblyPart assemblyPart)
+        {
+            if (assemblyPart == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyPart));
+            }
+
+            var featureAssembly = CompiledViewManfiest.GetFeatureAssembly(assemblyPart);
+            if (featureAssembly != null)
+            {
+                return featureAssembly.GetCustomAttributes<RazorPageAttribute>();;
+            }
+
+            return Enumerable.Empty<RazorPageAttribute>();
         }
     }
 }
