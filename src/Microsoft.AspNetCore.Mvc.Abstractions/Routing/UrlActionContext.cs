@@ -63,5 +63,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             get;
             set;
         }
+
+        /// <summary>
+        /// The name of the route that <see cref="IUrlHelper.Action(UrlActionContext)"/> will use to generate url.
+        /// </summary>
+        public string RouteName
+        {
+            get;
+            set;
+        }
     }
 }
