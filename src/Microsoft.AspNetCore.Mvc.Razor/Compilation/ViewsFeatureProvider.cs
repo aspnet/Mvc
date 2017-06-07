@@ -67,8 +67,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var featureAssembly = CompiledViewManfiest.GetFeatureAssembly(assemblyPart);
             if (featureAssembly != null)
             {
-                return featureAssembly.GetCustomAttributes<RazorViewAttribute>()
-                    .Where(attribute => attribute.GetType() == typeof(RazorViewAttribute));
+                return featureAssembly.GetCustomAttributes<RazorViewAttribute>();
             }
 
             return Enumerable.Empty<RazorViewAttribute>();
