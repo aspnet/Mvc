@@ -107,6 +107,11 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 throw new ArgumentNullException(nameof(context));
             }
 
+            if (context.Result != null)
+            {
+                return;
+            }
+
             var effectivePolicy = Policy;
             if (effectivePolicy == null)
             {
