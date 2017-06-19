@@ -1038,7 +1038,7 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
         }
 
         [Fact]
-        public async Task PagesCanByRoutedToApplicationRoute_ViaAddPageRoute()
+        public async Task PagesCanByRoutedToApplicationRoot_ViaAddPageRoute()
         {
             // Arrange
             var expected = "Hello from NotTheRoot";
