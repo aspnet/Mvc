@@ -423,11 +423,19 @@ namespace Microsoft.AspNetCore.Mvc
                         }
                     },
                     {
+                        typeof(IPageRouteModelProvider),
+                        new[]
+                        {
+                            typeof(CompiledPageRouteModelProvider),
+                            typeof(RazorProjectPageRouteModelProvider),
+                        }
+                    },
+                    {
                         typeof(IPageApplicationModelProvider),
                         new[]
                         {
-                            typeof(CompiledPageApplicationModelProvider),
-                            typeof(RazorProjectPageApplicationModelProvider),
+                            typeof(AuthorizationPageApplicationModelProvider),
+                            typeof(DefaultPageApplicationModelProvider),
                             typeof(PageFilterApplicationModelProvider),
                         }
                     },
