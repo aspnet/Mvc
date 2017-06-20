@@ -90,9 +90,9 @@ namespace Microsoft.AspNetCore.Builder
                 DefaultHandler = app.ApplicationServices.GetRequiredService<MvcRouteHandler>(),
             };
 
-            configureRoutes(routes);
-
             routes.Routes.Insert(0, AttributeRouting.CreateAttributeMegaRoute(app.ApplicationServices));
+
+            configureRoutes(routes);
 
             return app.UseRouter(routes.Build());
         }
