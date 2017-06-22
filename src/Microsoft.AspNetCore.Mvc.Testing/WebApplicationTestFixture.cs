@@ -23,12 +23,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
         }
 
-        public WebApplicationTestFixture(string solutionRelativePath)
+        protected WebApplicationTestFixture(string solutionRelativePath)
             : this("*.sln", solutionRelativePath)
         {
         }
 
-        public WebApplicationTestFixture(string solutionSearchPattern, string solutionRelativePath)
+        protected WebApplicationTestFixture(string solutionSearchPattern, string solutionRelativePath)
         {
             var startupAssembly = typeof(TStartup).GetTypeInfo().Assembly;
 
@@ -43,6 +43,14 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             _server = builder.Build();
             Client = _server.CreateClient();
             Client.BaseAddress = new Uri("http://localhost");
+        }
+
+        /// <summary>
+        /// Gives a fixture an opportunity to configure the application before it gets built.
+        /// </summary>
+        /// <param name="builder">The <see cref="MvcWebApplicationBuilder{TStartup}"/> for the application.</param>
+        protected virtual void ConfigureApplication(MvcWebApplicationBuilder<TStartup> builder)
+        {
         }
 
         public HttpClient Client { get; }
