@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Testing;
 
-namespace Microsoft.AspNetCore.Mvc.TestConfiguration
+namespace Microsoft.AspNetCore.Mvc.Testing
 {
     /// <summary>
     /// A middleware that ensures web sites run in a consistent culture. Currently useful for tests that format dates,
