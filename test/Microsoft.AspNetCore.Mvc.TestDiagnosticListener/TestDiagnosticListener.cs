@@ -221,6 +221,42 @@ namespace Microsoft.AspNetCore.Mvc
             };
         }
 
+        public class OnBeforeRazorViewEventData
+        {
+            public IProxyPage Page { get; set; }
+            public IProxyViewContext ViewContext { get; set; }
+        }
+
+        public OnBeforeRazorViewEventData BeforeRazorView { get; set; }
+
+        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView")]
+        public virtual void OnBeforeRazorView(IProxyPage page, IProxyViewContext viewContext)
+        {
+            BeforeRazorView = new OnBeforeRazorViewEventData()
+            {
+                Page = page,
+                ViewContext = viewContext,
+            };
+        }
+
+        public class OnAfterRazorViewEventData
+        {
+            public IProxyPage Page { get; set; }
+            public IProxyViewContext ViewContext { get; set; }
+        }
+
+        public OnAfterRazorViewEventData AfterRazorView { get; set; }
+
+        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.AfterRazorView")]
+        public virtual void OnAfterRazorView(IProxyPage page, IProxyViewContext viewContext)
+        {
+            AfterRazorView = new OnAfterRazorViewEventData()
+            {
+                Page = page,
+                ViewContext = viewContext,
+            };
+        }
+
         public class OnBeforeViewComponentEventData
         {
             public IProxyActionDescriptor ActionDescriptor { get; set; }
