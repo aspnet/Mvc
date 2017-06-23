@@ -31,11 +31,7 @@
     <ItemGroup>
       <DepsFilePaths Include="$([System.IO.Path]::ChangeExtension('%(_ResolvedProjectReferencePaths.FullPath)', '.deps.json'))" />
     </ItemGroup>
-    <ItemGroup>
-      <XunitRunnerJson Include="$(MSBuildThisFileDirectory)xunit.runner.json" />
-    </ItemGroup>
 
     <Copy SourceFiles="%(DepsFilePaths.FullPath)" DestinationFolder="$(OutputPath)" Condition="Exists('%(DepsFilePaths.FullPath)')" />
-    <Copy SourceFiles="%(XunitRunnerJson.FullPath)" DestinationFolder="$(OutputPath)" Condition="Exists('%(XunitRunnerJson.FullPath)')" />
   </Target>
 </Project>

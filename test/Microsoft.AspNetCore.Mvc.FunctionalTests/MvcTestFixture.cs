@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         protected override void ConfigureApplication(MvcWebApplicationBuilder<TStartup> builder)
         {
+            base.ConfigureApplication(builder);
             builder.ApplicationAssemblies.Clear();
             builder.ApplicationAssemblies.Add(typeof(TStartup).GetTypeInfo().Assembly);
         }

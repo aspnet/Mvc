@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Microsoft.AspNetCore.Mvc.Testing
+namespace Microsoft.AspNetCore.Mvc.Testing.Xunit.Internal
 {
     /// <summary>
     /// Inserts the <see cref="CultureReplacerMiddleware"/> at the beginning of the pipeline.

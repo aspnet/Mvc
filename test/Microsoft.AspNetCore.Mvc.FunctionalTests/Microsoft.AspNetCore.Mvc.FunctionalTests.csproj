@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\common.props" />
   <Import Project="..\..\src\Microsoft.AspNetCore.Mvc.Testing\build\Microsoft.AspNetCore.Mvc.Testing.targets" />
+  <Import Project="..\..\src\Microsoft.AspNetCore.Mvc.Testing.Xunit\build\Microsoft.AspNetCore.Mvc.Testing.Xunit.targets" />
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc.Testing\Microsoft.AspNetCore.Mvc.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc.Testing.Xunit\Microsoft.AspNetCore.Mvc.Testing.Xunit.csproj" />
     <ProjectReference Include="..\WebSites\ApiExplorerWebSite\ApiExplorerWebSite.csproj" />
     <ProjectReference Include="..\WebSites\ApplicationModelWebSite\ApplicationModelWebSite.csproj" />
     <ProjectReference Include="..\WebSites\BasicWebSite\BasicWebSite.csproj" />

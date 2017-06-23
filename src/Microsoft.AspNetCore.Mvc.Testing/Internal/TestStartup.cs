@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Mvc.Testing
+namespace Microsoft.AspNetCore.Mvc.Testing.Internal
 {
     /// <summary>
     /// Fake startup class used in functional tests to decorate the registration of

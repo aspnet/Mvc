@@ -11,8 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.Testing" Version="$(AspNetCoreVersion)" />
-    <PackageReference Include="xunit" Version="$(XunitVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +19,6 @@
 
   <ItemGroup>
     <Content Include="build\**\*.targets" Pack="true" PackagePath="%(Identity)" />
-    <Content Include="build\xunit.runner.json" Pack="true" PackagePath="%(Identity)" />
   </ItemGroup>
 
 </Project>

@@ -9,10 +9,9 @@ using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.Testing.Internal;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.AspNetCore.Mvc.Testing
 {
@@ -56,21 +55,21 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <returns>An instance of this <see cref="MvcWebApplicationBuilder{TStartup}"/></returns>
         public MvcWebApplicationBuilder<TStartup> UseApplicationAssemblies()
         {
+            var depsFileName = $"{typeof(TStartup).Assembly.GetName().Name}.deps.json";
+            var depsFile = new FileInfo(Path.Combine(Directory.GetCurrentDirectory(), depsFileName));
+            if (!depsFile.Exists)
+            {
+                throw new InvalidOperationException($"Can't find'{depsFile}'. This file is required for functional tests " +
+                    $"to run properly. There should be a copy of the file on your source project bin folder. If thats not the " +
+                    $"case, make sure that the property PreserveCompilationContext is set to true on your project file. E.g" +
+                    $"'<PreserveCompilationContext>true</PreserveCompilationContext>'.");
+            }
+
             ApplicationAssemblies.AddRange(DefaultAssemblyPartDiscoveryProvider
                 .DiscoverAssemblyParts(typeof(TStartup).Assembly.GetName().Name)
                 .Select(s => ((AssemblyPart)s).Assembly)
                 .ToList());
 
-            return this;
-        }
-
-        /// <summary>
-        /// Configures the application to use a constant culture for testing purposes.
-        /// </summary>
-        /// <returns>An instance of this <see cref="MvcWebApplicationBuilder{TStartup}"/></returns>
-        public MvcWebApplicationBuilder<TStartup> UseCultureReplacer()
-        {
-            ConfigureAfterStartup(s => s.TryAddEnumerable(ServiceDescriptor.Transient<IStartupFilter, CultureReplacerStartupFilter>()));
             return this;
         }
 
@@ -105,16 +104,13 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         public TestServer Build()
         {
-            using (new CultureReplacer())
-            {
-                var builder = new WebHostBuilder()
-                    .UseContentRoot(ContentRoot)
-                    .ConfigureServices(InitializeServices);
+            var builder = new WebHostBuilder()
+                .UseContentRoot(ContentRoot)
+                .ConfigureServices(InitializeServices);
 
-                builder.UseStartup<TestStartup<TStartup>>();
+            builder.UseStartup<TestStartup<TStartup>>();
 
-                return new TestServer(builder);
-            }
+            return new TestServer(builder);
         }
 
         protected virtual void InitializeServices(IServiceCollection services)

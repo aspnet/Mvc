@@ -1,9 +1,12 @@
-﻿using System.Net;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Mvc.Testing
+namespace Microsoft.AspNetCore.Mvc.Testing.Internal
 {
     /// <summary>
     /// Delegating handler for managing cookies on functional tests.

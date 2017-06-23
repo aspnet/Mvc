@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.AspNetCore.Mvc.Testing
+namespace Microsoft.AspNetCore.Mvc.Testing.Internal
 {
     /// <summary>
     /// Helper class to orchestrate service registrations in <see cref="TestStartup{TStartup}"/>.
