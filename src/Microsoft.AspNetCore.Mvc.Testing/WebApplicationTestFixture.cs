@@ -40,6 +40,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 .UseApplicationAssemblies()
                 .UseCultureReplacer();
 
+            ConfigureApplication(builder);
+
             _server = builder.Build();
             Client = _server.CreateClient();
             Client.BaseAddress = new Uri("http://localhost");

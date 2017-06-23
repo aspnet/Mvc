@@ -16,9 +16,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             base.ConfigureApplication(builder);
             builder.ConfigureBeforeStartup(services =>
             {
-                services.AddTransient<HtmlEncoder, HtmlTestEncoder>();
-                services.AddTransient<JavaScriptEncoder, JavaScriptTestEncoder>();
-                services.AddTransient<UrlEncoder, UrlTestEncoder>();
+                services.TryAddTransient<HtmlEncoder, HtmlTestEncoder>();
+                services.TryAddTransient<JavaScriptEncoder, JavaScriptTestEncoder>();
+                services.TryAddTransient<UrlEncoder, UrlTestEncoder>();
             });
         }
     }
