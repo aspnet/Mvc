@@ -9,8 +9,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     /// <summary>
     /// Utility type for determining if a platform supports full pdb file generation.
     /// </summary>
-    public class SymbolsUtility
+    internal static class SymbolsUtility
     {
+        // Native pdb writer's CLSID
         private const string SymWriterGuid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
         /// <summary>
