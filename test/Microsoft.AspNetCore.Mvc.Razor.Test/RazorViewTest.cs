@@ -137,10 +137,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             await view.RenderAsync(viewContext);
 
             // Assert
-            Assert.NotNull(adapter.BeforeRazorView?.Page);
-            Assert.NotNull(adapter.BeforeRazorView?.ViewContext);
-            Assert.NotNull(adapter.AfterRazorView?.Page);
-            Assert.NotNull(adapter.AfterRazorView?.ViewContext);
+            Assert.NotNull(adapter.BeforeRazorPage?.Page);
+            Assert.NotNull(adapter.BeforeRazorPage?.ViewContext);
+            Assert.NotNull(adapter.BeforeRazorPage?.ActionDescriptor);
+            Assert.NotNull(adapter.BeforeRazorPage?.HttpContext);
+            Assert.NotNull(adapter.AfterRazorPage?.Page);
+            Assert.NotNull(adapter.AfterRazorPage?.ViewContext);
+            Assert.NotNull(adapter.AfterRazorPage?.ActionDescriptor);
+            Assert.NotNull(adapter.AfterRazorPage?.HttpContext);
         }
 
         [Fact]

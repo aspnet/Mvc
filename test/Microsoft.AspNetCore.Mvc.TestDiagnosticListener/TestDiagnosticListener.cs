@@ -221,39 +221,55 @@ namespace Microsoft.AspNetCore.Mvc
             };
         }
 
-        public class OnBeforeRazorViewEventData
+        public class OnBeforeRazorPageEventData
         {
             public IProxyPage Page { get; set; }
             public IProxyViewContext ViewContext { get; set; }
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+            public IProxyHttpContext HttpContext { get; set; }
         }
 
-        public OnBeforeRazorViewEventData BeforeRazorView { get; set; }
+        public OnBeforeRazorPageEventData BeforeRazorPage { get; set; }
 
         [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView")]
-        public virtual void OnBeforeRazorView(IProxyPage page, IProxyViewContext viewContext)
+        public virtual void OnBeforeRazorPage(
+            IProxyPage page,
+            IProxyViewContext viewContext,
+            IProxyActionDescriptor actionDescriptor,
+            IProxyHttpContext httpContext)
         {
-            BeforeRazorView = new OnBeforeRazorViewEventData()
+            BeforeRazorPage = new OnBeforeRazorPageEventData()
             {
                 Page = page,
                 ViewContext = viewContext,
+                ActionDescriptor = actionDescriptor,
+                HttpContext = httpContext,
             };
         }
 
-        public class OnAfterRazorViewEventData
+        public class OnAfterRazorPageEventData
         {
             public IProxyPage Page { get; set; }
             public IProxyViewContext ViewContext { get; set; }
+            public IProxyActionDescriptor ActionDescriptor { get; set; }
+            public IProxyHttpContext HttpContext { get; set; }
         }
 
-        public OnAfterRazorViewEventData AfterRazorView { get; set; }
+        public OnAfterRazorPageEventData AfterRazorPage { get; set; }
 
         [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.AfterRazorView")]
-        public virtual void OnAfterRazorView(IProxyPage page, IProxyViewContext viewContext)
+        public virtual void OnAfterRazorPage(
+            IProxyPage page,
+            IProxyViewContext viewContext,
+            IProxyActionDescriptor actionDescriptor,
+            IProxyHttpContext httpContext)
         {
-            AfterRazorView = new OnAfterRazorViewEventData()
+            AfterRazorPage = new OnAfterRazorPageEventData()
             {
                 Page = page,
                 ViewContext = viewContext,
+                ActionDescriptor = actionDescriptor,
+                HttpContext = httpContext,
             };
         }
 
