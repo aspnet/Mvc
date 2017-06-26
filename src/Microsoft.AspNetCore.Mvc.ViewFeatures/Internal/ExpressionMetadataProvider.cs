@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -94,6 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 //    m => foo (arbitrary expression)
                 //    m => m.Widgets[0] (expression ending with non-property-access)
                 metadata = metadataProvider.GetMetadataForType(typeof(TResult));
+                Debug.Assert(metadata != null);
             }
             else
             {
@@ -102,6 +104,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 //    m => m.Color.Red (nested property access)
                 //    m => m.Widgets[0].Size (expression ending with property-access)
                 metadata = metadataProvider.GetMetadataForType(containerType).Properties[propertyName];
+                if (metadata == null)
+                {
+                    throw new InvalidOperationException(Resources.FormatModelExpression_InvalidProperty(
+                        nameof(ModelMetadata),
+                        containerType.Name + "." + propertyName));
+                }
             }
 
             return viewData.ModelExplorer.GetExplorerForExpression(metadata, modelAccessor);

@@ -148,6 +148,29 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             Assert.Same(myModel, metadata.Container.Model);
         }
 
+        // This is a special case that's basically only possible with Razor Pages.
+        // A private property can't be found by the model metadata provider, so we throw to let you
+        // know that you should only use public properties.
+        [Fact]
+        public void FromLambdaExpression_ForPrivateProperty_Throws()
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var viewData = new ViewDataDictionary<ExpressionMetadataProviderTest>(provider);
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                ExpressionMetadataProvider.FromLambdaExpression(m => m.PrivateProperty, viewData, provider);
+            });
+
+            // Assert
+            Assert.Equal(
+                $"Could not create a {nameof(ModelMetadata)} for property '{nameof(ExpressionMetadataProviderTest)}.{nameof(PrivateProperty)}'. " + 
+                "Make sure the property is public.",
+                exception.Message);
+        }
+
         private class TestModel
         {
             public Category SelectedCategory { get; set; }
@@ -159,5 +182,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             public string CategoryName { get; set; }
         }
+
+        private string PrivateProperty { get; set; }
     }
 }

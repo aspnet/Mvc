@@ -822,6 +822,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         internal static string FormatTempDataProperties_PublicGetterSetter(object p0, object p1, object p2)
             => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PublicGetterSetter"), p0, p1, p2);
 
+        /// <summary>
+        /// Could not create a {0} for property '{1}'. Make sure the property is public.
+        /// </summary>
+        internal static string ModelExpression_InvalidProperty
+        {
+            get => GetString("ModelExpression_InvalidProperty");
+        }
+
+        /// <summary>
+        /// Could not create a {0} for property '{1}'. Make sure the property is public.
+        /// </summary>
+        internal static string FormatModelExpression_InvalidProperty(object p0, object p1)
+            => string.Format(CultureInfo.CurrentCulture, GetString("ModelExpression_InvalidProperty"), p0, p1);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
