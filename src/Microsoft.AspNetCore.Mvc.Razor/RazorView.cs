@@ -162,21 +162,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
         }
 
-        private Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
+        private async Task RenderPageCoreAsync(IRazorPage page, ViewContext context)
         {
             page.ViewContext = context;
             _pageActivator.Activate(page, context);
 
-            _diagnosticSource.BeforeRazorPage(page, context);
+            _diagnosticSource.BeforeViewPage(page, context);
 
             try
             {
-                return page.ExecuteAsync();
+                await page.ExecuteAsync();
             }
-
             finally
             {
-                _diagnosticSource.AfterRazorPage(page, context);
+                _diagnosticSource.AfterViewPage(page, context);
             }
         }
 

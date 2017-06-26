@@ -8,15 +8,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     public static class MvcRazorDiagnosticSourceExtensions
     {
-        public static void BeforeRazorPage(
+        public static void BeforeViewPage(
             this DiagnosticSource diagnosticSource,
             IRazorPage page,
             ViewContext viewContext)
         {
-            if (diagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView"))
+            if (diagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.Razor.BeforeViewPage"))
             {
                 diagnosticSource.Write(
-                    "Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView",
+                    "Microsoft.AspNetCore.Mvc.Razor.BeforeViewPage",
                     new
                     {
                         page = page,
@@ -27,15 +27,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
         }
 
-        public static void AfterRazorPage(
+        public static void AfterViewPage(
             this DiagnosticSource diagnosticSource,
             IRazorPage page,
             ViewContext viewContext)
         {
-            if (diagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.Razor.AfterRazorView"))
+            if (diagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.Razor.AfterViewPage"))
             {
                 diagnosticSource.Write(
-                    "Microsoft.AspNetCore.Mvc.Razor.AfterRazorView",
+                    "Microsoft.AspNetCore.Mvc.Razor.AfterViewPage",
                     new
                     {
                         page = page,

@@ -221,7 +221,7 @@ namespace Microsoft.AspNetCore.Mvc
             };
         }
 
-        public class OnBeforeRazorPageEventData
+        public class OnBeforeViewPageEventData
         {
             public IProxyPage Page { get; set; }
             public IProxyViewContext ViewContext { get; set; }
@@ -229,16 +229,16 @@ namespace Microsoft.AspNetCore.Mvc
             public IProxyHttpContext HttpContext { get; set; }
         }
 
-        public OnBeforeRazorPageEventData BeforeRazorPage { get; set; }
+        public OnBeforeViewPageEventData BeforeViewPage { get; set; }
 
-        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView")]
-        public virtual void OnBeforeRazorPage(
+        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.BeforeViewPage")]
+        public virtual void OnBeforeViewPage(
             IProxyPage page,
             IProxyViewContext viewContext,
             IProxyActionDescriptor actionDescriptor,
             IProxyHttpContext httpContext)
         {
-            BeforeRazorPage = new OnBeforeRazorPageEventData()
+            BeforeViewPage = new OnBeforeViewPageEventData()
             {
                 Page = page,
                 ViewContext = viewContext,
@@ -247,7 +247,7 @@ namespace Microsoft.AspNetCore.Mvc
             };
         }
 
-        public class OnAfterRazorPageEventData
+        public class OnAfterViewPageEventData
         {
             public IProxyPage Page { get; set; }
             public IProxyViewContext ViewContext { get; set; }
@@ -255,16 +255,16 @@ namespace Microsoft.AspNetCore.Mvc
             public IProxyHttpContext HttpContext { get; set; }
         }
 
-        public OnAfterRazorPageEventData AfterRazorPage { get; set; }
+        public OnAfterViewPageEventData AfterViewPage { get; set; }
 
-        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.AfterRazorView")]
-        public virtual void OnAfterRazorPage(
+        [DiagnosticName("Microsoft.AspNetCore.Mvc.Razor.AfterViewPage")]
+        public virtual void OnAfterViewPage(
             IProxyPage page,
             IProxyViewContext viewContext,
             IProxyActionDescriptor actionDescriptor,
             IProxyHttpContext httpContext)
         {
-            AfterRazorPage = new OnAfterRazorPageEventData()
+            AfterViewPage = new OnAfterViewPageEventData()
             {
                 Page = page,
                 ViewContext = viewContext,
