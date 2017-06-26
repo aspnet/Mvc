@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     public static class MvcRazorDiagnosticSourceExtensions
     {
-        public static void BeforeRazorView(
+        public static void BeforeRazorPage(
             this DiagnosticSource diagnosticSource,
             IRazorPage page,
             ViewContext viewContext)
@@ -17,11 +17,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             {
                 diagnosticSource.Write(
                     "Microsoft.AspNetCore.Mvc.Razor.BeforeRazorView",
-                    new { page = page, viewContext = viewContext, });
+                    new
+                    {
+                        page = page,
+                        viewContext = viewContext,
+                        actionDescriptor = viewContext.ActionDescriptor,
+                        httpContext = viewContext.HttpContext,
+                    });
             }
         }
 
-        public static void AfterRazorView(
+        public static void AfterRazorPage(
             this DiagnosticSource diagnosticSource,
             IRazorPage page,
             ViewContext viewContext)
@@ -30,7 +36,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             {
                 diagnosticSource.Write(
                     "Microsoft.AspNetCore.Mvc.Razor.AfterRazorView",
-                    new { page = page, viewContext = viewContext, });
+                    new
+                    {
+                        page = page,
+                        viewContext = viewContext,
+                        actionDescriptor = viewContext.ActionDescriptor,
+                        httpContext = viewContext.HttpContext,
+                    });
             }
         }
     }
