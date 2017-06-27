@@ -148,27 +148,70 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             Assert.Same(myModel, metadata.Container.Model);
         }
 
-        // This is a special case that's basically only possible with Razor Pages.
-        // A private property can't be found by the model metadata provider, so we throw to let you
-        // know that you should only use public properties.
+        // A private property can't be found by the model metadata provider, so return the property's type
+        // as a best-effort mechanism.
         [Fact]
-        public void FromLambdaExpression_ForPrivateProperty_Throws()
+        public void FromLambdaExpression_ForPrivateProperty_ReturnsMetadataOfExpressionType()
         {
             // Arrange
             var provider = new EmptyModelMetadataProvider();
             var viewData = new ViewDataDictionary<ExpressionMetadataProviderTest>(provider);
 
             // Act
-            var exception = Assert.Throws<InvalidOperationException>(() =>
-            {
-                ExpressionMetadataProvider.FromLambdaExpression(m => m.PrivateProperty, viewData, provider);
-            });
+            var explorer = ExpressionMetadataProvider.FromLambdaExpression(
+                m => m.PrivateProperty,
+                viewData,
+                provider);
 
             // Assert
-            Assert.Equal(
-                $"Could not create a {nameof(ModelMetadata)} for property '{nameof(ExpressionMetadataProviderTest)}.{nameof(PrivateProperty)}'. " + 
-                "Make sure the property is public.",
-                exception.Message);
+            Assert.NotNull(explorer);
+            Assert.NotNull(explorer.Metadata);
+            Assert.Equal(ModelMetadataKind.Type, explorer.Metadata.MetadataKind);
+            Assert.Equal(typeof(string), explorer.ModelType);
+        }
+
+        // A static property can't be found by the model metadata provider, so return the property's type
+        // as a best-effort mechanism.
+        [Fact]
+        public void FromLambdaExpression_ForStaticProperty_ReturnsMetadataOfExpressionType()
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var viewData = new ViewDataDictionary<ExpressionMetadataProviderTest>(provider);
+
+            // Act
+            var explorer = ExpressionMetadataProvider.FromLambdaExpression(
+                m => ExpressionMetadataProviderTest.StaticProperty,
+                viewData,
+                provider);
+
+            // Assert
+            Assert.NotNull(explorer);
+            Assert.NotNull(explorer.Metadata);
+            Assert.Equal(ModelMetadataKind.Type, explorer.Metadata.MetadataKind);
+            Assert.Equal(typeof(string), explorer.ModelType);
+        }
+
+        // A field can't be found by the model metadata provider, so return the field's type
+        // as a best-effort mechanism.
+        [Fact]
+        public void FromLambdaExpression_ForField_ReturnsMetadataOfExpressionType()
+        {
+            // Arrange
+            var provider = new EmptyModelMetadataProvider();
+            var viewData = new ViewDataDictionary<ExpressionMetadataProviderTest>(provider);
+
+            // Act
+            var explorer = ExpressionMetadataProvider.FromLambdaExpression(
+                m => m.Field,
+                viewData,
+                provider);
+
+            // Assert
+            Assert.NotNull(explorer);
+            Assert.NotNull(explorer.Metadata);
+            Assert.Equal(ModelMetadataKind.Type, explorer.Metadata.MetadataKind);
+            Assert.Equal(typeof(string), explorer.ModelType);
         }
 
         private class TestModel
@@ -184,5 +227,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         private string PrivateProperty { get; set; }
+
+        public static string StaticProperty { get; set; }
+
+        public string Field = "Hello";
     }
 }
