@@ -10,6 +10,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
     public class ExpressionMetadataProviderTest
     {
+        private string PrivateProperty { get; set; }
+
+        public static string StaticProperty { get; set; }
+
+        public string Field = "Hello";
+
         [Fact]
         public void FromLambdaExpression_GetsExpectedMetadata_ForIdentityExpression()
         {
@@ -225,11 +231,5 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
             public string CategoryName { get; set; }
         }
-
-        private string PrivateProperty { get; set; }
-
-        public static string StaticProperty { get; set; }
-
-        public string Field = "Hello";
     }
 }
