@@ -1340,6 +1340,20 @@ namespace Microsoft.AspNetCore.Mvc.Core
         internal static string FormatUrlHelper_RelativePagePathIsNotSupported(object p0)
             => string.Format(CultureInfo.CurrentCulture, GetString("UrlHelper_RelativePagePathIsNotSupported"), p0);
 
+        /// <summary>
+        /// The size of the request body '{0}' is greater than the request size limit of '{1}', specified using the RequestSizeLimitAttribute.
+        /// </summary>
+        internal static string RequestBodySize_GreaterThanLimit
+        {
+            get => GetString("RequestBodySize_GreaterThanLimit");
+        }
+
+        /// <summary>
+        /// The size of the request body '{0}' is greater than the request size limit of '{1}', specified using the RequestSizeLimitAttribute.
+        /// </summary>
+        internal static string FormatRequestBodySize_GreaterThanLimit(object p0, object p1)
+            => string.Format(CultureInfo.CurrentCulture, GetString("RequestBodySize_GreaterThanLimit"), p0, p1);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

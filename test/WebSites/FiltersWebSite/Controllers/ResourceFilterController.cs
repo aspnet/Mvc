@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +28,20 @@ namespace FiltersWebSite.Controllers
         public string Post()
         {
             return "NeverGetsExecuted";
+        }
+
+        [HttpPost]
+        [RequestSizeLimit(2, false)]
+        public IActionResult CheckRequestBodySizeLimit(string body)
+        {
+            return Ok();
+        }
+
+        [HttpPost]
+        [RequestSizeLimit(2, true)]
+        public IActionResult CheckRequestBodySizeLimitDisabled(string body)
+        {
+            return Ok();
         }
 
         [HttpPost]
