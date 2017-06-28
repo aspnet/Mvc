@@ -554,53 +554,5 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 $"CurrentCulture:{expected},CurrentUICulture:{expected}",
                 await response.Content.ReadAsStringAsync());
         }
-
-        [Fact]
-        public async Task RequestSizeLimit_ThrowsForInvalidSize()
-        {
-            // Arrange & Act
-            var response = await Client.PostAsync(
-                "http://localhost/ResourceFilter/CheckRequestBodySizeLimit", new StringContent("Hello"));
-
-            // Assert
-            var exception = response.GetServerException();
-            Assert.Equal(typeof(InvalidOperationException).FullName, exception.ExceptionType);
-
-            Assert.Equal($"The size of the request body '5' is greater than the request size limit of '2', " +
-                $"specified using the RequestSizeLimitAttribute.", exception.ExceptionMessage);
-        }
-
-        [Fact]
-        public async Task RequestSizeLimit_DoesNotThrowForValidSize()
-        {
-            // Arrange & Act
-            var response = await Client.PostAsync(
-                "http://localhost/ResourceFilter/CheckRequestBodySizeLimit", new StringContent("Hi"));
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task RequestSizeLimitDisabled_DoesNotThrowForInvalidSize()
-        {
-            // Arrange & Act
-            var response = await Client.PostAsync(
-                "http://localhost/ResourceFilter/CheckRequestBodySizeLimitDisabled", new StringContent("Hello"));
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task RequestSizeLimitDisabled_DoesNotThrowForValidSize()
-        {
-            // Arrange & Act
-            var response = await Client.PostAsync(
-                "http://localhost/ResourceFilter/CheckRequestBodySizeLimitDisabled", new StringContent("Hi"));
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
     }
 }

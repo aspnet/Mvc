@@ -31,20 +31,6 @@ namespace FiltersWebSite.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(2, false)]
-        public IActionResult CheckRequestBodySizeLimit(string body)
-        {
-            return Ok();
-        }
-
-        [HttpPost]
-        [RequestSizeLimit(2, true)]
-        public IActionResult CheckRequestBodySizeLimitDisabled(string body)
-        {
-            return Ok();
-        }
-
-        [HttpPost]
         public IActionResult FormValueModelBinding_Enabled(DummyClass dc)
         {
             if (!ModelState.IsValid)
