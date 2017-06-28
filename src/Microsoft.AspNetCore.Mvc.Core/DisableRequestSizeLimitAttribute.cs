@@ -9,22 +9,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Microsoft.AspNetCore.Mvc.Core
 {
-    /// <summary>
-    /// A filter that specifies the request body size limit.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class RequestSizeLimitAttribute : Attribute, IRequestSizePolicy, IOrderedFilter, IResourceFilter
+    public class DisableRequestSizeLimitAttribute : Attribute, IRequestSizePolicy, IOrderedFilter, IResourceFilter
     {
-        private long _bytes;
-
-        /// <summary>
-        /// Creates a new instance of <see cref="RequestSizeLimitAttribute"/>.
-        /// </summary>
-        public RequestSizeLimitAttribute(long bytes)
-        {
-            _bytes = bytes;
-        }
-
         /// <inheritdoc />
         public bool IsReusable => true;
 
@@ -52,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
             if (IsClosestRequestSizePolicy(context.Filters))
             {
                 var maxRequestBodySizeFeature = context.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>();
-                maxRequestBodySizeFeature.MaxRequestBodySize = _bytes;
+                maxRequestBodySizeFeature.MaxRequestBodySize = null;
             }
         }
 
