@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Xunit;
@@ -31,9 +32,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 ViewEnginePath = "/Pages/Foo",
             };
 
+            var pageAttribute = new RazorPageAttribute(expected.RelativePath, typeof(EmptyPage), "");
+
             // Act
-            var actual = DefaultPageLoader.CreateDescriptor(expected,
-                new RazorPageAttribute(expected.RelativePath, typeof(EmptyPage), ""));
+            var actual = DefaultPageLoader.CreateDescriptor(expected, pageAttribute);
 
             // Assert
             Assert.Same(expected.ActionConstraints, actual.ActionConstraints);
@@ -85,7 +87,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private class EmptyPage : Page
         {
-            // Copied from generated code
+            // Copied from generated code - we want to make sure that the generated code doesn't
+            // produce any bound properties or handler methods.
             [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
             [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
@@ -131,8 +134,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         {
         }
 
-        [Fact] // If the model has handler methods, we prefer those.
-        public void CreateDescriptor_FindsHandlerMethod_OnModel()
+        [Fact]
+        public void CreateDescriptor_UsesPageModel_WithAttribute()
         {
             // Arrange
             var type = typeof(PageWithHandlerThatGetsIgnored);
@@ -149,6 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Same(typeof(PageWithHandlerThatGetsIgnored).GetTypeInfo(), result.PageTypeInfo);
         }
 
+        [PageModel]
         private class ModelWithHandler
         {
             [ModelBinder]
@@ -168,8 +172,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
 
-        [Fact] // If the model has no handler methods, we look at the page instead.
-        public void CreateDescriptor_FindsHandlerMethodOnPage_WhenModelHasNoHandlers()
+        [Fact] // If the model doesn't have [PageModel], we look at the page instead.
+        public void CreateDescriptor_FindsHandlerMethodOnPage_WhenModelIsNotPageModel()
         {
             // Arrange
             var type = typeof(PageWithHandler);
@@ -204,6 +208,81 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             public void OnGet() { }
         }
 
+        [Fact] // The page has to inherit from PageBase
+        public void CreateDescriptor_InvalidPageBaseClass_Throws()
+        {
+            // Arrange
+            var type = typeof(RazorPageBase);
+
+            var pageAttribute = new RazorPageAttribute("/Pages/Index", type, "");
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                DefaultPageLoader.CreateDescriptor(new PageActionDescriptor(), pageAttribute);
+            });
+
+            // Assert
+            Assert.Equal(
+                $"The type '{type.FullName}' is not a valid page. A page must inherit from '{typeof(PageBase).FullName}'.", 
+                exception.Message);
+        }
+
+        private class InvalidPageWithWrongBaseClass : RazorPageBase
+        {
+            public InvalidPageWithWrongBaseClass Model => null;
+
+            public override void BeginContext(int position, int length, bool isLiteral)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void EndContext()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override void EnsureRenderedBodyOrSections()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [Fact] // The page has to have a public instance model property
+        public void CreateDescriptor_NonVisibleModelProperty_Throws()
+        {
+            // Arrange
+            var type = typeof(InvalidPageNonVisibleModelProperty);
+
+            var pageAttribute = new RazorPageAttribute("/Pages/Index", type, "");
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                DefaultPageLoader.CreateDescriptor(new PageActionDescriptor(), pageAttribute);
+            });
+
+            // Assert
+            Assert.Equal(
+                $"The type '{type.FullName}' is not a valid page. A page must define a public, non-static 'Model' property.",
+                exception.Message);
+        }
+
+        private class InvalidPageNonVisibleModelProperty : Page
+        {
+            private InvalidPageWithWrongBaseClass Model => null;
+
+            public override Task ExecuteAsync()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         [Fact]
         public void CreateHandlerMethods_DiscoversHandlersFromBaseType()
         {
@@ -233,6 +312,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 });
         }
 
+        [PageModel]
         private class TestSetPageModel
         {
             public void OnGet()

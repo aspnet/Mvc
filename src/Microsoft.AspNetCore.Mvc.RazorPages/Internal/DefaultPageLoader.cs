@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.Extensions.Internal;
@@ -39,26 +40,41 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             RazorPageAttribute pageAttribute)
         {
             var pageType = pageAttribute.ViewType.GetTypeInfo();
+            if (!typeof(PageBase).IsAssignableFrom(pageType))
+            {
+                throw new InvalidOperationException(Resources.FormatInvalidPageType_WrongBase(
+                    pageType.FullName,
+                    typeof(PageBase).FullName));
+            }
 
-            // Pages always have a model type. If it's not set explicitly by the developer using
+            // Pages always have a model type.If it's not set explicitly by the developer using
             // @model, it will be the same as the page type.
-            var modelType = pageAttribute.ViewType.GetProperty(ModelPropertyName)?.PropertyType?.GetTypeInfo();
+            var modelProperty = pageType.GetProperty(ModelPropertyName);
+            if (modelProperty == null)
+            {
+                throw new InvalidOperationException(Resources.FormatInvalidPageType_NoModelProperty(
+                    pageType.FullName,
+                    ModelPropertyName));
+            }
 
-            // Now we want to find the handler methods. If the model defines any handlers, then we'll use those,
-            // otherwise look at the page itself (unless the page IS the model, in which case we already looked).
+            var modelType = modelProperty.PropertyType.GetTypeInfo();
+
+            // Now we want figure out which type is the handler type.
             TypeInfo handlerType;
-
-            var handlerMethods = modelType == null ? null : CreateHandlerMethods(modelType);
-            if (handlerMethods?.Length > 0)
+            if (pageType == modelType)
+            {
+                handlerType = pageType;
+            }
+            else if (modelType.IsDefined(typeof(PageModelAttribute), inherit: true))
             {
                 handlerType = modelType;
             }
             else
             {
                 handlerType = pageType;
-                handlerMethods = CreateHandlerMethods(pageType);
             }
 
+            var handlerMethods = CreateHandlerMethods(handlerType);
             var boundProperties = CreateBoundProperties(handlerType);
 
             return new CompiledPageActionDescriptor(actionDescriptor)
@@ -94,7 +110,16 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     continue;
                 }
 
-                if (method.DeclaringType.GetTypeInfo().IsDefined(typeof(PagesBaseClassAttribute)))
+                // Exclude the whole hierarchy of Page.
+                if (method.DeclaringType == typeof(Page) ||
+                    method.DeclaringType == typeof(PageBase) ||
+                    method.DeclaringType == typeof(RazorPageBase))
+                {
+                    continue;
+                }
+
+                // Exclude everything on PageModel
+                if (method.DeclaringType == typeof(PageModel))
                 {
                     continue;
                 }
