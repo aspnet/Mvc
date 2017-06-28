@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -28,12 +30,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Empty(context.PageApplicationModel.Filters);
         }
 
-        private class PageWiithAuthorizeHandlers
+        private class PageWiithAuthorizeHandlers : Page
         {
             public ModelWuthAuthorizeHandlers Model => null;
+
+            public override Task ExecuteAsync() => throw new NotImplementedException();
         }
 
-        public class ModelWuthAuthorizeHandlers
+        public class ModelWuthAuthorizeHandlers : PageModel
         {
             [Authorize]
             public void OnGet()
@@ -58,13 +62,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 f => Assert.IsType<AuthorizeFilter>(f));
         }
 
-        private class TestPage
+        private class TestPage : Page
         {
             public TestModel Model => null;
+
+            public override Task ExecuteAsync() => throw new NotImplementedException();
         }
 
         [Authorize]
-        private class TestModel
+        private class TestModel : PageModel
         {
             public virtual void OnGet()
             {
@@ -93,13 +99,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Equal(3, authorizeFilter.Policy.Requirements.Count);
         }
 
-        private class TestPageWithDerivedModel
+        private class TestPageWithDerivedModel : Page
         {
             public DeriviedModel Model => null;
+
+            public override Task ExecuteAsync() =>throw new NotImplementedException();
         }
 
         [Authorize(Policy = "Base")]
-        public class BaseModel
+        public class BaseModel : PageModel
         {
         }
 
@@ -128,13 +136,15 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 f => Assert.IsType<AllowAnonymousFilter>(f));
         }
 
-        private class PageWithAnonymousModel
+        private class PageWithAnonymousModel : Page
         {
             public AnonymousModel Model => null;
+
+            public override Task ExecuteAsync() => throw new NotImplementedException();
         }
 
         [AllowAnonymous]
-        public class AnonymousModel
+        public class AnonymousModel : PageModel
         {
             public void OnGet() { }
         }
