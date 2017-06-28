@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc
             FormatterMappings = new FormatterMappings();
             InputFormatters = new FormatterCollection<IInputFormatter>();
             OutputFormatters = new FormatterCollection<IOutputFormatter>();
-            ModelBinderProviders = new List<IModelBinderProvider>();
+            ModelBinderProviders = new ModelBinderProviderCollection();
             ModelBindingMessageProvider = new DefaultModelBindingMessageProvider();
             ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets a list of <see cref="IModelBinderProvider"/>s used by this application.
         /// </summary>
-        public IList<IModelBinderProvider> ModelBinderProviders { get; }
+        public ModelBinderProviderCollection ModelBinderProviders { get; }
 
         /// <summary>
         /// Gets the default <see cref="ModelBinding.Metadata.ModelBindingMessageProvider"/>. Changes here are copied to the
