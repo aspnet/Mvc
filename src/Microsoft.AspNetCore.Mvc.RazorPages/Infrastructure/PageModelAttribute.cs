@@ -6,11 +6,11 @@ using System;
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 {
     /// <summary>
-    /// An attribute for base classes for Pages and PageModels. Applying this attribute to a type
-    /// suppresses discovery of handler methods for that type.
+    /// An attribute for base classes for page models. Applying this attribute to a type
+    /// marks all subclasses of that type as page model types.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    public class PagesBaseClassAttribute : Attribute
+    public class PageModelAttribute : Attribute
     {
     }
 }
