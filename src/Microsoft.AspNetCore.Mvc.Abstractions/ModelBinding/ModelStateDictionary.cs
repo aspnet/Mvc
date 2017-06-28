@@ -163,8 +163,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                     throw new ArgumentNullException(nameof(key));
                 }
 
-                ModelStateEntry entry;
-                TryGetValue(key, out entry);
+                TryGetValue(key, out var entry);
                 return entry;
             }
         }
@@ -237,20 +236,26 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             if (exception is FormatException || exception is OverflowException)
             {
                 // Convert FormatExceptions and OverflowExceptions to Invalid value messages.
-                ModelStateEntry entry;
-                TryGetValue(key, out entry);
+                TryGetValue(key, out var entry);
 
-                var name = metadata.GetDisplayName();
+                var messageProvider = metadata.ModelBindingMessageProvider;
+                var name = metadata.DisplayName ?? metadata.PropertyName;
                 string errorMessage;
-                if (entry == null)
+                if (entry == null && name == null)
                 {
-                    errorMessage = metadata.ModelBindingMessageProvider.UnknownValueIsInvalidAccessor(name);
+                    errorMessage = messageProvider.NonPropertyUnknownValueIsInvalidAccessor();
+                }
+                else if (entry == null)
+                {
+                    errorMessage = messageProvider.UnknownValueIsInvalidAccessor(name);
+                }
+                else if (name == null)
+                {
+                    errorMessage = messageProvider.NonPropertyAttemptedValueIsInvalidAccessor(entry.AttemptedValue);
                 }
                 else
                 {
-                    errorMessage = metadata.ModelBindingMessageProvider.AttemptedValueIsInvalidAccessor(
-                        entry.AttemptedValue,
-                        name);
+                    errorMessage = messageProvider.AttemptedValueIsInvalidAccessor(entry.AttemptedValue, name);
                 }
 
                 return TryAddModelError(key, errorMessage);
@@ -354,8 +359,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(key));
             }
 
-            ModelStateEntry validationState;
-            if (TryGetValue(key, out validationState))
+            if (TryGetValue(key, out var validationState))
             {
                 return validationState.ValidationState;
             }
