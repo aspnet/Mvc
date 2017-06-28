@@ -253,12 +253,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var viewEnginePath = model.ViewEnginePath;
 
-                var applyConvention = _folderPath == "/" ||
-                    (viewEnginePath.Length > _folderPath.Length &&
-                    viewEnginePath.StartsWith(_folderPath, StringComparison.OrdinalIgnoreCase) &&
-                    viewEnginePath[_folderPath.Length] == '/');
-
-                if (applyConvention)
+                if (PathBelongsToFolder(_folderPath, viewEnginePath))
                 {
                     _action(model);
                 }
@@ -300,16 +295,24 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var viewEnginePath = model.ViewEnginePath;
 
-                var applyConvention = _folderPath == "/" ||
-                    (viewEnginePath.Length > _folderPath.Length &&
-                    viewEnginePath.StartsWith(_folderPath, StringComparison.OrdinalIgnoreCase) &&
-                    viewEnginePath[_folderPath.Length] == '/');
-
-                if (applyConvention)
+                if (PathBelongsToFolder(_folderPath, viewEnginePath))
                 {
                     _action(model);
                 }
             }
+        }
+
+        private static bool PathBelongsToFolder(string folderPath, string viewEnginePath)
+        {
+            if (folderPath == "/")
+            {
+                // Root directory covers everything.
+                return true;
+            }
+
+            return viewEnginePath.Length > folderPath.Length &&
+                viewEnginePath.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase) &&
+                viewEnginePath[folderPath.Length] == '/';
         }
     }
 }
