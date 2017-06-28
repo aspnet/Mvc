@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Cors.Internal
 {
@@ -28,22 +30,24 @@ namespace Microsoft.AspNetCore.Mvc.Cors.Internal
                 throw new ArgumentNullException(nameof(context));
             }
 
-            IEnableCorsAttribute enableCors;
-            IDisableCorsAttribute disableCors;
+            var isCorsEnabledGlobally = context.Result.Filters.OfType<ICorsAuthorizationFilter>().Any() ||
+                context.Result.Filters.OfType<CorsAuthorizationFilterFactory>().Any();
 
             foreach (var controllerModel in context.Result.Controllers)
             {
-                enableCors = controllerModel.Attributes.OfType<IEnableCorsAttribute>().FirstOrDefault();
+                var enableCors = controllerModel.Attributes.OfType<IEnableCorsAttribute>().FirstOrDefault();
                 if (enableCors != null)
                 {
                     controllerModel.Filters.Add(new CorsAuthorizationFilterFactory(enableCors.PolicyName));
                 }
 
-                disableCors = controllerModel.Attributes.OfType<IDisableCorsAttribute>().FirstOrDefault();
+                var disableCors = controllerModel.Attributes.OfType<IDisableCorsAttribute>().FirstOrDefault();
                 if (disableCors != null)
                 {
                     controllerModel.Filters.Add(new DisableCorsAuthorizationFilter());
                 }
+
+                var corsOnController = enableCors != null || disableCors != null || controllerModel.Filters.OfType<ICorsAuthorizationFilter>().Any();
 
                 foreach (var actionModel in controllerModel.Actions)
                 {
@@ -57,6 +61,29 @@ namespace Microsoft.AspNetCore.Mvc.Cors.Internal
                     if (disableCors != null)
                     {
                         actionModel.Filters.Add(new DisableCorsAuthorizationFilter());
+                    }
+
+                    var corsOnAction = enableCors != null || disableCors != null || actionModel.Filters.OfType<ICorsAuthorizationFilter>().Any();
+
+                    if (isCorsEnabledGlobally || corsOnController || corsOnAction)
+                    {
+                        UpdateHttpMethodActionConstraint(actionModel);
+                    }
+                }
+            }
+        }
+
+        private static void UpdateHttpMethodActionConstraint(ActionModel actionModel)
+        {
+            for (var i = 0; i < actionModel.Selectors.Count; i++)
+            {
+                var selectorModel = actionModel.Selectors[i];
+                for (var j = 0; j < selectorModel.ActionConstraints.Count; j++)
+                {
+                    var httpConstraint = selectorModel.ActionConstraints[j] as HttpMethodActionConstraint;
+                    if (httpConstraint != null)
+                    {
+                        selectorModel.ActionConstraints[j] = new CorsHttpMethodActionConstraint(httpConstraint);
                     }
                 }
             }

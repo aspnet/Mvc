@@ -15,10 +15,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private readonly IReadOnlyList<string> _httpMethods;
 
-        private readonly string OriginHeader = "Origin";
-        private readonly string AccessControlRequestMethod = "Access-Control-Request-Method";
-        private readonly string PreflightHttpMethod = "OPTIONS";
-
         // Empty collection means any method will be accepted.
         public HttpMethodActionConstraint(IEnumerable<string> httpMethods)
         {
@@ -69,18 +65,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var request = context.RouteContext.HttpContext.Request;
             var method = request.Method;
-
-            // Perf: Check http method before accessing the Headers collection.
-            if (string.Equals(method, PreflightHttpMethod, StringComparison.OrdinalIgnoreCase) &&
-                request.Headers.ContainsKey(OriginHeader))
-            {
-                // Update the http method if it is preflight request.
-                var accessControlRequestMethod = request.Headers[AccessControlRequestMethod];
-                if (!StringValues.IsNullOrEmpty(accessControlRequestMethod))
-                {
-                    method = accessControlRequestMethod;
-                }
-            }
 
             for (var i = 0; i < _httpMethods.Count; i++)
             {
