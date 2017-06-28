@@ -72,6 +72,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, string, Exception> _redirectToPageResultExecuting;
 
+        private static readonly Action<ILogger, string, string, Exception> _featureNotFound;
+        private static readonly Action<ILogger, string, Exception> _featureIsReadOnly;
+        private static readonly Action<ILogger, string, Exception> _maxRequestBodySizeSet;
+
         static MvcCoreLoggerExtensions()
         {
             _actionExecuting = LoggerMessage.Define<string>(
@@ -243,6 +247,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 LogLevel.Debug,
                 3,
                 "No actions matched the current request. Route values: {RouteValues}");
+
+            _featureNotFound = LoggerMessage.Define<string, string>(
+                LogLevel.Debug,
+                1,
+                "The attribute {Attribute} could not find the feature {Feature}.");
+
+            _featureIsReadOnly = LoggerMessage.Define<string>(
+                LogLevel.Debug,
+                2,
+                "The implementation of {Feature} is read-only. The attribute cannot be applied.");
+            
+            _maxRequestBodySizeSet = LoggerMessage.Define<string>(
+                LogLevel.Debug,
+                3,
+                "The maximum request body size has been set to {RequestSize}.");
         }
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
@@ -521,6 +540,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void RedirectToPageResultExecuting(this ILogger logger, string page)
             => _redirectToPageResultExecuting(logger, page, null);
+
+        public static void FeatureNotFound(this ILogger logger, string attribute, string feature)
+        {
+            _featureNotFound(logger, attribute, feature, null);
+        }
+
+        public static void FeatureIsReadOnly(this ILogger logger, string feature)
+        {
+            _featureIsReadOnly(logger, feature, null);
+        }
+
+        public static void MaxRequestBodySizeSet(this ILogger logger, string requestSize)
+        {
+            _maxRequestBodySizeSet(logger, requestSize, null);
+        }
 
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>
         {
