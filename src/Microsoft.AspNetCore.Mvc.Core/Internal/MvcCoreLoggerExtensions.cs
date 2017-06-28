@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _featureNotFound = LoggerMessage.Define<string, string>(
                 LogLevel.Debug,
                 1,
-                "The attribute {Attribute} could not find the feature {Feature}.");
+                "The filter {Filter} could not find the feature {Feature}.");
 
             _featureIsReadOnly = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -541,9 +541,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void RedirectToPageResultExecuting(this ILogger logger, string page)
             => _redirectToPageResultExecuting(logger, page, null);
 
-        public static void FeatureNotFound(this ILogger logger, string attribute, string feature)
+        public static void FeatureNotFound(this ILogger logger, string filter, string feature)
         {
-            _featureNotFound(logger, attribute, feature, null);
+            _featureNotFound(logger, filter, feature, null);
         }
 
         public static void FeatureIsReadOnly(this ILogger logger, string feature)
