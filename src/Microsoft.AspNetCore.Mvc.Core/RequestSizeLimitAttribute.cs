@@ -17,6 +17,10 @@ namespace Microsoft.AspNetCore.Mvc
     {
         private readonly long _bytes;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="RequestSizeLimitAttribute"/>
+        /// </summary>
+        /// <param name="bytes">The request body size limit.</param>
         public RequestSizeLimitAttribute(long bytes)
         {
             _bytes = bytes;

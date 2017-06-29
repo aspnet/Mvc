@@ -95,7 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void DisableRequestSizeLimitAttribute_LogsMaxRequestBodySizeSetToNull()
+        public void LogsMaxRequestBodySizeSetToNull()
         {
             // Arrange
             var sink = new TestSink();
