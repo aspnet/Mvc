@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -11,10 +12,13 @@ namespace Microsoft.AspNetCore.Mvc
     /// This attribute allows setting the maximum request body size limit to null.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-    public class DisableRequestSizeLimitAttribute : Attribute, IOrderedFilter
+    public class DisableRequestSizeLimitAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
         /// <inheritdoc />
         public int Order { get; set; }
+
+        /// <inheritdoc />
+        public bool IsReusable => true;
 
         /// <inheritdoc />
         public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)

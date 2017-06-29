@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Mvc
+namespace Microsoft.AspNetCore.Mvc.Internal
 {
     /// <summary>
     /// A filter that sets the request body size limit to null.
@@ -23,10 +22,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public DisableRequestSizeLimitResourceFilter(ILoggerFactory loggerFactory)
         {
-            if (loggerFactory != null)
-            {
-                _logger = loggerFactory.CreateLogger<DisableRequestSizeLimitResourceFilter>();
-            }
+            _logger = loggerFactory.CreateLogger<DisableRequestSizeLimitResourceFilter>();
         }
 
         /// <inheritdoc />
@@ -57,16 +53,16 @@ namespace Microsoft.AspNetCore.Mvc
 
                 if (maxRequestBodySizeFeature == null)
                 {
-                    _logger?.FeatureNotFound(nameof(DisableRequestSizeLimitResourceFilter), nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureNotFound(nameof(DisableRequestSizeLimitResourceFilter), nameof(IHttpMaxRequestBodySizeFeature));
                 }
                 else if (maxRequestBodySizeFeature.IsReadOnly)
                 {
-                    _logger?.FeatureIsReadOnly(nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureIsReadOnly(nameof(IHttpMaxRequestBodySizeFeature));
                 }
                 else
                 {
                     maxRequestBodySizeFeature.MaxRequestBodySize = null;
-                    _logger?.MaxRequestBodySizeSet("null");
+                    _logger.MaxRequestBodySizeSet("null");
                 }
             }
         }
