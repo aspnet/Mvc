@@ -10,15 +10,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// Sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/> to the specified <see cref="Bytes"/>.
+    /// Sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/> to the specified size.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class RequestSizeLimitAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
-        /// <summary>
-        /// The request body size limit.
-        /// </summary>
-        public long Bytes { get; set; }
+        private readonly long _bytes;
+
+        public RequestSizeLimitAttribute(long bytes)
+        {
+            _bytes = bytes;
+        }
 
         /// <inheritdoc />
         public int Order { get; set; }
@@ -30,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc
         public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
         {
             var filter = serviceProvider.GetRequiredService<RequestSizeLimitResourceFilter>();
-            filter.Bytes = Bytes;
+            filter.Bytes = _bytes;
             return filter;
         }
     }
