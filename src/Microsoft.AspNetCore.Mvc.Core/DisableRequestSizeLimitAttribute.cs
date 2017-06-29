@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// Sets the request body size limit to <c>null</c>.
+    /// Disables the request body size limit.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class DisableRequestSizeLimitAttribute : Attribute, IFilterFactory, IOrderedFilter
