@@ -72,9 +72,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, string, Exception> _redirectToPageResultExecuting;
 
-        private static readonly Action<ILogger, string, string, Exception> _featureNotFound;
-        private static readonly Action<ILogger, string, Exception> _featureIsReadOnly;
+        private static readonly Action<ILogger, Exception> _featureNotFound;
+        private static readonly Action<ILogger, Exception> _featureIsReadOnly;
         private static readonly Action<ILogger, string, Exception> _maxRequestBodySizeSet;
+        private static readonly Action<ILogger, Exception> _requestBodySizeLimitDisabled;
 
         static MvcCoreLoggerExtensions()
         {
@@ -248,20 +249,25 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 3,
                 "No actions matched the current request. Route values: {RouteValues}");
 
-            _featureNotFound = LoggerMessage.Define<string, string>(
-                LogLevel.Debug,
+            _featureNotFound = LoggerMessage.Define(
+                LogLevel.Warning,
                 1,
-                "The filter {Filter} could not find the feature {Feature}.");
+                "A request body size limit could not be applied. This server does not support the IHttpRequestBodySizeFeature.");
 
-            _featureIsReadOnly = LoggerMessage.Define<string>(
-                LogLevel.Debug,
+            _featureIsReadOnly = LoggerMessage.Define(
+                LogLevel.Warning,
                 2,
-                "The implementation of {Feature} is read-only. The attribute cannot be applied.");
-            
+                "A request body size limit could not be applied. The IHttpRequestBodySizeFeature for the server is read-only.");
+
             _maxRequestBodySizeSet = LoggerMessage.Define<string>(
                 LogLevel.Debug,
                 3,
                 "The maximum request body size has been set to {RequestSize}.");
+
+            _requestBodySizeLimitDisabled = LoggerMessage.Define(
+                LogLevel.Debug,
+                3,
+                "The request body size limit has been disabled.");
         }
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
@@ -541,19 +547,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void RedirectToPageResultExecuting(this ILogger logger, string page)
             => _redirectToPageResultExecuting(logger, page, null);
 
-        public static void FeatureNotFound(this ILogger logger, string filter, string feature)
+        public static void FeatureNotFound(this ILogger logger)
         {
-            _featureNotFound(logger, filter, feature, null);
+            _featureNotFound(logger, null);
         }
 
-        public static void FeatureIsReadOnly(this ILogger logger, string feature)
+        public static void FeatureIsReadOnly(this ILogger logger)
         {
-            _featureIsReadOnly(logger, feature, null);
+            _featureIsReadOnly(logger, null);
         }
 
         public static void MaxRequestBodySizeSet(this ILogger logger, string requestSize)
         {
             _maxRequestBodySizeSet(logger, requestSize, null);
+        }
+
+        public static void RequestBodySizeLimitDisabled(this ILogger logger)
+        {
+            _requestBodySizeLimitDisabled(logger, null);
         }
 
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>

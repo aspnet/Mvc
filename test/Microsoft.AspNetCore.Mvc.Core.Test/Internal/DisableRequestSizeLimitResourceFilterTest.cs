@@ -14,45 +14,42 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
-    public class RequestSizeLimitResourceFilterTest
+    public class DisableRequestSizeLimitResourceFilterTest
     {
         [Fact]
-        public void SetsMaxRequestBodySize()
+        public void SetsMaxRequestBodySizeToNull()
         {
             // Arrange
-            var requestSizeLimitResourceFilter = new RequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
-            requestSizeLimitResourceFilter.Bytes = 12345;
-            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { requestSizeLimitResourceFilter });
+            var disableRequestSizeLimitResourceFilter = new DisableRequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
+            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { disableRequestSizeLimitResourceFilter });
 
             var httpMaxRequestBodySize = new TestHttpMaxRequestBodySizeFeature();
             resourceExecutingContext.HttpContext.Features.Set<IHttpMaxRequestBodySizeFeature>(httpMaxRequestBodySize);
 
             // Act
-            requestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
 
             // Assert
-            Assert.Equal(12345, httpMaxRequestBodySize.MaxRequestBodySize);
+            Assert.Null(httpMaxRequestBodySize.MaxRequestBodySize);
         }
 
         [Fact]
         public void SkipsWhenOverridden()
         {
             // Arrange
-            var requestSizeLimitResourceFilter = new RequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
-            requestSizeLimitResourceFilter.Bytes = 12345;
-            var requestSizeLimitResourceFilterFinal = new RequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
-            requestSizeLimitResourceFilterFinal.Bytes = 0;
-            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { requestSizeLimitResourceFilter, requestSizeLimitResourceFilterFinal });
+            var disableRequestSizeLimitResourceFilter = new DisableRequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
+            var disableRequestSizeLimitResourceFilterFinal = new DisableRequestSizeLimitResourceFilter(NullLoggerFactory.Instance);
+            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { disableRequestSizeLimitResourceFilter, disableRequestSizeLimitResourceFilterFinal });
 
             var httpMaxRequestBodySize = new TestHttpMaxRequestBodySizeFeature();
             resourceExecutingContext.HttpContext.Features.Set<IHttpMaxRequestBodySizeFeature>(httpMaxRequestBodySize);
 
             // Act
-            requestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
-            requestSizeLimitResourceFilterFinal.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilterFinal.OnResourceExecuting(resourceExecutingContext);
 
             // Assert
-            Assert.Equal(0, httpMaxRequestBodySize.MaxRequestBodySize);
+            Assert.Null(httpMaxRequestBodySize.MaxRequestBodySize);
             Assert.Equal(1, httpMaxRequestBodySize.Count);
         }
 
@@ -63,12 +60,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var sink = new TestSink();
             var loggerFactory = new TestLoggerFactory(sink, enabled: true);
 
-            var requestSizeLimitResourceFilter = new RequestSizeLimitResourceFilter(loggerFactory);
-            requestSizeLimitResourceFilter.Bytes = 12345;
-            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { requestSizeLimitResourceFilter });
+            var disableRequestSizeLimitResourceFilter = new DisableRequestSizeLimitResourceFilter(loggerFactory);
+            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { disableRequestSizeLimitResourceFilter });
 
             // Act
-            requestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
 
             // Assert
             var write = Assert.Single(sink.Writes);
@@ -83,16 +79,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var sink = new TestSink();
             var loggerFactory = new TestLoggerFactory(sink, enabled: true);
 
-            var requestSizeLimitResourceFilter = new RequestSizeLimitResourceFilter(loggerFactory);
-            requestSizeLimitResourceFilter.Bytes = 12345;
-            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { requestSizeLimitResourceFilter });
+            var disableRequestSizeLimitResourceFilter = new DisableRequestSizeLimitResourceFilter(loggerFactory);
+            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { disableRequestSizeLimitResourceFilter });
 
             var httpMaxRequestBodySize = new TestHttpMaxRequestBodySizeFeature();
             httpMaxRequestBodySize.IsReadOnly = true;
             resourceExecutingContext.HttpContext.Features.Set<IHttpMaxRequestBodySizeFeature>(httpMaxRequestBodySize);
 
             // Act
-            requestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
 
             // Assert
             var write = Assert.Single(sink.Writes);
@@ -100,25 +95,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void RequestSizeLimitAttribute_LogsMaxRequestBodySizeSet()
+        public void DisableRequestSizeLimitAttribute_LogsMaxRequestBodySizeSetToNull()
         {
             // Arrange
             var sink = new TestSink();
             var loggerFactory = new TestLoggerFactory(sink, enabled: true);
 
-            var requestSizeLimitResourceFilter = new RequestSizeLimitResourceFilter(loggerFactory);
-            requestSizeLimitResourceFilter.Bytes = 12345;
-            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { requestSizeLimitResourceFilter });
+            var disableRequestSizeLimitResourceFilter = new DisableRequestSizeLimitResourceFilter(loggerFactory);
+            var resourceExecutingContext = CreateResourceExecutingContext(new IFilterMetadata[] { disableRequestSizeLimitResourceFilter });
 
             var httpMaxRequestBodySize = new TestHttpMaxRequestBodySizeFeature();
             resourceExecutingContext.HttpContext.Features.Set<IHttpMaxRequestBodySizeFeature>(httpMaxRequestBodySize);
 
             // Act
-            requestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
+            disableRequestSizeLimitResourceFilter.OnResourceExecuting(resourceExecutingContext);
 
             // Assert
             var write = Assert.Single(sink.Writes);
-            Assert.Equal($"The maximum request body size has been set to 12345.", write.State.ToString());
+            Assert.Equal($"The request body size limit has been disabled.", write.State.ToString());
         }
 
         private static ResourceExecutingContext CreateResourceExecutingContext(IFilterMetadata[] filters)
@@ -157,3 +151,4 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
     }
 }
+

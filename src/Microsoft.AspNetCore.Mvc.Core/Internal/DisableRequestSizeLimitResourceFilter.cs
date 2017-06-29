@@ -11,7 +11,8 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     /// <summary>
-    /// A filter that sets the request body size limit to null.
+    /// A filter that sets <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/>
+    /// to <c>null</c>.
     /// </summary>
     public class DisableRequestSizeLimitResourceFilter : IResourceFilter, IRequestSizePolicy
     {
@@ -31,15 +32,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// <inheritdoc />
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
-
         }
 
         /// <summary>
-        /// As an <see cref="IResourceFilter"/>, this filter sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/>
-        /// to null.
+        /// Sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/>
+        /// to <c>null</c>.
         /// </summary>
         /// <param name="context">The <see cref="ResourceExecutingContext"/>.</param>
-        /// <remarks>If <see cref="IHttpMaxRequestBodySizeFeature"/> is not enabled or is read-only, the attribute is not applied.</remarks> 
+        /// <remarks>If <see cref="IHttpMaxRequestBodySizeFeature"/> is not enabled or is read-only, 
+        /// the <see cref="DisableRequestSizeLimitAttribute"/> is not applied.</remarks> 
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
             if (context == null)
@@ -53,16 +54,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 if (maxRequestBodySizeFeature == null)
                 {
-                    _logger.FeatureNotFound(nameof(DisableRequestSizeLimitResourceFilter), nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureNotFound();
                 }
                 else if (maxRequestBodySizeFeature.IsReadOnly)
                 {
-                    _logger.FeatureIsReadOnly(nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureIsReadOnly();
                 }
                 else
                 {
                     maxRequestBodySizeFeature.MaxRequestBodySize = null;
-                    _logger.MaxRequestBodySizeSet("null");
+                    _logger.RequestBodySizeLimitDisabled();
                 }
             }
         }

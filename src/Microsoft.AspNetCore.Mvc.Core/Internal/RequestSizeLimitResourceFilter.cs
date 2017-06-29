@@ -11,7 +11,8 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     /// <summary>
-    /// A filter that specifies the request body size limit.
+    /// A filter that sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/> 
+    /// to the specified <see cref="Bytes"/>.
     /// </summary>
     public class RequestSizeLimitResourceFilter : IResourceFilter, IRequestSizePolicy
     {
@@ -30,15 +31,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// <inheritdoc />
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
-
         }
 
         /// <summary>
-        /// As an <see cref="IResourceFilter"/>, this filter sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/>
-        /// to the specified size.
+        /// Sets the <see cref="IHttpMaxRequestBodySizeFeature.MaxRequestBodySize"/> to <see cref="Bytes"/>.
         /// </summary>
         /// <param name="context">The <see cref="ResourceExecutingContext"/>.</param>
-        /// <remarks>If <see cref="IHttpMaxRequestBodySizeFeature"/> is not enabled or is read-only, the attribute is not applied.</remarks>
+        /// <remarks>If <see cref="IHttpMaxRequestBodySizeFeature"/> is not enabled or is read-only, 
+        /// the <see cref="RequestSizeLimitAttribute"/> is not applied.</remarks>
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
             if (context == null)
@@ -52,11 +52,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 if (maxRequestBodySizeFeature == null)
                 {
-                    _logger.FeatureNotFound(nameof(RequestSizeLimitResourceFilter), nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureNotFound();
                 }
                 else if (maxRequestBodySizeFeature.IsReadOnly)
                 {
-                    _logger.FeatureIsReadOnly(nameof(IHttpMaxRequestBodySizeFeature));
+                    _logger.FeatureIsReadOnly();
                 }
                 else
                 {
