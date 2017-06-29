@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -12,14 +13,14 @@ using Xunit;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class RazorPagesOptionsExtensionsTest
+    public class PageConventionCollectionExtensionsTest
     {
         [Fact]
         public void AddFilter_AddsFiltersToAllPages()
         {
             // Arrange
             var filter = Mock.Of<IFilterMetadata>();
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -28,8 +29,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.ConfigureFilter(filter);
-            ApplyConventions(options, models);
+            conventions.ConfigureFilter(filter);
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -42,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAllowAnonymousFilterToSpecificPage()
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -51,9 +52,9 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizeFolder("/Users");
-            options.AllowAnonymousToPage("/Users/Contact.cshtml");
-            ApplyConventions(options, models);
+            conventions.AuthorizeFolder("/Users");
+            conventions.AllowAnonymousToPage("/Users/Contact.cshtml");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -77,7 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAllowAnonymousFilterToPagesUnderFolder(string folderName)
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -86,9 +87,9 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizeFolder("/");
-            options.AllowAnonymousToFolder("/Users");
-            ApplyConventions(options, models);
+            conventions.AuthorizeFolder("/");
+            conventions.AllowAnonymousToFolder("/Users");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -115,7 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAuthorizeFilterWithPolicyToSpecificPage()
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -124,8 +125,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizePage("/Users/Account.cshtml", "Manage-Accounts");
-            ApplyConventions(options, models);
+            conventions.AuthorizePage("/Users/Account.cshtml", "Manage-Accounts");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -144,7 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAuthorizeFilterWithoutPolicyToSpecificPage()
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -153,8 +154,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizePage("/Users/Account.cshtml");
-            ApplyConventions(options, models);
+            conventions.AuthorizePage("/Users/Account.cshtml");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -175,7 +176,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAuthorizeFilterWithPolicyToPagesUnderFolder(string folderName)
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -184,8 +185,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizeFolder(folderName, "Manage-Accounts");
-            ApplyConventions(options, models);
+            conventions.AuthorizeFolder(folderName, "Manage-Accounts");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -212,7 +213,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AuthorizePage_AddsAuthorizeFilterWithoutPolicyToPagesUnderFolder(string folderName)
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 CreateApplicationModel("/Pages/Index.cshtml", "/Index.cshtml"),
@@ -221,8 +222,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AuthorizeFolder(folderName);
-            ApplyConventions(options, models);
+            conventions.AuthorizeFolder(folderName);
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -247,7 +248,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public void AddPageRoute_AddsRouteToSelector()
         {
             // Arrange
-            var options = new RazorPagesOptions();
+            var conventions = new PageConventionCollection();
             var models = new[]
             {
                 new PageRouteModel("/Pages/Index.cshtml", "/Index.cshtml")
@@ -268,8 +269,8 @@ namespace Microsoft.Extensions.DependencyInjection
             };
 
             // Act
-            options.AddPageRoute("/Index.cshtml", "Different-Route");
-            ApplyConventions(options, models);
+            conventions.AddPageRoute("/Index.cshtml", "Different-Route");
+            ApplyConventions(conventions, models);
 
             // Assert
             Assert.Collection(models,
@@ -317,9 +318,9 @@ namespace Microsoft.Extensions.DependencyInjection
             };
         }
 
-        private static void ApplyConventions(RazorPagesOptions options, PageRouteModel[] models)
+        private static void ApplyConventions(PageConventionCollection conventions, PageRouteModel[] models)
         {
-            foreach (var convention in options.RouteModelConventions)
+            foreach (var convention in conventions.OfType<IPageRouteModelConvention>())
             {
                 foreach (var model in models)
                 {
@@ -327,9 +328,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
-        private static void ApplyConventions(RazorPagesOptions options, PageApplicationModel[] models)
+
+        private static void ApplyConventions(PageConventionCollection conventions, PageApplicationModel[] models)
         {
-            foreach (var convention in options.ApplicationModelConventions)
+            foreach (var convention in conventions.OfType<IPageApplicationModelConvention>())
             {
                 foreach (var model in models)
                 {

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace RazorPagesWebSite
@@ -16,8 +17,8 @@ namespace RazorPagesWebSite
                 .AddCookieTempDataProvider()
                 .AddRazorPagesOptions(options =>
                 {
-                    options.AuthorizePage("/Conventions/Auth");
-                    options.AuthorizeFolder("/Conventions/AuthFolder");
+                    options.Conventions.AuthorizePage("/Conventions/Auth");
+                    options.Conventions.AuthorizeFolder("/Conventions/AuthFolder");
                 });
         }
 
