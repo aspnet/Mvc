@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc
     public class RequestSizeLimitAttribute : Attribute, IFilterFactory, IOrderedFilter
     {
         /// <summary>
-        /// The request body size limit specified using the attribute.
+        /// The request body size limit.
         /// </summary>
         public long Bytes { get; set; }
 
