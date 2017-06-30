@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc
             ModelBindingMessageProvider = new DefaultModelBindingMessageProvider();
             ModelMetadataDetailsProviders = new MetadataDetailsProviderCollection();
             ModelValidatorProviders = new ModelValidatorProviderCollection();
-            ValueProviderFactories = new List<IValueProviderFactory>();
+            ValueProviderFactories = new ValueProviderFactoryCollection();
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets a list of <see cref="IValueProviderFactory"/> used by this application.
         /// </summary>
-        public IList<IValueProviderFactory> ValueProviderFactories { get; }
+        public ValueProviderFactoryCollection ValueProviderFactories { get; }
 
         /// <summary>
         /// Gets or sets the SSL port that is used by this application when <see cref="RequireHttpsAttribute"/>
