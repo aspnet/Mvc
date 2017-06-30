@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc
             ModelBinderProviders = new ModelBinderProviderCollection();
             ModelBindingMessageProvider = new DefaultModelBindingMessageProvider();
             ModelMetadataDetailsProviders = new MetadataDetailsProviderCollection();
-            ModelValidatorProviders = new List<IModelValidatorProvider>();
+            ModelValidatorProviders = new ModelValidatorProviderCollection();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets a list of <see cref="IModelValidatorProvider"/>s used by this application.
         /// </summary>
-        public IList<IModelValidatorProvider> ModelValidatorProviders { get; }
+        public ModelValidatorProviderCollection ModelValidatorProviders { get; }
 
         /// <summary>
         /// Gets a list of <see cref="IOutputFormatter"/>s that are used by this application.
