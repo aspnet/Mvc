@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     //  prefix: product
                     //  candidate: productId
                     // most of the time because "product", "product.id", etc. will sort earlier than "productId". But,
-                    // the assumption isn't correct if "product[0]" is also in _sortedValues" because that value will
+                    // the assumption isn't correct if "product[0]" is also in _sortedValues because that value will
                     // sort later than "productId".
                     //
                     // Fall back to brute force and cover all the cases.
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private int LinearSearch(string prefix, int start, int end)
         {
-            while (start <= end)
+            for (; start <= end; start++)
             {
                 var candidate = _sortedValues[start];
                 var compare = string.Compare(
@@ -270,11 +270,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 if (compare < 0)
                 {
-                    // Prefix is greater than the candidate. No potential matches left.
+                    // Prefix is less than the candidate. No potential matches left.
                     break;
                 }
-
-                start++;
             }
 
             return ~start;
