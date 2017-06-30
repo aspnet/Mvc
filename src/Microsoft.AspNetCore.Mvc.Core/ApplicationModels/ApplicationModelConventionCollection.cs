@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// Represents a collection of model binder providers.
+    /// Represents a collection of application model conventions.
     /// </summary>
     public class ApplicationModelConventionCollection : Collection<IApplicationModelConvention>
     {
@@ -41,13 +41,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <summary>
         /// Removes all application model conventions of the specified type.
         /// </summary>
-        /// <param name="valueProviderFactoryType">The type to remove.</param>
-        public void RemoveType(Type valueProviderFactoryType)
+        /// <param name="applicationModelConventionType">The type to remove.</param>
+        public void RemoveType(Type applicationModelConventionType)
         {
             for (var i = Count - 1; i >= 0; i--)
             {
-                var valueProviderFactory = this[i];
-                if (valueProviderFactory.GetType() == valueProviderFactoryType)
+                var applicationModelConvention = this[i];
+                if (applicationModelConvention.GetType() == applicationModelConventionType)
                 {
                     RemoveAt(i);
                 }

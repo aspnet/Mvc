@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     /// <summary>
-    /// Represents a collection of model binder providers.
+    /// Represents a collection of value provider factories.
     /// </summary>
     public class ValueProviderFactoryCollection : Collection<IValueProviderFactory>
     {

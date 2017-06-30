@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             collection.RemoveType(typeof(FooMetadataDetailsProvider));
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarMetadataDetailsProvider>(formatter);
+            var provider = Assert.Single(collection);
+            Assert.IsType<BarMetadataDetailsProvider>(provider);
         }
 
         [Fact]
@@ -42,8 +42,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             collection.RemoveType<FooMetadataDetailsProvider>();
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarMetadataDetailsProvider>(formatter);
+            var provider = Assert.Single(collection);
+            Assert.IsType<BarMetadataDetailsProvider>(provider);
         }
 
         private class FooMetadataDetailsProvider : IMetadataDetailsProvider

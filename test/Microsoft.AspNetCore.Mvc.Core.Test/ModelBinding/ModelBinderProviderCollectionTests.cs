@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             collection.RemoveType(typeof(FooModelBinderProvider));
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarModelBinderProvider>(formatter);
+            var provider = Assert.Single(collection);
+            Assert.IsType<BarModelBinderProvider>(provider);
         }
 
         [Fact]
@@ -42,8 +42,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             collection.RemoveType<FooModelBinderProvider>();
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarModelBinderProvider>(formatter);
+            var provider = Assert.Single(collection);
+            Assert.IsType<BarModelBinderProvider>(provider);
         }
 
         private class FooModelBinderProvider : IModelBinderProvider

@@ -24,8 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             collection.RemoveType(typeof(FooApplicationModelConvention));
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarApplicationModelConvention>(formatter);
+            var convention = Assert.Single(collection);
+            Assert.IsType<BarApplicationModelConvention>(convention);
         }
 
         [Fact]
@@ -43,8 +43,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             collection.RemoveType<FooApplicationModelConvention>();
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarApplicationModelConvention>(formatter);
+            var convention = Assert.Single(collection);
+            Assert.IsType<BarApplicationModelConvention>(convention);
         }
 
         private class FooApplicationModelConvention : IApplicationModelConvention

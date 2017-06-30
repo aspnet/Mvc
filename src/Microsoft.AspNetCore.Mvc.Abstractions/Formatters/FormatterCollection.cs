@@ -42,13 +42,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <summary>
         /// Removes all formatters of the specified type.
         /// </summary>
-        /// <param name="modelBinderType">The type to remove.</param>
-        public void RemoveType(Type modelBinderType)
+        /// <param name="formatterType">The type to remove.</param>
+        public void RemoveType(Type formatterType)
         {
             for (var i = Count - 1; i >= 0; i--)
             {
-                var modelBinder = this[i];
-                if (modelBinder.GetType() == modelBinderType)
+                var formatter = this[i];
+                if (formatter.GetType() == formatterType)
                 {
                     RemoveAt(i);
                 }

@@ -41,13 +41,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Removes all model binder providers of the specified type.
         /// </summary>
-        /// <param name="modelBinderType">The type to remove.</param>
-        public void RemoveType(Type modelBinderType)
+        /// <param name="modelBinderProviderType">The type to remove.</param>
+        public void RemoveType(Type modelBinderProviderType)
         {
             for (var i = Count - 1; i >= 0; i--)
             {
-                var modelBinder = this[i];
-                if (modelBinder.GetType() == modelBinderType)
+                var modelBinderProvider = this[i];
+                if (modelBinderProvider.GetType() == modelBinderProviderType)
                 {
                     RemoveAt(i);
                 }

@@ -24,8 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             collection.RemoveType(typeof(FooValueProviderFactory));
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarValueProviderFactory>(formatter);
+            var factory = Assert.Single(collection);
+            Assert.IsType<BarValueProviderFactory>(factory);
         }
 
         [Fact]
@@ -43,8 +43,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             collection.RemoveType<FooValueProviderFactory>();
 
             // Assert
-            var formatter = Assert.Single(collection);
-            Assert.IsType<BarValueProviderFactory>(formatter);
+            var factory = Assert.Single(collection);
+            Assert.IsType<BarValueProviderFactory>(factory);
         }
 
         private class FooValueProviderFactory : IValueProviderFactory
