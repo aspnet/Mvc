@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -35,10 +36,19 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <typeparam name="T">The type to remove.</typeparam>
         public void RemoveType<T>() where T : TFormatter
         {
+            RemoveType(typeof(T));
+        }
+
+        /// <summary>
+        /// Removes all formatters of the specified type.
+        /// </summary>
+        /// <param name="modelBinderType">The type to remove.</param>
+        public void RemoveType(Type modelBinderType)
+        {
             for (var i = Count - 1; i >= 0; i--)
             {
-                var formatter = this[i];
-                if (formatter is T)
+                var modelBinder = this[i];
+                if (modelBinder.GetType() == modelBinderType)
                 {
                     RemoveAt(i);
                 }
