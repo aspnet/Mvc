@@ -9,12 +9,18 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     public class PageConventionCollection : Collection<IPageConvention>
     {
-        public IPageApplicationModelConvention AddConvention(string pageName, Action<PageApplicationModel> action)
+        /// <summary>
+        /// Creates and adds an <see cref="IPageApplicationModelConvention"/> that invokes an action on the
+        /// <see cref="PageApplicationModel"/> for the page with the speciifed name.
+        /// </summary>
+        /// <param name="pageName">The name of the page e.g. <c>/Users/List</c></param>
+        /// <param name="action">The <see cref="Action"/>.</param>
+        /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
+        public IPageApplicationModelConvention AddPageApplicationModelConvention(
+            string pageName,
+            Action<PageApplicationModel> action)
         {
-            if (string.IsNullOrEmpty(pageName))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(pageName));
-            }
+            EnsureValidPageName(pageName);
 
             if (action == null)
             {
@@ -24,12 +30,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return Add(new PageApplicationModelConvention(pageName, action));
         }
 
-        public IPageApplicationModelConvention AddFolderConvention(string folderPath, Action<PageApplicationModel> action)
+        /// <summary>
+        /// Creates and adds an <see cref="IPageApplicationModelConvention"/> that invokes an action on
+        /// <see cref="PageApplicationModel"/> instances for all page under the specified folder.
+        /// </summary>
+        /// <param name="folderPath">The path of the folder relative to the Razor Pages root. e.g. <c>/Users/</c></param>
+        /// <param name="action">The <see cref="Action"/>.</param>
+        /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
+        public IPageApplicationModelConvention AddFolderApplicationModelConvention(string folderPath, Action<PageApplicationModel> action)
         {
-            if (string.IsNullOrEmpty(folderPath))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(folderPath));
-            }
+            EnsureValidFolderPath(folderPath);
 
             if (action == null)
             {
@@ -39,12 +49,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return Add(new FolderApplicationModelConvention(folderPath, action));
         }
 
-        public IPageRouteModelConvention AddConvention(string pageName, Action<PageRouteModel> action)
+        /// <summary>
+        /// Creates and adds an <see cref="IPageRouteModelConvention"/> that invokes an action on the
+        /// <see cref="PageRouteModel"/> for the page with the speciifed name.
+        /// </summary>
+        /// <param name="pageName">The name of the page e.g. <c>/Users/List</c></param>
+        /// <param name="action">The <see cref="Action"/>.</param>
+        /// <returns>The added <see cref="IPageRouteModelConvention"/>.</returns>
+        public IPageRouteModelConvention AddPageRouteModelConvention(string pageName, Action<PageRouteModel> action)
         {
-            if (string.IsNullOrEmpty(pageName))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(pageName));
-            }
+            EnsureValidPageName(pageName);
 
             if (action == null)
             {
@@ -54,12 +68,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return Add(new PageRouteModelConvention(pageName, action));
         }
 
+        /// <summary>
+        /// Creates and adds an <see cref="IPageRouteModelConvention"/> that invokes an action on
+        /// <see cref="PageRouteModel"/> instances for all page under the specified folder.
+        /// </summary>
+        /// <param name="folderPath">The path of the folder relative to the Razor Pages root. e.g. <c>/Users/</c></param>
+        /// <param name="action">The <see cref="Action"/>.</param>
+        /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
         public IPageRouteModelConvention AddFolderConvention(string folderPath, Action<PageRouteModel> action)
         {
-            if (string.IsNullOrEmpty(folderPath))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(folderPath));
-            }
+            EnsureValidFolderPath(folderPath);
 
             if (action == null)
             {
@@ -67,6 +85,34 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             }
 
             return Add(new FolderRouteModelConvention(folderPath, action));
+        }
+
+        // Internal for unit testing
+        internal static void EnsureValidPageName(string pageName)
+        {
+            if (string.IsNullOrEmpty(pageName))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(pageName));
+            }
+
+            if (pageName[0] != '/' || pageName.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException(Resources.FormatInvalidValidPageName(pageName), nameof(pageName));
+            }
+        }
+
+        // Internal for unit testing
+        internal static void EnsureValidFolderPath(string folderPath)
+        {
+            if (string.IsNullOrEmpty(folderPath))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(folderPath));
+            }
+
+            if (folderPath[0] != '/')
+            {
+                throw new ArgumentException(Resources.PathMustBeRootRelativePath, nameof(folderPath));
+            }
         }
 
         private TConvention Add<TConvention>(TConvention convention) where TConvention: IPageConvention
@@ -159,7 +205,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             }
         }
 
-        private static bool PathBelongsToFolder(string folderPath, string viewEnginePath)
+        // Internal for unit testing
+        internal static bool PathBelongsToFolder(string folderPath, string viewEnginePath)
         {
             if (folderPath == "/")
             {

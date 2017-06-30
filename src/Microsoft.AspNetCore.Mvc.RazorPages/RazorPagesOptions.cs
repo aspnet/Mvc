@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
 
                 if (value[0] != '/')
                 {
-                    throw new ArgumentException(Resources.PathMustBeAnAppRelativePath, nameof(value));
+                    throw new ArgumentException(Resources.PathMustBeRootRelativePath, nameof(value));
                 }
 
                 _root = value;

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <param name="factory">The factory to create filters.</param>
         /// <returns></returns>
         public static IPageApplicationModelConvention ConfigureFilter(
-            this PageConventionCollection conventions, 
+            this PageConventionCollection conventions,
             Func<PageApplicationModel, IFilterMetadata> factory)
         {
             if (conventions == null)
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return conventions.AddFolderConvention("/", model => model.Filters.Add(factory(model)));
+            return conventions.AddFolderApplicationModelConvention("/", model => model.Filters.Add(factory(model)));
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 throw new ArgumentNullException(nameof(filter));
             }
 
-            conventions.AddFolderConvention("/", model => model.Filters.Add(filter));
+            conventions.AddFolderApplicationModelConvention("/", model => model.Filters.Add(filter));
             return conventions;
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             }
 
             var anonymousFilter = new AllowAnonymousFilter();
-            conventions.AddConvention(pageName, model => model.Filters.Add(anonymousFilter));
+            conventions.AddPageApplicationModelConvention(pageName, model => model.Filters.Add(anonymousFilter));
             return conventions;
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             }
 
             var anonymousFilter = new AllowAnonymousFilter();
-            conventions.AddFolderConvention(folderPath, model => model.Filters.Add(anonymousFilter));
+            conventions.AddFolderApplicationModelConvention(folderPath, model => model.Filters.Add(anonymousFilter));
             return conventions;
         }
 
@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             }
 
             var authorizeFilter = new AuthorizeFilter(policy);
-            conventions.AddConvention(pageName, model => model.Filters.Add(authorizeFilter));
+            conventions.AddPageApplicationModelConvention(pageName, model => model.Filters.Add(authorizeFilter));
             return conventions;
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             }
 
             var authorizeFilter = new AuthorizeFilter(policy);
-            conventions.AddFolderConvention(folderPath, model => model.Filters.Add(authorizeFilter));
+            conventions.AddFolderApplicationModelConvention(folderPath, model => model.Filters.Add(authorizeFilter));
             return conventions;
         }
 
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
                 throw new ArgumentNullException(nameof(route));
             }
 
-            conventions.AddConvention(pageName, model =>
+            conventions.AddPageRouteModelConvention(pageName, model =>
             {
                 // Use the route specified in MapPageRoute for outbound routing.
                 foreach (var selector in model.Selectors)
