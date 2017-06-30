@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc
         public MvcOptions()
         {
             CacheProfiles = new Dictionary<string, CacheProfile>(StringComparer.OrdinalIgnoreCase);
-            Conventions = new List<IApplicationModelConvention>();
+            Conventions = new ApplicationModelConventionCollection();
             Filters = new FilterCollection();
             FormatterMappings = new FormatterMappings();
             InputFormatters = new FormatterCollection<IInputFormatter>();
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Gets a list of <see cref="IApplicationModelConvention"/> instances that will be applied to
         /// the <see cref="ApplicationModel"/> when discovering actions.
         /// </summary>
-        public IList<IApplicationModelConvention> Conventions { get; }
+        public ApplicationModelConventionCollection Conventions { get; }
 
         /// <summary>
         /// Gets a collection of <see cref="IFilterMetadata"/> which are used to construct filters that
