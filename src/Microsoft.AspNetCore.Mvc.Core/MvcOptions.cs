@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc
             OutputFormatters = new FormatterCollection<IOutputFormatter>();
             ModelBinderProviders = new ModelBinderProviderCollection();
             ModelBindingMessageProvider = new DefaultModelBindingMessageProvider();
-            ModelMetadataDetailsProviders = new List<IMetadataDetailsProvider>();
+            ModelMetadataDetailsProviders = new MetadataDetailsProviderCollection();
             ModelValidatorProviders = new List<IModelValidatorProvider>();
             ValueProviderFactories = new List<IValueProviderFactory>();
         }
@@ -122,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <li><see cref="IValidationMetadataProvider"/></li>
         /// </ul>
         /// </remarks>
-        public IList<IMetadataDetailsProvider> ModelMetadataDetailsProviders { get; }
+        public MetadataDetailsProviderCollection ModelMetadataDetailsProviders { get; }
 
         /// <summary>
         /// Gets a list of <see cref="IModelValidatorProvider"/>s used by this application.
