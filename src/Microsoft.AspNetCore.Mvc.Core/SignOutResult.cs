@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// Initializes a new instance of <see cref="SignOutResult"/> with the default sign out scheme.
         /// </summary>
         public SignOutResult()
-            : this(new string[0])
+            : this(Array.Empty<string>())
         {
         }
 
