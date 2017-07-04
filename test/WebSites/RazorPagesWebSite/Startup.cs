@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using EmbeddedPagesClassLibrary;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 
 namespace RazorPagesWebSite
 {
@@ -13,6 +15,14 @@ namespace RazorPagesWebSite
             services.AddAuthentication().AddCookie(options => options.LoginPath = "/Login");
             services.AddMvc()
                 .AddCookieTempDataProvider()
+                .AddRazorOptions(options =>
+                {
+                    var embeddedFileProvider = new EmbeddedFileProvider(
+                        typeof(EmbeddedModel).Assembly,
+                        $"{nameof(EmbeddedPagesClassLibrary)}.Resources");
+
+                    options.FileProviders.Add(embeddedFileProvider);
+                })
                 .AddRazorPagesOptions(options =>
                 {
                     options.Conventions.AuthorizePage("/HelloWorldWithAuth");
