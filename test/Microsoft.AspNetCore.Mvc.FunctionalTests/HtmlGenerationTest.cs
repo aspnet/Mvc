@@ -523,6 +523,30 @@ Products: Music Systems, Televisions (3)";
             Assert.Equal(expected, response, ignoreLineEndingDifferences: true);
         }
 
+        // We want to make sure that for 'wierd' model expressions involving:
+        // - fields
+        // - statics
+        // - private
+        //
+        // that we don't throw, and can evaluate the expression to get the model value. We don't
+        // expect that the model metadata returned as accurate, so we're not checking that.
+        [Theory]
+        [InlineData("GetWeirdWithHtmlHelpers")]
+        [InlineData("GetWeirdWithTagHelpers")]
+        public async Task WeirdModelExpressions_CanAccessModelValues(string action)
+        {
+            // Arrange
+            var url = "http://localhost/HtmlGeneration_WeirdExpressions/" + action;
+
+            // Act
+            var response = await Client.GetStringAsync(url);
+
+            // Assert
+            Assert.Contains("Hello, Field World!", response);
+            Assert.Contains("Hello, Static World!", response);
+            Assert.Contains("Hello, Private World!", response);
+        }
+
         private static HttpRequestMessage RequestWithLocale(string url, string locale)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
