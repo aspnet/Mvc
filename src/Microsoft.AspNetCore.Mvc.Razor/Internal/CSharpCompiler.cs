@@ -19,36 +19,84 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
     public class CSharpCompiler
     {
         private readonly RazorReferenceManager _referenceManager;
+        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly DebugInformationFormat _pdbFormat = SymbolsUtility.SupportsFullPdbGeneration() ?
             DebugInformationFormat.Pdb :
             DebugInformationFormat.PortablePdb;
+        private bool _optionsInitialized;
+        private CSharpParseOptions _parseOptions;
+        private CSharpCompilationOptions _compilationOptions;
 
         public CSharpCompiler(RazorReferenceManager manager, IHostingEnvironment hostingEnvironment)
-            : this(manager, hostingEnvironment, GetDependencyContextCompilationOptions(hostingEnvironment))
-        {
-        }
-
-        internal CSharpCompiler(
-            RazorReferenceManager manager,
-            IHostingEnvironment hostingEnvironment,
-            DependencyContextCompilationOptions dependencyContextOptions)
         {
             _referenceManager = manager ?? throw new ArgumentNullException(nameof(manager));
-            if (hostingEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(hostingEnvironment));
-            }
+            _hostingEnvironment = hostingEnvironment ?? throw new ArgumentNullException(nameof(hostingEnvironment));
 
-            ParseOptions = GetParseOptions(hostingEnvironment, dependencyContextOptions);
-            CSharpCompilationOptions = GetCompilationOptions(hostingEnvironment, dependencyContextOptions);
             EmitOptions = new EmitOptions(debugInformationFormat: _pdbFormat);
         }
 
-        public CSharpParseOptions ParseOptions { get; }
+        public virtual CSharpParseOptions ParseOptions
+        {
+            get
+            {
+                EnsureOptions();
+                return _parseOptions;
+            }
+        }
 
-        public CSharpCompilationOptions CSharpCompilationOptions { get; }
+        public virtual CSharpCompilationOptions CSharpCompilationOptions
+        {
+            get
+            {
+                EnsureOptions();
+                return _compilationOptions;
+            }
+        }
 
         public EmitOptions EmitOptions { get; }
+
+        public SyntaxTree CreateSyntaxTree(SourceText sourceText)
+        {
+            return CSharpSyntaxTree.ParseText(
+                sourceText,
+                options: ParseOptions);
+        }
+
+        public CSharpCompilation CreateCompilation(string assemblyName)
+        {
+            return CSharpCompilation.Create(
+                assemblyName,
+                options: CSharpCompilationOptions,
+                references: _referenceManager.CompilationReferences);
+        }
+
+        // Internal for unit testing.
+        protected internal virtual DependencyContextCompilationOptions GetDependencyContextCompilationOptions()
+        {
+            if (!string.IsNullOrEmpty(_hostingEnvironment.ApplicationName))
+            {
+                var applicationAssembly = Assembly.Load(new AssemblyName(_hostingEnvironment.ApplicationName));
+                var dependencyContext = DependencyContext.Load(applicationAssembly);
+                if (dependencyContext?.CompilationOptions != null)
+                {
+                    return dependencyContext.CompilationOptions;
+                }
+            }
+
+            return DependencyContextCompilationOptions.Default;
+        }
+
+        private void EnsureOptions()
+        {
+            if (!_optionsInitialized)
+            {
+                var dependencyContextOptions = GetDependencyContextCompilationOptions();
+                _parseOptions = GetParseOptions(_hostingEnvironment, dependencyContextOptions);
+                _compilationOptions = GetCompilationOptions(_hostingEnvironment, dependencyContextOptions);
+
+                _optionsInitialized = true;
+            }
+        }
 
         private static CSharpCompilationOptions GetCompilationOptions(
             IHostingEnvironment hostingEnvironment,
@@ -104,43 +152,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var configurationSymbol = hostingEnvironment.IsDevelopment() ? "DEBUG" : "RELEASE";
             var defines = dependencyContextOptions.Defines.Concat(new[] { configurationSymbol });
 
-            var parseOptions = new CSharpParseOptions(
-                LanguageVersion.CSharp7_1,
-                preprocessorSymbols: defines);
+            var parseOptions = new CSharpParseOptions(preprocessorSymbols: defines);
 
-            return parseOptions;
-        }
-
-        public SyntaxTree CreateSyntaxTree(SourceText sourceText)
-        {
-            return CSharpSyntaxTree.ParseText(
-                sourceText,
-                options: ParseOptions);
-        }
-
-        public CSharpCompilation CreateCompilation(string assemblyName)
-        {
-            return CSharpCompilation.Create(
-                assemblyName,
-                options: CSharpCompilationOptions,
-                references: _referenceManager.CompilationReferences);
-        }
-
-        // Internal for unit testing.
-        internal static DependencyContextCompilationOptions GetDependencyContextCompilationOptions(
-            IHostingEnvironment hostingEnvironment)
-        {
-            if (!string.IsNullOrEmpty(hostingEnvironment.ApplicationName))
+            LanguageVersion languageVersion;
+            if (!string.IsNullOrEmpty(dependencyContextOptions.LanguageVersion) &&
+                Enum.TryParse(dependencyContextOptions.LanguageVersion, ignoreCase: true, result: out languageVersion))
             {
-                var applicationAssembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
-                var dependencyContext = DependencyContext.Load(applicationAssembly);
-                if (dependencyContext?.CompilationOptions != null)
-                {
-                    return dependencyContext.CompilationOptions;
-                }
+                parseOptions = parseOptions.WithLanguageVersion(languageVersion);
             }
 
-            return DependencyContextCompilationOptions.Default;
+            return parseOptions;
         }
     }
 }
