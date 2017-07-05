@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     RazorEngine.Create(), 
                     new FileProviderRazorProject(accessor)),
                 accessor,
-                new CSharpCompiler(referenceManager, hostingEnvironment),
+                new CSharpCompiler(referenceManager, Mock.Of<IHostingEnvironment>()),
                 options,
                 NullLoggerFactory.Instance);
 
