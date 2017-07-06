@@ -63,80 +63,72 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(output));
             }
 
-            IHtmlContent content = null;
+            IHtmlContent content;
 
             if (Enabled)
             {
                 var cacheKey = new CacheTagKey(this, context);
 
-                while (content == null)
+                Task<IHtmlContent> result;
+                if (!MemoryCache.TryGetValue(cacheKey, out result))
                 {
-                    Task<IHtmlContent> result;
+                    var tokenSource = new CancellationTokenSource();
 
-                    if (!MemoryCache.TryGetValue(cacheKey, out result))
+                    var options = GetMemoryCacheEntryOptions();
+                    options.AddExpirationToken(new CancellationChangeToken(tokenSource.Token));
+
+                    var tcs = new TaskCompletionSource<IHtmlContent>();
+
+                    // The returned value is ignored, we only do this so that
+                    // the compiler doesn't complain about the returned task
+                    // not being awaited
+                    var localTcs = MemoryCache.Set(cacheKey, tcs.Task, options);
+
+                    try
                     {
-                        var tokenSource = new CancellationTokenSource();
+                        // The entry is set instead of assigning a value to the
+                        // task so that the expiration options are not impacted
+                        // by the time it took to compute it.
 
-                        // Create an entry link scope and flow it so that any tokens related to the cache entries
-                        // created within this scope get copied to this scope.
-
-                        var options = GetMemoryCacheEntryOptions();
-                        options.AddExpirationToken(new CancellationChangeToken(tokenSource.Token));
-
-                        var tcs = new TaskCompletionSource<IHtmlContent>();
-
-                        // The returned value is ignored, we only do this so that
-                        // the compiler doesn't complain about the returned task
-                        // not being awaited
-                        var localTcs = MemoryCache.Set(cacheKey, tcs.Task, options);
-
-                        try
+                        using (var entry = MemoryCache.CreateEntry(cacheKey))
                         {
-                            // The entry is set instead of assigning a value to the
-                            // task so that the expiration options are not impacted
-                            // by the time it took to compute it.
+                            // The result is processed inside an entry
+                            // such that the tokens are inherited.
 
-                            using (var entry = MemoryCache.CreateEntry(cacheKey))
-                            {
-                                // The result is processed inside an entry
-                                // such that the tokens are inherited.
+                            result = ProcessContentAsync(output);
 
-                                result = ProcessContentAsync(output);
+                            entry.SetOptions(options);
+                            entry.Value = result;
 
-                                entry.SetOptions(options);
-                                entry.Value = result;
-
-                                content = await result;
-                            }
-                            
-                            tcs.SetResult(content);
+                            content = await result;
                         }
-                        catch
-                        {
-                            // Remove the worker task from the cache in case it can't complete.
-                            tokenSource.Cancel();
-                            
-                            // If an exception occurs, ensure the other awaiters
-                            // render the output by themselves.
-                            tcs.SetResult(null);
-                            throw;
-                        }
-                        finally
-                        {
-                            // The tokenSource needs to be disposed as the MemoryCache
-                            // will register a callback on the Token.
-                            tokenSource.Dispose();
-                        }
+
+                        tcs.SetResult(content);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // There is either some value already cached (as a Task)
-                        // or a worker processing the output. In the case of a worker,
-                        // the result will be null, and the request will try to acquire
-                        // the result from memory another time.
+                        // Remove the worker task from the cache in case it can't complete.
+                        tokenSource.Cancel();
 
-                        content = await result;
+                        // Fail the TCS so other awaiters see the exception.
+                        tcs.SetException(ex);
+                        throw;
                     }
+                    finally
+                    {
+                        // The tokenSource needs to be disposed as the MemoryCache
+                        // will register a callback on the Token.
+                        tokenSource.Dispose();
+                    }
+                }
+                else
+                {
+                    // There is either some value already cached (as a Task)
+                    // or a worker processing the output. In the case of a worker,
+                    // the result will be null, and the request will try to acquire
+                    // the result from memory another time.
+
+                    content = await result;
                 }
             }
             else
