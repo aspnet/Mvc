@@ -1087,6 +1087,34 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore._InjectedP
             Assert.Equal(expected, response.Trim());
         }
 
+        [Fact]
+        public async Task PagesFromEmbeddedFileProviders_AreDiscovered()
+        {
+            // Arrange
+            var expected =
+@"Embedded Layout
+Hello from Embedded Page";
+
+            // Act
+            var response = await Client.GetStringAsync("/EmbeddedPage");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task PagesFromEmbeddedFileProviders_UsesModelsFromReferencedEmbeddedClasslibrary()
+        {
+            // Arrange
+            var expected = "Hello from Embedded Page with model";
+
+            // Act
+            var response = await Client.GetStringAsync("/EmbeddedPageWithModel");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
         private async Task AddAntiforgeryHeaders(HttpRequestMessage request)
         {
             var getResponse = await Client.GetAsync(request.RequestUri);
