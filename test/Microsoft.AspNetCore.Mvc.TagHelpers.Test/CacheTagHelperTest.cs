@@ -459,8 +459,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 new TagHelperAttributeList { { "attr", "value" } },
                 getChildContentAsync: (useCachedResult, encoder) =>
                 {
-                    TagHelperContent tagHelperContent;
-                    if (!cache.TryGetValue("key1", out tagHelperContent))
+                    if (!cache.TryGetValue("key1", out TagHelperContent tagHelperContent))
                     {
                         tagHelperContent = expectedContent;
                         cache.Set("key1", tagHelperContent, cacheEntryOptions);
@@ -480,8 +479,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Act - 1
             await cacheTagHelper.ProcessAsync(tagHelperContext, tagHelperOutput);
-            Task<IHtmlContent> cachedValue;
-            var result = cache.TryGetValue(cacheTagKey, out cachedValue);
+            var result = cache.TryGetValue(cacheTagKey, out Task<IHtmlContent> cachedValue);
 
             // Assert - 1
             Assert.Equal("HtmlEncode[[some-content]]", tagHelperOutput.Content.GetContent());
