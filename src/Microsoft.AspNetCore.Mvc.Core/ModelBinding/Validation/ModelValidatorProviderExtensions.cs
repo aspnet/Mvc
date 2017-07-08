@@ -18,6 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         /// <typeparam name="TModelValidatorProvider">The type to remove.</typeparam>
         public static void RemoveType<TModelValidatorProvider>(this IList<IModelValidatorProvider> list) where TModelValidatorProvider : IModelValidatorProvider
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
             RemoveType(list, typeof(TModelValidatorProvider));
         }
 
@@ -28,6 +33,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         /// <param name="type">The type to remove.</param>
         public static void RemoveType(this IList<IModelValidatorProvider> list, Type type)
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             for (var i = list.Count - 1; i >= 0; i--)
             {
                 var modelValidatorProvider = list[i];

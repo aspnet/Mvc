@@ -18,6 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <typeparam name="TModelBinderProvider">The type to remove.</typeparam>
         public static void RemoveType<TModelBinderProvider>(this IList<IModelBinderProvider> list) where TModelBinderProvider : IModelBinderProvider
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
             RemoveType(list, typeof(TModelBinderProvider));
         }
 
@@ -28,6 +33,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="type">The type to remove.</param>
         public static void RemoveType(this IList<IModelBinderProvider> list, Type type)
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             for (var i = list.Count - 1; i >= 0; i--)
             {
                 var modelBinderProvider = list[i];

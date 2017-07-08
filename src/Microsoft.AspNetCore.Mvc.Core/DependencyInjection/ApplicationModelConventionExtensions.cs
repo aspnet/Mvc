@@ -19,6 +19,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <typeparam name="TApplicationModelConvention">The type to remove.</typeparam>
         public static void RemoveType<TApplicationModelConvention>(this IList<IApplicationModelConvention> list) where TApplicationModelConvention : IApplicationModelConvention
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
             RemoveType(list, typeof(TApplicationModelConvention));
         }
 
@@ -29,6 +34,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="type">The type to remove.</param>
         public static void RemoveType(this IList<IApplicationModelConvention> list, Type type)
         {
+            if (list == null)
+            {
+                throw new ArgumentNullException(nameof(list));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             for (var i = list.Count - 1; i >= 0; i--)
             {
                 var applicationModelConvention = list[i];
