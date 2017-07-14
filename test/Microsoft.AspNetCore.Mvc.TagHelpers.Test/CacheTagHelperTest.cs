@@ -980,7 +980,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         // a TaskCancellationSource as an entry. We want to ensure that both calls use the results of the TCS as their output.
         private class TestMemoryCache : IMemoryCache
         {
-            private const int WaitTimeout = 3000;
+            private const int WaitTimeout = 5000;
             public readonly string Key1 = "Key1";
             public readonly string Key2 = "Key2";
             public readonly ManualResetEventSlim ManualResetEvent1 = new ManualResetEventSlim();
