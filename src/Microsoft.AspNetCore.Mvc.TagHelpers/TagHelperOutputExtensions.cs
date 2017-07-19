@@ -154,6 +154,93 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
+        /// <summary>
+        /// Adds the given <paramref name="classValue"/> to the <paramref name="tagHelperOutput"/>'s
+        /// <see cref="TagHelperOutput.Attributes"/>.
+        /// </summary>
+        /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
+        /// <param name="classValue">The class value to add.</param>
+        public static void AddClass(
+            this TagHelperOutput tagHelperOutput,
+            string classValue)
+        {
+            if (tagHelperOutput == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperOutput));
+            }
+
+            if (!tagHelperOutput.Attributes.ContainsName("class"))
+            {
+                tagHelperOutput.Attributes.Add("class", classValue);
+            }
+            else
+            {
+                var classAttributeValue = tagHelperOutput.Attributes["class"].Value.ToString();
+                if (classAttributeValue.Contains(" "))
+                {
+                    var arrayOfClasses = classAttributeValue.Split(' ');
+                    if (arrayOfClasses.Contains(classValue))
+                    {
+                        return;
+                    }
+                }
+
+                if (!classAttributeValue.Equals(classValue))
+                {
+                    tagHelperOutput.Attributes.SetAttribute("class",
+                        classAttributeValue.Length > 0 ? $"{classAttributeValue} {classValue}" : classValue);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes the given <paramref name="classValue"/> from the <paramref name="tagHelperOutput"/>'s
+        /// <see cref="TagHelperOutput.Attributes"/>.
+        /// </summary>
+        /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
+        /// <param name="classValue">The class value to remove.</param>
+        public static void RemoveClass(
+            this TagHelperOutput tagHelperOutput,
+            string classValue)
+        {
+            if (tagHelperOutput == null)
+            {
+                throw new ArgumentNullException(nameof(tagHelperOutput));
+            }
+
+            if (!tagHelperOutput.Attributes.ContainsName("class"))
+            {
+                return;
+            }
+
+            var classAttributeValue = tagHelperOutput.Attributes["class"].Value.ToString();
+
+            if (classAttributeValue.Length == 0)
+            {
+                return;
+            }
+
+            if (classAttributeValue.Contains(" "))
+            {
+                var arrayOfClasses = classAttributeValue.Split(' ').ToList();
+
+                if (!arrayOfClasses.Contains(classValue))
+                {
+                    return;
+                }
+
+                arrayOfClasses.Remove(classValue);
+                tagHelperOutput.Attributes.SetAttribute("class", string.Join(" ", arrayOfClasses));
+            }
+            else
+            {
+                if (classAttributeValue.Equals(classValue))
+                {
+                    tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
+                }
+            }
+        }
+
         private static void CopyHtmlAttribute(
             int allAttributeIndex,
             TagHelperOutput tagHelperOutput,
