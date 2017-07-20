@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
-        public async Task AuthZResourceShouldBeAuthorizatoinFilterContext()
+        public async Task AuthZResourceShouldBeAuthorizationFilterContext()
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(c => c.Resource is AuthorizationFilterContext).Build());
