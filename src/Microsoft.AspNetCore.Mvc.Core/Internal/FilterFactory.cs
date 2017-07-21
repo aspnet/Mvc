@@ -28,14 +28,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var staticFilterItems = new FilterItem[actionDescriptor.FilterDescriptors.Count];
 
-            var orderedFilters = actionDescriptor.FilterDescriptors.OrderBy(
-                filter => filter,
-                FilterDescriptorOrderComparer.Comparer);
+            var orderedFilters = actionDescriptor.FilterDescriptors
+                .OrderBy(
+                    filter => filter,
+                    FilterDescriptorOrderComparer.Comparer)
+                .ToList();
 
-            var index = 0;
-            foreach (var filter in orderedFilters)
+            for (var i = 0; i < orderedFilters.Count; i++)
             {
-                staticFilterItems[index++] = new FilterItem(filter);
+                staticFilterItems[i] = new FilterItem(orderedFilters[i]);
             }
 
             var allFilterItems = new List<FilterItem>(staticFilterItems);
