@@ -154,9 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             var parseOptions = new CSharpParseOptions(preprocessorSymbols: defines);
 
-            LanguageVersion languageVersion;
-            if (!string.IsNullOrEmpty(dependencyContextOptions.LanguageVersion) &&
-                Enum.TryParse(dependencyContextOptions.LanguageVersion, ignoreCase: true, result: out languageVersion))
+            if (LanguageVersionFacts.TryParse(dependencyContextOptions.LanguageVersion, out var languageVersion))
             {
                 parseOptions = parseOptions.WithLanguageVersion(languageVersion);
             }
