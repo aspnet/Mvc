@@ -81,6 +81,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Ra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Performance", "test\Microsoft.AspNetCore.Mvc.Performance\Microsoft.AspNetCore.Mvc.Performance.csproj", "{28D4DA20-6E13-47F9-80AE-D6AA7699CC35}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvc.KodKod.Tool", "src\Mvc.KodKod.Tool\Mvc.KodKod.Tool.csproj", "{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E1795C3-60C5-4AD2-A15F-93F6CE8FAD36}"
 	ProjectSection(SolutionItems) = preProject
 		.appveyor.yml = .appveyor.yml
@@ -488,6 +490,18 @@ Global
 		{28D4DA20-6E13-47F9-80AE-D6AA7699CC35}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{28D4DA20-6E13-47F9-80AE-D6AA7699CC35}.Release|x86.ActiveCfg = Release|Any CPU
 		{28D4DA20-6E13-47F9-80AE-D6AA7699CC35}.Release|x86.Build.0 = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Debug|x86.Build.0 = Debug|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|x86.ActiveCfg = Release|Any CPU
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -526,6 +540,7 @@ Global
 		{CF322BE1-E1FE-4CFD-8FCA-16A14B905D53} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
 		{0AB46520-F441-4E01-B444-08F4D23F8B1B} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
 		{28D4DA20-6E13-47F9-80AE-D6AA7699CC35} = {3BA657BF-28B1-42DA-B5B0-1C4601FCF7B1}
+		{9DA5691E-3896-4D25-A224-E9A9EB08CA3E} = {32285FA4-6B46-4D6B-A840-2B13E4C8B58E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D003597F-372F-4068-A2F0-353BE3C3B39A}
