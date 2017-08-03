@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <VerifyDependsOn Condition="'$(TEAMCITY_VERSION)'!=''">$(VerifyDependsOn);PublishPackages</VerifyDependsOn>
+    <PublishFeed>https://dotnet.myget.org/F/aspnetcore-feature-work/api/v2/package</PublishFeed>
+  </PropertyGroup>
+
+  <Target Name="PublishPackages">
+    <ItemGroup>
+      <Packages Include="$(BuildDir)*.nupkg" />
+    </ItemGroup>
+
+    <PushNuGetPackages
+      Packages="@(Packages)"
+      Feed="$(PublishFeed)"
+      ApiKey="$(APIKey)" />
+  </Target>
+</Project>
