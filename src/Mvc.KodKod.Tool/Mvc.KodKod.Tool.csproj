@@ -10,6 +10,7 @@
     <RuntimeIdentifier Condition="!$(TargetFramework.StartsWith('netcoreapp'))">win7-x64</RuntimeIdentifier>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EnableApiCheck>false</EnableApiCheck>
+    <PackageTags>kodkod;aspnetcore</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
