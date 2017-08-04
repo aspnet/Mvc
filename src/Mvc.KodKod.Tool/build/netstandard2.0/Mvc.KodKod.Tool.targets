@@ -1,0 +1,17 @@
+﻿<Project>
+  <PropertyGroup>
+    <CoreBuildDependsOn>$(CoreBuildDependsOn);KodKod</CoreBuildDependsOn>
+  </PropertyGroup>
+
+  <Target Name="KodKod" DependsOnTargets="RunForCore;RunForDesktop">
+
+  </Target>
+
+  <Target Name="RunForCore" Condition="'$(TargetFrameworkIdentifier)'=='.NETCoreApp'">
+    <Exec Command="dotnet exec --runtimeconfig &quot;$(ProjectRuntimeConfigFilePath)&quot; --depsfile &quot;$(ProjectDepsFilePath)&quot; $(MsBuildThisFileDirectory)$(MSBuildThisFileName).dll --output-path=&quot;$(OutputPath)swagger.json&quot; --application-name=$(AssemblyName) --base-url=http://localhost:5050" />
+  </Target>
+
+  <Target Name="RunForDesktop" Condition="'$(TargetFrameworkIdentifier)'=='.NETFramework'">
+
+  </Target>
+</Project>
