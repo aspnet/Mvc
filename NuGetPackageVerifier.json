@@ -4,7 +4,7 @@
             "DefaultCompositeRule"
         ],
         "packages": {
-            "Mvc.KodKod.Tools": {
+            "Mvc.KodKod.Tool": {
                 "exclusions": {
                     "BUILD_ITEMS_FRAMEWORK": {
                         "*": "Purposefully creating a netstandard2.0 build item so our targets can be injected for desktop and non-desktop based projects."
