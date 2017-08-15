@@ -22,6 +22,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     public class MvcWebApplicationBuilder<TStartup> where TStartup : class
     {
         public string ContentRoot { get; set; }
+
+        public IList<Action<IWebHostBuilder>> ConfigureWebHostBuilder { get; set; } = new List<Action<IWebHostBuilder>>();
         public IList<Action<IServiceCollection>> ConfigureServicesBeforeStartup { get; set; } = new List<Action<IServiceCollection>>();
         public IList<Action<IServiceCollection>> ConfigureServicesAfterStartup { get; set; } = new List<Action<IServiceCollection>>();
         public List<Assembly> ApplicationAssemblies { get; set; } = new List<Assembly>();
@@ -45,6 +47,17 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         public MvcWebApplicationBuilder<TStartup> ConfigureAfterStartup(Action<IServiceCollection> configure)
         {
             ConfigureServicesAfterStartup.Add(configure);
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="IWebHostBuilder"/>.
+        /// </summary>
+        /// <param name="configure">The action to customize the <see cref="IWebHostBuilder"/>.</param>
+        /// <returns>An instance of this <see cref="MvcWebApplicationBuilder{TStartup}"/></returns>
+        public MvcWebApplicationBuilder<TStartup> ConfigureWebHost(Action<IWebHostBuilder> configure)
+        {
+            ConfigureWebHostBuilder.Add(configure);
             return this;
         }
 
@@ -121,6 +134,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                 .UseSetting(WebHostDefaults.ApplicationKey, typeof(TStartup).Assembly.GetName().Name)
                 .UseContentRoot(ContentRoot)
                 .ConfigureServices(InitializeServices);
+
+            foreach (var configurationAction in ConfigureWebHostBuilder)
+            {
+                configurationAction(builder);
+            }
 
             return new TestServer(builder);
         }
