@@ -185,11 +185,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     }
                 }
 
-                if (!classAttributeValue.Equals(classValue))
-                {
-                    tagHelperOutput.Attributes.SetAttribute("class",
-                        classAttributeValue.Length > 0 ? $"{classAttributeValue} {classValue}" : classValue);
-                }
+                tagHelperOutput.Attributes.SetAttribute("class",
+                    classAttributeValue.Length > 0 ? $"{classAttributeValue} {classValue}" : classValue);
             }
         }
 
@@ -229,7 +226,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     return;
                 }
 
-                arrayOfClasses.Remove(classValue);
+                arrayOfClasses.RemoveAll(x => x.Equals(classValue));
                 tagHelperOutput.Attributes.SetAttribute("class", string.Join(" ", arrayOfClasses));
             }
             else
