@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc.Formatters.Json.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -39,6 +40,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 // Do not change this setting
                 // Setting this to None prevents Json.NET from loading malicious, unsafe, or security-sensitive types
                 TypeNameHandling = TypeNameHandling.None,
+
+                Converters =
+                {
+                    new ProblemJsonConverter(),
+                },
             };
         }
     }

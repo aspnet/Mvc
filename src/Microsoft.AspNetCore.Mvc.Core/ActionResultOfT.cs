@@ -53,6 +53,7 @@ namespace Microsoft.AspNetCore.Mvc
         public static implicit operator ActionResult<TValue>(Problem problem)
         {
             var badRequestResultObject = new BadRequestObjectResult(problem);
+
             if (problem.Status != null)
             {
                 badRequestResultObject.StatusCode = problem.Status;

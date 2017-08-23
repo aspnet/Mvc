@@ -92,18 +92,6 @@ namespace Microsoft.AspNetCore.Mvc
                         StatusCode = statusCodeResult.StatusCode,
                     };
                 }
-                else if (statusCode == StatusCodes.Status400BadRequest)
-                {
-                    var problem = new Problem
-                    {
-                        Status = statusCodeResult.StatusCode,
-                        Title = "One or more errors occured during model binding.",
-                    };
-                    context.Result = new ObjectResult(problem)
-                    {
-                        StatusCode = statusCodeResult.StatusCode,
-                    };
-                }
             }
             else if (context.Result is BadRequestObjectResult badRequestObjectResult && badRequestObjectResult.Value is SerializableError serializableError)
             {
@@ -115,7 +103,7 @@ namespace Microsoft.AspNetCore.Mvc
 
                 foreach (var item in serializableError)
                 {
-                    problem[item.Key] = item.Value;
+                    problem.AdditionalProperties[item.Key] = item.Value;
                 }
 
                 context.Result = new ObjectResult(problem)

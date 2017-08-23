@@ -57,6 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             WrapperProviderFactories = new List<IWrapperProviderFactory>();
             WrapperProviderFactories.Add(new EnumerableWrapperProviderFactory(WrapperProviderFactories));
             WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
+            WrapperProviderFactories.Add(new ProblemWrapperProviderFactory());
         }
 
         /// <summary>
