@@ -193,8 +193,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                     parameter.Source == BindingSource.ModelBinding ||
                     parameter.Source == BindingSource.Custom)
                 {
-                    ApiParameterRouteInfo routeInfo;
-                    if (routeParameters.TryGetValue(parameter.Name, out routeInfo))
+                    if (routeParameters.TryGetValue(parameter.Name, out var routeInfo))
                     {
                         parameter.RouteInfo = routeInfo;
                         routeParameters.Remove(parameter.Name);
@@ -322,8 +321,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             {
                 foreach (var formatter in _inputFormatters)
                 {
-                    var requestFormatMetadataProvider = formatter as IApiRequestFormatMetadataProvider;
-                    if (requestFormatMetadataProvider != null)
+                    if (formatter is IApiRequestFormatMetadataProvider requestFormatMetadataProvider)
                     {
                         var supportedTypes = requestFormatMetadataProvider.GetSupportedContentTypes(contentType, type);
 
