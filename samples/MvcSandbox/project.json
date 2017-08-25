@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.Diagnostics": "1.0.3",
-    "Microsoft.AspNetCore.Mvc": "1.0.4",
+    "Microsoft.AspNetCore.Mvc": "1.0.5",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
       "version": "1.0.0-preview4-final"

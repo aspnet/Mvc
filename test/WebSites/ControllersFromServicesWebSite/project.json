@@ -4,7 +4,7 @@
   },
   "dependencies": {
     "ControllersFromServicesClassLibrary": "1.0.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.4",
+    "Microsoft.AspNetCore.Mvc": "1.0.5",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
