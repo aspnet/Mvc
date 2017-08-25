@@ -20,7 +20,7 @@
     "Microsoft.AspNetCore.Testing": "1.1.1",
     "Microsoft.DotNet.InternalAbstractions": "1.0.0",
     "Microsoft.Extensions.DependencyInjection": "1.1.1",
-    "Microsoft.Extensions.DiagnosticAdapter": "1.1.1",
+    "Microsoft.Extensions.DiagnosticAdapter": "1.1.2",
     "Microsoft.Extensions.Logging.Testing": "1.1.2",
     "Moq": "4.6.36-*",
     "xunit": "2.2.0-*"
