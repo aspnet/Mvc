@@ -29,7 +29,7 @@
       "version": "1.0.1",
       "type": "build"
     },
-    "Microsoft.Extensions.Localization": "1.0.3"
+    "Microsoft.Extensions.Localization": "1.0.4"
   },
   "frameworks": {
     "net451": {

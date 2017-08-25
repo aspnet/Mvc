@@ -10,8 +10,8 @@
       "type": "build",
       "version": "1.0.0-preview4-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.3",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.4",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0"
   },
   "frameworks": {

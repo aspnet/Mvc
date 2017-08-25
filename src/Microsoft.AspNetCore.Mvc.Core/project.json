@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.Authorization": "1.0.4",
-    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.3",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.4",
     "Microsoft.AspNetCore.Mvc.Abstractions": "1.0.5",
     "Microsoft.AspNetCore.Http": "1.0.3",
     "Microsoft.AspNetCore.Routing": "1.0.4",
