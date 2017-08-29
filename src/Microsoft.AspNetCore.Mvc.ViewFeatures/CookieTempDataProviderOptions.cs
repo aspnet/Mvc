@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc
             Name = CookieTempDataProvider.CookieName,
             HttpOnly = true,
             SameSite = SameSiteMode.Strict,
-            SecurePolicy = CookieSecurePolicy.SameAsRequest,
+            SecurePolicy = CookieSecurePolicy.None,
         };
 
         /// <summary>
