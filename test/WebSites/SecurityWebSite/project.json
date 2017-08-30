@@ -13,7 +13,7 @@
     "netcoreapp1.0": {
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.5",
+          "version": "1.0.6-servicing-004974-00",
           "type": "platform"
         }
       },
