@@ -402,5 +402,24 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(expected, response.Trim());
         }
+
+        [Fact]
+        public async Task RedirectToAction_WithEmptyActionName_UsesAmbientValue()
+        {
+            // Arrange
+            var product = new List<KeyValuePair<string, string>>();
+            product.Add(new KeyValuePair<string, string>("SampleInt", "20"));
+
+            // Act
+            var response = await Client.PostAsync("/Home/Product", new FormUrlEncodedContent(product));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.NotNull(response.Headers.Location);
+            Assert.Equal("/Home/Product", response.Headers.Location.ToString());
+
+            var responseBody = await Client.GetStringAsync("/Home/Product");
+            Assert.Equal("Get Product", responseBody);
+        }
     }
 }
