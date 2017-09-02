@@ -347,10 +347,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return GenerateTextBox(htmlHelper, inputType: "email");
         }
 
-        public static IHtmlContent DateTimeInputTemplate(IHtmlHelper htmlHelper)
+        public static IHtmlContent DateTimeOffsetTemplate(IHtmlHelper htmlHelper)
         {
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM-ddTHH:mm:ss.fffK}");
-            return GenerateTextBox(htmlHelper, inputType: "datetime");
+            return GenerateTextBox(htmlHelper, inputType: "text");
         }
 
         public static IHtmlContent DateTimeLocalInputTemplate(IHtmlHelper htmlHelper)
