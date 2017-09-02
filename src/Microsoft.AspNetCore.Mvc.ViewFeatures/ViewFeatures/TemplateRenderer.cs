@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var defaultActions = GetDefaultActions();
             var modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
-            foreach (string viewName in GetViewNames())
+            foreach (var viewName in GetViewNames())
             {
                 var viewEngineResult = _viewEngine.GetView(_viewContext.ExecutingFilePath, viewName, isMainPage: false);
                 if (!viewEngineResult.Success)
@@ -142,8 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     }
                 }
 
-                Func<IHtmlHelper, IHtmlContent> defaultAction;
-                if (defaultActions.TryGetValue(viewName, out defaultAction))
+                if (defaultActions.TryGetValue(viewName, out var defaultAction))
                 {
                     return defaultAction(MakeHtmlHelper(_viewContext, _viewData));
                 }
@@ -256,8 +255,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var newHelper = viewContext.HttpContext.RequestServices.GetRequiredService<IHtmlHelper>();
 
-            var contextable = newHelper as IViewContextAware;
-            if (contextable != null)
+            if (newHelper is IViewContextAware contextable)
             {
                 var newViewContext = new ViewContext(viewContext, viewContext.View, viewData, viewContext.Writer);
                 contextable.Contextualize(newViewContext);

@@ -197,8 +197,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var htmlAttributes = HtmlHelper.AnonymousObjectToHtmlAttributes(htmlAttributesObject);
 
-            object htmlClassObject;
-            if (htmlAttributes.TryGetValue("class", out htmlClassObject))
+            if (htmlAttributes.TryGetValue("class", out var htmlClassObject))
             {
                 var htmlClassName = htmlClassObject + " " + className;
                 htmlAttributes["class"] = htmlClassName;

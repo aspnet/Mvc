@@ -235,8 +235,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             foreach (var hint in GetInputTypeHints(modelExplorer))
             {
-                string inputType;
-                if (_defaultInputTypes.TryGetValue(hint, out inputType))
+                if (_defaultInputTypes.TryGetValue(hint, out var inputType))
                 {
                     inputTypeHint = hint;
                     return inputType;
@@ -253,8 +252,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 if (modelExplorer.Model != null)
                 {
-                    bool potentialBool;
-                    if (!bool.TryParse(modelExplorer.Model.ToString(), out potentialBool))
+                    if (!bool.TryParse(modelExplorer.Model.ToString(), out var potentialBool))
                     {
                         throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidStringResult(
                             ForAttributeName,
@@ -354,8 +352,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private TagBuilder GenerateHidden(ModelExplorer modelExplorer)
         {
             var value = For.Model;
-            var byteArrayValue = value as byte[];
-            if (byteArrayValue != null)
+            if (value is byte[] byteArrayValue)
             {
                 value = Convert.ToBase64String(byteArrayValue);
             }
@@ -444,7 +441,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 fieldType = modelExplorer.Metadata.UnderlyingOrModelType;
             }
 
-            foreach (string typeName in TemplateRenderer.GetTypeNames(modelExplorer.Metadata, fieldType))
+            foreach (var typeName in TemplateRenderer.GetTypeNames(modelExplorer.Metadata, fieldType))
             {
                 yield return typeName;
             }
