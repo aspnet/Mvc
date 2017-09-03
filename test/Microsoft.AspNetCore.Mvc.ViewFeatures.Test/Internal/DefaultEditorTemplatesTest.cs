@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
 
@@ -879,12 +880,13 @@ Environment.NewLine;
 
         // Html5DateRenderingMode.Rfc3339 can be disabled.
         [Theory]
-        [InlineData(null, null, "2000-01-02 03:04:05 -05:00", "text")]
-        [InlineData("date", "{0:d}", "2000-01-02", "date")]
-        [InlineData("datetime", null, "2000-01-02 03:04:05 -05:00", "datetime-local")]
-        [InlineData("datetime-local", null, "2000-01-02 03:04:05 -05:00", "datetime-local")]
+        [InlineData(null, null, "02/01/2000 03:04:05 -05:00", "text")]
+        [InlineData("date", "{0:d}", "02/01/2000", "date")]
+        [InlineData("datetime", null, "02/01/2000 03:04:05 -05:00", "datetime-local")]
+        [InlineData("datetime-local", null, "02/01/2000 03:04:05 -05:00", "datetime-local")]
         [InlineData("DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000-05:00", "text")]
         [InlineData("time", "{0:t}", "03:04", "time")]
+        [ReplaceCulture]
         public void Editor_FindsCorrectDateOrTimeTemplate_NotRfc3339(
             string dataTypeName,
             string editFormatString,
@@ -1002,12 +1004,13 @@ Environment.NewLine;
 
         // Html5DateRenderingMode.Rfc3339 can be disabled.
         [Theory]
-        [InlineData(null, null, "2000-01-02 03:04:05", "datetime-local")]
-        [InlineData("date", "{0:d}", "2000-01-02", "date")]
-        [InlineData("datetime", null, "2000-01-02 03:04:05", "datetime-local")]
-        [InlineData("datetime-local", null, "2000-01-02 03:04:05", "datetime-local")]
+        [InlineData(null, null, "02/01/2000 03:04:05", "datetime-local")]
+        [InlineData("date", "{0:d}", "02/01/2000", "date")]
+        [InlineData("datetime", null, "02/01/2000 03:04:05", "datetime-local")]
+        [InlineData("datetime-local", null, "02/01/2000 03:04:05", "datetime-local")]
         [InlineData("DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000Z", "text")]
         [InlineData("time", "{0:t}", "03:04", "time")]
+        [ReplaceCulture]
         public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeNotRfc3339(
             string dataTypeName,
             string editFormatString,
