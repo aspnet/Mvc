@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// token is required for HTTP methods other than GET, HEAD, OPTIONS, and TRACE.
     /// </summary>
     /// <remarks>
-    /// <see cref="AutoValidateAntiforgeryTokenAttribute"/> can be applied at as a global filter to trigger
+    /// <see cref="AutoValidateAntiforgeryTokenAttribute"/> can be applied as a global filter to trigger
     /// validation of antiforgery tokens by default for an application. Use
     /// <see cref="IgnoreAntiforgeryTokenAttribute"/> to suppress validation of the antiforgery token for
     /// a controller or action.
