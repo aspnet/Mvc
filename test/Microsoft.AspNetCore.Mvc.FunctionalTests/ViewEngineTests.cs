@@ -247,7 +247,7 @@ ViewWithNestedLayout-Content
         }
 
         [Fact]
-        public async Task RazorViewEngine_RendersViewsFromEmbeddedFileProvider()
+        public async Task RazorViewEngine_RendersViewsFromEmbeddedFileProvider_WhenLookedupByName()
         {
             // Arrange
             var expected =
@@ -257,7 +257,24 @@ Hello from Shared/_EmbeddedPartial
 </embdedded-layout>";
 
             // Act
-            var body = await Client.GetStringAsync("/EmbeddedViews");
+            var body = await Client.GetStringAsync("/EmbeddedViews/LookupByName");
+
+            // Assert
+            Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
+        }
+
+        [Fact]
+        public async Task RazorViewEngine_RendersViewsFromEmbeddedFileProvider_WhenLookedupByPath()
+        {
+            // Arrange
+            var expected =
+@"<embdedded-layout>Hello from EmbeddedShared/_Partial
+Hello from Shared/_EmbeddedPartial
+<a href=""/EmbeddedViews"">Tag Helper Link</a>
+</embdedded-layout>";
+
+            // Act
+            var body = await Client.GetStringAsync("/EmbeddedViews/LookupByPath");
 
             // Assert
             Assert.Equal(expected, body.Trim(), ignoreLineEndingDifferences: true);
@@ -489,6 +506,19 @@ Partial";
 
             // Act
             var responseContent = await Client.GetStringAsync("/BackSlash");
+
+            // Assert
+            Assert.Equal(expected, responseContent.Trim());
+        }
+
+        [Fact]
+        public async Task ViewEngine_ResolvesPathsWithSlashesThatDoNotHaveExtensions()
+        {
+            // Arrange
+            var expected = @"<embdedded-layout>Hello from EmbeddedHome\EmbeddedPartial</embdedded-layout>";
+
+            // Act
+            var responseContent = await Client.GetStringAsync("/EmbeddedViews/RelativeNonPath");
 
             // Assert
             Assert.Equal(expected, responseContent.Trim());

@@ -11,9 +11,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public static class ViewEnginePath
     {
+        public static readonly char[] PathSeparators = new[] { '/', '\\' };
         private const string CurrentDirectoryToken = ".";
         private const string ParentDirectoryToken = "..";
-        private static readonly char[] _pathSeparators = new[] { '/', '\\' };
+        // Tokens that suggest directory traversal such as ./, \.. etc. All parent directory traversals (such as "..\") are covered
+        // by current directory tokens (".\").
+        private static readonly string[] TokensRequiringResolution = new string[]
+        {
+            // ./
+            CurrentDirectoryToken + PathSeparators[0],
+            // .\
+            CurrentDirectoryToken + PathSeparators[1],
+            // /.
+            PathSeparators[0] + CurrentDirectoryToken,
+            // \.
+            PathSeparators[1] + CurrentDirectoryToken,
+            // //
+            string.Empty + PathSeparators[0] + PathSeparators[0],
+            // \\
+            string.Empty + PathSeparators[1] + PathSeparators[1],
+        };
 
         public static string CombinePath(string first, string second)
         {
@@ -53,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             var pathSegments = new List<StringSegment>();
-            var tokenizer = new StringTokenizer(path, _pathSeparators);
+            var tokenizer = new StringTokenizer(path, PathSeparators);
             foreach (var segment in tokenizer)
             {
                 if (segment.Length == 0)
@@ -95,8 +112,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static bool RequiresPathResolution(string path)
         {
-            return path.IndexOf(ParentDirectoryToken, StringComparison.Ordinal) != -1 ||
-                path.IndexOf(CurrentDirectoryToken, StringComparison.Ordinal) != -1;
+            for (var i = 0; i < TokensRequiringResolution.Length; i++)
+            {
+                if (path.IndexOf(TokensRequiringResolution[i]) != -1)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
