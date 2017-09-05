@@ -50,6 +50,18 @@ namespace Microsoft.AspNetCore.Mvc
             return new ActionResult<TValue>(result);
         }
 
+        public static implicit operator ActionResult<TValue>(ProblemDescription problemDescriptor)
+        {
+            var badRequestResultObject = new BadRequestObjectResult(problemDescriptor);
+
+            if (problemDescriptor.Status != null)
+            {
+                badRequestResultObject.StatusCode = problemDescriptor.Status;
+            }
+
+            return new ActionResult<TValue>(badRequestResultObject);
+        }
+
         IActionResult IConvertToActionResult.Convert()
         {
             return Result ?? new ObjectResult(Value)
