@@ -457,19 +457,28 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to action with the same name as current one.
+        /// Redirects (<see cref="StatusCodes.Status302Found"/>) to an action with the same name as current one.
         /// The 'controller' and 'action' names are retrieved from the ambient values of the current request.
         /// </summary>
         /// <returns>The created <see cref="RedirectToActionResult"/> for the response.</returns>
         /// <example>
-        /// A POST request to an action named "Product" creates a product and redirects to an action, also named
-        /// "Product", showing details of the created product.
+        /// A POST request to an action named "Product" updates a product and redirects to an action, also named
+        /// "Product", showing details of the updated product.
+        /// <code>
+        /// [HttpGet]
+        /// public IActionResult Product(int id)
+        /// {
+        ///     var product = RetrieveProduct(id);
+        ///     return View(product);
+        /// }
         ///
         /// [HttpPost]
-        /// public IActionResult Product(Product product) {}
-        ///
-        /// [HttpGet]
-        /// public IActionResult Product() {}
+        /// public IActionResult Product(int id, Product product)
+        /// {
+        ///     UpdateProduct(product);
+        ///     return RedirectToAction();
+        /// }
+        /// </code>
         /// </example>
         [NonAction]
         public virtual RedirectToActionResult RedirectToAction()
