@@ -43,7 +43,7 @@
         "portable-net451+win8"
       ],
       "dependencies": {
-        "System.Net.Http": "4.1.3-servicing-25629-01",
+        "System.Net.Http": "4.1.3",
         "System.Runtime.Serialization.Xml": "4.1.2",
         "System.Xml.XmlSerializer": "4.0.11"
       }
