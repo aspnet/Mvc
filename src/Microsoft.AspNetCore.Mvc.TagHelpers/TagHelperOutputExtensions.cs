@@ -169,6 +169,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
+            if (classValue.Contains(" "))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotContainWhitespace, nameof(classValue));
+            }
+
             if (!tagHelperOutput.Attributes.TryGetAttribute("class", out TagHelperAttribute classAttribute))
             {
                 tagHelperOutput.Attributes.Add("class", classValue);
@@ -209,6 +214,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             if (tagHelperOutput == null)
             {
                 throw new ArgumentNullException(nameof(tagHelperOutput));
+            }
+
+            if (classValue.Contains(" "))
+            {
+                throw new ArgumentException(Resources.ArgumentCannotContainWhitespace, nameof(classValue));
             }
 
             if (!tagHelperOutput.Attributes.TryGetAttribute("class", out TagHelperAttribute classAttribute))
