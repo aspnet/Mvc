@@ -169,24 +169,25 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            if (!tagHelperOutput.Attributes.ContainsName("class"))
+            if (!tagHelperOutput.Attributes.TryGetAttribute("class", out TagHelperAttribute classAttribute))
             {
                 tagHelperOutput.Attributes.Add("class", classValue);
             }
             else
             {
-                var classAttributeValue = tagHelperOutput.Attributes["class"].Value.ToString();
-                if (classAttributeValue.Contains(" "))
+                var currentClassValue = ExtractClassValue(classAttribute);
+
+                if (currentClassValue.Contains(" ") || currentClassValue.Equals(classValue))
                 {
-                    var arrayOfClasses = classAttributeValue.Split(' ');
+                    var arrayOfClasses = currentClassValue.Split(' ');
                     if (arrayOfClasses.Contains(classValue))
                     {
                         return;
                     }
                 }
 
-                tagHelperOutput.Attributes.SetAttribute("class",
-                    classAttributeValue.Length > 0 ? $"{classAttributeValue} {classValue}" : classValue);
+                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name,
+                    currentClassValue.Length > 0 ? $"{currentClassValue} {classValue}" : classValue);
             }
         }
 
@@ -205,21 +206,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            if (!tagHelperOutput.Attributes.ContainsName("class"))
+            if (!tagHelperOutput.Attributes.TryGetAttribute("class", out TagHelperAttribute classAttribute))
             {
                 return;
             }
 
-            var classAttributeValue = tagHelperOutput.Attributes["class"].Value.ToString();
+            var currentClassValue = ExtractClassValue(classAttribute);
 
-            if (classAttributeValue.Length == 0)
+            if (string.IsNullOrEmpty(currentClassValue))
             {
                 return;
             }
 
-            if (classAttributeValue.Contains(" "))
+            if (currentClassValue.Contains(" "))
             {
-                var arrayOfClasses = classAttributeValue.Split(' ').ToList();
+                var arrayOfClasses = currentClassValue.Split(' ').ToList();
 
                 if (!arrayOfClasses.Contains(classValue))
                 {
@@ -227,15 +228,41 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
 
                 arrayOfClasses.RemoveAll(x => x.Equals(classValue));
-                tagHelperOutput.Attributes.SetAttribute("class", string.Join(" ", arrayOfClasses));
+                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, string.Join(" ", arrayOfClasses));
             }
             else
             {
-                if (classAttributeValue.Equals(classValue))
+                if (currentClassValue.Equals(classValue))
                 {
                     tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
                 }
             }
+        }
+
+        private static string ExtractClassValue(TagHelperAttribute classAttribute)
+        {
+            string extractedClassValue;
+            switch (classAttribute.Value)
+            {
+                case string p:
+                    extractedClassValue = p;
+                    break;
+                case HtmlString s when s.Value != null:
+                    extractedClassValue = s.Value;
+                    break;
+                case IHtmlContent pathHtmlContent:
+                    using (var tw = new StringWriter())
+                    {
+                        pathHtmlContent.WriteTo(tw, NullHtmlEncoder.Default);
+                        extractedClassValue = tw.ToString();
+                    }
+                    break;
+                default:
+                    extractedClassValue = classAttribute?.Value?.ToString() ?? string.Empty;
+                    break;
+            }
+            var currentClassValue = extractedClassValue ?? classAttribute.Value.ToString();
+            return currentClassValue;
         }
 
         private static void CopyHtmlAttribute(
