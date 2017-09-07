@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ErrorDescription;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -158,6 +159,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, DefaultApplicationModelProvider>());
             services.TryAddEnumerable(
+                ServiceDescriptor.Transient<IApplicationModelProvider, ProblemDescriptionApplicationModelProvider>());
+            services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IActionDescriptorProvider, ControllerActionDescriptorProvider>());
             services.TryAddSingleton<IActionDescriptorCollectionProvider, ActionDescriptorCollectionProvider>();
 
@@ -203,6 +206,12 @@ namespace Microsoft.Extensions.DependencyInjection
             //
             services.TryAddTransient<RequestSizeLimitFilter>();
             services.TryAddTransient<DisableRequestSizeLimitFilter>();
+
+            // Action Filters
+            services.TryAddTransient<ProblemDescriptionFilter>();
+
+            // Error description
+            services.TryAddSingleton<IErrorDescriptionFactory, DefaultErrorDescriptorFactory>();
 
             //
             // ModelBinding, Validation
@@ -258,6 +267,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<MiddlewareFilterConfigurationProvider>();
             // This maintains a cache of middleware pipelines, so it needs to be a singleton
             services.TryAddSingleton<MiddlewareFilterBuilder>();
+
+            services.TryAddTransient<ProblemDescriptionFilter>();
+            services.TryAddTransient<IErrorDescriptionFactory, DefaultErrorDescriptorFactory>();
         }
 
         private static void ConfigureDefaultServices(IServiceCollection services)
