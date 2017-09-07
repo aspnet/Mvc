@@ -11,6 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [InlineData("Views/../Home/Index.cshtml", "/Home/Index.cshtml")]
         [InlineData("/Views/Home/../Shared/Partial.cshtml", "/Views/Shared/Partial.cshtml")]
         [InlineData("/Views/Shared/./Partial.cshtml", "/Views/Shared/Partial.cshtml")]
+        [InlineData("//Views/Index.cshtml", "/Views/Index.cshtml")]
         public void ResolvePath_ResolvesPathTraversals(string input, string expected)
         {
             // Arrange & Act
@@ -36,7 +37,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [Theory]
         [InlineData("/Views/Index.cshtml")]
         [InlineData(@"/Views\Index.cshtml")]
-        [InlineData(@"Index..cshtml")]
+        [InlineData("Index..cshtml")]
+        [InlineData("/directory.with.periods/sub-dir/index.cshtml")]
+        [InlineData("file.with.periods.cshtml")]
         public void ResolvePath_DoesNotModifyPathsWithoutTraversals(string input)
         {
             // Arrange & Act
