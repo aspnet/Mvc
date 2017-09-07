@@ -176,18 +176,23 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             else
             {
                 var currentClassValue = ExtractClassValue(classAttribute);
+                char[] spaceChars = { '\u0020', '\u0009', '\u000A', '\u000C', '\u000D' };
 
-                if (currentClassValue.Contains(" ") || currentClassValue.Equals(classValue))
+                if (spaceChars.Any(c => currentClassValue.Contains(c)) || currentClassValue.Equals(classValue))
                 {
-                    var arrayOfClasses = currentClassValue.Split(' ');
+                    var arrayOfClasses = currentClassValue.Split(spaceChars);
                     if (arrayOfClasses.Contains(classValue))
                     {
                         return;
                     }
                 }
 
-                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name,
-                    currentClassValue.Length > 0 ? $"{currentClassValue} {classValue}" : classValue);
+                var newClassAttribute = new TagHelperAttribute(
+                    classAttribute.Name,
+                    new ClassAttributeHtmlContent(classAttribute.Value, classValue),
+                    classAttribute.ValueStyle);
+
+                tagHelperOutput.Attributes.SetAttribute(newClassAttribute);
             }
         }
 
@@ -218,9 +223,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            if (currentClassValue.Contains(" "))
+            char[] spaceChars = { '\u0020', '\u0009', '\u000A', '\u000C', '\u000D' };
+
+            if (spaceChars.Any(c => currentClassValue.Contains(c)))
             {
-                var arrayOfClasses = currentClassValue.Split(' ').ToList();
+                var arrayOfClasses = currentClassValue.Split(spaceChars).ToList();
 
                 if (!arrayOfClasses.Contains(classValue))
                 {
@@ -228,7 +235,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 }
 
                 arrayOfClasses.RemoveAll(x => x.Equals(classValue));
-                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, string.Join(" ", arrayOfClasses));
+
+                var joinedClasses = new HtmlString(string.Join(" ", arrayOfClasses));
+                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, joinedClasses);
             }
             else
             {
@@ -244,11 +253,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             string extractedClassValue;
             switch (classAttribute.Value)
             {
-                case string p:
-                    extractedClassValue = p;
+                case string valueAsString:
+                    extractedClassValue = valueAsString;
                     break;
-                case HtmlString s when s.Value != null:
-                    extractedClassValue = s.Value;
+                case HtmlString valueAsHtmlString:
+                    extractedClassValue = valueAsHtmlString.Value;
                     break;
                 case IHtmlContent pathHtmlContent:
                     using (var tw = new StringWriter())
@@ -258,10 +267,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     }
                     break;
                 default:
-                    extractedClassValue = classAttribute?.Value?.ToString() ?? string.Empty;
+                    extractedClassValue = classAttribute.Value?.ToString();
                     break;
             }
-            var currentClassValue = extractedClassValue ?? classAttribute.Value.ToString();
+            var currentClassValue = extractedClassValue ?? string.Empty;
             return currentClassValue;
         }
 
