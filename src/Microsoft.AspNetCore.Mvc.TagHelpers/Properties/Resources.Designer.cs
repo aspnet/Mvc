@@ -167,16 +167,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <summary>
         /// Value cannot contain whitespace.
         /// </summary>
-        internal static string ArgumentCannotContainWhitespace
+        internal static string ArgumentCannotContainHtmlSpace
         {
-            get => GetString("ArgumentCannotContainWhitespace");
+            get => GetString("ArgumentCannotContainHtmlSpace");
         }
 
         /// <summary>
         /// Value cannot contain whitespace.
         /// </summary>
-        internal static string FormatArgumentCannotContainWhitespace()
-            => GetString("ArgumentCannotContainWhitespace");
+        internal static string FormatArgumentCannotContainHtmlSpace()
+            => GetString("ArgumentCannotContainHtmlSpace");
 
         private static string GetString(string name, params string[] formatterNames)
         {
