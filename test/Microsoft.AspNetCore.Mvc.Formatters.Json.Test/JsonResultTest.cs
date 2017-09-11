@@ -38,6 +38,33 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal("application/json; charset=utf-8", context.HttpContext.Response.ContentType);
         }
 
+        [Fact]
+        public async Task ExecuteAsync_WithTypeNameHandlingAuto_AppliesTypeNameToRoot()
+        {
+            // Arrange
+            var value = new { foo = "abcd" };
+            var serializerSettings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.Auto
+            };
+            var expected = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value, typeof(object), serializerSettings));
+
+            var context = GetActionContext();
+
+            var result = new JsonResult(value, serializerSettings)
+            {
+                DeclaredType = typeof(object)
+            };
+
+            // Act
+            await result.ExecuteResultAsync(context);
+
+            // Assert
+            var written = GetWrittenBytes(context.HttpContext);
+            Assert.Equal(expected, written);
+            Assert.Equal("application/json; charset=utf-8", context.HttpContext.Response.ContentType);
+        }
+
         private static HttpContext GetHttpContext()
         {
             var httpContext = new DefaultHttpContext();

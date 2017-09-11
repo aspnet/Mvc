@@ -70,6 +70,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <param name="value">The value to write as JSON.</param>
         public void WriteObject(TextWriter writer, object value)
         {
+            WriteObject(writer, value, null);
+        }
+
+        /// <summary>
+        /// Writes the given <paramref name="value"/> with the given <paramref name="declaredType"/> as JSON using the given
+        /// <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> used to write the <paramref name="value"/></param>
+        /// <param name="value">The value to write as JSON.</param>
+        /// <param name="declaredType">The declared type of the value to write as JSON.</param>
+        public void WriteObject(TextWriter writer, object value, Type declaredType)
+        {
             if (writer == null)
             {
                 throw new ArgumentNullException(nameof(writer));
@@ -78,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             using (var jsonWriter = CreateJsonWriter(writer))
             {
                 var jsonSerializer = CreateJsonSerializer();
-                jsonSerializer.Serialize(jsonWriter, value);
+                jsonSerializer.Serialize(jsonWriter, value, declaredType);
             }
         }
 
@@ -134,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             var response = context.HttpContext.Response;
             using (var writer = context.WriterFactory(response.Body, selectedEncoding))
             {
-                WriteObject(writer, context.Object);
+                WriteObject(writer, context.Object, context.ObjectType);
 
                 // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
                 // buffers. This is better than just letting dispose handle it (which would result in a synchronous
