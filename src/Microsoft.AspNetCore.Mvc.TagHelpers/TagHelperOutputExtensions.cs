@@ -200,47 +200,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     return;
                 }
 
-                var containsSpace = SpaceChars.Any(currentClassValue.Contains);
+                var arrayOfClasses = currentClassValue.Split(SpaceChars, StringSplitOptions.RemoveEmptyEntries)
+                    .SelectMany(perhapsEncoded => perhapsEncoded.Split(encodedSpaceChars, StringSplitOptions.RemoveEmptyEntries))
+                    .ToArray();
 
-                var containsEncodedSpace = encodedSpaceChars.Any(currentClassValue.Contains);
-
-                if (containsSpace && !containsEncodedSpace)
+                if (arrayOfClasses.Contains(encodedClassValue))
                 {
-                    var arrayOfClasses = currentClassValue.Split(SpaceChars);
-
-                    if (arrayOfClasses.Contains(encodedClassValue))
-                    {
-                        return;
-                    }
-                }
-                else if (!containsSpace && containsEncodedSpace)
-                {
-                    var arrayOfClasses = currentClassValue.Split(encodedSpaceChars, StringSplitOptions.None);
-
-                    if (arrayOfClasses.Contains(encodedClassValue))
-                    {
-                        return;
-                    }
-                }
-                else if (containsSpace)
-                {
-                    var listOfClasses = currentClassValue.Split(SpaceChars).ToList();
-                    var classesContainingEncodedSpace = listOfClasses.Where(x => encodedSpaceChars.Any(x.Contains));
-                    var listOfSubClasses = new List<string>();
-
-                    foreach (var classContainingEncodedSpace in classesContainingEncodedSpace)
-                    {
-                        var subClasses = classContainingEncodedSpace.Split(encodedSpaceChars, StringSplitOptions.None);
-                        listOfSubClasses.AddRange(subClasses);
-                    }
-
-                    listOfClasses.RemoveAll(x => encodedSpaceChars.Any(x.Contains));
-                    listOfClasses.AddRange(listOfSubClasses);
-
-                    if (listOfClasses.Contains(encodedClassValue))
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 var newClassAttribute = new TagHelperAttribute(
@@ -301,49 +267,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            var containsSpace = SpaceChars.Any(currentClassValue.Contains);
+            var listOfClasses = currentClassValue.Split(SpaceChars, StringSplitOptions.RemoveEmptyEntries)
+                .SelectMany(perhapsEncoded => perhapsEncoded.Split(encodedSpaceChars, StringSplitOptions.RemoveEmptyEntries))
+                .ToList();
 
-            var containsEncodedSpace = encodedSpaceChars.Any(currentClassValue.Contains);
-
-            var listOfClasses = new List<string>();
-
-            if (containsSpace && !containsEncodedSpace)
+            if (!listOfClasses.Contains(encodedClassValue))
             {
-                listOfClasses = currentClassValue.Split(SpaceChars).ToList();
-
-                if (!listOfClasses.Contains(encodedClassValue))
-                {
-                    return;
-                }
-            }
-            else if (!containsSpace && containsEncodedSpace)
-            {
-                listOfClasses = currentClassValue.Split(encodedSpaceChars, StringSplitOptions.None).ToList();
-
-                if (!listOfClasses.Contains(encodedClassValue))
-                {
-                    return;
-                }
-            }
-            else if (containsSpace)
-            {
-                listOfClasses = currentClassValue.Split(SpaceChars).ToList();
-                var classesContainingEncodedSpace = listOfClasses.Where(x => encodedSpaceChars.Any(x.Contains));
-                var listOfSubClasses = new List<string>();
-
-                foreach (var classContainingEncodedSpace in classesContainingEncodedSpace)
-                {
-                    var subClasses = classContainingEncodedSpace.Split(encodedSpaceChars, StringSplitOptions.None);
-                    listOfSubClasses.AddRange(subClasses);
-                }
-
-                listOfClasses.RemoveAll(x => encodedSpaceChars.Any(x.Contains));
-                listOfClasses.AddRange(listOfSubClasses);
-
-                if (!listOfClasses.Contains(encodedClassValue))
-                {
-                    return;
-                }
+                return;
             }
 
             listOfClasses.RemoveAll(x => x.Equals(encodedClassValue));
