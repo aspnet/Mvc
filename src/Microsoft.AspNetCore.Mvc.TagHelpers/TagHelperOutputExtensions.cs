@@ -173,9 +173,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            var encodedClassValue = htmlEncoder.Encode(classValue);
+            if (string.IsNullOrEmpty(classValue))
+            {
+                return;
+            }
 
-            if (SpaceChars.Any(encodedClassValue.Contains))
+            var encodedSpaceChars = SpaceChars.Where(x => !x.Equals('\u0020')).Select(x => htmlEncoder.Encode(x.ToString())).ToArray();
+
+            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(classValue.Contains))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -188,15 +193,51 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 var currentClassValue = ExtractClassValue(classAttribute, htmlEncoder);
 
+                var encodedClassValue = htmlEncoder.Encode(classValue);
+
                 if (currentClassValue.Equals(encodedClassValue))
                 {
                     return;
                 }
 
-                if (SpaceChars.Any(currentClassValue.Contains))
+                var containsSpace = SpaceChars.Any(currentClassValue.Contains);
+
+                var containsEncodedSpace = encodedSpaceChars.Any(currentClassValue.Contains);
+
+                if (containsSpace && !containsEncodedSpace)
                 {
                     var arrayOfClasses = currentClassValue.Split(SpaceChars);
+
                     if (arrayOfClasses.Contains(encodedClassValue))
+                    {
+                        return;
+                    }
+                }
+                else if (!containsSpace && containsEncodedSpace)
+                {
+                    var arrayOfClasses = currentClassValue.Split(encodedSpaceChars, StringSplitOptions.None);
+
+                    if (arrayOfClasses.Contains(encodedClassValue))
+                    {
+                        return;
+                    }
+                }
+                else if (containsSpace)
+                {
+                    var listOfClasses = currentClassValue.Split(SpaceChars).ToList();
+                    var classesContainingEncodedSpace = listOfClasses.Where(x => encodedSpaceChars.Any(x.Contains));
+                    var listOfSubClasses = new List<string>();
+
+                    foreach (var classContainingEncodedSpace in classesContainingEncodedSpace)
+                    {
+                        var subClasses = classContainingEncodedSpace.Split(encodedSpaceChars, StringSplitOptions.None);
+                        listOfSubClasses.AddRange(subClasses);
+                    }
+
+                    listOfClasses.RemoveAll(x => encodedSpaceChars.Any(x.Contains));
+                    listOfClasses.AddRange(listOfSubClasses);
+
+                    if (listOfClasses.Contains(encodedClassValue))
                     {
                         return;
                     }
@@ -204,7 +245,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 var newClassAttribute = new TagHelperAttribute(
                     classAttribute.Name,
-                    new HtmlString($"{currentClassValue} {classValue}"),
+                    new HtmlString($"{currentClassValue} {encodedClassValue}"),
                     classAttribute.ValueStyle);
 
                 tagHelperOutput.Attributes.SetAttribute(newClassAttribute);
@@ -228,9 +269,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            var encodedClassValue = htmlEncoder.Encode(classValue);
+            var encodedSpaceChars = SpaceChars.Where(x => !x.Equals('\u0020')).Select(x => htmlEncoder.Encode(x.ToString())).ToArray();
 
-            if (SpaceChars.Any(encodedClassValue.Contains))
+            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(classValue.Contains))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -247,27 +288,67 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
+            var encodedClassValue = htmlEncoder.Encode(classValue);
+
             if (currentClassValue.Equals(encodedClassValue))
             {
                 tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
                 return;
             }
 
-            if (!SpaceChars.Any(currentClassValue.Contains))
+            if (!currentClassValue.Contains(encodedClassValue))
             {
                 return;
             }
 
-            var arrayOfClasses = currentClassValue.Split(SpaceChars).ToList();
+            var containsSpace = SpaceChars.Any(currentClassValue.Contains);
 
-            if (!arrayOfClasses.Contains(encodedClassValue))
+            var containsEncodedSpace = encodedSpaceChars.Any(currentClassValue.Contains);
+
+            var listOfClasses = new List<string>();
+
+            if (containsSpace && !containsEncodedSpace)
             {
-                return;
+                listOfClasses = currentClassValue.Split(SpaceChars).ToList();
+
+                if (!listOfClasses.Contains(encodedClassValue))
+                {
+                    return;
+                }
+            }
+            else if (!containsSpace && containsEncodedSpace)
+            {
+                listOfClasses = currentClassValue.Split(encodedSpaceChars, StringSplitOptions.None).ToList();
+
+                if (!listOfClasses.Contains(encodedClassValue))
+                {
+                    return;
+                }
+            }
+            else if (containsSpace)
+            {
+                listOfClasses = currentClassValue.Split(SpaceChars).ToList();
+                var classesContainingEncodedSpace = listOfClasses.Where(x => encodedSpaceChars.Any(x.Contains));
+                var listOfSubClasses = new List<string>();
+
+                foreach (var classContainingEncodedSpace in classesContainingEncodedSpace)
+                {
+                    var subClasses = classContainingEncodedSpace.Split(encodedSpaceChars, StringSplitOptions.None);
+                    listOfSubClasses.AddRange(subClasses);
+                }
+
+                listOfClasses.RemoveAll(x => encodedSpaceChars.Any(x.Contains));
+                listOfClasses.AddRange(listOfSubClasses);
+
+                if (!listOfClasses.Contains(encodedClassValue))
+                {
+                    return;
+                }
             }
 
-            arrayOfClasses.RemoveAll(x => x.Equals(encodedClassValue));
+            listOfClasses.RemoveAll(x => x.Equals(encodedClassValue));
 
-            var joinedClasses = new HtmlString(string.Join(" ", arrayOfClasses));
+            var joinedClasses = new HtmlString(string.Join(" ", listOfClasses));
             tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, joinedClasses);
         }
 
