@@ -162,16 +162,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="classValue">The class value to add.</param>
+        /// <param name="htmlEncoder">The current HTML encoder.</param>
         public static void AddClass(
             this TagHelperOutput tagHelperOutput,
-            string classValue)
+            string classValue,
+            HtmlEncoder htmlEncoder)
         {
             if (tagHelperOutput == null)
             {
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            if (SpaceChars.Any(classValue.Contains))
+            var encodedClassValue = htmlEncoder.Encode(classValue);
+
+            if (SpaceChars.Any(encodedClassValue.Contains))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -182,17 +186,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
             else
             {
-                var currentClassValue = ExtractClassValue(classAttribute);
+                var currentClassValue = ExtractClassValue(classAttribute, htmlEncoder);
 
-                if (currentClassValue.Equals(classValue))
+                if (currentClassValue.Equals(encodedClassValue))
                 {
                     return;
                 }
 
-                if (SpaceChars.Any(c => currentClassValue.Contains(c)))
+                if (SpaceChars.Any(currentClassValue.Contains))
                 {
                     var arrayOfClasses = currentClassValue.Split(SpaceChars);
-                    if (arrayOfClasses.Contains(classValue))
+                    if (arrayOfClasses.Contains(encodedClassValue))
                     {
                         return;
                     }
@@ -200,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 var newClassAttribute = new TagHelperAttribute(
                     classAttribute.Name,
-                    new ClassAttributeHtmlContent(classAttribute.Value, classValue),
+                    new HtmlString($"{currentClassValue} {classValue}"),
                     classAttribute.ValueStyle);
 
                 tagHelperOutput.Attributes.SetAttribute(newClassAttribute);
@@ -213,16 +217,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         /// <param name="tagHelperOutput">The <see cref="TagHelperOutput"/> this method extends.</param>
         /// <param name="classValue">The class value to remove.</param>
+        /// <param name="htmlEncoder">The current HTML encoder.</param>
         public static void RemoveClass(
             this TagHelperOutput tagHelperOutput,
-            string classValue)
+            string classValue,
+            HtmlEncoder htmlEncoder)
         {
             if (tagHelperOutput == null)
             {
                 throw new ArgumentNullException(nameof(tagHelperOutput));
             }
 
-            if (SpaceChars.Any(classValue.Contains))
+            var encodedClassValue = htmlEncoder.Encode(classValue);
+
+            if (SpaceChars.Any(encodedClassValue.Contains))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -232,14 +240,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 return;
             }
 
-            var currentClassValue = ExtractClassValue(classAttribute);
+            var currentClassValue = ExtractClassValue(classAttribute, htmlEncoder);
 
             if (string.IsNullOrEmpty(currentClassValue))
             {
                 return;
             }
 
-            if (currentClassValue.Equals(classValue))
+            if (currentClassValue.Equals(encodedClassValue))
             {
                 tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
                 return;
@@ -252,18 +260,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var arrayOfClasses = currentClassValue.Split(SpaceChars).ToList();
 
-            if (!arrayOfClasses.Contains(classValue))
+            if (!arrayOfClasses.Contains(encodedClassValue))
             {
                 return;
             }
 
-            arrayOfClasses.RemoveAll(x => x.Equals(classValue));
+            arrayOfClasses.RemoveAll(x => x.Equals(encodedClassValue));
 
             var joinedClasses = new HtmlString(string.Join(" ", arrayOfClasses));
             tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, joinedClasses);
         }
 
-        private static string ExtractClassValue(TagHelperAttribute classAttribute)
+        private static string ExtractClassValue(
+            TagHelperAttribute classAttribute,
+            HtmlEncoder htmlEncoder)
         {
             string extractedClassValue;
             switch (classAttribute.Value)
@@ -277,7 +287,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 case IHtmlContent htmlContent:
                     using (var stringWriter = new StringWriter())
                     {
-                        htmlContent.WriteTo(stringWriter, NullHtmlEncoder.Default);
+                        htmlContent.WriteTo(stringWriter, htmlEncoder);
                         extractedClassValue = stringWriter.ToString();
                     }
                     break;
