@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var encodedSpaceChars = SpaceChars.Where(x => !x.Equals('\u0020')).Select(x => htmlEncoder.Encode(x.ToString())).ToArray();
 
-            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(classValue.Contains))
+            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(value => classValue.IndexOf(value, StringComparison.Ordinal) >= 0))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -195,7 +195,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
                 var encodedClassValue = htmlEncoder.Encode(classValue);
 
-                if (currentClassValue.Equals(encodedClassValue))
+                if (string.Equals(currentClassValue, encodedClassValue, StringComparison.Ordinal))
                 {
                     return;
                 }
@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     .SelectMany(perhapsEncoded => perhapsEncoded.Split(encodedSpaceChars, StringSplitOptions.RemoveEmptyEntries))
                     .ToArray();
 
-                if (arrayOfClasses.Contains(encodedClassValue))
+                if (arrayOfClasses.Contains(encodedClassValue, StringComparer.Ordinal))
                 {
                     return;
                 }
@@ -237,7 +237,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var encodedSpaceChars = SpaceChars.Where(x => !x.Equals('\u0020')).Select(x => htmlEncoder.Encode(x.ToString())).ToArray();
 
-            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(classValue.Contains))
+            if (SpaceChars.Any(classValue.Contains) || encodedSpaceChars.Any(value => classValue.IndexOf(value, StringComparison.Ordinal) >= 0))
             {
                 throw new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue));
             }
@@ -256,7 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var encodedClassValue = htmlEncoder.Encode(classValue);
 
-            if (currentClassValue.Equals(encodedClassValue))
+            if (string.Equals(currentClassValue, encodedClassValue, StringComparison.Ordinal))
             {
                 tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
                 return;
@@ -278,8 +278,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             listOfClasses.RemoveAll(x => x.Equals(encodedClassValue));
 
-            var joinedClasses = new HtmlString(string.Join(" ", listOfClasses));
-            tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, joinedClasses);
+            if (listOfClasses.Any())
+            {
+                var joinedClasses = new HtmlString(string.Join(" ", listOfClasses));
+                tagHelperOutput.Attributes.SetAttribute(classAttribute.Name, joinedClasses);
+            }
+            else
+            {
+                tagHelperOutput.Attributes.Remove(tagHelperOutput.Attributes["class"]);
+            }
         }
 
         private static string ExtractClassValue(

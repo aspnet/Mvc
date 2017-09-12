@@ -1015,7 +1015,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        public void Single_RemoveClass()
+        public void Multiple_AddClass_RemoveClass_RemovesAllButOne()
         {
             // Arrange
             var expectedValue = "class=\"HtmlEncode[[btn]]\"";
@@ -1059,6 +1059,93 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var exceptionRemove = Assert.Throws<ArgumentException>(() => tagHelperOutput.RemoveClass(classValue, htmlEncoder));
             Assert.Equal(expected, exceptionAdd.Message);
             Assert.Equal(expected, exceptionRemove.Message);
+        }
+
+        [Fact]
+        public void Single_RemoveClass_RemovesDuplicates_RemovesEntirely()
+        {
+            // Arrange
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            tagHelperOutput.Attributes.SetAttribute("class", new HtmlString("HtmlEncode[[btn]] HtmlEncode[[btn]]"));
+
+            // Act
+            tagHelperOutput.RemoveClass("btn", htmlEncoder);
+
+            // Assert
+            Assert.Equal(0, tagHelperOutput.Attributes.Count);
+        }
+
+        [Fact]
+        public void Single_RemoveClass_RemovesDuplicates()
+        {
+            // Arrange
+            var expectedValue = "class=\"HtmlEncode[[btn-primary]]\"";
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            tagHelperOutput.Attributes.SetAttribute("class", new HtmlString("HtmlEncode[[btn]] HtmlEncode[[btn-primary]] HtmlEncode[[btn]]"));
+
+            // Act
+            tagHelperOutput.RemoveClass("btn", htmlEncoder);
+
+            // Assert
+            var classAttribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(classAttribute));
+        }
+
+        [Fact]
+        public void Single_RemoveClass_RemovesEntirely()
+        {
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            tagHelperOutput.Attributes.SetAttribute("class", new HtmlString("HtmlEncode[[btn]]"));
+
+            // Act
+            tagHelperOutput.RemoveClass("btn", htmlEncoder);
+
+            // Assert
+            Assert.Equal(0, tagHelperOutput.Attributes.Count);
+        }
+
+        [Fact]
+        public void Single_RemoveClass()
+        {
+            // Arrange
+            var expectedValue = "class=\"HtmlEncode[[btn]]\"";
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            tagHelperOutput.Attributes.SetAttribute("class", new HtmlString("HtmlEncode[[btn]] HtmlEncode[[btn-primary]]"));
+
+            // Act
+            tagHelperOutput.RemoveClass("btn-primary", htmlEncoder);
+
+            // Assert
+            var classAttribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(classAttribute));
         }
     }
 }
