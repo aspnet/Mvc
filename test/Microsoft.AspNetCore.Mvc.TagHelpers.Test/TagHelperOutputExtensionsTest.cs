@@ -1044,7 +1044,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public void AddClass_RemoveClass_ContainsSpace()
         {
             // Arrange
-            var expected = Resources.ArgumentCannotContainHtmlSpace;
+            var classValue = "btn btn-success";
+            var expected = new ArgumentException(Resources.ArgumentCannotContainHtmlSpace, nameof(classValue)).Message;
             var htmlEncoder = new HtmlTestEncoder();
 
             var tagHelperOutput = new TagHelperOutput(
@@ -1054,8 +1055,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     new DefaultTagHelperContent()));
 
             // Act and Assert
-            var exceptionAdd = Assert.Throws<ArgumentException>(() => tagHelperOutput.AddClass("btn btn-success", htmlEncoder));
-            var exceptionRemove = Assert.Throws<ArgumentException>(() => tagHelperOutput.RemoveClass("btn btn-primary", htmlEncoder));
+            var exceptionAdd = Assert.Throws<ArgumentException>(() => tagHelperOutput.AddClass(classValue, htmlEncoder));
+            var exceptionRemove = Assert.Throws<ArgumentException>(() => tagHelperOutput.RemoveClass(classValue, htmlEncoder));
             Assert.Equal(expected, exceptionAdd.Message);
             Assert.Equal(expected, exceptionRemove.Message);
         }
