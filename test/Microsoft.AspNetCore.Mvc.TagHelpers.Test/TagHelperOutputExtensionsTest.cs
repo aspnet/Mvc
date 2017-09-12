@@ -968,5 +968,94 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("for"));
             Assert.Equal(expectedBuilderAttribute.Value, attribute.Value);
         }
+
+        [Fact]
+        public void Single_AddClass()
+        {
+            // Arrange
+            var expectedValue = "class=\"HtmlEncode[[btn]]\"";
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            // Act
+            tagHelperOutput.AddClass("btn", htmlEncoder);
+
+            // Assert
+            var classAttribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(classAttribute));
+        }
+
+        [Fact]
+        public void Multiple_AddClass()
+        {
+            // Arrange
+            var expectedValue = "class=\"HtmlEncode[[btn]] HtmlEncode[[btn-primary]]\"";
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            // Act
+            tagHelperOutput.AddClass("btn", htmlEncoder);
+            tagHelperOutput.AddClass("btn-primary", htmlEncoder);
+
+            // Assert
+            var classAttribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(classAttribute));
+        }
+
+        [Fact]
+        public void Single_RemoveClass()
+        {
+            // Arrange
+            var expectedValue = "class=\"HtmlEncode[[btn]]\"";
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            tagHelperOutput.AddClass("btn", htmlEncoder);
+            tagHelperOutput.AddClass("btn-success", htmlEncoder);
+            tagHelperOutput.AddClass("btn-primary", htmlEncoder);
+
+            // Act
+            tagHelperOutput.RemoveClass("btn-success", htmlEncoder);
+            tagHelperOutput.RemoveClass("btn-primary", htmlEncoder);
+
+            // Assert
+            var classAttribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class"));
+            Assert.Equal(expectedValue, HtmlContentUtilities.HtmlContentToString(classAttribute));
+        }
+
+        [Fact]
+        public void AddClass_RemoveClass_ContainsSpace()
+        {
+            // Arrange
+            var expected = Resources.ArgumentCannotContainHtmlSpace;
+            var htmlEncoder = new HtmlTestEncoder();
+
+            var tagHelperOutput = new TagHelperOutput(
+                tagName: "p",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            // Act and Assert
+            var exceptionAdd = Assert.Throws<ArgumentException>(() => tagHelperOutput.AddClass("btn btn-success", htmlEncoder));
+            var exceptionRemove = Assert.Throws<ArgumentException>(() => tagHelperOutput.RemoveClass("btn btn-primary", htmlEncoder));
+            Assert.Equal(expected, exceptionAdd.Message);
+            Assert.Equal(expected, exceptionRemove.Message);
+        }
     }
 }

@@ -290,7 +290,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             switch (classAttribute.Value)
             {
                 case string valueAsString:
-                    extractedClassValue = valueAsString;
+                    extractedClassValue = htmlEncoder.Encode(valueAsString);
                     break;
                 case HtmlString valueAsHtmlString:
                     extractedClassValue = valueAsHtmlString.Value;
@@ -303,7 +303,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     }
                     break;
                 default:
-                    extractedClassValue = classAttribute.Value?.ToString();
+                    extractedClassValue = htmlEncoder.Encode(classAttribute.Value?.ToString());
                     break;
             }
             var currentClassValue = extractedClassValue ?? string.Empty;
