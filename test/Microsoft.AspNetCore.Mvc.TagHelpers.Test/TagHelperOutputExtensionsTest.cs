@@ -922,7 +922,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             attribute = Assert.Single(tagHelperOutput.Attributes, attr => attr.Name.Equals("class2"));
             Assert.Equal(expectedAttribute2.Value, attribute.Value);
         }
-        
+
         [Fact]
         public void MergeAttributes_Maintains_TagHelperOutputAttributeValues()
         {
@@ -1080,7 +1080,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagHelperOutput.RemoveClass("btn", htmlEncoder);
 
             // Assert
-            Assert.Equal(0, tagHelperOutput.Attributes.Count);
+            var classAttribute = tagHelperOutput.Attributes["class"];
+            Assert.Null(classAttribute);
         }
 
         [Fact]
@@ -1123,7 +1124,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             tagHelperOutput.RemoveClass("btn", htmlEncoder);
 
             // Assert
-            Assert.Equal(0, tagHelperOutput.Attributes.Count);
+            var classAttribute = tagHelperOutput.Attributes["class"];
+            Assert.Null(classAttribute);
         }
 
         [Fact]
