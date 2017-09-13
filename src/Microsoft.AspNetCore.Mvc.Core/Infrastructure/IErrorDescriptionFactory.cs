@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc.Abstractions;
 
-namespace Microsoft.AspNetCore.Mvc.ErrorDescription
+namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
     /// <summary>
     /// Defines a contract for creating or modifying an error response.

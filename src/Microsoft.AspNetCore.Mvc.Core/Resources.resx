@@ -415,10 +415,13 @@
   <data name="ValidationProblemDescription_Title" xml:space="preserve">
     <value>One or more validation errors occured.</value>
   </data>
-  <data name="ProblemDescription_400_Title" xml:space="preserve">
+  <data name="ProblemDetails_400_Title" xml:space="preserve">
     <value>400 Bad Request</value>
   </data>
-  <data name="ProblemDescription_404_Title" xml:space="preserve">
+  <data name="ProblemDetails_404_Title" xml:space="preserve">
     <value>Resource with the specified id could not be found.</value>
+  </data>
+  <data name="ProblemDetails_415_Title" xml:space="preserve">
+    <value>The request entity is in a format that is not supported by the requested resource.</value>
   </data>
 </root>

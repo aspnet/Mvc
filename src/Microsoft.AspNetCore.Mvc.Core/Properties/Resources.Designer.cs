@@ -1343,30 +1343,44 @@ namespace Microsoft.AspNetCore.Mvc.Core
         /// <summary>
         /// 400 Bad Request
         /// </summary>
-        internal static string ProblemDescription_400_Title
+        internal static string ProblemDetails_400_Title
         {
-            get => GetString("ProblemDescription_400_Title");
+            get => GetString("ProblemDetails_400_Title");
         }
 
         /// <summary>
         /// 400 Bad Request
         /// </summary>
-        internal static string FormatProblemDescription_400_Title()
-            => GetString("ProblemDescription_400_Title");
+        internal static string FormatProblemDetails_400_Title()
+            => GetString("ProblemDetails_400_Title");
 
         /// <summary>
         /// Resource with the specified id could not be found.
         /// </summary>
-        internal static string ProblemDescription_404_Title
+        internal static string ProblemDetails_404_Title
         {
-            get => GetString("ProblemDescription_404_Title");
+            get => GetString("ProblemDetails_404_Title");
         }
 
         /// <summary>
         /// Resource with the specified id could not be found.
         /// </summary>
-        internal static string FormatProblemDescription_404_Title()
-            => GetString("ProblemDescription_404_Title");
+        internal static string FormatProblemDetails_404_Title()
+            => GetString("ProblemDetails_404_Title");
+
+        /// <summary>
+        /// The request entity is in a format that is not supported by the requested resource.
+        /// </summary>
+        internal static string ProblemDetails_415_Title
+        {
+            get => GetString("ProblemDetails_415_Title");
+        }
+
+        /// <summary>
+        /// The request entity is in a format that is not supported by the requested resource.
+        /// </summary>
+        internal static string FormatProblemDetails_415_Title()
+            => GetString("ProblemDetails_415_Title");
 
         private static string GetString(string name, params string[] formatterNames)
         {

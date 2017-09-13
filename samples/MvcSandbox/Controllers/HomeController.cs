@@ -14,9 +14,5 @@ namespace MvcSandbox.Controllers
         {
             return View();
         }
-
-        [HttpGet("")]
-        [ProblemDescription]
-        public IActionResult DoStuff() => Json(new { Hello = "world" });
     }
 }

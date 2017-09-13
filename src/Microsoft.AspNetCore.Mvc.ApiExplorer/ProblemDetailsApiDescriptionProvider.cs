@@ -5,16 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 {
-    public class ProblemAttributeApiDescriptionProvider : IApiDescriptionProvider
+    public class ProblemDetailsApiDescriptionProvider : IApiDescriptionProvider
     {
         private readonly IModelMetadataProvider _modelMetadaProvider;
 
-        public ProblemAttributeApiDescriptionProvider(IModelMetadataProvider modelMetadataProvider)
+        public ProblemDetailsApiDescriptionProvider(IModelMetadataProvider modelMetadataProvider)
         {
             _modelMetadaProvider = modelMetadataProvider;
         }
@@ -32,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         {
             foreach (var apiDescription in context.Results)
             {
-                if (!apiDescription.ActionDescriptor.Properties.ContainsKey(ProblemDescriptionApplicationModelProvider.ProblemDescriptionAttributeKey))
+                if (!apiDescription.ActionDescriptor.FilterDescriptors.Any(f => f.Filter is ProblemDetailsAttribute))
                 {
                     continue;
                 }
@@ -42,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 {
                     apiDescription.SupportedResponseTypes.Add(CreateProblemResponse(StatusCodes.Status400BadRequest));
 
-                    if (parameters.Any(p => string.Equals("id", p.Name, StringComparison.OrdinalIgnoreCase)))
+                    if (parameters.Any(p => p.Name.EndsWith("id", StringComparison.OrdinalIgnoreCase)))
                     {
                         apiDescription.SupportedResponseTypes.Add(CreateProblemResponse(StatusCodes.Status404NotFound));
                     }
@@ -67,9 +66,9 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                             MediaType = "application/problem+xml",
                         },
                     },
-                ModelMetadata = _modelMetadaProvider.GetMetadataForType(typeof(ProblemDescription)),
+                ModelMetadata = _modelMetadaProvider.GetMetadataForType(typeof(ProblemDetails)),
                 StatusCode = statusCode,
-                Type = typeof(ProblemDescription),
+                Type = typeof(ProblemDetails),
             };
         }
     }

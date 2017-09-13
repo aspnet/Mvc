@@ -4,8 +4,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace Microsoft.AspNetCore.Mvc.ErrorDescription
+namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class DefaultErrorDescriptorFactory : IErrorDescriptionFactory
     {

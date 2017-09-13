@@ -11,10 +11,10 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// Adds an <see cref="IFilterMetadata"/> that enhances some basic 4xx client error responses.
     /// <para>
-    /// The <see cref="ProblemDescriptionAttribute"/> adds an <see cref="IActionFilter"/> that adds details to the HTTP
-    /// response, when the action signature matches certain patterns. By default, a <see cref="ProblemDescription"/>
+    /// The <see cref="ProblemDetailsAttribute"/> adds an <see cref="IActionFilter"/> that adds details to the HTTP
+    /// response, when the action signature matches certain patterns. By default, a <see cref="ProblemDetails"/>
     /// is returned in the response body. This can be further configured by registering instances of 
-    /// <see cref="ErrorDescription.IErrorDescriptorProvider"/> in the service container.
+    /// <see cref="Infrastructure.IErrorDescriptorProvider"/> in the service container.
     /// </para>
     /// Patterns matched by the filter include:
     /// <list>
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// </list>
     /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class ProblemDescriptionAttribute : Attribute, IFilterFactory
+    public class ProblemDetailsAttribute : Attribute, IFilterFactory
     {
         /// <inheritdoc />
         public bool IsReusable => true;
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            return serviceProvider.GetRequiredService<ProblemDescriptionFilter>();
+            return serviceProvider.GetRequiredService<ProblemDetailsFilter>();
         }
     }
 }
