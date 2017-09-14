@@ -47,6 +47,8 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                     }
                 }
 
+                // We don't have a good way to signal a "default" response type. We'll use 0 to indicate this until we come up
+                // with something better.
                 apiDescription.SupportedResponseTypes.Add(CreateProblemResponse(statusCode: 0));
             }
         }

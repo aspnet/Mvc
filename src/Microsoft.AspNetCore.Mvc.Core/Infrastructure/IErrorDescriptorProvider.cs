@@ -9,7 +9,5 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         int Order { get; }
 
         void OnProvidersExecuting(ErrorDescriptionContext context);
-
-        void OnProvidersExecuted(ErrorDescriptionContext context);
     }
 }

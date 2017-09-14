@@ -204,9 +204,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient<RequestSizeLimitFilter>();
             services.TryAddTransient<DisableRequestSizeLimitFilter>();
 
-            // Action Filters
-            services.TryAddTransient<ProblemDetailsFilter>();
-
             // Error description
             services.TryAddSingleton<IErrorDescriptionFactory, DefaultErrorDescriptorFactory>();
 

@@ -3,40 +3,14 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// Adds an <see cref="IFilterMetadata"/> that enhances some basic 4xx client error responses.
-    /// <para>
-    /// The <see cref="ProblemDetailsAttribute"/> adds an <see cref="IActionFilter"/> that adds details to the HTTP
-    /// response, when the action signature matches certain patterns. By default, a <see cref="ProblemDetails"/>
-    /// is returned in the response body. This can be further configured by registering instances of 
-    /// <see cref="Infrastructure.IErrorDescriptorProvider"/> in the service container.
-    /// </para>
-    /// Patterns matched by the filter include:
-    /// <list>
-    /// <item>400 <see cref="StatusCodeResult"/> on any action which participates in model binding.</item>
-    /// <item>404 <see cref="StatusCodeResult"/> on any action with an <c>id</c> parameter.</item>
-    /// </list>
+    /// Adds an <see cref="IFilterMetadata"/> that indicates to the framework that the current action conforms to well-known API behavior.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class ProblemDetailsAttribute : Attribute, IFilterFactory
+    public class ProblemDetailsAttribute : Attribute, IFilterMetadata
     {
-        /// <inheritdoc />
-        public bool IsReusable => true;
-
-        /// <inheritdoc />
-        public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
-        {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            return serviceProvider.GetRequiredService<ProblemDetailsFilter>();
-        }
     }
 }
