@@ -33,20 +33,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 fileLength = result.FileStream.Length;
             }
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-
+            AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
             var (range, rangeLength, serveBody) = SetHeadersAndLog(
                 context,
                 result,
                 fileLength,
-                processRangeRequestsSwitch,
-                lastModified: result.LastModified,
-                etag: result.EntityTag);
+                result.LastModified,
+                result.EntityTag,
+                processRangeRequestsSwitch);
 
             if (!serveBody)
             {

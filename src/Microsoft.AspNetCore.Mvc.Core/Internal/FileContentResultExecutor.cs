@@ -28,20 +28,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(result));
             }
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-
+            AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
             var (range, rangeLength, serveBody) = SetHeadersAndLog(
                 context,
                 result,
                 result.FileContents.Length,
-                processRangeRequestsSwitch,
                 result.LastModified,
-                result.EntityTag);
+                result.EntityTag,
+                processRangeRequestsSwitch);
 
             if (!serveBody)
             {

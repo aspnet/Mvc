@@ -137,13 +137,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
@@ -198,13 +193,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
@@ -336,13 +326,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);

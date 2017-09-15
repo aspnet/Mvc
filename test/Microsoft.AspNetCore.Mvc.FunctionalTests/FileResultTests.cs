@@ -264,13 +264,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal(expectedBody, body);
@@ -318,13 +313,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             var body = await response.Content.ReadAsStringAsync();
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
                 Assert.NotNull(response.Content.Headers.ContentType);
@@ -376,13 +366,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal("This is", body);
@@ -448,13 +433,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal(expectedBody, body);
@@ -504,20 +484,15 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
                 Assert.NotNull(response.Content.Headers.ContentType);
                 Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
                 Assert.Empty(body);
             }
-
             else
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -562,18 +537,13 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-#if NET451
-                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
-                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
-#else
-            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
-#endif
-            if (processRangeRequestsSwitch)
+
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
+                && processRangeRequestsSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal("This is", body);
             }
-
             else
             {
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);

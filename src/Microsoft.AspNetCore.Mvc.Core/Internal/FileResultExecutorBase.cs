@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class FileResultExecutorBase
     {
-        internal const string ProcessRangeRequestsSwitch = "Switch.Microsoft.AspNetCore.Mvc.TurnOnRangeProcessing";
+        internal const string ProcessRangeRequestsSwitch = "Switch.Microsoft.AspNetCore.Mvc.ProcessRangeRequests";
 
         private const string AcceptRangeHeaderValue = "bytes";
 
@@ -42,9 +42,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ActionContext context,
             FileResult result,
             long? fileLength,
-            bool isRangeRequest = true,
             DateTimeOffset? lastModified = null,
-            EntityTagHeaderValue etag = null)
+            EntityTagHeaderValue etag = null,
+            bool enableRangeProcessing = true)
         {
             if (context == null)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // range processing (see method SetContentLength).
                 response.ContentLength = fileLength.Value;
 
-                if (isRangeRequest)
+                if (enableRangeProcessing)
                 {
                     SetAcceptRangeHeader(context);
                     if (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method))
