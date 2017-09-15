@@ -17,6 +17,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class FileResultExecutorBase
     {
+        internal const string ProcessRangeRequestsSwitch = "Switch.Microsoft.AspNetCore.Mvc.TurnOnRangeProcessing";
+
         private const string AcceptRangeHeaderValue = "bytes";
 
         protected const int BufferSize = 64 * 1024;
@@ -40,6 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ActionContext context,
             FileResult result,
             long? fileLength,
+            bool isRangeRequest = true,
             DateTimeOffset? lastModified = null,
             EntityTagHeaderValue etag = null)
         {
@@ -84,19 +87,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             if (fileLength.HasValue)
             {
-                SetAcceptRangeHeader(context);
                 // Assuming the request is not a range request, the Content-Length header is set to the length of the entire file. 
                 // If the request is a valid range request, this header is overwritten with the length of the range as part of the 
                 // range processing (see method SetContentLength).
                 response.ContentLength = fileLength.Value;
-                if (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method))
+
+                if (isRangeRequest)
                 {
-                    if ((preconditionState == PreconditionState.Unspecified ||
-                        preconditionState == PreconditionState.ShouldProcess))
+                    SetAcceptRangeHeader(context);
+                    if (HttpMethods.IsHead(request.Method) || HttpMethods.IsGet(request.Method))
                     {
-                        if (IfRangeValid(context, httpRequestHeaders, lastModified, etag))
+                        if ((preconditionState == PreconditionState.Unspecified ||
+                            preconditionState == PreconditionState.ShouldProcess))
                         {
-                            return SetRangeHeaders(context, httpRequestHeaders, fileLength.Value);
+                            if (IfRangeValid(context, httpRequestHeaders, lastModified, etag))
+                            {
+                                return SetRangeHeaders(context, httpRequestHeaders, fileLength.Value);
+                            }
                         }
                     }
                 }

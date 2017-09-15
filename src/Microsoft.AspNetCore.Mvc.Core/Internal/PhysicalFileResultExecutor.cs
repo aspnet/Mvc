@@ -43,8 +43,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 context,
                 result,
                 fileInfo.Length,
-                lastModified,
-                result.EntityTag);
+                lastModified: lastModified,
+                etag: result.EntityTag);
 
             if (serveBody)
             {

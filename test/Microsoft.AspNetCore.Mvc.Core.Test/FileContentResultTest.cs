@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc
         [InlineData(6, 10, "World", 5)]
         [InlineData(null, 5, "World", 5)]
         [InlineData(6, null, "World", 5)]
-        public async Task WriteFileAsync_PreconditionStateShouldProcess_WritesRangeRequested(long? start, long? end, string expectedString, long contentLength)
+        public async Task WriteFileAsync_PreconditionStateShouldProcess_RangeRequestIgnored_WritesRangeRequested_IfRangeProcessingOn(long? start, long? end, string expectedString, long contentLength)
         {
             // Arrange
             var contentType = "text/plain";
@@ -134,18 +134,34 @@ namespace Microsoft.AspNetCore.Mvc
             httpResponse.Body.Seek(0, SeekOrigin.Begin);
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
-            Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
-            var contentRange = new ContentRangeHeaderValue(start.Value, end.Value, byteArray.Length);
-            Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
-            Assert.Equal(contentLength, httpResponse.ContentLength);
-            Assert.Equal(expectedString, body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
+                Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
+                var contentRange = new ContentRangeHeaderValue(start.Value, end.Value, byteArray.Length);
+                Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
+                Assert.Equal(contentLength, httpResponse.ContentLength);
+                Assert.Equal(expectedString, body);
+            }
+            else
+            {
+                Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
+                Assert.Equal(11, httpResponse.ContentLength);
+                Assert.Equal("Hello World", body);
+            }
         }
 
         [Fact]
-        public async Task WriteFileAsync_IfRangeHeaderValid_WritesRequestedRange()
+        public async Task WriteFileAsync_IfRangeHeaderValid_WritesRangeRequest_IfRangeProcessingOn()
         {
             // Arrange
             var contentType = "text/plain";
@@ -179,18 +195,34 @@ namespace Microsoft.AspNetCore.Mvc
             httpResponse.Body.Seek(0, SeekOrigin.Begin);
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
-            Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
-            var contentRange = new ContentRangeHeaderValue(0, 4, byteArray.Length);
-            Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
-            Assert.Equal(5, httpResponse.ContentLength);
-            Assert.Equal("Hello", body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
+                Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
+                var contentRange = new ContentRangeHeaderValue(0, 4, byteArray.Length);
+                Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
+                Assert.Equal(5, httpResponse.ContentLength);
+                Assert.Equal("Hello", body);
+            }
+            else
+            {
+                Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
+                Assert.Equal(11, httpResponse.ContentLength);
+                Assert.Equal("Hello World", body);
+            }
         }
 
         [Fact]
-        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestedIgnored()
+        public async Task WriteFileAsync_IfRangeHeaderInvalid_RangeRequestIgnored()
         {
             // Arrange
             var contentType = "text/plain";
@@ -225,7 +257,6 @@ namespace Microsoft.AspNetCore.Mvc
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
             Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
             Assert.Equal("Hello World", body);
@@ -265,7 +296,6 @@ namespace Microsoft.AspNetCore.Mvc
             var body = streamReader.ReadToEndAsync().Result;
             Assert.Empty(httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
             Assert.Equal("Hello World", body);
@@ -303,16 +333,31 @@ namespace Microsoft.AspNetCore.Mvc
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
             var contentRange = new ContentRangeHeaderValue(byteArray.Length);
-            Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
-            Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
-            Assert.Empty(body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
+                Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
+                Assert.Equal(contentRange.ToString(), httpResponse.Headers[HeaderNames.ContentRange]);
+                Assert.Empty(body);
+            }
+            else
+            {
+                Assert.Equal(StatusCodes.Status200OK, httpResponse.StatusCode);
+                Assert.Equal("Hello World", body);
+            }
         }
 
         [Fact]
-        public async Task WriteFileAsync_RangeRequested_PreconditionFailed()
+        public async Task WriteFileAsync_PreconditionFailed()
         {
             // Arrange
             var contentType = "text/plain";
@@ -346,7 +391,6 @@ namespace Microsoft.AspNetCore.Mvc
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
             Assert.Equal(StatusCodes.Status412PreconditionFailed, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
             Assert.Equal(11, httpResponse.ContentLength);
             Assert.Empty(httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.NotEmpty(httpResponse.Headers[HeaderNames.LastModified]);
@@ -354,7 +398,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public async Task WriteFileAsync_RangeRequested_NotModified()
+        public async Task WriteFileAsync_NotModified()
         {
             // Arrange       
             var contentType = "text/plain";
@@ -388,7 +432,6 @@ namespace Microsoft.AspNetCore.Mvc
             var streamReader = new StreamReader(httpResponse.Body);
             var body = streamReader.ReadToEndAsync().Result;
             Assert.Equal(StatusCodes.Status304NotModified, httpResponse.StatusCode);
-            Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
             Assert.Equal(11, httpResponse.ContentLength);
             Assert.Empty(httpResponse.Headers[HeaderNames.ContentRange]);
             Assert.NotEmpty(httpResponse.Headers[HeaderNames.LastModified]);

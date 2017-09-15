@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Testing.xunit;
 using Xunit;
 
@@ -259,12 +259,27 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-            Assert.Equal(expectedBody, body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+                Assert.Equal(expectedBody, body);
+            }
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is sample text from a stream", body);
+            }
         }
 
         [Theory]
@@ -301,11 +316,26 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
-            Assert.NotNull(response.Content.Headers.ContentType);
-            Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+                Assert.NotNull(response.Content.Headers.ContentType);
+                Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
+                Assert.Empty(body);
+            }
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is sample text from a stream", body);
+            }
         }
 
         [Fact]
@@ -341,12 +371,28 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-            Assert.Equal("This is", body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+                Assert.Equal("This is", body);
+            }
+
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is sample text from a stream", body);
+            }
         }
 
         [Fact]
@@ -361,10 +407,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.NotNull(response.Content.Headers.ContentType);
-            Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("This is sample text from a stream", body);
         }
 
@@ -399,12 +443,27 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-            Assert.Equal(expectedBody, body);
+
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+                Assert.Equal(expectedBody, body);
+            }
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is a sample text from a binary array", body);
+            }
         }
 
         [Theory]
@@ -441,11 +500,29 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var response = await Client.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Empty(body);
+            Assert.NotNull(body);
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
+                Assert.NotNull(response.Content.Headers.ContentType);
+                Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
+                Assert.Empty(body);
+            }
+
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is a sample text from a binary array", body);
+            }
         }
 
         [Fact]
@@ -470,7 +547,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task FileFromBinaryData_ReturnsFileWithFileName_IfRangeHeaderValid_RangeRequest()
+        public async Task FileFromBinaryData_ReturnsFileWithFileName_IfRangeHeaderValid()
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "http://localhost/DownloadFiles/DownloadFromBinaryDataWithFileName_WithEtag");
@@ -480,13 +557,28 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Act
             var response = await Client.SendAsync(httpRequestMessage);
 
-            // Assert
-            Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+            // Assert           
             Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/plain", response.Content.Headers.ContentType.ToString());
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
-            Assert.Equal("This is", body);
+#if NET451
+                 var value = ConfigurationManager.AppSettings.GetValues(ProcessRangeRequestsSwitch)?.FirstOrDefault();
+                 var success = bool.TryParse(value, out var processRangeRequestsSwitch);
+#else
+            var success = AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+#endif
+            if (processRangeRequestsSwitch)
+            {
+                Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
+                Assert.Equal("This is", body);
+            }
+
+            else
+            {
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("This is a sample text from a binary array", body);
+            }
         }
 
         [Fact]
