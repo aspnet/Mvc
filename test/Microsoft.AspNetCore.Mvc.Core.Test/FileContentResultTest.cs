@@ -137,8 +137,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
@@ -193,8 +193,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(StatusCodes.Status206PartialContent, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);
@@ -326,8 +326,8 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(lastModified.ToString("R"), httpResponse.Headers[HeaderNames.LastModified]);
             Assert.Equal(entityTag.ToString(), httpResponse.Headers[HeaderNames.ETag]);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(StatusCodes.Status416RangeNotSatisfiable, httpResponse.StatusCode);
                 Assert.Equal("bytes", httpResponse.Headers[HeaderNames.AcceptRanges]);

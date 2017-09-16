@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class FileResultExecutorBase
     {
-        internal const string ProcessRangeRequestsSwitch = "Switch.Microsoft.AspNetCore.Mvc.ProcessRangeRequests";
+        internal const string EnableRangeProcessingSwitch = "Switch.Microsoft.AspNetCore.Mvc.EnableRangeProcessing";
 
         private const string AcceptRangeHeaderValue = "bytes";
 

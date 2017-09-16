@@ -264,8 +264,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal(expectedBody, body);
@@ -313,8 +313,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             var body = await response.Content.ReadAsStringAsync();
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
                 Assert.NotNull(response.Content.Headers.ContentType);
@@ -366,8 +366,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal("This is", body);
@@ -433,8 +433,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal(expectedBody, body);
@@ -485,8 +485,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.RequestedRangeNotSatisfiable, response.StatusCode);
                 Assert.NotNull(response.Content.Headers.ContentType);
@@ -538,8 +538,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
 
-            if (AppContext.TryGetSwitch(FileResultExecutorBase.ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch)
-                && processRangeRequestsSwitch)
+            if (AppContext.TryGetSwitch(FileResultExecutorBase.EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch)
+                && enableRangeProcessingSwitch)
             {
                 Assert.Equal(HttpStatusCode.PartialContent, response.StatusCode);
                 Assert.Equal("This is", body);

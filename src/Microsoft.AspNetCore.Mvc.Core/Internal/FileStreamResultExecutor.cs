@@ -33,14 +33,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 fileLength = result.FileStream.Length;
             }
 
-            AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+            AppContext.TryGetSwitch(EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch);
             var (range, rangeLength, serveBody) = SetHeadersAndLog(
                 context,
                 result,
                 fileLength,
                 result.LastModified,
                 result.EntityTag,
-                processRangeRequestsSwitch);
+                enableRangeProcessingSwitch);
 
             if (!serveBody)
             {

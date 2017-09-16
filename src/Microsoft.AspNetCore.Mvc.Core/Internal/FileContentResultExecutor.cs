@@ -28,14 +28,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(result));
             }
 
-            AppContext.TryGetSwitch(ProcessRangeRequestsSwitch, out var processRangeRequestsSwitch);
+            AppContext.TryGetSwitch(EnableRangeProcessingSwitch, out var enableRangeProcessingSwitch);
             var (range, rangeLength, serveBody) = SetHeadersAndLog(
                 context,
                 result,
                 result.FileContents.Length,
                 result.LastModified,
                 result.EntityTag,
-                processRangeRequestsSwitch);
+                enableRangeProcessingSwitch);
 
             if (!serveBody)
             {
