@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </summary>
         /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
         public MediaType(string mediaType)
-            : this(mediaType, 0, mediaType.Length)
+            : this(new StringSegment(mediaType))
         {
         }
 
@@ -33,8 +33,21 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </summary>
         /// <param name="mediaType">The <see cref="StringSegment"/> with the media type.</param>
         public MediaType(StringSegment mediaType)
-            : this(mediaType.Buffer, mediaType.Offset, mediaType.Length)
         {
+            if (MediaTypeHeaderValue.TryParse(mediaType, out _mediaTypeHeaderValue))
+            {
+                SubType = _mediaTypeHeaderValue.SubType;
+                Type = _mediaTypeHeaderValue.Type;
+                SubTypeSuffix = _mediaTypeHeaderValue.Suffix;
+                SubTypeWithoutSuffix = _mediaTypeHeaderValue.SubTypeWithoutSuffix;
+            }
+            else
+            {
+                SubType = new StringSegment();
+                Type = new StringSegment();
+                SubTypeSuffix = new StringSegment();
+                SubTypeWithoutSuffix = new StringSegment();
+            }
         }
 
         /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
@@ -42,11 +55,30 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <param name="length">The length of the media type to parse if provided.</param>
         public MediaType(string mediaType, int offset, int? length)
         {
-            _mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(mediaType);
-            SubType = _mediaTypeHeaderValue.SubType;
-            Type = _mediaTypeHeaderValue.Type;
-            SubTypeSuffix = _mediaTypeHeaderValue.Suffix;
-            SubTypeWithoutSuffix = _mediaTypeHeaderValue.SubTypeWithoutSuffix;
+            var mediaTypeSegment = new StringSegment(mediaType);
+            if (length == null)
+            {
+                mediaTypeSegment.Subsegment(offset);
+            }
+            else
+            {
+                mediaTypeSegment.Subsegment(offset, length.Value);
+            }
+
+            if (MediaTypeHeaderValue.TryParse(mediaTypeSegment, out _mediaTypeHeaderValue))
+            {
+                SubType = _mediaTypeHeaderValue.SubType;
+                Type = _mediaTypeHeaderValue.Type;
+                SubTypeSuffix = _mediaTypeHeaderValue.Suffix;
+                SubTypeWithoutSuffix = _mediaTypeHeaderValue.SubTypeWithoutSuffix;
+            }
+            else
+            {
+                SubType = new StringSegment();
+                Type = new StringSegment();
+                SubTypeSuffix = new StringSegment();
+                SubTypeWithoutSuffix = new StringSegment();
+            }
         }
 
         /// <summary>
@@ -208,7 +240,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         {
             var parsedMediaType = new MediaType(mediaType);
             var charset = parsedMediaType.GetParameter("charset");
-
             if (charset.HasValue && charset.Equals(encoding.WebName, StringComparison.OrdinalIgnoreCase))
             {
                 return mediaType.Value;
