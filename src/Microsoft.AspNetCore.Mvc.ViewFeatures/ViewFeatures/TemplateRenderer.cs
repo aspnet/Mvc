@@ -17,9 +17,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
     public class TemplateRenderer
     {
+        public const string IEnumerableOfIFormFileName = "IEnumerable`" + nameof(IFormFile);
+        internal const string UseDateTimeLocalTypeForDateTimeOffsetSwitch = "Switch.Microsoft.AspNetCore.Mvc.UseDateTimeLocalTypeForDateTimeOffset";
         private const string DisplayTemplateViewPath = "DisplayTemplates";
         private const string EditorTemplateViewPath = "EditorTemplates";
-        public const string IEnumerableOfIFormFileName = "IEnumerable`" + nameof(IFormFile);
 
         private static readonly Dictionary<string, Func<IHtmlHelper, IHtmlContent>> _defaultDisplayActions =
             new Dictionary<string, Func<IHtmlHelper, IHtmlContent>>(StringComparer.OrdinalIgnoreCase)
@@ -50,6 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 { "Date", DefaultEditorTemplates.DateInputTemplate },
                 { "DateTime", DefaultEditorTemplates.DateTimeLocalInputTemplate },
                 { "DateTime-local", DefaultEditorTemplates.DateTimeLocalInputTemplate },
+                { nameof(DateTimeOffset), DefaultEditorTemplates.DateTimeOffsetTemplate },
                 { "Time", DefaultEditorTemplates.TimeInputTemplate },
                 { typeof(byte).Name, DefaultEditorTemplates.NumberInputTemplate },
                 { typeof(sbyte).Name, DefaultEditorTemplates.NumberInputTemplate },
@@ -73,6 +75,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private readonly ViewDataDictionary _viewData;
         private readonly string _templateName;
         private readonly bool _readOnly;
+
+        static TemplateRenderer()
+        {
+            if (AppContext.TryGetSwitch(UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled) && enabled)
+            {
+                _defaultEditorActions.Remove(nameof(DateTimeOffset));
+            }
+        }
 
         public TemplateRenderer(
             IViewEngine viewEngine,
@@ -115,7 +125,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var defaultActions = GetDefaultActions();
             var modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
-            foreach (string viewName in GetViewNames())
+            foreach (var viewName in GetViewNames())
             {
                 var viewEngineResult = _viewEngine.GetView(_viewContext.ExecutingFilePath, viewName, isMainPage: false);
                 if (!viewEngineResult.Success)
@@ -141,8 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     }
                 }
 
-                Func<IHtmlHelper, IHtmlContent> defaultAction;
-                if (defaultActions.TryGetValue(viewName, out defaultAction))
+                if (defaultActions.TryGetValue(viewName, out var defaultAction))
                 {
                     return defaultAction(MakeHtmlHelper(_viewContext, _viewData));
                 }
@@ -255,8 +264,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var newHelper = viewContext.HttpContext.RequestServices.GetRequiredService<IHtmlHelper>();
 
-            var contextable = newHelper as IViewContextAware;
-            if (contextable != null)
+            if (newHelper is IViewContextAware contextable)
             {
                 var newViewContext = new ViewContext(viewContext, viewContext.View, viewData, viewContext.Writer);
                 contextable.Contextualize(newViewContext);

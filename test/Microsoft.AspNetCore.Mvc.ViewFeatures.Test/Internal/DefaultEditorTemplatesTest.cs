@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Testing;
 using Moq;
 using Xunit;
 
@@ -28,6 +29,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             get
             {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+
+                // Tests use string properties and fall back to text template (no type attribute) when quirk is enabled.
+                var dateTimeOffsetType = enabled ? string.Empty : " type='text'";
                 return new TheoryData<string, string>
                 {
                     { null, "__TextBox__ class='text-box single-line'" },
@@ -52,6 +57,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     { "datetime", "__TextBox__ class='text-box single-line' type='datetime-local'" },
                     { "DateTime-local", "__TextBox__ class='text-box single-line' type='datetime-local'" },
                     { "DATETIME-LOCAL", "__TextBox__ class='text-box single-line' type='datetime-local'" },
+                    { "datetimeoffset", $"__TextBox__ class='text-box single-line'{dateTimeOffsetType}" },
+                    { "DateTimeOffset", $"__TextBox__ class='text-box single-line'{dateTimeOffsetType}" },
                     { "Time", "__TextBox__ class='text-box single-line' type='time'" },
                     { "time", "__TextBox__ class='text-box single-line' type='time'" },
                     { "Byte", "__TextBox__ class='text-box single-line' type='number'" },
@@ -771,9 +778,12 @@ Environment.NewLine;
         {
             // Arrange
             var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
+            AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+            var expectedOffset = enabled ? string.Empty : "+00:00";
             var expectedInput = "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
-                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[datetime]]\" value=\"HtmlEncode[[2000-01-02T03:04:05.006]]\" />";
+                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[datetime]]\" " +
+                $"value=\"HtmlEncode[[2000-01-02T03:04:05.060{expectedOffset}]]\" />";
 
             var offset = TimeSpan.FromHours(0);
             var model = new DateTimeOffset(
@@ -783,7 +793,7 @@ Environment.NewLine;
                 hour: 3,
                 minute: 4,
                 second: 5,
-                millisecond: 6,
+                millisecond: 60,
                 offset: offset);
             var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
             viewEngine
@@ -811,13 +821,37 @@ Environment.NewLine;
             Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
         }
 
-        // DateTime-local is not special-cased unless using Html5DateRenderingMode.Rfc3339.
+        public static TheoryData<string, string, string, string> Editor_FindsCorrectDateOrTimeTemplateData
+        {
+            get
+            {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+                var expectedOffset = enabled ? string.Empty : "-05:00";
+                return new TheoryData<string, string, string, string>
+                {
+                    { null, null, $"2000-01-02T03:04:05.060{expectedOffset}", enabled ? "datetime-local" : "text" },
+                    { "date", "{0:d}", "2000-01-02", "date" },
+                    { "datetime", null, "2000-01-02T03:04:05.060", "datetime-local" },
+                    { "datetime-local", null, "2000-01-02T03:04:05.060", "datetime-local" },
+                    {
+                        "DateTimeOffset",
+                        "{0:o}",
+                        $"2000-01-02T03:04:05.060{expectedOffset}",
+                        enabled ? "datetime-local" : "text"
+                    },
+                    { "time", "{0:t}", "03:04:05.060", "time" },
+                };
+            }
+        }
+
+        // Html5DateRenderingMode.Rfc3339 is enabled by default.
         [Theory]
-        [InlineData("date", "{0:d}", "2000-01-02", "date")]
-        [InlineData("datetime", null, "2000-01-02T03:04:05.006", "datetime-local")]
-        [InlineData("datetime-local", null, "2000-01-02T03:04:05.006", "datetime-local")]
-        [InlineData("time", "{0:t}", "03:04:05.006", "time")]
-        public void Editor_FindsCorrectDateOrTimeTemplate(string dataTypeName, string editFormatString, string expectedFormat, string expectedType)
+        [MemberData(nameof(Editor_FindsCorrectDateOrTimeTemplateData))]
+        public void Editor_FindsCorrectDateOrTimeTemplate(
+            string dataTypeName,
+            string editFormatString,
+            string expectedFormat,
+            string expectedType)
         {
             // Arrange
             var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
@@ -827,63 +861,7 @@ Environment.NewLine;
                 expectedType +
                 "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
 
-            var offset = TimeSpan.FromHours(0);
-            var model = new DateTimeOffset(
-                year: 2000,
-                month: 1,
-                day: 2,
-                hour: 3,
-                minute: 4,
-                second: 5,
-                millisecond: 6,
-                offset: offset);
-            var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
-            viewEngine
-                .Setup(v => v.GetView(/*executingFilePath*/ null, It.IsAny<string>(), /*isMainPage*/ false))
-                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
-            viewEngine
-                .Setup(v => v.FindView(It.IsAny<ActionContext>(), It.IsAny<string>(), /*isMainPage*/ false))
-                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
-
-            var provider = new TestModelMetadataProvider();
-            provider.ForType<DateTimeOffset>().DisplayDetails(dd =>
-            {
-                dd.DataTypeName = dataTypeName;
-                dd.EditFormatString = editFormatString; // What [DataType] does for given type.
-            });
-
-            var helper = DefaultTemplatesUtilities.GetHtmlHelper(
-                model,
-                Mock.Of<IUrlHelper>(),
-                viewEngine.Object,
-                provider);
-            helper.ViewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
-
-            // Act
-            var result = helper.Editor(string.Empty);
-
-            // Assert
-            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
-        }
-
-        [Theory]
-        [InlineData("date", "{0:d}", "2000-01-02", "date")]
-        [InlineData("datetime", null, "2000-01-02T03:04:05.060", "datetime-local")]
-        [InlineData("datetime-local", null, "2000-01-02T03:04:05.060", "datetime-local")]
-        [InlineData("time", "{0:t}", "03:04:05.060", "time")]
-        public void Editor_AppliesRfc3339(string dataTypeName, string editFormatString, string expectedFormat, string expectedType)
-        {
-            // Arrange
-            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
-            var expectedInput =
-                "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
-                $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
-                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
-                expectedType +
-                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
-
-            // Place DateTime-local value in current timezone.
-            var offset = string.Equals(string.Empty, dataTypeName) ? DateTimeOffset.Now.Offset : TimeSpan.FromHours(0);
+            var offset = TimeSpan.FromHours(-5);
             var model = new DateTimeOffset(
                 year: 2000,
                 month: 1,
@@ -913,7 +891,6 @@ Environment.NewLine;
                 Mock.Of<IUrlHelper>(),
                 viewEngine.Object,
                 provider);
-            helper.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
             helper.ViewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
 
             // Act
@@ -923,15 +900,258 @@ Environment.NewLine;
             Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
         }
 
+        public static TheoryData<string, string, string, string> Editor_FindsCorrectDateOrTimeTemplate_NotRfc3339Data
+        {
+            get
+            {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+                return new TheoryData<string, string, string, string>
+                {
+                    { null, null, "02/01/2000 03:04:05 -05:00", enabled ? "datetime-local" : "text" },
+                    { "date", "{0:d}", "02/01/2000", "date" },
+                    { "datetime", null, "02/01/2000 03:04:05 -05:00", "datetime-local" },
+                    { "datetime-local", null, "02/01/2000 03:04:05 -05:00", "datetime-local" },
+                    { "DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000-05:00", enabled ? "datetime-local" : "text" },
+                    { "time", "{0:t}", "03:04", "time" },
+                };
+            }
+        }
+
+        // Html5DateRenderingMode.Rfc3339 can be disabled.
         [Theory]
-        [InlineData("date", Html5DateRenderingMode.CurrentCulture, "date")]
-        [InlineData("date", Html5DateRenderingMode.Rfc3339, "date")]
-        [InlineData("datetime", Html5DateRenderingMode.CurrentCulture, "datetime-local")]
-        [InlineData("datetime", Html5DateRenderingMode.Rfc3339, "datetime-local")]
-        [InlineData("datetime-local", Html5DateRenderingMode.CurrentCulture, "datetime-local")]
-        [InlineData("datetime-local", Html5DateRenderingMode.Rfc3339, "datetime-local")]
-        [InlineData("time", Html5DateRenderingMode.CurrentCulture, "time")]
-        [InlineData("time", Html5DateRenderingMode.Rfc3339, "time")]
+        [MemberData(nameof(Editor_FindsCorrectDateOrTimeTemplate_NotRfc3339Data))]
+        [ReplaceCulture]
+        public void Editor_FindsCorrectDateOrTimeTemplate_NotRfc3339(
+            string dataTypeName,
+            string editFormatString,
+            string expectedFormat,
+            string expectedType)
+        {
+            // Arrange
+            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTimeOffset");
+            var expectedInput =
+                "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
+                $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
+                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
+                expectedType +
+                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
+
+            var offset = TimeSpan.FromHours(-5);
+            var model = new DateTimeOffset(
+                year: 2000,
+                month: 1,
+                day: 2,
+                hour: 3,
+                minute: 4,
+                second: 5,
+                millisecond: 60,
+                offset: offset);
+            var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(v => v.GetView(/*executingFilePath*/ null, It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+            viewEngine
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<DateTimeOffset>().DisplayDetails(dd =>
+            {
+                dd.DataTypeName = dataTypeName;
+                dd.EditFormatString = editFormatString; // What [DataType] does for given type.
+            });
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(
+                model,
+                Mock.Of<IUrlHelper>(),
+                viewEngine.Object,
+                provider);
+            helper.Html5DateRenderingMode = Html5DateRenderingMode.CurrentCulture;
+            helper.ViewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            // Act
+            var result = helper.Editor(string.Empty);
+
+            // Assert
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        public static TheoryData<string, string, string, string> Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeData
+        {
+            get
+            {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+                var expectedZ = enabled ? string.Empty : "Z";
+                return new TheoryData<string, string, string, string>
+                {
+                    { null, null, "2000-01-02T03:04:05.060", "datetime-local" },
+                    { "date", "{0:d}", "2000-01-02", "date" },
+                    { "datetime", null, "2000-01-02T03:04:05.060", "datetime-local" },
+                    { "datetime-local", null, "2000-01-02T03:04:05.060", "datetime-local" },
+                    {
+                        "DateTimeOffset",
+                        "{0:o}",
+                        $"2000-01-02T03:04:05.060{expectedZ}",
+                        enabled ? "datetime-local" : "text"
+                    },
+                    { "time", "{0:t}", "03:04:05.060", "time" },
+                };
+            }
+        }
+
+        // Html5DateRenderingMode.Rfc3339 is enabled by default.
+        [Theory]
+        [MemberData(nameof(Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeData))]
+        public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTime(
+            string dataTypeName,
+            string editFormatString,
+            string expectedFormat,
+            string expectedType)
+        {
+            // Arrange
+            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTime");
+            var expectedInput = "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
+                $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
+                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
+                expectedType +
+                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
+
+            var model = new DateTime(
+                year: 2000,
+                month: 1,
+                day: 2,
+                hour: 3,
+                minute: 4,
+                second: 5,
+                millisecond: 60,
+                kind: DateTimeKind.Utc);
+            var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(v => v.GetView(/*executingFilePath*/ null, It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+            viewEngine
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<DateTime>().DisplayDetails(dd =>
+            {
+                dd.DataTypeName = dataTypeName;
+                dd.EditFormatString = editFormatString; // What [DataType] does for given type.
+            });
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(
+                model,
+                Mock.Of<IUrlHelper>(),
+                viewEngine.Object,
+                provider);
+            helper.ViewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            // Act
+            var result = helper.Editor(string.Empty);
+
+            // Assert
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        public static TheoryData<string, string, string, string> Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeNotRfc3339Data
+        {
+            get
+            {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+                return new TheoryData<string, string, string, string>
+                {
+                    { null, null, "02/01/2000 03:04:05", "datetime-local" },
+                    { "date", "{0:d}", "02/01/2000", "date" },
+                    { "datetime", null, "02/01/2000 03:04:05", "datetime-local" },
+                    { "datetime-local", null, "02/01/2000 03:04:05", "datetime-local" },
+                    { "DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000Z", enabled ? "datetime-local" : "text" },
+                    { "time", "{0:t}", "03:04", "time" },
+                };
+            }
+        }
+
+        // Html5DateRenderingMode.Rfc3339 can be disabled.
+        [Theory]
+        [MemberData(nameof(Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeNotRfc3339Data))]
+        [ReplaceCulture]
+        public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeNotRfc3339(
+            string dataTypeName,
+            string editFormatString,
+            string expectedFormat,
+            string expectedType)
+        {
+            // Arrange
+            var requiredMessage = ValidationAttributeUtil.GetRequiredErrorMessage("DateTime");
+            var expectedInput =
+                "<input class=\"HtmlEncode[[text-box single-line]]\" data-val=\"HtmlEncode[[true]]\" " +
+                $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
+                "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
+                expectedType +
+                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
+
+            var model = new DateTime(
+                year: 2000,
+                month: 1,
+                day: 2,
+                hour: 3,
+                minute: 4,
+                second: 5,
+                millisecond: 60,
+                kind: DateTimeKind.Utc);
+            var viewEngine = new Mock<ICompositeViewEngine>(MockBehavior.Strict);
+            viewEngine
+                .Setup(v => v.GetView(/*executingFilePath*/ null, It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+            viewEngine
+                .Setup(v => v.FindView(It.IsAny<ActionContext>(), It.IsAny<string>(), /*isMainPage*/ false))
+                .Returns(ViewEngineResult.NotFound(string.Empty, Enumerable.Empty<string>()));
+
+            var provider = new TestModelMetadataProvider();
+            provider.ForType<DateTime>().DisplayDetails(dd =>
+            {
+                dd.DataTypeName = dataTypeName;
+                dd.EditFormatString = editFormatString; // What [DataType] does for given type.
+            });
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(
+                model,
+                Mock.Of<IUrlHelper>(),
+                viewEngine.Object,
+                provider);
+            helper.Html5DateRenderingMode = Html5DateRenderingMode.CurrentCulture;
+            helper.ViewData.TemplateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            // Act
+            var result = helper.Editor(string.Empty);
+
+            // Assert
+            Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        public static TheoryData<string, Html5DateRenderingMode, string> Editor_AppliesNonDefaultEditFormatData
+        {
+            get
+            {
+                AppContext.TryGetSwitch(TemplateRenderer.UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled);
+                return new TheoryData<string, Html5DateRenderingMode, string>
+                {
+                    { null, Html5DateRenderingMode.CurrentCulture, enabled ? "datetime-local" : "text" },
+                    { null, Html5DateRenderingMode.Rfc3339, enabled ? "datetime-local" : "text" },
+                    { "date", Html5DateRenderingMode.CurrentCulture, "date" },
+                    { "date", Html5DateRenderingMode.Rfc3339, "date" },
+                    { "datetime", Html5DateRenderingMode.CurrentCulture, "datetime-local" },
+                    { "datetime", Html5DateRenderingMode.Rfc3339, "datetime-local" },
+                    { "datetime-local", Html5DateRenderingMode.CurrentCulture, "datetime-local" },
+                    { "datetime-local", Html5DateRenderingMode.Rfc3339, "datetime-local" },
+                    { "time", Html5DateRenderingMode.CurrentCulture, "time" },
+                    { "time", Html5DateRenderingMode.Rfc3339, "time" },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(Editor_AppliesNonDefaultEditFormatData))]
         public void Editor_AppliesNonDefaultEditFormat(string dataTypeName, Html5DateRenderingMode renderingMode, string expectedType)
         {
             // Arrange

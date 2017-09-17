@@ -18,6 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("input", Attributes = ForAttributeName, TagStructure = TagStructure.WithoutEndTag)]
     public class InputTagHelper : TagHelper
     {
+        internal const string UseDateTimeLocalTypeForDateTimeOffsetSwitch = "Switch.Microsoft.AspNetCore.Mvc.UseDateTimeLocalTypeForDateTimeOffset";
         private const string ForAttributeName = "asp-for";
         private const string FormatAttributeName = "asp-format";
 
@@ -34,6 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "Date", "date" },
                 { "DateTime", "datetime-local" },
                 { "DateTime-local", "datetime-local" },
+                { nameof(DateTimeOffset), "text" },
                 { "Time", "time" },
                 { nameof(Byte), "number" },
                 { nameof(SByte), "number" },
@@ -61,6 +63,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "datetime-local", "{0:yyyy-MM-ddTHH:mm:ss.fff}" },
                 { "time", "{0:HH:mm:ss.fff}" },
             };
+
+        static InputTagHelper()
+        {
+            if (AppContext.TryGetSwitch(UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled) && enabled)
+            {
+                _defaultInputTypes.Remove(nameof(DateTimeOffset));
+            }
+        }
 
         /// <summary>
         /// Creates a new <see cref="InputTagHelper"/>.
@@ -234,8 +244,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             foreach (var hint in GetInputTypeHints(modelExplorer))
             {
-                string inputType;
-                if (_defaultInputTypes.TryGetValue(hint, out inputType))
+                if (_defaultInputTypes.TryGetValue(hint, out var inputType))
                 {
                     inputTypeHint = hint;
                     return inputType;
@@ -252,8 +261,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 if (modelExplorer.Model != null)
                 {
-                    bool potentialBool;
-                    if (!bool.TryParse(modelExplorer.Model.ToString(), out potentialBool))
+                    if (!bool.TryParse(modelExplorer.Model.ToString(), out var potentialBool))
                     {
                         throw new InvalidOperationException(Resources.FormatInputTagHelper_InvalidStringResult(
                             ForAttributeName,
@@ -353,8 +361,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private TagBuilder GenerateHidden(ModelExplorer modelExplorer)
         {
             var value = For.Model;
-            var byteArrayValue = value as byte[];
-            if (byteArrayValue != null)
+            if (value is byte[] byteArrayValue)
             {
                 value = Convert.ToBase64String(byteArrayValue);
             }
@@ -380,7 +387,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private string GetFormat(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
         {
             string format;
-            string rfc3339Format;
             if (string.Equals("decimal", inputTypeHint, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals("text", inputType, StringComparison.Ordinal) &&
                 string.IsNullOrEmpty(modelExplorer.Metadata.EditFormatString))
@@ -389,14 +395,36 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 // EditFormatString has precedence over this fall-back format.
                 format = "{0:0.00}";
             }
-            else if (_rfc3339Formats.TryGetValue(inputType, out rfc3339Format) &&
-                ViewContext.Html5DateRenderingMode == Html5DateRenderingMode.Rfc3339 &&
+            else if (ViewContext.Html5DateRenderingMode == Html5DateRenderingMode.Rfc3339 &&
                 !modelExplorer.Metadata.HasNonDefaultEditFormat &&
-                (typeof(DateTime) == modelExplorer.Metadata.UnderlyingOrModelType || typeof(DateTimeOffset) == modelExplorer.Metadata.UnderlyingOrModelType))
+                (typeof(DateTime) == modelExplorer.Metadata.UnderlyingOrModelType ||
+                 typeof(DateTimeOffset) == modelExplorer.Metadata.UnderlyingOrModelType))
             {
-                // Rfc3339 mode _may_ override EditFormatString in a limited number of cases e.g. EditFormatString
-                // must be a default format (i.e. came from a built-in [DataType] attribute).
-                format = rfc3339Format;
+                // Rfc3339 mode _may_ override EditFormatString in a limited number of cases. Happens only when
+                // EditFormatString has a default format i.e. came from a [DataType] attribute.
+                //
+                // First condition may occur when Switch.Microsoft.AspNetCore.Mvc.UseDateTimeLocalTypeForDateTimeOffset
+                // is true in extremely rare cases: The <input/> element for a DateTimeOffset expression must have
+                // type ="text". Checking the switch again to remove that case.
+                if (string.Equals("text", inputType) &&
+                    string.Equals(nameof(DateTimeOffset), inputTypeHint, StringComparison.OrdinalIgnoreCase) &&
+                    !(AppContext.TryGetSwitch(UseDateTimeLocalTypeForDateTimeOffsetSwitch, out var enabled) &&
+                      enabled))
+                {
+                    // Auto-select a format that round-trips Offset and sub-Second values in a DateTimeOffset. Not
+                    // done if user chose the "text" type in .cshtml file or with data annotations i.e. when
+                    // inputTypeHint==null or "text".
+                    format = _rfc3339Formats["datetime"];
+                }
+                else if (_rfc3339Formats.TryGetValue(inputType, out var rfc3339Format))
+                {
+                    format = rfc3339Format;
+                }
+                else
+                {
+                    // Otherwise use default EditFormatString.
+                    format = modelExplorer.Metadata.EditFormatString;
+                }
             }
             else
             {
@@ -428,7 +456,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 fieldType = modelExplorer.Metadata.UnderlyingOrModelType;
             }
 
-            foreach (string typeName in TemplateRenderer.GetTypeNames(modelExplorer.Metadata, fieldType))
+            foreach (var typeName in TemplateRenderer.GetTypeNames(modelExplorer.Metadata, fieldType))
             {
                 yield return typeName;
             }
