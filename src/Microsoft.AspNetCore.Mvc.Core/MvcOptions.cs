@@ -168,5 +168,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// <see langword="false"/> by default.
         /// </summary>
         public bool AllowBindingUndefinedValueToEnumType { get; set; }
+
+        /// <summary>
+        /// Gets <see cref="ApiBehaviorOptions"/> used to configure behavior on types annotated with <see cref="ApiControllerAttribute"/>.
+        /// </summary>
+        public ApiBehaviorOptions ApiBehavior { get; } = new ApiBehaviorOptions();
     }
 }

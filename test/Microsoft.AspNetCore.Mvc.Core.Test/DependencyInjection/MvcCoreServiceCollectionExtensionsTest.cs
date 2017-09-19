@@ -239,6 +239,7 @@ namespace Microsoft.AspNetCore.Mvc
                         new Type[]
                         {
                             typeof(MvcCoreMvcOptionsSetup),
+                            typeof(ApiBehaviorMvcOptionsSetup),
                         }
                     },
                     {
@@ -288,6 +289,7 @@ namespace Microsoft.AspNetCore.Mvc
                         new Type[]
                         {
                             typeof(DefaultApplicationModelProvider),
+                            typeof(ApiControllerApplicationModelProvider),
                         }
                     },
                 };

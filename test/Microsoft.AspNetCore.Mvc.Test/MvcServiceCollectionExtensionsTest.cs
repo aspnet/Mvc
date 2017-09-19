@@ -339,6 +339,7 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(MvcDataAnnotationsMvcOptionsSetup),
                             typeof(MvcJsonMvcOptionsSetup),
                             typeof(TempDataMvcOptionsSetup),
+                            typeof(ApiBehaviorMvcOptionsSetup),
                         }
                     },
                     {
@@ -410,6 +411,7 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(CorsApplicationModelProvider),
                             typeof(AuthorizationApplicationModelProvider),
                             typeof(TempDataApplicationModelProvider),
+                            typeof(ApiControllerApplicationModelProvider),
                         }
                     },
                     {

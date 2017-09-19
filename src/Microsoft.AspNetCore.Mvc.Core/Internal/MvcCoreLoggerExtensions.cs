@@ -79,7 +79,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, Exception> _cannotApplyRequestFormLimits;
         private static readonly Action<ILogger, Exception> _appliedRequestFormLimits;
-        
+
+        private static readonly Action<ILogger, Exception> _autoValidateModelFilterExecuting;
 
         static MvcCoreLoggerExtensions()
         {
@@ -282,6 +283,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 LogLevel.Debug,
                 2,
                 "Applied the configured form options on the current request.");
+
+            _autoValidateModelFilterExecuting = LoggerMessage.Define(
+                LogLevel.Debug,
+                1,
+                "AutoValidateModeFilter returned a BadRequestObjectResult since the ModelState is invalid.");
+
         }
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
@@ -590,6 +597,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public static void AppliedRequestFormLimits(this ILogger logger)
         {
             _appliedRequestFormLimits(logger, null);
+        }
+
+        public static void AutoValidateModelFilterExecuting(this ILogger logger)
+        {
+            _autoValidateModelFilterExecuting(logger, null);
         }
 
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>
