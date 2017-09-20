@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,14 +14,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class ApiControllerApplicationModelProvider : IApplicationModelProvider
     {
-        private readonly ApiBehaviorOptions _apiConventions;
+        private readonly ApiBehaviorOptions _apiBehaviorOptions;
         private readonly ModelStateInvalidFilter _modelStateInvalidFilter;
 
-        public ApiControllerApplicationModelProvider(IOptions<MvcOptions> mvcOptions, ILoggerFactory loggerFactory)
+        public ApiControllerApplicationModelProvider(IOptions<ApiBehaviorOptions> apiBehaviorOptions, ILoggerFactory loggerFactory)
         {
-            _apiConventions = mvcOptions.Value.ApiBehavior;
+            _apiBehaviorOptions = apiBehaviorOptions.Value;
+            if (_apiBehaviorOptions.EnableModelStateInvalidFilter && _apiBehaviorOptions.InvalidModelStateResponseFactory == null)
+            {
+                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
+                    typeof(ApiBehaviorOptions),
+                    nameof(ApiBehaviorOptions.InvalidModelStateResponseFactory)));
+            }
+
             _modelStateInvalidFilter = new ModelStateInvalidFilter(
-                mvcOptions.Value,
+                apiBehaviorOptions.Value,
                 loggerFactory.CreateLogger<ModelStateInvalidFilter>());
         }
 
@@ -37,20 +47,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 if (controllerModel.Attributes.OfType<IApiBehaviorMetadata>().Any())
                 {
-                    // Skip adding the filter if the feature is disabled.
-                    if (_apiConventions.InvalidModelStateResponseFactory != null)
+                    if (_apiBehaviorOptions.EnableModelStateInvalidFilter)
                     {
+                        Debug.Assert(_apiBehaviorOptions.InvalidModelStateResponseFactory != null);
                         controllerModel.Filters.Add(_modelStateInvalidFilter);
                     }
+
+                    continue;
                 }
 
                 foreach (var actionModel in controllerModel.Actions)
                 {
                     if (actionModel.Attributes.OfType<IApiBehaviorMetadata>().Any())
                     {
-                        // Skip adding the filter if the feature is disabled.
-                        if (_apiConventions.InvalidModelStateResponseFactory != null)
+                        if (_apiBehaviorOptions.EnableModelStateInvalidFilter)
                         {
+                            Debug.Assert(_apiBehaviorOptions.InvalidModelStateResponseFactory != null);
                             actionModel.Filters.Add(_modelStateInvalidFilter);
                         }
                     }

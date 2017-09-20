@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Logging;
@@ -12,23 +11,16 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
     /// <summary>
     /// A <see cref="IActionFilter"/> that responds to invalid <see cref="ActionContext.ModelState"/>. This filter is
     /// added to all types and actions annotated with <see cref="ApiControllerAttribute"/>.
-    /// See <see cref="MvcOptions.ApiBehavior"/> for ways to configure this filter.
+    /// See <see cref="ApiBehaviorOptions"/> for ways to configure this filter.
     /// </summary>
     public class ModelStateInvalidFilter : IActionFilter, IOrderedFilter
     {
         private readonly ApiBehaviorOptions _apiBehaviorOptions;
         private readonly ILogger _logger;
 
-        public ModelStateInvalidFilter(MvcOptions mvcOptions, ILogger logger)
+        public ModelStateInvalidFilter(ApiBehaviorOptions apiBehaviorOptions, ILogger logger)
         {
-            _apiBehaviorOptions = mvcOptions?.ApiBehavior ?? throw new ArgumentNullException(nameof(mvcOptions));
-            if (_apiBehaviorOptions.InvalidModelStateResponseFactory == null)
-            {
-                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
-                    nameof(ApiBehaviorOptions.InvalidModelStateResponseFactory),
-                    nameof(ApiBehaviorOptions));
-            }
-
+            _apiBehaviorOptions = apiBehaviorOptions ?? throw new ArgumentNullException(nameof(apiBehaviorOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -60,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         {
             if (context.Result == null && !context.ModelState.IsValid)
             {
-                _logger.AutoValidateModelFilterExecuting();
+                _logger.ModelStateInvalidFilterExecuting();
                 context.Result = _apiBehaviorOptions.InvalidModelStateResponseFactory(context);
             }
         }

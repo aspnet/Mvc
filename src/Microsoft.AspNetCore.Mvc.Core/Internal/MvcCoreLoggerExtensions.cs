@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private static readonly Action<ILogger, Exception> _cannotApplyRequestFormLimits;
         private static readonly Action<ILogger, Exception> _appliedRequestFormLimits;
 
-        private static readonly Action<ILogger, Exception> _autoValidateModelFilterExecuting;
+        private static readonly Action<ILogger, Exception> _modelStateInvalidFilterExecuting;
 
         static MvcCoreLoggerExtensions()
         {
@@ -284,10 +284,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 2,
                 "Applied the configured form options on the current request.");
 
-            _autoValidateModelFilterExecuting = LoggerMessage.Define(
+            _modelStateInvalidFilterExecuting = LoggerMessage.Define(
                 LogLevel.Debug,
                 1,
-                "AutoValidateModeFilter returned a BadRequestObjectResult since the ModelState is invalid.");
+                "The request has model state errors, returning an error response.");
 
         }
 
@@ -599,10 +599,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _appliedRequestFormLimits(logger, null);
         }
 
-        public static void AutoValidateModelFilterExecuting(this ILogger logger)
-        {
-            _autoValidateModelFilterExecuting(logger, null);
-        }
+        public static void ModelStateInvalidFilterExecuting(this ILogger logger) => _modelStateInvalidFilterExecuting(logger, null);
 
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>
         {

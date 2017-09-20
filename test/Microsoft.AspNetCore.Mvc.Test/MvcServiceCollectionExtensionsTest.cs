@@ -339,7 +339,6 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(MvcDataAnnotationsMvcOptionsSetup),
                             typeof(MvcJsonMvcOptionsSetup),
                             typeof(TempDataMvcOptionsSetup),
-                            typeof(ApiBehaviorMvcOptionsSetup),
                         }
                     },
                     {
@@ -347,6 +346,13 @@ namespace Microsoft.AspNetCore.Mvc
                         new Type[]
                         {
                             typeof(MvcCoreRouteOptionsSetup),
+                        }
+                    },
+                    {
+                        typeof(IConfigureOptions<ApiBehaviorOptions>),
+                        new Type[]
+                        {
+                            typeof(ApiBehaviorOptionsSetup),
                         }
                     },
                     {

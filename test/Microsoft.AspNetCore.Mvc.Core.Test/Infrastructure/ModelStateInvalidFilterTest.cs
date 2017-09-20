@@ -18,13 +18,11 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void OnActionExecuting_NoOpsIfResultIsAlreadySet()
         {
             // Arrange
-            var filter = new ModelStateInvalidFilter(new MvcOptions
+            var options = new ApiBehaviorOptions
             {
-                ApiBehavior =
-                {
-                   InvalidModelStateResponseFactory = _ => new BadRequestResult(),
-                },
-            }, NullLogger.Instance);
+                InvalidModelStateResponseFactory = _ => new BadRequestResult(),
+            };
+            var filter = new ModelStateInvalidFilter(options, NullLogger.Instance);
             var context = GetActionExecutingContext();
             var expected = new OkResult();
             context.Result = expected;
@@ -40,13 +38,11 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void OnActionExecuting_NoOpsIfModelStateIsValid()
         {
             // Arrange
-            var filter = new ModelStateInvalidFilter(new MvcOptions
+            var options = new ApiBehaviorOptions
             {
-                ApiBehavior =
-                {
-                   InvalidModelStateResponseFactory = _ => new BadRequestResult(),
-                },
-            }, NullLogger.Instance);
+                InvalidModelStateResponseFactory = _ => new BadRequestResult(),
+            };
+            var filter = new ModelStateInvalidFilter(options, NullLogger.Instance);
             var context = GetActionExecutingContext();
 
             // Act
@@ -61,13 +57,11 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         {
             // Arrange
             var expected = new BadRequestResult();
-            var filter = new ModelStateInvalidFilter(new MvcOptions
+            var options = new ApiBehaviorOptions
             {
-                ApiBehavior =
-                {
-                   InvalidModelStateResponseFactory = _ => expected,
-                },
-            }, NullLogger.Instance);
+                InvalidModelStateResponseFactory = _ => expected,
+            };
+            var filter = new ModelStateInvalidFilter(options, NullLogger.Instance);
             var context = GetActionExecutingContext();
             context.ModelState.AddModelError("some-key", "some-error");
 

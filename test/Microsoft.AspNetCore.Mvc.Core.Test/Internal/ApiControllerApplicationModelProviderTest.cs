@@ -18,12 +18,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             // Arrange
             var context = GetContext(typeof(TestApiController));
-            var options = new TestOptionsManager<MvcOptions>(new MvcOptions
+            var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
             {
-                ApiBehavior =
-                {
-                     InvalidModelStateResponseFactory = _ => null,
-                }
+                InvalidModelStateResponseFactory = _ => null,
             });
             
             var provider = new ApiControllerApplicationModelProvider(options, NullLoggerFactory.Instance);
@@ -41,7 +38,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             // Arrange
             var context = GetContext(typeof(TestApiController));
-            var options = new TestOptionsManager<MvcOptions>();
+            var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
+            {
+                EnableModelStateInvalidFilter = false,
+            });
 
             var provider = new ApiControllerApplicationModelProvider(options, NullLoggerFactory.Instance);
 
@@ -58,12 +58,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             // Arrange
             var context = GetContext(typeof(SimpleController));
-            var options = new TestOptionsManager<MvcOptions>(new MvcOptions
+            var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
             {
-                ApiBehavior =
-                {
-                     InvalidModelStateResponseFactory = _ => null,
-                }
+                InvalidModelStateResponseFactory = _ => null,
             });
 
             var provider = new ApiControllerApplicationModelProvider(options, NullLoggerFactory.Instance);
@@ -89,7 +86,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             // Arrange
             var context = GetContext(typeof(SimpleController));
-            var options = new TestOptionsManager<MvcOptions>();
+            var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
+            {
+                EnableModelStateInvalidFilter = false,
+            });
 
             var provider = new ApiControllerApplicationModelProvider(options, NullLoggerFactory.Instance);
 
@@ -134,7 +134,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [AttributeUsage(AttributeTargets.Method)]
         private class TestApiBehavior : Attribute, IApiBehaviorMetadata
         {
-
         }
     }
 }

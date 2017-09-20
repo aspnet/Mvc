@@ -11,14 +11,27 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class ApiBehaviorOptions
     {
+        private Func<ActionContext, IActionResult> _invalidModelStateResponseFactory;
+
         /// <summary>
-        /// The delegate invoked on actions annotated with <see cref="ApiControllerAttribute"/> to convert invalid
+        /// Delegate invoked on actions annotated with <see cref="ApiControllerAttribute"/> to convert invalid
         /// <see cref="ModelStateDictionary"/> into an <see cref="IActionResult"/>
         /// <para>
         /// By default, the delegate produces a <see cref="BadRequestObjectResult"/> using <see cref="ProblemDetails"/>
-        /// as the problem format. To disable this feature, set the value of the delegate to <c>null</c>.
+        /// as the problem format.
         /// </para>
         /// </summary>
-        public Func<ActionContext, IActionResult> InvalidModelStateResponseFactory { get; set; }
+        public Func<ActionContext, IActionResult> InvalidModelStateResponseFactory
+        {
+            get => _invalidModelStateResponseFactory;
+            set => _invalidModelStateResponseFactory = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        /// <summary>
+        /// Disables the filter that returns an <see cref="BadRequestObjectResult"/> when
+        /// <see cref="ActionContext.ModelState"/> is invalid. 
+        /// <seealso cref="InvalidModelStateResponseFactory"/>.
+        /// </summary>
+        public bool EnableModelStateInvalidFilter { get; set; } = true;
     }
 }
