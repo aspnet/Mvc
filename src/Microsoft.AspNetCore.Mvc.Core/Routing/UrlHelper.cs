@@ -141,10 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                     return true;
                 }
 
-                var relaxedLocalRedirectValidation = false;
-                var success = AppContext.TryGetSwitch(UseRelaxedLocalRedirectValidationSwitch, out relaxedLocalRedirectValidation);
-
-                if (relaxedLocalRedirectValidation)
+                if (AppContext.TryGetSwitch(UseRelaxedLocalRedirectValidationSwitch, out var relaxedLocalRedirectValidation) && relaxedLocalRedirectValidation)
                 {
                     return true;
                 }
