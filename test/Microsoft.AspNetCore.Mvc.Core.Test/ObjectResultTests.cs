@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc
         {
             var services = new ServiceCollection();
             services.AddSingleton<IActionResultExecutor<ObjectResult>>(new ObjectResultExecutor(
-                Options.Create(new MvcOptions()),
+                new DefaultOutputFormatterSelector(NullLoggerFactory.Instance, Options.Create(new MvcOptions())),
                 new TestHttpResponseStreamWriterFactory(),
                 NullLoggerFactory.Instance));
             services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);

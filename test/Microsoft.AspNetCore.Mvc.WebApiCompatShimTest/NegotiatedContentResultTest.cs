@@ -77,7 +77,7 @@ namespace System.Web.Http
 
             var services = new ServiceCollection();
             services.AddSingleton<IActionResultExecutor<ObjectResult>>(new ObjectResultExecutor(
-                options,
+                new DefaultOutputFormatterSelector(NullLoggerFactory.Instance, options),
                 new TestHttpResponseStreamWriterFactory(),
                 NullLoggerFactory.Instance));
 
