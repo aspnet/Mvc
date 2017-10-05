@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -9,18 +12,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace KodKod.Analyzer
+namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ApiActionsShouldUseActionResultOfTCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp)]
+    [Shared]
     public class ApiActionsShouldUseActionResultOfTCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(DiagnosticDescriptors.KK1002_ApiActionsShouldReturnActionResultOf.Id);
+            ImmutableArray.Create(DiagnosticDescriptors.MVC1002_ApiActionsShouldReturnActionResultOf.Id);
 
-        public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+        public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

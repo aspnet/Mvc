@@ -1,6 +1,7 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -8,23 +9,25 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace KodKod.Analyzer
+namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ApiActionsShouldUseActionResultOfTAnalyzer : KodKodAnalyzerAnalyzerBase
+    public class ApiActionsShouldUseActionResultOfTAnalyzer : ApiControllerAnalyzerBase
     {
+        public static readonly string ReturnTypeKey = "ReturnType";
+
         public ApiActionsShouldUseActionResultOfTAnalyzer()
-            : base(DiagnosticDescriptors.KK1002_ApiActionsShouldReturnActionResultOf)
+            : base(DiagnosticDescriptors.MVC1002_ApiActionsShouldReturnActionResultOf)
         {
         }
 
-        protected override void InitializeWorker(KodKodContext kodKodContext)
+        protected override void InitializeWorker(ApiControllerAnalyzerContext ApiControllerAnalyzerContext)
         {
-            kodKodContext.Context.RegisterSyntaxNodeAction(context =>
+            ApiControllerAnalyzerContext.Context.RegisterSyntaxNodeAction(context =>
             {
                 var methodSyntax = (MethodDeclarationSyntax)context.Node;
                 var method = context.SemanticModel.GetDeclaredSymbol(methodSyntax, context.CancellationToken);
-                if (!kodKodContext.IsKodKod(method))
+                if (!ApiControllerAnalyzerContext.IsApiAction(method))
                 {
                     return;
                 }
@@ -42,7 +45,7 @@ namespace KodKod.Analyzer
                     declaredReturnType = namedReturnType.TypeArguments[0];
                 }
 
-                if (!declaredReturnType.AllInterfaces.Any(i => i == kodKodContext.IActionResult))
+                if (!declaredReturnType.IsAssignableFrom(ApiControllerAnalyzerContext.IActionResult))
                 {
                     // Method signature does not look like IActionResult MyAction or SomeAwaitable<IActionResult>.
                     // Nothing to do here.
@@ -58,7 +61,7 @@ namespace KodKod.Analyzer
                         continue;
                     }
 
-                    if (IsAssignableFrom(returnType.Type, kodKodContext.ObjectResult))
+                    if (returnType.Type.IsAssignableFrom(ApiControllerAnalyzerContext.ObjectResult))
                     {
                         ImmutableDictionary<string, string> properties = null;
                         // Check if the method signature looks like "return Ok(userModelInstance)". If so, we can infer the type of userModelInstance
@@ -66,11 +69,13 @@ namespace KodKod.Analyzer
                             invocation.ArgumentList.Arguments.Count == 1)
                         {
                             var typeInfo = context.SemanticModel.GetTypeInfo(invocation.ArgumentList.Arguments[0].Expression);
-                            var actionResultOfModel = kodKodContext.ActionResultOfT.Construct(typeInfo.Type);
+                            var actionResultOfModel = ApiControllerAnalyzerContext.ActionResultOfT.Construct(typeInfo.Type);
+                            var actionResultModelName = actionResultOfModel.ToMinimalDisplayString(
+                                context.SemanticModel, 
+                                methodSyntax.ReturnType.SpanStart);
 
-                            var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
-                            builder.Add("ReturnType", actionResultOfModel.ToMinimalDisplayString(context.SemanticModel, methodSyntax.ReturnType.SpanStart));
-                            properties = builder.ToImmutable();
+                            properties = ImmutableDictionary.Create<string, string>(StringComparer.Ordinal)
+                                .Add(ReturnTypeKey, actionResultModelName);
                         }
 
                         context.ReportDiagnostic(Diagnostic.Create(
@@ -80,21 +85,6 @@ namespace KodKod.Analyzer
                     }
                 }
             }, SyntaxKind.MethodDeclaration);
-        }
-
-        private static bool IsAssignableFrom(ITypeSymbol source, INamedTypeSymbol target)
-        {
-            do
-            {
-                if (source == target)
-                {
-                    return true;
-                }
-
-                source = source.BaseType;
-            } while (source != null);
-
-            return false;
         }
     }
 }
