@@ -325,7 +325,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public Type ElementType { get; private set; }
 
         /// <summary>
-        /// Gets a value indicating whether <see cref="ModelType"/> is a simple type.
+        /// Gets a value indicating whether <see cref="ModelType"/> is a complex type.
         /// </summary>
         /// <remarks>
         /// A simple type is defined as a <see cref="Type"/> which has a

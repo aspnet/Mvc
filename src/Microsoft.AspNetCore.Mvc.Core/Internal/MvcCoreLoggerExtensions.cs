@@ -6,9 +6,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Formatters.Internal;
@@ -81,6 +83,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private static readonly Action<ILogger, Exception> _appliedRequestFormLimits;
 
         private static readonly Action<ILogger, Exception> _modelStateInvalidFilterExecuting;
+
+        private static readonly Action<ILogger, MethodInfo, string, string, Exception> _inferringParameterSource;
 
         static MvcCoreLoggerExtensions()
         {
@@ -289,6 +293,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 1,
                 "The request has model state errors, returning an error response.");
 
+            _inferringParameterSource = LoggerMessage.Define<MethodInfo, string, string>(
+                LogLevel.Debug,
+                1,
+                "Inferring binding source for '{ActionName}.{ParameterName} as {BindingSource}.");
         }
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
@@ -600,6 +608,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         public static void ModelStateInvalidFilterExecuting(this ILogger logger) => _modelStateInvalidFilterExecuting(logger, null);
+
+        public static void InferringParameterBindingSource(
+            this ILogger logger,
+            ParameterModel parameterModel,
+            BindingSource bindingSource)
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                _inferringParameterSource(logger, parameterModel.Action.ActionMethod, parameterModel.ParameterName, bindingSource.DisplayName, null);
+            }
+        }
 
         private class ActionLogScope : IReadOnlyList<KeyValuePair<string, object>>
         {

@@ -28,10 +28,21 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Disables the filter that returns an <see cref="BadRequestObjectResult"/> when
-        /// <see cref="ActionContext.ModelState"/> is invalid. 
+        /// Gets or sets a value that determines if the filter that returns an <see cref="BadRequestObjectResult"/> when
+        /// <see cref="ActionContext.ModelState"/> is invalid. Defaults to <c>true</c>.
         /// <seealso cref="InvalidModelStateResponseFactory"/>.
         /// </summary>
         public bool EnableModelStateInvalidFilter { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value that determines if model binding sources are inferred for parameters that do not explicitly
+        /// specify one.
+        /// <para>
+        /// Parameters that appear as route values, are assumed to be bound from the path (<see cref="BindingSource.Path"/>).
+        /// Parameters that are complex (<see cref="ModelMetadata.IsComplexType"/>) are assumed to be bound from the body (<see cref="BindingSource.Body"/>).
+        /// All other parameters are assumed to be bound from the query.
+        /// </para>
+        /// </summary>
+        public bool InferBindingSourcesForParameters { get; set; } = true;
     }
 }
