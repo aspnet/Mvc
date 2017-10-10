@@ -38,7 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var context = GetContext(typeof(TestApiController));
             var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
             {
-                EnableModelStateInvalidFilter = false,
+                SuppressModelStateInvalidFilter = true,
             });
 
             var provider = GetProvider(options);
@@ -81,7 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var context = GetContext(typeof(SimpleController));
             var options = new TestOptionsManager<ApiBehaviorOptions>(new ApiBehaviorOptions
             {
-                EnableModelStateInvalidFilter = false,
+                SuppressModelStateInvalidFilter = true,
             });
 
             var provider = GetProvider(options);

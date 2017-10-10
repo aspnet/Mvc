@@ -84,7 +84,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, Exception> _modelStateInvalidFilterExecuting;
 
-        private static readonly Action<ILogger, MethodInfo, string, string, Exception> _inferringParameterSource;
+        private static readonly Action<ILogger, MethodInfo, string, string, Exception> _inferredParameterSource;
+        private static readonly Action<ILogger, MethodInfo, Exception> _unableToInferParameterSources;
 
         static MvcCoreLoggerExtensions()
         {
@@ -293,10 +294,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 1,
                 "The request has model state errors, returning an error response.");
 
-            _inferringParameterSource = LoggerMessage.Define<MethodInfo, string, string>(
+            _inferredParameterSource = LoggerMessage.Define<MethodInfo, string, string>(
                 LogLevel.Debug,
                 1,
-                "Inferring binding source for '{ActionName}.{ParameterName} as {BindingSource}.");
+                "Inferred binding source for '{ParameterName}` on `{ActionName}` as {BindingSource}.");
+
+            _unableToInferParameterSources = LoggerMessage.Define<MethodInfo>(
+                LogLevel.Warning,
+                2,
+                "Unable to unambiguously infer binding sources for parameters on '{ActionName}'. More than one parameter may be inferred to bound from body.");
         }
 
         public static IDisposable ActionScope(this ILogger logger, ActionDescriptor action)
@@ -609,14 +615,24 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ModelStateInvalidFilterExecuting(this ILogger logger) => _modelStateInvalidFilterExecuting(logger, null);
 
-        public static void InferringParameterBindingSource(
+        public static void InferredParameterBindingSource(
             this ILogger logger,
             ParameterModel parameterModel,
             BindingSource bindingSource)
         {
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                _inferringParameterSource(logger, parameterModel.Action.ActionMethod, parameterModel.ParameterName, bindingSource.DisplayName, null);
+                _inferredParameterSource(logger, parameterModel.Action.ActionMethod, parameterModel.ParameterName, bindingSource.DisplayName, null);
+            }
+        }
+
+        public static void UnableToInferBindingSource(
+            this ILogger logger,
+            ActionModel actionModel)
+        {
+            if (logger.IsEnabled(LogLevel.Warning))
+            {
+                _unableToInferParameterSources(logger, actionModel.ActionMethod, null);
             }
         }
 

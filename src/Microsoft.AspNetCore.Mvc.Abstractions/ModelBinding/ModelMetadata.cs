@@ -328,8 +328,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// Gets a value indicating whether <see cref="ModelType"/> is a complex type.
         /// </summary>
         /// <remarks>
-        /// A simple type is defined as a <see cref="Type"/> which has a
-        /// <see cref="System.ComponentModel.TypeConverter"/> that can convert from <see cref="string"/>.
+        /// A complex type is defined as a <see cref="Type"/> which has a
+        /// <see cref="TypeConverter"/> that can convert from <see cref="string"/>.
         /// </remarks>
         public bool IsComplexType { get; private set; }
 

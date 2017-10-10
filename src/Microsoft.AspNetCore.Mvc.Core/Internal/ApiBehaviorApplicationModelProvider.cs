@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -18,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     public class ApiBehaviorApplicationModelProvider : IApplicationModelProvider
     {
         private readonly ApiBehaviorOptions _apiBehaviorOptions;
-        private readonly ModelMetadataProvider _modelMetadataProvider;
+        private readonly IModelMetadataProvider _modelMetadataProvider;
         private readonly ModelStateInvalidFilter _modelStateInvalidFilter;
         private readonly ILogger _logger;
 
@@ -28,10 +27,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ILoggerFactory loggerFactory)
         {
             _apiBehaviorOptions = apiBehaviorOptions.Value;
-            _modelMetadataProvider = modelMetadataProvider as ModelMetadataProvider;
+            _modelMetadataProvider = modelMetadataProvider;
             _logger = loggerFactory.CreateLogger<ApiBehaviorApplicationModelProvider>();
 
-            if (_apiBehaviorOptions.EnableModelStateInvalidFilter && _apiBehaviorOptions.InvalidModelStateResponseFactory == null)
+            if (!_apiBehaviorOptions.SuppressModelStateInvalidFilter && _apiBehaviorOptions.InvalidModelStateResponseFactory == null)
             {
                 throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
                     typeof(ApiBehaviorOptions),
@@ -67,33 +66,73 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         continue;
                     }
 
-                    if (!controllerHasSelectorModel && !actionModel.Selectors.Any(s => s.AttributeRouteModel != null))
-                    {
-                        // Require attribute routing with controllers annotated with ApiControllerAttribute
-                        throw new InvalidOperationException(Resources.FormatApiController_AttributeRouteRequired(nameof(ApiControllerAttribute)));
-                    }
+                    EnsureActionIsAttributeRouted(controllerHasSelectorModel, actionModel);
 
-                    if (_apiBehaviorOptions.EnableModelStateInvalidFilter)
-                    {
-                        Debug.Assert(_apiBehaviorOptions.InvalidModelStateResponseFactory != null);
-                        actionModel.Filters.Add(_modelStateInvalidFilter);
-                    }
+                    AddInvalidModelStateFilter(actionModel);
 
-                    if (_modelMetadataProvider != null && _apiBehaviorOptions.InferBindingSourcesForParameters)
+                    InferParameterBindingSources(actionModel);
+                }
+            }
+        }
+
+        private static void EnsureActionIsAttributeRouted(bool controllerHasSelectorModel, ActionModel actionModel)
+        {
+            if (!controllerHasSelectorModel && !actionModel.Selectors.Any(s => s.AttributeRouteModel != null))
+            {
+                // Require attribute routing with controllers annotated with ApiControllerAttribute
+                throw new InvalidOperationException(Resources.FormatApiController_AttributeRouteRequired(nameof(ApiControllerAttribute)));
+            }
+        }
+
+        private void AddInvalidModelStateFilter(ActionModel actionModel)
+        {
+            if (_apiBehaviorOptions.SuppressModelStateInvalidFilter)
+            {
+                return;
+            }
+
+            Debug.Assert(_apiBehaviorOptions.InvalidModelStateResponseFactory != null);
+            actionModel.Filters.Add(_modelStateInvalidFilter);
+        }
+
+        private void InferParameterBindingSources(ActionModel actionModel)
+        {
+            if (_modelMetadataProvider == null || _apiBehaviorOptions.SuppressInferBindingSourcesForParameters)
+            {
+                return;
+            }
+            var inferredBindingSources = new BindingSource[actionModel.Parameters.Count];
+            var foundFromBodyParameter = false;
+
+            for (var i = 0; i < inferredBindingSources.Length; i++)
+            {
+                var parameter = actionModel.Parameters[i];
+                var bindingSource = InferBindingSourceForParameter(parameter);
+                if (bindingSource == BindingSource.Body)
+                {
+                    if (foundFromBodyParameter)
                     {
-                        foreach (var parameter in actionModel.Parameters)
-                        {
-                            var bindingSource = InferBindingSourceForParameter(parameter);
-                            if (bindingSource != null)
-                            {
-                                _logger.InferringParameterBindingSource(parameter, bindingSource);
-                                parameter.BindingInfo = new BindingInfo
-                                {
-                                    BindingSource = bindingSource,
-                                };
-                            }
-                        }
+                        // More than one parameter is inferred as FromBody. Log a warning and skip this action.
+                        _logger.UnableToInferBindingSource(actionModel);
                     }
+                    else
+                    {
+                        foundFromBodyParameter = true;
+                    }
+                }
+
+                inferredBindingSources[i] = bindingSource;
+            }
+
+            for (var i = 0; i < inferredBindingSources.Length; i++)
+            {
+                var bindingSource = inferredBindingSources[i];
+                if (bindingSource != null)
+                {
+                    actionModel.Parameters[i].BindingInfo = new BindingInfo
+                    {
+                        BindingSource = bindingSource,
+                    };
                 }
             }
         }
@@ -112,7 +151,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
             else
             {
-                var parameterMetadata = _modelMetadataProvider.GetMetadataForParameter(parameter.ParameterInfo);
+                ModelMetadata parameterMetadata;
+                if (_modelMetadataProvider is ModelMetadataProvider modelMetadataProvider)
+                {
+                    parameterMetadata = modelMetadataProvider.GetMetadataForParameter(parameter.ParameterInfo);
+                }
+                else
+                {
+                    parameterMetadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterInfo.ParameterType);
+                }
+
                 if (parameterMetadata != null)
                 {
                     var bindingSource = parameterMetadata.IsComplexType ?
@@ -129,9 +177,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private bool ParameterExistsInAllRoutes(ActionModel actionModel, string parameterName)
         {
             var parameterExistsInSomeRoute = false;
-            foreach (var routeTemplate in GetAllRouteTemplates())
+            foreach (var (route, _, _) in ActionAttributeRouteModel.GetAttributeRoutes(actionModel))
             {
-                var parsedTemplate = TemplateParser.Parse(routeTemplate);
+                if (route == null)
+                {
+                    continue;
+                }
+
+                var parsedTemplate = TemplateParser.Parse(route.Template);
                 if (parsedTemplate.GetParameter(parameterName) == null)
                 {
                     return false;
@@ -142,36 +195,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             return parameterExistsInSomeRoute;
-
-            IEnumerable<string> GetAllRouteTemplates()
-            {
-                foreach (var actionSelectorModel in actionModel.Selectors)
-                {
-                    var actionRouteModel = actionSelectorModel.AttributeRouteModel;
-                    var actionRouteTemplate = actionRouteModel?.Template;
-                    if (actionRouteModel != null && actionRouteModel.IsAbsoluteTemplate)
-                    {
-                        yield return AttributeRouteModel.CombineTemplates(
-                            prefix: null,
-                            template: actionRouteTemplate);
-                    }
-                    else if (actionModel.Controller.Selectors.Count > 0)
-                    {
-                        foreach (var controllerTemplate in actionModel.Controller.Selectors)
-                        {
-                            yield return AttributeRouteModel.CombineTemplates(
-                                controllerTemplate.AttributeRouteModel?.Template,
-                                actionRouteTemplate);
-                        }
-                    }
-                    else
-                    {
-                        yield return AttributeRouteModel.CombineTemplates(
-                            prefix: null,
-                            template: actionRouteTemplate);
-                    }
-                }
-            }
         }
     }
 }
