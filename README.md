@@ -20,10 +20,9 @@ Related community projects:
 This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [Home](https://github.com/aspnet/home) repo.
 
 ## Building from source
+ 
+1. Clone or fork this repository
+2. Before opening this project in Visual Studio or VS Code, execute `build.cmd /t:Restore` (Windows) or `./build.sh /t:Restore` (Linux/macOS). This will execute only the part of the build script that downloads and initializes a few required build tools and packages. To run a complete build on command line only, execute `build.cmd` or `build.sh` without arguments.
+3. You can then open the project in Visual Studio, Visual Studio Code, etc.
 
-To run a complete build on command line only, execute `build.cmd` or `build.sh` without arguments.
-
-Before opening this project in Visual Studio or VS Code, execute `build.cmd /t:Restore` (Windows) or `./build.sh /t:Restore` (Linux/macOS).
-This will execute only the part of the build script that downloads and initializes a few required build tools and packages.
-
-See [developer documentation](https://github.com/aspnet/Home/wiki) for more details.
+See [building from source](https://github.com/aspnet/Home/wiki/Building-from-source) for more information on building from source. If you would like to contribute, see [contributing information](https://github.com/aspnet/Home/blob/dev/CONTRIBUTING.md).
