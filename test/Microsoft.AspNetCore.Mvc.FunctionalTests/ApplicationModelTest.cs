@@ -167,66 +167,34 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("/Home/CannotBeRouted", response.Headers.Location.ToString());
         }
 
-        [Fact]
-        public async Task ProductsArea()
+        [Theory]
+        [InlineData("Products", "Products View")]
+        [InlineData("Services", "Services View")]
+        [InlineData("Manage", "Manage View")]
+        public async Task ApplicationModel_CanDuplicateController_InMultipleAreas(string areaName, string expectedContent)
         {
             // Arrange & Act
-            var response = await Client.GetAsync("/Products/MultipleAreas/Index");
+            var response = await Client.GetAsync(areaName + "/MultipleAreas/Index");
             var content = await response.Content.ReadAsStringAsync();
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("Products View", content);
+            Assert.Contains(expectedContent, content);
         }
 
-        [Fact]
-        public async Task ServicesArea()
+        [Theory]
+        [InlineData("Help", "This is the help page")]        
+        [InlineData("MoreHelp", "This is the more help page")]        
+        public async Task ControllerModel_CanDuplicateActions_RoutesToDifferentNames(string actionName, string expectedContent)
         {
             // Arrange & Act
-            var response = await Client.GetAsync("/Services/MultipleAreas/Index");
-            var content = await response.Content.ReadAsStringAsync();
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("Services View", content);
-        }
-
-        [Fact]
-        public async Task ManageArea()
-        {
-            // Arrange & Act
-            var response = await Client.GetAsync("/Manage/MultipleAreas/Index");
-            var content = await response.Content.ReadAsStringAsync();
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("Manage View", content);
-        }
-
-        [Fact]
-        public async Task ReturnHelpView()
-        {
-            // Arrange & Act
-            var response = await Client.GetAsync("ActionModel/Help");
+            var response = await Client.GetAsync("ActionModel/" + actionName);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Contains("This is the help page", body);
-        }
-
-        [Fact]
-        public async Task ReturnMoreHelpView()
-        {
-            // Arrange & Act
-            var response = await Client.GetAsync("/ActionModel/MoreHelp");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.Contains("This is the more help page", body);
+            Assert.Contains(expectedContent, body);
         }
     }
 }
