@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <returns>The created <see cref="StatusCodeResult"/> object for the response.</returns>
         [NonAction]
         public virtual StatusCodeResult StatusCode(HttpStatusCode statusCode)
-            => new StatusCode((int)statusCode);
+            => StatusCode((int)statusCode);
 
         /// <summary>
         /// Creates a <see cref="ObjectResult"/> object by specifying a <paramref name="statusCode"/> and <paramref name="value"/>
