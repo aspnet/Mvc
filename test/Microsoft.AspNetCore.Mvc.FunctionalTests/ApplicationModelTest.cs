@@ -166,5 +166,67 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal("/Home/CannotBeRouted", response.Headers.Location.ToString());
         }
+
+        [Fact]
+        public async Task ProductsArea()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("/Products/MultipleAreas/Index");
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("Products View", content);
+        }
+
+        [Fact]
+        public async Task ServicesArea()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("/Services/MultipleAreas/Index");
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("Services View", content);
+        }
+
+        [Fact]
+        public async Task ManageArea()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("/Manage/MultipleAreas/Index");
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("Manage View", content);
+        }
+
+        [Fact]
+        public async Task ReturnHelpView()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("ActionModel/Help");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("This is the help page", body);
+        }
+
+        [Fact]
+        public async Task ReturnMoreHelpView()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("/ActionModel/MoreHelp");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Contains("This is the more help page", body);
+        }
     }
 }
