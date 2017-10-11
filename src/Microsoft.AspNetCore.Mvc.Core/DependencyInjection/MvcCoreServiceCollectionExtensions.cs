@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -214,6 +215,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IErrorDescriptionFactory, DefaultErrorDescriptorFactory>();
 
             //
+            // Formatters
+            //
+            services.TryAddSingleton<IHttpRequestStreamReaderFactory, MemoryPoolHttpRequestStreamReaderFactory>();
+            services.TryAddSingleton<IHttpResponseStreamWriterFactory, MemoryPoolHttpResponseStreamWriterFactory>();
+            services.TryAddSingleton(ArrayPool<byte>.Shared);
+            services.TryAddSingleton(ArrayPool<char>.Shared);
+            services.TryAddSingleton<MediaTypeRegistry, DefaultMediaTypeRegistry>();
+
+            //
             // ModelBinding, Validation
             //
             // The DefaultModelMetadataProvider does significant caching and should be a singleton.
@@ -241,15 +251,8 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             //
-            // Random Infrastructure
+            // Action Result executors
             //
-            services.TryAddSingleton<MvcMarkerService, MvcMarkerService>();
-            services.TryAddSingleton<ITypeActivatorCache, TypeActivatorCache>();
-            services.TryAddSingleton<IUrlHelperFactory, UrlHelperFactory>();
-            services.TryAddSingleton<IHttpRequestStreamReaderFactory, MemoryPoolHttpRequestStreamReaderFactory>();
-            services.TryAddSingleton<IHttpResponseStreamWriterFactory, MemoryPoolHttpResponseStreamWriterFactory>();
-            services.TryAddSingleton(ArrayPool<byte>.Shared);
-            services.TryAddSingleton(ArrayPool<char>.Shared);
             services.TryAddSingleton<IActionResultExecutor<ObjectResult>, ObjectResultExecutor>();
             services.TryAddSingleton<IActionResultExecutor<PhysicalFileResult>, PhysicalFileResultExecutor>();
             services.TryAddSingleton<IActionResultExecutor<VirtualFileResult>, VirtualFileResultExecutor>();
@@ -261,6 +264,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IActionResultExecutor<RedirectToRouteResult>, RedirectToRouteResultExecutor>();
             services.TryAddSingleton<IActionResultExecutor<RedirectToPageResult>, RedirectToPageResultExecutor>();
             services.TryAddSingleton<IActionResultExecutor<ContentResult>, ContentResultExecutor>();
+
+            //
+            // Random Infrastructure
+            //
+            services.TryAddSingleton<MvcMarkerService, MvcMarkerService>();
+            services.TryAddSingleton<ITypeActivatorCache, TypeActivatorCache>();
+            services.TryAddSingleton<IUrlHelperFactory, UrlHelperFactory>();
 
             //
             // Route Handlers

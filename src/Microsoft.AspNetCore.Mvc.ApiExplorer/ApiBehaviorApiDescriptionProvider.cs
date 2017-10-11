@@ -1,23 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 {
     public class ApiBehaviorApiDescriptionProvider : IApiDescriptionProvider
     {
-        private readonly IModelMetadataProvider _modelMetadaProvider;
+        private readonly IOptions<ApiBehaviorOptions> _apiOptions;
+        private readonly IOptions<MvcOptions> _mvcOptions;
 
-        public ApiBehaviorApiDescriptionProvider(IModelMetadataProvider modelMetadataProvider)
+        private readonly IModelMetadataProvider _modelMetadaProvider;
+        private readonly MediaTypeRegistry _registry;
+
+        public ApiBehaviorApiDescriptionProvider(
+            IOptions<MvcOptions> mvcOptions,
+            IOptions<ApiBehaviorOptions> apiOptions,
+            IModelMetadataProvider modelMetadataProvider,
+            MediaTypeRegistry registry)
         {
+            _mvcOptions = mvcOptions;
+            _apiOptions = apiOptions;
             _modelMetadaProvider = modelMetadataProvider;
+            _registry = registry;
         }
 
         /// <remarks>
@@ -38,9 +48,9 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                     continue;
                 }
 
-                foreach (var responseType in CreateProblemResponseTypes(description))
+                if (!HasUserDefinedResponseTypes(description))
                 {
-                    description.SupportedResponseTypes.Add(responseType);
+                    ApplyProfile(description);
                 }
             }
         }
@@ -50,67 +60,134 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             return description.ActionDescriptor.FilterDescriptors.Any(f => f.Filter is IApiBehaviorMetadata);
         }
 
-        // Check if the parameter is named "id" (e.g. int id) or ends in Id (e.g. personId)
-        public bool IsIdParameter(ParameterDescriptor parameter)
+        public bool HasUserDefinedResponseTypes(ApiDescription description)
         {
-            if (parameter.Name == null)
-            {
-                return false;
-            }
-
-            if (string.Equals("id", parameter.Name, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            // We're looking for a name ending with Id, but preceded by a lower case letter. This should match
-            // the normal PascalCase naming conventions.
-            if (parameter.Name.Length >= 3 && 
-                parameter.Name.EndsWith("Id", StringComparison.Ordinal) && 
-                char.IsLower(parameter.Name, parameter.Name.Length - 3))
-            {
-                return true;
-            }
-
-            return false;
+            return description.ActionDescriptor.FilterDescriptors
+                .Select(f => f.Filter)
+                .OfType<IApiResponseMetadataProvider>()
+                .Any(f => f.Type != null);
         }
 
-        public IEnumerable<ApiResponseType> CreateProblemResponseTypes(ApiDescription description)
+        public void ApplyProfile(ApiDescription description)
         {
-            if (description.ActionDescriptor.Parameters.Any() || description.ActionDescriptor.BoundProperties.Any())
-            {
-                // For validation errors.
-                yield return CreateProblemResponse(StatusCodes.Status400BadRequest);
+            ApiDescriptionProfile profile = null;
 
-                if (description.ActionDescriptor.Parameters.Any(p => IsIdParameter(p)))
+            var profiles = _apiOptions.Value.ApiDescriptionProfiles;
+            for (var i = 0; i < profiles.Count; i++)
+            {
+                if (profiles[i].IsMatch(description))
                 {
-                    yield return CreateProblemResponse(StatusCodes.Status404NotFound);
+                    profile = profiles[i];
+                    break;
                 }
             }
 
-            yield return CreateProblemResponse(statusCode: 0, isDefaultResponse: true);
-        }
-        
-        private ApiResponseType CreateProblemResponse(int statusCode, bool isDefaultResponse = false)
-        {
-            return new ApiResponseType
+            if (profile == null)
             {
-                ApiResponseFormats = new List<ApiResponseFormat>
+                return;
+            }
+
+            // This is just for debugging/testing purposes.
+            description.SetProperty(profile);
+
+            profile.ApplyTo(description);
+
+            // Now we need to fixup some of the ApiResponseTypes - we don't expect a profile to be able to
+            // apply the content negotiation info, or to have access to ModelMetadata.
+            for (var i = 0; i < description.SupportedResponseTypes.Count; i ++)
+            {
+                var response = description.SupportedResponseTypes[i];
+                if (response.Type == null || response.Type == typeof(void))
                 {
-                    new ApiResponseFormat
+                    continue;
+                }
+
+                if (response.ModelMetadata == null)
+                {
+                    response.ModelMetadata = _modelMetadaProvider.GetMetadataForType(response.Type);
+                }
+
+                if (response.ApiResponseFormats.Count == 0)
+                {
+                    var formats = GetFormats(description, response);
+                    foreach (var format in formats)
                     {
-                        MediaType = "application/problem+json",
-                    },
-                    new ApiResponseFormat
+                        response.ApiResponseFormats.Add(format);
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<ApiResponseFormat> GetFormats(ApiDescription description, ApiResponseType response)
+        {
+            var filters = GetMediaTypeFilters(description);
+            var formatters = GetFormatters();
+
+            var mediaTypes = new MediaTypeCollection();
+
+            var unfilteredMediaTypes = _registry.GetMediaTypes(response.Type);
+            for (var i = 0; i < unfilteredMediaTypes.Count; i++)
+            {
+                mediaTypes.Add(unfilteredMediaTypes[i]);
+            }
+
+            for (var i = 0; i < filters.Length; i++)
+            {
+                var filter = filters[i];
+                if (filter.Type != null && filter.Type != response.Type)
+                {
+                    continue;
+                }
+
+                // StatusCode should be ignored when Type is not set.
+                if (filter.Type != null && filter.StatusCode != response.StatusCode)
+                {
+                    continue;
+                }
+
+                filter.SetContentTypes(mediaTypes);
+            }
+
+            for (var i = 0; i < formatters.Length; i++)
+            {
+                var formatter = formatters[i];
+                for (var j = 0; j < mediaTypes.Count; j++)
+                {
+                    var mediaType = mediaTypes[j];
+
+                    var supportedMediaTypes = formatter.GetSupportedContentTypes(mediaType, response.Type);
+                    if (supportedMediaTypes != null)
                     {
-                        MediaType = "application/problem+xml",
-                    },
-                },
-                IsDefaultResponse = isDefaultResponse,
-                ModelMetadata = _modelMetadaProvider.GetMetadataForType(typeof(ProblemDetails)),
-                StatusCode = statusCode,
-                Type = typeof(ProblemDetails),
-            };
+                        for (var k = 0; k < supportedMediaTypes.Count; k++)
+                        {
+                            yield return new ApiResponseFormat()
+                            {
+                                Formatter = (IOutputFormatter)formatter,
+                                MediaType = supportedMediaTypes[k],
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        // Returns [Produces] and friends.
+        private IApiResponseMetadataProvider[] GetMediaTypeFilters(ApiDescription description)
+        {
+            return
+                description.ActionDescriptor.FilterDescriptors
+                .Select(f => f.Filter)
+                .OfType<IApiResponseMetadataProvider>()
+                .ToArray();
+        }
+
+        // Returns IOutputFormatters that can describe what content types they handle.
+        private IApiResponseTypeMetadataProvider[] GetFormatters()
+        {
+            return
+                _mvcOptions.Value.OutputFormatters
+                .OfType<IApiResponseTypeMetadataProvider>()
+                .ToArray();
         }
     }
 }
