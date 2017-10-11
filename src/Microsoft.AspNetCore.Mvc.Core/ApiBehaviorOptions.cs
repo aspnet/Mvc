@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -33,5 +36,11 @@ namespace Microsoft.AspNetCore.Mvc
         /// <seealso cref="InvalidModelStateResponseFactory"/>.
         /// </summary>
         public bool EnableModelStateInvalidFilter { get; set; } = true;
+
+        /// <summary>
+        /// Gets a collection of <see cref="ApiDescriptionProfile"/> that can be applied to enhance 
+        /// <see cref="ApiDescription"/> objects produced for actions attributed with <see cref="ApiControllerAttribute"/>.
+        /// </summary>
+        public IList<ApiDescriptionProfile> ApiDescriptionProfiles { get; } = new List<ApiDescriptionProfile>();
     }
 }

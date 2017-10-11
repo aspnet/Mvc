@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 
@@ -40,6 +41,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     },
                 };
             }
+
+            // These are somewhat highly sensitive to order, so be careful.
+            //
+            // [HttpGet]
+            options.ApiDescriptionProfiles.Add(new GetAllApiDescriptionProfile());
+            options.ApiDescriptionProfiles.Add(new GetByIdApiDescriptionProfile());
+            options.ApiDescriptionProfiles.Add(new FindAllApiDescriptionProvider());
+            options.ApiDescriptionProfiles.Add(new FindSingleApiDescriptionProvider());
+
+            // Fallback
+            options.ApiDescriptionProfiles.Add(new UnknownApiDescriptionProfile());
         }
     }
 }
