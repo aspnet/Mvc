@@ -11,10 +11,10 @@
       "type": "build",
       "version": "1.0.0-preview4-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
-    "Microsoft.AspNetCore.Session": "1.0.4",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.4"
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.5",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.6",
+    "Microsoft.AspNetCore.Session": "1.0.5",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.5"
   },
   "frameworks": {
     "net451": {},
@@ -25,7 +25,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.7",
+          "version": "1.0.8-servicing-005009-00",
           "type": "platform"
         }
       }

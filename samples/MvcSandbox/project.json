@@ -5,15 +5,15 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Diagnostics": "1.0.4",
+    "Microsoft.AspNetCore.Diagnostics": "1.0.5",
     "Microsoft.AspNetCore.Mvc": "1.0.6",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
       "version": "1.0.0-preview4-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.4",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.5",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.6",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.5",
     "Microsoft.Extensions.Configuration.Json": "1.0.2",
     "Microsoft.Extensions.Logging.Console": "1.0.2"
   },
@@ -33,7 +33,7 @@
     "netcoreapp1.0": {
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.7",
+          "version": "1.0.8-servicing-005009-00",
           "type": "platform"
         }
       }

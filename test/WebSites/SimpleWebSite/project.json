@@ -5,8 +5,8 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.Mvc": "1.0.6",
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.5"
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.5",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.6"
   },
   "frameworks": {
     "net451": {},
@@ -17,7 +17,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.7",
+          "version": "1.0.8-servicing-005009-00",
           "type": "platform"
         }
       }

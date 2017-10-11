@@ -10,8 +10,8 @@
       "type": "build",
       "version": "1.0.0-preview4-final"
     },
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
+    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.5",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.0.6",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0"
   },
   "frameworks": {
@@ -23,7 +23,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.7",
+          "version": "1.0.8-servicing-005009-00",
           "type": "platform"
         }
       }
