@@ -6,7 +6,7 @@
   "dependencies": {
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.4",
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
-    "Microsoft.AspNetCore.Mvc": "1.0.5",
+    "Microsoft.AspNetCore.Mvc": "1.0.6",
     "Microsoft.AspNetCore.Hosting": "1.0.4"
   },
   "frameworks": {

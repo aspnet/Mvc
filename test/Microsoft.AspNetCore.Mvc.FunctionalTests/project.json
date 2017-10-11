@@ -21,8 +21,8 @@
     "FiltersWebSite": "1.0.0",
     "FormatterWebSite": "1.0.0",
     "HtmlGenerationWebSite": "1.0.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.5",
-    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.5",
+    "Microsoft.AspNetCore.Mvc": "1.0.6",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.6",
     "Microsoft.AspNetCore.Mvc.TestCommon": {
       "version": "1.0.0-*",
       "type": "build"

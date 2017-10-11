@@ -9,7 +9,7 @@
   "dependencies": {
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.4",
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.5",
-    "Microsoft.AspNetCore.Mvc": "1.0.5",
+    "Microsoft.AspNetCore.Mvc": "1.0.6",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
     "Microsoft.AspNetCore.StaticFiles": "1.0.4",
     "Microsoft.Extensions.FileProviders.Embedded": "1.0.1"
