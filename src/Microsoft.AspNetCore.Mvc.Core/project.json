@@ -34,7 +34,7 @@
       "version": "1.1.1",
       "type": "build"
     },
-    "Microsoft.Extensions.DependencyModel": "1.1.4-servicing-001651",
+    "Microsoft.Extensions.DependencyModel": "1.1.4-servicing-001653",
     "Microsoft.Extensions.FileProviders.Abstractions": "1.1.1",
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
       "type": "build",
