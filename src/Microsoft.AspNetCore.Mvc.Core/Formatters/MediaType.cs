@@ -241,9 +241,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             {
                 return null;
             }
+
             foreach (var nameValue in _mediaTypeHeaderValue.Parameters)
             {
-                if (nameValue.Name == parameterName)
+                if (nameValue.Name.Equals(parameterName, StringComparison.OrdinalIgnoreCase))
                 {
                     return nameValue.Value;
                 }
@@ -318,8 +319,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <returns>The parsed media type with its associated quality.</returns>
         public static MediaTypeSegmentWithQuality CreateMediaTypeSegmentWithQuality(string mediaType, int start)
         {
-            // This method may be tough to recoup. This method can accept a list of MediaTypes, and it will parse 
-            // just the first one of the list (in place parsing). 
             var parsedMediaType = new MediaType(mediaType, start, length: null);
             // Short-circuit use of the MediaTypeParameterParser if constructor detected an invalid type or subtype.
             // Parser would set ParsingFailed==true in this case. But, we handle invalid parameters as a separate case.

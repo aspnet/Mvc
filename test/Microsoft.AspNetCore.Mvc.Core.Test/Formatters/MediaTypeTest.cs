@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
         }
 
+
         [Theory]
         [MemberData(nameof(MediaTypesWithSuffixes))]
         public void Constructor_CanParseSuffixedMediaTypes(
