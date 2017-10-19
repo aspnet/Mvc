@@ -49,23 +49,51 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 SubTypeWithoutSuffix = new StringSegment();
             }
         }
+        public MediaType(string mediaType, int offset, int? length)
+            : this(new StringSegment(mediaType), offset, length)
+
+        {
+        }
+
 
         /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
         /// <param name="offset">The offset in the <paramref name="mediaType"/> where the parsing starts.</param>
         /// <param name="length">The length of the media type to parse if provided.</param>
-        public MediaType(string mediaType, int offset, int? length)
+        public MediaType(StringSegment mediaType, int offset, int? length)
         {
-            var mediaTypeSegment = new StringSegment(mediaType);
+            if (mediaType == null)
+            {
+                throw new ArgumentNullException(nameof(mediaType));
+            }
+
+            if (offset < 0 || offset >= mediaType.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            if (length != null)
+            {
+                if (length < 0 || length > mediaType.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(length));
+                }
+
+                if (offset > mediaType.Length - length)
+                {
+                    throw new ArgumentException(Resources.FormatArgument_InvalidOffsetLength(nameof(offset), nameof(length)));
+                }
+            }
+
             if (length == null)
             {
-                mediaTypeSegment.Subsegment(offset);
+                mediaType = mediaType.Subsegment(offset);
             }
             else
             {
-                mediaTypeSegment.Subsegment(offset, length.Value);
+                mediaType = mediaType.Subsegment(offset, length.Value);
             }
 
-            if (MediaTypeHeaderValue.TryParse(mediaTypeSegment, out _mediaTypeHeaderValue))
+            if (MediaTypeHeaderValue.TryParse(mediaType, out _mediaTypeHeaderValue))
             {
                 SubType = _mediaTypeHeaderValue.SubType;
                 Type = _mediaTypeHeaderValue.Type;
@@ -179,6 +207,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </returns>
         public bool IsSubsetOf(MediaType set)
         {
+            if (_mediaTypeHeaderValue == null)
+            {
+                return false;
+            }
             return _mediaTypeHeaderValue.IsSubsetOf(set._mediaTypeHeaderValue);
         }
 
@@ -205,6 +237,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </returns>
         public StringSegment GetParameter(StringSegment parameterName)
         {
+            if (_mediaTypeHeaderValue == null)
+            {
+                return null;
+            }
             foreach (var nameValue in _mediaTypeHeaderValue.Parameters)
             {
                 if (nameValue.Name == parameterName)
@@ -282,6 +318,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <returns>The parsed media type with its associated quality.</returns>
         public static MediaTypeSegmentWithQuality CreateMediaTypeSegmentWithQuality(string mediaType, int start)
         {
+            // This method may be tough to recoup. This method can accept a list of MediaTypes, and it will parse 
+            // just the first one of the list (in place parsing). 
             var parsedMediaType = new MediaType(mediaType, start, length: null);
             // Short-circuit use of the MediaTypeParameterParser if constructor detected an invalid type or subtype.
             // Parser would set ParsingFailed==true in this case. But, we handle invalid parameters as a separate case.

@@ -117,7 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.Test
         [InlineData("application/xml, */*, application/json", "*/*")]
         [InlineData("*/*, application/json", "*/*")]
         [InlineData("application/*+json", "application/*+json")]
-        [InlineData("application/json;v=1;*", "application/json;v=1;*")]
+        //[InlineData("application/json;v=1;*", "application/json;v=1;*")] // The wild card is not counted here because it is invalid in MTHV
         public void ProducesAttribute_InvalidContentType_Throws(string content, string invalidContentType)
         {
             // Act
