@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return new TheoryData<string>
                 {
                     "application/json+bson;format=pretty;charset=utf-8;q=0.8",
-                    //"application/json+bson;format=pretty;charset=\"utf-8\";q=0.8",
+                    "application/json+bson;format=pretty;charset=\"utf-8\";q=0.8",
                     "application/json+bson;format=pretty;charset=utf-8; q=0.8 ",
                     "application/json+bson;format=pretty;charset=utf-8 ; q=0.8 ",
                     "application/json+bson;format=pretty; charset=utf-8 ; q=0.8 ",
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     "application/json+bson; format=pretty ; charset=utf-8 ; q=  0.8 ",
                     "application/json+bson; format=pretty ; charset=utf-8 ; q  =  0.8 ",
                     " application /  json+bson; format =  pretty ; charset = utf-8 ; q  =  0.8 ",
-                    //" application /  json+bson; format =  \"pretty\" ; charset = \"utf-8\" ; q  =  \"0.8\" ",
+                    " application /  json+bson; format =  \"pretty\" ; charset = \"utf-8\" ; q  =  \"0.8\" ",
                 };
             }
         }
