@@ -65,6 +65,7 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
+        [InlineData("test", "/CustomerName", null, "James", "The current value '' at path 'CustomerName' is not equal to the test value 'James'.")]
         [InlineData("invalid", "/CustomerName", null, "James", "Invalid JsonPatch operation 'invalid'.")]
         [InlineData("", "/CustomerName", null, "James", "Invalid JsonPatch operation ''.")]
         public void ApplyTo_InvalidPatchOperations_AddsModelStateError(
