@@ -122,39 +122,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
             Assert.Equal(expected, parsed);
         }
 
-        // The text "*/*Content-Type" parses as a valid media type value. However it's followed
-        // by ':' instead of whitespace or a delimiter, which means that it's actually invalid.
-        //[Fact]
-        //public void ParseAcceptHeader_ValidMediaType_FollowedByNondelimiter()
-        //{
-        //    // Arrange
-        //    var expected = new MediaTypeSegmentWithQuality[0];
-
-        //    // This input is actually stricter than MTHV, MTHV will continue parsing a list 
-        //    var input = "*/*Content-Type:application/json";
-
-        //    // Act
-        //    var parsed = AcceptHeaderParser.ParseAcceptHeader(new List<string>() { input });
-
-        //    // Assert
-        //    Assert.Equal(expected, parsed);
-        //}
-
-        //[Fact]
-        //public void ParseAcceptHeader_ValidMediaType_FollowedBySemicolon()
-        //{
-        //    // Arrange
-        //    var expected = new MediaTypeSegmentWithQuality[0];
-
-        //    var input = "*/*Content-Type;application/json";
-
-        //    // Act
-        //    var parsed = AcceptHeaderParser.ParseAcceptHeader(new List<string>() { input });
-
-        //    // Assert
-        //    Assert.Equal(expected, parsed);
-        //}
-
         [Fact]
         public void ParseAcceptHeader_ValidMediaType_FollowedByComma()
         {
