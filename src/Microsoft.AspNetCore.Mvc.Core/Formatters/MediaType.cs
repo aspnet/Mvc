@@ -255,8 +255,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return null;
             }
 
-            foreach (var nameValue in _mediaTypeHeaderValue.Parameters)
+            for (var i = 0; i < _mediaTypeHeaderValue.Parameters.Count; i++)
             {
+                var nameValue = _mediaTypeHeaderValue.Parameters[i];
                 if (nameValue.Name.Equals(parameterName, StringComparison.OrdinalIgnoreCase))
                 {
                     return HeaderUtilities.RemoveQuotes(nameValue.Value);
@@ -290,6 +291,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         {
             var parsedMediaType = new MediaType(mediaType);
             var charset = parsedMediaType.GetParameter("charset");
+
             if (charset.HasValue && charset.Equals(encoding.WebName, StringComparison.OrdinalIgnoreCase))
             {
                 return mediaType.Value;
@@ -320,6 +322,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         public static Encoding GetEncoding(StringSegment mediaType)
         {
             var parsedMediaType = new MediaType(mediaType);
+
             return parsedMediaType.Encoding;
         }
 
