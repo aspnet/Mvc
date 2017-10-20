@@ -34,6 +34,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <param name="mediaType">The <see cref="StringSegment"/> with the media type.</param>
         public MediaType(StringSegment mediaType)
         {
+            if (mediaType == null)
+            {
+                throw new ArgumentNullException(nameof(mediaType));
+            }
+
             if (MediaTypeHeaderValue.TryParse(mediaType, out _mediaTypeHeaderValue))
             {
                 SubType = _mediaTypeHeaderValue.SubType;
@@ -49,13 +54,21 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 SubTypeWithoutSuffix = new StringSegment();
             }
         }
+
+        /// <summary>
+        /// Initializes a <see cref="MediaType"/> instance.
+        /// </summary>
+        /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
+        /// <param name="offset">The offset in the <paramref name="mediaType"/> where the parsing starts.</param>
+        /// <param name="length">The length of the media type to parse if provided.</param>
         public MediaType(string mediaType, int offset, int? length)
             : this(new StringSegment(mediaType), offset, length)
-
         {
         }
 
-
+        /// <summary>
+        /// Initializes a <see cref="MediaType"/> instance.
+        /// </summary>
         /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
         /// <param name="offset">The offset in the <paramref name="mediaType"/> where the parsing starts.</param>
         /// <param name="length">The length of the media type to parse if provided.</param>
@@ -249,7 +262,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                     return HeaderUtilities.RemoveQuotes(nameValue.Value);
                 }
             }
-            return null;
+            return new StringSegment();
         }
 
         /// <summary>
@@ -329,22 +342,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
 
             var quality = parsedMediaType._mediaTypeHeaderValue.Quality ?? 1.0;
-            //foreach (var nameValue in )
-            //{
-            //    if (nameValue.Name == QualityParameter)
-            //    {
-            //        // If media type contains two `q` values i.e. it's invalid in an uncommon way, pick last value.
-            //        quality = double.Parse(
-            //            nameValue.Value.Value, NumberStyles.AllowDecimalPoint,
-            //            NumberFormatInfo.InvariantInfo);
-            //    }
-            //}
 
             // We check if the parsed media type has a value at this stage when we have iterated
-            // over all the parameters and we know if the parsing was successful.
-
+            // over all the parameters and we know if the parsing was successful
             return new MediaTypeSegmentWithQuality(
-                parsedMediaType._mediaTypeHeaderValue.MediaType,
+                parsedMediaType._mediaTypeHeaderValue.ToString(),
                 quality);
         }
 

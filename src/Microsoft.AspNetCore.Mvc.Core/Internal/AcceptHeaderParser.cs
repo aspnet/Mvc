@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
                 for (int j = 0; j < output.Count; j++)
                 {
                     var mediaTypeHeaderValue = output[j];
-                    var mediaTypeWithQuality = new MediaTypeSegmentWithQuality(mediaTypeHeaderValue.MediaType, mediaTypeHeaderValue.Quality ?? 1.0);
+                    var mediaTypeWithQuality = new MediaTypeSegmentWithQuality(mediaTypeHeaderValue.ToString(), mediaTypeHeaderValue.Quality ?? 1.0);
                     parsedValues.Add(mediaTypeWithQuality);
                 }
             }

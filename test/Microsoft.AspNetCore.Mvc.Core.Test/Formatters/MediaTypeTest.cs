@@ -41,7 +41,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
         }
 
-
         [Theory]
         [MemberData(nameof(MediaTypesWithSuffixes))]
         public void Constructor_CanParseSuffixedMediaTypes(
@@ -57,7 +56,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             Assert.Equal(new StringSegment(expectedSubtypeSuffix), result.SubTypeSuffix);
         }
 
-        // These commented out tests fail because of quotes (MTHV has quotes, MT doesn't)
         public static TheoryData<string> MediaTypesWithParameters
         {
             get
@@ -65,7 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return new TheoryData<string>
                 {
                     "application/json+bson;format=pretty;charset=utf-8;q=0.8",
-                    "application/json+bson;format=pretty;charset=\"utf-8\";q=0.8", // MTHV will not remove quotes. 
+                    "application/json+bson;format=pretty;charset=\"utf-8\";q=0.8",
                     "application/json+bson;format=pretty;charset=utf-8; q=0.8 ",
                     "application/json+bson;format=pretty;charset=utf-8 ; q=0.8 ",
                     "application/json+bson;format=pretty; charset=utf-8 ; q=0.8 ",
