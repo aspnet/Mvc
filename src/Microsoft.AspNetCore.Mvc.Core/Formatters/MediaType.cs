@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// <summary>
         /// Initializes a <see cref="MediaType"/> instance.
         /// </summary>
-        /// <param name="mediaType">The <see cref="string"/> with the media type.</param>
+        /// <param name="mediaType">The <see cref="StringSegment"/> with the media type.</param>
         /// <param name="offset">The offset in the <paramref name="mediaType"/> where the parsing starts.</param>
         /// <param name="length">The length of the media type to parse if provided.</param>
         public MediaType(StringSegment mediaType, int offset, int? length)
