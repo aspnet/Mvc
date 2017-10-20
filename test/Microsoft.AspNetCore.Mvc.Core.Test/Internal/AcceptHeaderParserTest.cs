@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
         public void ParseAcceptHeader_ParsesSimpleHeaderWithMultipleValues()
         {
             // Arrange
-            var header = "application/json, application/xml;q=0.8";
+            var header = "application/json, application/xml; q=0.8";
             var expected = new List<MediaTypeSegmentWithQuality>
             {
                 new MediaTypeSegmentWithQuality(new StringSegment("application/json"),1.0),
@@ -44,10 +44,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
 
             // Assert
             Assert.Equal(expected, parsed);
-            foreach (var mediaType in parsed)
-            {
-                Assert.Same(header, mediaType.MediaType.Buffer);
-            }
         }
 
         [Fact]
