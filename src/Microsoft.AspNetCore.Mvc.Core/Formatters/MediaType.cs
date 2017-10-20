@@ -246,7 +246,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             {
                 if (nameValue.Name.Equals(parameterName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return nameValue.Value;
+                    return HeaderUtilities.RemoveQuotes(nameValue.Value);
                 }
             }
             return null;
@@ -328,17 +328,17 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 return default(MediaTypeSegmentWithQuality);
             }
 
-            var quality = 1.0d;
-            foreach (var nameValue in parsedMediaType._mediaTypeHeaderValue.Parameters)
-            {
-                if (nameValue.Name == QualityParameter)
-                {
-                    // If media type contains two `q` values i.e. it's invalid in an uncommon way, pick last value.
-                    quality = double.Parse(
-                        nameValue.Value.Value, NumberStyles.AllowDecimalPoint,
-                        NumberFormatInfo.InvariantInfo);
-                }
-            }
+            var quality = parsedMediaType._mediaTypeHeaderValue.Quality ?? 1.0;
+            //foreach (var nameValue in )
+            //{
+            //    if (nameValue.Name == QualityParameter)
+            //    {
+            //        // If media type contains two `q` values i.e. it's invalid in an uncommon way, pick last value.
+            //        quality = double.Parse(
+            //            nameValue.Value.Value, NumberStyles.AllowDecimalPoint,
+            //            NumberFormatInfo.InvariantInfo);
+            //    }
+            //}
 
             // We check if the parsed media type has a value at this stage when we have iterated
             // over all the parameters and we know if the parsing was successful.
