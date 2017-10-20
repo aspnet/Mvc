@@ -65,7 +65,6 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Theory]
-        [InlineData("test", "/CustomerName", null, "James", "The test operation is not supported.")]
         [InlineData("invalid", "/CustomerName", null, "James", "Invalid JsonPatch operation 'invalid'.")]
         [InlineData("", "/CustomerName", null, "James", "Invalid JsonPatch operation ''.")]
         public void ApplyTo_InvalidPatchOperations_AddsModelStateError(
