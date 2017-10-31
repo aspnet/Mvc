@@ -377,7 +377,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         private static DefaultOutputFormatterSelector CreateSelector(MvcOptions options)
         {
-            return new DefaultOutputFormatterSelector(NullLoggerFactory.Instance, Options.Create(options));
+            return new DefaultOutputFormatterSelector(Options.Create(options), NullLoggerFactory.Instance);
         }
 
         private class CannotWriteFormatter : IOutputFormatter

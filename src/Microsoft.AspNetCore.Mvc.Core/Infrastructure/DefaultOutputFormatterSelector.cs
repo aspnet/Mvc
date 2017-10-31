@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -19,20 +18,36 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
     public class DefaultOutputFormatterSelector : OutputFormatterSelector
     {
+        private static readonly Comparison<MediaTypeSegmentWithQuality> _sortFunction = (left, right) =>
+        {
+            return left.Quality > right.Quality ? -1 : (left.Quality == right.Quality ? 0 : 1);
+        };
+
         private readonly ILogger _logger;
         private readonly IList<IOutputFormatter> _formatters;
         private readonly bool _respectBrowserAcceptHeader;
         private readonly bool _returnHttpNotAcceptable;
 
-        public DefaultOutputFormatterSelector(ILoggerFactory loggerFactory, IOptions<MvcOptions> options)
+        public DefaultOutputFormatterSelector(IOptions<MvcOptions> options, ILoggerFactory loggerFactory)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _logger = loggerFactory.CreateLogger<DefaultOutputFormatterSelector>();
+
             _formatters = new ReadOnlyCollection<IOutputFormatter>(options.Value.OutputFormatters);
             _respectBrowserAcceptHeader = options.Value.RespectBrowserAcceptHeader;
             _returnHttpNotAcceptable = options.Value.ReturnHttpNotAcceptable;
         }
 
-        public override IOutputFormatter SelectFormatter(OutputFormatterWriteContext context, IList<IOutputFormatter> formatters, MediaTypeCollection contentTypes)
+        public override IOutputFormatter SelectFormatter(OutputFormatterCanWriteContext context, IList<IOutputFormatter> formatters, MediaTypeCollection contentTypes)
         {
             if (context == null)
             {
@@ -54,9 +69,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             if (formatters.Count == 0)
             {
                 formatters = _formatters;
-
-                // Complain about MvcOptions.OutputFormatters only if the result has an empty Formatters.
-                Debug.Assert(formatters != null, "MvcOptions.OutputFormatters cannot be null.");
                 if (formatters.Count == 0)
                 {
                     throw new InvalidOperationException(Resources.FormatOutputFormattersAreRequired(
@@ -149,24 +161,13 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 }
             }
 
-            result.Sort((left, right) => left.Quality > right.Quality ? -1 : (left.Quality == right.Quality ? 0 : 1));
+            result.Sort(_sortFunction);
 
             return result;
         }
 
-        /// <summary>
-        /// Selects the <see cref="IOutputFormatter"/> to write the response. The first formatter which
-        /// can write the response should be chosen without any consideration for content type.
-        /// </summary>
-        /// <param name="formatterContext">The <see cref="OutputFormatterWriteContext"/>.</param>
-        /// <param name="formatters">
-        /// The list of <see cref="IOutputFormatter"/> instances to consider.
-        /// </param>
-        /// <returns>
-        /// The selected <see cref="IOutputFormatter"/> or <c>null</c> if no formatter can write the response.
-        /// </returns>
         private IOutputFormatter SelectFormatterNotUsingContentType(
-            OutputFormatterWriteContext formatterContext,
+            OutputFormatterCanWriteContext formatterContext,
             IList<IOutputFormatter> formatters)
         {
             if (formatterContext == null)
@@ -193,22 +194,8 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             return null;
         }
 
-        /// <summary>
-        /// Selects the <see cref="IOutputFormatter"/> to write the response based on the content type values
-        /// present in <paramref name="sortedAcceptHeaders"/>.
-        /// </summary>
-        /// <param name="formatterContext">The <see cref="OutputFormatterWriteContext"/>.</param>
-        /// <param name="formatters">
-        /// The list of <see cref="IOutputFormatter"/> instances to consider.
-        /// </param>
-        /// <param name="sortedAcceptHeaders">
-        /// The ordered content types from the <c>Accept</c> header, sorted by descending q-value.
-        /// </param>
-        /// <returns>
-        /// The selected <see cref="IOutputFormatter"/> or <c>null</c> if no formatter can write the response.
-        /// </returns>
         private IOutputFormatter SelectFormatterUsingSortedAcceptHeaders(
-            OutputFormatterWriteContext formatterContext,
+            OutputFormatterCanWriteContext formatterContext,
             IList<IOutputFormatter> formatters,
             IList<MediaTypeSegmentWithQuality> sortedAcceptHeaders)
         {
@@ -247,22 +234,8 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             return null;
         }
 
-        /// <summary>
-        /// Selects the <see cref="IOutputFormatter"/> to write the response based on the content type values
-        /// present in <paramref name="acceptableContentTypes"/>.
-        /// </summary>
-        /// <param name="formatterContext">The <see cref="OutputFormatterWriteContext"/>.</param>
-        /// <param name="formatters">
-        /// The list of <see cref="IOutputFormatter"/> instances to consider.
-        /// </param>
-        /// <param name="acceptableContentTypes">
-        /// The ordered content types from <see cref="ObjectResult.ContentTypes"/> in descending priority order.
-        /// </param>
-        /// <returns>
-        /// The selected <see cref="IOutputFormatter"/> or <c>null</c> if no formatter can write the response.
-        /// </returns>
         private IOutputFormatter SelectFormatterUsingAnyAcceptableContentType(
-            OutputFormatterWriteContext formatterContext,
+            OutputFormatterCanWriteContext formatterContext,
             IList<IOutputFormatter> formatters,
             MediaTypeCollection acceptableContentTypes)
         {
@@ -298,25 +271,8 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             return null;
         }
 
-        /// <summary>
-        /// Selects the <see cref="IOutputFormatter"/> to write the response based on the content type values
-        /// present in <paramref name="sortedAcceptableContentTypes"/> and <paramref name="possibleOutputContentTypes"/>.
-        /// </summary>
-        /// <param name="formatterContext">The <see cref="OutputFormatterWriteContext"/>.</param>
-        /// <param name="formatters">
-        /// The list of <see cref="IOutputFormatter"/> instances to consider.
-        /// </param>
-        /// <param name="sortedAcceptableContentTypes">
-        /// The ordered content types from the <c>Accept</c> header, sorted by descending q-value.
-        /// </param>
-        /// <param name="possibleOutputContentTypes">
-        /// The ordered content types from <see cref="ObjectResult.ContentTypes"/> in descending priority order.
-        /// </param>
-        /// <returns>
-        /// The selected <see cref="IOutputFormatter"/> or <c>null</c> if no formatter can write the response.
-        /// </returns>
         private IOutputFormatter SelectFormatterUsingSortedAcceptHeadersAndContentTypes(
-            OutputFormatterWriteContext formatterContext,
+            OutputFormatterCanWriteContext formatterContext,
             IList<IOutputFormatter> formatters,
             IList<MediaTypeSegmentWithQuality> sortedAcceptableContentTypes,
             MediaTypeCollection possibleOutputContentTypes)

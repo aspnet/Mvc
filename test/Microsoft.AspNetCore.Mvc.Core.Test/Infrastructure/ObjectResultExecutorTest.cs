@@ -291,7 +291,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         private static ObjectResultExecutor CreateExecutor(IOptions<MvcOptions> options = null)
         {
-            var selector = new DefaultOutputFormatterSelector(NullLoggerFactory.Instance, options ?? Options.Create<MvcOptions>(new MvcOptions()));
+            var selector = new DefaultOutputFormatterSelector(options ?? Options.Create<MvcOptions>(new MvcOptions()), NullLoggerFactory.Instance);
             return new ObjectResultExecutor(selector, new TestHttpResponseStreamWriterFactory(), NullLoggerFactory.Instance);
         }
 
