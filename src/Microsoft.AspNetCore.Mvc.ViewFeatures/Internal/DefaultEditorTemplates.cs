@@ -370,6 +370,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return GenerateTextBox(htmlHelper, inputType: "time");
         }
 
+        public static IHtmlContent MonthInputTemplate(IHtmlHelper htmlHelper)
+        {
+            ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM}");
+            return GenerateTextBox(htmlHelper, inputType: "month");
+        }
+
         public static IHtmlContent NumberInputTemplate(IHtmlHelper htmlHelper)
         {
             return GenerateTextBox(htmlHelper, inputType: "number");

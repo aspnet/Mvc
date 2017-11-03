@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "DateTime", "datetime-local" },
                 { "DateTime-local", "datetime-local" },
                 { nameof(DateTimeOffset), "text" },
+                { "Month", "month" },
                 { "Time", "time" },
                 { nameof(Byte), "number" },
                 { nameof(SByte), "number" },
@@ -61,6 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "datetime", "{0:yyyy-MM-ddTHH:mm:ss.fffK}" },
                 { "datetime-local", "{0:yyyy-MM-ddTHH:mm:ss.fff}" },
                 { "time", "{0:HH:mm:ss.fff}" },
+                { "month", "{0:yyyy-MM}" },
             };
 
         /// <summary>
