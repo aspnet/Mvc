@@ -35,8 +35,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "DateTime", "datetime-local" },
                 { "DateTime-local", "datetime-local" },
                 { nameof(DateTimeOffset), "text" },
-                { "Month", "month" },
                 { "Time", "time" },
+                { "Month", "month" },
                 { nameof(Byte), "number" },
                 { nameof(SByte), "number" },
                 { nameof(Int16), "number" },
@@ -62,7 +62,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "datetime", "{0:yyyy-MM-ddTHH:mm:ss.fffK}" },
                 { "datetime-local", "{0:yyyy-MM-ddTHH:mm:ss.fff}" },
                 { "time", "{0:HH:mm:ss.fff}" },
-                { "month", "{0:yyyy-MM}" },
             };
 
         /// <summary>
@@ -380,7 +379,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private string GetFormat(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
         {
             string format;
-            if (string.Equals("decimal", inputTypeHint, StringComparison.OrdinalIgnoreCase) &&
+            if (string.Equals("month", inputType, StringComparison.OrdinalIgnoreCase))
+            {
+                // A new HTML5 input type that only will be rendered in Rfc3339 mode
+                format = "{0:yyyy-MM}";
+            }
+            else if (string.Equals("decimal", inputTypeHint, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals("text", inputType, StringComparison.Ordinal) &&
                 string.IsNullOrEmpty(modelExplorer.Metadata.EditFormatString))
             {
