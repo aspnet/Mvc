@@ -408,13 +408,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     // Last week (either 52 or 53) includes January dates (1st, 2nd, 3rd) 
                     if (week >= 52 && month == 1)
                     {
-                        year = year - 1;
+                        year--;
                     }
 
                     // First week includes December dates (29th, 30th, 31st)
                     if (week == 1 && month == 12)
                     {
-                        year = year + 1;
+                        year++;
                     }
 
                     htmlHelper.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
