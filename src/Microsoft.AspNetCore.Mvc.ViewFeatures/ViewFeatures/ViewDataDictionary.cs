@@ -411,10 +411,48 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 return Convert.ToString(value, CultureInfo.CurrentCulture);
             }
+            else if (format == "{0:0000}-W{1:00}" && (value is DateTime || value is DateTimeOffset))
+            {
+                return GetISO8601WeekNumber(format, value);
+            }
             else
             {
                 return string.Format(CultureInfo.CurrentCulture, format, value);
             }
+        }
+
+        private static string GetISO8601WeekNumber(string format, object value)
+        {
+            var date = DateTimeOffset.Parse(Convert.ToString(value)).DateTime;
+            var calendar = System.Threading.Thread.CurrentThread.CurrentCulture.Calendar;
+
+            var year = calendar.GetYear(date);
+            var month = calendar.GetMonth(date);
+            var day = calendar.GetDayOfWeek(date);
+
+            // Get ISO 8601 Week
+            if (day >= DayOfWeek.Monday && day <= DayOfWeek.Wednesday)
+            {
+                date = date.AddDays(3);
+            }
+
+            var weekRule = CalendarWeekRule.FirstFourDayWeek;
+            var firstWeekDay = DayOfWeek.Monday;
+            var week = calendar.GetWeekOfYear(date, weekRule, firstWeekDay);
+
+            // Last week (either 52 or 53) includes January dates (1st, 2nd, 3rd) 
+            if (week >= 52 && month == 1)
+            {
+                year = year - 1;
+            }
+
+            // First week includes December dates (29th, 30th, 31st)
+            if (week == 1 && month == 12)
+            {
+                year = year + 1;
+            }
+
+            return string.Format(format, year, week);
         }
 
         /// <summary>

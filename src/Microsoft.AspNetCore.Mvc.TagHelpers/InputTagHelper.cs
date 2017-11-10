@@ -36,6 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 { "DateTime-local", "datetime-local" },
                 { nameof(DateTimeOffset), "text" },
                 { "Time", "time" },
+                { "Week", "week" },
                 { "Month", "month" },
                 { nameof(Byte), "number" },
                 { nameof(SByte), "number" },
@@ -378,11 +379,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         // Get a fall-back format based on the metadata.
         private string GetFormat(ModelExplorer modelExplorer, string inputTypeHint, string inputType)
         {
-            string format;
-            if (string.Equals("month", inputType, StringComparison.OrdinalIgnoreCase))
+            var format = GetHTML5InputTypeFormat(inputType);
+            if (format != null)
             {
-                // A new HTML5 input type that only will be rendered in Rfc3339 mode
-                format = "{0:yyyy-MM}";
+                return format;
             }
             else if (string.Equals("decimal", inputTypeHint, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals("text", inputType, StringComparison.Ordinal) &&
@@ -424,6 +424,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             return format;
+        }
+
+        private string GetHTML5InputTypeFormat(string inputType)
+        {        
+            if (string.Equals("month", inputType, StringComparison.OrdinalIgnoreCase))
+            {
+                // A new HTML5 input type that only will be rendered in Rfc3339 mode
+                return "{0:yyyy-MM}";
+            }
+            else if (string.Equals("week", inputType, StringComparison.OrdinalIgnoreCase))
+            {
+                // A new HTML5 input type that only will be rendered in Rfc3339 mode
+                return "{0:0000}-W{1:00}";
+            }
+            else
+            {
+                return null;
+            }
         }
 
         // A variant of TemplateRenderer.GetViewNames(). Main change relates to bool? handling.
