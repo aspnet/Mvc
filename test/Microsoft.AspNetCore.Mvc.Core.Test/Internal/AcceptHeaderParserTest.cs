@@ -32,11 +32,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
         public void ParseAcceptHeader_ParsesSimpleHeaderWithMultipleValues()
         {
             // Arrange
-            var header = "application/json, application/xml;q=0.8";
+            var header = "application/json, application/xml; q=0.8";
             var expected = new List<MediaTypeSegmentWithQuality>
             {
                 new MediaTypeSegmentWithQuality(new StringSegment("application/json"),1.0),
-                new MediaTypeSegmentWithQuality(new StringSegment("application/xml;q=0.8"),0.8)
+                new MediaTypeSegmentWithQuality(new StringSegment("application/xml; q=0.8"),0.8)
             };
 
             // Act
@@ -44,10 +44,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
 
             // Assert
             Assert.Equal(expected, parsed);
-            foreach (var mediaType in parsed)
-            {
-                Assert.Same(header, mediaType.MediaType.Buffer);
-            }
         }
 
         [Fact]
@@ -86,7 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
                 { new [] { "img/png,/*;q=0.9,text/html" }, new string[] { "img/png", "text/html" } },
                 { new [] { "img/png, /;q=0.9" }, new string[] { "img/png", } },
                 { new [] { "img/png, */;q=0.9" }, new string[] { "img/png", } },
-                { new [] { "img/png;q=1.0, /*;q=0.9" }, new string[] { "img/png;q=1.0", } },
+                { new [] { "img/png;q=1.0, /*;q=0.9" }, new string[] { "img/png; q=1.0", } }
             };
 
         [Theory]
@@ -112,7 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Internal
             var expected = new List<MediaTypeSegmentWithQuality>
             {
                 new MediaTypeSegmentWithQuality(new StringSegment("application/json"), 1.0),
-                new MediaTypeSegmentWithQuality(new StringSegment("application/xml;q=0.8"), 0.8)
+                new MediaTypeSegmentWithQuality(new StringSegment("application/xml; q=0.8"), 0.8)
             };
 
             // Act

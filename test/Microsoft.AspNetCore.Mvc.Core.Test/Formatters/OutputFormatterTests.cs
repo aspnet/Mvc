@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/json"));
             formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("*/*"));
             formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/*"));
-            formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/plain;*"));
+            //formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("text/plain;*"));
             formatter.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/xml"));
 
             // Act
