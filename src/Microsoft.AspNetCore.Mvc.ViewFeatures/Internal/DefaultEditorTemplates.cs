@@ -372,7 +372,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static IHtmlContent MonthInputTemplate(IHtmlHelper htmlHelper)
         {
-            // A new HTML5 input type that only will be rendered in Rfc3339 mode
+            // "month" is a new HTML5 input type that only will be rendered in Rfc3339 mode
             htmlHelper.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
             ApplyRfc3339DateFormattingIfNeeded(htmlHelper, "{0:yyyy-MM}");
             return GenerateTextBox(htmlHelper, inputType: "month");
@@ -380,49 +380,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static IHtmlContent WeekInputTemplate(IHtmlHelper htmlHelper)
         {
-            // A new HTML5 input type that only will be rendered in Rfc3339 mode    
-            var value = htmlHelper.ViewData.Model;
-            var metadata = htmlHelper.ViewData.ModelMetadata;
-
-            if (htmlHelper.ViewData.TemplateInfo.FormattedModelValue == value || !metadata.HasNonDefaultEditFormat)
-            {
-                if (value is DateTime || value is DateTimeOffset)
-                {
-                    var date = DateTimeOffset.Parse(Convert.ToString(value)).DateTime;
-                    var calendar = System.Threading.Thread.CurrentThread.CurrentCulture.Calendar;
-
-                    var year = calendar.GetYear(date);
-                    var month = calendar.GetMonth(date);
-                    var day = calendar.GetDayOfWeek(date);
-
-                    // Get ISO 8601 Week
-                    if (day >= DayOfWeek.Monday && day <= DayOfWeek.Wednesday)
-                    {
-                        date = date.AddDays(3);
-                    }
-
-                    var weekRule = CalendarWeekRule.FirstFourDayWeek;
-                    var firstWeekDay = DayOfWeek.Monday;
-                    var week = calendar.GetWeekOfYear(date, weekRule, firstWeekDay);
-
-                    // Last week (either 52 or 53) includes January dates (1st, 2nd, 3rd) 
-                    if (week >= 52 && month == 1)
-                    {
-                        year--;
-                    }
-
-                    // First week includes December dates (29th, 30th, 31st)
-                    if (week == 1 && month == 12)
-                    {
-                        year++;
-                    }
-
-                    htmlHelper.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
-                    var format = "{0:0000}-W{1:00}";
-                    htmlHelper.ViewData.TemplateInfo.FormattedModelValue = string.Format(format, year, week);
-                }
-            }
-
             return GenerateTextBox(htmlHelper, inputType: "week");
         }
 

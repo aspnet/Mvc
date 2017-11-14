@@ -125,9 +125,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var formatString = _readOnly ?
                 viewData.ModelMetadata.DisplayFormatString :
                 viewData.ModelMetadata.EditFormatString;
+
             if (_model != null && !string.IsNullOrEmpty(formatString))
             {
                 formattedModelValue = string.Format(CultureInfo.CurrentCulture, formatString, formattedModelValue);
+            }
+            else if (string.Equals("week", _templateName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals("week", viewData.ModelMetadata.DataTypeName, StringComparison.OrdinalIgnoreCase))
+            {
+                // "week" is a new HTML5 input type that only will be rendered in Rfc3339 mode
+                formattedModelValue = FormatWeekHelper.GetFormattedWeek(_modelExplorer);
             }
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;

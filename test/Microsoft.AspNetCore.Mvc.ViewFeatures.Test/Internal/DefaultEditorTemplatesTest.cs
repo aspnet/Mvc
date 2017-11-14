@@ -815,7 +815,7 @@ Environment.NewLine;
             // Act
             var result = helper.Editor(
                 string.Empty,
-                new { htmlAttributes = new { type = "datetime" }});
+                new { htmlAttributes = new { type = "datetime" } });
 
             // Assert
             Assert.Equal(expectedInput, HtmlContentUtilities.HtmlContentToString(result));
@@ -963,7 +963,7 @@ Environment.NewLine;
         public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTime(
             string dataTypeName,
             string editFormatString,
-            string expectedFormat,
+            string expectedValue,
             string expectedType)
         {
             // Arrange
@@ -972,7 +972,7 @@ Environment.NewLine;
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
                 expectedType +
-                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
+                "]]\" value=\"HtmlEncode[[" + expectedValue + "]]\" />";
 
             var model = new DateTime(
                 year: 2000,
@@ -1026,7 +1026,7 @@ Environment.NewLine;
         public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTimeNotRfc3339(
             string dataTypeName,
             string editFormatString,
-            string expectedFormat,
+            string expectedValue,
             string expectedType)
         {
             // Arrange
@@ -1036,7 +1036,7 @@ Environment.NewLine;
                 $"data-val-required=\"HtmlEncode[[{requiredMessage}]]\" id=\"HtmlEncode[[FieldPrefix]]\" " +
                 "name=\"HtmlEncode[[FieldPrefix]]\" type=\"HtmlEncode[[" +
                 expectedType +
-                "]]\" value=\"HtmlEncode[[" + expectedFormat + "]]\" />";
+                "]]\" value=\"HtmlEncode[[" + expectedValue + "]]\" />";
 
             var model = new DateTime(
                 year: 2000,
