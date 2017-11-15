@@ -327,11 +327,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var format = Format;
             if (string.IsNullOrEmpty(format))
             {
-                format = GetFormat(modelExplorer, inputTypeHint, inputType);
-            }
-            if (modelExplorer.Model != null && string.Equals("week", inputType, StringComparison.OrdinalIgnoreCase))
-            {
-                modelExplorer = modelExplorer.GetExplorerForModel(FormatWeekHelper.GetFormattedWeek(modelExplorer));
+                if (!modelExplorer.Metadata.HasNonDefaultEditFormat &&
+                    string.Equals("week", inputType, StringComparison.OrdinalIgnoreCase) &&
+                    (modelExplorer.Model is DateTime || modelExplorer.Model is DateTimeOffset))
+                {
+                    modelExplorer = modelExplorer.GetExplorerForModel(FormatWeekHelper.GetFormattedWeek(modelExplorer));
+                }
+                else
+                {
+                    format = GetFormat(modelExplorer, inputTypeHint, inputType);
+                }
             }
             var htmlAttributes = new Dictionary<string, object>
             {

@@ -1359,11 +1359,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Collection(expectedAttributes,
-                attribute => Assert.Equal(attribute, output.Attributes[0]),
-                attribute => Assert.Equal(attribute, output.Attributes[1]),
-                attribute => Assert.Equal(attribute, output.Attributes[2]),
-                attribute => Assert.Equal(attribute, output.Attributes[3]));
+            Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedType, output.TagName);
         }
 
@@ -1433,11 +1429,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Collection(expectedAttributes,
-                attribute => Assert.Equal(attribute, output.Attributes[0]),
-                attribute => Assert.Equal(attribute, output.Attributes[1]),
-                attribute => Assert.Equal(attribute, output.Attributes[2]),
-                attribute => Assert.Equal(attribute, output.Attributes[3]));
+            Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedType, output.TagName);
         }
 
@@ -1500,11 +1492,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(context, output);
 
             // Assert
-            Assert.Collection(expectedAttributes,
-                attribute => Assert.Equal(attribute, output.Attributes[0]),
-                attribute => Assert.Equal(attribute, output.Attributes[1]),
-                attribute => Assert.Equal(attribute, output.Attributes[2]),
-                attribute => Assert.Equal(attribute, output.Attributes[3]));
+            Assert.Equal(expectedAttributes, output.Attributes);
             Assert.Equal(expectedType, output.TagName);
         }
 

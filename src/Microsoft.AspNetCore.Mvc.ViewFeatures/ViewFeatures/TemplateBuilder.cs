@@ -95,6 +95,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Create a new ModelExplorer in order to preserve the model metadata of the original _viewData even
             // though _model may have been reset to null. Otherwise we might lose track of the model type /property.
             viewData.ModelExplorer = _modelExplorer.GetExplorerForModel(_model);
+            var formatString = _readOnly ?
+                viewData.ModelMetadata.DisplayFormatString :
+                viewData.ModelMetadata.EditFormatString;
 
             var formattedModelValue = _model;
             if (_model == null && _readOnly)
@@ -104,8 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             else if (viewData.ModelMetadata.IsEnum)
             {
                 // Cover the case where the model is an enum and we want the string value of it
-                var modelEnum = _model as Enum;
-                if (modelEnum != null)
+                if (_model is Enum modelEnum)
                 {
                     var value = modelEnum.ToString("d");
                     var enumGrouped = viewData.ModelMetadata.EnumGroupedDisplayNamesAndValues;
@@ -121,20 +123,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                     }
                 }
             }
-
-            var formatString = _readOnly ?
-                viewData.ModelMetadata.DisplayFormatString :
-                viewData.ModelMetadata.EditFormatString;
+            else if (string.IsNullOrEmpty(formatString) && _model != null && (string.Equals("week", _templateName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals("week", viewData.ModelMetadata.DataTypeName, StringComparison.OrdinalIgnoreCase)))
+            {
+                // "week" is a new HTML5 input type that only will be rendered in Rfc3339 mode
+                formattedModelValue = FormatWeekHelper.GetFormattedWeek(_modelExplorer);
+            }
 
             if (_model != null && !string.IsNullOrEmpty(formatString))
             {
                 formattedModelValue = string.Format(CultureInfo.CurrentCulture, formatString, formattedModelValue);
-            }
-            else if (string.Equals("week", _templateName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals("week", viewData.ModelMetadata.DataTypeName, StringComparison.OrdinalIgnoreCase))
-            {
-                // "week" is a new HTML5 input type that only will be rendered in Rfc3339 mode
-                formattedModelValue = FormatWeekHelper.GetFormattedWeek(_modelExplorer);
             }
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;
