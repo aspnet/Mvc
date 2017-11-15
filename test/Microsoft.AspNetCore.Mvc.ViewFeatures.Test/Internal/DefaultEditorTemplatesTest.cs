@@ -824,19 +824,14 @@ Environment.NewLine;
         // Html5DateRenderingMode.Rfc3339 is enabled by default.
         [Theory]
         [InlineData(null, null, "2000-01-02T03:04:05.060-05:00", "text")]
-        [InlineData("date", null, "2000-01-02", "date")]
-        [InlineData("date", "{0:d}", "1/2/2000", "date")]
         [InlineData("datetime", null, "2000-01-02T03:04:05.060", "datetime-local")]
         [InlineData("datetime-local", null, "2000-01-02T03:04:05.060", "datetime-local")]
         [InlineData("DateTimeOffset", null, "2000-01-02T03:04:05.060-05:00", "text")]
         [InlineData("DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000-05:00", "text")]
         [InlineData("time", null, "03:04:05.060", "time")]
-        [InlineData("time", "{0:t}", "3:04 AM", "time")]
-        [InlineData("month", null, "2000-01", "month")]
-        [InlineData("month", "{0:yyyy/MM}", "2000/01", "month")]
-        [InlineData("week", null, "1999-W52", "week")]
-        [InlineData("week", "{0:yyyy/MM}", "2000/01", "week")]
-        public void Editor_FindsCorrectDateOrTimeTemplate(
+        [InlineData("time", "{0:t}", "03:04", "time")]
+        [ReplaceCulture]
+        public void Editor_FindsCorrectDateOrTimeTemplate_WithTimeOffset(
             string dataTypeName,
             string editFormatString,
             string expectedValue,
@@ -893,17 +888,13 @@ Environment.NewLine;
         // Html5DateRenderingMode.Rfc3339 can be disabled.
         [Theory]
         [InlineData(null, null, "02/01/2000 03:04:05 -05:00", "text")]
-        [InlineData("date", "{0:d}", "02/01/2000", "date")]
         [InlineData("datetime", null, "02/01/2000 03:04:05 -05:00", "datetime-local")]
         [InlineData("datetime-local", null, "02/01/2000 03:04:05 -05:00", "datetime-local")]
         [InlineData("DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000-05:00", "text")]
+        [InlineData("time", null, "02/01/2000 03:04:05 -05:00", "time")]
         [InlineData("time", "{0:t}", "03:04", "time")]
-        [InlineData("month", null, "2000-01", "month")]
-        [InlineData("month", "{0:yyyy/MM}", "2000/01", "month")]
-        [InlineData("week", null, "1999-W52", "week")]
-        [InlineData("week", "{0:yyyy/MM}", "2000/01", "week")]
         [ReplaceCulture]
-        public void Editor_FindsCorrectDateOrTimeTemplate_NotRfc3339(
+        public void Editor_FindsCorrectDateOrTimeTemplate_WithTimeOffset_NotRfc3339(
             string dataTypeName,
             string editFormatString,
             string expectedValue,
@@ -963,17 +954,18 @@ Environment.NewLine;
         [Theory]
         [InlineData(null, null, "2000-01-02T03:04:05.060", "datetime-local")]
         [InlineData("date", null, "2000-01-02", "date")]
-        [InlineData("date", "{0:d}", "1/2/2000", "date")]
+        [InlineData("date", "{0:d}", "02/01/2000", "date")]
         [InlineData("datetime", null, "2000-01-02T03:04:05.060", "datetime-local")]
         [InlineData("datetime-local", null, "2000-01-02T03:04:05.060", "datetime-local")]
         [InlineData("DateTimeOffset", null, "2000-01-02T03:04:05.060Z", "text")]
         [InlineData("DateTimeOffset", "{0:o}", "2000-01-02T03:04:05.0600000Z", "text")]
         [InlineData("time", null, "03:04:05.060", "time")]
-        [InlineData("time", "{0:t}", "3:04 AM", "time")]
+        [InlineData("time", "{0:t}", "03:04", "time")]
         [InlineData("month", null, "2000-01", "month")]
         [InlineData("month", "{0:yyyy/MM}", "2000/01", "month")]
         [InlineData("week", null, "1999-W52", "week")]
         [InlineData("week", "{0:yyyy/MM}", "2000/01", "week")]
+        [ReplaceCulture]
         public void Editor_FindsCorrectDateOrTimeTemplate_ForDateTime(
             string dataTypeName,
             string editFormatString,
