@@ -6,7 +6,7 @@
     "preserveCompilationContext": true
   },
   "dependencies": {
-    "Microsoft.AspNetCore.Mvc": "1.1.5",
+    "Microsoft.AspNetCore.Mvc": "1.1.6",
     "Microsoft.AspNetCore.Mvc.TestConfiguration": "1.0.0",
     "Microsoft.AspNetCore.Razor.Tools": {
       "type": "build",
