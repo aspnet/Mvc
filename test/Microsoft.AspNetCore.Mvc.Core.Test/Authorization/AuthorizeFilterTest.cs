@@ -222,6 +222,26 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         }
 
         [Fact]
+        public async Task AuthorizationFilterCombinesMultipleFiltersIntoOne()
+        {
+            // Arrange
+            var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => true).Build());
+            var authorizationContext = GetAuthorizationContext();
+            var newFilter = new Mock<AuthorizeFilter>(new AuthorizationPolicyBuilder().RequireAssertion(a => false).Build());
+            newFilter.Setup(f => f.OnAuthorizationAsync(authorizationContext))
+                .Callback<AuthorizationFilterContext>(c => throw new NotImplementedException())
+                .Returns(Task.CompletedTask);
+
+            authorizationContext.Filters.Add(newFilter.Object);
+
+            // Act
+            await authorizeFilter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.Null(authorizationContext.Result);
+        }
+
+        [Fact]
         public async Task AuthZResourceShouldBeAuthorizationFilterContext()
         {
             // Arrange

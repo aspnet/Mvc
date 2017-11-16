@@ -112,7 +112,15 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var effectivePolicy = Policy;
+            var firstAuthorizeInstance = context.Filters.First(f => f is AuthorizeFilter);
+            if (firstAuthorizeInstance != this)
+            {
+                return;
+            }
+
+            var allOtherAuthorizeFilters = context.Filters.OfType<AuthorizeFilter>();
+
+            var effectivePolicy = CombinePolicy(allOtherAuthorizeFilters);
             if (effectivePolicy == null)
             {
                 if (PolicyProvider == null)
@@ -150,6 +158,18 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             else if (authorizeResult.Forbidden)
             {
                 context.Result = new ForbidResult(effectivePolicy.AuthenticationSchemes.ToArray());
+            }
+        }
+
+        private AuthorizationPolicy CombinePolicy(IEnumerable<AuthorizeFilter> allOtherAuthorizeFilters)
+        {
+            if (allOtherAuthorizeFilters.Count() == 1)
+            {
+                return Policy;
+            }
+            else
+            {
+                return allOtherAuthorizeFilters.Select(s => s.Policy).Aggregate((p, n) => AuthorizationPolicy.Combine(p, n));
             }
         }
 
