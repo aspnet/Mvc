@@ -95,44 +95,44 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // Create a new ModelExplorer in order to preserve the model metadata of the original _viewData even
             // though _model may have been reset to null. Otherwise we might lose track of the model type /property.
             viewData.ModelExplorer = _modelExplorer.GetExplorerForModel(_model);
-            var formatString = _readOnly ?
-                viewData.ModelMetadata.DisplayFormatString :
+
+            var formatString = _readOnly ? 
+                viewData.ModelMetadata.DisplayFormatString : 
                 viewData.ModelMetadata.EditFormatString;
 
             var formattedModelValue = _model;
-            if (_model == null && _readOnly)
+            if (_model == null)
             {
-                formattedModelValue = _metadata.NullDisplayText;
-            }
-            else if (viewData.ModelMetadata.IsEnum)
-            {
-                // Cover the case where the model is an enum and we want the string value of it
-                if (_model is Enum modelEnum)
+                if (_readOnly)
                 {
-                    var value = modelEnum.ToString("d");
-                    var enumGrouped = viewData.ModelMetadata.EnumGroupedDisplayNamesAndValues;
-                    Debug.Assert(enumGrouped != null);
-                    foreach (var kvp in enumGrouped)
-                    {
-                        if (kvp.Value == value)
-                        {
-                            // Creates a ModelExplorer with the same Metadata except that the Model is a string instead of an Enum
-                            formattedModelValue = kvp.Key.Name;
-                            break;
-                        }
-                    }
+                    formattedModelValue = _metadata.NullDisplayText;
                 }
             }
-            else if (string.IsNullOrEmpty(formatString) && _model != null && (string.Equals("week", _templateName, StringComparison.OrdinalIgnoreCase) ||
+            else if (!string.IsNullOrEmpty(formatString))
+            {
+                formattedModelValue = string.Format(CultureInfo.CurrentCulture, formatString, _model);
+            }
+            else if ((string.Equals("week", _templateName, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals("week", viewData.ModelMetadata.DataTypeName, StringComparison.OrdinalIgnoreCase)))
             {
                 // "week" is a new HTML5 input type that only will be rendered in Rfc3339 mode
                 formattedModelValue = FormatWeekHelper.GetFormattedWeek(_modelExplorer);
             }
-
-            if (_model != null && !string.IsNullOrEmpty(formatString))
+            else if (viewData.ModelMetadata.IsEnum && _model is Enum modelEnum)
             {
-                formattedModelValue = string.Format(CultureInfo.CurrentCulture, formatString, formattedModelValue);
+                // Cover the case where the model is an enum and we want the string value of it
+                var value = modelEnum.ToString("d");
+                var enumGrouped = viewData.ModelMetadata.EnumGroupedDisplayNamesAndValues;
+                Debug.Assert(enumGrouped != null);
+                foreach (var kvp in enumGrouped)
+                {
+                    if (kvp.Value == value)
+                    {
+                        // Creates a ModelExplorer with the same Metadata except that the Model is a string instead of an Enum
+                        formattedModelValue = kvp.Key.Name;
+                        break;
+                    }
+                }
             }
 
             viewData.TemplateInfo.FormattedModelValue = formattedModelValue;

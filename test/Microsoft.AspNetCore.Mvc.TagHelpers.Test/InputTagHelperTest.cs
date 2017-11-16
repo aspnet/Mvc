@@ -1376,7 +1376,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [InlineData("Month", null, "2000-01", "month")]
         [InlineData("Month", "{0:yyyy/MM}", "2000/01", "month")]
         [InlineData("Week", null, "1999-W52", "week")]
-        [InlineData("Week", "{0:yyyy/MM}", "2000/01", "week")]
+        [InlineData("Week", "{0:yyyy/'W1'}", "2000/W1", "week")]
         [ReplaceCulture]
         public async Task ProcessAsync_CallsGenerateTextBox_ProducesExpectedValue_ForDateTimeNotRfc3339(
             string propertyName,
