@@ -108,6 +108,8 @@ namespace HtmlGenerationWebSite.Controllers
             return View(_products);
         }
 
+        public IActionResult ProductListUsingTagHelpers() => View(_products);
+
         public IActionResult EmployeeList()
         {
             var employees = new List<Employee>
