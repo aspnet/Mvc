@@ -48,7 +48,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
             {
                 Name = partialName,
-                Model = model,
                 ViewContext = viewContext,
             };
             var tagHelperContext = GetTagHelperContext();
@@ -90,7 +89,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
             {
                 Name = partialName,
-                Model = model,
                 ViewContext = viewContext,
             };
             var tagHelperContext = GetTagHelperContext();
@@ -108,10 +106,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public async Task ProcessAsync_UsesViewDataFromContext()
         {
             // Arrange
-            var expected = "Hello world!";
+            var expected = "Implicit";
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
-            var model = new object();
             var viewContext = GetViewContext();
             viewContext.ViewData["key"] = expected;
 
@@ -133,7 +130,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
             {
                 Name = partialName,
-                Model = model,
                 ViewContext = viewContext,
             };
             var tagHelperContext = GetTagHelperContext();
@@ -151,7 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public async Task ProcessAsync_UsesPassedInViewData_WhenNotNull()
         {
             // Arrange
-            var expected = "Hello world!";
+            var expected = "Explicit";
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
             var model = new object();
@@ -159,7 +155,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             viewData["key"] = expected;
             var viewContext = GetViewContext();
             viewContext.ViewData["key"] = "ViewContext";
-
 
             var view = new Mock<IView>();
             view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
@@ -176,7 +171,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
             {
                 Name = partialName,
-                Model = model,
                 ViewContext = viewContext,
                 ViewData = viewData,
             };
@@ -192,13 +186,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_UsesPassedInModel()
+        public async Task ProcessAsync_UsesModelExpression_ToDetermineModel()
         {
             // Arrange
-            var expected = "Hello world!";
+            var expected = new PropertyModel();
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
-            var model = new object();
+            var modelMetadataProvider = new TestModelMetadataProvider();
+            var containerModel = new TestModel { Property = expected };
+            var containerModelExplorer = modelMetadataProvider.GetModelExplorerForType(
+                typeof(TestModel),
+                containerModel);
+            var propertyModelExplorer = containerModelExplorer.GetExplorerForProperty(nameof(TestModel.Property));
+
+            var modelExpression = new ModelExpression("Property", propertyModelExplorer);
             var viewContext = GetViewContext();
             viewContext.ViewData.Model = new object();
 
@@ -206,10 +207,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
                 .Callback((ViewContext v) =>
                 {
-                    Assert.Same(model, v.ViewData.Model);
-                    v.Writer.Write(expected);
+                    var actual = Assert.IsType<PropertyModel>(v.ViewData.Model);
+                    Assert.Same(expected, actual);
                 })
-                .Returns(Task.CompletedTask);
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
@@ -219,7 +221,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 Name = partialName,
                 ViewContext = viewContext,
-                Model = model,
+                For = modelExpression,
             };
             var tagHelperContext = GetTagHelperContext();
             var output = GetTagHelperOutput();
@@ -228,15 +230,61 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            var content = HtmlContentUtilities.HtmlContentToString(output.Content, new HtmlTestEncoder());
-            Assert.Equal(expected, content);
+            view.Verify();
         }
 
         [Fact]
-        public async Task ProcessAsync_UsesModelOnViewContextViewData_WhenModelPropertyIsNull()
+        public async Task ProcessAsync_SetsHtmlFieldPrefix_UsingModelExpression()
         {
             // Arrange
-            var expected = "Hello world!";
+            var expected = "order.items[0].Property";
+            var bufferScope = new TestViewBufferScope();
+            var partialName = "_Partial";
+            var modelMetadataProvider = new TestModelMetadataProvider();
+            var containerModel = new TestModel { Property = new PropertyModel() };
+            var containerModelExplorer = modelMetadataProvider.GetModelExplorerForType(
+                typeof(TestModel),
+                containerModel);
+            var propertyModelExplorer = containerModelExplorer.GetExplorerForProperty(nameof(TestModel.Property));
+
+            var modelExpression = new ModelExpression("Property", propertyModelExplorer);
+            var viewContext = GetViewContext();
+            viewContext.ViewData.TemplateInfo.HtmlFieldPrefix = "order.items[0]";
+
+            var view = new Mock<IView>();
+            view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
+                .Callback((ViewContext v) =>
+                {
+                    Assert.Equal(expected, v.ViewData.TemplateInfo.HtmlFieldPrefix);
+                })
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var viewEngine = new Mock<ICompositeViewEngine>();
+            viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
+                .Returns(ViewEngineResult.Found(partialName, view.Object));
+
+            var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
+            {
+                Name = partialName,
+                ViewContext = viewContext,
+                For = modelExpression,
+            };
+            var tagHelperContext = GetTagHelperContext();
+            var output = GetTagHelperOutput();
+
+            // Act
+            await tagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            view.Verify();
+            Assert.Equal("order.items[0]", viewContext.ViewData.TemplateInfo.HtmlFieldPrefix);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_UsesModelOnViewContextViewData_WhenModelExpresionIsNull()
+        {
+            // Arrange
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
             var model = new object();
@@ -248,9 +296,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 .Callback((ViewContext v) =>
                 {
                     Assert.Same(model, v.ViewData.Model);
-                    v.Writer.Write(expected);
                 })
-                .Returns(Task.CompletedTask);
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
@@ -268,30 +316,29 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             await tagHelper.ProcessAsync(tagHelperContext, output);
 
             // Assert
-            var content = HtmlContentUtilities.HtmlContentToString(output.Content, new HtmlTestEncoder());
-            Assert.Equal(expected, content);
+            view.Verify();
         }
 
         [Fact]
-        public async Task ProcessAsync_DisposesViewInstance()
+        public async Task ProcessAsync_DoesNotModifyHtmlFieldPrefix_WhenModelExpressionIsNull()
         {
             // Arrange
-            var expected = "Hello world!";
+            var expected = "original";
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
             var model = new object();
             var viewContext = GetViewContext();
+            viewContext.ViewData.Model = model;
+            viewContext.ViewData.TemplateInfo.HtmlFieldPrefix = expected;
 
-            var disposable = new Mock<IDisposable>();
-            disposable.Setup(d => d.Dispose()).Verifiable();
-            var view = disposable.As<IView>();
-
+            var view = new Mock<IView>();
             view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
                 .Callback((ViewContext v) =>
                 {
-                    v.Writer.Write(expected);
+                    Assert.Equal(expected, v.ViewData.TemplateInfo.HtmlFieldPrefix);
                 })
-                .Returns(Task.CompletedTask);
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             var viewEngine = new Mock<ICompositeViewEngine>();
             viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
@@ -300,7 +347,41 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
             {
                 Name = partialName,
-                Model = model,
+                ViewContext = viewContext,
+            };
+            var tagHelperContext = GetTagHelperContext();
+            var output = GetTagHelperOutput();
+
+            // Act
+            await tagHelper.ProcessAsync(tagHelperContext, output);
+
+            // Assert
+            view.Verify();
+        }
+
+        [Fact]
+        public async Task ProcessAsync_DisposesViewInstance()
+        {
+            // Arrange
+            var bufferScope = new TestViewBufferScope();
+            var partialName = "_Partial";
+            var viewContext = GetViewContext();
+
+            var disposable = new Mock<IDisposable>();
+            disposable.Setup(d => d.Dispose()).Verifiable();
+            var view = disposable.As<IView>();
+
+            view.Setup(v => v.RenderAsync(It.IsAny<ViewContext>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var viewEngine = new Mock<ICompositeViewEngine>();
+            viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
+                .Returns(ViewEngineResult.Found(partialName, view.Object));
+
+            var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
+            {
+                Name = partialName,
                 ViewContext = viewContext,
             };
             var tagHelperContext = GetTagHelperContext();
@@ -311,6 +392,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             disposable.Verify();
+            view.Verify();
         }
 
         [Fact]
@@ -377,6 +459,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 "partial",
                 new TagHelperAttributeList(),
                 (_, __) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+        }
+
+        private class TestModel
+        {
+            public PropertyModel Property { get; set; }
+        }
+
+        private class PropertyModel
+        {
         }
     }
 }
