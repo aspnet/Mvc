@@ -292,7 +292,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task NullParameter_BadRequest()
+        public async Task PageHandlerCanReturnBadRequest()
         {
             // Arrange
             var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/Pages/HandlerWithParameter");
