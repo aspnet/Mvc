@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters
 {
@@ -21,14 +22,25 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
     public class XmlDataContractSerializerOutputFormatter : TextOutputFormatter
     {
         private readonly ConcurrentDictionary<Type, object> _serializerCache = new ConcurrentDictionary<Type, object>();
+        private readonly ILogger _logger;
         private DataContractSerializerSettings _serializerSettings;
 
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
         /// with default XmlWriterSettings
         /// </summary>
-        public XmlDataContractSerializerOutputFormatter() :
-            this(FormattingUtilities.GetDefaultXmlWriterSettings())
+        public XmlDataContractSerializerOutputFormatter()
+            : this(FormattingUtilities.GetDefaultXmlWriterSettings())
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
+        /// with default XmlWriterSettings
+        /// </summary>
+        /// <param name="logger">The <see cref="ILogger"/>.</param>
+        public XmlDataContractSerializerOutputFormatter(ILogger logger)
+            : this(FormattingUtilities.GetDefaultXmlWriterSettings(), logger)
         {
         }
 
@@ -37,6 +49,16 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
         public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings)
+            : this(writerSettings, logger: null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
+        /// </summary>
+        /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
+        /// <param name="logger">The <see cref="ILogger"/>.</param>
+        public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings, ILogger logger)
         {
             if (writerSettings == null)
             {
@@ -57,6 +79,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             WrapperProviderFactories = new List<IWrapperProviderFactory>();
             WrapperProviderFactories.Add(new EnumerableWrapperProviderFactory(WrapperProviderFactories));
             WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
+
+            _logger = logger;
         }
 
         /// <summary>
@@ -138,8 +162,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                 // If the serializer does not support this type it will throw an exception.
                 return new DataContractSerializer(type, _serializerSettings);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger?.FailedToCreateDataContractSerializer(type.FullName, ex);
+
                 // We do not surface the caught exception because if CanWriteResult returns
                 // false, then this Formatter is not picked up at all.
                 return null;

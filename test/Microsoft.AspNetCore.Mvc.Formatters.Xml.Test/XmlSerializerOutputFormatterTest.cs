@@ -7,9 +7,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Moq;
@@ -330,7 +333,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         {
             // Arrange
             var formatter = new XmlSerializerOutputFormatter();
-            var outputFormatterContext = GetOutputFormatterContext(new object(), typeof (object));
+            var outputFormatterContext = GetOutputFormatterContext(new object(), typeof(object));
             outputFormatterContext.ContentType = new StringSegment(mediaType);
             outputFormatterContext.ContentTypeIsServerDefined = isServerDefined;
 
@@ -389,6 +392,59 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
+        public static IEnumerable<object[]> LogsWhenUnableToCreateSerializerForTypeData
+        {
+            get
+            {
+                var sink = new TestSink();
+                var loggerFactory = new TestLoggerFactory(sink, enabled: true);
+                var logger = loggerFactory.CreateLogger(nameof(XmlSerializerOutputFormatter));
+                var formatter = new XmlSerializerOutputFormatter(logger);
+                yield return new object[] { formatter, sink };
+
+                sink = new TestSink();
+                loggerFactory = new TestLoggerFactory(sink, enabled: true);
+                logger = loggerFactory.CreateLogger(nameof(XmlSerializerOutputFormatter));
+                formatter = new XmlSerializerOutputFormatter(new XmlWriterSettings(), logger);
+                yield return new object[] { formatter, sink };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(LogsWhenUnableToCreateSerializerForTypeData))]
+        public void XmlSerializer_LogsWhenUnableToCreateSerializerForType(
+            XmlSerializerOutputFormatter formatter,
+            TestSink sink)
+        {
+            // Arrange
+            var outputFormatterContext = GetOutputFormatterContext(new Customer(10), typeof(Customer));
+
+            // Act
+            var canWriteResult = formatter.CanWriteResult(outputFormatterContext);
+
+            // Assert
+            Assert.False(canWriteResult);
+            var write = Assert.Single(sink.Writes);
+            Assert.Equal(LogLevel.Warning, write.LogLevel);
+            Assert.Equal(
+                $"An error occurred while trying to create an XmlSerializer for the type '{typeof(Customer).FullName}'.",
+                write.State.ToString());
+        }
+
+        [Fact]
+        public void XmlSerializer_DoesNotThrow_OnNoLoggerAnd_WhenUnableToCreateSerializerForType()
+        {
+            // Arrange
+            var formatter = new XmlSerializerOutputFormatter(); // no logger is being supplied here on purpose
+            var outputFormatterContext = GetOutputFormatterContext(new Customer(10), typeof(Customer));
+
+            // Act
+            var canWriteResult = formatter.CanWriteResult(outputFormatterContext);
+
+            // Assert
+            Assert.False(canWriteResult);
+        }
+
         private OutputFormatterWriteContext GetOutputFormatterContext(
             object outputValue,
             Type outputType,
@@ -428,6 +484,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 createSerializerCalledCount++;
                 return base.CreateSerializer(type);
             }
+        }
+
+        public class Customer
+        {
+            public Customer(int id)
+            {
+            }
+
+            public int MyProperty { get; set; }
         }
     }
 }

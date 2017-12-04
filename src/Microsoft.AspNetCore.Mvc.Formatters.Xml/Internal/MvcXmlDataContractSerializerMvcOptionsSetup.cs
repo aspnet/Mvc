@@ -4,6 +4,8 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
 {
@@ -13,6 +15,22 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
     /// </summary>
     public class MvcXmlDataContractSerializerMvcOptionsSetup : IConfigureOptions<MvcOptions>
     {
+        private readonly ILoggerFactory _loggerFactory;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="MvcXmlDataContractSerializerMvcOptionsSetup"/>.
+        /// </summary>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        public MvcXmlDataContractSerializerMvcOptionsSetup(ILoggerFactory loggerFactory)
+        {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _loggerFactory = loggerFactory;
+        }
+
         /// <summary>
         /// Adds the data contract serializer formatters to <see cref="MvcOptions"/>.
         /// </summary>
@@ -21,7 +39,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         {
             options.ModelMetadataDetailsProviders.Add(new DataMemberRequiredBindingMetadataProvider());
 
-            options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            var outputFormatterLogger = _loggerFactory.CreateLogger<XmlDataContractSerializerOutputFormatter>();
+
+            options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter(outputFormatterLogger));
             options.InputFormatters.Add(new XmlDataContractSerializerInputFormatter(options.SuppressInputFormatterBuffering));
 
             options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider("System.Xml.Linq.XObject"));
