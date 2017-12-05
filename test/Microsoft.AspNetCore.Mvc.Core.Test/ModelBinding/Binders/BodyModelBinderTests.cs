@@ -243,10 +243,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             {
                 return new TheoryData<IInputFormatter, InputFormatterExceptionModelStatePolicy>()
                 {
-                    { new XmlSerializerInputFormatter(), InputFormatterExceptionModelStatePolicy.AllExceptions },
-                    { new XmlSerializerInputFormatter(), InputFormatterExceptionModelStatePolicy.MalformedInputExceptions },
-                    { new XmlDataContractSerializerInputFormatter(), InputFormatterExceptionModelStatePolicy.AllExceptions },
-                    { new XmlDataContractSerializerInputFormatter(), InputFormatterExceptionModelStatePolicy.MalformedInputExceptions },
+                    { new XmlSerializerInputFormatter(new MvcOptions()), InputFormatterExceptionModelStatePolicy.AllExceptions },
+                    { new XmlSerializerInputFormatter(new MvcOptions()), InputFormatterExceptionModelStatePolicy.MalformedInputExceptions },
+                    { new XmlDataContractSerializerInputFormatter(new MvcOptions()), InputFormatterExceptionModelStatePolicy.AllExceptions },
+                    { new XmlDataContractSerializerInputFormatter(new MvcOptions()), InputFormatterExceptionModelStatePolicy.MalformedInputExceptions },
                 };
             }
         }
@@ -820,7 +820,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public TestableXmlSerializerInputFormatter(bool throwNonInputFormatterException)
+            public TestableXmlSerializerInputFormatter(bool throwNonInputFormatterException) :
+                base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -841,7 +842,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public TestableXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException)
+            public TestableXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException) :
+                base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -884,7 +886,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public DerivedXmlSerializerInputFormatter(bool throwNonInputFormatterException)
+            public DerivedXmlSerializerInputFormatter(bool throwNonInputFormatterException) :
+                base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -905,7 +908,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public DerivedXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException)
+            public DerivedXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException) :
+                base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
