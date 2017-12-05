@@ -820,8 +820,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public TestableXmlSerializerInputFormatter(bool throwNonInputFormatterException) :
-                base(new MvcOptions())
+            public TestableXmlSerializerInputFormatter(bool throwNonInputFormatterException)
+                : base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -842,8 +842,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public TestableXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException) :
-                base(new MvcOptions())
+            public TestableXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException)
+                : base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -886,8 +886,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public DerivedXmlSerializerInputFormatter(bool throwNonInputFormatterException) :
-                base(new MvcOptions())
+            public DerivedXmlSerializerInputFormatter(bool throwNonInputFormatterException)
+                : base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }
@@ -908,8 +908,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         {
             private bool _throwNonInputFormatterException;
 
-            public DerivedXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException) :
-                base(new MvcOptions())
+            public DerivedXmlDataContractSerializerInputFormatter(bool throwNonInputFormatterException)
+                : base(new MvcOptions())
             {
                 _throwNonInputFormatterException = throwNonInputFormatterException;
             }

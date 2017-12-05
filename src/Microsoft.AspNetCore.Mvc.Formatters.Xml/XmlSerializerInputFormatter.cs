@@ -35,48 +35,42 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </summary>
         [Obsolete("This constructor is obsolete and will be removed in a future version.")]
         public XmlSerializerInputFormatter()
-            : this(suppressInputFormatterBuffering: false)
         {
+            _suppressInputFormatterBuffering = false;
+
+            SupportedEncodings.Add(UTF8EncodingWithoutBOM);
+            SupportedEncodings.Add(UTF16EncodingLittleEndian);
+
+            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationXml);
+            SupportedMediaTypes.Add(MediaTypeHeaderValues.TextXml);
+            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyXmlSyntax);
+
+            WrapperProviderFactories = new List<IWrapperProviderFactory>();
+            WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
         }
 
         /// <summary>
-        /// Initializes a new instance of XmlSerializerInputFormatter.
+        /// Initializes a new instance of <see cref="XmlSerializerInputFormatter"/>.
         /// </summary>
         /// <param name="suppressInputFormatterBuffering">Flag to buffer entire request body before deserializing it.</param>
         [Obsolete("This constructor is obsolete and will be removed in a future version.")]
         public XmlSerializerInputFormatter(bool suppressInputFormatterBuffering)
+            : this()
         {
             _suppressInputFormatterBuffering = suppressInputFormatterBuffering;
-
-            SupportedEncodings.Add(UTF8EncodingWithoutBOM);
-            SupportedEncodings.Add(UTF16EncodingLittleEndian);
-
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationXml);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.TextXml);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyXmlSyntax);
-
-            WrapperProviderFactories = new List<IWrapperProviderFactory>();
-            WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
         }
 
+#pragma warning disable CS0618
         /// <summary>
-        /// Initializes a new instance of XmlSerializerInputFormatter.
+        /// Initializes a new instance of <see cref="XmlSerializerInputFormatter"/>.
         /// </summary>
         /// <param name="options">The <see cref="MvcOptions"/>.</param>
         public XmlSerializerInputFormatter(MvcOptions options)
+            : this()
         {
             _options = options;
-
-            SupportedEncodings.Add(UTF8EncodingWithoutBOM);
-            SupportedEncodings.Add(UTF16EncodingLittleEndian);
-
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationXml);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.TextXml);
-            SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationAnyXmlSyntax);
-
-            WrapperProviderFactories = new List<IWrapperProviderFactory>();
-            WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
         }
+#pragma warning restore CS0618
 
         /// <summary>
         /// Gets the list of <see cref="IWrapperProviderFactory"/> to
