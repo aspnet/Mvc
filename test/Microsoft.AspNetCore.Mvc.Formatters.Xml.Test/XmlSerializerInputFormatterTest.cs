@@ -49,9 +49,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString>" +
-                        "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                "<sampleString>" + expectedString + "</sampleString>" +
+                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
 #pragma warning disable CS0618
             var formatter = new XmlSerializerInputFormatter();
@@ -104,9 +104,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString>" +
-                        "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                "<sampleString>" + expectedString + "</sampleString>" +
+                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
 #pragma warning disable CS0618
             var formatter = new XmlSerializerInputFormatter(suppressInputFormatterBuffering: true);
@@ -146,9 +146,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString>" +
-                        "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                "<sampleString>" + expectedString + "</sampleString>" +
+                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
             var formatter = new XmlSerializerInputFormatter(new MvcOptions());
             var contentBytes = Encoding.UTF8.GetBytes(input);
@@ -198,9 +198,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString>" +
-                        "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                "<sampleString>" + expectedString + "</sampleString>" +
+                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
             var formatter = new XmlSerializerInputFormatter(new MvcOptions() { SuppressInputFormatterBuffering = true });
             var contentBytes = Encoding.UTF8.GetBytes(input);
@@ -237,9 +237,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             var expectedDateTime = XmlConvert.ToString(DateTime.UtcNow, XmlDateTimeSerializationMode.Utc);
 
             var input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                        "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
-                        "<sampleString>" + expectedString + "</sampleString>" +
-                        "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
+                "<TestLevelOne><SampleInt>" + expectedInt + "</SampleInt>" +
+                "<sampleString>" + expectedString + "</sampleString>" +
+                "<SampleDate>" + expectedDateTime + "</SampleDate></TestLevelOne>";
 
             var mvcOptions = new MvcOptions();
             mvcOptions.SuppressInputFormatterBuffering = false;

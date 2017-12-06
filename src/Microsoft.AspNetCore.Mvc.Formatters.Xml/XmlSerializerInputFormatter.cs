@@ -36,8 +36,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [Obsolete("This constructor is obsolete and will be removed in a future version.")]
         public XmlSerializerInputFormatter()
         {
-            _suppressInputFormatterBuffering = false;
-
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(UTF16EncodingLittleEndian);
 
@@ -60,17 +58,17 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             _suppressInputFormatterBuffering = suppressInputFormatterBuffering;
         }
 
-#pragma warning disable CS0618
         /// <summary>
         /// Initializes a new instance of <see cref="XmlSerializerInputFormatter"/>.
         /// </summary>
         /// <param name="options">The <see cref="MvcOptions"/>.</param>
         public XmlSerializerInputFormatter(MvcOptions options)
+#pragma warning disable CS0618
             : this()
+#pragma warning restore CS0618
         {
             _options = options;
         }
-#pragma warning restore CS0618
 
         /// <summary>
         /// Gets the list of <see cref="IWrapperProviderFactory"/> to

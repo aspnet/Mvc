@@ -37,8 +37,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         [Obsolete("This constructor is obsolete and will be removed in a future version.")]
         public XmlDataContractSerializerInputFormatter()
         {
-            _suppressInputFormatterBuffering = false;
-
             SupportedEncodings.Add(UTF8EncodingWithoutBOM);
             SupportedEncodings.Add(UTF16EncodingLittleEndian);
 
@@ -63,18 +61,18 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             _suppressInputFormatterBuffering = suppressInputFormatterBuffering;
         }
 
-#pragma warning disable CS0618
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerInputFormatter"/>.
         /// </summary>
         /// <param name="options">The <see cref="MvcOptions"/>.</param>
         public XmlDataContractSerializerInputFormatter(MvcOptions options)
+#pragma warning disable CS0618
             : this()
+#pragma warning restore CS0618
         {
             _options = options;
         }
-#pragma warning restore CS0618
-        
+
         /// <summary>
         /// Gets the list of <see cref="IWrapperProviderFactory"/> to
         /// provide the wrapping type for de-serialization.
@@ -143,7 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             var request = context.HttpContext.Request;
 
             var suppressInputFormatterBuffering = _options?.SuppressInputFormatterBuffering ?? _suppressInputFormatterBuffering;
-            
+
             if (!request.Body.CanSeek && !suppressInputFormatterBuffering)
             {
                 // XmlDataContractSerializer does synchronous reads. In order to avoid blocking on the stream, we asynchronously 
