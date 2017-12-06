@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
-        /// with default XmlWriterSettings
+        /// with default <see cref="XmlWriterSettings"/>.
         /// </summary>
         public XmlDataContractSerializerOutputFormatter()
             : this(FormattingUtilities.GetDefaultXmlWriterSettings())
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
         /// <summary>
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
-        /// with default XmlWriterSettings
+        /// with default <see cref="XmlWriterSettings"/>.
         /// </summary>
         /// <param name="logger">The <see cref="ILogger"/>.</param>
         public XmlDataContractSerializerOutputFormatter(ILogger logger)
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
+        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>.
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
         public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings)
@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
+        /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>.
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
         /// <param name="logger">The <see cref="ILogger"/>.</param>

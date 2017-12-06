@@ -392,21 +392,25 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
-        public static IEnumerable<object[]> LogsWhenUnableToCreateSerializerForTypeData
+        public static TheoryData<XmlSerializerOutputFormatter, TestSink> LogsWhenUnableToCreateSerializerForTypeData
         {
             get
             {
-                var sink = new TestSink();
-                var loggerFactory = new TestLoggerFactory(sink, enabled: true);
-                var logger = loggerFactory.CreateLogger(nameof(XmlSerializerOutputFormatter));
-                var formatter = new XmlSerializerOutputFormatter(logger);
-                yield return new object[] { formatter, sink };
+                var sink1 = new TestSink();
+                var loggerFactory1 = new TestLoggerFactory(sink1, enabled: true);
+                var logger1 = loggerFactory1.CreateLogger(nameof(XmlSerializerOutputFormatter));
+                var formatter1 = new XmlSerializerOutputFormatter(logger1);
 
-                sink = new TestSink();
-                loggerFactory = new TestLoggerFactory(sink, enabled: true);
-                logger = loggerFactory.CreateLogger(nameof(XmlSerializerOutputFormatter));
-                formatter = new XmlSerializerOutputFormatter(new XmlWriterSettings(), logger);
-                yield return new object[] { formatter, sink };
+                var sink2 = new TestSink();
+                var loggerFactory2 = new TestLoggerFactory(sink2, enabled: true);
+                var logger2 = loggerFactory2.CreateLogger(nameof(XmlSerializerOutputFormatter));
+                var formatter2 = new XmlSerializerOutputFormatter(new XmlWriterSettings(), logger2);
+
+                return new TheoryData<XmlSerializerOutputFormatter, TestSink>()
+                {
+                    { formatter1, sink1 },
+                    { formatter2, sink2}
+                };
             }
         }
 
