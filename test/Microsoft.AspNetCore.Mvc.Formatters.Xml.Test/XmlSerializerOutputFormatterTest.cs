@@ -397,14 +397,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             get
             {
                 var sink1 = new TestSink();
-                var loggerFactory1 = new TestLoggerFactory(sink1, enabled: true);
-                var logger1 = loggerFactory1.CreateLogger(nameof(XmlSerializerOutputFormatter));
-                var formatter1 = new XmlSerializerOutputFormatter(logger1);
+                var formatter1 = new XmlSerializerOutputFormatter(new TestLoggerFactory(sink1, enabled: true));
 
                 var sink2 = new TestSink();
-                var loggerFactory2 = new TestLoggerFactory(sink2, enabled: true);
-                var logger2 = loggerFactory2.CreateLogger(nameof(XmlSerializerOutputFormatter));
-                var formatter2 = new XmlSerializerOutputFormatter(new XmlWriterSettings(), logger2);
+                var formatter2 = new XmlSerializerOutputFormatter(
+                    new XmlWriterSettings(),
+                    new TestLoggerFactory(sink2, enabled: true));
 
                 return new TheoryData<XmlSerializerOutputFormatter, TestSink>()
                 {

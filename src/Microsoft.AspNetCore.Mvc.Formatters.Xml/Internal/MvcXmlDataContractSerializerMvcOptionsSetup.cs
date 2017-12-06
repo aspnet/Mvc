@@ -39,9 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         {
             options.ModelMetadataDetailsProviders.Add(new DataMemberRequiredBindingMetadataProvider());
 
-            var outputFormatterLogger = _loggerFactory.CreateLogger<XmlDataContractSerializerOutputFormatter>();
-
-            options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter(outputFormatterLogger));
+            options.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter(_loggerFactory));
             options.InputFormatters.Add(new XmlDataContractSerializerInputFormatter(options.SuppressInputFormatterBuffering));
 
             options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider("System.Xml.Linq.XObject"));

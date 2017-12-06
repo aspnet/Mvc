@@ -35,9 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         /// <param name="options">The <see cref="MvcOptions"/>.</param>
         public void Configure(MvcOptions options)
         {
-            var outputFormatterLogger = _loggerFactory.CreateLogger<XmlSerializerOutputFormatter>();
-
-            options.OutputFormatters.Add(new XmlSerializerOutputFormatter(outputFormatterLogger));
+            options.OutputFormatters.Add(new XmlSerializerOutputFormatter(_loggerFactory));
             options.InputFormatters.Add(new XmlSerializerInputFormatter(options.SuppressInputFormatterBuffering));
         }
     }

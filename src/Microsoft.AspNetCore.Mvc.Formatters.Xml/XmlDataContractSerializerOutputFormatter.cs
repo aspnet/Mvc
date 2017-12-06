@@ -38,9 +38,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>
         /// with default <see cref="XmlWriterSettings"/>.
         /// </summary>
-        /// <param name="logger">The <see cref="ILogger"/>.</param>
-        public XmlDataContractSerializerOutputFormatter(ILogger logger)
-            : this(FormattingUtilities.GetDefaultXmlWriterSettings(), logger)
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        public XmlDataContractSerializerOutputFormatter(ILoggerFactory loggerFactory)
+            : this(FormattingUtilities.GetDefaultXmlWriterSettings(), loggerFactory)
         {
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
         public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings)
-            : this(writerSettings, logger: null)
+            : this(writerSettings, loggerFactory: null)
         {
         }
 
@@ -57,8 +57,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
         /// Initializes a new instance of <see cref="XmlDataContractSerializerOutputFormatter"/>.
         /// </summary>
         /// <param name="writerSettings">The settings to be used by the <see cref="DataContractSerializer"/>.</param>
-        /// <param name="logger">The <see cref="ILogger"/>.</param>
-        public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings, ILogger logger)
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        public XmlDataContractSerializerOutputFormatter(XmlWriterSettings writerSettings, ILoggerFactory loggerFactory)
         {
             if (writerSettings == null)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             WrapperProviderFactories.Add(new EnumerableWrapperProviderFactory(WrapperProviderFactories));
             WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
 
-            _logger = logger;
+            _logger = loggerFactory?.CreateLogger(GetType());
         }
 
         /// <summary>
