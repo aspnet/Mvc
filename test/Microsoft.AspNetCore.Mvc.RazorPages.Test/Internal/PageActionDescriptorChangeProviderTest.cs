@@ -19,6 +19,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         {
             // Arrange
             var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(f => f.Watch(It.IsAny<string>()))
+                .Returns(Mock.Of<IChangeToken>());
             var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider.Object);
 
             var templateEngine = new RazorTemplateEngine(
@@ -41,6 +43,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         {
             // Arrange
             var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(f => f.Watch(It.IsAny<string>()))
+                .Returns(Mock.Of<IChangeToken>());
             var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider.Object);
 
             var templateEngine = new RazorTemplateEngine(
@@ -59,7 +63,53 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         }
 
         [Fact]
-        public void GetChangeToken_WatchesViewImportsOutsidePagesRoot()
+        public void GetChangeToken_WatchesFilesUnderAreaRoot()
+        {
+            // Arrange
+            var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(f => f.Watch(It.IsAny<string>()))
+                .Returns(Mock.Of<IChangeToken>());
+            var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider.Object);
+
+            var templateEngine = new RazorTemplateEngine(
+                RazorEngine.Create(),
+                new FileProviderRazorProject(accessor));
+            var options = Options.Create(new RazorPagesOptions());
+            var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options);
+
+            // Act
+            var changeToken = changeProvider.GetChangeToken();
+
+            // Assert
+            fileProvider.Verify(f => f.Watch("/Areas/**/*.cshtml"));
+        }
+
+        [Theory]
+        [InlineData("/areas-base-dir")]
+        [InlineData("/areas-base-dir/")]
+        public void GetChangeToken_WatchesFilesUnderCustomAreaRoot(string rootDirectory)
+        {
+            // Arrange
+            var fileProvider = new Mock<IFileProvider>();
+            fileProvider.Setup(f => f.Watch(It.IsAny<string>()))
+                .Returns(Mock.Of<IChangeToken>());
+            var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider.Object);
+
+            var templateEngine = new RazorTemplateEngine(
+                RazorEngine.Create(),
+                new FileProviderRazorProject(accessor));
+            var options = Options.Create(new RazorPagesOptions { AreaRootDirectory = rootDirectory } );
+            var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options);
+
+            // Act
+            var changeToken = changeProvider.GetChangeToken();
+
+            // Assert
+            fileProvider.Verify(f => f.Watch("/areas-base-dir/**/*.cshtml"));
+        }
+
+        [Fact]
+        public void GetChangeToken_WatchesViewImportsOutsidePagesRoot_WhenPagesRootIsNested()
         {
             // Arrange
             var fileProvider = new TestFileProvider();
@@ -79,7 +129,57 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Collection(compositeChangeToken.ChangeTokens,
                 changeToken => Assert.Same(fileProvider.GetChangeToken("/dir1/_ViewImports.cshtml"), changeToken),
                 changeToken => Assert.Same(fileProvider.GetChangeToken("/_ViewImports.cshtml"), changeToken),
-                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir1/dir2/**/*.cshtml"), changeToken));
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir1/dir2/**/*.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/Areas/**/*.cshtml"), changeToken));
+        }
+
+        [Fact]
+        public void GetChangeToken_WatchesViewImportsOutsidePagesRoot_WhenAreaPagesRootIsNested()
+        {
+            // Arrange
+            var fileProvider = new TestFileProvider();
+            var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider);
+
+            var templateEngine = new RazorTemplateEngine(
+                RazorEngine.Create(),
+                new FileProviderRazorProject(accessor));
+            templateEngine.Options.ImportsFileName = "_ViewImports.cshtml";
+            var options = Options.Create(new RazorPagesOptions());
+            options.Value.RootDirectory = "/dir1/dir2";
+            options.Value.AreaRootDirectory = "/dir3/dir4";
+
+            var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options);
+
+            // Act & Assert
+            var compositeChangeToken = Assert.IsType<CompositeChangeToken>(changeProvider.GetChangeToken());
+            Assert.Collection(compositeChangeToken.ChangeTokens,
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir1/_ViewImports.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/_ViewImports.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir3/_ViewImports.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir1/dir2/**/*.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/dir3/dir4/**/*.cshtml"), changeToken));
+        }
+
+        [Fact]
+        public void GetChangeToken_WatchesViewImportsOutsidePagesRoot_WhenAreaFeatureIsDisabled()
+        {
+            // Arrange
+            var fileProvider = new TestFileProvider();
+            var accessor = Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == fileProvider);
+
+            var templateEngine = new RazorTemplateEngine(
+                RazorEngine.Create(),
+                new FileProviderRazorProject(accessor));
+            templateEngine.Options.ImportsFileName = "_ViewImports.cshtml";
+            var options = Options.Create(new RazorPagesOptions { EnableAreas = false });
+
+            var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options);
+
+            // Act & Assert
+            var compositeChangeToken = Assert.IsType<CompositeChangeToken>(changeProvider.GetChangeToken());
+            Assert.Collection(compositeChangeToken.ChangeTokens,
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/_ViewImports.cshtml"), changeToken),
+                changeToken => Assert.Same(fileProvider.GetChangeToken("/Pages/**/*.cshtml"), changeToken));
         }
     }
 }

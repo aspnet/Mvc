@@ -471,6 +471,12 @@ namespace Microsoft.AspNetCore.Mvc
                 routeValues["handler"] = pageHandler;
             }
 
+            if (!routeValues.ContainsKey("area") &&
+                ambientValues.TryGetValue("area", out var area))
+            {
+                routeValues["area"] = area;
+            }
+
             return urlHelper.RouteUrl(
                 routeName: null,
                 values: routeValues,

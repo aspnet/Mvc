@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -17,14 +18,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private readonly object _cacheLock = new object();
         private readonly ApplicationPartManager _applicationManager;
         private readonly RazorPagesOptions _pagesOptions;
+        private readonly ILogger<CompiledPageRouteModelProvider> _logger;
         private List<PageRouteModel> _cachedModels;
 
         public CompiledPageRouteModelProvider(
             ApplicationPartManager applicationManager,
             IOptions<RazorPagesOptions> pagesOptionsAccessor)
+            : this(applicationManager, pagesOptionsAccessor, loggerFactory: null)
+        {
+        }
+
+        public CompiledPageRouteModelProvider(
+            ApplicationPartManager applicationManager,
+            IOptions<RazorPagesOptions> pagesOptionsAccessor,
+            ILoggerFactory loggerFactory)
         {
             _applicationManager = applicationManager;
             _pagesOptions = pagesOptionsAccessor.Value;
+            _logger = loggerFactory?.CreateLogger<CompiledPageRouteModelProvider>();
         }
 
         public int Order => -1000;
@@ -58,24 +69,61 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                     rootDirectory = rootDirectory + "/";
                 }
 
+                var areaRootDirectory = _pagesOptions.AreaRootDirectory;
+                if (!areaRootDirectory.EndsWith("/", StringComparison.Ordinal))
+                {
+                    areaRootDirectory = areaRootDirectory + "/";
+                }
+
                 var cachedApplicationModels = new List<PageRouteModel>();
                 foreach (var viewDescriptor in GetViewDescriptors(_applicationManager))
                 {
-                    if (!viewDescriptor.RelativePath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
+                    PageRouteModel model = null;
+                    if (viewDescriptor.RelativePath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
                     {
-                        continue;
+                        model = GetPageRouteModel(rootDirectory, viewDescriptor);
+                    }
+                    else if (_pagesOptions.EnableAreas && viewDescriptor.RelativePath.StartsWith(areaRootDirectory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        model = GetAreaPageRouteModel(areaRootDirectory, viewDescriptor);
                     }
 
-                    var viewEnginePath = GetViewEnginePath(rootDirectory, viewDescriptor.RelativePath);
-                    var model = new PageRouteModel(viewDescriptor.RelativePath, viewEnginePath);
-                    var pageAttribute = (RazorPageAttribute)viewDescriptor.ViewAttribute;
-                    PageSelectorModel.PopulateDefaults(model, pageAttribute.RouteTemplate);
-
-                    cachedApplicationModels.Add(model);
+                    if (model != null)
+                    {
+                        cachedApplicationModels.Add(model);
+                    }
                 }
 
                 _cachedModels = cachedApplicationModels;
             }
+        }
+
+        private PageRouteModel GetPageRouteModel(string rootDirectory, CompiledViewDescriptor viewDescriptor)
+        {
+            var viewEnginePath = GetRootTrimmedPath(rootDirectory, viewDescriptor.RelativePath);
+            var model = new PageRouteModel(viewDescriptor.RelativePath, viewEnginePath);
+            var pageAttribute = (RazorPageAttribute)viewDescriptor.ViewAttribute;
+            PageSelectorModel.PopulateDefaults(model, viewEnginePath, pageAttribute.RouteTemplate);
+            return model;
+        }
+
+        private PageRouteModel GetAreaPageRouteModel(string areaRootDirectory, CompiledViewDescriptor viewDescriptor)
+        {
+            var rootTrimmedPath = GetRootTrimmedPath(areaRootDirectory, viewDescriptor.RelativePath);
+
+            if (PageSelectorModel.TryParseAreaPath(_pagesOptions, rootTrimmedPath, _logger, out var result))
+            {
+                var model = new PageRouteModel(viewDescriptor.RelativePath, result.viewEnginePath)
+                {
+                    RouteValues = { ["area"] = result.areaName },
+                };
+                var pageAttribute = (RazorPageAttribute)viewDescriptor.ViewAttribute;
+                PageSelectorModel.PopulateDefaults(model, result.pageRoute, pageAttribute.RouteTemplate);
+
+                return model;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -96,7 +144,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             return viewsFeature.ViewDescriptors.Where(d => d.IsPrecompiled && d.ViewAttribute is RazorPageAttribute);
         }
 
-        private string GetViewEnginePath(string rootDirectory, string path)
+        private string GetRootTrimmedPath(string rootDirectory, string path)
         {
             var endIndex = path.LastIndexOf('.');
             if (endIndex == -1)

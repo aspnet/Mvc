@@ -28,7 +28,10 @@ namespace RazorPagesWebSite
 
             app.UseStaticFiles();
 
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("areaRoute", "{area:exists}/{controller=Home}/{action=Index}");
+            });
         }
     }
 }

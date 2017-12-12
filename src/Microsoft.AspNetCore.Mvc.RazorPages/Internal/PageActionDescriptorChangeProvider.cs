@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -16,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
     public class PageActionDescriptorChangeProvider : IActionDescriptorChangeProvider
     {
         private readonly IFileProvider _fileProvider;
-        private readonly string _searchPattern;
+        private readonly string[] _searchPatterns;
         private readonly string[] _additionalFilesToTrack;
 
         public PageActionDescriptorChangeProvider(
@@ -46,28 +47,52 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             rootDirectory = rootDirectory.TrimEnd('/');
 
             var importFileAtPagesRoot = rootDirectory + "/" + templateEngine.Options.ImportsFileName;
-            _additionalFilesToTrack = templateEngine.GetImportItems(importFileAtPagesRoot)
-                .Select(item => item.FilePath)
-                .ToArray();
+            var additionalImportFilePaths = templateEngine.GetImportItems(importFileAtPagesRoot)
+                .Select(item => item.FilePath);
+            var pagesRootSearchPattern = rootDirectory + "/**/*.cshtml";
 
-            _searchPattern = rootDirectory + "/**/*.cshtml";
+            if (razorPagesOptions.Value.EnableAreas)
+            {
+                var areaRootDirectory = razorPagesOptions.Value.AreaRootDirectory;
+                Debug.Assert(!string.IsNullOrEmpty(areaRootDirectory));
+                areaRootDirectory = areaRootDirectory.TrimEnd('/');
+
+                var importFileAtAreaPagesRoot = areaRootDirectory + "/" + templateEngine.Options.ImportsFileName;
+                var importPathsOutsideAreaPagesRoot = templateEngine.GetImportItems(importFileAtAreaPagesRoot)
+                    .Select(item => item.FilePath);
+
+                additionalImportFilePaths = additionalImportFilePaths
+                    .Concat(importPathsOutsideAreaPagesRoot)
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                _searchPatterns = new[]
+                {
+                    pagesRootSearchPattern,
+                    areaRootDirectory + "/**/*.cshtml",
+                };
+            }
+            else
+            {
+                _searchPatterns = new[] { pagesRootSearchPattern, };
+            }
+
+            _additionalFilesToTrack = additionalImportFilePaths.ToArray();
         }
 
         public IChangeToken GetChangeToken()
         {
-            var wildcardChangeToken = _fileProvider.Watch(_searchPattern);
-            if (_additionalFilesToTrack.Length == 0)
-            {
-                return wildcardChangeToken;
-            }
-
-            var changeTokens = new IChangeToken[_additionalFilesToTrack.Length + 1];
+            var changeTokens = new IChangeToken[_additionalFilesToTrack.Length + _searchPatterns.Length];
             for (var i = 0; i < _additionalFilesToTrack.Length; i++)
             {
                 changeTokens[i] = _fileProvider.Watch(_additionalFilesToTrack[i]);
             }
 
-            changeTokens[changeTokens.Length - 1] = wildcardChangeToken;
+            for (var i = 0; i < _searchPatterns.Length; i++)
+            {
+                var wildcardChangeToken = _fileProvider.Watch(_searchPatterns[i]);
+                changeTokens[_additionalFilesToTrack.Length + i] = wildcardChangeToken;
+            }
+
             return new CompositeChangeToken(changeTokens);
         }
     }

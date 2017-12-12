@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages
 {
-    [DebuggerDisplay("{" + nameof(ViewEnginePath) + "}")]
+    [DebuggerDisplay("{ViewEnginePath = " + nameof(ViewEnginePath) + ", RelativePath = " + nameof(RelativePath) + "}")]
     public class PageActionDescriptor : ActionDescriptor
     {
         /// <summary>
