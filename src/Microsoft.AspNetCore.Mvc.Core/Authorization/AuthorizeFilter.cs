@@ -115,15 +115,16 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             var effectivePolicy = Policy;
             if (context.CombineAuthorizeFilters)
             {
-                // Combine all authorize filters into a single effective policy that's run on the first filter
-                var firstAuthorizeInstance = context.Filters.First(f => f is AuthorizeFilter);
-                if (firstAuthorizeInstance != this)
+                // Combine all authorize filters into single effective policy that's only run on the first filter
+                if (context.Filters.First(f => f is AuthorizeFilter) != this)
                 {
                     return;
                 }
 
-                var allOtherAuthorizeFilters = context.Filters.OfType<AuthorizeFilter>();
-                effectivePolicy = CombinePolicy(allOtherAuthorizeFilters);
+                var authorizeFilters = context.Filters.OfType<AuthorizeFilter>();
+                if (authorizeFilters.Count() > 1) {
+                    effectivePolicy = authorizeFilters.Select(s => s.Policy).Aggregate((p1, p2) => AuthorizationPolicy.Combine(p1, p2));
+                }
             }
 
             if (effectivePolicy == null)
@@ -163,18 +164,6 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             else if (authorizeResult.Forbidden)
             {
                 context.Result = new ForbidResult(effectivePolicy.AuthenticationSchemes.ToArray());
-            }
-        }
-
-        private AuthorizationPolicy CombinePolicy(IEnumerable<AuthorizeFilter> allOtherAuthorizeFilters)
-        {
-            if (allOtherAuthorizeFilters.Count() == 1)
-            {
-                return Policy;
-            }
-            else
-            {
-                return allOtherAuthorizeFilters.Select(s => s.Policy).Aggregate((p, n) => AuthorizationPolicy.Combine(p, n));
             }
         }
 

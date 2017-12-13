@@ -11,6 +11,7 @@ namespace FiltersWebSite
     public class CombineAuthorizeController : Controller
     {
         [Authorize("Api")]
+        [Authorize(Roles = "Administrator")]
         public string Api()
         {
             if (User.Identities.Count() != 1)
