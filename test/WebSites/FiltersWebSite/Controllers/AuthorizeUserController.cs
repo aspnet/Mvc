@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace FiltersWebSite
 {
@@ -12,18 +13,30 @@ namespace FiltersWebSite
         [Authorize("Api-Manager")]
         public string ApiManagers()
         {
+            if (User.Identities.Count() != 1)
+            {
+                return "Expected 1 identities.";
+            }
             return "Hello World!";
         }
 
         [Authorize(Roles = "Administrator")]
         public string AdminRole()
         {
+            if (User.Identities.Count() != 1)
+            {
+                return "Expected 1 identities.";
+            }
             return "Hello World!";
         }
 
         [Authorize("Interactive")]
         public string InteractiveUsers()
         {
+            if (User.Identities.Count() != 2)
+            {
+                return "Expected 2 identities.";
+            }
             return "Hello World!";
         }
 

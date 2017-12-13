@@ -16,10 +16,11 @@ namespace FiltersWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication()
+            services.AddAuthentication("Default")
+                    .AddScheme<BasicOptions, EmptyAuthenticationHandler>("Default", _ => { })
                     .AddScheme<BasicOptions, BasicAuthenticationHandler>("Interactive", _ => { })
                     .AddScheme<BasicOptions, BasicAuthenticationHandler>("Api", _ => { });
-            services.AddMvc();
+            services.AddMvc(o => o.CombineAuthorizeFilters = true);
             services.AddAuthorization(options =>
             {
                 // This policy cannot succeed since the claim is never added

@@ -112,15 +112,20 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var firstAuthorizeInstance = context.Filters.First(f => f is AuthorizeFilter);
-            if (firstAuthorizeInstance != this)
+            var effectivePolicy = Policy;
+            if (context.CombineAuthorizeFilters)
             {
-                return;
+                // Combine all authorize filters into a single effective policy that's run on the first filter
+                var firstAuthorizeInstance = context.Filters.First(f => f is AuthorizeFilter);
+                if (firstAuthorizeInstance != this)
+                {
+                    return;
+                }
+
+                var allOtherAuthorizeFilters = context.Filters.OfType<AuthorizeFilter>();
+                effectivePolicy = CombinePolicy(allOtherAuthorizeFilters);
             }
 
-            var allOtherAuthorizeFilters = context.Filters.OfType<AuthorizeFilter>();
-
-            var effectivePolicy = CombinePolicy(allOtherAuthorizeFilters);
             if (effectivePolicy == null)
             {
                 if (PolicyProvider == null)

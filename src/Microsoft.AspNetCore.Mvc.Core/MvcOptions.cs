@@ -255,6 +255,12 @@ namespace Microsoft.AspNetCore.Mvc
             set => _suppressJsonDeserializationExceptionMessagesInModelState.Value = value;
         }
 
+        /// <summary>
+        /// Gets or sets a flag to determine whether AuthorizeFilters will be combined into a single
+        /// effective policy. This was always to be the intended behavior, but was not the case.
+        /// </summary>
+        public bool CombineAuthorizeFilters { get; set;}
+
         IEnumerator<ICompatibilitySwitch> IEnumerable<ICompatibilitySwitch>.GetEnumerator()
         {
             return ((IEnumerable<ICompatibilitySwitch>)_switches).GetEnumerator();

@@ -20,6 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private readonly int _maxModelValidationErrors;
         private readonly ILogger _logger;
         private readonly DiagnosticSource _diagnosticSource;
+        private readonly bool _combineAuthorizeFilters;
+
 
         public ControllerActionInvokerProvider(
             ControllerActionInvokerCache controllerActionInvokerCache,
@@ -32,6 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _maxModelValidationErrors = optionsAccessor.Value.MaxModelValidationErrors;
             _logger = loggerFactory.CreateLogger<ControllerActionInvoker>();
             _diagnosticSource = diagnosticSource;
+            _combineAuthorizeFilters = optionsAccessor.Value.CombineAuthorizeFilters;
         }
 
         public int Order => -1000;
@@ -59,6 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     controllerContext,
                     cacheResult.cacheEntry,
                     cacheResult.filters);
+                invoker.CombineAuthorizeFilters = _combineAuthorizeFilters;
 
                 context.Result = invoker;
             }
