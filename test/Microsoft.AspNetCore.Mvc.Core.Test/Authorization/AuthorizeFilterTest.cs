@@ -226,8 +226,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => true).Build());
-            var authorizationContext = GetAuthorizationContext();
-            authorizationContext.CombineAuthorizeFilters = true;
+            var authorizationContext = GetAuthorizationContext(anonymous: false, registerServices: s => s.Configure<MvcOptions>(o => o.CombineAuthorizeFilters = true));
             // Effective policy should fail, if both are combined
             authorizationContext.Filters.Add(authorizeFilter);
             authorizationContext.Filters.Add(new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => false).Build()));
@@ -244,8 +243,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
         {
             // Arrange
             var authorizeFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => true).Build());
-            var authorizationContext = GetAuthorizationContext();
-            authorizationContext.CombineAuthorizeFilters = true;
+            var authorizationContext = GetAuthorizationContext(anonymous: false, registerServices: s => s.Configure<MvcOptions>(o => o.CombineAuthorizeFilters = true));
             // Effective policy should fail, if both are combined
             authorizationContext.Filters.Add(authorizeFilter);
             authorizationContext.Filters.Add(new DerivedAuthorizeFilter());

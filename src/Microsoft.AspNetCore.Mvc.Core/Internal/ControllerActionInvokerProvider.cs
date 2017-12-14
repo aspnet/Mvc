@@ -62,7 +62,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     controllerContext,
                     cacheResult.cacheEntry,
                     cacheResult.filters);
-                invoker.CombineAuthorizeFilters = _combineAuthorizeFilters;
 
                 context.Result = invoker;
             }

@@ -19,23 +19,8 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         public AuthorizationFilterContext(
             ActionContext actionContext,
             IList<IFilterMetadata> filters)
-            : this(actionContext, filters, combineAuthorizeFilters: false)
-        {
-        }
-
-        /// <summary>
-        /// Instantiates a new <see cref="AuthorizationFilterContext"/> instance.
-        /// </summary>
-        /// <param name="actionContext">The <see cref="ActionContext"/>.</param>
-        /// <param name="filters">All applicable <see cref="IFilterMetadata"/> implementations.</param>
-        /// <param name="combineAuthorizeFilters">The <see cref="CombineAuthorizeFilters"/>.</param>
-        public AuthorizationFilterContext(
-            ActionContext actionContext,
-            IList<IFilterMetadata> filters,
-            bool combineAuthorizeFilters)
             : base(actionContext, filters)
         {
-            CombineAuthorizeFilters = combineAuthorizeFilters;
         }
 
         /// <summary>
@@ -43,10 +28,5 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         /// an authorization filter will short-circuit the remainder of the filter pipeline.
         /// </summary>
         public virtual IActionResult Result { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether all AuthorizeFilters will be combined into a single AuthorizationPolicy.
-        /// </summary>
-        public bool CombineAuthorizeFilters { get; set;}
     }
 }

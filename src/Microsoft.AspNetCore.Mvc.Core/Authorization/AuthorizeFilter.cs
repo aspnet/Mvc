@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Authorization
 {
@@ -113,7 +114,9 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             }
 
             var effectivePolicy = Policy;
-            if (context.CombineAuthorizeFilters)
+                            
+            var mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value;
+            if (mvcOptions.CombineAuthorizeFilters)
             {
                 // Combine all authorize filters into single effective policy that's only run on the first filter
                 if (context.Filters.First(f => f is AuthorizeFilter) != this)
