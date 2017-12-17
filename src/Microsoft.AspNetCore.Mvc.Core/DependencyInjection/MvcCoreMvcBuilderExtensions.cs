@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -116,6 +117,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The <see cref="IMvcBuilder"/>.</returns>
         public static IMvcBuilder AddControllersAsServices(this IMvcBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             var feature = new ControllerFeature();
             builder.PartManager.PopulateFeature(feature);
 
@@ -126,6 +132,17 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.Replace(ServiceDescriptor.Transient<IControllerActivator, ServiceBasedControllerActivator>());
 
+            return builder;
+        }
+
+        public static IMvcBuilder SetCompatibilityVersion(this IMvcBuilder builder, CompatibilityVersion version)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.Services.Configure<MvcCompatibilityOptions>(o => o.CompatibilityVersion = version);
             return builder;
         }
     }
