@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
@@ -12,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 {
     public static class PageSelectorModel
     {
-        private const string IndexFileName = "Index.cshtml";
+        private static readonly string IndexFileName = "Index" + RazorViewEngine.ViewExtension;
 
         public static void PopulateDefaults(PageRouteModel model, string pageRoute, string routeTemplate)
         {
@@ -78,13 +79,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var areaName = path.Substring(1, areaEndIndex - 1);
 
             var pagePathIndex = areaEndIndex + normalizedPagesRootDirectory.Length;
-            var pageExtensionIndex = path.LastIndexOf('.');
-            var pageExtensionLength = pageExtensionIndex == -1 || pageExtensionIndex < pagePathIndex ?
-                0 :
-                path.Length - pageExtensionIndex;
+            Debug.Assert(path.EndsWith(RazorViewEngine.ViewExtension), $"{path} does not end in extension '{RazorViewEngine.ViewExtension}'.");
 
-            // PageName
-            var pageName = path.Substring(pagePathIndex, path.Length - pagePathIndex - pageExtensionLength);
+            var pageName = path.Substring(pagePathIndex, path.Length - pagePathIndex - RazorViewEngine.ViewExtension.Length);
 
             var builder = new InplaceStringBuilder(areaEndIndex + pageName.Length);
             builder.Append(path, 0, areaEndIndex);

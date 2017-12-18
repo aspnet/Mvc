@@ -360,7 +360,7 @@ Partial in /Areas/Accounts/Pages/
 
 Partial in /Areas/Accounts/Pages/
 
-Partial in /Areas/Accuonts/Views/Shared/
+Partial in /Areas/Accounts/Views/Shared/
 
 Hello from /Pages/Shared/";
 

@@ -79,8 +79,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <remarks>
         /// <para>
         /// The value of <see cref="ViewEnginePath"/> is considered an implicit route value corresponding
-        /// to the key <c>page</c>. These entries will be added to <see cref="ActionDescriptor.RouteValues"/>, 
-        /// but will not be visible in <see cref="RouteValues"/>.
+        /// to the key <c>page</c>. These entries will be implicitly added to <see cref="ActionDescriptor.RouteValues"/>
+        /// when the action descriptor is created, but will not be visible in <see cref="RouteValues"/>.
         /// </para>
         /// </remarks>
         public IDictionary<string, string> RouteValues { get; }

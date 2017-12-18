@@ -1558,49 +1558,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         }
 
         [Fact]
-        public void Page_PassesAreaPathIfPresentInAmbientValue()
-        {
-            // Arrange
-            UrlRouteContext actual = null;
-            var routeData = new RouteData
-            {
-                Values =
-                {
-                    { "page", "ambient-page" },
-                    { "area", "ambient-area" },
-                }
-            };
-            var actionContext = new ActionContext
-            {
-                RouteData = routeData,
-            };
-
-            var urlHelper = CreateMockUrlHelper(actionContext);
-            urlHelper.Setup(h => h.RouteUrl(It.IsAny<UrlRouteContext>()))
-                .Callback((UrlRouteContext context) => actual = context);
-
-            // Act
-            string page = null;
-            urlHelper.Object.Page(page);
-
-            // Assert
-            urlHelper.Verify();
-            Assert.NotNull(actual);
-            Assert.Null(actual.RouteName);
-            Assert.Collection(Assert.IsType<RouteValueDictionary>(actual.Values).OrderBy(v => v.Key),
-                value =>
-                {
-                    Assert.Equal("area", value.Key);
-                    Assert.Equal("ambient-area", value.Value);
-                },
-                value =>
-                {
-                    Assert.Equal("page", value.Key);
-                    Assert.Equal("ambient-page", value.Value);
-                });
-        }
-
-        [Fact]
         public void Page_UsesAreaValueFromRouteValueIfSpecified()
         {
             // Arrange

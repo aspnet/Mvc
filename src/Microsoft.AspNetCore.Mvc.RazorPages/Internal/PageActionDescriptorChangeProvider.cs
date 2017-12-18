@@ -46,16 +46,24 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Debug.Assert(!string.IsNullOrEmpty(rootDirectory));
             rootDirectory = rootDirectory.TrimEnd('/');
 
+            // Search pattern that matches all cshtml files under the Pages RootDirectory
+            var pagesRootSearchPattern = rootDirectory + "/**/*.cshtml";
+
+            // pagesRootSearchPattern will miss _ViewImports outside the RootDirectory despite these influencing
+            // compilation. e.g. when RootDirectory = /Dir1/Dir2, the search pattern will ignore changes to 
+            // [/_ViewImports.cshtml, /Dir1/_ViewImports.cshtml]. We need to additionally account for these.
             var importFileAtPagesRoot = rootDirectory + "/" + templateEngine.Options.ImportsFileName;
             var additionalImportFilePaths = templateEngine.GetImportItems(importFileAtPagesRoot)
                 .Select(item => item.FilePath);
-            var pagesRootSearchPattern = rootDirectory + "/**/*.cshtml";
 
             if (razorPagesOptions.Value.EnableAreas)
             {
                 var areaRootDirectory = razorPagesOptions.Value.AreaRootDirectory;
                 Debug.Assert(!string.IsNullOrEmpty(areaRootDirectory));
                 areaRootDirectory = areaRootDirectory.TrimEnd('/');
+
+                // Search pattern that matches all cshtml files under the Pages AreaRootDirectory
+                var areaRootSearchPattern = areaRootDirectory + "/**/*.cshtml";
 
                 var importFileAtAreaPagesRoot = areaRootDirectory + "/" + templateEngine.Options.ImportsFileName;
                 var importPathsOutsideAreaPagesRoot = templateEngine.GetImportItems(importFileAtAreaPagesRoot)
@@ -68,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 _searchPatterns = new[]
                 {
                     pagesRootSearchPattern,
-                    areaRootDirectory + "/**/*.cshtml",
+                    areaRootSearchPattern
                 };
             }
             else

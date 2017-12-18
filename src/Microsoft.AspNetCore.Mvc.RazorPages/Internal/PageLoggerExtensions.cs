@@ -139,15 +139,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         {
             _notMostEffectiveFilter(logger, policyType, null);
         }
-    }
-
 
         public static void UnsupportedAreaPath(this ILogger logger, RazorPagesOptions options, string filePath)
         {
             if (logger.IsEnabled(LogLevel.Warning))
             {
                 _unsupportedAreaPath(logger, filePath, options.AreaRootDirectory, options.AreaRootDirectory, options.RootDirectory, null);
-    }
-}
+            }
+        }
     }
 }

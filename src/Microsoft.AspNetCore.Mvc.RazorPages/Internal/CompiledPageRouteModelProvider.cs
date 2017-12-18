@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -101,6 +102,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private PageRouteModel GetPageRouteModel(string rootDirectory, CompiledViewDescriptor viewDescriptor)
         {
             var viewEnginePath = GetRootTrimmedPath(rootDirectory, viewDescriptor.RelativePath);
+            if (viewEnginePath.EndsWith(RazorViewEngine.ViewExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                viewEnginePath = viewEnginePath.Substring(0, viewEnginePath.Length - RazorViewEngine.ViewExtension.Length);
+            }
+
             var model = new PageRouteModel(viewDescriptor.RelativePath, viewEnginePath);
             var pageAttribute = (RazorPageAttribute)viewDescriptor.ViewAttribute;
             PageSelectorModel.PopulateDefaults(model, viewEnginePath, pageAttribute.RouteTemplate);
@@ -123,6 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 return model;
             }
 
+            // We were unable to parse the path to match the format we expect /Areas/AreaName/Pages/PagePath.cshtml
             return null;
         }
 
@@ -146,18 +153,11 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private string GetRootTrimmedPath(string rootDirectory, string path)
         {
-            var endIndex = path.LastIndexOf('.');
-            if (endIndex == -1)
-            {
-                endIndex = path.Length;
-            }
-
             // rootDirectory = "/Pages/AllMyPages/"
             // path = "/Pages/AllMyPages/Home.cshtml"
-            // Result = "/Home"
+            // Result = "/Home.cshtml"
             var startIndex = rootDirectory.Length - 1;
-
-            return path.Substring(startIndex, endIndex - startIndex);
+            return path.Substring(startIndex);
         }
     }
 }
