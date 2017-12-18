@@ -638,7 +638,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             _exceptionContext.Result = new EmptyResult();
                         }
 
-                            _result = _exceptionContext.Result;
+                        _result = _exceptionContext.Result;
 
                         var task = InvokeAlwaysRunResultFilters();
                         if (task.Status != TaskStatus.RanToCompletion)
@@ -678,7 +678,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         {
                             next = State.ResourceInsideEnd;
                             return task;
-                    }
+                        }
                         goto case State.ResourceInsideEnd;
                     }
 
@@ -710,7 +710,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         {
                             next = State.ResourceInsideEnd;
                             return task;
-                    }
+                        }
                         goto case State.ResourceInsideEnd;
                     }
 
@@ -851,6 +851,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             where TFilter : class, IResultFilter
             where TFilterAsync : class, IAsyncResultFilter
         {
+            var resultFilterKind = typeof(TFilter) == typeof(IAlwaysRunResultFilter) ?
+                FilterTypeConstants.AlwaysRunResultFilter :
+                FilterTypeConstants.ResultFilter;
+
             switch (next)
             {
                 case State.ResultBegin:
@@ -898,7 +902,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.BeforeOnResultExecution(resultExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IAsyncResultFilter.OnResultExecutionAsync),
                             filter);
 
@@ -938,7 +942,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.AfterOnResultExecution(_resultExecutedContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IAsyncResultFilter.OnResultExecutionAsync),
                             filter);
 
@@ -955,7 +959,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.BeforeOnResultExecuting(resultExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IResultFilter.OnResultExecuting),
                             filter);
 
@@ -963,7 +967,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.AfterOnResultExecuting(resultExecutingContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IResultFilter.OnResultExecuting),
                             filter);
 
@@ -1005,7 +1009,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.BeforeOnResultExecuted(resultExecutedContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IResultFilter.OnResultExecuted),
                             filter);
 
@@ -1013,7 +1017,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         _diagnosticSource.AfterOnResultExecuted(resultExecutedContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
-                            FilterTypeConstants.ResultFilter,
+                            resultFilterKind,
                             nameof(IResultFilter.OnResultExecuted),
                             filter);
 
@@ -1060,8 +1064,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         }
 
                         Rethrow(_resultExecutedContext);
-                            return Task.CompletedTask;
-                        }
+                        return Task.CompletedTask;
+                    }
 
                 default:
                     throw new InvalidOperationException(); // Unreachable.
@@ -1245,6 +1249,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public const string ActionFilter = "Action Filter";
             public const string ExceptionFilter = "Exception Filter";
             public const string ResultFilter = "Result Filter";
+            public const string AlwaysRunResultFilter = "Always Run Result Filter";
         }
     }
 }
