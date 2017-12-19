@@ -115,17 +115,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task CanReachActionWhenControllerAuthorizeFails()
-        {
-            // Arrange & Act
-            var response = await Client.GetAsync("http://localhost/CombineAuthorize/Api");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("Hello World!", await response.Content.ReadAsStringAsync());
-        }
-
-        [Fact]
         public async Task AllowAnonymousOverridesAuthorize()
         {
             // Arrange & Act

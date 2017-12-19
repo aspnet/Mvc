@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -256,8 +257,9 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Gets or sets a flag to determine whether AuthorizeFilters will be combined into a single
-        /// effective policy. This was always to be the intended behavior, but was not the case.
+        /// Gets or sets a value that determines if policies on instances of <see cref="AuthorizeFilter" />
+        /// will be combined into a single effective policy. This was always to be the intended behavior, 
+        /// but was not the case.
         /// </summary>
         public bool CombineAuthorizeFilters { get; set;}
 

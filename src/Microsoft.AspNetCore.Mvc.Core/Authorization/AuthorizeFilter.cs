@@ -23,6 +23,9 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
     /// </summary>
     public class AuthorizeFilter : IAsyncAuthorizationFilter, IFilterFactory
     {
+        private MvcOptions _mvcOptions;
+        private AuthorizationPolicy _effectivePolicy;
+
         /// <summary>
         /// Initializes a new <see cref="AuthorizeFilter"/> instance.
         /// </summary>
@@ -105,29 +108,37 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
         bool IFilterFactory.IsReusable => true;
 
-        /// <inheritdoc />
-        public virtual async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+        private async Task<AuthorizationPolicy> GetEffectivePolicyAsync(AuthorizationFilterContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
+            if (_effectivePolicy != null) {
+                return _effectivePolicy;
             }
 
             var effectivePolicy = Policy;
-                            
-            var mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value;
-            if (mvcOptions.CombineAuthorizeFilters)
+
+            if (_mvcOptions == null) {
+                _mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value;
+            }
+
+            if (_mvcOptions.CombineAuthorizeFilters)
             {
-                // Combine all authorize filters into single effective policy that's only run on the first filter
-                if (context.Filters.First(f => f is AuthorizeFilter) != this)
+                // Combine all authorize filters into single effective policy that's only run on the closest filter
+                AuthorizationPolicyBuilder builder = null;
+                for (var i = 0; i < context.Filters.Count; i++)
                 {
-                    return;
+                    if (ReferenceEquals(this, context.Filters[i]))
+                    {
+                        continue;
+                    }
+                    
+                    if (context.Filters[i] is AuthorizeFilter authorizeFilter)
+                    {
+                        builder = builder ?? new AuthorizationPolicyBuilder(effectivePolicy);
+                        builder.Combine(authorizeFilter.Policy);
+                    }
                 }
 
-                var authorizeFilters = context.Filters.OfType<AuthorizeFilter>();
-                if (authorizeFilters.Count() > 1) {
-                    effectivePolicy = authorizeFilters.Select(s => s.Policy).Aggregate((p1, p2) => AuthorizationPolicy.Combine(p1, p2));
-                }
+                effectivePolicy = builder?.Build() ?? effectivePolicy;
             }
 
             if (effectivePolicy == null)
@@ -143,6 +154,24 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 effectivePolicy = await AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
             }
 
+            // We can cache the effective policy when there is no custom policy provider 
+            if (PolicyProvider == null)
+            {
+                _effectivePolicy = effectivePolicy;
+            }
+
+            return effectivePolicy;
+        }
+
+        /// <inheritdoc />
+        public virtual async Task OnAuthorizationAsync(AuthorizationFilterContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var effectivePolicy = await GetEffectivePolicyAsync(context);
             if (effectivePolicy == null)
             {
                 return;
