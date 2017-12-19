@@ -16,7 +16,7 @@ namespace FiltersWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication("Default")
+            services.AddAuthentication()
                     .AddScheme<BasicOptions, BasicAuthenticationHandler>("Interactive", _ => { })
                     .AddScheme<BasicOptions, BasicAuthenticationHandler>("Api", _ => { });
             services.AddMvc();
