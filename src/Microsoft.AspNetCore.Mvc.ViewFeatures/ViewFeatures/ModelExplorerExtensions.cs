@@ -41,22 +41,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 return modelExplorer.Metadata.NullDisplayText;
             }
 
-            if (modelExplorer.Metadata.IsEnum)
+            if (modelExplorer.Metadata.IsEnum && modelExplorer.Model is Enum modelEnum)
             {
-                var modelEnum = (Enum) modelExplorer.Model;
                 var enumStringValue = modelEnum.ToString("d");
                 var enumGroupedDisplayNamesAndValues = modelExplorer.Metadata.EnumGroupedDisplayNamesAndValues;
 
                 Debug.Assert(enumGroupedDisplayNamesAndValues != null);
 
-                var enumDisplayValue = enumGroupedDisplayNamesAndValues
-                    .Where(enumGroup => enumGroup.Value == enumStringValue)
-                    .Select(kv => kv.Key.Name)
-                    .FirstOrDefault(value => value != null);
-
-                if (enumDisplayValue != null)
+                foreach (var kvp in enumGroupedDisplayNamesAndValues)
                 {
-                    return enumDisplayValue;
+                    if (string.Equals(kvp.Value, enumStringValue, StringComparison.Ordinal))
+                    {
+                        return kvp.Key.Name;
+                    }
                 }
             }
 
