@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,8 @@ namespace SecurityWebSite
             {
                 o.Filters.Add(new AuthorizeFilter());
             });
+
+            services.AddScoped<IPolicyEvaluator, CountingPolicyEvaluator>();
         }
 
         public void Configure(IApplicationBuilder app)

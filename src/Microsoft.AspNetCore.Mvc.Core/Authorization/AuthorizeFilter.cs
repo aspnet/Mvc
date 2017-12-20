@@ -122,6 +122,10 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
             if (_mvcOptions.CombineAuthorizeFilters)
             {
+                if (!context.IsEffectivePolicy<AuthorizeFilter>(this)) {
+                    return null;
+                }
+
                 // Combine all authorize filters into single effective policy that's only run on the closest filter
                 AuthorizationPolicyBuilder builder = null;
                 for (var i = 0; i < context.Filters.Count; i++)

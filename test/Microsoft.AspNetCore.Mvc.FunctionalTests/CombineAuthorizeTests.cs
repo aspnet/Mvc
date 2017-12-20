@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             response = await Client.SendAsync(request);
             var body = await response.Content.ReadAsStringAsync();
-            Assert.Equal("Administration.EitherCookie", body);
+            Assert.Equal("Administration.EitherCookie:AuthorizeCount=1", body);
          }
     }
 }

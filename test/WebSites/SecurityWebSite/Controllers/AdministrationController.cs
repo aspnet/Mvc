@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SecurityWebSite.Controllers
 {
@@ -23,7 +25,8 @@ namespace SecurityWebSite.Controllers
         [Authorize(AuthenticationSchemes = "Cookie2")]
         public IActionResult EitherCookie()
         {
-            return Content("Administration.EitherCookie");
+            var countEvaluator = (CountingPolicyEvaluator)HttpContext.RequestServices.GetRequiredService<IPolicyEvaluator>();
+            return Content("Administration.EitherCookie:AuthorizeCount="+countEvaluator.AuthorizeCount);
         }
 
         [AllowAnonymous]
