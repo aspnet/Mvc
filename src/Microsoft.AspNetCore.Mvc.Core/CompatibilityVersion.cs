@@ -16,13 +16,13 @@ namespace Microsoft.AspNetCore.Mvc
     public enum CompatibilityVersion
     {
         /// <summary>
-        /// Sets the default value of settings on <see cref="MvcOptions"/> to match the behaviour of 
+        /// Sets the default value of settings on <see cref="MvcOptions"/> to match the behavior of 
         /// ASP.NET Core MVC 2.0.0.
         /// </summary>
         Version_2_0,
 
         /// <summary>
-        /// Sets the default value of settings on <see cref="MvcOptions"/> to match the behaviour of 
+        /// Sets the default value of settings on <see cref="MvcOptions"/> to match the behavior of 
         /// ASP.NET Core MVC 2.1.0.
         /// </summary>
         Version_2_1,
