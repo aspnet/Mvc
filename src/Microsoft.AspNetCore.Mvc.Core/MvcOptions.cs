@@ -21,6 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
     {
         private int _maxModelStateErrors = ModelStateDictionary.DefaultMaxAllowedErrors;
 
+        // See CompatibilitySwitch.cs for guide on how to implement these.
         private readonly CompatibilitySwitch<bool> _allowBindingUndefinedValueToEnumType;
         private readonly CompatibilitySwitch<InputFormatterExceptionModelStatePolicy> _inputFormatterExceptionModelStatePolicy;
         private readonly CompatibilitySwitch<bool> _suppressJsonDeserializationExceptionMessagesInModelState;

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
@@ -41,18 +42,40 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
     // CompatibilitySwitch(string, value) constructor to make it obvious the correct value is passed in. It's 
     // a good idea to equate the original behavior with the default enum value as well.
     //
-    // Then create (or modify) a subclass of ConfigureCompatibilityOptions appropriate for your class. Override
-    // the DefaultValues property and provide appropriate values based on the value of the Version property. If
-    // you just added this class, register it as an IPostConfigureOptions<TOptions> in DI.
+    // Then create (or modify) a subclass of ConfigureCompatibilityOptions appropriate for your options type. 
+    // Override the DefaultValues property and provide appropriate values based on the value of the Version
+    // property. If you just added this class, register it as an IPostConfigureOptions<TOptions> in DI.
+    //
+    /// <summary>
+    /// Infrastructure supporting the implementation of <see cref="CompatibilityVersion"/>. This is an
+    /// implementation of <see cref="ICompatibilitySwitch"/> suitible for use with the <see cref="IOptions{T}"/>
+    /// pattern.
+    /// </summary>
+    /// <typeparam name="TValue">The type of value assoicated with the compatibility switch.</typeparam>
     public class CompatibilitySwitch<TValue> : ICompatibilitySwitch where TValue : struct
     {
-        private TValue _value; 
+        private TValue _value;
 
+        /// <summary>
+        /// Creates a new compatiblity switch with the provided name.
+        /// </summary>
+        /// <param name="name">
+        /// The compatiblity switch name. The name must match a property name on an options type.
+        /// </param>
         public CompatibilitySwitch(string name)
             : this(name, default)
         {
         }
 
+        /// <summary>
+        /// Creates a new compatiblity switch with the provided name and initial value.
+        /// </summary>
+        /// <param name="name">
+        /// The compatiblity switch name. The name must match a property name on an options type.
+        /// </param>
+        /// <param name="value">
+        /// The initial value to assign to the switch.
+        /// </param>
         public CompatibilitySwitch(string name, TValue value)
         {
             if (name == null)
@@ -64,10 +87,28 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             _value = value;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="Value"/> property has been set.
+        /// </summary>
+        /// <remarks>
+        /// This is used by the compatibility infrastructure to determine whether the application developer
+        /// has set explicitly set the value associated with this switch.
+        /// </remarks>
         public bool IsValueSet { get; private set; }
 
+        /// <summary>
+        /// Gets the name of the compatibility switch.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets or set the value associated with the compatibility switch.
+        /// </summary>
+        /// <remarks>
+        /// Setting the switch value using <see cref="Value"/> will set <see cref="IsValueSet"/> to <c>true</c>.
+        /// As a consequence, the compatibility infrastructure will consider this switch explicitly configured by
+        /// the application developer, and will not apply a default value based on the compatibility version.
+        /// </remarks>
         public TValue Value
         {
             get => _value;
