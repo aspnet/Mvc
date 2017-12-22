@@ -73,10 +73,10 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         /// <param name="name">
         /// The compatiblity switch name. The name must match a property name on an options type.
         /// </param>
-        /// <param name="value">
+        /// <param name="initialValue">
         /// The initial value to assign to the switch.
         /// </param>
-        public CompatibilitySwitch(string name, TValue value)
+        public CompatibilitySwitch(string name, TValue initialValue)
         {
             if (name == null)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             }
 
             Name = name;
-            _value = value;
+            _value = initialValue;
         }
 
         /// <summary>
