@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
     {
         private readonly ILogger _logger;
 
-        internal ConfigureCompatibilityOptions(
+        public ConfigureCompatibilityOptions(
             ILoggerFactory loggerFactory,
             IOptions<MvcCompatibilityOptions> compatibilityOptions)
         {
