@@ -14,7 +14,7 @@ namespace MvcSandbox
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_1);
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,10 +34,9 @@ namespace MvcSandbox
         {
             var host = new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
-                .ConfigureLogging((ILoggingBuilder builder) =>
+                .ConfigureLogging(factory =>
                 {
-                    builder
-                        .AddFilter(l => true)
+                    factory
                         .AddConsole()
                         .AddDebug();
                 })

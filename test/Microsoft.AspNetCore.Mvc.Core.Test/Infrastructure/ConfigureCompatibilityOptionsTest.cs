@@ -16,10 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void PostConfigure_NoValueForProperty_DoesNothing()
         {
             // Arrange
-            var configure = Create(CompatibilityVersion.Version_2_0, new Dictionary<string, object>()
-            {
-
-            });
+            var configure = Create(CompatibilityVersion.Version_2_0, new Dictionary<string, object>());
 
             var options = new TestOptions();
 
@@ -115,56 +112,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             }
 
             protected override IReadOnlyDictionary<string, object> DefaultValues { get; }
-        }
-
-        [Fact]
-        public void Constructor_WithName_IsValueSetIsFalse()
-        {
-            // Arrange & Act
-            var @switch = new CompatibilitySwitch<bool>("TestProperty");
-
-            // Assert
-            Assert.False(@switch.Value);
-            Assert.False(@switch.IsValueSet);
-        }
-
-        [Fact]
-        public void Constructor_WithNameAndInitalValue_IsValueSetIsFalse()
-        {
-            // Arrange & Act
-            var @switch = new CompatibilitySwitch<bool>("TestProperty", initialValue: true);
-
-            // Assert
-            Assert.True(@switch.Value);
-            Assert.False(@switch.IsValueSet);
-        }
-
-        [Fact]
-        public void ValueNonInterface_SettingValue_SetsIsValueSetToTrue()
-        {
-            // Arrange
-            var @switch = new CompatibilitySwitch<bool>("TestProperty");
-
-            // Act
-            @switch.Value = false; // You don't need to actually change the value, just caling the setting works
-
-            // Assert
-            Assert.False(@switch.Value);
-            Assert.True(@switch.IsValueSet);
-        }
-
-        [Fact]
-        public void ValueInterface_SettingValue_SetsIsValueSetToTrue()
-        {
-            // Arrange
-            var @switch = new CompatibilitySwitch<bool>("TestProperty");
-
-            // Act
-            ((ICompatibilitySwitch)@switch).Value = true;
-
-            // Assert
-            Assert.True(@switch.Value);
-            Assert.True(@switch.IsValueSet);
         }
     }
 }
