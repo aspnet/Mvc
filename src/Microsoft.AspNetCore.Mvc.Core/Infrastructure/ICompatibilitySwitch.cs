@@ -5,7 +5,8 @@
 namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
     /// <summary>
-    /// Defines a compatibility switch.
+    /// Defines a compatibility switch. This is framework infrastructure and should not be used
+    /// by application code.
     /// </summary>
     public interface ICompatibilitySwitch
     {

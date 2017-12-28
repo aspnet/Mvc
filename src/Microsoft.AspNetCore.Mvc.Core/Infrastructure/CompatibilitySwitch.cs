@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
     /// <summary>
     /// Infrastructure supporting the implementation of <see cref="CompatibilityVersion"/>. This is an
     /// implementation of <see cref="ICompatibilitySwitch"/> suitible for use with the <see cref="IOptions{T}"/>
-    /// pattern.
+    /// pattern. This is framework infrastructure and should not be used by application code.
     /// </summary>
     /// <typeparam name="TValue">The type of value assoicated with the compatibility switch.</typeparam>
     public class CompatibilitySwitch<TValue> : ICompatibilitySwitch where TValue : struct

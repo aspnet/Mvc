@@ -8,12 +8,23 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
+    /// <summary>
+    /// A base class for infrastructure that implements ASP.NET Core MVC's support for 
+    /// <see cref="CompatibilityVersion"/>. This is framework infrastructure and should not be used
+    /// by application code.
+    /// </summary>
+    /// <typeparam name="TOptions"></typeparam>
     public abstract class ConfigureCompatibilityOptions<TOptions> : IPostConfigureOptions<TOptions>
         where TOptions : class, IEnumerable<ICompatibilitySwitch>
     {
         private readonly ILogger _logger;
 
-        public ConfigureCompatibilityOptions(
+        /// <summary>
+        /// Creates a new <see cref="ConfigureCompatibilityOptions{TOptions}"/>.
+        /// </summary>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        /// <param name="compatibilityOptions">The <see cref="IOptions{MvcCompatibilityOptions}"/>.</param>
+        protected ConfigureCompatibilityOptions(
             ILoggerFactory loggerFactory,
             IOptions<MvcCompatibilityOptions> compatibilityOptions)
         {
@@ -26,10 +37,18 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             _logger = loggerFactory.CreateLogger<TOptions>();
         }
 
+        /// <summary>
+        /// Gets the default values of compatibility switches associated with the applications configured
+        /// <see cref="CompatibilityVersion"/>.
+        /// </summary>
         protected abstract IReadOnlyDictionary<string, object> DefaultValues { get; }
 
+        /// <summary>
+        /// Gets the <see cref="CompatibilityVersion"/> configured for the application.
+        /// </summary>
         protected CompatibilityVersion Version { get; }
 
+        /// <inheritdoc />
         public virtual void PostConfigure(string name, TOptions options)
         {
             if (name == null)
