@@ -194,4 +194,7 @@
   <data name="RazorViewCompiler_ViewPathsDifferOnlyInCase" xml:space="preserve">
     <value>The following precompiled view paths differ only in case, which is not supported:</value>
   </data>
+  <data name="UnsupportedDebugInformationFormat" xml:space="preserve">
+    <value>Unsupported DebugType '{0}' specified in the application's deps file.</value>
+  </data>
 </root>
