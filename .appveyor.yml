@@ -17,3 +17,5 @@ environment:
 test: off
 deploy: off
 image: Visual Studio 2017
+artifacts:
+- path: artifacts\build\*.nupkg
