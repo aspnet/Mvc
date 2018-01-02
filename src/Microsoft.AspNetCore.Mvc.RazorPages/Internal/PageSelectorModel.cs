@@ -63,21 +63,31 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 return false;
             }
 
-            // Normalize the pages root directory so that it has a 
-            var normalizedPagesRootDirectory = razorPagesOptions.RootDirectory.TrimStart('/');
-            if (!normalizedPagesRootDirectory.EndsWith("/", StringComparison.Ordinal))
+            string normalizedPagesRootDirectory;
+            if (razorPagesOptions.RootDirectory == "/")
             {
-                normalizedPagesRootDirectory += "/";
+                normalizedPagesRootDirectory = string.Empty;
             }
-
-            if (string.Compare(path, areaEndIndex + 1, normalizedPagesRootDirectory, 0, normalizedPagesRootDirectory.Length, StringComparison.OrdinalIgnoreCase) != 0)
+            else
             {
-                logger.UnsupportedAreaPath(razorPagesOptions, path);
-                return false;
+                // Normalize the pages root directory so that it has a trailing slash. This ensures we're looking at a directory delimiter
+                // and not just the area name occuring as part of a segment.
+                normalizedPagesRootDirectory = razorPagesOptions.RootDirectory.TrimStart('/');
+                if (!normalizedPagesRootDirectory.EndsWith("/", StringComparison.Ordinal))
+                {
+                    normalizedPagesRootDirectory += "/";
+                }
+
+                Debug.Assert(normalizedPagesRootDirectory.Length > 0);
+                // If the pages root has a value i.e. it's not the app root "/", ensure that the area path contains this value.
+                if (string.Compare(path, areaEndIndex + 1, normalizedPagesRootDirectory, 0, normalizedPagesRootDirectory.Length, StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    logger.UnsupportedAreaPath(razorPagesOptions, path);
+                    return false;
+                }
             }
 
             var areaName = path.Substring(1, areaEndIndex - 1);
-
             var pagePathIndex = areaEndIndex + normalizedPagesRootDirectory.Length;
             Debug.Assert(path.EndsWith(RazorViewEngine.ViewExtension), $"{path} does not end in extension '{RazorViewEngine.ViewExtension}'.");
 

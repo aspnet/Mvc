@@ -73,13 +73,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 foreach (var viewDescriptor in GetViewDescriptors(_applicationManager))
                 {
                     PageRouteModel model = null;
-                    if (viewDescriptor.RelativePath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
-                    {
-                        model = GetPageRouteModel(rootDirectory, viewDescriptor);
-                    }
-                    else if (_pagesOptions.AllowAreas && viewDescriptor.RelativePath.StartsWith(areaRootDirectory, StringComparison.OrdinalIgnoreCase))
+                    if (_pagesOptions.AllowAreas && viewDescriptor.RelativePath.StartsWith(areaRootDirectory, StringComparison.OrdinalIgnoreCase))
                     {
                         model = GetAreaPageRouteModel(areaRootDirectory, viewDescriptor);
+                    }
+                    else if (viewDescriptor.RelativePath.StartsWith(rootDirectory, StringComparison.OrdinalIgnoreCase))
+                    {
+                        model = GetPageRouteModel(rootDirectory, viewDescriptor);
                     }
 
                     if (model != null)
