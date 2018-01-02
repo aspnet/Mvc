@@ -110,19 +110,22 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
         private async Task<AuthorizationPolicy> GetEffectivePolicyAsync(AuthorizationFilterContext context)
         {
-            if (_effectivePolicy != null) {
+            if (_effectivePolicy != null)
+            {
                 return _effectivePolicy;
             }
 
             var effectivePolicy = Policy;
 
-            if (_mvcOptions == null) {
+            if (_mvcOptions == null) 
+            {
                 _mvcOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<MvcOptions>>().Value;
             }
 
             if (_mvcOptions.CombineAuthorizeFilters)
             {
-                if (!context.IsEffectivePolicy<AuthorizeFilter>(this)) {
+                if (!context.IsEffectivePolicy<AuthorizeFilter>(this))
+                {
                     return null;
                 }
 
