@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 {
     public class InputTagHelperTest
     {
-        public static TheoryData MultiAttributeCheckBoxData
+        public static TheoryData<TagHelperAttributeList, string> MultiAttributeCheckBoxData
         {
             get
             {
@@ -250,6 +250,304 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal(content, HtmlContentUtilities.HtmlContentToString(output.Content));
             Assert.Equal(expectedContent, HtmlContentUtilities.HtmlContentToString(output));
             Assert.Equal(expectedPostElement, output.PostElement.GetContent());
+        }
+
+        [Theory]
+        [InlineData("checkbox")]
+        [InlineData("hidden")]
+        [InlineData("number")]
+        [InlineData("password")]
+        [InlineData("text")]
+        public void Process_WithEmptyForName_Throws(string inputTypeName)
+        {
+            // Arrange
+            var expectedMessage = "The name of an HTML field cannot be null or empty. Instead use methods " +
+                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
+
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = false;
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(bool), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                ViewContext = viewContext,
+            };
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "type", inputTypeName },
+            };
+
+            var context = new TagHelperContext(attributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                "input",
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act & Assert
+            ExceptionAssert.ThrowsArgument(
+                () => tagHelper.Process(context, output),
+                paramName: "expression",
+                exceptionMessage: expectedMessage);
+        }
+
+        [Fact]
+        public void Process_Radio_WithEmptyForName_Throws()
+        {
+            // Arrange
+            var expectedMessage = "The name of an HTML field cannot be null or empty. Instead use methods " +
+                "Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper.Editor or Microsoft.AspNetCore.Mvc.Rendering." +
+                "IHtmlHelper`1.EditorFor with a non-empty htmlFieldName argument value.";
+
+            var inputTypeName = "radio";
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = 23;
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(int), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                Value = "24",
+                ViewContext = viewContext,
+            };
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "type", inputTypeName },
+                { "value", "24" },
+            };
+
+            var context = new TagHelperContext(attributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                "input",
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act & Assert
+            ExceptionAssert.ThrowsArgument(
+                () => tagHelper.Process(context, output),
+                paramName: "expression",
+                exceptionMessage: expectedMessage);
+        }
+
+        public static TheoryData<string, TagHelperAttributeList> TypesAndExpectedAttributesData
+        {
+            get
+            {
+                return new TheoryData<string, TagHelperAttributeList>
+                {
+                    {
+                        "hidden", new TagHelperAttributeList
+                        {
+                            { "name",  "-expression-" },
+                            { "type", "hidden" },
+                            { "value", "False" },
+                        }
+                    },
+                    {
+                        "number", new TagHelperAttributeList
+                        {
+                            { "name",  "-expression-" },
+                            { "type", "number" },
+                            { "value", "False" },
+                        }
+                    },
+                    {
+                        "password", new TagHelperAttributeList
+                        {
+                            { "name",  "-expression-" },
+                            { "type", "password" },
+                        }
+                    },
+                    {
+                        "text", new TagHelperAttributeList
+                        {
+                            { "name",  "-expression-" },
+                            { "type", "text" },
+                            { "value", "False" },
+                        }
+                    },
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TypesAndExpectedAttributesData))]
+        public void Process_WithEmptyForName_DoesNotThrow_WithName(
+            string inputTypeName,
+            TagHelperAttributeList expectedAttributes)
+        {
+            // Arrange
+            var expectedAttributeValue = "-expression-";
+            var expectedTagName = "input";
+
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = false;
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(bool), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            viewContext.ClientValidationEnabled = false;
+
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                Name = expectedAttributeValue,
+                ViewContext = viewContext,
+            };
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "name", expectedAttributeValue },
+                { "type", inputTypeName },
+            };
+
+            var context = new TagHelperContext(attributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act
+            tagHelper.Process(context, output);
+
+            // Assert
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.False(output.IsContentModified);
+            Assert.Equal(expectedTagName, output.TagName);
+        }
+
+        [Fact]
+        public void Process_Checkbox_WithEmptyForName_DoesNotThrow_WithName()
+        {
+            // Arrange
+            var expectedAttributeValue = "-expression-";
+            var expectedEndOfFormContent = $"<input name=\"HtmlEncode[[{expectedAttributeValue}]]\" " +
+                "type=\"HtmlEncode[[hidden]]\" value=\"HtmlEncode[[false]]\" />";
+            var expectedTagName = "input";
+            var inputTypeName = "checkbox";
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "name",  expectedAttributeValue },
+                { "type", inputTypeName },
+                { "value", "true" },
+            };
+
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = false;
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(bool), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            viewContext.ClientValidationEnabled = false;
+
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                Name = expectedAttributeValue,
+                ViewContext = viewContext,
+            };
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "name", expectedAttributeValue },
+                { "type", inputTypeName },
+            };
+
+            var context = new TagHelperContext(attributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act
+            tagHelper.Process(context, output);
+
+            // Assert
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.False(output.IsContentModified);
+            Assert.Equal(expectedTagName, output.TagName);
+
+            Assert.False(viewContext.FormContext.HasEndOfFormContent);
+            Assert.Equal(expectedEndOfFormContent, HtmlContentUtilities.HtmlContentToString(output.PostElement));
+        }
+
+        [Fact]
+        public void Process_Radio_WithEmptyForName_DoesNotThrow_WithName()
+        {
+            // Arrange
+            var expectedAttributeValue = "-expression-";
+            var expectedTagName = "input";
+            var inputTypeName = "radio";
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "name",  expectedAttributeValue },
+                { "type", inputTypeName },
+                { "value", "24" },
+            };
+
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = 23;
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(int), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            viewContext.ClientValidationEnabled = false;
+
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                Name = expectedAttributeValue,
+                Value = "24",
+                ViewContext = viewContext,
+            };
+
+            var attributes = new TagHelperAttributeList
+            {
+                { "name", expectedAttributeValue },
+                { "type", inputTypeName },
+                { "value", "24" },
+            };
+
+            var context = new TagHelperContext(attributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act
+            tagHelper.Process(context, output);
+
+            // Assert
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.False(output.IsContentModified);
+            Assert.Equal(expectedTagName, output.TagName);
         }
 
         // Top-level container (List<Model> or Model instance), immediate container type (Model or NestModel),
@@ -1410,7 +1708,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             };
 
             var metadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            
+
             var model = new DateTime(
                 year: 2000,
                 month: 1,

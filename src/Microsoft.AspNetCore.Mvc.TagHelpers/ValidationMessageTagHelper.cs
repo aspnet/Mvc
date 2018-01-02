@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -16,6 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("span", Attributes = ValidationForAttributeName)]
     public class ValidationMessageTagHelper : TagHelper
     {
+        private const string DataValidationForAttributeName = "data-valmsg-for";
         private const string ValidationForAttributeName = "asp-validation-for";
 
         /// <summary>
@@ -37,7 +39,18 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         protected IHtmlGenerator Generator { get; }
 
         /// <summary>
-        /// Name to be validated on the current model.
+        /// The name of an &lt;input&gt; element in the current &lt;form&gt; that has the same <see cref="For"/>
+        /// expression.
+        /// </summary>
+        /// <remarks>
+        /// Passed through to the generated HTML in all cases. Also used to determine whether <see cref="For"/> is
+        /// valid with an empty <see cref="ModelExpression.Name"/>.
+        /// </remarks>
+        [HtmlAttributeName(DataValidationForAttributeName)]
+        public string DataValidationFor { get; set; }
+
+        /// <summary>
+        /// An expression on the current model for which the associated element should contain validation messages.
         /// </summary>
         [HtmlAttributeName(ValidationForAttributeName)]
         public ModelExpression For { get; set; }
@@ -56,15 +69,34 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(output));
             }
 
+            // Pass through attribute that is also an HTML attribute. Must be done prior to any copying from a
+            // TagBuilder.
+            if (DataValidationFor != null)
+            {
+                output.CopyHtmlAttribute(DataValidationForAttributeName, context);
+            }
+
             if (For != null)
             {
+                // Ensure Generator does not throw due to empty "fullName" if user provided data-valmsg-for attribute.
+                IDictionary<string, object> htmlAttributes = null;
+                if (string.IsNullOrEmpty(For.Name) &&
+                    string.IsNullOrEmpty(ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix) &&
+                    !string.IsNullOrEmpty(DataValidationFor))
+                {
+                    htmlAttributes = new Dictionary<string, object>
+                    {
+                        { DataValidationForAttributeName, DataValidationFor },
+                    };
+                }
+
                 var tagBuilder = Generator.GenerateValidationMessage(
                     ViewContext,
                     For.ModelExplorer,
                     For.Name,
                     message: null,
                     tag: null,
-                    htmlAttributes: null);
+                    htmlAttributes: htmlAttributes);
 
                 if (tagBuilder != null)
                 {
