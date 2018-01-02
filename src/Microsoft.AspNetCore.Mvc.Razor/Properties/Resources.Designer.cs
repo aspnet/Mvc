@@ -364,6 +364,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         internal static string FormatRazorViewCompiler_ViewPathsDifferOnlyInCase()
             => GetString("RazorViewCompiler_ViewPathsDifferOnlyInCase");
 
+        /// <summary>
+        /// Unsupported DebugType '{0}' specified in the application's deps file.
+        /// </summary>
+        internal static string UnsupportedDebugInformationFormat
+        {
+            get => GetString("UnsupportedDebugInformationFormat");
+        }
+
+        /// <summary>
+        /// Unsupported DebugType '{0}' specified in the application's deps file.
+        /// </summary>
+        internal static string FormatUnsupportedDebugInformationFormat(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("UnsupportedDebugInformationFormat"), p0);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
