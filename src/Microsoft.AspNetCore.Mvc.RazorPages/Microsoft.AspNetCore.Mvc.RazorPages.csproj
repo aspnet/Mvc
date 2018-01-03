@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.Extensions.CopyOnWriteDictionary.Sources" PrivateAssets="All" Version="$(MicrosoftExtensionsCopyOnWriteDictionarySourcesPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.PropertyActivator.Sources" PrivateAssets="All" Version="$(MicrosoftExtensionsPropertyActivatorSourcesPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.PropertyHelper.Sources" PrivateAssets="All" Version="$(MicrosoftExtensionsPropertyHelperSourcesPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" PrivateAssets="All" Version="$(MicrosoftExtensionsPrimitivesPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
