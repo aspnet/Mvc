@@ -151,7 +151,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var validationMessageTagHelper = new ValidationMessageTagHelper(htmlGenerator)
             {
-                DataValidationFor = expectedAttributeValue,
                 For = modelExpression,
                 ViewContext = viewContext,
             };
@@ -160,7 +159,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 expectedTagName,
                 new TagHelperAttributeList
                 {
-                    { "data-valmsg-for", expectedAttributeValue },
                     { "for", modelExpression },
                 },
                 new Dictionary<object, object>(),
@@ -168,7 +166,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             var output = new TagHelperOutput(
                 expectedTagName,
-                new TagHelperAttributeList(),
+                new TagHelperAttributeList
+                {
+                    { "data-valmsg-for", expectedAttributeValue },
+                },
                 (_, __) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
 
             validationMessageTagHelper.ViewContext = viewContext;
@@ -207,22 +208,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var generator = new Mock<IHtmlGenerator>(MockBehavior.Strict);
             var validationMessageTagHelper = new ValidationMessageTagHelper(generator.Object)
             {
-                DataValidationFor = expectedAttributeValue,
                 ViewContext = CreateViewContext(),
             };
 
             var tagHelperContext = new TagHelperContext(
                 expectedTagName,
-                new TagHelperAttributeList
-                {
-                    { "data-valmsg-for", expectedAttributeValue },
-                },
+                new TagHelperAttributeList(),
                 new Dictionary<object, object>(),
                 "test");
 
             var output = new TagHelperOutput(
                 expectedTagName,
-                new TagHelperAttributeList(),
+                new TagHelperAttributeList
+                {
+                    { "data-valmsg-for", expectedAttributeValue },
+                },
                 (_, __) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
 
             // Act

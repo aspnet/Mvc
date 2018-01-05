@@ -38,20 +38,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         protected IHtmlGenerator Generator { get; }
 
-        /// <summary>
-        /// The name of an &lt;input&gt; element in the current &lt;form&gt; that has the same <see cref="For"/>
-        /// expression.
-        /// </summary>
-        /// <remarks>
-        /// Passed through to the generated HTML in all cases. Also used to determine whether <see cref="For"/> is
-        /// valid with an empty <see cref="ModelExpression.Name"/>.
-        /// </remarks>
-        [HtmlAttributeName(DataValidationForAttributeName)]
-        public string DataValidationFor { get; set; }
-
-        /// <summary>
-        /// An expression on the current model for which the associated element should contain validation messages.
-        /// </summary>
         [HtmlAttributeName(ValidationForAttributeName)]
         public ModelExpression For { get; set; }
 
@@ -69,24 +55,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(output));
             }
 
-            // Pass through attribute that is also an HTML attribute. Must be done prior to any copying from a
-            // TagBuilder.
-            if (DataValidationFor != null)
-            {
-                output.CopyHtmlAttribute(DataValidationForAttributeName, context);
-            }
-
             if (For != null)
             {
                 // Ensure Generator does not throw due to empty "fullName" if user provided data-valmsg-for attribute.
+                // Assume data-valmsg-for value is non-empty if attribute is present at all. Should align with name of
+                // another tag helper e.g. an <input/> and those tag helpers bind Name.
                 IDictionary<string, object> htmlAttributes = null;
                 if (string.IsNullOrEmpty(For.Name) &&
                     string.IsNullOrEmpty(ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix) &&
-                    !string.IsNullOrEmpty(DataValidationFor))
+                    output.Attributes.ContainsName(DataValidationForAttributeName))
                 {
                     htmlAttributes = new Dictionary<string, object>
                     {
-                        { DataValidationForAttributeName, DataValidationFor },
+                        { DataValidationForAttributeName, "-non-empty-value-" },
                     };
                 }
 
