@@ -212,21 +212,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             protected override IEnumerable<RazorViewAttribute> GetViewAttributes(AssemblyPart assemblyPart)
             {
-                if (_attributes == null)
-                {
-                    throw new InvalidOperationException("This shouldn't be called.");
-                }
-
                 return _attributes[assemblyPart];
             }
 
             protected override IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
             {
-                if (_items == null)
-                {
-                    throw new InvalidOperationException("This shouldn't be called.");
-                }
-
                 return _items[assemblyPart];
             }
         }
