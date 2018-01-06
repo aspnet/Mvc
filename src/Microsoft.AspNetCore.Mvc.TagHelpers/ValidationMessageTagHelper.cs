@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     string.IsNullOrEmpty(ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix) &&
                     output.Attributes.ContainsName(DataValidationForAttributeName))
                 {
-                    htmlAttributes = new Dictionary<string, object>
+                    htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                     {
                         { DataValidationForAttributeName, "-non-empty-value-" },
                     };

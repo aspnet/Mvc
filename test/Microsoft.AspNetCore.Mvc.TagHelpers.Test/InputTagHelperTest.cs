@@ -344,56 +344,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 exceptionMessage: expectedMessage);
         }
 
-        public static TheoryData<string, TagHelperAttributeList> TypesAndExpectedAttributesData
-        {
-            get
-            {
-                return new TheoryData<string, TagHelperAttributeList>
-                {
-                    {
-                        "hidden", new TagHelperAttributeList
-                        {
-                            { "name",  "-expression-" },
-                            { "type", "hidden" },
-                            { "value", "False" },
-                        }
-                    },
-                    {
-                        "number", new TagHelperAttributeList
-                        {
-                            { "name",  "-expression-" },
-                            { "type", "number" },
-                            { "value", "False" },
-                        }
-                    },
-                    {
-                        "password", new TagHelperAttributeList
-                        {
-                            { "name",  "-expression-" },
-                            { "type", "password" },
-                        }
-                    },
-                    {
-                        "text", new TagHelperAttributeList
-                        {
-                            { "name",  "-expression-" },
-                            { "type", "text" },
-                            { "value", "False" },
-                        }
-                    },
-                };
-            }
-        }
-
         [Theory]
-        [MemberData(nameof(TypesAndExpectedAttributesData))]
-        public void Process_WithEmptyForName_DoesNotThrow_WithName(
-            string inputTypeName,
-            TagHelperAttributeList expectedAttributes)
+        [InlineData("hidden")]
+        [InlineData("number")]
+        [InlineData("text")]
+        public void Process_WithEmptyForName_DoesNotThrow_WithName(string inputTypeName)
         {
             // Arrange
             var expectedAttributeValue = "-expression-";
             var expectedTagName = "input";
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "name",  expectedAttributeValue },
+                { "type", inputTypeName },
+                { "value", "False" },
+            };
 
             var metadataProvider = new EmptyModelMetadataProvider();
             var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
@@ -440,7 +405,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             // Arrange
             var expectedAttributeValue = "-expression-";
-            var expectedEndOfFormContent = $"<input name=\"HtmlEncode[[{expectedAttributeValue}]]\" " +
+            var expectedPostElementContent = $"<input name=\"HtmlEncode[[{expectedAttributeValue}]]\" " +
                 "type=\"HtmlEncode[[hidden]]\" value=\"HtmlEncode[[false]]\" />";
             var expectedTagName = "input";
             var inputTypeName = "checkbox";
@@ -491,7 +456,55 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             Assert.Equal(expectedTagName, output.TagName);
 
             Assert.False(viewContext.FormContext.HasEndOfFormContent);
-            Assert.Equal(expectedEndOfFormContent, HtmlContentUtilities.HtmlContentToString(output.PostElement));
+            Assert.Equal(expectedPostElementContent, HtmlContentUtilities.HtmlContentToString(output.PostElement));
+        }
+
+        [Fact]
+        public void Process_Password_WithEmptyForName_DoesNotThrow_WithName()
+        {
+            // Arrange
+            var expectedAttributeValue = "-expression-";
+            var expectedTagName = "input";
+            var inputTypeName = "password";
+            var expectedAttributes = new TagHelperAttributeList
+            {
+                { "name",  expectedAttributeValue },
+                { "type", inputTypeName },
+            };
+
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var htmlGenerator = new TestableHtmlGenerator(metadataProvider);
+            var model = "password";
+            var modelExplorer = metadataProvider.GetModelExplorerForType(typeof(string), model);
+            var modelExpression = new ModelExpression(name: string.Empty, modelExplorer: modelExplorer);
+            var viewContext = TestableHtmlGenerator.GetViewContext(model, htmlGenerator, metadataProvider);
+            viewContext.ClientValidationEnabled = false;
+
+            var tagHelper = new InputTagHelper(htmlGenerator)
+            {
+                For = modelExpression,
+                InputTypeName = inputTypeName,
+                Name = expectedAttributeValue,
+                ViewContext = viewContext,
+            };
+
+            // Expect attributes to just pass through. Tag helper binds all input attributes and doesn't add any.
+            var context = new TagHelperContext(expectedAttributes, new Dictionary<object, object>(), "test");
+            var output = new TagHelperOutput(
+                expectedTagName,
+                new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(result: null))
+            {
+                TagMode = TagMode.SelfClosing,
+            };
+
+            // Act
+            tagHelper.Process(context, output);
+
+            // Assert
+            Assert.Equal(expectedAttributes, output.Attributes);
+            Assert.False(output.IsContentModified);
+            Assert.Equal(expectedTagName, output.TagName);
         }
 
         [Fact]

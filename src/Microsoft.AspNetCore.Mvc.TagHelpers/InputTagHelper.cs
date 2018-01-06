@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 string.IsNullOrEmpty(ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix) &&
                 !string.IsNullOrEmpty(Name))
             {
-                htmlAttributes = new Dictionary<string, object>
+                htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                 {
                     { "name", Name },
                 };
@@ -382,7 +382,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (htmlAttributes == null)
             {
-                htmlAttributes = new Dictionary<string, object>();
+                htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             }
 
             htmlAttributes["type"] = inputType;
@@ -416,7 +416,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             if (htmlAttributes == null)
             {
-                htmlAttributes = new Dictionary<string, object>();
+                htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             }
 
             // In DefaultHtmlGenerator(), GenerateTextBox() calls GenerateInput() _almost_ identically to how

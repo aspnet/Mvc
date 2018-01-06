@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 string.IsNullOrEmpty(ViewContext.ViewData.TemplateInfo.HtmlFieldPrefix) &&
                 !string.IsNullOrEmpty(Name))
             {
-                htmlAttributes = new Dictionary<string, object>
+                htmlAttributes = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
                 {
                     { "name", Name },
                 };
