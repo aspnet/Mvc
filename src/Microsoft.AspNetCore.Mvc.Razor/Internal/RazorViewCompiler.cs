@@ -6,10 +6,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Razor.Hosting;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -220,13 +222,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     cSharpDocument.Diagnostics);
             }
 
-            var generatedAssembly = CompileAndEmit(codeDocument, cSharpDocument.GeneratedCode);
-            var viewAttribute = generatedAssembly.GetCustomAttribute<RazorViewAttribute>();
-            return new CompiledViewDescriptor
-            {
-                ViewAttribute = viewAttribute,
-                RelativePath = relativePath,
-            };
+            var assembly = CompileAndEmit(codeDocument, cSharpDocument.GeneratedCode);
+
+            // Anything we compile from source will use Razor 2.1 and so should have the new metadata.
+            var loader = new RazorCompiledItemLoader();
+            var item = loader.LoadItems(assembly).SingleOrDefault();
+            var attribute = assembly.GetCustomAttribute<RazorViewAttribute>();
+
+            return new CompiledViewDescriptor(item, attribute);
         }
 
         internal Assembly CompileAndEmit(RazorCodeDocument codeDocument, string generatedCode)
