@@ -250,6 +250,13 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public bool CombineAuthorizeFilters { get; set;}
 
+        /// <summary>
+        /// Gets or sets a value that determines if policies on instances of <see cref="AuthorizeFilter" />
+        /// will be combined into a single effective policy. This was always to be the intended behavior, 
+        /// but was not the case.
+        /// </summary>
+        public bool CombineAuthorizeFilters { get; set;}
+
         IEnumerator<ICompatibilitySwitch> IEnumerable<ICompatibilitySwitch>.GetEnumerator()
         {
             return ((IEnumerable<ICompatibilitySwitch>)_switches).GetEnumerator();
