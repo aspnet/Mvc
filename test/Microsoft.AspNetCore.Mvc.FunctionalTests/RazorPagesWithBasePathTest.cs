@@ -370,5 +370,111 @@ Hello from /Pages/Shared/";
             // Assert
             Assert.Equal(expected, response.Trim());
         }
+
+        [Fact]
+        public async Task LinksToSupersedPage_FromFallbackPageWork()
+        {
+            // Arrange
+            var expected = 
+@"Fallback page: /Pages/Fallback/Shared/FallbackPage.cshtml
+<a href=""/Fallback/SupersededPage"">Link to SupersededPage</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("Fallback/FallbackPage");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task LinksToSupersededPage_InsideArea_FromFallbackPageWork()
+        {
+            // Arrange
+            var expected = 
+@"Fallback page: /Areas/Accounts/Pages/Shared/FallbackPage.cshtml
+<a href=""/Accounts/SupersededPage"">Link to SupersededPage</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("Accounts/FallbackPage");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task LinksToFallbackPages_FromSupersededPagesWork()
+        {
+            // Arrange
+            var expected = 
+@"Superseded page: /Pages/Fallback/SupersededPage.cshtml
+<a href=""/Fallback/FallbackPage"">Link to FallbackPage</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("Fallback/SupersededPage");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task LinksToFallbackPage_InsideArea_FromSupersededPageWork()
+        {
+            // Arrange
+            var expected = 
+@"Superseded page: /Areas/Accounts/Pages/SupersededPage.cshtml
+<a href=""/Accounts/FallbackPage"">Link to FallbackPage</a>";
+
+            // Act
+            var response = await Client.GetStringAsync("Accounts/SupersededPage");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task PartialDiscovery_InsideFallbackDirectory()
+        {
+            // Arrange
+            var expected = 
+@"Partial by path
+
+Partial by name
+
+Partial outside shared";
+
+            // Act
+            var response = await Client.GetStringAsync("Fallback/RenderPartial");
+
+            // Assert
+            Assert.Equal(expected, response.Trim());
+        }
+
+        [Fact]
+        public async Task RedirectToFallbackPageFromFallbackPage()
+        {
+            // Arrange
+            var expected = "/Fallback/FallbackPage";
+
+            // Act
+            var response = await Client.GetAsync("/Fallback/RedirectFromFallback/FallbackPage");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
+
+        [Fact]
+        public async Task RedirectToSupersededPageFromFallbackPage()
+        {
+            // Arrange
+            var expected = "/Fallback/SupersededPage";
+
+            // Act
+            var response = await Client.GetAsync("/Fallback/RedirectFromFallback/SupersededPage");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+            Assert.Equal(expected, response.Headers.Location.ToString());
+        }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.RazorPages.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.Options;
 
@@ -57,6 +58,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 _routeModelProviders[i].OnProvidersExecuted(context);
             }
 
+            RemoveSupersededFallbackRoutes(context);
+
             return context.RouteModels;
         }
 
@@ -83,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                         SuppressLinkGeneration = selector.AttributeRouteModel.SuppressLinkGeneration,
                         SuppressPathMatching = selector.AttributeRouteModel.SuppressPathMatching,
                     },
-                    DisplayName = $"Page: {model.ViewEnginePath}",
+                    DisplayName = $"Page: {model.PageName}",
                     FilterDescriptors = Array.Empty<FilterDescriptor>(),
                     Properties = new Dictionary<object, object>(model.Properties),
                     RelativePath = model.RelativePath,
@@ -100,10 +103,68 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
                 if (!descriptor.RouteValues.ContainsKey("page"))
                 {
-                    descriptor.RouteValues.Add("page", model.ViewEnginePath);
+                    descriptor.RouteValues.Add("page", model.PageName);
                 }
 
                 actions.Add(descriptor);
+            }
+        }
+
+        private void RemoveSupersededFallbackRoutes(PageRouteModelProviderContext context)
+        {
+            if (!context.RouteModels.Any(m => m.IsFallbackRoute))
+            {
+                return;
+            }
+
+            var nonFallbackRouteLookup = new Dictionary<string, (PageRouteModel single, List<PageRouteModel> multiple)>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < context.RouteModels.Count; i++)
+            {
+                var routeModel = context.RouteModels[i];
+                if (routeModel.IsFallbackRoute)
+                {
+                    continue;
+                }
+
+                var key = routeModel.PageName;
+                if (nonFallbackRouteLookup.TryGetValue(key, out var value))
+                {
+                    var multiple = value.multiple;
+                    if (multiple == null)
+                    {
+                        multiple = new List<PageRouteModel> { value.single };
+                        nonFallbackRouteLookup[key] = (default, multiple);
+                    }
+
+                    multiple.Add(routeModel);
+                }
+                else
+                {
+                    nonFallbackRouteLookup[key] = (routeModel, default);
+                }
+            }
+
+            for (var i = context.RouteModels.Count - 1; i >= 0; i--)
+            {
+                var fallbackRouteModel = context.RouteModels[i];
+                if (!fallbackRouteModel.IsFallbackRoute)
+                {
+                    continue;
+                }
+
+                if (!nonFallbackRouteLookup.TryGetValue(fallbackRouteModel.PageName, out var value))
+                {
+                    continue;
+                }
+
+                if (value.multiple != null && value.multiple.Any(model => FallbackRazorPagesConventions.IsSuperseded(fallbackRouteModel, model)))
+                {
+                    context.RouteModels.RemoveAt(i);
+                }
+                else if (value.single != null && FallbackRazorPagesConventions.IsSuperseded(fallbackRouteModel, value.single))
+                {
+                    context.RouteModels.RemoveAt(i);
+                }
             }
         }
     }

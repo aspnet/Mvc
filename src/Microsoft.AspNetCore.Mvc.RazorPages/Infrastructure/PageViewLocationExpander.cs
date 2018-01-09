@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     {
         public IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context, IEnumerable<string> viewLocations)
         {
-            if ((context.ActionContext.ActionDescriptor is PageActionDescriptor) && !string.IsNullOrEmpty(context.PageName))
+            if ((context.ActionContext.ActionDescriptor is PageActionDescriptor pageActionDescriptor) && !string.IsNullOrEmpty(context.PageName))
             {
                 return ExpandPageHierarchy();
             }
@@ -50,12 +50,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                     // but only up to the pages root.
                     //
                     // This is easy because the 'page' token already trims the root directory.
-                    var end = context.PageName.Length;
+                    var path = pageActionDescriptor.ViewEnginePath;
+                    var end = path.Length;
 
-                    while (end > 0 && (end = context.PageName.LastIndexOf('/', end - 1)) != -1)
+                    while (end > 0 && (end = path.LastIndexOf('/', end - 1)) != -1)
                     {
                         // PageName always starts with `/`
-                        yield return location.Replace("/{1}/", context.PageName.Substring(0, end + 1));
+                        yield return location.Replace("/{1}/", path.Substring(0, end + 1));
                     }
                 }
             }

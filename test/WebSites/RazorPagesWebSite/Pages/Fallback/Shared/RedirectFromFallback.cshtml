@@ -1,0 +1,8 @@
+@page "{destination}"
+@functions
+{
+    public IActionResult OnGet(string destination)
+    {
+        return RedirectToPage($"./{destination}");
+    }
+}
