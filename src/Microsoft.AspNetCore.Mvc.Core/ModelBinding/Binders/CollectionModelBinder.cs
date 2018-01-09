@@ -237,13 +237,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             foreach (var indexName in indexNames)
             {
                 var fullChildName = ModelNames.CreateIndexModelName(bindingContext.ModelName, indexName);
+                var childName = fullChildName;
+                if (childName.Length != indexName.Length + 2)
+                {
+                    // Was not a top-level collection. Correct the child name.
+                    childName = "[" + indexName + "]";
+                }
 
                 var didBind = false;
                 object boundValue = null;
                 ModelBindingResult? result;
                 using (bindingContext.EnterNestedScope(
                     elementMetadata,
-                    fieldName: indexName,
+                    fieldName: childName,
                     modelName: fullChildName,
                     model: null))
                 {

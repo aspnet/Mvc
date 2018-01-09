@@ -85,13 +85,20 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var keyMappings = new Dictionary<string, TKey>(StringComparer.Ordinal);
             foreach (var kvp in keys)
             {
+                var childName = kvp.Value;
+                if (childName.Length != kvp.Key.Length + 2)
+                {
+                    // Was not a top-level dictionary. Correct the child name.
+                    childName = "[" + kvp.Key + "]";
+                }
+
                 // Use InvariantCulture to convert the key since ExpressionHelper.GetExpressionText() would use
                 // that culture when rendering a form.
                 var convertedKey = ModelBindingHelper.ConvertTo<TKey>(kvp.Key, culture: null);
 
                 using (bindingContext.EnterNestedScope(
                     modelMetadata: valueMetadata,
-                    fieldName: bindingContext.FieldName,
+                    fieldName: childName,
                     modelName: kvp.Value,
                     model: null))
                 {
