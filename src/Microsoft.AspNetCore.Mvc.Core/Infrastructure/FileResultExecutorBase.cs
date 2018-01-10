@@ -295,6 +295,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         {
             var response = context.HttpContext.Response;
             var httpResponseHeaders = response.GetTypedHeaders();
+            var serveBody = !HttpMethods.IsHead(context.HttpContext.Request.Method);
 
             // Range may be null for empty range header, invalid ranges, parsing errors, multiple ranges 
             // and when the file length is zero.
@@ -306,7 +307,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             if (!isRangeRequest)
             {
-                return (range: null, rangeLength: 0, serveBody: true);
+                return (range: null, rangeLength: 0, serveBody);
             }
 
             // Requested range is not satisfiable
@@ -330,7 +331,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             // Overwrite the Content-Length header for valid range requests with the range length.
             var rangeLength = SetContentLength(response, range);
 
-            return (range, rangeLength, serveBody: true);
+            return (range, rangeLength, serveBody);
         }
 
         private static long SetContentLength(HttpResponse response, RangeItemHeaderValue range)
