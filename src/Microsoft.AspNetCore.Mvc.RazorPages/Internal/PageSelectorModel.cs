@@ -19,21 +19,16 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         {
             model.RouteValues.Add("page", model.ViewEnginePath);
 
-            if (AttributeRouteModel.IsOverridePattern(routeTemplate))
-            {
-                throw new InvalidOperationException(string.Format(
-                    Resources.PageActionDescriptorProvider_RouteTemplateCannotBeOverrideable,
-                    model.RelativePath));
-            }
-
             var selectorModel = CreateSelectorModel(pageRoute, routeTemplate);
             model.Selectors.Add(selectorModel);
 
             var fileName = Path.GetFileName(model.RelativePath);
-            if (string.Equals(IndexFileName, fileName, StringComparison.OrdinalIgnoreCase))
+
+            if (string.Equals(IndexFileName, fileName, StringComparison.OrdinalIgnoreCase) && 
+                !AttributeRouteModel.IsOverridePattern(routeTemplate))
             {
-                // For pages ending in /Index.cshtml, we want to allow incoming routing, but
-                // force outgoing routes to match to the path sans /Index.
+                // For pages without an override route, and ending in /Index.cshtml, we want to allow 
+                // incoming routing, but force outgoing routes to match to the path sans /Index.
                 selectorModel.AttributeRouteModel.SuppressLinkGeneration = true;
 
                 var index = pageRoute.LastIndexOf('/');
@@ -105,13 +100,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             return true;
         }
 
-        private static SelectorModel CreateSelectorModel(string prefix, string template)
+        private static SelectorModel CreateSelectorModel(string prefix, string routeTemplate)
         {
             return new SelectorModel
             {
                 AttributeRouteModel = new AttributeRouteModel
                 {
-                    Template = AttributeRouteModel.CombineTemplates(prefix, template),
+                    Template = AttributeRouteModel.CombineTemplates(prefix, routeTemplate),
                 }
             };
         }

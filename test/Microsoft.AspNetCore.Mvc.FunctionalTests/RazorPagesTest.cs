@@ -52,6 +52,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task Page_CanOverrideRouteTemplate()
+        {
+            // Arrange & Act
+            var content = await Client.GetStringAsync("http://localhost/like-totally-custom");
+
+            // Assert
+            Assert.Equal("<p>Hey, it's Mr. totally custom here!</p>", content.Trim());
+        }
+
+        [Fact]
         public async Task Page_Handler_HandlerFromQueryString()
         {
             // Arrange & Act
@@ -60,6 +70,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.StartsWith("Method: OnGetCustomer", content.Trim());
         }
+
+        
 
         [Fact]
         public async Task Page_Handler_HandlerRouteDataChosenOverQueryString()
