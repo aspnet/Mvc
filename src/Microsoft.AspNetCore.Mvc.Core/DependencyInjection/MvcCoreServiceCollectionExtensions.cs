@@ -81,12 +81,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 manager = new ApplicationPartManager();
 
                 var environment = GetServiceFromCollection<IHostingEnvironment>(services);
-                if (string.IsNullOrEmpty(environment?.ApplicationName))
+                var entryAssemblyName = environment?.ApplicationName;
+                if (string.IsNullOrEmpty(entryAssemblyName))
                 {
                     return manager;
                 }
 
-                var parts = DefaultAssemblyPartDiscoveryProvider.DiscoverAssemblyParts(environment.ApplicationName);
+                var parts = DefaultAssemblyPartDiscoveryProvider.DiscoverAssemblyParts(entryAssemblyName)
+                    .OrderBy(part => string.Equals(entryAssemblyName, part.Name, StringComparison.Ordinal) ? 0 : 1);
                 foreach (var part in parts)
                 {
                     manager.ApplicationParts.Add(part);
