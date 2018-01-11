@@ -125,17 +125,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 result => Assert.Equal("base-path/Admin/User", result.AttributeRouteInfo.Template));
         }
 
-        private static SelectorModel CreateSelectorModel(string template)
-        {
-            return new SelectorModel
-            {
-                AttributeRouteModel = new AttributeRouteModel
-                {
-                    Template = template,
-                }
-            };
-        }
-
         [Fact]
         public void GetDescriptors_AddsMultipleDescriptorsForPageWithMultipleSelectors()
         {
@@ -177,6 +166,124 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 });
         }
 
+        [Fact]
+        public void GetDescriptors_RemovesSupersededFallbackRoutes()
+        {
+            // Arrange
+            var applicationModelProvider = new TestPageRouteModelProvider(
+                new PageRouteModel("/Pages/Shared/Test.cshtml", "/Test")
+                {
+                    IsFallbackRoute = true,
+                    Selectors =
+                    {
+                         CreateSelectorModel("Test/{id:int?}"),
+                    },
+                },
+                new PageRouteModel("/Pages/Shared/About.cshtml", "/About")
+                {
+                    IsFallbackRoute = true,
+                    Selectors =
+                    {
+                         CreateSelectorModel("About"),
+                    },
+                },
+                new PageRouteModel("/Pages/Test.cshtml", "/Test")
+                {
+                    Selectors =
+                    {
+                         CreateSelectorModel("Test"),
+                    },
+                });
+
+            var provider = new PageActionDescriptorProvider(
+                new[] { applicationModelProvider },
+                GetAccessor<MvcOptions>(),
+                GetRazorPagesOptions());
+            var context = new ActionDescriptorProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            Assert.Collection(context.Results,
+                result =>
+                {
+                    var descriptor = Assert.IsType<PageActionDescriptor>(result);
+                    Assert.Equal("/Pages/Shared/About.cshtml", descriptor.RelativePath);
+                },
+                result =>
+                {
+                    var descriptor = Assert.IsType<PageActionDescriptor>(result);
+                    Assert.Equal("/Pages/Test.cshtml", descriptor.RelativePath);
+                });
+        }
+
+        [Fact]
+        public void GetDescriptors_RemovesSupersededFallbackRoutes_WhenMultipleModelsHaveSameViewEnginePath()
+        {
+            // Arrange
+            var applicationModelProvider = new TestPageRouteModelProvider(
+                new PageRouteModel("/Areas/MyArea/Pages/Test.cshtml", "/Test")
+                {
+                    Selectors =
+                    {
+                         CreateSelectorModel("MyArea/Test"),
+                    },
+                    RouteValues = { ["area"] = "MyArea" },
+                },
+                new PageRouteModel("/Pages/Shared/Test.cshtml", "/Test")
+                {
+                    IsFallbackRoute = true,
+                    Selectors =
+                    {
+                         CreateSelectorModel("Test"),
+                    },
+                },
+                new PageRouteModel("/Areas/MyArea/Pages/Shared/Test.cshtml", "/Test")
+                {
+                    IsFallbackRoute = true,
+                    Selectors =
+                    {
+                         CreateSelectorModel("MyArea/Test"),
+                    },
+                    RouteValues = { ["area"] = "MyArea" },
+                },
+                new PageRouteModel("/Pages/About.cshtml", "/About")
+                {
+                    Selectors =
+                    {
+                         CreateSelectorModel("About"),
+                    },
+                });
+
+            var provider = new PageActionDescriptorProvider(
+                new[] { applicationModelProvider },
+                GetAccessor<MvcOptions>(),
+                GetRazorPagesOptions());
+            var context = new ActionDescriptorProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            Assert.Collection(context.Results,
+                result =>
+                {
+                    var descriptor = Assert.IsType<PageActionDescriptor>(result);
+                    Assert.Equal("/Areas/MyArea/Pages/Test.cshtml", descriptor.RelativePath);
+                },
+                result =>
+                {
+                    var descriptor = Assert.IsType<PageActionDescriptor>(result);
+                    Assert.Equal("/Pages/Shared/Test.cshtml", descriptor.RelativePath);
+                },
+                result =>
+                {
+                    var descriptor = Assert.IsType<PageActionDescriptor>(result);
+                    Assert.Equal("/Pages/About.cshtml", descriptor.RelativePath);
+                });
+        }
+
         private static PageRouteModel CreateModel()
         {
             return new PageRouteModel("/Home.cshtml", "/Home")
@@ -190,6 +297,17 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                             Template = "Home",
                         }
                     }
+                }
+            };
+        }
+
+        private static SelectorModel CreateSelectorModel(string template)
+        {
+            return new SelectorModel
+            {
+                AttributeRouteModel = new AttributeRouteModel
+                {
+                    Template = template,
                 }
             };
         }

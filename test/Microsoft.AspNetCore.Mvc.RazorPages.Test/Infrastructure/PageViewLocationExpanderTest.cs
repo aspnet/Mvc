@@ -164,6 +164,35 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         }
 
         [Fact]
+        public void ExpandLocations_ExpandsAreaPaths_ForSharedPages()
+        {
+            // Arrange
+            var context = CreateContext(pageName: "/Accounts/EnableAuthenticator");
+            var actionDescriptor = (PageActionDescriptor)context.ActionContext.ActionDescriptor;
+            actionDescriptor.ViewEnginePath = "/Accounts/Shared/EnableAuthenticator";
+
+            var locations = new[]
+            {
+                "/Areas/{2}/Pages/{1}/{0}.cshtml",
+            };
+
+            var expected = new[]
+            {
+                "/Areas/{2}/Pages/Accounts/Shared/{0}.cshtml",
+                "/Areas/{2}/Pages/Accounts/{0}.cshtml",
+                "/Areas/{2}/Pages/{0}.cshtml",
+            };
+
+            var expander = new PageViewLocationExpander();
+
+            // Act
+            var actual = expander.ExpandViewLocations(context, locations);
+
+            // Assert
+            Assert.Equal(expected, actual.ToArray());
+        }
+
+        [Fact]
         public void ExpandLocations_ExpandsAreaPaths_MultipleLocations()
         {
             // Arrange
@@ -205,7 +234,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         {
             var actionContext = new ActionContext
             {
-                ActionDescriptor = new PageActionDescriptor(),
+                ActionDescriptor = new PageActionDescriptor
+                {
+                    ViewEnginePath = pageName,
+                },
             };
 
             return new ViewLocationExpanderContext(
