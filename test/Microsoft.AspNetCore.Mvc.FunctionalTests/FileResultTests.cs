@@ -247,16 +247,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("", HttpStatusCode.OK)]
-        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent)]
-        [InlineData("0-6", HttpStatusCode.OK)]
-        [InlineData("bytes = ", HttpStatusCode.OK)]
-        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK)]
-        [InlineData("bytes = 35-36", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        public async Task FileFromDisk_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest_WithLastModifiedAndEtag(string rangeString, HttpStatusCode httpStatusCode)
+        [InlineData("", HttpStatusCode.OK, 26)]
+        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent, 7)]
+        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent, 9)]
+        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent, 26)]
+        [InlineData("0-6", HttpStatusCode.OK, 26)]
+        [InlineData("bytes = ", HttpStatusCode.OK, 26)]
+        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK, 26)]
+        [InlineData("bytes = 35-36", HttpStatusCode.RequestedRangeNotSatisfiable, 26)]
+        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable, 26)]
+        public async Task FileFromDisk_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest_WithLastModifiedAndEtag(string rangeString, HttpStatusCode httpStatusCode, int expectedContentLength)
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Head, "http://localhost/DownloadFiles/DownloadFromDiskWithFileName_WithLastModifiedAndEtag");
@@ -275,6 +275,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
             Assert.Equal(string.Empty, body);
+
+            var contentLength = response.Content.Headers.ContentLength;
+            Assert.Equal(expectedContentLength, contentLength);
 
             var contentDisposition = response.Content.Headers.ContentDisposition.ToString();
             Assert.NotNull(contentDisposition);
@@ -440,16 +443,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("", HttpStatusCode.OK)]
-        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent)]
-        [InlineData("0-6", HttpStatusCode.OK)]
-        [InlineData("bytes = ", HttpStatusCode.OK)]
-        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK)]
-        [InlineData("bytes = 35-36", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        public async Task FileFromStream_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode)
+        [InlineData("", HttpStatusCode.OK, 33)]
+        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent, 7)]
+        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent, 9)]
+        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent, 33)]
+        [InlineData("0-6", HttpStatusCode.OK, 33)]
+        [InlineData("bytes = ", HttpStatusCode.OK, 33)]
+        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK, 33)]
+        [InlineData("bytes = 35-36", HttpStatusCode.RequestedRangeNotSatisfiable, 33)]
+        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable, 33)]
+        public async Task FileFromStream_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode, int expectedContentLength)
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Head, "http://localhost/DownloadFiles/DownloadFromStreamWithFileName_WithEtag");
@@ -468,6 +471,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
             Assert.Equal(string.Empty, body);
+
+            var contentLength = response.Content.Headers.ContentLength;
+            Assert.Equal(expectedContentLength, contentLength);
 
             var contentDisposition = response.Content.Headers.ContentDisposition.ToString();
             Assert.NotNull(contentDisposition);
@@ -638,16 +644,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("", HttpStatusCode.OK)]
-        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent)]
-        [InlineData("0-6", HttpStatusCode.OK)]
-        [InlineData("bytes = ", HttpStatusCode.OK)]
-        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK)]
-        [InlineData("bytes = 45-46", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        public async Task FileFromBinaryData_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode)
+        [InlineData("", HttpStatusCode.OK, 41)]
+        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent, 7)]
+        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent, 9)]
+        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent, 41)]
+        [InlineData("0-6", HttpStatusCode.OK, 41)]
+        [InlineData("bytes = ", HttpStatusCode.OK, 41)]
+        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK, 41)]
+        [InlineData("bytes = 45-46", HttpStatusCode.RequestedRangeNotSatisfiable, 41)]
+        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable, 41)]
+        public async Task FileFromBinaryData_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode, int expectedContentLength)
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Head, "http://localhost/DownloadFiles/DownloadFromBinaryDataWithFileName_WithEtag");
@@ -666,6 +672,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
             Assert.Equal(string.Empty, body);
+
+            var contentLength = response.Content.Headers.ContentLength;
+            Assert.Equal(expectedContentLength, contentLength);
 
             var contentDisposition = response.Content.Headers.ContentDisposition.ToString();
             Assert.NotNull(contentDisposition);
@@ -834,16 +843,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Theory]
-        [InlineData("", HttpStatusCode.OK)]
-        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent)]
-        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent)]
-        [InlineData("0-6", HttpStatusCode.OK)]
-        [InlineData("bytes = ", HttpStatusCode.OK)]
-        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK)]
-        [InlineData("bytes = 45-46", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable)]
-        public async Task FileFromEmbeddedResources_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode)
+        [InlineData("", HttpStatusCode.OK, 38)]
+        [InlineData("bytes = 0-6", HttpStatusCode.PartialContent, 7)]
+        [InlineData("bytes = 17-25", HttpStatusCode.PartialContent, 9)]
+        [InlineData("bytes = 0-50", HttpStatusCode.PartialContent, 38)]
+        [InlineData("0-6", HttpStatusCode.OK, 38)]
+        [InlineData("bytes = ", HttpStatusCode.OK, 38)]
+        [InlineData("bytes = 1-4, 5-11", HttpStatusCode.OK, 38)]
+        [InlineData("bytes = 45-46", HttpStatusCode.RequestedRangeNotSatisfiable, 38)]
+        [InlineData("bytes = -0", HttpStatusCode.RequestedRangeNotSatisfiable, 38)]
+        public async Task FileFromEmbeddedResources_ReturnsFileWithFileName_DoesNotServeBody_ForHeadRequest(string rangeString, HttpStatusCode httpStatusCode, int expectedContentLength)
         {
             // Arrange
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Head, "http://localhost/EmbeddedFiles/DownloadFileWithFileName");
@@ -862,6 +871,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var body = await response.Content.ReadAsStringAsync();
             Assert.NotNull(body);
             Assert.Equal(string.Empty, body);
+
+            var contentLength = response.Content.Headers.ContentLength;
+            Assert.Equal(expectedContentLength, contentLength);
 
             var contentDisposition = response.Content.Headers.ContentDisposition.ToString();
             Assert.NotNull(contentDisposition);
