@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 var state = matchNotFoundState;
                 foreach (var entityTag in etagHeader)
                 {
-                    if (entityTag.Equals(EntityTagHeaderValue.Any) || entityTag.Compare(etag, useStrongComparison: useStrongComparison))
+                    if (entityTag.Equals(EntityTagHeaderValue.Any) || entityTag.Compare(etag, useStrongComparison))
                     {
                         state = matchFoundState;
                         break;
