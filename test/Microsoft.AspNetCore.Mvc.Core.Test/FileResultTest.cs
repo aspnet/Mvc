@@ -272,7 +272,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             httpRequestHeaders.IfNoneMatch = ifNoneMatch == null ? null : new[]
             {
-                new EntityTagHeaderValue(ifNoneMatch),
+                new EntityTagHeaderValue(ifNoneMatch, true),
             };
             httpRequestHeaders.IfRange = ifRange == null ? null : new RangeConditionHeaderValue(ifRange);
             httpRequestHeaders.IfUnmodifiedSince = lastModified;
@@ -310,7 +310,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             httpRequestHeaders.IfNoneMatch = ifNoneMatch == null ? null : new[]
             {
-                new EntityTagHeaderValue(ifNoneMatch),
+                new EntityTagHeaderValue(ifNoneMatch, true),
             };
             httpRequestHeaders.IfUnmodifiedSince = DateTimeOffset.MinValue;
             httpRequestHeaders.IfModifiedSince = DateTimeOffset.MinValue.AddDays(2);
@@ -347,7 +347,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             httpRequestHeaders.IfNoneMatch = ifNoneMatch == null ? null : new[]
             {
-                new EntityTagHeaderValue(ifNoneMatch),
+                new EntityTagHeaderValue(ifNoneMatch, true),
             };
             httpRequestHeaders.IfModifiedSince = lastModified;
             actionContext.HttpContext = httpContext;
