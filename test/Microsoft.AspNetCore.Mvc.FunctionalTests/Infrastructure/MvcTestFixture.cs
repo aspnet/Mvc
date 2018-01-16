@@ -9,19 +9,9 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
-    public class MvcTestFixture<TStartup> : WebApplicationTestFixture<TStartup>
+    public class MvcTestFixture<TStartup> : WebApplicationTestFixture<MvcTestFixture<TStartup>, TStartup>
         where TStartup : class
     {
-        public MvcTestFixture()
-            : base(Path.Combine("test", "WebSites", typeof(TStartup).Assembly.GetName().Name))
-        {
-        }
-
-        protected MvcTestFixture(string solutionRelativePath)
-            : base(solutionRelativePath)
-        {
-        }
-
         protected override void ConfigureWebHost(IWebHostBuilder builder) =>
             builder.UseRequestCulture<TStartup>("en-GB", "en-US");
 

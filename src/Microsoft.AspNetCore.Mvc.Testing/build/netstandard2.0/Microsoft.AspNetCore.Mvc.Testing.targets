@@ -15,6 +15,18 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
+  <Target 
+      Name="AddContentRootForProjectReferences"
+      BeforeTargets="BeforeCompile"
+      DependsOnTargets="PrepareForBuild;GetReferenceAssemblyPaths">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>Microsoft.AspNetCore.Testing.ContentRoot[$([System.IO.Path]::GetFileName(%(_ResolvedProjectReferencePaths.FullPath)))]</_Parameter1>
+        <_Parameter2>$([System.IO.Path]::GetDirectoryName(%(_ResolvedProjectReferencePaths.MSBuildSourceProjectFile)))</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
   <Target Name="CopyAditionalFiles" AfterTargets="Build" Condition="'$(TargetFramework)'!=''">
     <ItemGroup>
       <DepsFilePaths Include="$([System.IO.Path]::ChangeExtension('%(_ResolvedProjectReferencePaths.FullPath)', '.deps.json'))" />

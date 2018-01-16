@@ -1,0 +1,6 @@
+[
+    {
+        "TypeId": "public class Microsoft.AspNetCore.Mvc.Testing.WebApplicationTestFixture<T0> : System.IDisposable where T0 : class",
+        "Kind": "Removal"
+    }
+]
