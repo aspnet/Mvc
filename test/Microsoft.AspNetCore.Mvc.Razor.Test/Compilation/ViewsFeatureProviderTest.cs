@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Razor.Hosting;
 using Xunit;
 
@@ -38,10 +38,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var part1 = new AssemblyPart(typeof(object).Assembly);
             var part2 = new AssemblyPart(GetType().Assembly);
 
-            var items = new Dictionary<AssemblyPart, IReadOnlyList<RazorCompiledItem>>
+            var items = new Dictionary<Assembly, IReadOnlyList<RazorCompiledItem>>
             {
                 {
-                    part1,
+                    part1.Assembly,
                     new[]
                     {
                         new TestRazorCompiledItem(typeof(object), "mvc.1.0.view", "/Views/test/Index.cshtml", new object[]{ }),
@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                     }
                 },
                 {
-                    part2,
+                    part2.Assembly,
                     new[]
                     {
                         new TestRazorCompiledItem(typeof(string), "mvc.1.0.view", "/Areas/Admin/Views/Index.cshtml", new object[]{ }),
@@ -59,17 +59,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 },
             };
 
-            var attributes = new Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>>
+            var attributes = new Dictionary<Assembly, IEnumerable<RazorViewAttribute>>
             {
                 {
-                    part1,
+                    part1.Assembly,
                     new[]
                     {
                         new RazorViewAttribute("/Views/test/Index.cshtml", typeof(object)),
                     }
                 },
                 {
-                    part2,
+                    part2.Assembly,
                     new[]
                     {
                         new RazorViewAttribute("/Areas/Admin/Views/Index.cshtml", typeof(string)),
@@ -80,7 +80,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 },
             };
 
-            var featureProvider = new TestableViewsFeatureProvider(items, attributes);
+            var descriptorProvider = new TestableCompiledViewDescriptorProvider(items, attributes);
+            var featureProvider = new ViewsFeatureProvider(descriptorProvider);
             var partManager = new ApplicationPartManager();
             partManager.ApplicationParts.Add(part1);
             partManager.ApplicationParts.Add(part2);
@@ -152,13 +153,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var item2 = new TestRazorCompiledItem(typeof(string), "mvc.1.0.view", "/Areas/Admin/Views/Shared/_Layout.cshtml", new object[] { });
             var item3 = new TestRazorCompiledItem(typeof(string), "mvc.1.0.view", "/Areas/Admin/Views/Shared/_Partial.cshtml", new object[] { });
 
-            var items = new Dictionary<AssemblyPart, IReadOnlyList<RazorCompiledItem>>
+            var items = new Dictionary<Assembly, IReadOnlyList<RazorCompiledItem>>
             {
-                { part1, new[] { item1 } },
-                { part2, new[] { item2, item3, } },
+                { part1.Assembly, new[] { item1 } },
+                { part2.Assembly, new[] { item2, item3, } },
             };
 
-            var featureProvider = new TestableViewsFeatureProvider(items, attributes: new Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>>());
+            var descriptorProvider = new TestableCompiledViewDescriptorProvider(items, new Dictionary<Assembly, IEnumerable<RazorViewAttribute>>());
+            var featureProvider = new ViewsFeatureProvider(descriptorProvider);
             var partManager = new ApplicationPartManager();
             partManager.ApplicationParts.Add(part1);
             partManager.ApplicationParts.Add(part2);
@@ -172,42 +174,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             Assert.Collection(feature.ViewDescriptors.OrderBy(f => f.RelativePath, StringComparer.Ordinal),
                 view => Assert.Same(item1, view.Item),
                 view => Assert.Same(item3, view.Item));
-        }
-
-        [Fact]
-        public void PopulateFeature_ReturnsEmptySequenceIfNoDynamicAssemblyPartHasViewAssembly()
-        {
-            // Arrange
-            var name = new AssemblyName($"DynamicAssembly-{Guid.NewGuid()}");
-            var assembly = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndCollect);
-
-            var partManager = new ApplicationPartManager();
-            partManager.ApplicationParts.Add(new AssemblyPart(assembly));
-            partManager.FeatureProviders.Add(new ViewsFeatureProvider());
-            var feature = new ViewsFeature();
-
-            // Act
-            partManager.PopulateFeature(feature);
-
-            // Assert
-            Assert.Empty(feature.ViewDescriptors);
-        }
-
-        [Fact]
-        public void PopulateFeature_DoesNotFail_IfAssemblyHasEmptyLocation()
-        {
-            // Arrange
-            var assembly = new AssemblyWithEmptyLocation();
-            var partManager = new ApplicationPartManager();
-            partManager.ApplicationParts.Add(new AssemblyPart(assembly));
-            partManager.FeatureProviders.Add(new ViewsFeatureProvider());
-            var feature = new ViewsFeature();
-
-            // Act
-            partManager.PopulateFeature(feature);
-
-            // Assert
-            Assert.Empty(feature.ViewDescriptors);
         }
 
         private class TestRazorCompiledItem : RazorCompiledItem
@@ -227,58 +193,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             public override IReadOnlyList<object> Metadata { get; }
 
             public override Type Type { get; }
-        }
-
-        private class TestableViewsFeatureProvider : ViewsFeatureProvider
-        {
-            private readonly Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>> _attributes;
-            private readonly Dictionary<AssemblyPart, IReadOnlyList<RazorCompiledItem>> _items;
-
-            public TestableViewsFeatureProvider(
-                Dictionary<AssemblyPart, IReadOnlyList<RazorCompiledItem>> items,
-                Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>> attributes)
-            {
-                _items = items;
-                _attributes = attributes;
-            }
-
-            protected override IEnumerable<RazorViewAttribute> GetViewAttributes(AssemblyPart assemblyPart)
-            {
-                if (_attributes.TryGetValue(assemblyPart, out var attributes))
-                {
-                    return attributes;
-                }
-
-                return Enumerable.Empty<RazorViewAttribute>();
-            }
-
-            protected override IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
-            {
-                return _items[assemblyPart];
-            }
-        }
-
-        private class AssemblyWithEmptyLocation : Assembly
-        {
-            public override string Location => string.Empty;
-
-            public override string FullName => typeof(ViewsFeatureProviderTest).Assembly.FullName;
-
-            public override IEnumerable<TypeInfo> DefinedTypes
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
-
-            public override IEnumerable<Module> Modules
-            {
-                get
-                {
-                    throw new NotImplementedException();
-                }
-            }
         }
     }
 }
