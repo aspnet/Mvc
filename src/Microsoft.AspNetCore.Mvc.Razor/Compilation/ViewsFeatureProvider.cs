@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using static Microsoft.AspNetCore.Mvc.Razor.Compilation.CompiledViewDescriptorProvider;
 
@@ -14,6 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
     /// </summary>
     public class ViewsFeatureProvider : IApplicationFeatureProvider<ViewsFeature>
     {
+        private const string CompiledViewsLoadBehavior = "Microsoft.AspNetCore.Mvc.Razor.CompiledViewsLoadBehavior";
         public static readonly string PrecompiledViewsAssemblySuffix = ".PrecompiledViews";
         private readonly DefaultCompiledViewDescriptorProvider _compiledViewDescriptorProvider;
 
@@ -35,6 +37,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var descriptors = new List<CompiledViewDescriptor>();
             foreach (var assemblyPart in parts.OfType<AssemblyPart>())
             {
+                if (!HasDefaultCompiledViewsLoadBehavior(assemblyPart))
+                {
+                    continue;
+                }
+
                 var attributes = GetViewAttributes(assemblyPart);
                 var compiledViewDescriptors = _compiledViewDescriptorProvider.GetCompiledViewDescriptors(
                     assemblyPart.Assembly,
@@ -49,6 +56,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                     }
                 }
             }
+        }
+
+        private bool HasDefaultCompiledViewsLoadBehavior(AssemblyPart assemblyPart)
+        {
+            var assemblyMetadata = assemblyPart.Assembly.GetCustomAttributes<AssemblyMetadataAttribute>();
+            var loadBehavior = assemblyMetadata.FirstOrDefault(m => string.Equals(CompiledViewsLoadBehavior, m.Key, StringComparison.Ordinal));
+
+            return loadBehavior == null ||
+                string.Equals("default", loadBehavior.Value, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
