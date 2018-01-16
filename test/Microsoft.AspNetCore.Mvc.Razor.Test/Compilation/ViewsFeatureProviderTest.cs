@@ -176,6 +176,32 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 view => Assert.Same(item3, view.Item));
         }
 
+        [Fact]
+        public void PopulateFeature_SkipsLoadingViewsFromAssembliesWithNonDefaultLoadBehavior()
+        {
+            // Arrange
+            var part1 = new AssemblyPart(new CustomLoadBehaviorAssembly());
+            var item1 = new TestRazorCompiledItem(typeof(StringBuilder), "mvc.1.0.view", "/Views/Index.cshtml", new object[] { });
+
+            var items = new Dictionary<Assembly, IReadOnlyList<RazorCompiledItem>>
+            {
+                { part1.Assembly, new[] { item1 } },
+            };
+
+            var descriptorProvider = new TestableCompiledViewDescriptorProvider(items, new Dictionary<Assembly, IEnumerable<RazorViewAttribute>>());
+            var featureProvider = new ViewsFeatureProvider(descriptorProvider);
+            var partManager = new ApplicationPartManager();
+            partManager.ApplicationParts.Add(part1);
+            partManager.FeatureProviders.Add(featureProvider);
+            var feature = new ViewsFeature();
+
+            // Act
+            partManager.PopulateFeature(feature);
+
+            // Assert
+            Assert.Empty(feature.ViewDescriptors);
+        }
+
         private class TestRazorCompiledItem : RazorCompiledItem
         {
             public TestRazorCompiledItem(Type type, string kind, string identifier, object[] metadata)
@@ -194,5 +220,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             public override Type Type { get; }
         }
+
+        private class CustomLoadBehaviorAssembly : Assembly
+        {
+            public override object[] GetCustomAttributes(Type attributeType, bool inherit) => 
+                new[] { new AssemblyMetadataAttribute("Microsoft.AspNetCore.Mvc.Razor.CompiledViewsLoadBehavior", "Identity.Custom") };
+        }
+
     }
 }
