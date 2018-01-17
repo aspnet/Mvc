@@ -69,10 +69,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 
         /// <summary>
         /// Gets the path relative to the base path for page discovery.
+        /// <para>
+        /// This value is the path of the file without extension, relative to the pages root directory.
+        /// e.g. the <see cref="ViewEnginePath"/> for the file /Pages/Catalog/Antiques.cshtml is <c>/Catalog/Antiques</c>
+        /// </para>
+        /// <para>
+        /// In an area, this value is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the <see cref="ViewEnginePath"/>  for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
         /// </summary>
-        /// <remarks>
-        /// For area pages, this path is calculated relative to the <see cref="RazorPagesOptions.RootDirectory"/> of the specific area.
-        /// </remarks>
         public string ViewEnginePath { get; }
 
         /// <summary>

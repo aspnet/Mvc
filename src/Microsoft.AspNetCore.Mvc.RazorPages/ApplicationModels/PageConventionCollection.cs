@@ -53,7 +53,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <see cref="PageApplicationModel"/> for the page with the specified name located in the specified area.
         /// </summary>
         /// <param name="areaName">The name of area.</param>
-        /// <param name="pageName">The name of the page e.g. <c>/Users/List</c></param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
         /// <param name="action">The <see cref="Action"/>.</param>
         /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
         public IPageApplicationModelConvention AddAreaPageApplicationModelConvention(
@@ -100,7 +106,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <see cref="PageApplicationModel"/> instances for all pages under the specified area folder.
         /// </summary>
         /// <param name="areaName">The name of area.</param>
-        /// <param name="folderPath">The path of the folder relative to the Razor Pages root. e.g. <c>/Users/</c></param>
+        /// <param name="folderPath">
+        /// The folder path e.g. <c>/Manage/</c>
+        /// <para>
+        /// The folder path is the path of the folder, relative to the pages root directory for the specified area.
+        /// e.g. the folder path for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage</c>.
+        /// </para>
+        /// </param>
         /// <param name="action">The <see cref="Action"/>.</param>
         /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
         public IPageApplicationModelConvention AddAreaFolderApplicationModelConvention(
@@ -147,7 +159,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <see cref="PageRouteModel"/> for the page with the specified name located in the specified area.
         /// </summary>
         /// <param name="areaName">The area name.</param>
-        /// <param name="pageName">The name of the page e.g. <c>/Users/List</c></param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
         /// <param name="action">The <see cref="Action"/>.</param>
         /// <returns>The added <see cref="IPageRouteModelConvention"/>.</returns>
         public IPageRouteModelConvention AddAreaPageRouteModelConvention(string areaName, string pageName, Action<PageRouteModel> action)
@@ -191,7 +209,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// <see cref="PageRouteModel"/> instances for all page under the specified area folder.
         /// </summary>
         /// <param name="areaName">The area name.</param>
-        /// <param name="folderPath">The path of the folder relative to the Razor Pages root. e.g. <c>/Users/</c></param>
+        /// <param name="folderPath">
+        /// The folder path e.g. <c>/Manage/</c>
+        /// <para>
+        /// The folder path is the path of the folder, relative to the pages root directory for the specified area.
+        /// e.g. the folder path for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage</c>.
+        /// </para>
+        /// </param>
         /// <param name="action">The <see cref="Action"/>.</param>
         /// <returns>The added <see cref="IPageApplicationModelConvention"/>.</returns>
         public IPageRouteModelConvention AddAreaFolderRouteModelConvention(string areaName, string folderPath, Action<PageRouteModel> action)

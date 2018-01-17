@@ -87,8 +87,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
         /// <param name="areaName">The area name.</param>
-        /// <param name="pageName">The page name. This value is the relative path to <see cref="RazorPagesOptions.RootDirectory"/> 
-        /// inside the area directory e.g. <c>/Manage/Users</c>. <seealso cref="PageRouteModel.ViewEnginePath" />.</param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
         /// <returns>The <see cref="PageConventionCollection"/>.</returns>
         public static PageConventionCollection AllowAnonymousToAreaPage(
             this PageConventionCollection conventions,
@@ -143,8 +148,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
         /// <param name="areaName">The area name.</param>
-        /// <param name="folderPath">The folder path relative to <see cref="RazorPagesOptions.RootDirectory"/> inside the
-        /// area directory e.g. <c>/Users/Index</c>.</param>
+        /// <param name="folderPath">
+        /// The folder path e.g. <c>/Manage/</c>
+        /// <para>
+        /// The folder path is the path of the folder, relative to the pages root directory for the specified area.
+        /// e.g. the folder path for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage</c>.
+        /// </para>
+        ///.</param>
         /// <returns>The <see cref="PageConventionCollection"/>.</returns>
         public static PageConventionCollection AllowAnonymousToAreaFolder(
             this PageConventionCollection conventions,
@@ -205,19 +215,40 @@ namespace Microsoft.Extensions.DependencyInjection
             AuthorizePage(conventions, pageName, policy: string.Empty);
 
         /// <summary>
+        /// Adds a <see cref="AuthorizeFilter"/> with default policy to the page with the specified name.
+        /// </summary>
+        /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
+        /// <param name="areaName">The area name.</param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
+        /// <returns>The <see cref="PageConventionCollection"/>.</returns>
+        public static PageConventionCollection AuthorizeAreaPage(this PageConventionCollection conventions, string areaName, string pageName)
+            => AuthorizeAreaPage(conventions, areaName, pageName, policy: string.Empty);
+
+        /// <summary>
         /// Adds a <see cref="AuthorizeFilter"/> with the specified policy to the page with the specified name.
         /// </summary>
         /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
         /// <param name="areaName">The area name.</param>
-        /// <param name="pageName">The page name. This value is the relative path to <see cref="RazorPagesOptions.RootDirectory"/> 
-        /// inside the area directory e.g. <c>/Manage/Users</c>. <seealso cref="PageRouteModel.ViewEnginePath" />.</param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
         /// <param name="policy">The authorization policy.</param>
         /// <returns>The <see cref="PageConventionCollection"/>.</returns>
         public static PageConventionCollection AuthorizeAreaPage(
             this PageConventionCollection conventions,
             string areaName,
             string pageName,
-            string policy = "")
+            string policy)
         {
             if (conventions == null)
             {
@@ -273,19 +304,38 @@ namespace Microsoft.Extensions.DependencyInjection
             AuthorizeFolder(conventions, folderPath, policy: string.Empty);
 
         /// <summary>
+        /// Adds a <see cref="AuthorizeFilter"/> with the default policy to all pages under the specified folder.
+        /// </summary>
+        /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
+        /// <param name="areaName">The area name.</param>
+        /// <param name="folderPath">
+        /// The folder path e.g. <c>/Manage/</c>
+        /// <para>
+        /// The folder path is the path of the folder, relative to the pages root directory for the specified area.
+        /// e.g. the folder path for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage</c>.
+        /// </para>
+        /// <returns>The <see cref="PageConventionCollection"/>.</returns>
+        public static PageConventionCollection AuthorizeAreaFolder(this PageConventionCollection conventions, string areaName, string folderPath)
+            => AuthorizeAreaFolder(conventions, areaName, folderPath, policy: string.Empty);
+
+        /// <summary>
         /// Adds a <see cref="AuthorizeFilter"/> with the specified policy to all pages under the specified folder.
         /// </summary>
         /// <param name="conventions">The <see cref="PageConventionCollection"/> to configure.</param>
         /// <param name="areaName">The area name.</param>
-        /// <param name="folderPath">The folder path relative to <see cref="RazorPagesOptions.RootDirectory"/> inside the
-        /// area directory e.g. <c>/Users/Index</c>.</param>
+        /// <param name="folderPath">
+        /// The folder path e.g. <c>/Manage/</c>
+        /// <para>
+        /// The folder path is the path of the folder, relative to the pages root directory for the specified area.
+        /// e.g. the folder path for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage</c>.
+        /// </para>
         /// <param name="policy">The authorization policy.</param>
         /// <returns>The <see cref="PageConventionCollection"/>.</returns>
         public static PageConventionCollection AuthorizeAreaFolder(
             this PageConventionCollection conventions,
             string areaName,
             string folderPath,
-            string policy = "")
+            string policy)
         {
             if (conventions == null)
             {
@@ -350,8 +400,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="conventions">The <see cref="PageConventionCollection"/>.</param>
         /// <param name="areaName">The area name.</param>
-        /// <param name="pageName">The page name. This value is the relative path to <see cref="RazorPagesOptions.RootDirectory"/> 
-        /// inside the area directory e.g. <c>/Manage/Users</c>. <seealso cref="PageRouteModel.ViewEnginePath" />.</param>
+        /// <param name="pageName">
+        /// The page name e.g. <c>/Users/List</c>
+        /// <para>
+        /// The page name is the path of the file without extension, relative to the pages root directory for the specified area.
+        /// e.g. the page name for the file Areas/Identity/Pages/Manage/Accounts.cshtml, is <c>/Manage/Accounts</c>.
+        /// </para>
+        /// </param>
         /// <param name="route">The route to associate with the page.</param>
         /// <returns>The <see cref="PageConventionCollection"/>.</returns>
         public static PageConventionCollection AddAreaPageRoute(
