@@ -12,6 +12,9 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     public class MvcTestFixture<TStartup> : WebApplicationTestFixture<MvcTestFixture<TStartup>, TStartup>
         where TStartup : class
     {
+        protected override IWebHostBuilder CreateWebHostBuilder() =>
+            new WebHostBuilder();
+
         protected override void ConfigureWebHost(IWebHostBuilder builder) =>
             builder.UseRequestCulture<TStartup>("en-GB", "en-US");
 

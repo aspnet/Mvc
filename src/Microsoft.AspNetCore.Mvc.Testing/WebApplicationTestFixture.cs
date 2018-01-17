@@ -14,7 +14,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     /// <summary>
     /// Fixture for bootstrapping an application in memory for functional end to end tests.
     /// </summary>
-    /// <typeparam name="TTestClass">The test class type.</typeparam>
+    /// <typeparam name="TTestClass">The test class. We use this class assembly to search for
+    /// assembly metadata attributes containing the content root paths to the web applications
+    /// with startup class <typeparamref name="TStartup"/>.</typeparam>
     /// <typeparam name="TStartup">The applications startup class.</typeparam>
     public class WebApplicationTestFixture<TTestClass, TStartup> : IDisposable where TTestClass : class where TStartup : class
     {
@@ -202,6 +204,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                 var testAssembly = typeof(TTestClass).Assembly;
                 var metadataAttributes = testAssembly.GetCustomAttributes<AssemblyMetadataAttribute>().ToArray();
                 var startupAssembly = typeof(TStartup).Assembly;
+                // We use codebase because the assembly might have been shadow-copied. Assembly.Location will reflect the
+                // path on disk of the shadow-copied dll, while Assembly.CodeBase will reflect the location of the original
+                // assembly.
                 var assemblyFile = new Uri(startupAssembly.CodeBase).Segments.Last();
                 var metadataKey = $"Microsoft.AspNetCore.Testing.ContentRoot[{assemblyFile}]";
                 string contentRoot = null;
@@ -211,6 +216,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                     if (string.Equals(metadataAttribute.Key, metadataKey, StringComparison.OrdinalIgnoreCase))
                     {
                         contentRoot = metadataAttribute.Value;
+                        break;
                     }
                 }
 
@@ -247,7 +253,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </summary>
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder() =>
-            WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ?? new WebHostBuilder();
+            WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ??
+            throw new InvalidOperationException($"We couldn't find a 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
+                $"method on '{typeof(TStartup).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, you can extend " +
+                $"{typeof(WebApplicationTestFixture<TTestClass, TStartup>).Name} and override 'protected virtual IWebHostBuilder " +
+                $"{nameof(CreateWebHostBuilder)}()' to provide your own {nameof(IWebHostBuilder)} instance.");
 
         /// <summary>
         /// Creates the <see cref="TestServer"/> with the bootstrapped application in <paramref name="builder"/>.
@@ -360,15 +370,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <inheritdoc />
         public void Dispose()
         {
-            if (Client != null)
-            {
-                Client.Dispose();
-            }
-
-            if (_server != null)
-            {
-                _server.Dispose();
-            }
+            Client?.Dispose();
+            _server?.Dispose();
         }
     }
 }
