@@ -50,7 +50,30 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             return GetCandidateLibraries(dependencyContext)
                 .SelectMany(library => library.GetDefaultAssemblyNames(dependencyContext))
-                .Select(Assembly.Load);
+                .Select(Assembly.Load)
+                .SelectMany(LoadAdditionalAssemblies);
+        }
+
+        private static IEnumerable<Assembly> LoadAdditionalAssemblies(Assembly assembly)
+        {
+            // Tag the assemblies that have precompilation enabled with an attribute
+            // (assembly metadata or additional assembly part attribute) that indicates the location
+            // of the additional assembly that needs to be added to the list of application parts.
+            var additionalReferences = assembly.GetCustomAttributes<AssemblyMetadataAttribute>();
+            var additionalPranavsFound = false;
+            foreach (var metadata in additionalReferences)
+            {
+                if (metadata.Key.Equals("AdditionalApplicationPart"))
+                {
+                    additionalPranavsFound = true;
+                    yield return Assembly.LoadFile(metadata.Value);
+                }
+            }
+
+            if (!additionalPranavsFound)
+            {
+                // Do the fallback to the convention of the precompiled views here.
+            }
         }
 
         // Returns a list of libraries that references the assemblies in <see cref="ReferenceAssemblies"/>.

@@ -32,7 +32,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             foreach (var assemblyPart in parts.OfType<AssemblyPart>())
             {
                 var attributes = GetViewAttributes(assemblyPart);
-                var items = LoadItems(assemblyPart);
+                var assemblies = attributes.Select(a => a.ViewType.Assembly).Distinct();
+
+                var items = assemblies.SelectMany(a => LoadItems(a)).ToArray();
 
                 var merged = Merge(items, attributes);
                 foreach (var item in merged)
@@ -84,18 +86,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             return dictionary.Values;
         }
 
-        protected virtual IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
+        protected virtual IReadOnlyList<RazorCompiledItem> LoadItems(Assembly assemblyPart)
         {
             if (assemblyPart == null)
             {
                 throw new ArgumentNullException(nameof(assemblyPart));
             }
 
-            var viewAssembly = GetViewAssembly(assemblyPart);
-            if (viewAssembly != null)
+            if (assemblyPart != null)
             {
                 var loader = new RazorCompiledItemLoader();
-                return loader.LoadItems(viewAssembly);
+                return loader.LoadItems(assemblyPart);
             }
 
             return Array.Empty<RazorCompiledItem>();
@@ -113,41 +114,20 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(assemblyPart));
             }
 
-            var featureAssembly = GetViewAssembly(assemblyPart);
-            if (featureAssembly != null)
+            if (assemblyPart is IMetadataProvider pranav)
             {
-                return featureAssembly.GetCustomAttributes<RazorViewAttribute>();
+                foreach (var attr in pranav.Metadata.OfType<AssemblyMetadataAttribute>())
+                {
+                    if (attr.Key.Equals("#weareallpranav"))
+                    {
+                        return Array.Empty<RazorViewAttribute>();
+                    }
+                }
+
+                return pranav.Metadata.OfType<RazorViewAttribute>();
             }
 
             return Enumerable.Empty<RazorViewAttribute>();
-        }
-
-        private Assembly GetViewAssembly(AssemblyPart assemblyPart)
-        {
-            if (assemblyPart.Assembly.IsDynamic || string.IsNullOrEmpty(assemblyPart.Assembly.Location))
-            {
-                return null;
-            }
-
-            for (var i = 0; i < ViewAssemblySuffixes.Count; i++)
-            {
-                var fileName = assemblyPart.Assembly.GetName().Name + ViewAssemblySuffixes[i] + ".dll";
-                var filePath = Path.Combine(Path.GetDirectoryName(assemblyPart.Assembly.Location), fileName);
-
-                if (File.Exists(filePath))
-                {
-                    try
-                    {
-                        return Assembly.LoadFile(filePath);
-                    }
-                    catch (FileLoadException)
-                    {
-                        // Don't throw if assembly cannot be loaded. This can happen if the file is not a managed assembly.
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }

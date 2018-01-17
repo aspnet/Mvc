@@ -15,7 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
     public class AssemblyPart :
         ApplicationPart,
         IApplicationPartTypeProvider,
-        ICompilationReferencesProvider
+        ICompilationReferencesProvider,
+        IMetadataProvider
     {
         /// <summary>
         /// Initializes a new <see cref="AssemblyPart"/> instance.
@@ -39,6 +40,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         /// <inheritdoc />
         public IEnumerable<TypeInfo> Types => Assembly.DefinedTypes;
 
+        public object[] Metadata => Assembly.GetCustomAttributes().ToArray();
+
         /// <inheritdoc />
         public IEnumerable<string> GetReferencePaths()
         {
@@ -61,5 +64,14 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             // required for the compilation to succeed.
             return new[] { Assembly.Location };
         }
+    }
+
+    /// <summary>
+    /// Gets metadata associated with a part.
+    /// In <see cref="AssemblyPart"/> this metadata is backed by assembly level attributes.
+    /// </summary>
+    public interface IMetadataProvider
+    {
+        object [] Metadata { get; }
     }
 }
