@@ -76,6 +76,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public string ViewEnginePath => ActionDescriptor.ViewEnginePath;
 
         /// <summary>
+        /// Gets the area name.
+        /// </summary>
+        public string AreaName => ActionDescriptor.AreaName;
+
+        /// <summary>
         /// Gets the route template for the page.
         /// </summary>
         public string RouteTemplate => ActionDescriptor.AttributeRouteInfo?.Template;

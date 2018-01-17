@@ -25,6 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         {
             RelativePath = other.RelativePath;
             ViewEnginePath = other.ViewEnginePath;
+            AreaName = other.AreaName;
         }
 
         /// <summary>
@@ -36,6 +37,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// Gets or sets the path relative to the base path for page discovery.
         /// </summary>
         public string ViewEnginePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the area name for this page.
+        /// This value will be <c>null</c> for non-area pages.
+        /// </summary>
+        public string AreaName { get; set; }
 
         /// <inheritdoc />
         public override string DisplayName
