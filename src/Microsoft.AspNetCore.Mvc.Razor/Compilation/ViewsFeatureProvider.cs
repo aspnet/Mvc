@@ -31,18 +31,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var descriptors = new List<CompiledViewDescriptor>();
             foreach (var assemblyPart in parts.OfType<AssemblyPart>())
             {
-                var attributes = GetViewAttributes(assemblyPart);
-                var items = LoadItems(assemblyPart);
-
-                var merged = Merge(items, attributes);
-                foreach (var item in merged)
+                var attributes = GetViewAttributes(assemblyPart).ToList();
+                if (attributes.Count > 0)
                 {
-                    var descriptor = new CompiledViewDescriptor(item.item, item.attribute);
-                    // We iterate through ApplicationPart instances appear in precendence order.
-                    // If a view path appears in multiple views, we'll use the order to break ties.
-                    if (knownIdentifiers.Add(descriptor.RelativePath))
+                    var items = LoadItems(assemblyPart);
+
+                    var merged = Merge(items, attributes);
+                    foreach (var item in merged)
                     {
-                        feature.ViewDescriptors.Add(descriptor);
+                        var descriptor = new CompiledViewDescriptor(item.item, item.attribute);
+                        // We iterate through ApplicationPart instances appear in precendence order.
+                        // If a view path appears in multiple views, we'll use the order to break ties.
+                        if (knownIdentifiers.Add(descriptor.RelativePath))
+                        {
+                            feature.ViewDescriptors.Add(descriptor);
+                        }
                     }
                 }
             }
@@ -91,7 +94,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(assemblyPart));
             }
 
-            var viewAssembly = GetViewAssembly(assemblyPart);
+            var viewAssembly = assemblyPart.Assembly;
             if (viewAssembly != null)
             {
                 var loader = new RazorCompiledItemLoader();
@@ -113,41 +116,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 throw new ArgumentNullException(nameof(assemblyPart));
             }
 
-            var featureAssembly = GetViewAssembly(assemblyPart);
+            var featureAssembly = assemblyPart.Assembly;
             if (featureAssembly != null)
             {
                 return featureAssembly.GetCustomAttributes<RazorViewAttribute>();
             }
 
             return Enumerable.Empty<RazorViewAttribute>();
-        }
-
-        private Assembly GetViewAssembly(AssemblyPart assemblyPart)
-        {
-            if (assemblyPart.Assembly.IsDynamic || string.IsNullOrEmpty(assemblyPart.Assembly.Location))
-            {
-                return null;
-            }
-
-            for (var i = 0; i < ViewAssemblySuffixes.Count; i++)
-            {
-                var fileName = assemblyPart.Assembly.GetName().Name + ViewAssemblySuffixes[i] + ".dll";
-                var filePath = Path.Combine(Path.GetDirectoryName(assemblyPart.Assembly.Location), fileName);
-
-                if (File.Exists(filePath))
-                {
-                    try
-                    {
-                        return Assembly.LoadFile(filePath);
-                    }
-                    catch (FileLoadException)
-                    {
-                        // Don't throw if assembly cannot be loaded. This can happen if the file is not a managed assembly.
-                    }
-                }
-            }
-
-            return null;
         }
     }
 }
