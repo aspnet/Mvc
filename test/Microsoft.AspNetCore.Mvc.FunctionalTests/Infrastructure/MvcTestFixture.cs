@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Globalization;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
@@ -9,10 +10,11 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
-    public class MvcTestFixture<TStartup> : WebApplicationTestFixture<MvcTestFixture<TStartup>, TStartup>
+    public class MvcTestFixture<TStartup> : WebApplicationTestFixture<TStartup>
         where TStartup : class
     {
         protected override IWebHostBuilder CreateWebHostBuilder() =>
+            WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ??
             new WebHostBuilder();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder) =>

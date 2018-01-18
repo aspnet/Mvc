@@ -2,23 +2,23 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.AspNetCore.Mvc.Testing
 {
     /// <summary>
     /// Fixture for bootstrapping an application in memory for functional end to end tests.
     /// </summary>
-    /// <typeparam name="TTestClass">The test class. We use this class assembly to search for
-    /// assembly metadata attributes containing the content root paths to the web applications
-    /// with startup class <typeparamref name="TStartup"/>.</typeparam>
     /// <typeparam name="TStartup">The applications startup class.</typeparam>
-    public class WebApplicationTestFixture<TTestClass, TStartup> : IDisposable where TTestClass : class where TStartup : class
+    public class WebApplicationTestFixture<TStartup> : IDisposable where TStartup : class
     {
         private TestServer _server;
         private string _solutionRelativeContentRootPath;
@@ -33,7 +33,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </para>
         /// <para>
         /// This constructor will infer the application root directive by searching for an <see cref="AssemblyMetadataAttribute"/>
-        /// on the <typeparamref name="TTestClass"/> assembly with the key 
+        /// on the assembly with the key 
         /// Microsoft.AspNetCore.Testing.ContentRoot[<c><typeparamref name="TStartup" /> assembly file name</c>] and we will use
         /// the value of that attribute as the content root. In case we can't find an attribute with the right key, we fall back to
         /// searching for a solution file (*.sln) and then appending the path<c>{AssemblyName}</c> to the solution directory.
@@ -106,21 +106,13 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
         /// </para>
         /// <para>
-        /// This constructor will infer the application root directive by searching for an <see cref="AssemblyMetadataAttribute"/>
-        /// on the <typeparamref name="TTestClass"/> assembly with the key 
-        /// Microsoft.AspNetCore.Testing.ContentRoot[<c><typeparamref name="TStartup" /> assembly file name</c>] and we will use
-        /// the value of that attribute as the content root. In case we can't find an attribute with the right key, we fall back to
-        /// searching for a solution file (*.sln) and then appending the path<c>{AssemblyName}</c> to the solution directory.
-        /// The application root directory will be used to discover views and content files.
-        /// </para>
-        /// <para>
         /// The application assemblies will be loaded from the dependency context of the assembly containing
         /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
         /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
         /// </para>
         /// </summary>
-        public static WebApplicationTestFixture<TTestClass, TStartup> Create() =>
-            new WebApplicationTestFixture<TTestClass, TStartup>();
+        public static WebApplicationTestFixture<TStartup> Create() =>
+            new WebApplicationTestFixture<TStartup>();
 
         /// <summary>
         /// <para>
@@ -141,8 +133,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
         /// application. The folder of the first .sln file found traversing up the folder hierarchy from the test execution
         /// folder is considered as the base path.</param>
-        public static WebApplicationTestFixture<TTestClass, TStartup> Create(string solutionRelativePath) =>
-            new WebApplicationTestFixture<TTestClass, TStartup>(solutionRelativePath);
+        public static WebApplicationTestFixture<TStartup> Create(string solutionRelativePath) =>
+            new WebApplicationTestFixture<TStartup>(solutionRelativePath);
 
         /// <summary>
         /// <para>
@@ -165,10 +157,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
         /// application. The folder of the first sln file that matches the <paramref name="solutionSearchPattern"/>
         /// found traversing up the folder hierarchy from the test execution folder is considered as the base path.</param>
-        public static WebApplicationTestFixture<TTestClass, TStartup> Create(
+        public static WebApplicationTestFixture<TStartup> Create(
             string solutionRelativePath,
             string solutionSearchPattern) =>
-            new WebApplicationTestFixture<TTestClass, TStartup>(solutionRelativePath, solutionSearchPattern);
+            new WebApplicationTestFixture<TStartup>(solutionRelativePath, solutionSearchPattern);
 
         private void EnsureServer()
         {
@@ -201,8 +193,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
             else
             {
-                var testAssembly = typeof(TTestClass).Assembly;
-                var metadataAttributes = testAssembly.GetCustomAttributes<AssemblyMetadataAttribute>().ToArray();
+                var metadataAttributes = GetContentRootMetadataAttributes();
                 var startupAssembly = typeof(TStartup).Assembly;
                 // We use codebase because the assembly might have been shadow-copied. Assembly.Location will reflect the
                 // path on disk of the shadow-copied dll, while Assembly.CodeBase will reflect the location of the original
@@ -231,6 +222,48 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
         }
 
+        private static AssemblyMetadataAttribute[] GetContentRootMetadataAttributes()
+        {
+            var testAssembly = GetCandidateAssemblies();
+            var metadataAttributes = testAssembly
+                .SelectMany(a => a.GetCustomAttributes<AssemblyMetadataAttribute>())
+                .Where(ama => ama.Key.StartsWith("Microsoft.AspNetCore.Testing.ContentRoot"))
+                .ToArray();
+            return metadataAttributes;
+        }
+
+        private static IEnumerable<Assembly> GetCandidateAssemblies()
+        {
+            // The default dependency context will be populated in .net core applications.
+            var context = DependencyContext.Default;
+            if (context != null)
+            {
+                // Find the list of projects
+                var projects = context.CompileLibraries.Where(l => l.Type == "project");
+
+                // Find the list of projects runtime information and their assembly names.
+                var runtimeProjectLibraries = context.RuntimeLibraries
+                    .Where(r => projects.Any(p => p.Name == r.Name))
+                    .ToDictionary(r=>r, r => r.GetDefaultAssemblyNames(context).ToArray());
+
+                var startupAssemblyName = typeof(TStartup).Assembly.GetName().Name;
+
+                // Find the project containing TStartup
+                var startupRuntimeLibrary = runtimeProjectLibraries
+                    .Single(rpl => rpl.Value.Any(a => a.Name.Equals(startupAssemblyName)));
+
+                // Find the list of projects depending on TStartup library.
+                var candidates = runtimeProjectLibraries.Where(rpl => rpl.Key.Dependencies.Any(d => d.Name == startupRuntimeLibrary.Key.Name));
+
+                return candidates.SelectMany(rl => rl.Value).Select(Assembly.Load);
+            }
+            else
+            {
+                // The app domain friendly name will be populated in full framework.
+                return new[] { Assembly.Load(AppDomain.CurrentDomain.FriendlyName) };
+            }
+        }
+
         private void EnsureDepsFile()
         {
             var depsFileName = $"{typeof(TStartup).Assembly.GetName().Name}.deps.json";
@@ -256,7 +289,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ??
             throw new InvalidOperationException($"We couldn't find a 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
                 $"method on '{typeof(TStartup).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, you can extend " +
-                $"{typeof(WebApplicationTestFixture<TTestClass, TStartup>).Name} and override 'protected virtual IWebHostBuilder " +
+                $"{typeof(WebApplicationTestFixture<TStartup>).Name} and override 'protected virtual IWebHostBuilder " +
                 $"{nameof(CreateWebHostBuilder)}()' to provide your own {nameof(IWebHostBuilder)} instance.");
 
         /// <summary>
