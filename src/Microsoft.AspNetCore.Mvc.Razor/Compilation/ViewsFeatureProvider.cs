@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             return dictionary.Values;
         }
 
-        protected virtual IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
+        private IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
         {
             if (assemblyPart == null)
             {
@@ -110,6 +110,70 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
         /// <param name="assemblyPart">The <see cref="AssemblyPart"/>.</param>
         /// <returns>The sequence of <see cref="RazorViewAttribute"/> instances.</returns>
         protected virtual IEnumerable<RazorViewAttribute> GetViewAttributes(AssemblyPart assemblyPart)
+        {
+            // We check if the method was overriden by a subclass and preserve the old behavior in that case.
+            if (GetViewAttributesOverriden())
+            {
+                return GetViewAttributesLegacy(assemblyPart);
+            }
+            else
+            {
+                // It is safe to call this method for additional assembly parts even if there is a feature provider
+                // present on the pipeline that overrides getviewattributes as dependent parts are later in the list
+                // of application parts.
+                return GetViewAttributesFromCurrentAssembly(assemblyPart);
+            }
+
+            bool GetViewAttributesOverriden() => 
+                GetType() != typeof(ViewsFeatureProvider) &&
+                GetType().GetMethod(nameof(GetViewAttributes)).DeclaringType != typeof(ViewsFeatureProvider);
+        }
+
+        private IEnumerable<RazorViewAttribute> GetViewAttributesLegacy(AssemblyPart assemblyPart)
+        {
+            if (assemblyPart == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyPart));
+            }
+
+            var featureAssembly = GetViewAssembly(assemblyPart);
+            if (featureAssembly != null)
+            {
+                return featureAssembly.GetCustomAttributes<RazorViewAttribute>();
+            }
+
+            return Enumerable.Empty<RazorViewAttribute>();
+        }
+
+        private Assembly GetViewAssembly(AssemblyPart assemblyPart)
+        {
+            if (assemblyPart.Assembly.IsDynamic || string.IsNullOrEmpty(assemblyPart.Assembly.Location))
+            {
+                return null;
+            }
+
+            for (var i = 0; i < ViewAssemblySuffixes.Count; i++)
+            {
+                var fileName = assemblyPart.Assembly.GetName().Name + ViewAssemblySuffixes[i] + ".dll";
+                var filePath = Path.Combine(Path.GetDirectoryName(assemblyPart.Assembly.Location), fileName);
+
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        return Assembly.LoadFile(filePath);
+                    }
+                    catch (FileLoadException)
+                    {
+                        // Don't throw if assembly cannot be loaded. This can happen if the file is not a managed assembly.
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<RazorViewAttribute> GetViewAttributesFromCurrentAssembly(AssemblyPart assemblyPart)
         {
             if (assemblyPart == null)
             {

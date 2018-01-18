@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
 using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -102,16 +103,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
             }
 
-            // Discard any additional reference that was added by default through for example, the dependency context.
+            // Discard any additional reference that was added by default through the dependency context.
             var result = candidateAssemblies
-                .Where(ca => !additionalAssemblies.Any(ara => !ara.IncludeByDefault && ara.Assembly.Equals(ca)))
+                .Where(ca => !additionalAssemblies.Any(ara => ara.Assembly.Equals(ca)))
+                .Distinct()
                 .ToList();
 
             // Concatenate all the candidate assemblies with all the additional references that should be loaded by default.
-            result.AddRange(additionalAssemblies.Where(ara => ara.IncludeByDefault).Select(ara => ara.Assembly));
+            var additionalParts = additionalAssemblies.Where(ara => ara.IncludeByDefault).Select(ara => ara.Assembly).Distinct();
 
-            // Remove duplicates and create the list of assembly parts.
-            return result.Distinct().Select(p => new AssemblyPart(p));
+            // Create the list of assembly parts.
+            return result.Select(p => new AssemblyPart(p)).Concat(additionalParts.Select(ap => new AdditionalAssemblyPart(ap)));
         }
 
         private class AdditionalReference

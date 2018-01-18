@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Core.ApplicationParts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -25,7 +26,7 @@ namespace MvcSandbox
                         Path.GetDirectoryName(typeof(Startup).Assembly.Location),
                         "MvcSandbox.PrecompiledViews.dll");
 
-                    apm.ApplicationParts.Add(new AssemblyPart(Assembly.LoadFile(precompiledViewsPath)));
+                    apm.ApplicationParts.Add(new AdditionalAssemblyPart(Assembly.LoadFile(precompiledViewsPath)));
                 });
         }
 

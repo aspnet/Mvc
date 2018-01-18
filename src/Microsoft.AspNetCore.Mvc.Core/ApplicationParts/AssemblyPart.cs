@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         public IEnumerable<TypeInfo> Types => Assembly.DefinedTypes;
 
         /// <inheritdoc />
-        public IEnumerable<string> GetReferencePaths()
+        public virtual IEnumerable<string> GetReferencePaths()
         {
             if (Assembly.IsDynamic)
             {
