@@ -50,23 +50,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var candidateAssemblies = GetCandidateAssemblies(entryAssembly, context);
             var additionalReferences = candidateAssemblies
-                .ToDictionary(
-                    ca => ca,
-                    ca => ca
-                        .GetCustomAttributes<AssemblyMetadataAttribute>()
-                        .Where(ama => ama.Key.Equals("Microsoft.AspNetCore.Mvc.AdditionalReference", StringComparison.Ordinal)).ToArray());
+                .Select(ca =>
+                    (assembly: ca,
+                     metadata: ca.GetCustomAttributes<AssemblyMetadataAttribute>()
+                        .Where(ama => ama.Key.Equals("Microsoft.AspNetCore.Mvc.AdditionalReference", StringComparison.Ordinal)).ToArray()));
 
             // Find out all the additional references defined by the assembly.
             // [assembly: AssemblyMetadataAttribute("Microsoft.AspNetCore.Mvc.AdditionalReference", "Library.PrecompiledViews.dll,true|false")]
             var additionalAssemblies = new List<AdditionalReference>();
-            foreach (var kvp in additionalReferences)
+            foreach (var (assembly, metadata) in additionalReferences)
             {
-                if (kvp.Value.Length > 0)
+                if (metadata.Length > 0)
                 {
-                    foreach (var metadataAttribute in kvp.Value)
+                    foreach (var metadataAttribute in metadata)
                     {
                         var fileName = metadataAttribute.Value.Substring(0, metadataAttribute.Value.IndexOf(","));
-                        var filePath = Path.Combine(Path.GetDirectoryName(kvp.Key.Location), fileName);
+                        var filePath = Path.Combine(Path.GetDirectoryName(assembly.Location), fileName);
                         var additionalReference = new AdditionalReference
                         {
                             File = filePath,
@@ -79,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 else
                 {
                     // Fallback to loading the views like in previous versions if the additional reference metadata attribute is not present.
-                    var viewsAssembly = GetViewAssembly(kvp.Key);
+                    var viewsAssembly = GetViewAssembly(assembly);
                     if (viewsAssembly != null)
                     {
                         additionalAssemblies.Add(new AdditionalReference
