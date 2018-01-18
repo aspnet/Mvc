@@ -158,7 +158,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 { part2, new[] { item2, item3, } },
             };
 
-            var featureProvider = new TestableViewsFeatureProvider(items, attributes: new Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>>());
+            var attribute1 = new RazorViewAttribute("/Areas/Admin/Views/Shared/_Layout.cshtml", typeof(StringBuilder));
+            var attribute2 = new RazorViewAttribute("/Areas/Admin/Views/Shared/_Layout.cshtml", typeof(string));
+            var attribute3 = new RazorViewAttribute("/Areas/Admin/Views/Shared/_Partial.cshtml", typeof(string));
+            var attributes = new Dictionary<AssemblyPart, IEnumerable<RazorViewAttribute>>
+            {
+                { part1, new[] { attribute1 } },
+                { part2, new[] { attribute2, attribute3, } },
+            };
+
+            var featureProvider = new TestableViewsFeatureProvider(items, attributes: attributes);
             var partManager = new ApplicationPartManager();
             partManager.ApplicationParts.Add(part1);
             partManager.ApplicationParts.Add(part2);
@@ -200,7 +209,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             var assembly = new AssemblyWithEmptyLocation();
             var partManager = new ApplicationPartManager();
             partManager.ApplicationParts.Add(new AssemblyPart(assembly));
-            partManager.FeatureProviders.Add(new ViewsFeatureProvider());
+            partManager.FeatureProviders.Add(new OverrideViewsFeatureProvider());
             var feature = new ViewsFeature();
 
             // Act
@@ -208,6 +217,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             // Assert
             Assert.Empty(feature.ViewDescriptors);
+        }
+
+        internal class OverrideViewsFeatureProvider : ViewsFeatureProvider
+        {
+            protected override IEnumerable<RazorViewAttribute> GetViewAttributes(AssemblyPart assemblyPart)
+                => base.GetViewAttributes(assemblyPart);
         }
 
         private class TestRazorCompiledItem : RazorCompiledItem

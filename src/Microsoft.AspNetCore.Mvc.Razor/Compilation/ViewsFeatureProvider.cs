@@ -126,7 +126,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
             bool GetViewAttributesOverriden() => 
                 GetType() != typeof(ViewsFeatureProvider) &&
-                GetType().GetMethod(nameof(GetViewAttributes)).DeclaringType != typeof(ViewsFeatureProvider);
+                GetType()
+                    .GetMethod(nameof(GetViewAttributes), BindingFlags.NonPublic | BindingFlags.Instance)
+                    .DeclaringType != typeof(ViewsFeatureProvider);
         }
 
         private IEnumerable<RazorViewAttribute> GetViewAttributesLegacy(AssemblyPart assemblyPart)
