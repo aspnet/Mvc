@@ -252,7 +252,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
                 return Enumerable.Empty<RazorViewAttribute>();
             }
 
-            protected override IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
+            internal override IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
             {
                 return _items[assemblyPart];
             }

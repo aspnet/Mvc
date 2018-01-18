@@ -9,13 +9,6 @@
   <PropertyGroup>
     <RazorCompileOnBuild>true</RazorCompileOnBuild>
   </PropertyGroup>
-  
-  <ItemGroup>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-        <_Parameter1>Microsoft.AspNetCore.Mvc.AdditionalReference</_Parameter1>
-        <_Parameter2>MvcSandbox.PrecompiledViews.dll,false</_Parameter2>
-      </AssemblyAttribute>
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc\Microsoft.AspNetCore.Mvc.csproj" />

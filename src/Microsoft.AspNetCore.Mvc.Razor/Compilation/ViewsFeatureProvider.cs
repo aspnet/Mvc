@@ -87,7 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
             return dictionary.Values;
         }
 
-        private IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
+        internal virtual IReadOnlyList<RazorCompiledItem> LoadItems(AssemblyPart assemblyPart)
         {
             if (assemblyPart == null)
             {
