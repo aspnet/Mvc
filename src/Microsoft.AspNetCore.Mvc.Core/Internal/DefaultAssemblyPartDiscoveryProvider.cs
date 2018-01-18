@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     foreach (var metadataAttribute in metadata)
                     {
-                        var fileName = metadataAttribute.Value.Substring(0, metadataAttribute.Value.IndexOf(","));
+                        var fileName = Path.GetFileName(metadataAttribute.Value.Substring(0, metadataAttribute.Value.IndexOf(",")));
                         var filePath = Path.Combine(Path.GetDirectoryName(assembly.Location), fileName);
                         var additionalReference = new AdditionalReference
                         {
