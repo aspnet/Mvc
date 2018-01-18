@@ -58,6 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Find out all the additional references defined by the assembly.
             // [assembly: AssemblyMetadataAttribute("Microsoft.AspNetCore.Mvc.AdditionalReference", "Library.PrecompiledViews.dll,true|false")]
             var additionalAssemblies = new List<AdditionalReference>();
+            var entryAssemblyAdditionalReferences = new List<AdditionalReference>();
             foreach (var (assembly, metadata) in additionalReferences)
             {
                 if (metadata.Length > 0)
@@ -73,20 +74,33 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         };
 
                         additionalAssemblies.Add(additionalReference);
+                        if (assembly.Equals(entryAssembly))
+                        {
+                            entryAssemblyAdditionalReferences.Add(additionalReference);
+                        }
                     }
                 }
                 else
                 {
                     // Fallback to loading the views like in previous versions if the additional reference metadata attribute is not present.
-                    var viewsAssembly = GetViewAssembly(assembly);
-                    if (viewsAssembly != null)
+                    var viewsAssemblies = GetViewAssemblies(assembly);
+                    foreach (var viewsAssembly in viewsAssemblies)
                     {
-                        additionalAssemblies.Add(new AdditionalReference
+                        if (viewsAssembly != null)
                         {
-                            File = null,
-                            Assembly = viewsAssembly,
-                            IncludeByDefault = true
-                        });
+                            var additionalReference = new AdditionalReference
+                            {
+                                File = null,
+                                Assembly = viewsAssembly,
+                                IncludeByDefault = true
+                            };
+
+                            additionalAssemblies.Add(additionalReference);
+                            if (entryAssembly.Equals(assembly))
+                            {
+                                entryAssemblyAdditionalReferences.Add(additionalReference);
+                            }
+                        }
                     }
                 }
             }
@@ -104,12 +118,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Discard any additional reference that was added by default through the dependency context.
             var result = candidateAssemblies
-                .Where(ca => !additionalAssemblies.Any(ara => ara.Assembly.Equals(ca)))
+                .Where(ca => !additionalAssemblies.Any(ara => ara.Assembly.FullName.Equals(ca.FullName)))
                 .Distinct()
+                .OrderBy(assembly => entryAssembly.Equals(assembly) ? 0 : 1)
+                .ThenBy(a=> a.GetName().Name)
                 .ToList();
 
+            var entryAssemblyReferences = entryAssemblyAdditionalReferences.Select(e => e.Assembly).ToList();
+
             // Concatenate all the candidate assemblies with all the additional references that should be loaded by default.
-            var additionalParts = additionalAssemblies.Where(ara => ara.IncludeByDefault).Select(ara => ara.Assembly).Distinct();
+            var additionalParts = additionalAssemblies
+                .Where(ara => ara.IncludeByDefault)
+                .Select(ara => ara.Assembly)
+                .OrderBy(assembly => entryAssemblyReferences.Contains(assembly) ? 0 : 1)
+                .ThenBy(a=> a.GetName().Name)
+                .Distinct();
 
             // Create the list of assembly parts.
             return result.Select(p => new AssemblyPart(p)).Concat(additionalParts.Select(ap => new AdditionalAssemblyPart(ap)));
@@ -122,11 +145,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public bool IncludeByDefault { get; set; }
         }
 
-        private static Assembly GetViewAssembly(Assembly assembly)
+        private static IEnumerable<Assembly> GetViewAssemblies(Assembly assembly)
         {
             if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location))
             {
-                return null;
+                yield break;
             }
 
             for (var i = 0; i < ViewAssemblySuffixes.Count; i++)
@@ -136,18 +159,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 if (File.Exists(filePath))
                 {
+                    Assembly viewsAssembly = null;
                     try
                     {
-                        return Assembly.LoadFile(filePath);
+                        viewsAssembly = Assembly.LoadFile(filePath);
                     }
                     catch (FileLoadException)
                     {
                         // Don't throw if assembly cannot be loaded. This can happen if the file is not a managed assembly.
                     }
+                    if (viewsAssembly != null)
+                    {
+                        yield return viewsAssembly;
+                    }
                 }
             }
-
-            return null;
         }
 
         internal static IEnumerable<Assembly> GetCandidateAssemblies(Assembly entryAssembly, DependencyContext dependencyContext)
