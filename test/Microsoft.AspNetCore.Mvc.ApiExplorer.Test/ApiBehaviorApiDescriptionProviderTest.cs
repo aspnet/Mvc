@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         }
 
         [Fact]
-        public void CreateProblemResponseTypes_NoParameters_IncludesDefaultResponse()
+        public void CreateErrorResponses_NoParameters_DoesNotIncludeErrorResponse()
         {
             // Arrange
             var action = new ActionDescriptor()
@@ -128,21 +128,14 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             var provider = new ApiBehaviorApiDescriptionProvider(new EmptyModelMetadataProvider());
 
             // Act
-            var results = provider.CreateProblemResponseTypes(description);
+            var results = provider.CreateErrorResponses(description);
 
             // Assert
-            Assert.Collection(
-                results.OrderBy(r => r.StatusCode),
-                r =>
-                {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
-                    Assert.Equal(0, r.StatusCode);
-                    Assert.True(r.IsDefaultResponse);
-                });
+            Assert.Empty(results);
         }
 
         [Fact]
-        public void CreateProblemResponseTypes_WithBoundProperty_Includes400Response()
+        public void CreateErrorResponses_WithBoundProperty_Includes400Response()
         {
             // Arrange
             var action = new ActionDescriptor()
@@ -165,27 +158,20 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             var provider = new ApiBehaviorApiDescriptionProvider(new EmptyModelMetadataProvider());
 
             // Act
-            var results = provider.CreateProblemResponseTypes(description);
+            var results = provider.CreateErrorResponses(description);
 
             // Assert
             Assert.Collection(
                 results.OrderBy(r => r.StatusCode),
                 r =>
                 {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
-                    Assert.Equal(0, r.StatusCode);
-                    Assert.True(r.IsDefaultResponse);
-                },
-                r =>
-                {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
                     Assert.Equal(400, r.StatusCode);
                     Assert.False(r.IsDefaultResponse);
                 });
         }
 
         [Fact]
-        public void CreateProblemResponseTypes_WithIdParameter_Includes404Response()
+        public void CreateErrorResponses_WithIdParameter_Includes404Response()
         {
             // Arrange
             var action = new ActionDescriptor()
@@ -213,26 +199,18 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             var provider = new ApiBehaviorApiDescriptionProvider(new EmptyModelMetadataProvider());
 
             // Act
-            var results = provider.CreateProblemResponseTypes(description);
+            var results = provider.CreateErrorResponses(description);
 
             // Assert
             Assert.Collection(
                 results.OrderBy(r => r.StatusCode),
                 r =>
                 {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
-                    Assert.Equal(0, r.StatusCode);
-                    Assert.True(r.IsDefaultResponse);
-                },
-                r =>
-                {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
                     Assert.Equal(400, r.StatusCode);
                     Assert.False(r.IsDefaultResponse);
                 },
                 r =>
                 {
-                    Assert.Equal(typeof(ProblemDetails), r.Type);
                     Assert.Equal(404, r.StatusCode);
                     Assert.False(r.IsDefaultResponse);
                 });

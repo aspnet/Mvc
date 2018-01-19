@@ -38,20 +38,20 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                     continue;
                 }
 
-                foreach (var responseType in CreateProblemResponseTypes(description))
+                foreach (var responseType in CreateErrorResponses(description))
                 {
                     description.SupportedResponseTypes.Add(responseType);
                 }
             }
         }
 
-        public bool AppliesTo(ApiDescription description)
+        internal bool AppliesTo(ApiDescription description)
         {
             return description.ActionDescriptor.FilterDescriptors.Any(f => f.Filter is IApiBehaviorMetadata);
         }
 
         // Check if the parameter is named "id" (e.g. int id) or ends in Id (e.g. personId)
-        public bool IsIdParameter(ParameterDescriptor parameter)
+        internal bool IsIdParameter(ParameterDescriptor parameter)
         {
             if (parameter.Name == null)
             {
@@ -75,23 +75,22 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             return false;
         }
 
-        public IEnumerable<ApiResponseType> CreateProblemResponseTypes(ApiDescription description)
+        // Internal for unit testing
+        internal IEnumerable<ApiResponseType> CreateErrorResponses(ApiDescription description)
         {
             if (description.ActionDescriptor.Parameters.Any() || description.ActionDescriptor.BoundProperties.Any())
             {
                 // For validation errors.
-                yield return CreateProblemResponse(StatusCodes.Status400BadRequest);
+                yield return CreateErrorResponse(StatusCodes.Status400BadRequest);
 
                 if (description.ActionDescriptor.Parameters.Any(p => IsIdParameter(p)))
                 {
-                    yield return CreateProblemResponse(StatusCodes.Status404NotFound);
+                    yield return CreateErrorResponse(StatusCodes.Status404NotFound);
                 }
             }
-
-            yield return CreateProblemResponse(statusCode: 0, isDefaultResponse: true);
         }
 
-        private ApiResponseType CreateProblemResponse(int statusCode, bool isDefaultResponse = false)
+        private ApiResponseType CreateErrorResponse(int statusCode)
         {
             return new ApiResponseType
             {
@@ -106,10 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                         MediaType = "application/problem+xml",
                     },
                 },
-                IsDefaultResponse = isDefaultResponse,
-                ModelMetadata = _modelMetadaProvider.GetMetadataForType(typeof(ProblemDetails)),
                 StatusCode = statusCode,
-                Type = typeof(ProblemDetails),
             };
         }
     }
