@@ -33,6 +33,37 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
             Assert.Collection(collection,
                 service =>
                 {
+                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+
+                service =>
+                {
                     Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
                     Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
                 },
@@ -98,6 +129,35 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
                 {
                     Assert.Equal(typeof(HtmlEncoder), service.ServiceType);
                     Assert.Same(testEncoder, service.ImplementationInstance);
+                }, service =>
+                {
+                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
                 },
                 service =>
                 {
@@ -131,6 +191,37 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
 
             // Assert
             Assert.Collection(collection,
+                service =>
+                {
+                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+
                 service =>
                 {
                     Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
@@ -193,6 +284,37 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
 
             // Assert
             Assert.Collection(collection,
+                service =>
+                {
+                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+                service =>
+                {
+                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
+                },
+                service => 
+                {
+                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
+                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
+                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
+                },
+
                 service =>
                 {
                     Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
