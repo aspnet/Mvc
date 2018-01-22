@@ -71,12 +71,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <inheritdoc />
         public virtual IValueProvider Filter(BindingSource bindingSource)
         {
-            if (bindingSource == null)
-            {
-                throw new ArgumentNullException(nameof(bindingSource));
-            }
-
-            if (bindingSource.CanAcceptDataFrom(BindingSource))
+            if (bindingSource == null || bindingSource.CanAcceptDataFrom(BindingSource))
             {
                 return this;
             }

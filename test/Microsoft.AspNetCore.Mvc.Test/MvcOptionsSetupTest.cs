@@ -84,7 +84,8 @@ namespace Microsoft.AspNetCore.Mvc
                 provider => Assert.IsType<FormValueProviderFactory>(provider),
                 provider => Assert.IsType<RouteValueProviderFactory>(provider),
                 provider => Assert.IsType<QueryStringValueProviderFactory>(provider),
-                provider => Assert.IsType<JQueryFormValueProviderFactory>(provider));
+                provider => Assert.IsType<JQueryFormValueProviderFactory>(provider),
+                provider => Assert.IsType<HeaderValueProviderFactory>(provider));
         }
 
         [Fact]

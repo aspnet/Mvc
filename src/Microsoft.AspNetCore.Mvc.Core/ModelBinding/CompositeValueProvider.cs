@@ -155,18 +155,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <inheritdoc />
         public IValueProvider Filter(BindingSource bindingSource)
         {
-            if (bindingSource == null)
-            {
-                throw new ArgumentNullException(nameof(bindingSource));
-            }
-
-            var filteredValueProviders = new List<IValueProvider>();
+            var filteredValueProviders = new List<IValueProvider>(this);
             foreach (var valueProvider in this.OfType<IBindingSourceValueProvider>())
             {
                 var result = valueProvider.Filter(bindingSource);
-                if (result != null)
+                if (result == null)
                 {
-                    filteredValueProviders.Add(result);
+                    filteredValueProviders.Remove(valueProvider);
                 }
             }
 

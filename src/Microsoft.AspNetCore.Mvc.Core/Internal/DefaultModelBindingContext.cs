@@ -309,7 +309,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         private static IValueProvider FilterValueProvider(IValueProvider valueProvider, BindingSource bindingSource)
         {
-            if (bindingSource == null || bindingSource.IsGreedy)
+            if (bindingSource != null && bindingSource.IsGreedy)
             {
                 return valueProvider;
             }

@@ -2661,7 +2661,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             // Need to have a key here so that the MutableObjectModelBinder will recurse to bind elements.
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
             {
-                request.Headers.Add("GpsCoordinates", "10,20");
+                request.Headers.Add("Info.Value.GpsCoordinates", "10,20");
                 request.QueryString = new QueryString("?Id=1&Info.Key=location1&Info.Value.Zipcode=98052");
             });
 
@@ -2701,7 +2701,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
             entry = Assert.Single(modelState, e => e.Key == "Info.Value.GpsCoordinates").Value;
             Assert.Equal("10,20", entry.AttemptedValue);
-            Assert.Equal(new[] { "10", "20" }, entry.RawValue);
+            Assert.Equal("10,20", entry.RawValue);
         }
 
         private static void SetJsonBodyContent(HttpRequest request, string content)
