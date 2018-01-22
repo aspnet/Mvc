@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MvcSandbox.Pages;
 
 namespace MvcSandbox
 {
@@ -14,7 +17,8 @@ namespace MvcSandbox
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc()
+                .AddRazorPagesOptions(options => options.Conventions.Add(new GenericModelConvention()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -28,6 +32,19 @@ namespace MvcSandbox
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+        }
+
+        private class GenericModelConvention : IPageApplicationModelConvention
+        {
+            public void Apply(PageApplicationModel model)
+            {
+                if (model.ModelType == typeof(GenericPageModel))
+                {
+                    model.ModelType = typeof(GenericPageModel<>)
+                        .MakeGenericType(typeof(string))
+                        .GetTypeInfo();
+                }
+            }
         }
 
         public static void Main(string[] args)

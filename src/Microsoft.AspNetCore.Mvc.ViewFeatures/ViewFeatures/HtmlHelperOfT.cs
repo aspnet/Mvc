@@ -63,6 +63,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             ViewData = viewContext.ViewData as ViewDataDictionary<TModel>;
+            var runtimeType = viewContext.ViewData.GetType().GetGenericArguments()[0];
+            if (typeof(TModel) != runtimeType && typeof(TModel).IsAssignableFrom(runtimeType))
+            {
+                ViewData = new ViewDataDictionary<TModel>(viewContext.ViewData, viewContext.ViewData.Model);
+            }
             if (ViewData == null)
             {
                 // viewContext may contain a base ViewDataDictionary instance. So complain about that type, not TModel.
