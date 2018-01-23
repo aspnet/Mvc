@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,15 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
 {
     public class MvcLocalizationServicesTest
     {
+        private readonly static HtmlTestEncoder HtmlEncoderInstance = new HtmlTestEncoder(); 
+
+        private readonly IDictionary<Type, Tuple<object, ServiceLifetime>> ExpectedServices = new Dictionary<Type, Tuple<object, ServiceLifetime>> {
+            { typeof(IHtmlLocalizerFactory), new Tuple<object, ServiceLifetime>(typeof(HtmlLocalizerFactory), ServiceLifetime.Singleton)},
+            { typeof(IHtmlLocalizer<>),  new Tuple<object, ServiceLifetime>(typeof(HtmlLocalizer<>), ServiceLifetime.Transient)},
+            { typeof(IViewLocalizer), new Tuple<object, ServiceLifetime>(typeof(ViewLocalizer), ServiceLifetime.Transient) },
+            { typeof(IConfigureOptions<RazorViewEngineOptions>), new Tuple<object, ServiceLifetime>(null, ServiceLifetime.Singleton) }
+        };
+
         [Fact]
         public void AddLocalizationServices_AddsNeededServices()
         {
@@ -30,61 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
                 setupAction: null);
 
             // Assert
-            Assert.Collection(collection,
-                service =>
-                {
-                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-
-                service =>
-                {
-                    Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizerFactory), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizerFactory), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizer<>), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizer<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IViewLocalizer), service.ServiceType);
-                    Assert.Equal(typeof(ViewLocalizer), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                });
+            AssertContainsExpected(collection, ExpectedServices);
         }
 
         [Fact]
@@ -92,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
         {
             // Arrange
             var collection = new ServiceCollection();
-            var testEncoder = new HtmlTestEncoder();
+            var testEncoder = HtmlEncoderInstance;
 
             // Act
             collection.Add(ServiceDescriptor.Singleton(typeof(IHtmlLocalizerFactory), typeof(TestHtmlLocalizerFactory)));
@@ -105,65 +61,14 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
                 LanguageViewLocationExpanderFormat.Suffix,
                 setupAction: null);
 
+            var expected = ExpectedServices;
+            expected[typeof(IHtmlLocalizerFactory)] = new Tuple<object, ServiceLifetime>(typeof(TestHtmlLocalizerFactory), ServiceLifetime.Singleton);
+            expected[typeof(IHtmlLocalizer<>)] = new Tuple<object, ServiceLifetime>(typeof(TestHtmlLocalizer<>), ServiceLifetime.Transient);
+            expected[typeof(IViewLocalizer)] = new Tuple<object, ServiceLifetime>(typeof(TestViewLocalizer), ServiceLifetime.Transient);
+            expected.Add(typeof(HtmlEncoder), new Tuple<object, ServiceLifetime>(HtmlEncoderInstance, ServiceLifetime.Singleton));
+
             // Assert
-            Assert.Collection(collection,
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizerFactory), service.ServiceType);
-                    Assert.Equal(typeof(TestHtmlLocalizerFactory), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizer<>), service.ServiceType);
-                    Assert.Equal(typeof(TestHtmlLocalizer<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IViewLocalizer), service.ServiceType);
-                    Assert.Equal(typeof(TestViewLocalizer), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(HtmlEncoder), service.ServiceType);
-                    Assert.Same(testEncoder, service.ImplementationInstance);
-                }, service =>
-                {
-                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                });
+            AssertContainsExpected(collection, expected);
         }
 
         [Fact]
@@ -171,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
         {
             // Arrange
             var collection = new ServiceCollection();
-            var htmlEncoder = new HtmlTestEncoder();
+            var htmlEncoder = HtmlEncoderInstance;
 
             collection.Configure<RazorViewEngineOptions>(options =>
             {
@@ -189,85 +94,13 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
             collection.Add(ServiceDescriptor.Transient(typeof(IHtmlLocalizer), typeof(TestViewLocalizer)));
             collection.Add(ServiceDescriptor.Singleton(typeof(HtmlEncoder), htmlEncoder));
 
-            // Assert
-            Assert.Collection(collection,
-                service =>
-                {
-                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
+            var expected = ExpectedServices;
 
-                service =>
-                {
-                    Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizerFactory), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizerFactory), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizer<>), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizer<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IViewLocalizer), service.ServiceType);
-                    Assert.Equal(typeof(ViewLocalizer), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizer<>), service.ServiceType);
-                    Assert.Equal(typeof(TestHtmlLocalizer<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IHtmlLocalizer), service.ServiceType);
-                    Assert.Equal(typeof(TestViewLocalizer), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(HtmlEncoder), service.ServiceType);
-                    Assert.Same(htmlEncoder, service.ImplementationInstance);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                });
+            expected.Add(typeof(HtmlEncoder), new Tuple<object, ServiceLifetime>(HtmlEncoderInstance, ServiceLifetime.Singleton));
+            expected[typeof(IConfigureOptions<RazorViewEngineOptions>)] = new Tuple<object, ServiceLifetime>(2, ServiceLifetime.Singleton);
+
+            // Assert
+            AssertContainsExpected(collection, ExpectedServices);
         }
 
         [Fact]
@@ -283,61 +116,102 @@ namespace Microsoft.AspNetCore.Mvc.Localization.Internal
                 options => options.ResourcesPath = "Resources");
 
             // Assert
-            Assert.Collection(collection,
-                service =>
-                {
-                    Assert.Equal(typeof(IOptions<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsSnapshot<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsManager<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Scoped, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsMonitor<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsMonitor<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IOptionsFactory<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsFactory<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service => 
-                {
-                    Assert.Equal(typeof(IOptionsMonitorCache<>), service.ServiceType);
-                    Assert.Equal(typeof(OptionsCache<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
+            AssertContainsExpected(collection, ExpectedServices);
+        }
 
-                service =>
+        private static void AssertContainsExpected(IServiceCollection services, IDictionary<Type, Tuple<object, ServiceLifetime>> expectedServices)
+        {
+            foreach(var expectedService in expectedServices)
+            {
+                var implementationType = expectedService.Value.Item1 as Type;
+                var expectedCount = expectedService.Value.Item1 as int?;
+                if(implementationType != null)
                 {
-                    Assert.Equal(typeof(IConfigureOptions<RazorViewEngineOptions>), service.ServiceType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
+                    AssertContainsSingleType(services, expectedService.Key, implementationType, expectedService.Value.Item2);
+                }
+                else if(expectedCount != null)
                 {
-                    Assert.Equal(typeof(IHtmlLocalizerFactory), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizerFactory), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Singleton, service.Lifetime);
-                },
-                service =>
+                    AssertContainsMultiple(services, expectedService.Key, expectedCount.Value, expectedService.Value.Item2);
+                }
+                else
                 {
-                    Assert.Equal(typeof(IHtmlLocalizer<>), service.ServiceType);
-                    Assert.Equal(typeof(HtmlLocalizer<>), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                },
-                service =>
-                {
-                    Assert.Equal(typeof(IViewLocalizer), service.ServiceType);
-                    Assert.Equal(typeof(ViewLocalizer), service.ImplementationType);
-                    Assert.Equal(ServiceLifetime.Transient, service.Lifetime);
-                });
+                    AssertContainsSingleInstance(services, expectedService.Key, expectedService.Value.Item1, expectedService.Value.Item2);
+                }
+            }
+        }
+
+        private static void AssertContainsMultiple(
+            IServiceCollection services,
+            Type serviceType,
+            int expectedCount,
+            ServiceLifetime lifetime)
+        {
+            var matches = services
+                .Where(sd =>
+                    sd.ServiceType == serviceType &&
+                    sd.Lifetime == lifetime)
+                .ToArray();
+
+            if (matches.Length != expectedCount)
+            {
+                Assert.True(
+                    false,
+                    $"Found {matches.Length} instances registered as {serviceType} with {lifetime} lifetime but expected {expectedCount}.");
+            }
+        }
+
+        private static void AssertContainsSingleInstance(
+            IServiceCollection services,
+            Type serviceType,
+            object implementationInstance,
+            ServiceLifetime lifetime)
+        {
+            var matches = services
+                .Where(sd =>
+                    sd.ServiceType == serviceType &&
+                    (sd.ImplementationInstance == implementationInstance || implementationInstance == null) &&
+                    sd.Lifetime == lifetime)
+                .ToArray();
+
+            if (matches.Length == 0)
+            {
+                Assert.True(
+                    false,
+                    $"Could not find the instance of {implementationInstance?.GetType().ToString() ?? "the implementation"} registered as {serviceType} with {lifetime} lifetime.");
+            }
+            else if (matches.Length > 1)
+            {
+                Assert.True(
+                    false,
+                    $"Found multiple instances of {implementationInstance?.GetType().ToString() ?? "the implementation"} registered as {serviceType} with {lifetime} lifetime.");
+            }
+        }
+
+        private static void AssertContainsSingleType(
+            IServiceCollection services,
+            Type serviceType,
+            Type implementationType,
+            ServiceLifetime lifetime)
+        {
+            var matches = services
+                .Where(sd =>
+                    sd.ServiceType == serviceType &&
+                    sd.ImplementationType == implementationType &&
+                    sd.Lifetime == lifetime)
+                .ToArray();
+
+            if (matches.Length == 0)
+            {
+                Assert.True(
+                    false,
+                    $"Could not find an instance of {implementationType} registered as {serviceType} with {lifetime} lifetime.");
+            }
+            else if (matches.Length > 1)
+            {
+                Assert.True(
+                    false,
+                    $"Found multiple instances of {implementationType} registered as {serviceType} with {lifetime} lifetime.");
+            }
         }
     }
 
