@@ -27,11 +27,21 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             Type modelType,
             IModelMetadataProvider metadataProvider,
             PropertyValueAccessors propertyValueAccessors)
+            : this(pageType, modelType, null, metadataProvider, propertyValueAccessors)
+        {
+        }
+
+        public RazorPagePropertyActivator(
+            Type pageType,
+            Type declaredModelType,
+            Type modelType,
+            IModelMetadataProvider metadataProvider,
+            PropertyValueAccessors propertyValueAccessors)
         {
             _metadataProvider = metadataProvider;
 
             // In the absence of a model on the current type, we'll attempt to use ViewDataDictionary<object> on the current type.
-            var viewDataDictionaryModelType = modelType ?? typeof(object);
+            var viewDataDictionaryModelType = declaredModelType ?? modelType ?? typeof(object);
 
             if (viewDataDictionaryModelType != null)
             {

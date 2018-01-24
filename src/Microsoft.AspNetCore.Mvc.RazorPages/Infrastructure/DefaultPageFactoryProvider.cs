@@ -53,6 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var modelType = actionDescriptor.ModelTypeInfo?.AsType() ?? actionDescriptor.PageTypeInfo.AsType();
             var propertyActivator = new RazorPagePropertyActivator(
                 actionDescriptor.PageTypeInfo.AsType(),
+                actionDescriptor.DeclaredModelTypeInfo?.AsType(),
                 modelType,
                 _modelMetadataProvider,
                 _propertyAccessors);

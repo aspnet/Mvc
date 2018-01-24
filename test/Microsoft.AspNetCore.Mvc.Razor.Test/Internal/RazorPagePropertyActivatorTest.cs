@@ -78,6 +78,36 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         [Fact]
+        public void CreateViewDataDictionary_UsesDeclaredTypeOverModelType_WhenCreatingTheViewDataDictionary()
+        {
+            // Arrange
+            var modelMetadataProvider = new TestModelMetadataProvider();
+            var activator = new RazorPagePropertyActivator(
+                typeof(TestPage),
+                declaredModelType: typeof(TestModel),
+                modelType: typeof(DerivedTestModel),
+                metadataProvider: modelMetadataProvider,
+                propertyValueAccessors: null);
+            var original = new ViewDataDictionary(modelMetadataProvider, new ModelStateDictionary())
+            {
+                {  "test-key", "test-value" },
+            };
+            var viewContext = new ViewContext
+            {
+                ViewData = original,
+            };
+
+            // Act
+            var viewDataDictionary = activator.CreateViewDataDictionary(viewContext);
+
+            // Assert
+            Assert.NotNull(viewDataDictionary);
+            Assert.NotSame(original, viewDataDictionary);
+            Assert.IsType<ViewDataDictionary<TestModel>>(viewDataDictionary);
+            Assert.Equal("test-value", viewDataDictionary["test-key"]);
+        }
+
+        [Fact]
         public void CreateViewDataDictionary_CreatesNestedViewDataDictionary_WhenModelTypeDoesNotMatch()
         {
             // Arrange
@@ -191,6 +221,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         private class TestModel
+        {
+        }
+
+        private class DerivedTestModel : TestModel
         {
         }
     }
