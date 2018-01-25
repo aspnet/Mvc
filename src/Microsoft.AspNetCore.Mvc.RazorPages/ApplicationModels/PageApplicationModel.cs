@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             IReadOnlyList<object> handlerAttributes)
         {
             ActionDescriptor = actionDescriptor ?? throw new ArgumentNullException(nameof(actionDescriptor));
+            DeclaredModelType = declaredModelType;
             HandlerType = handlerType;
 
             Filters = new List<IFilterMetadata>();
@@ -121,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public TypeInfo PageType { get; set; }
 
         /// <summary>
-        /// Gets or sets the declared model <see cref="TypeInfo"/> of the model for the page.
+        /// Gets the declared model <see cref="TypeInfo"/> of the model for the page.
         /// Typically this <see cref="TypeInfo"/> will be the type specified by the @model directive
         /// in the razor page.
         /// </summary>

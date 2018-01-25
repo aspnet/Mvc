@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             // Arrange
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: null,
+                declaredModelType: null,
                 metadataProvider: new TestModelMetadataProvider(),
                 propertyValueAccessors: null);
             var viewContext = new ViewContext();
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var modelMetadataProvider = new TestModelMetadataProvider();
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: typeof(TestModel),
+                declaredModelType: typeof(TestModel),
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary(modelMetadataProvider, new ModelStateDictionary())
@@ -85,7 +85,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
                 declaredModelType: typeof(TestModel),
-                modelType: typeof(DerivedTestModel),
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary(modelMetadataProvider, new ModelStateDictionary())
@@ -114,7 +113,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var modelMetadataProvider = new TestModelMetadataProvider();
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: typeof(TestModel),
+                declaredModelType: typeof(TestModel),
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary<object>(modelMetadataProvider, new ModelStateDictionary())
@@ -143,7 +142,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var modelMetadataProvider = new TestModelMetadataProvider();
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: null,
+                declaredModelType: null,
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary<TestModel>(modelMetadataProvider, new ModelStateDictionary())
@@ -172,7 +171,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var modelMetadataProvider = new TestModelMetadataProvider();
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: typeof(TestModel),
+                declaredModelType: typeof(TestModel),
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary<TestModel>(modelMetadataProvider, new ModelStateDictionary())
@@ -199,7 +198,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var modelMetadataProvider = new TestModelMetadataProvider();
             var activator = new RazorPagePropertyActivator(
                 typeof(TestPage),
-                modelType: null,
+                declaredModelType: null,
                 metadataProvider: modelMetadataProvider,
                 propertyValueAccessors: null);
             var original = new ViewDataDictionary<object>(modelMetadataProvider, new ModelStateDictionary());

@@ -110,6 +110,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var descriptor = new CompiledPageActionDescriptor
             {
                 PageTypeInfo = typeof(ViewDataTestPage).GetTypeInfo(),
+                DeclaredModelTypeInfo = typeof(ViewDataTestPageModel).GetTypeInfo(),
                 ModelTypeInfo = typeof(ViewDataTestPageModel).GetTypeInfo()
             };
             descriptor.RelativePath = "/this/is/a/path.cshtml";
@@ -139,6 +140,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 ActionDescriptor = new CompiledPageActionDescriptor
                 {
                     PageTypeInfo = typeof(ViewDataTestPage).GetTypeInfo(),
+                    DeclaredModelTypeInfo = typeof(ViewDataTestPageModel).GetTypeInfo(),
                     ModelTypeInfo = typeof(ViewDataTestPageModel).GetTypeInfo(),
                 },
             };
