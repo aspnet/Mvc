@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
@@ -123,5 +124,20 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         string ICommonModel.Name => ActionName;
 
         public IList<SelectorModel> Selectors { get; }
+
+        public string DisplayName
+        {
+            get
+            {
+                if (Controller == null)
+                {
+                    return ActionMethod.Name;
+                }
+
+                var controllerType = TypeNameHelper.GetTypeDisplayName(Controller.ControllerType);
+                var controllerAssembly = Controller?.ControllerType.Assembly.GetName().Name;
+                return $"{controllerType}.{ActionMethod.Name} ({controllerAssembly})";
+            }
+        }
     }
 }
