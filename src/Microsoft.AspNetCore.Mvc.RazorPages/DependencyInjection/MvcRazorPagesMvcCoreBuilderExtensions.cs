@@ -110,8 +110,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // Page and Page model creation and activation
             services.TryAddSingleton<IPageModelActivatorProvider, DefaultPageModelActivatorProvider>();
             services.TryAddSingleton<IPageModelFactoryProvider, DefaultPageModelFactoryProvider>();
-
             services.TryAddSingleton<IPageActivatorProvider, DefaultPageActivatorProvider>();
+            services.TryAddSingleton<IPageActionExectuorProvider, DefaultPageActionExectuorProvider>();
             services.TryAddSingleton<IPageFactoryProvider, DefaultPageFactoryProvider>();
 
             services.TryAddSingleton<IPageLoader, DefaultPageLoader>();
