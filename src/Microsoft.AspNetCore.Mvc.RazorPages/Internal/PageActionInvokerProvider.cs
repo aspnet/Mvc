@@ -47,6 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         public PageActionInvokerProvider(
             IPageLoader loader,
             IPageFactoryProvider pageFactoryProvider,
+            IPageActionExectuorProvider pageActionExectuorProvider,
             IPageModelFactoryProvider modelFactoryProvider,
             IRazorPageFactoryProvider razorPageFactoryProvider,
             IActionDescriptorCollectionProvider collectionProvider,
@@ -64,6 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _loader = loader;
             _pageFactoryProvider = pageFactoryProvider;
             _modelFactoryProvider = modelFactoryProvider;
+            _pageActionExecutorProvider = pageActionExectuorProvider;
             _razorPageFactoryProvider = razorPageFactoryProvider;
             _collectionProvider = collectionProvider;
             _filterProviders = filterProviders.ToArray();
