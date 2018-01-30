@@ -77,7 +77,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
-            var stopWatch = Stopwatch.StartNew();
+            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
             var originalResult = result;
             if (!result.Success)
@@ -85,6 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 result = viewEngine.FindView(actionContext, viewName, isMainPage: true);
             }
 
+            Logger.ViewResultExecuting(result.ViewName);
             if (!result.Success)
             {
                 if (originalResult.SearchedLocations.Any())
@@ -106,7 +108,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (result.Success)
             {
-                stopWatch.Stop();
                 if (DiagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.ViewFound"))
                 {
                     DiagnosticSource.Write(
@@ -121,7 +122,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         });
                 }
 
-                Logger.ViewFound(viewName, stopWatch.ElapsedMilliseconds);
+                Logger.ViewFound(result.View, startTimestamp);
             }
             else
             {
@@ -157,13 +158,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(result));
             }
 
+            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+
             var viewEngineResult = FindView(context, result);
             viewEngineResult.EnsureSuccessful(originalLocations: null);
 
             var view = viewEngineResult.View;
             using (view as IDisposable)
             {
-                Logger.ViewResultExecuting(view);
 
                 await ExecuteAsync(
                     context,
@@ -173,6 +175,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     result.ContentType,
                     result.StatusCode);
             }
+
+            Logger.ViewResultExecuted(viewEngineResult.ViewName, startTimestamp);
         }
 
         private static string GetActionName(ActionContext context)

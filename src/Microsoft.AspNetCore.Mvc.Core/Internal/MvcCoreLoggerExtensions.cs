@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -29,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
-        private static readonly Action<ILogger, string, string, Exception> _actionExecuting;
+        private static readonly Action<ILogger, StringBuilder, string, Exception> _actionExecuting;
         private static readonly Action<ILogger, string, double, Exception> _actionExecuted;
 
         private static readonly Action<ILogger, string[], Exception> _challengeResultExecuting;
@@ -38,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly Action<ILogger, string, ModelValidationState, Exception> _actionMethodExecuting;
         private static readonly Action<ILogger, string, string[], ModelValidationState, Exception> _actionMethodExecutingWithArguments;
-        private static readonly Action<ILogger, string, string, long, Exception> _actionMethodExecuted;
+        private static readonly Action<ILogger, string, string, double, Exception> _actionMethodExecuted;
 
         private static readonly Action<ILogger, string, string[], Exception> _logFilterExecutionPlan;
         private static readonly Action<ILogger, string, string, Type, Exception> _beforeExecutingMethodOnFilter;
@@ -144,7 +145,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         static MvcCoreLoggerExtensions()
         {
-            _actionExecuting = LoggerMessage.Define<string, string>(
+            _actionExecuting = LoggerMessage.Define<StringBuilder, string>(
                 LogLevel.Information,
                 1,
                 "Route {Route} matched. Executing action {ActionName}");
@@ -166,18 +167,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             _actionMethodExecuting = LoggerMessage.Define<string, ModelValidationState>(
                 LogLevel.Information,
-                0,
-                "Executing action method {ActionName} - {ValidationState}");
+                1,
+                "Executing action method {ActionName} - Validation state: {ValidationState}");
 
             _actionMethodExecutingWithArguments = LoggerMessage.Define<string, string[], ModelValidationState>(
                 LogLevel.Information,
                 1,
-                "Executing action method {ActionName} with arguments ({Arguments}) - {ValidationState}");
+                "Executing action method {ActionName} with arguments ({Arguments}) - Validation state: {ValidationState}");
 
-            _actionMethodExecuted = LoggerMessage.Define<string, string, long>(
+            _actionMethodExecuted = LoggerMessage.Define<string, string, double>(
                 LogLevel.Information,
                 2,
-                "Executed action method {ActionName}, returned result {ActionResult} in {Time}ms.");
+                "Executed action method {ActionName}, returned result {ActionResult} in {ElapsedMilliseconds}ms.");
 
             _logFilterExecutionPlan = LoggerMessage.Define<string, string[]>(
                 LogLevel.Debug,
@@ -651,22 +652,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ExecutingAction(this ILogger logger, ActionDescriptor action)
         {
-            var routeKeys = action.RouteValues.Keys.ToArray();
-            var routeValues = action.RouteValues.Values.ToArray();
-            string route = "\"";
-            for (var i = 0; i < routeValues.Count(); i++)
+            if (logger.IsEnabled(LogLevel.Information))
             {
-                if (i == routeValues.Count() - 1)
+                var routeKeys = action.RouteValues.Keys.ToArray();
+                var routeValues = action.RouteValues.Values.ToArray();
+                var stringBuilder = new StringBuilder();
+                stringBuilder.Append("{");
+                for (var i = 0; i < routeValues.Length; i++)
                 {
-                    route += $"{routeKeys[i]}:{routeValues[i]}\"";
+                    if (i == routeValues.Length - 1)
+                    {
+                        stringBuilder.Append($"{routeKeys[i]} = \"{routeValues[i]}\"}}");
+                    }
+                    else
+                    {
+                        stringBuilder.Append($"{routeKeys[i]} = \"{routeValues[i]}\", ");
+                    }
                 }
-                else
-                {
-                    route += $"{routeKeys[i]}:{routeValues[i]}, ";
-                }
-            }
 
-            _actionExecuting(logger, route, action.DisplayName, null);
+                _actionExecuting(logger, stringBuilder, action.DisplayName, null);
+            }
         }
 
         public static void AuthorizationFiltersExecutionPlan(this ILogger logger, IEnumerable<IFilterMetadata> filters)
@@ -821,12 +826,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result, long time)
+        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result, long startTimestamp)
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                var actionName = context.ActionDescriptor.DisplayName;
-                _actionMethodExecuted(logger, actionName, Convert.ToString(result), time, null);
+                if (startTimestamp != 0)
+                {
+                    var currentTimestamp = Stopwatch.GetTimestamp();
+                    var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
+
+                    var actionName = context.ActionDescriptor.DisplayName;
+                    _actionMethodExecuted(logger, actionName, Convert.ToString(result), elapsed.TotalMilliseconds, null);
+                }
             }
         }
 

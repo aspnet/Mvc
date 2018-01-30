@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -76,7 +77,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
             var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
-            var stopWatch = Stopwatch.StartNew();
+            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: false);
             var originalResult = result;
             if (!result.Success)
@@ -84,6 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 result = viewEngine.FindView(actionContext, viewName, isMainPage: false);
             }
 
+            Logger.PartialViewResultExecuting(result.ViewName);
             if (!result.Success)
             {
                 if (originalResult.SearchedLocations.Any())
@@ -105,8 +108,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (result.Success)
             {
-                stopWatch.Stop();
-
                 DiagnosticSource.ViewFound(
                     actionContext,
                     isMainPage: false,
@@ -114,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     viewName: viewName,
                     view: result.View);
 
-                Logger.PartialViewFound(viewName, stopWatch.ElapsedMilliseconds);
+                Logger.PartialViewFound(result.View, startTimestamp);
             }
             else
             {
@@ -155,8 +156,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(viewResult));
             }
 
-            Logger.PartialViewResultExecuting(view);
-
             return ExecuteAsync(
                 actionContext,
                 view,
@@ -179,6 +178,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(result));
             }
 
+            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+
             var viewEngineResult = FindView(context, result);
             viewEngineResult.EnsureSuccessful(originalLocations: null);
 
@@ -187,6 +188,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
                 await ExecuteAsync(context, view, result);
             }
+
+            Logger.PartialViewResultExecuted(result.ViewName, startTimestamp);
         }
 
         private static string GetActionName(ActionContext context)

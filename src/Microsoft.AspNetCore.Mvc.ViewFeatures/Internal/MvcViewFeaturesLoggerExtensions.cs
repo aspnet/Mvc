@@ -18,16 +18,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private static readonly Action<ILogger, string, string[], Exception> _viewComponentExecuting;
         private static readonly Action<ILogger, string, double, string, Exception> _viewComponentExecuted;
 
-        private static readonly Action<ILogger, string, long, Exception> _partialViewFound;
+        private static readonly Action<ILogger, string, double, Exception> _partialViewFound;
         private static readonly Action<ILogger, string, IEnumerable<string>, Exception> _partialViewNotFound;
         private static readonly Action<ILogger, string, Exception> _partialViewResultExecuting;
+        private static readonly Action<ILogger, string, double, Exception> _partialViewResultExecuted;
 
         private static readonly Action<ILogger, string, Exception> _antiforgeryTokenInvalid;
 
         private static readonly Action<ILogger, string, Exception> _viewComponentResultExecuting;
 
         private static readonly Action<ILogger, string, Exception> _viewResultExecuting;
-        private static readonly Action<ILogger, string, long, Exception> _viewFound;
+        private static readonly Action<ILogger, string, double, Exception> _viewResultExecuted;
+        private static readonly Action<ILogger, string, double, Exception> _viewFound;
         private static readonly Action<ILogger, string, IEnumerable<string>, Exception> _viewNotFound;
 
         private static readonly Action<ILogger, string, Exception> _tempDataCookieNotFound;
@@ -54,15 +56,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 1,
                 "Executing PartialViewResult, running view at path {Path}.");
 
-            _partialViewFound = LoggerMessage.Define<string, long>(
-                LogLevel.Information,
+            _partialViewFound = LoggerMessage.Define<string, double>(
+                LogLevel.Debug,
                 2,
-                "The partial view '{PartialViewName}' was found in {Time}ms.");
+                "The partial view '{PartialViewName}' was found in {ElapsedMilliseconds}ms.");
 
             _partialViewNotFound = LoggerMessage.Define<string, IEnumerable<string>>(
                 LogLevel.Error,
                 3,
                 "The partial view '{PartialViewName}' was not found. Searched locations: {SearchedViewLocations}");
+
+            _partialViewResultExecuted = LoggerMessage.Define<string, double>(
+                LogLevel.Information,
+                4,
+                "Executed PartialViewResult - view at path {Path} in {ElapsedMilliseconds}ms.");
 
             _antiforgeryTokenInvalid = LoggerMessage.Define<string>(
                 LogLevel.Information,
@@ -79,15 +86,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 1,
                 "Executing ViewResult, running view at path {Path}.");
 
-            _viewFound = LoggerMessage.Define<string, long>(
-                LogLevel.Information,
+            _viewFound = LoggerMessage.Define<string, double>(
+                LogLevel.Debug,
                 2,
-                "The view '{ViewName}' was found in {Time}ms.");
+                "The view '{ViewName}' was found in {ElapsedMilliseconds}ms.");
 
             _viewNotFound = LoggerMessage.Define<string, IEnumerable<string>>(
                 LogLevel.Error,
                 3,
                 "The view '{ViewName}' was not found. Searched locations: {SearchedViewLocations}");
+
+            _viewResultExecuted = LoggerMessage.Define<string, double>(
+                LogLevel.Information,
+                4,
+                "Executed ViewResult - view at path {Path} in {ElapsedMilliseconds}ms.");
 
             _tempDataCookieNotFound = LoggerMessage.Define<string>(
                 LogLevel.Debug,
@@ -163,10 +175,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static void PartialViewFound(
             this ILogger logger,
-            string partialViewName,
-            long time)
+            IView view,
+            long startTimeStamp)
         {
-            _partialViewFound(logger, partialViewName, time, null);
+            _partialViewFound(logger, view.Path, GetElapsedMilliseconds(startTimeStamp), null);
         }
 
         public static void PartialViewNotFound(
@@ -177,9 +189,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _partialViewNotFound(logger, partialViewName, searchedLocations, null);
         }
 
-        public static void PartialViewResultExecuting(this ILogger logger, IView view)
+        public static void PartialViewResultExecuting(this ILogger logger, string partialViewName)
         {
-            _partialViewResultExecuting(logger, view.Path, null);
+            _partialViewResultExecuting(logger, partialViewName, null);
+        }
+
+        public static void PartialViewResultExecuted(this ILogger logger, string partialViewName, long startTimeStamp)
+        {
+            _partialViewResultExecuted(logger, partialViewName, GetElapsedMilliseconds(startTimeStamp), null);
         }
 
         public static void AntiforgeryTokenInvalid(this ILogger logger, string message, Exception exception)
@@ -203,14 +220,19 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             }
         }
 
-        public static void ViewResultExecuting(this ILogger logger, IView view)
+        public static void ViewResultExecuting(this ILogger logger, string viewName)
         {
-            _viewResultExecuting(logger, view.Path, null);
+            _viewResultExecuting(logger, viewName, null);
         }
 
-        public static void ViewFound(this ILogger logger, string viewName, long time)
+        public static void ViewResultExecuted(this ILogger logger, string viewName, long startTimeStamp)
         {
-            _viewFound(logger, viewName, time, null);
+            _viewResultExecuted(logger, viewName, GetElapsedMilliseconds(startTimeStamp), null);
+        }
+
+        public static void ViewFound(this ILogger logger, IView view, long startTimeStamp)
+        {
+            _viewFound(logger, view.Path, GetElapsedMilliseconds(startTimeStamp), null);
         }
 
         public static void ViewNotFound(this ILogger logger, string viewName,
@@ -237,6 +259,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         public static void NotMostEffectiveFilter(this ILogger logger, Type policyType)
         {
             _notMostEffectiveFilter(logger, policyType, null);
+        }
+
+        private static double GetElapsedMilliseconds(long startTimestamp)
+        {
+            TimeSpan elapsed;
+            if (startTimestamp != 0)
+            {
+                var currentTimestamp = Stopwatch.GetTimestamp();
+                elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
+            }
+
+            return elapsed.TotalMilliseconds;
         }
 
         private class ViewComponentLogScope : IReadOnlyList<KeyValuePair<string, object>>
