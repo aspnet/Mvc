@@ -28,6 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private readonly IPageLoader _loader;
         private readonly IPageFactoryProvider _pageFactoryProvider;
+        private readonly IPageActionExectuorProvider _pageActionExecutorProvider;
         private readonly IPageModelFactoryProvider _modelFactoryProvider;
         private readonly IRazorPageFactoryProvider _razorPageFactoryProvider;
         private readonly IActionDescriptorCollectionProvider _collectionProvider;
@@ -46,6 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         public PageActionInvokerProvider(
             IPageLoader loader,
             IPageFactoryProvider pageFactoryProvider,
+            IPageActionExectuorProvider pageActionExectuorProvider,
             IPageModelFactoryProvider modelFactoryProvider,
             IRazorPageFactoryProvider razorPageFactoryProvider,
             IActionDescriptorCollectionProvider collectionProvider,
@@ -63,6 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _loader = loader;
             _pageFactoryProvider = pageFactoryProvider;
             _modelFactoryProvider = modelFactoryProvider;
+            _pageActionExecutorProvider = pageActionExectuorProvider;
             _razorPageFactoryProvider = razorPageFactoryProvider;
             _collectionProvider = collectionProvider;
             _filterProviders = filterProviders.ToArray();
@@ -187,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             var viewStartFactories = GetViewStartFactories(compiledActionDescriptor);
 
-            var executors = GetExecutors(compiledActionDescriptor);
+            var executors = _pageActionExecutorProvider.GetExecutors(compiledActionDescriptor);
 
             return new PageActionInvokerCacheEntry(
                 compiledActionDescriptor,
@@ -220,23 +223,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             }
 
             return viewStartFactories;
-        }
-
-        private static Func<object, object[], Task<IActionResult>>[] GetExecutors(CompiledPageActionDescriptor actionDescriptor)
-        {
-            if (actionDescriptor.HandlerMethods == null || actionDescriptor.HandlerMethods.Count == 0)
-            {
-                return Array.Empty<Func<object, object[], Task<IActionResult>>>();
-            }
-
-            var results = new Func<object, object[], Task<IActionResult>>[actionDescriptor.HandlerMethods.Count];
-
-            for (var i = 0; i < actionDescriptor.HandlerMethods.Count; i++)
-            {
-                results[i] = ExecutorFactory.CreateExecutor(actionDescriptor.HandlerMethods[i]);
-            }
-
-            return results;
         }
 
         internal class InnerCache
