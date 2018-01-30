@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private static readonly Action<ILogger, string, string[], Exception> _viewComponentExecuting;
         private static readonly Action<ILogger, string, double, string, Exception> _viewComponentExecuted;
 
-        private static readonly Action<ILogger, string, Exception> _partialViewFound;
+        private static readonly Action<ILogger, string, long, Exception> _partialViewFound;
         private static readonly Action<ILogger, string, IEnumerable<string>, Exception> _partialViewNotFound;
         private static readonly Action<ILogger, string, Exception> _partialViewResultExecuting;
 
@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         private static readonly Action<ILogger, string, Exception> _viewComponentResultExecuting;
 
         private static readonly Action<ILogger, string, Exception> _viewResultExecuting;
-        private static readonly Action<ILogger, string, Exception> _viewFound;
+        private static readonly Action<ILogger, string, long, Exception> _viewFound;
         private static readonly Action<ILogger, string, IEnumerable<string>, Exception> _viewNotFound;
 
         private static readonly Action<ILogger, string, Exception> _tempDataCookieNotFound;
@@ -54,10 +54,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 1,
                 "Executing PartialViewResult, running view at path {Path}.");
 
-            _partialViewFound = LoggerMessage.Define<string>(
-                LogLevel.Debug,
+            _partialViewFound = LoggerMessage.Define<string, long>(
+                LogLevel.Information,
                 2,
-                "The partial view '{PartialViewName}' was found.");
+                "The partial view '{PartialViewName}' was found in {Time}ms.");
 
             _partialViewNotFound = LoggerMessage.Define<string, IEnumerable<string>>(
                 LogLevel.Error,
@@ -79,10 +79,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 1,
                 "Executing ViewResult, running view at path {Path}.");
 
-            _viewFound = LoggerMessage.Define<string>(
-                LogLevel.Debug,
+            _viewFound = LoggerMessage.Define<string, long>(
+                LogLevel.Information,
                 2,
-                "The view '{ViewName}' was found.");
+                "The view '{ViewName}' was found in {Time}ms.");
 
             _viewNotFound = LoggerMessage.Define<string, IEnumerable<string>>(
                 LogLevel.Error,
@@ -163,9 +163,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public static void PartialViewFound(
             this ILogger logger,
-            string partialViewName)
+            string partialViewName,
+            long time)
         {
-            _partialViewFound(logger, partialViewName, null);
+            _partialViewFound(logger, partialViewName, time, null);
         }
 
         public static void PartialViewNotFound(
@@ -207,9 +208,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _viewResultExecuting(logger, view.Path, null);
         }
 
-        public static void ViewFound(this ILogger logger, string viewName)
+        public static void ViewFound(this ILogger logger, string viewName, long time)
         {
-            _viewFound(logger, viewName, null);
+            _viewFound(logger, viewName, time, null);
         }
 
         public static void ViewNotFound(this ILogger logger, string viewName,

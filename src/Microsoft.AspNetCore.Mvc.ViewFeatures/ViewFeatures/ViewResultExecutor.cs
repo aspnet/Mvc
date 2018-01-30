@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
@@ -78,6 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
+            var stopWatch = Stopwatch.StartNew();
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
             var originalResult = result;
             if (!result.Success)
@@ -106,6 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             if (result.Success)
             {
+                stopWatch.Stop();
                 if (DiagnosticSource.IsEnabled("Microsoft.AspNetCore.Mvc.ViewFound"))
                 {
                     DiagnosticSource.Write(
@@ -120,7 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         });
                 }
 
-                Logger.ViewFound(viewName);
+                Logger.ViewFound(viewName, stopWatch.ElapsedMilliseconds);
             }
             else
             {

@@ -346,7 +346,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     arguments,
                     controller);
                 logger.ActionMethodExecuting(controllerContext, orderedArguments);
-
+                var stopWatch = Stopwatch.StartNew();
                 var actionResultValueTask = actionMethodExecutor.Execute(objectMethodExecutor, controller, orderedArguments);
                 if (actionResultValueTask.IsCompletedSuccessfully)
                 {
@@ -358,7 +358,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
 
                 _result = result;
-                logger.ActionMethodExecuted(controllerContext, result);
+                stopWatch.Stop();
+                logger.ActionMethodExecuted(controllerContext, result, stopWatch.ElapsedMilliseconds);
             }
             finally
             {

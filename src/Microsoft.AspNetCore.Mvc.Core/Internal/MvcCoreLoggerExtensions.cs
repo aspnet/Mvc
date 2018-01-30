@@ -29,15 +29,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
-        private static readonly Action<ILogger, string, Exception> _actionExecuting;
+        private static readonly Action<ILogger, string, string, Exception> _actionExecuting;
         private static readonly Action<ILogger, string, double, Exception> _actionExecuted;
 
         private static readonly Action<ILogger, string[], Exception> _challengeResultExecuting;
 
         private static readonly Action<ILogger, string, Exception> _contentResultExecuting;
 
-        private static readonly Action<ILogger, string, string[], ModelValidationState, Exception> _actionMethodExecuting;
-        private static readonly Action<ILogger, string, string, Exception> _actionMethodExecuted;
+        private static readonly Action<ILogger, string, ModelValidationState, Exception> _actionMethodExecuting;
+        private static readonly Action<ILogger, string, string[], ModelValidationState, Exception> _actionMethodExecutingWithArguments;
+        private static readonly Action<ILogger, string, string, long, Exception> _actionMethodExecuted;
 
         private static readonly Action<ILogger, string, string[], Exception> _logFilterExecutionPlan;
         private static readonly Action<ILogger, string, string, Type, Exception> _beforeExecutingMethodOnFilter;
@@ -143,10 +144,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         static MvcCoreLoggerExtensions()
         {
-            _actionExecuting = LoggerMessage.Define<string>(
-                LogLevel.Debug,
+            _actionExecuting = LoggerMessage.Define<string, string>(
+                LogLevel.Information,
                 1,
-                "Executing action {ActionName}");
+                "Route {Route} matched. Executing action {ActionName}");
 
             _actionExecuted = LoggerMessage.Define<string, double>(
                 LogLevel.Information,
@@ -163,15 +164,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 1,
                 "Executing ContentResult with HTTP Response ContentType of {ContentType}");
 
-            _actionMethodExecuting = LoggerMessage.Define<string, string[], ModelValidationState>(
+            _actionMethodExecuting = LoggerMessage.Define<string, ModelValidationState>(
+                LogLevel.Information,
+                0,
+                "Executing action method {ActionName} - {ValidationState}");
+
+            _actionMethodExecutingWithArguments = LoggerMessage.Define<string, string[], ModelValidationState>(
                 LogLevel.Information,
                 1,
-                "Executing action method {ActionName} with arguments ({Arguments}) - ModelState is {ValidationState}");
+                "Executing action method {ActionName} with arguments ({Arguments}) - {ValidationState}");
 
-            _actionMethodExecuted = LoggerMessage.Define<string, string>(
-                LogLevel.Debug,
+            _actionMethodExecuted = LoggerMessage.Define<string, string, long>(
+                LogLevel.Information,
                 2,
-                "Executed action method {ActionName}, returned result {ActionResult}.");
+                "Executed action method {ActionName}, returned result {ActionResult} in {Time}ms.");
 
             _logFilterExecutionPlan = LoggerMessage.Define<string, string[]>(
                 LogLevel.Debug,
@@ -645,7 +651,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         public static void ExecutingAction(this ILogger logger, ActionDescriptor action)
         {
-            _actionExecuting(logger, action.DisplayName, null);
+            var routeKeys = action.RouteValues.Keys.ToArray();
+            var routeValues = action.RouteValues.Values.ToArray();
+            string route = "\"";
+            for (var i = 0; i < routeValues.Count(); i++)
+            {
+                if (i == routeValues.Count() - 1)
+                {
+                    route += $"{routeKeys[i]}:{routeValues[i]}\"";
+                }
+                else
+                {
+                    route += $"{routeKeys[i]}:{routeValues[i]}, ";
+                }
+            }
+
+            _actionExecuting(logger, route, action.DisplayName, null);
         }
 
         public static void AuthorizationFiltersExecutionPlan(this ILogger logger, IEnumerable<IFilterMetadata> filters)
@@ -780,10 +801,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var actionName = context.ActionDescriptor.DisplayName;
 
+                var validationState = context.ModelState.ValidationState;
+
                 string[] convertedArguments;
                 if (arguments == null)
                 {
-                    convertedArguments = null;
+                    _actionMethodExecuting(logger, actionName, validationState, null);
                 }
                 else
                 {
@@ -792,20 +815,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         convertedArguments[i] = Convert.ToString(arguments[i]);
                     }
+
+                    _actionMethodExecutingWithArguments(logger, actionName, convertedArguments, validationState, null);
                 }
-
-                var validationState = context.ModelState.ValidationState;
-
-                _actionMethodExecuting(logger, actionName, convertedArguments, validationState, null);
             }
         }
 
-        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result)
+        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result, long time)
         {
-            if (logger.IsEnabled(LogLevel.Debug))
+            if (logger.IsEnabled(LogLevel.Information))
             {
                 var actionName = context.ActionDescriptor.DisplayName;
-                _actionMethodExecuted(logger, actionName, Convert.ToString(result), null);
+                _actionMethodExecuted(logger, actionName, Convert.ToString(result), time, null);
             }
         }
 
