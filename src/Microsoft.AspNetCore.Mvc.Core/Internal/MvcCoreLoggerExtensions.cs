@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
-        private static readonly Action<ILogger, StringBuilder, string, Exception> _actionExecuting;
+        private static readonly Action<ILogger, string, string, Exception> _actionExecuting;
         private static readonly Action<ILogger, string, double, Exception> _actionExecuted;
 
         private static readonly Action<ILogger, string[], Exception> _challengeResultExecuting;
@@ -145,10 +145,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         static MvcCoreLoggerExtensions()
         {
-            _actionExecuting = LoggerMessage.Define<StringBuilder, string>(
+            _actionExecuting = LoggerMessage.Define<string, string>(
                 LogLevel.Information,
                 1,
-                "Route {Route} matched. Executing action {ActionName}");
+                "Route matched with {RouteData}. Executing action {ActionName}");
 
             _actionExecuted = LoggerMessage.Define<string, double>(
                 LogLevel.Information,
@@ -670,7 +670,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     }
                 }
 
-                _actionExecuting(logger, stringBuilder, action.DisplayName, null);
+                _actionExecuting(logger, stringBuilder.ToString(), action.DisplayName, null);
             }
         }
 
@@ -747,18 +747,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _afterExecutingMethodOnFilter(logger, filterType, methodName, filter.GetType(), null);
         }
 
-        public static void ExecutedAction(this ILogger logger, ActionDescriptor action, long startTimestamp)
+        public static void ExecutedAction(this ILogger logger, ActionDescriptor action, TimeSpan timeSpan)
         {
             // Don't log if logging wasn't enabled at start of request as time will be wildly wrong.
             if (logger.IsEnabled(LogLevel.Information))
             {
-                if (startTimestamp != 0)
-                {
-                    var currentTimestamp = Stopwatch.GetTimestamp();
-                    var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
-
-                    _actionExecuted(logger, action.DisplayName, elapsed.TotalMilliseconds, null);
-                }
+                _actionExecuted(logger, action.DisplayName, timeSpan.TotalMilliseconds, null);
             }
         }
 
@@ -826,18 +820,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result, long startTimestamp)
+        public static void ActionMethodExecuted(this ILogger logger, ControllerContext context, IActionResult result, TimeSpan timeSpan)
         {
             if (logger.IsEnabled(LogLevel.Information))
             {
-                if (startTimestamp != 0)
-                {
-                    var currentTimestamp = Stopwatch.GetTimestamp();
-                    var elapsed = new TimeSpan((long)(TimestampToTicks * (currentTimestamp - startTimestamp)));
-
-                    var actionName = context.ActionDescriptor.DisplayName;
-                    _actionMethodExecuted(logger, actionName, Convert.ToString(result), elapsed.TotalMilliseconds, null);
-                }
+                var actionName = context.ActionDescriptor.DisplayName;
+                _actionMethodExecuted(logger, actionName, Convert.ToString(result), timeSpan.TotalMilliseconds, null);
             }
         }
 

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -77,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
-            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+            var stopwatch = ValueStopwatch.StartNew();
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: true);
             var originalResult = result;
@@ -122,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         });
                 }
 
-                Logger.ViewFound(result.View, startTimestamp);
+                Logger.ViewFound(result.View, stopwatch.GetElapsedTime());
             }
             else
             {
@@ -158,7 +159,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(result));
             }
 
-            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+            var stopwatch = ValueStopwatch.StartNew();
 
             var viewEngineResult = FindView(context, result);
             viewEngineResult.EnsureSuccessful(originalLocations: null);
@@ -176,7 +177,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     result.StatusCode);
             }
 
-            Logger.ViewResultExecuted(viewEngineResult.ViewName, startTimestamp);
+            Logger.ViewResultExecuted(viewEngineResult.ViewName, stopwatch.GetElapsedTime());
         }
 
         private static string GetActionName(ActionContext context)

@@ -346,7 +346,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     arguments,
                     controller);
                 logger.ActionMethodExecuting(controllerContext, orderedArguments);
-                var startTimestamp = _logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+                var stopwatch = ValueStopwatch.StartNew();
                 var actionResultValueTask = actionMethodExecutor.Execute(objectMethodExecutor, controller, orderedArguments);
                 if (actionResultValueTask.IsCompletedSuccessfully)
                 {
@@ -358,7 +358,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
 
                 _result = result;
-                logger.ActionMethodExecuted(controllerContext, result, startTimestamp);
+                logger.ActionMethodExecuted(controllerContext, result, stopwatch.GetElapsedTime());
             }
             finally
             {

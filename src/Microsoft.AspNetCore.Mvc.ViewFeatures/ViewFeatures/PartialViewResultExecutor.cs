@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var viewEngine = viewResult.ViewEngine ?? ViewEngine;
             var viewName = viewResult.ViewName ?? GetActionName(actionContext);
 
-            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+            var stopwatch = ValueStopwatch.StartNew();
 
             var result = viewEngine.GetView(executingFilePath: null, viewPath: viewName, isMainPage: false);
             var originalResult = result;
@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     viewName: viewName,
                     view: result.View);
 
-                Logger.PartialViewFound(result.View, startTimestamp);
+                Logger.PartialViewFound(result.View, stopwatch.GetElapsedTime());
             }
             else
             {
@@ -178,7 +178,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(result));
             }
 
-            var startTimestamp = Logger.IsEnabled(LogLevel.Information) ? Stopwatch.GetTimestamp() : 0;
+            var stopwatch = ValueStopwatch.StartNew();
 
             var viewEngineResult = FindView(context, result);
             viewEngineResult.EnsureSuccessful(originalLocations: null);
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 await ExecuteAsync(context, view, result);
             }
 
-            Logger.PartialViewResultExecuted(result.ViewName, startTimestamp);
+            Logger.PartialViewResultExecuted(result.ViewName, stopwatch.GetElapsedTime());
         }
 
         private static string GetActionName(ActionContext context)
