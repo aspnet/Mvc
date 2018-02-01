@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             _viewFound = LoggerMessage.Define<string, double>(
                 LogLevel.Debug,
                 2,
-                "The view path '{FilePath}' was found in {ElapsedMilliseconds}ms.");
+                "The view path '{ViewFilePath}' was found in {ElapsedMilliseconds}ms.");
 
             _viewNotFound = LoggerMessage.Define<string, IEnumerable<string>>(
                 LogLevel.Error,
