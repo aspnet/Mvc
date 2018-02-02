@@ -107,17 +107,63 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 // by around one microsecond, so it's not worth it to complicate the logic here with
                 // an architecture check.
 
-                var memberExpression = expression.Body as MemberExpression;
-                if (memberExpression != null)
+                if (expression.Body is MemberExpression memberExpression)
                 {
-                    if (memberExpression.Expression == expression.Parameters[0] || memberExpression.Expression == null)
+                    if (memberExpression.Expression == null)
                     {
-                        // model => model.Member or model => StaticMember
+                        // model => model => StaticMember
                         return _simpleMemberAccessCache.GetOrAdd(memberExpression.Member, _ => expression.Compile());
                     }
 
-                    var constantExpression = memberExpression.Expression as ConstantExpression;
-                    if (constantExpression != null)
+                    if (memberExpression.Expression == expression.Parameters[0])
+                    {
+                        // model => model.Member
+                        if (memberExpression.Member.DeclaringType.IsValueType &&
+                            Nullable.GetUnderlyingType(memberExpression.Type) == null)
+                        {
+                            // struct.Member
+                            return _simpleMemberAccessCache.GetOrAdd(memberExpression.Member, _ => expression.Compile());
+                        }
+                        else if (!memberExpression.Type.IsValueType &&
+                                 Nullable.GetUnderlyingType(memberExpression.Type) != null)
+                        {
+                            // class.class, class.nullable, nullable.class, nullable.nullable
+                            return _simpleMemberAccessCache.GetOrAdd(memberExpression.Member, _ =>
+                            {
+                                // Add null conditional
+                                var replacementMemberExpression = Expression.Lambda<Func<TModel, TResult>>(
+                                    Expression.Condition(
+                                        Expression.NotEqual(memberExpression.Expression,
+                                            Expression.Constant(null, typeof(object))),
+                                        expression,
+                                        Expression.Convert(
+                                            Expression.Constant(null, typeof(object)),
+                                            memberExpression.Type)),
+                                    expression.Parameters);
+
+                                return replacementMemberExpression.Compile();
+                            });
+                        }
+                        else
+                        {
+                            // class.struct, nullable.struct
+                            return _simpleMemberAccessCache.GetOrAdd(memberExpression.Member, _ =>
+                            {
+                                // Add null conditional to default
+                                var replacementMemberExpression = Expression.Lambda<Func<TModel, TResult>>(
+                                    Expression.Condition(
+                                        Expression.NotEqual(memberExpression.Expression,
+                                            Expression.Constant(null, typeof(object))),
+                                        expression,
+                                        Expression.Default(memberExpression.Type)),
+                                    expression.Parameters);
+
+                                return replacementMemberExpression.Compile();
+                            });
+                        }
+                    }
+
+                    if (memberExpression.Expression is ConstantExpression constantExpression)
                     {
                         // model => {const}.Member (captured local variable)
                         var compiledExpression = _constMemberAccessCache.GetOrAdd(memberExpression.Member, _ =>
