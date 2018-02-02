@@ -175,8 +175,10 @@ namespace Microsoft.Extensions.DependencyInjection
             // This caches Razor page activation details that are valid for the lifetime of the application.
             services.TryAddSingleton<IRazorPageActivator, RazorPageActivator>();
 
-            // Only want one ITagHelperActivator so it can cache Type activation information. Types won't conflict.
+            // Only want one ITagHelperActivator and ITagHelperComponentContextInitializer so it can cache Type activation information. Types won't conflict.
             services.TryAddSingleton<ITagHelperActivator, DefaultTagHelperActivator>();
+            services.TryAddSingleton<ITagHelperComponentContextInitializer, DefaultTagHelperComponentContextInitializer>();
+
             services.TryAddSingleton<ITagHelperFactory, DefaultTagHelperFactory>();
 
             // TagHelperComponents manager

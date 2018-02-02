@@ -3,13 +3,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Testing;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
@@ -282,12 +291,62 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             Assert.Equal($"Tag helper component '{typeof(TestTagHelperComponent)}' processed.", sink.Writes[0].State.ToString(), StringComparer.Ordinal);
         }
 
+        [Fact]
+        public void Init_InitializesTagHelperComponent_WithViewContext()
+        {
+            // Arrange            
+            var tagHelperContext = new TagHelperContext(
+                "head",
+                allAttributes: new TagHelperAttributeList(
+                    Enumerable.Empty<TagHelperAttribute>()),
+                items: new Dictionary<object, object>(),
+                uniqueId: "test");
+
+            var output = new TagHelperOutput(
+                "head",
+                attributes: new TagHelperAttributeList(),
+                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
+                    new DefaultTagHelperContent()));
+
+            var testTagHelperComponentManager = new TagHelperComponentManager(new[]
+            {
+                new TestTagHelperComponent()
+            });
+
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelperWithViewContext(
+                testTagHelperComponentManager, 
+                new DefaultTagHelperComponentContextInitializer(), 
+                NullLoggerFactory.Instance);
+
+            var viewContext = CreateViewContext(new DefaultHttpContext());
+            var viewDataValue = new object();
+            viewContext.ViewData.Add("TestData", viewDataValue);
+            testTagHelperComponentTagHelper.ViewContext = viewContext;
+
+            // Act
+            testTagHelperComponentTagHelper.Init(tagHelperContext);
+
+            // Assert
+            Assert.Same(viewContext.ViewData, testTagHelperComponentTagHelper.ViewContext.ViewData);
+        }
+
         private class TestTagHelperComponentTagHelper : TagHelperComponentTagHelper
         {
             public TestTagHelperComponentTagHelper(
                 ITagHelperComponentManager manager,
                 ILoggerFactory loggerFactory)
                 : base(manager, loggerFactory)
+            {
+            }
+        }
+
+        private class TestTagHelperComponentTagHelperWithViewContext : TagHelperComponentTagHelper
+        {
+            public TestTagHelperComponentTagHelperWithViewContext(
+                ITagHelperComponentManager manager,
+                ITagHelperComponentContextInitializer contextInitializer,
+                ILoggerFactory loggerFactory)
+                : base(manager, contextInitializer, loggerFactory)
             {
             }
         }
@@ -355,6 +414,22 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 output.PostContent.AppendHtml("Processed" + Order);
                 return Task.CompletedTask;
             }
+        }
+
+        private static ViewContext CreateViewContext(HttpContext httpContext)
+        {
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+            var metadataProvider = new EmptyModelMetadataProvider();
+            var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
+            var viewContext = new ViewContext(
+                actionContext,
+                Mock.Of<IView>(),
+                viewData,
+                Mock.Of<ITempDataDictionary>(),
+                TextWriter.Null,
+                new HtmlHelperOptions());
+
+            return viewContext;
         }
     }
 }

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         private readonly ILogger _logger;
 
         private readonly IEnumerable<ITagHelperComponent> _components;
+        private readonly ITagHelperComponentContextInitializer _contextInitializer;
 
         /// <summary>
         /// Creates a new <see cref="TagHelperComponentTagHelper"/> and orders the 
@@ -49,11 +52,53 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
+        /// <summary>
+        /// Creates a new <see cref="TagHelperComponentTagHelper"/> and orders the 
+        /// the collection of <see cref="ITagHelperComponent"/>s in <see cref="ITagHelperComponentManager.Components"/>.
+        /// </summary>
+        /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the collection
+        /// of <see cref="ITagHelperComponent"/>s.</param>
+        /// <param name="contextInitializer">The <see cref="ITagHelperComponentContextInitializer"/> initializes 
+        /// <see cref="ViewContext"/> for each <see cref="ITagHelperComponent"/> before being processed.</param>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+        /// <remarks>The <see cref="ITagHelperComponentManager.Components"/> are ordered after the 
+        /// creation of the <see cref="ITagHelperComponentManager"/> to position the <see cref="ITagHelperComponent"/>s
+        /// added from controllers and views correctly.</remarks>
+        public TagHelperComponentTagHelper(
+            ITagHelperComponentManager manager,
+            ITagHelperComponentContextInitializer contextInitializer,
+            ILoggerFactory loggerFactory)
+        {
+            if (manager == null)
+            {
+                throw new ArgumentNullException(nameof(manager));
+            }
+
+            if (contextInitializer == null)
+            {
+                throw new ArgumentNullException(nameof(contextInitializer));
+            }
+
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _components = manager.Components.OrderBy(p => p.Order).ToArray();
+            _contextInitializer = contextInitializer;
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
+        [ViewContext]
+        [HtmlAttributeNotBound]
+        public ViewContext ViewContext { get; set; }
+
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
             foreach (var component in _components)
             {
+                _contextInitializer?.InitializeViewContext(component, ViewContext);
                 component.Init(context);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
