@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             MvcEncodedTestFixture<RazorWebSite.Startup> encodedFixture)
         {
             Client = fixture.CreateClient();
-            EncodedClient = encodedfixture.CreateClient();
+            EncodedClient = encodedFixture.CreateClient();
         }
 
         public HttpClient Client { get; }
