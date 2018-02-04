@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public TempDataInCookiesUsingCookieConsentTest(
             MvcTestFixture<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent> fixture)
         {
-            _client = fixture.Client;
+            _client = fixture.CreateClient();
         }
 
         [Fact]

@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public SerializableErrorTests(MvcTestFixture<XmlFormattersWebSite.Startup> fixture)
         {
-            Client = fixture.Client;
+            Client = fixture.CreateClient();
         }
 
         public HttpClient Client { get; }

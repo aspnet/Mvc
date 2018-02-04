@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RequestFormLimitsTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
-            Client = fixture.Client;
+            Client = fixture.CreateClient();
         }
 
         public HttpClient Client { get; }

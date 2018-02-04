@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public TempDataInSessionTest(MvcTestFixture<BasicWebSite.StartupWithSessionTempDataProvider> fixture)
         {
-            Client = fixture.Client;
+            Client = fixture.CreateClient();
         }
 
         protected override HttpClient Client { get; }

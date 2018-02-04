@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         private TestServer _server;
         private HttpClient _client;
         private IWebHostBuilder _builder;
+        private IList<HttpClient> _clients = new List<HttpClient>();
 
         /// <summary>
         /// <para>
@@ -44,6 +45,26 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </summary>
         public WebApplicationTestFixture()
         {
+        }
+
+        /// <summary>
+        /// The <see cref="IWebHostBuilder"/> used to create the <see cref="TestServer"/>.
+        /// </summary>
+        public IWebHostBuilder WebHostBuilder
+        {
+            get
+            {
+                if(_server != null)
+                {
+                    throw new InvalidOperationException($"The '{nameof(TestServer)}' instance was already built.");
+                }
+                if (_builder == null)
+                {
+                    EnsureBuilder();
+                }
+
+                return _builder;
+            }
         }
 
         private void EnsureServer()
@@ -131,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                     // Find the list of projects referencing TStartup.
                     var candidates = runtimeProjectLibraries
                         .Where(rpl => rpl.Key.Dependencies
-                            .Any(d => string.Equals(d.Name,startupRuntimeLibrary.Key.Name, StringComparison.Ordinal)));
+                            .Any(d => string.Equals(d.Name, startupRuntimeLibrary.Key.Name, StringComparison.Ordinal)));
 
                     return candidates.SelectMany(rl => rl.Value).Select(Assembly.Load);
                 }
@@ -193,21 +214,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
         }
 
-        /// <summary>
-        /// Gives a fixture an opportunity to configure the application before it gets built.
-        /// </summary>
-        /// <param name="configure">The <see cref="Action{IWebHostBuilder}"/> to configure the <see cref="IWebHostBuilder"/>.</param>
-        public void ConfigureWebHost(Action<IWebHostBuilder> configure)
-        {
-            if (_server != null)
-            {
-                throw new InvalidOperationException("The server was already built.");
-            }
-
-            EnsureBuilder();
-            configure(_builder);
-        }
-
         private void EnsureBuilder()
         {
             if (_builder != null)
@@ -220,34 +226,13 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         }
 
         /// <summary>
-        /// Gets an instance of the <see cref="HttpClient"/> used to send <see cref="HttpRequestMessage"/> to the server.
-        /// </summary>
-        public HttpClient Client
-        {
-            get
-            {
-                EnsureServer();
-                if (_client == null)
-                {
-                    _client = _server.CreateClient();
-                }
-
-                return _client;
-            }
-        }
-
-        /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
         /// send <see cref="HttpRequestMessage"/> to the server.
         /// </summary>
         /// <returns>The <see cref="HttpClient"/></returns>
-        public HttpClient CreateClient()
+        public HttpClient CreateClient(params DelegatingHandler[] handlers)
         {
-            EnsureServer();
-            var client = _server.CreateClient();
-            client.BaseAddress = new Uri("http://localhost");
-
-            return client;
+            return CreateClient(new Uri("http://localhost"),Array.Empty<DelegatingHandler>());
         }
 
         /// <summary>
@@ -270,7 +255,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
             else
             {
-
                 for (var i = handlers.Length - 1; i > 1; i--)
                 {
                     handlers[i - 1].InnerHandler = handlers[i];
@@ -278,8 +262,13 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
                 var serverHandler = _server.CreateHandler();
                 handlers[handlers.Length - 1].InnerHandler = serverHandler;
-                var client = new HttpClient(handlers[0]);
-                client.BaseAddress = baseAddress;
+
+                var client = new HttpClient(handlers[0])
+                {
+                    BaseAddress = baseAddress
+                };
+
+                _clients.Add(client);
 
                 return client;
             }
@@ -288,7 +277,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <inheritdoc />
         public void Dispose()
         {
-            Client?.Dispose();
+            foreach (var client in _clients)
+            {
+                client.Dispose();
+            }
+
             _server?.Dispose();
         }
     }

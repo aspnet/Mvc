@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public FormFileUploadTest(MvcTestFixture<FilesWebSite.Startup> fixture)
         {
-            Client = fixture.Client;
+            Client = fixture.CreateClient();
         }
 
         public HttpClient Client { get; }
