@@ -68,14 +68,18 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             string contentRoot = null;
             for (var i = 0; i < metadataAttributes.Length; i++)
             {
-                var metadataAttribute = metadataAttributes[i];
+                var contentRootAttribute = metadataAttributes[i];
+                var contentRootCandidate = Path.Combine(
+                    AppContext.BaseDirectory,
+                    contentRootAttribute.ContentRootPath);
+
                 var contentRootMarker = Path.Combine(
-                    metadataAttribute.ContentRootPath,
-                    Path.GetFileName(metadataAttribute.ContentRootTest));
+                    contentRootCandidate,
+                    Path.GetFileName(contentRootAttribute.ContentRootTest));
 
                 if (File.Exists(contentRootMarker))
                 {
-                    contentRoot = metadataAttribute.ContentRootPath;
+                    contentRoot = contentRootCandidate;
                     break;
                 }
             }
