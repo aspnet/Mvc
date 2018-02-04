@@ -15,23 +15,33 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
-  <Target 
-      Name="AddContentRootForProjectReferences"
-      BeforeTargets="BeforeCompile"
-      DependsOnTargets="PrepareForBuild;GetReferenceAssemblyPaths">
+    <Target Name="_CollectProjectReferences" DependsOnTargets="$(ResolveAssemblyReferences)" Returns="@(_ContentRootProjectReferences)">
+      <ItemGroup>
+        <_ContentRootProjectReferences Include="@(ReferencePath)" Condition="'%(ReferenceSourceTarget)' == 'ProjectReference'" />
+      </ItemGroup>
+    </Target>
+
+  <Target Name="AddContentRootForProjectReferences" BeforeTargets="BeforeCompile" DependsOnTargets="_CollectProjectReferences">
     <ItemGroup>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-        <_Parameter1>Microsoft.AspNetCore.Testing.ContentRoot[$([System.IO.Path]::GetFileName(%(_ResolvedProjectReferencePaths.FullPath)))]</_Parameter1>
-        <_Parameter2>$([System.IO.Path]::GetDirectoryName(%(_ResolvedProjectReferencePaths.MSBuildSourceProjectFile)))</_Parameter2>
+      <ContentRootAttributes Include="%(_ContentRootProjectReferences.Identity)" AssemblyFullName="%(_ContentRootProjectReferences.FusionName)" ContentRootPath="$([System.IO.Path]::GetDirectoryName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))" ContentRootTest="$([System.IO.Path]::GetFileName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))" Priority="0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="Microsoft.AspNetCore.Mvc.Testing.WebApplicationFixtureContentRootAttribute">
+        <_Parameter1>%(ContentRootAttributes.AssemblyFullName)</_Parameter1>
+        <_Parameter2>%(ContentRootAttributes.ContentRootPath)</_Parameter2>
+        <_Parameter3>%(ContentRootAttributes.ContentRootTest)</_Parameter3>
+        <_Parameter4>%(ContentRootAttributes.Priority)</_Parameter4>
       </AssemblyAttribute>
     </ItemGroup>
   </Target>
 
-  <Target Name="CopyAditionalFiles" AfterTargets="Build" Condition="'$(TargetFramework)'!=''">
+  <Target Name="CopyAditionalFiles" AfterTargets="Build;_CollectProjectReferences" Condition="'$(TargetFramework)'!=''">
     <ItemGroup>
-      <DepsFilePaths Include="$([System.IO.Path]::ChangeExtension('%(_ResolvedProjectReferencePaths.FullPath)', '.deps.json'))" />
+      <DepsFilePaths Include="$([System.IO.Path]::ChangeExtension('%(_ContentRootProjectReferences.ResolvedFrom)', '.deps.json'))" />
     </ItemGroup>
 
     <Copy SourceFiles="%(DepsFilePaths.FullPath)" DestinationFolder="$(OutputPath)" Condition="Exists('%(DepsFilePaths.FullPath)')" />
   </Target>
+
 </Project>

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,10 +20,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     public class WebApplicationTestFixture<TStartup> : IDisposable where TStartup : class
     {
         private TestServer _server;
-        private string _solutionRelativeContentRootPath;
         private HttpClient _client;
         private IWebHostBuilder _builder;
-        private readonly string _solutionSearchPattern;
 
         /// <summary>
         /// <para>
@@ -49,119 +46,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
         }
 
-        /// <summary>
-        /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
-        /// </para>
-        /// <para>
-        /// This constructor will infer the application root directive by searching for a solution file (*.sln) and then
-        /// appending the path <paramref name="solutionRelativePath"/> to the solution directory.The application root
-        /// directory will be used to discover views and content files.
-        /// </para>
-        /// <para>
-        /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
-        /// </para>
-        /// </summary>
-        /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
-        /// application. The folder of the first .sln file found traversing up the folder hierarchy from the test execution
-        /// folder is considered as the base path.</param>
-        protected WebApplicationTestFixture(string solutionRelativePath)
-            : this("*.sln", solutionRelativePath)
-        {
-        }
-
-        /// <summary>
-        /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
-        /// </para>
-        /// <para>
-        /// This constructor will infer the application root directive by searching for a solution file that matches the pattern
-        /// <paramref name="solutionSearchPattern"/> and then appending the path <paramref name="solutionRelativePath"/>
-        /// to the solution directory.The application root directory will be used to discover views and content files.
-        /// </para>
-        /// <para>
-        /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
-        /// </para>
-        /// </summary>
-        /// <param name="solutionSearchPattern">The glob pattern to use when searching for a solution file by
-        /// traversing up the folder hierarchy from the test execution folder.</param>
-        /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
-        /// application. The folder of the first sln file that matches the <paramref name="solutionSearchPattern"/>
-        /// found traversing up the folder hierarchy from the test execution folder is considered as the base path.</param>
-        protected WebApplicationTestFixture(string solutionRelativePath, string solutionSearchPattern)
-        {
-            _solutionRelativeContentRootPath = solutionRelativePath;
-            _solutionSearchPattern = solutionSearchPattern;
-        }
-
-        /// <summary>
-        /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
-        /// </para>
-        /// <para>
-        /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
-        /// </para>
-        /// </summary>
-        public static WebApplicationTestFixture<TStartup> Create() =>
-            new WebApplicationTestFixture<TStartup>();
-
-        /// <summary>
-        /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
-        /// </para>
-        /// <para>
-        /// This constructor will infer the application root directive by searching for a solution file (*.sln) and then
-        /// appending the path <paramref name="solutionRelativePath"/> to the solution directory.The application root
-        /// directory will be used to discover views and content files.
-        /// </para>
-        /// <para>
-        /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
-        /// </para>
-        /// </summary>
-        /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
-        /// application. The folder of the first .sln file found traversing up the folder hierarchy from the test execution
-        /// folder is considered as the base path.</param>
-        public static WebApplicationTestFixture<TStartup> Create(string solutionRelativePath) =>
-            new WebApplicationTestFixture<TStartup>(solutionRelativePath);
-
-        /// <summary>
-        /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
-        /// </para>
-        /// <para>
-        /// This constructor will infer the application root directive by searching for a solution file that matches the pattern
-        /// <paramref name="solutionSearchPattern"/> and then appending the path <paramref name="solutionRelativePath"/>
-        /// to the solution directory.The application root directory will be used to discover views and content files.
-        /// </para>
-        /// <para>
-        /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
-        /// </para>
-        /// </summary>
-        /// <param name="solutionSearchPattern">The glob pattern to use when searching for a solution file by
-        /// traversing up the folder hierarchy from the test execution folder.</param>
-        /// <param name="solutionRelativePath">The path to the project folder relative to the solution file of your
-        /// application. The folder of the first sln file that matches the <paramref name="solutionSearchPattern"/>
-        /// found traversing up the folder hierarchy from the test execution folder is considered as the base path.</param>
-        public static WebApplicationTestFixture<TStartup> Create(
-            string solutionRelativePath,
-            string solutionSearchPattern) =>
-            new WebApplicationTestFixture<TStartup>(solutionRelativePath, solutionSearchPattern);
-
         private void EnsureServer()
         {
             if (_server != null)
@@ -180,88 +64,85 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void SetContentRoot()
         {
-            if (_solutionRelativeContentRootPath != null)
+            var metadataAttributes = GetContentRootMetadataAttributes(typeof(TStartup).Assembly.FullName);
+            string contentRoot = null;
+            for (var i = 0; i < metadataAttributes.Length; i++)
             {
-                if (_solutionSearchPattern == null)
+                var metadataAttribute = metadataAttributes[i];
+                var contentRootMarker = Path.Combine(
+                    metadataAttribute.ContentRootPath,
+                    Path.GetFileName(metadataAttribute.ContentRootTest));
+
+                if (File.Exists(contentRootMarker))
                 {
-                    _builder.UseSolutionRelativeContentRoot(_solutionRelativeContentRootPath);
+                    contentRoot = metadataAttribute.ContentRootPath;
+                    break;
                 }
-                else
-                {
-                    _builder.UseSolutionRelativeContentRoot(_solutionRelativeContentRootPath, _solutionSearchPattern);
-                }
+            }
+
+            if (contentRoot != null)
+            {
+                _builder.UseContentRoot(contentRoot);
             }
             else
             {
-                var metadataAttributes = GetContentRootMetadataAttributes();
-                var startupAssembly = typeof(TStartup).Assembly;
-                // We use codebase because the assembly might have been shadow-copied. Assembly.Location will reflect the
-                // path on disk of the shadow-copied dll, while Assembly.CodeBase will reflect the location of the original
-                // assembly.
-                var assemblyFile = new Uri(startupAssembly.CodeBase).Segments.Last();
-                var metadataKey = $"Microsoft.AspNetCore.Testing.ContentRoot[{assemblyFile}]";
-                string contentRoot = null;
-                for (var i = 0; i < metadataAttributes.Length; i++)
-                {
-                    var metadataAttribute = metadataAttributes[i];
-                    if (string.Equals(metadataAttribute.Key, metadataKey, StringComparison.OrdinalIgnoreCase))
-                    {
-                        contentRoot = metadataAttribute.Value;
-                        break;
-                    }
-                }
-
-                if (contentRoot != null)
-                {
-                    _builder.UseContentRoot(contentRoot);
-                }
-                else
-                {
-                    _builder.UseSolutionRelativeContentRoot(startupAssembly.GetName().Name);
-                }
+                _builder.UseSolutionRelativeContentRoot(typeof(TStartup).Assembly.GetName().Name);
             }
         }
 
-        private static AssemblyMetadataAttribute[] GetContentRootMetadataAttributes()
+        private static WebApplicationFixtureContentRootAttribute[] GetContentRootMetadataAttributes(string key)
         {
             var testAssembly = GetCandidateAssemblies();
             var metadataAttributes = testAssembly
-                .SelectMany(a => a.GetCustomAttributes<AssemblyMetadataAttribute>())
-                .Where(ama => ama.Key.StartsWith("Microsoft.AspNetCore.Testing.ContentRoot"))
+                .SelectMany(a => a.GetCustomAttributes<WebApplicationFixtureContentRootAttribute>())
+                .Where(a => string.Equals(a.Key, key, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(a => int.Parse(a.Priority))
                 .ToArray();
+
             return metadataAttributes;
         }
 
         private static IEnumerable<Assembly> GetCandidateAssemblies()
         {
-            // The default dependency context will be populated in .net core applications.
-            var context = DependencyContext.Default;
-            if (context != null)
+            try
             {
-                // Find the list of projects
-                var projects = context.CompileLibraries.Where(l => l.Type == "project");
+                // The default dependency context will be populated in .net core applications.
+                var context = DependencyContext.Default;
+                if (context != null)
+                {
+                    // Find the list of projects
+                    var projects = context.CompileLibraries.Where(l => l.Type == "project");
 
-                // Find the list of projects runtime information and their assembly names.
-                var runtimeProjectLibraries = context.RuntimeLibraries
-                    .Where(r => projects.Any(p => p.Name == r.Name))
-                    .ToDictionary(r=>r, r => r.GetDefaultAssemblyNames(context).ToArray());
+                    // Find the list of projects runtime information and their assembly names.
+                    var runtimeProjectLibraries = context.RuntimeLibraries
+                        .Where(r => projects.Any(p => p.Name == r.Name))
+                        .ToDictionary(r => r, r => r.GetDefaultAssemblyNames(context).ToArray());
 
-                var startupAssemblyName = typeof(TStartup).Assembly.GetName().Name;
+                    var startupAssemblyName = typeof(TStartup).Assembly.GetName().Name;
 
-                // Find the project containing TStartup
-                var startupRuntimeLibrary = runtimeProjectLibraries
-                    .Single(rpl => rpl.Value.Any(a => a.Name.Equals(startupAssemblyName)));
+                    // Find the project containing TStartup
+                    var startupRuntimeLibrary = runtimeProjectLibraries
+                        .Single(rpl => rpl.Value.Any(a => string.Equals(a.Name, startupAssemblyName, StringComparison.Ordinal)));
 
-                // Find the list of projects depending on TStartup library.
-                var candidates = runtimeProjectLibraries.Where(rpl => rpl.Key.Dependencies.Any(d => d.Name == startupRuntimeLibrary.Key.Name));
+                    // Find the list of projects referencing TStartup.
+                    var candidates = runtimeProjectLibraries
+                        .Where(rpl => rpl.Key.Dependencies
+                            .Any(d => string.Equals(d.Name,startupRuntimeLibrary.Key.Name, StringComparison.Ordinal)));
 
-                return candidates.SelectMany(rl => rl.Value).Select(Assembly.Load);
+                    return candidates.SelectMany(rl => rl.Value).Select(Assembly.Load);
+                }
+                else
+                {
+                    // The app domain friendly name will be populated in full framework.
+                    return new[] { Assembly.Load(AppDomain.CurrentDomain.FriendlyName) };
+                }
             }
-            else
+            catch (Exception e)
             {
-                // The app domain friendly name will be populated in full framework.
-                return new[] { Assembly.Load(AppDomain.CurrentDomain.FriendlyName) };
+                Console.WriteLine(e);
             }
+
+            return Array.Empty<Assembly>();
         }
 
         private void EnsureDepsFile()
