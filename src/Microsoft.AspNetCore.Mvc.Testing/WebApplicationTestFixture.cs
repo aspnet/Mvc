@@ -20,7 +20,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     public class WebApplicationTestFixture<TStartup> : IDisposable where TStartup : class
     {
         private TestServer _server;
-        private HttpClient _client;
         private IWebHostBuilder _builder;
         private IList<HttpClient> _clients = new List<HttpClient>();
 
