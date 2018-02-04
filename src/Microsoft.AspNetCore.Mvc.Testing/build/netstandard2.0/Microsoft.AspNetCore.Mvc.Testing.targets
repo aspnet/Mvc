@@ -17,7 +17,7 @@
 
     <Target Name="_CollectProjectReferences" DependsOnTargets="$(ResolveAssemblyReferences)" Returns="@(_ContentRootProjectReferences)">
       <ItemGroup>
-        <_ContentRootProjectReferences Include="@(ReferencePath)" Condition="'%(ReferenceSourceTarget)' == 'ProjectReference'" />
+        <_ContentRootProjectReferences Include="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceSourceTarget)' == 'ProjectReference'" />
       </ItemGroup>
     </Target>
 
@@ -43,5 +43,5 @@
 
     <Copy SourceFiles="%(DepsFilePaths.FullPath)" DestinationFolder="$(OutputPath)" Condition="Exists('%(DepsFilePaths.FullPath)')" />
   </Target>
-
+    
 </Project>
