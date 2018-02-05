@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
 {
-    public class DefaultTagHelperComponentContextInitializerTest
+    public class TagHelperComponentPropertyActivatorTest
     {
         [Fact]
         public void InitializesViewContext()
@@ -27,10 +27,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
             var viewContext = CreateViewContext(new DefaultHttpContext());
             var viewDataValue = "Value";
             viewContext.ViewData.Add("TestData", viewDataValue);
-            var contextInitializer = new DefaultTagHelperComponentContextInitializer();
+            var contextInitializer = new TagHelperComponentPropertyActivator();
 
             // Act
-            contextInitializer.InitializeViewContext(tagHelperComponent, viewContext);
+            contextInitializer.Activate(viewContext, tagHelperComponent);
 
             // Assert
             Assert.Same(viewContext, tagHelperComponent.ViewContext);

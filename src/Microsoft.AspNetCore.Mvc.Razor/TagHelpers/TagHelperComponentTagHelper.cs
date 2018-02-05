@@ -20,9 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     public abstract class TagHelperComponentTagHelper : TagHelper
     {
         private readonly ILogger _logger;
-
         private readonly IEnumerable<ITagHelperComponent> _components;
-        private readonly ITagHelperComponentContextInitializer _contextInitializer;
 
         /// <summary>
         /// Creates a new <see cref="TagHelperComponentTagHelper"/> and orders the 
@@ -58,15 +56,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// </summary>
         /// <param name="manager">The <see cref="ITagHelperComponentManager"/> which contains the collection
         /// of <see cref="ITagHelperComponent"/>s.</param>
-        /// <param name="contextInitializer">The <see cref="ITagHelperComponentContextInitializer"/> initializes 
-        /// <see cref="ViewContext"/> for each <see cref="ITagHelperComponent"/> before being processed.</param>
+        /// <param name="propertyActivator">The <see cref="ITagHelperComponentPropertyActivator"/> activates
+        /// properties of <see cref="ITagHelperComponent"/>s.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
         /// <remarks>The <see cref="ITagHelperComponentManager.Components"/> are ordered after the 
         /// creation of the <see cref="ITagHelperComponentManager"/> to position the <see cref="ITagHelperComponent"/>s
         /// added from controllers and views correctly.</remarks>
         public TagHelperComponentTagHelper(
             ITagHelperComponentManager manager,
-            ITagHelperComponentContextInitializer contextInitializer,
+            ITagHelperComponentPropertyActivator propertyActivator,
             ILoggerFactory loggerFactory)
         {
             if (manager == null)
@@ -74,9 +72,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 throw new ArgumentNullException(nameof(manager));
             }
 
-            if (contextInitializer == null)
+            if (propertyActivator == null)
             {
-                throw new ArgumentNullException(nameof(contextInitializer));
+                throw new ArgumentNullException(nameof(propertyActivator));
             }
 
             if (loggerFactory == null)
@@ -85,9 +83,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             }
 
             _components = manager.Components.OrderBy(p => p.Order).ToArray();
-            _contextInitializer = contextInitializer;
+            PropertyActivator = propertyActivator;
             _logger = loggerFactory.CreateLogger(GetType());
         }
+
+        public ITagHelperComponentPropertyActivator PropertyActivator;
 
         [ViewContext]
         [HtmlAttributeNotBound]
@@ -96,9 +96,16 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         /// <inheritdoc />
         public override void Init(TagHelperContext context)
         {
+            if (PropertyActivator == null)
+            {
+                var serviceProvider = ViewContext.HttpContext.RequestServices;
+                PropertyActivator = serviceProvider.GetService(typeof(ITagHelperComponentPropertyActivator))
+                    as TagHelperComponentPropertyActivator;
+            }
+
             foreach (var component in _components)
             {
-                _contextInitializer?.InitializeViewContext(component, ViewContext);
+                PropertyActivator?.Activate(ViewContext, component);
                 component.Init(context);
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {

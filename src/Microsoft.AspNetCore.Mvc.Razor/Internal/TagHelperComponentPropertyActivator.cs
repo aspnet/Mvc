@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -12,30 +13,41 @@ using Microsoft.Extensions.Internal;
 namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 {
     /// <summary>
-    /// Default implementation of <see cref="ITagHelperComponentContextInitializer"/>.
+    /// Default implementation of <see cref="ITagHelperComponentPropertyActivator"/>.
     /// </summary>
-    public class DefaultTagHelperComponentContextInitializer : ITagHelperComponentContextInitializer
+    internal class TagHelperComponentPropertyActivator : ITagHelperComponentPropertyActivator
     {
+        private readonly ConcurrentDictionary<Type, PropertyActivator<ViewContext>[]> _propertiesToActivate;
+        private readonly Func<Type, PropertyActivator<ViewContext>[]> _getPropertiesToActivate;
+        private static readonly Func<PropertyInfo, PropertyActivator<ViewContext>> _createActivateInfo = CreateActivateInfo;
+
+        public TagHelperComponentPropertyActivator()
+        {
+            _propertiesToActivate = new ConcurrentDictionary<Type, PropertyActivator<ViewContext>[]>();
+            _getPropertiesToActivate = type =>
+            PropertyActivator<ViewContext>.GetPropertiesToActivate(
+                type,
+                typeof(ViewContextAttribute),
+                _createActivateInfo);
+        }
+
         /// <inheritdoc />
-        public ITagHelperComponent InitializeViewContext(ITagHelperComponent tagHelperComponent, ViewContext context)
+        public void Activate(ViewContext context, ITagHelperComponent tagHelperComponent)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var propertiesToActivate = PropertyActivator<ViewContext>.GetPropertiesToActivate(
+            var propertiesToActivate = _propertiesToActivate.GetOrAdd(
                 tagHelperComponent.GetType(),
-                typeof(ViewContextAttribute),
-                CreateActivateInfo);
+                _getPropertiesToActivate);
 
             for (var i = 0; i < propertiesToActivate.Length; i++)
             {
                 var activateInfo = propertiesToActivate[i];
                 activateInfo.Activate(tagHelperComponent, context);
             }
-
-            return tagHelperComponent;
         }
 
         private static PropertyActivator<ViewContext> CreateActivateInfo(PropertyInfo property)
