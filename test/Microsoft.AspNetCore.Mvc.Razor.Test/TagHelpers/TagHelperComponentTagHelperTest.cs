@@ -3,18 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -66,10 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     processAsyncCallback: null),
             });
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance)
-            {
-                ViewContext = CreateViewContext(new DefaultHttpContext())
-            };
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance);
 
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
@@ -124,10 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                     }),
             });
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance)
-            {
-                ViewContext = CreateViewContext(new DefaultHttpContext())
-            };
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance);
 
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
@@ -159,10 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 new TestTagHelperComponent()
             });
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance)
-            {
-                ViewContext = CreateViewContext(new DefaultHttpContext())
-            };
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, NullLoggerFactory.Instance);
 
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
@@ -259,10 +244,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 new TestTagHelperComponent()
             });
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, loggerFactory)
-            {
-                ViewContext = CreateViewContext(new DefaultHttpContext())
-            };
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(testTagHelperComponentManager, loggerFactory);
 
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
@@ -315,12 +297,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 items: new Dictionary<object, object>(),
                 uniqueId: "test");
 
-            var output = new TagHelperOutput(
-                "head",
-                attributes: new TagHelperAttributeList(),
-                getChildContentAsync: (useCachedResult, encoder) => Task.FromResult<TagHelperContent>(
-                    new DefaultTagHelperContent()));
-
             var testTagHelperComponentManager = new TagHelperComponentManager(new[]
             {
                 new TestTagHelperComponent()
@@ -330,15 +306,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 testTagHelperComponentManager,
                 NullLoggerFactory.Instance);
 
-            var viewContext = CreateViewContext(new DefaultHttpContext());
-            testTagHelperComponentTagHelper.ViewContext = viewContext;
-
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
 
             // Assert
             Assert.NotNull(testTagHelperComponentTagHelper.PropertyActivator);
-            Assert.Same(viewContext.ViewData, testTagHelperComponentTagHelper.ViewContext.ViewData);
         }
 
         private class TestTagHelperComponentTagHelper : TagHelperComponentTagHelper
@@ -348,6 +320,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 ILoggerFactory loggerFactory)
                 : base(manager, loggerFactory)
             {
+                ViewContext = CreateViewContext();
             }
         }
 
@@ -416,23 +389,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             }
         }
 
-        private static ViewContext CreateViewContext(HttpContext httpContext)
+        private static ViewContext CreateViewContext()
         {
-            var serviceProvider = new ServiceCollection()
+            var viewContext = Mock.Of<ViewContext>();
+            var httpContext = new DefaultHttpContext()
+            {
+                RequestServices = new ServiceCollection()
                 .AddSingleton<ITagHelperComponentPropertyActivator>(new TagHelperComponentPropertyActivator())
-                .BuildServiceProvider();
-            httpContext.RequestServices = serviceProvider;
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
-            var viewContext = new ViewContext(
-                actionContext,
-                Mock.Of<IView>(),
-                viewData,
-                Mock.Of<ITempDataDictionary>(),
-                TextWriter.Null,
-                new HtmlHelperOptions());
+                .BuildServiceProvider()
+            };
 
+            viewContext.HttpContext = httpContext;
             return viewContext;
         }
     }

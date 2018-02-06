@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
     public interface ITagHelperComponentPropertyActivator
     {
         /// <summary>
-        /// Activates properties of the <see cref="ITagHelperComponent"/>.
+        /// Activates properties of the <paramref name="tagHelperComponent"/>.
         /// </summary>
         /// <param name="context">The <see cref="ViewContext"/> for the executing view.</param>
         /// <param name="tagHelperComponent">The <see cref="ITagHelperComponent"/> to activate properties of.</param>

@@ -1,34 +1,30 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
-using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
+namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 {
     public class TagHelperComponentPropertyActivatorTest
     {
         [Fact]
-        public void InitializesViewContext()
+        public void Activate_InitializesViewContext()
         {
             // Arrange
             var tagHelperComponent = new TestTagHelperComponent();
-            var viewContext = CreateViewContext(new DefaultHttpContext());
+            var viewContext = CreateViewContext();
 
-            var contextInitializer = new TagHelperComponentPropertyActivator();
+            var propertyActivator = new TagHelperComponentPropertyActivator();
 
             // Act
-            contextInitializer.Activate(viewContext, tagHelperComponent);
+            propertyActivator.Activate(viewContext, tagHelperComponent);
 
             // Assert
             Assert.Same(viewContext, tagHelperComponent.ViewContext);
@@ -51,19 +47,17 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
             }
         }
 
-        private static ViewContext CreateViewContext(HttpContext httpContext)
+        private static ViewContext CreateViewContext()
         {
-            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
-            var metadataProvider = new EmptyModelMetadataProvider();
-            var viewData = new ViewDataDictionary(metadataProvider, new ModelStateDictionary());
-            var viewContext = new ViewContext(
-                actionContext,
-                Mock.Of<IView>(),
-                viewData,
-                Mock.Of<ITempDataDictionary>(),
-                TextWriter.Null,
-                new HtmlHelperOptions());
+            var viewContext = Mock.Of<ViewContext>();
+            var httpContext = new DefaultHttpContext()
+            {
+                RequestServices = new ServiceCollection()
+                .AddSingleton<ITagHelperComponentPropertyActivator>(new TagHelperComponentPropertyActivator())
+                .BuildServiceProvider()
+            };
 
+            viewContext.HttpContext = httpContext;
             return viewContext;
         }
     }

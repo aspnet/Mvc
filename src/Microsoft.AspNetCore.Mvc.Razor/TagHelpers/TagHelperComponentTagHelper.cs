@@ -51,6 +51,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
+        /// <summary>
+        /// Activates the <see cref="ViewContext"/> property of all the <see cref="ITagHelperComponentManager.Components"/>.
+        /// </summary>
         [HtmlAttributeNotBound]
         public ITagHelperComponentPropertyActivator PropertyActivator { get; set; }
 
