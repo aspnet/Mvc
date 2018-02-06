@@ -391,7 +391,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
 
         private static ViewContext CreateViewContext()
         {
-            var viewContext = Mock.Of<ViewContext>();
             var httpContext = new DefaultHttpContext()
             {
                 RequestServices = new ServiceCollection()
@@ -399,7 +398,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 .BuildServiceProvider()
             };
 
-            viewContext.HttpContext = httpContext;
+            var viewContext = Mock.Of<ViewContext>(vc => vc.HttpContext == httpContext);
             return viewContext;
         }
     }
