@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -25,8 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
             // Arrange
             var tagHelperComponent = new TestTagHelperComponent();
             var viewContext = CreateViewContext(new DefaultHttpContext());
-            var viewDataValue = "Value";
-            viewContext.ViewData.Add("TestData", viewDataValue);
+
             var contextInitializer = new TagHelperComponentPropertyActivator();
 
             // Act
@@ -45,7 +43,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Test.TagHelpers
 
             public void Init(TagHelperContext context)
             {
-                context.Items["Key"] = "Value";
             }
 
             public Task ProcessAsync(TagHelperContext context, TagHelperOutput output)

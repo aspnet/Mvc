@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor
 {
     /// <summary>
     /// Default implementation of <see cref="ITagHelperComponentPropertyActivator"/>.
@@ -24,8 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         public TagHelperComponentPropertyActivator()
         {
             _propertiesToActivate = new ConcurrentDictionary<Type, PropertyActivator<ViewContext>[]>();
-            _getPropertiesToActivate = type =>
-            PropertyActivator<ViewContext>.GetPropertiesToActivate(
+            _getPropertiesToActivate = type => PropertyActivator<ViewContext>.GetPropertiesToActivate(
                 type,
                 typeof(ViewContextAttribute),
                 _createActivateInfo);

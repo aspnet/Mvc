@@ -305,7 +305,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         }
 
         [Fact]
-        public void Init_InitializesTagHelperComponent_WithViewContext()
+        public void Init_GetsTagHelperComponentPropertyActivator_FromRequestServices()
         {
             // Arrange            
             var tagHelperContext = new TagHelperContext(
@@ -326,20 +326,18 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 new TestTagHelperComponent()
             });
 
-            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelperWithViewContext(
+            var testTagHelperComponentTagHelper = new TestTagHelperComponentTagHelper(
                 testTagHelperComponentManager,
-                new TagHelperComponentPropertyActivator(),
                 NullLoggerFactory.Instance);
 
             var viewContext = CreateViewContext(new DefaultHttpContext());
-            var viewDataValue = new object();
-            viewContext.ViewData.Add("TestData", viewDataValue);
             testTagHelperComponentTagHelper.ViewContext = viewContext;
 
             // Act
             testTagHelperComponentTagHelper.Init(tagHelperContext);
 
             // Assert
+            Assert.NotNull(testTagHelperComponentTagHelper.PropertyActivator);
             Assert.Same(viewContext.ViewData, testTagHelperComponentTagHelper.ViewContext.ViewData);
         }
 
@@ -349,17 +347,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
                 ITagHelperComponentManager manager,
                 ILoggerFactory loggerFactory)
                 : base(manager, loggerFactory)
-            {
-            }
-        }
-
-        private class TestTagHelperComponentTagHelperWithViewContext : TagHelperComponentTagHelper
-        {
-            public TestTagHelperComponentTagHelperWithViewContext(
-                ITagHelperComponentManager manager,
-                ITagHelperComponentPropertyActivator propertyActivator,
-                ILoggerFactory loggerFactory)
-                : base(manager, propertyActivator, loggerFactory)
             {
             }
         }
@@ -432,7 +419,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.TagHelpers
         private static ViewContext CreateViewContext(HttpContext httpContext)
         {
             var serviceProvider = new ServiceCollection()
-                .AddSingleton(new TagHelperComponentPropertyActivator())
+                .AddSingleton<ITagHelperComponentPropertyActivator>(new TagHelperComponentPropertyActivator())
                 .BuildServiceProvider();
             httpContext.RequestServices = serviceProvider;
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
