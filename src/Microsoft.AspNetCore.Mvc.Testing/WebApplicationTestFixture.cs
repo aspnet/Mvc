@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             var metadataAttributes = testAssembly
                 .SelectMany(a => a.GetCustomAttributes<WebApplicationFixtureContentRootAttribute>())
                 .Where(a => string.Equals(a.Key, key, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(a => int.Parse(a.Priority))
+                .OrderBy(a => a.Priority)
                 .ToArray();
 
             return metadataAttributes;
@@ -161,9 +161,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                     return new[] { Assembly.Load(AppDomain.CurrentDomain.FriendlyName) };
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e);
             }
 
             return Array.Empty<Assembly>();
@@ -192,10 +191,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder() =>
             WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ??
-            throw new InvalidOperationException($"We couldn't find a 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
-                $"method on '{typeof(TStartup).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, you can extend " +
-                $"{typeof(WebApplicationTestFixture<TStartup>).Name} and override 'protected virtual IWebHostBuilder " +
-                $"{nameof(CreateWebHostBuilder)}()' to provide your own {nameof(IWebHostBuilder)} instance.");
+            throw new InvalidOperationException($"No method 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
+                $"found on '{typeof(TStartup).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, " +
+                $"{typeof(WebApplicationTestFixture<TStartup>).Name} can be extended and 'protected virtual {nameof(IWebHostBuilder)} " +
+                $"{nameof(CreateWebHostBuilder)}()' can be overriden to provide your own {nameof(IWebHostBuilder)} instance.");
 
         /// <summary>
         /// Creates the <see cref="TestServer"/> with the bootstrapped application in <paramref name="builder"/>.

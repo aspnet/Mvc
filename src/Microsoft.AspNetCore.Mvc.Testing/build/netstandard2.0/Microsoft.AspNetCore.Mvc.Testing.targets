@@ -15,15 +15,20 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
-    <Target Name="_CollectProjectReferences" DependsOnTargets="$(ResolveAssemblyReferences)" Returns="@(_ContentRootProjectReferences)">
+    <Target Name="_ResolveMvcTestProjectReferences" DependsOnTargets="ResolveReferences">
       <ItemGroup>
         <_ContentRootProjectReferences Include="@(ReferencePath)" Condition="'%(ReferencePath.ReferenceSourceTarget)' == 'ProjectReference'" />
       </ItemGroup>
     </Target>
 
-  <Target Name="AddContentRootForProjectReferences" BeforeTargets="BeforeCompile" DependsOnTargets="_CollectProjectReferences">
+  <Target Name="_AddContentRootForProjectReferences" BeforeTargets="BeforeCompile" DependsOnTargets="_ResolveMvcTestProjectReferences">
     <ItemGroup>
-      <ContentRootAttributes Include="%(_ContentRootProjectReferences.Identity)" AssemblyFullName="%(_ContentRootProjectReferences.FusionName)" ContentRootPath="$([System.IO.Path]::GetDirectoryName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))" ContentRootTest="$([System.IO.Path]::GetFileName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))" Priority="0" />
+      <ContentRootAttributes 
+        Include="%(_ContentRootProjectReferences.Identity)"
+        AssemblyFullName="%(_ContentRootProjectReferences.FusionName)"
+        ContentRootPath="$([System.IO.Path]::GetDirectoryName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))"
+        ContentRootTest="$([System.IO.Path]::GetFileName(%(_ContentRootProjectReferences.MSBuildSourceProjectFile)))"
+        Priority="0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,7 +41,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="CopyAditionalFiles" AfterTargets="Build;_CollectProjectReferences" Condition="'$(TargetFramework)'!=''">
+  <Target Name="CopyAditionalFiles" AfterTargets="Build;_ResolveMvcTestProjectReferences" Condition="'$(TargetFramework)'!=''">
     <ItemGroup>
       <DepsFilePaths Include="$([System.IO.Path]::ChangeExtension('%(_ContentRootProjectReferences.ResolvedFrom)', '.deps.json'))" />
     </ItemGroup>

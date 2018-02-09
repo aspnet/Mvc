@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 
@@ -51,7 +52,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             Key = key;
             ContentRootPath = contentRootPath;
             ContentRootTest = contentRootTest;
-            Priority = priority;
+            if (int.TryParse(priority, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedPriority))
+            {
+                Priority = parsedPriority;
+            }
         }
 
         /// <summary>
@@ -74,6 +78,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// A number for determining the probing order when multiple <see cref="WebApplicationFixtureContentRootAttribute"/>
         /// instances with the same key are present on the test <see cref="Assembly"/>.
         /// </summary>
-        public string Priority { get; }
+        public int Priority { get; }
     }
 }
