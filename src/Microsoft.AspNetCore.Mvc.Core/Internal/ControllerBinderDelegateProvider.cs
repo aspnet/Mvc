@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private static BindingInfo[] GetParameterBindingInfo(
+        private static ControllerParameterBindingInfo[] GetParameterBindingInfo(
             IModelBinderFactory modelBinderFactory,
             IModelMetadataProvider modelMetadataProvider,
             ControllerActionDescriptor actionDescriptor)
@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return null;
             }
 
-            var parameterBindingInfo = new BindingInfo[parameters.Count];
+            var parameterBindingInfo = new ControllerParameterBindingInfo[parameters.Count];
             for (var i = 0; i < parameters.Count; i++)
             {
                 var parameter = parameters[i];
@@ -140,13 +140,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     CacheToken = parameter,
                 });
 
-                parameterBindingInfo[i] = new BindingInfo(binder, metadata);
+                parameterBindingInfo[i] = new ControllerParameterBindingInfo(binder, metadata);
             }
 
             return parameterBindingInfo;
         }
 
-        private static BindingInfo[] GetPropertyBindingInfo(
+        private static ControllerParameterBindingInfo[] GetPropertyBindingInfo(
             IModelBinderFactory modelBinderFactory,
             IModelMetadataProvider modelMetadataProvider,
             ControllerActionDescriptor actionDescriptor)
@@ -157,7 +157,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return null;
             }
 
-            var propertyBindingInfo = new BindingInfo[properties.Count];
+            var propertyBindingInfo = new ControllerParameterBindingInfo[properties.Count];
             var controllerType = actionDescriptor.ControllerTypeInfo.AsType();
             for (var i = 0; i < properties.Count; i++)
             {
@@ -170,15 +170,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     CacheToken = property,
                 });
 
-                propertyBindingInfo[i] = new BindingInfo(binder, metadata);
+                propertyBindingInfo[i] = new ControllerParameterBindingInfo(binder, metadata);
             }
 
             return propertyBindingInfo;
         }
 
-        private struct BindingInfo
+        private struct ControllerParameterBindingInfo
         {
-            public BindingInfo(IModelBinder modelBinder, ModelMetadata modelMetadata)
+            public ControllerParameterBindingInfo(IModelBinder modelBinder, ModelMetadata modelMetadata)
             {
                 ModelBinder = modelBinder;
                 ModelMetadata = modelMetadata;
