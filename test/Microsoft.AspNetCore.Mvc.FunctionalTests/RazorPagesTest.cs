@@ -538,7 +538,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var content = await response.Content.ReadAsStringAsync();
             Assert.StartsWith("Message: Secret post", content.Trim());
-            Assert.EndsWith("TempData:", content.Trim());
+            Assert.EndsWith("TempData: Secret post", content.Trim());
 
             // Arrange 2
             request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/TempData/TempDataPageModelProperty");

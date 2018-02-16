@@ -145,6 +145,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, TempDataMvcOptionsSetup>());
 
+            services.TryAddEnumerable(
+                ServiceDescriptor.Transient<IPostConfigureOptions<MvcViewOptions>, MvcViewOptionsConfigureCompatibilityOptions>());
+
             //
             // View Engine and related infrastructure
             //
@@ -200,11 +203,8 @@ namespace Microsoft.Extensions.DependencyInjection
             // Temp Data
             //
             services.TryAddEnumerable(
-                ServiceDescriptor.Transient<IApplicationModelProvider, TempDataApplicationModelProvider>());
+                ServiceDescriptor.Transient<IApplicationModelProvider, ControllerBoundPropertyFilterApplicationModelProvider>());
             services.TryAddSingleton<SaveTempDataFilter>();
-
-
-            services.TryAddTransient<ControllerSaveTempDataPropertyFilter>();
 
             // This does caching so it should stay singleton
             services.TryAddSingleton<ITempDataProvider, CookieTempDataProvider>();
@@ -219,6 +219,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<ITempDataDictionaryFactory, TempDataDictionaryFactory>();
             services.TryAddSingleton(ArrayPool<ViewBufferValue>.Shared);
             services.TryAddScoped<IViewBufferScope, MemoryPoolViewBufferScope>();
+
+            services.TryAddSingleton<ControllerViewDataDictionaryFactory>();
         }
     }
 }

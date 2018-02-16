@@ -438,7 +438,7 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(DefaultApplicationModelProvider),
                             typeof(CorsApplicationModelProvider),
                             typeof(AuthorizationApplicationModelProvider),
-                            typeof(TempDataApplicationModelProvider),
+                            typeof(ControllerBoundPropertyFilterApplicationModelProvider),
                             typeof(ApiBehaviorApplicationModelProvider),
                         }
                     },
@@ -465,7 +465,7 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(AuthorizationPageApplicationModelProvider),
                             typeof(AuthorizationPageApplicationModelProvider),
                             typeof(DefaultPageApplicationModelProvider),
-                            typeof(TempDataFilterPageApplicationModelProvider),
+                            typeof(PageBoundPropertyFilterApplicationModelProvider),
                             typeof(ResponseCacheFilterApplicationModelProvider),
                         }
                     },

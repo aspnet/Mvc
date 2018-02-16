@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         public virtual bool Canceled { get; set; }
 
         /// <summary>
-        /// Gets the controller instance containing the action.
+        /// Gets the controller instance containing the action, or the handler instance when executing a Razor Page.
         /// </summary>
         public virtual object Controller { get; }
 

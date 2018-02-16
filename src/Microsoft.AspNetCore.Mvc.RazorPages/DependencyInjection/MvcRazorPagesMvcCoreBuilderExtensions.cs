@@ -100,7 +100,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IPageApplicationModelProvider, AuthorizationPageApplicationModelProvider>());
             services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IPageApplicationModelProvider, TempDataFilterPageApplicationModelProvider>());
+                ServiceDescriptor.Singleton<IPageApplicationModelProvider, PageBoundPropertyFilterApplicationModelProvider>());
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IPageApplicationModelProvider, ResponseCacheFilterApplicationModelProvider>());
 
@@ -122,8 +122,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Action executors
             services.TryAddSingleton<PageResultExecutor>();
-
-            services.TryAddTransient<PageSaveTempDataPropertyFilter>();
         }
     }
 }

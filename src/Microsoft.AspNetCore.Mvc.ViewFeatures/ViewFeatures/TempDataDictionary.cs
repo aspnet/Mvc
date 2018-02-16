@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private readonly ITempDataProvider _provider;
         private readonly HttpContext _context;
         private HashSet<string> _initialKeys;
-        private HashSet<string> _retainedKeys;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TempDataDictionary"/> class.
@@ -83,8 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             get
             {
                 Load();
-                object value;
-                if (TryGetValue(key, out value))
+                if (TryGetValue(key, out var value))
                 {
                     // Mark the key for deletion since it is read.
                     _initialKeys.Remove(key);
@@ -100,6 +98,9 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
         }
 
+        // Internal for unit testing
+        internal HashSet<string> RetainedKeys { get; private set; }
+
         /// <inheritdoc />
         public void Keep()
         {
@@ -110,15 +111,15 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 return;
             }
 
-            _retainedKeys.Clear();
-            _retainedKeys.UnionWith(_data.Keys);
+            RetainedKeys.Clear();
+            RetainedKeys.UnionWith(_data.Keys);
         }
 
         /// <inheritdoc />
         public void Keep(string key)
         {
             Load();
-            _retainedKeys.Add(key);
+            RetainedKeys.Add(key);
         }
 
         /// <inheritdoc />
@@ -134,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 ? new Dictionary<string, object>(providerDictionary, StringComparer.OrdinalIgnoreCase)
                 : new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             _initialKeys = new HashSet<string>(_data.Keys, StringComparer.OrdinalIgnoreCase);
-            _retainedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            RetainedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _loaded = true;
         }
 
@@ -152,7 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var keys = new string[_data.Count];
             foreach (var entry in _data)
             {
-                if (!_initialKeys.Contains(entry.Key) && !_retainedKeys.Contains(entry.Key))
+                if (!_initialKeys.Contains(entry.Key) && !RetainedKeys.Contains(entry.Key))
                 {
                     keys[removeCount] = entry.Key;
                     removeCount++;
@@ -170,8 +171,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public object Peek(string key)
         {
             Load();
-            object value;
-            _data.TryGetValue(key, out value);
+            _data.TryGetValue(key, out var value);
             return value;
         }
 
@@ -186,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             Load();
             _data.Clear();
-            _retainedKeys.Clear();
+            RetainedKeys.Clear();
             _initialKeys.Clear();
         }
 
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public bool Remove(string key)
         {
             Load();
-            _retainedKeys.Remove(key);
+            RetainedKeys.Remove(key);
             _initialKeys.Remove(key);
             return _data.Remove(key);
         }

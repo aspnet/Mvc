@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNetCore.Mvc.Filters
 {
@@ -40,6 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
             HandlerMethod = handlerMethod;
             HandlerInstance = handlerInstance;
+            ViewData = pageContext.ViewData;
         }
 
         /// <summary>
@@ -112,5 +114,10 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         /// Gets or sets the <see cref="IActionResult"/>.
         /// </summary>
         public virtual IActionResult Result { get; set; }
+
+        /// <summary>
+        /// Gets the <see cref="ViewDataDictionary"/>.
+        /// </summary>
+        public ViewDataDictionary ViewData { get; }
     }
 }

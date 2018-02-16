@@ -215,24 +215,5 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             {
             }
         }
-
-        private class TestTempDataProvider : ITempDataProvider
-        {
-            private IDictionary<string, object> _data;
-
-            public TestTempDataProvider(IDictionary<string, object> data)
-            {
-                _data = data;
-            }
-
-            public IDictionary<string, object> LoadTempData(HttpContext context)
-            {
-                return _data;
-            }
-
-            public void SaveTempData(HttpContext context, IDictionary<string, object> values)
-            {
-            }
-        }
     }
 }

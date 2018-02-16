@@ -411,7 +411,9 @@ namespace Microsoft.AspNetCore.Mvc.Test
         public void ViewDataModelSetter_DoesNotThrow(object model, Type expectedType)
         {
             // Arrange
-            var activator = new ViewDataDictionaryControllerPropertyActivator(new EmptyModelMetadataProvider());
+            var activator = new ViewDataDictionaryControllerPropertyActivator(
+                new EmptyModelMetadataProvider(),
+                new ControllerViewDataDictionaryFactory(new EmptyModelMetadataProvider()));
             var actionContext = new ActionContext(
                 new DefaultHttpContext(),
                 new RouteData(),

@@ -133,14 +133,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var tempData = factory.GetTempData(httpContext);
 
-            for (var i = 0; i < filters.Count; i++)
-            {
-                if (filters[i] is ISaveTempDataCallback callback)
-                {
-                    callback.OnTempDataSaving(tempData);
-                }
-            }
-
             if (result is IKeepTempDataResult)
             {
                 tempData.Keep();
