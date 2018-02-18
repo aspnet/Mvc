@@ -32,7 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AssemblyAttribute Include="Microsoft.AspNetCore.Mvc.Testing.WebApplicationFixtureContentRootAttribute">
+      <AssemblyAttribute Include="Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryContentRootAttribute">
         <_Parameter1>%(ContentRootAttributes.AssemblyFullName)</_Parameter1>
         <_Parameter2>%(ContentRootAttributes.ContentRootPath)</_Parameter2>
         <_Parameter3>%(ContentRootAttributes.ContentRootTest)</_Parameter3>

@@ -14,10 +14,11 @@ using Microsoft.Extensions.DependencyModel;
 namespace Microsoft.AspNetCore.Mvc.Testing
 {
     /// <summary>
-    /// Fixture for bootstrapping an application in memory for functional end to end tests.
+    /// Factory for bootstrapping an application in memory for functional end to end tests.
     /// </summary>
-    /// <typeparam name="TStartup">The applications startup class.</typeparam>
-    public class WebApplicationTestFixture<TStartup> : IDisposable where TStartup : class
+    /// <typeparam name="TEntryPoint">A type in the entry point assembly of the application.
+    /// Typically the Startup or Program classes can be used.</typeparam>
+    public class WebApplicationFactory<TEntryPoint> : IDisposable where TEntryPoint : class
     {
         private TestServer _server;
         private IWebHostBuilder _builder;
@@ -25,24 +26,26 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         /// <summary>
         /// <para>
-        /// Creates a TestServer instance using the MVC application defined by<typeparamref name="TStartup"/>.
-        /// The startup code defined in <typeparamref name = "TStartup" /> will be executed to configure the application.
+        /// Creates a TestServer instance using the MVC application defined by <typeparamref name="TEntryPoint"/>.
+        /// The <see cref="WebApplicationFactory{TEntryPoint}"/> will find the entry point class of <typeparamref name="TEntryPoint"/>
+        /// assembly and initialize the application by calling <c>IWebHostBuilder CreateWebHostBuilder(string [] args)</c>
+        /// on <typeparamref name="TEntryPoint"/>.
         /// </para>
         /// <para>
-        /// This constructor will infer the application root directive by searching for an <see cref="AssemblyMetadataAttribute"/>
-        /// on the assembly with the key 
-        /// Microsoft.AspNetCore.Testing.ContentRoot[<c><typeparamref name="TStartup" /> assembly file name</c>] and we will use
-        /// the value of that attribute as the content root. In case we can't find an attribute with the right key, we fall back to
-        /// searching for a solution file (*.sln) and then appending the path<c>{AssemblyName}</c> to the solution directory.
-        /// The application root directory will be used to discover views and content files.
+        /// This constructor will infer the application content root path by searching for an
+        /// <see cref="WebApplicationFactoryContentRootAttribute"/> on the assembly containing the functional tests with
+        /// a key equal to the <typeparamref name="TEntryPoint"/> assembly <see cref="Assembly.FullName"/>.
+        /// In case an attribute with the right key can't be found, <see cref="WebApplicationFactory{TEntryPoint}"/>
+        /// will fall back to searching for a solution file (*.sln) and then appending <typeparamref name="TEntryPoint"/> asembly name
+        /// to the solution directory. The application root directory will be used to discover views and content files.
         /// </para>
         /// <para>
         /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TStartup" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TStartup" /> will be loaded as application assemblies.
+        /// <typeparamref name = "TEntryPoint" />.This means that project dependencies of the assembly containing
+        /// <typeparamref name = "TEntryPoint" /> will be loaded as application assemblies.
         /// </para>
         /// </summary>
-        public WebApplicationTestFixture()
+        public WebApplicationFactory()
         {
         }
 
@@ -84,7 +87,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void SetContentRoot()
         {
-            var metadataAttributes = GetContentRootMetadataAttributes(typeof(TStartup).Assembly.FullName);
+            var metadataAttributes = GetContentRootMetadataAttributes(typeof(TEntryPoint).Assembly.FullName);
             string contentRoot = null;
             for (var i = 0; i < metadataAttributes.Length; i++)
             {
@@ -110,15 +113,15 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
             else
             {
-                _builder.UseSolutionRelativeContentRoot(typeof(TStartup).Assembly.GetName().Name);
+                _builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name);
             }
         }
 
-        private static WebApplicationFixtureContentRootAttribute[] GetContentRootMetadataAttributes(string key)
+        private WebApplicationFactoryContentRootAttribute[] GetContentRootMetadataAttributes(string key)
         {
-            var testAssembly = GetCandidateAssemblies();
+            var testAssembly = GetTestAssemblies();
             var metadataAttributes = testAssembly
-                .SelectMany(a => a.GetCustomAttributes<WebApplicationFixtureContentRootAttribute>())
+                .SelectMany(a => a.GetCustomAttributes<WebApplicationFactoryContentRootAttribute>())
                 .Where(a => string.Equals(a.Key, key, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(a => a.Priority)
                 .ToArray();
@@ -126,7 +129,13 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             return metadataAttributes;
         }
 
-        private static IEnumerable<Assembly> GetCandidateAssemblies()
+        /// <summary>
+        /// Gets the assemblies containing the functional tests where the
+        /// <see cref="WebApplicationFactoryContentRootAttribute"/> define
+        /// content root to use for the given <typeparamref name="TEntryPoint"/>.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IEnumerable<Assembly> GetTestAssemblies()
         {
             try
             {
@@ -142,16 +151,16 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                         .Where(r => projects.Any(p => p.Name == r.Name))
                         .ToDictionary(r => r, r => r.GetDefaultAssemblyNames(context).ToArray());
 
-                    var startupAssemblyName = typeof(TStartup).Assembly.GetName().Name;
+                    var entryPointAssemblyName = typeof(TEntryPoint).Assembly.GetName().Name;
 
-                    // Find the project containing TStartup
-                    var startupRuntimeLibrary = runtimeProjectLibraries
-                        .Single(rpl => rpl.Value.Any(a => string.Equals(a.Name, startupAssemblyName, StringComparison.Ordinal)));
+                    // Find the project containing TEntryPoint
+                    var entryPointRuntimeLibrary = runtimeProjectLibraries
+                        .Single(rpl => rpl.Value.Any(a => string.Equals(a.Name, entryPointAssemblyName, StringComparison.Ordinal)));
 
-                    // Find the list of projects referencing TStartup.
+                    // Find the list of projects referencing TEntryPoint.
                     var candidates = runtimeProjectLibraries
                         .Where(rpl => rpl.Key.Dependencies
-                            .Any(d => string.Equals(d.Name, startupRuntimeLibrary.Key.Name, StringComparison.Ordinal)));
+                            .Any(d => string.Equals(d.Name, entryPointRuntimeLibrary.Key.Name, StringComparison.Ordinal)));
 
                     return candidates.SelectMany(rl => rl.Value).Select(Assembly.Load);
                 }
@@ -170,7 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void EnsureDepsFile()
         {
-            var depsFileName = $"{typeof(TStartup).Assembly.GetName().Name}.deps.json";
+            var depsFileName = $"{typeof(TEntryPoint).Assembly.GetName().Name}.deps.json";
             var depsFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, depsFileName));
             if (!depsFile.Exists)
             {
@@ -184,16 +193,16 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// Creates a <see cref="IWebHostBuilder"/> used to setup <see cref="TestServer"/>.
         /// <remarks>
         /// The default implementation of this method looks for a <c>public static IWebHostBuilder CreateDefaultBuilder(string[] args)</c>
-        /// method defined on the entry point of the assembly of <typeparamref name="TStartup" /> and invokes it passing an empty string
+        /// method defined on the entry point of the assembly of <typeparamref name="TEntryPoint" /> and invokes it passing an empty string
         /// array as arguments. In case this method can't be found,
         /// </remarks>
         /// </summary>
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder() =>
-            WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TStartup>(Array.Empty<string>()) ??
+            WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TEntryPoint>(Array.Empty<string>()) ??
             throw new InvalidOperationException($"No method 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
-                $"found on '{typeof(TStartup).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, " +
-                $"{typeof(WebApplicationTestFixture<TStartup>).Name} can be extended and 'protected virtual {nameof(IWebHostBuilder)} " +
+                $"found on '{typeof(TEntryPoint).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, " +
+                $"{typeof(WebApplicationFactory<TEntryPoint>).Name} can be extended and 'protected virtual {nameof(IWebHostBuilder)} " +
                 $"{nameof(CreateWebHostBuilder)}()' can be overriden to provide your own {nameof(IWebHostBuilder)} instance.");
 
         /// <summary>
@@ -220,7 +229,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
 
             _builder = CreateWebHostBuilder();
-            _builder.UseStartup<TStartup>();
         }
 
         /// <summary>

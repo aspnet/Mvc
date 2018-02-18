@@ -9,27 +9,27 @@ using System.Reflection;
 namespace Microsoft.AspNetCore.Mvc.Testing
 {
     /// <summary>
-    /// Metadata that <see cref="WebApplicationTestFixture{TStartup}"/> uses to find out the content
-    /// root for the web application represented by <c>TStartup</c>.
-    /// <see cref="WebApplicationTestFixture{TStartup}"/> will iterate over all the instances of
-    /// <see cref="WebApplicationFixtureContentRootAttribute"/>, filter the instances whose
-    /// <see cref="Key"/> is equal to <c>TStartup</c> <see cref="Assembly.FullName"/>,
+    /// Metadata that <see cref="WebApplicationFactory{TEntryPoint}"/> uses to find out the content
+    /// root for the web application represented by <c>TEntryPoint</c>.
+    /// <see cref="WebApplicationFactory{TEntryPoint}"/> will iterate over all the instances of
+    /// <see cref="WebApplicationFactoryContentRootAttribute"/>, filter the instances whose
+    /// <see cref="Key"/> is equal to <c>TEntryPoint</c> <see cref="Assembly.FullName"/>,
     /// order them by <see cref="Priority"/> in ascending order.
-    /// <see cref="WebApplicationTestFixture{TStartup}"/> will check for the existence of the marker
+    /// <see cref="WebApplicationFactory{TEntryPoint}"/> will check for the existence of the marker
     /// in <code>Path.Combine(<see cref="ContentRootPath"/>, Path.GetFileName(<see cref="ContentRootTest"/>))"</code>
     /// and if the file exists it will set the content root to <see cref="ContentRootPath"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = true)]
-    public sealed class WebApplicationFixtureContentRootAttribute : Attribute
+    public sealed class WebApplicationFactoryContentRootAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="WebApplicationFixtureContentRootAttribute"/>.
+        /// Initializes a new instance of <see cref="WebApplicationFactoryContentRootAttribute"/>.
         /// </summary>
         /// <param name="key">
-        /// The key of this <see cref="WebApplicationFixtureContentRootAttribute"/>. This
-        /// key is used by <see cref="WebApplicationTestFixture{TStartup}"/> to determine what of the
-        /// <see cref="WebApplicationFixtureContentRootAttribute"/> instances on the test assembly should be used
-        /// to match a given Startup class.
+        /// The key of this <see cref="WebApplicationFactoryContentRootAttribute"/>. This
+        /// key is used by <see cref="WebApplicationFactory{TEntryPoint}"/> to determine what of the
+        /// <see cref="WebApplicationFactoryContentRootAttribute"/> instances on the test assembly should be used
+        /// to match a given TEntryPoint class.
         /// </param>
         /// <param name="contentRootPath">The path to the content root. This path can be either relative or absolute.
         /// In case the path is relative, the path will be combined with
@@ -39,11 +39,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </param>
         /// <param name="priority">
         /// The priority of this content root attribute compared to other attributes. When
-        /// multiple <see cref="WebApplicationFixtureContentRootAttribute"/> instances are applied for the
+        /// multiple <see cref="WebApplicationFactoryContentRootAttribute"/> instances are applied for the
         /// same key, they are processed with <see cref="int.Parse(string)"/>, ordered in ascending order and applied
         /// in priority until a match is found.
         /// </param>
-        public WebApplicationFixtureContentRootAttribute(
+        public WebApplicationFactoryContentRootAttribute(
             string key,
             string contentRootPath,
             string contentRootTest,
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         public string ContentRootTest { get; }
 
         /// <summary>
-        /// A number for determining the probing order when multiple <see cref="WebApplicationFixtureContentRootAttribute"/>
+        /// A number for determining the probing order when multiple <see cref="WebApplicationFactoryContentRootAttribute"/>
         /// instances with the same key are present on the test <see cref="Assembly"/>.
         /// </summary>
         public int Priority { get; }

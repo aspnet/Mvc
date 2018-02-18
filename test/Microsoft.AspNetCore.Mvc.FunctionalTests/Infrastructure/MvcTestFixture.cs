@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
-    public class MvcTestFixture<TStartup> : WebApplicationTestFixture<TStartup>
+    public class MvcTestFixture<TStartup> : WebApplicationFactory<TStartup>
         where TStartup : class
     {
         protected override IWebHostBuilder CreateWebHostBuilder() =>
