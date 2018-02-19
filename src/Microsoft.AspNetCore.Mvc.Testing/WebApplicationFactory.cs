@@ -49,6 +49,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
         }
 
+        public TestServer Server => _server;
+
         /// <summary>
         /// The <see cref="IWebHostBuilder"/> used to create the <see cref="TestServer"/>.
         /// </summary>
@@ -56,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
             get
             {
-                if(_server != null)
+                if (_server != null)
                 {
                     throw new InvalidOperationException($"The '{nameof(TestServer)}' instance was already built.");
                 }
@@ -238,7 +240,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <returns>The <see cref="HttpClient"/></returns>
         public HttpClient CreateClient(params DelegatingHandler[] handlers)
         {
-            return CreateClient(new Uri("http://localhost"),Array.Empty<DelegatingHandler>());
+            return CreateClient(new Uri("http://localhost"), Array.Empty<DelegatingHandler>());
         }
 
         /// <summary>

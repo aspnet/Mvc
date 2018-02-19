@@ -9,6 +9,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -23,6 +24,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public RequestSizeLimitTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
+            if (fixture.Server == null)
+            {
+                fixture.WebHostBuilder.UseStartup<BasicWebSite.StartupRequestLimitSize>();
+            }
             Client = fixture.CreateClient();
         }
 

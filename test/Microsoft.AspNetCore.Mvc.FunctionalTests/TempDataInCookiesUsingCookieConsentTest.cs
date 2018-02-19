@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -20,6 +21,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public TempDataInCookiesUsingCookieConsentTest(
             MvcTestFixture<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent> fixture)
         {
+            if (fixture.Server == null)
+            {
+                fixture.WebHostBuilder.UseStartup<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent>();
+            }
             _client = fixture.CreateClient();
         }
 

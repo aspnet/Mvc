@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -15,6 +12,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RazorPagesNamespaceTest(MvcTestFixture<RazorPagesWebSite.Startup> fixture)
         {
+            if (fixture.Server == null)
+            {
+                fixture.WebHostBuilder.UseStartup<RazorPagesWebSite.Startup>();
+            }
             Client = fixture.CreateClient();
         }
 
