@@ -49,6 +49,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
         }
 
+        /// <summary>
+        /// Gets the <see cref="TestServer"/> created by this <see cref="WebApplicationFactory{TEntryPoint}"/>.
+        /// </summary>
         public TestServer Server => _server;
 
         /// <summary>
@@ -89,7 +92,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void SetContentRoot()
         {
-            var metadataAttributes = GetContentRootMetadataAttributes(typeof(TEntryPoint).Assembly.FullName);
+            var metadataAttributes = GetContentRootMetadataAttributes(
+                typeof(TEntryPoint).Assembly.FullName,
+                typeof(TEntryPoint).Assembly.GetName().Name);
             string contentRoot = null;
             for (var i = 0; i < metadataAttributes.Length; i++)
             {
@@ -119,12 +124,15 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
         }
 
-        private WebApplicationFactoryContentRootAttribute[] GetContentRootMetadataAttributes(string key)
+        private WebApplicationFactoryContentRootAttribute[] GetContentRootMetadataAttributes(
+            string tEntryPointAssemblyFullName,
+            string tEntryPointAssemblyName)
         {
             var testAssembly = GetTestAssemblies();
             var metadataAttributes = testAssembly
                 .SelectMany(a => a.GetCustomAttributes<WebApplicationFactoryContentRootAttribute>())
-                .Where(a => string.Equals(a.Key, key, StringComparison.OrdinalIgnoreCase))
+                .Where(a => string.Equals(a.Key, tEntryPointAssemblyFullName, StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(a.Key, tEntryPointAssemblyName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(a => a.Priority)
                 .ToArray();
 
