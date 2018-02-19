@@ -242,13 +242,21 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         }
 
         /// <summary>
+        /// Creates an instance of <see cref="HttpClient"/> that automatically follows
+        /// redirects and handles cookies.
+        /// </summary>
+        /// <returns></returns>
+        public HttpClient CreateStandardClient() =>
+            CreateClient(new RedirectHandler(), new CookieContainerHandler());
+
+        /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
         /// send <see cref="HttpRequestMessage"/> to the server.
         /// </summary>
         /// <returns>The <see cref="HttpClient"/></returns>
         public HttpClient CreateClient(params DelegatingHandler[] handlers)
         {
-            return CreateClient(new Uri("http://localhost"), Array.Empty<DelegatingHandler>());
+            return CreateClient(new Uri("http://localhost"), handlers);
         }
 
         /// <summary>
@@ -271,7 +279,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
             else
             {
-                for (var i = handlers.Length - 1; i > 1; i--)
+                for (var i = handlers.Length - 1; i > 0; i--)
                 {
                     handlers[i - 1].InnerHandler = handlers[i];
                 }
