@@ -95,6 +95,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             var metadataAttributes = GetContentRootMetadataAttributes(
                 typeof(TEntryPoint).Assembly.FullName,
                 typeof(TEntryPoint).Assembly.GetName().Name);
+
             string contentRoot = null;
             for (var i = 0; i < metadataAttributes.Length; i++)
             {

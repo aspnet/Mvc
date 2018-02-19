@@ -126,19 +126,14 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             return redirect;
         }
 
-        private static bool ShouldKeepVerb(HttpResponseMessage response)
-        {
-            return response.StatusCode == HttpStatusCode.RedirectKeepVerb ||
-                            (int)response.StatusCode == 308;
-        }
+        private static bool ShouldKeepVerb(HttpResponseMessage response) =>
+            response.StatusCode == HttpStatusCode.RedirectKeepVerb ||
+                (int)response.StatusCode == 308;
 
-        private bool IsRedirect(HttpResponseMessage response)
-        {
-            return response.StatusCode == HttpStatusCode.MovedPermanently ||
+        private bool IsRedirect(HttpResponseMessage response) => 
+            response.StatusCode == HttpStatusCode.MovedPermanently ||
                 response.StatusCode == HttpStatusCode.Redirect ||
                 response.StatusCode == HttpStatusCode.TemporaryRedirect ||
                 (int)response.StatusCode == 308;
-
-        }
     }
 }
