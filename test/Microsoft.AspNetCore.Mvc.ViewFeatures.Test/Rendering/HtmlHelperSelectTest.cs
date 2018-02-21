@@ -1038,7 +1038,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
         }
 
         [Fact]
-        public void ListBoxFor_WithUnreleatedExpression_GeneratesExpectedValue()
+        public void ListBoxFor_WithUnrelatedExpression_GeneratesExpectedValue()
         {
             // Arrange
             var unrelated = new[] { "2" };
