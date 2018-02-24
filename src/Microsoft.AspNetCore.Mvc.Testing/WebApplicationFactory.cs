@@ -26,13 +26,15 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         /// <summary>
         /// <para>
-        /// Creates a TestServer instance using the MVC application defined by <typeparamref name="TEntryPoint"/>.
+        /// Creates an instance of <see cref="WebApplicationFactory{TEntryPoint}"/>. This factory can be used to
+        /// create a <see cref="TestServer"/> instance using the MVC application defined by <typeparamref name="TEntryPoint"/>
+        /// and one or more <see cref="HttpClient"/> instances used to send <see cref="HttpRequestMessage"/> to the <see cref="TestServer"/>.
         /// The <see cref="WebApplicationFactory{TEntryPoint}"/> will find the entry point class of <typeparamref name="TEntryPoint"/>
         /// assembly and initialize the application by calling <c>IWebHostBuilder CreateWebHostBuilder(string [] args)</c>
         /// on <typeparamref name="TEntryPoint"/>.
         /// </para>
         /// <para>
-        /// This constructor will infer the application content root path by searching for an
+        /// This constructor will infer the application content root path by searching for a
         /// <see cref="WebApplicationFactoryContentRootAttribute"/> on the assembly containing the functional tests with
         /// a key equal to the <typeparamref name="TEntryPoint"/> assembly <see cref="Assembly.FullName"/>.
         /// In case an attribute with the right key can't be found, <see cref="WebApplicationFactory{TEntryPoint}"/>
@@ -55,6 +57,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         public TestServer Server => _server;
 
         /// <summary>
+        /// Gets the <see cref="WebApplicationFactoryClientOptions"/> used by <see cref="CreateClient()"/>.
+        /// </summary>
+        public WebApplicationFactoryClientOptions ClientOptions { get; } = new WebApplicationFactoryClientOptions();
+
+        /// <summary>
         /// The <see cref="IWebHostBuilder"/> used to create the <see cref="TestServer"/>.
         /// </summary>
         public IWebHostBuilder WebHostBuilder
@@ -63,7 +70,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             {
                 if (_server != null)
                 {
-                    throw new InvalidOperationException($"The '{nameof(TestServer)}' instance was already built.");
+                    return null;
                 }
                 if (_builder == null)
                 {
@@ -145,7 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <see cref="WebApplicationFactoryContentRootAttribute"/> define
         /// content root to use for the given <typeparamref name="TEntryPoint"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The list of <see cref="Assembly"/> containing tests.</returns>
         protected virtual IEnumerable<Assembly> GetTestAssemblies()
         {
             try
@@ -201,20 +208,21 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         }
 
         /// <summary>
-        /// Creates a <see cref="IWebHostBuilder"/> used to setup <see cref="TestServer"/>.
+        /// Creates a <see cref="IWebHostBuilder"/> used to set up <see cref="TestServer"/>.
+        /// </summary>
         /// <remarks>
         /// The default implementation of this method looks for a <c>public static IWebHostBuilder CreateDefaultBuilder(string[] args)</c>
         /// method defined on the entry point of the assembly of <typeparamref name="TEntryPoint" /> and invokes it passing an empty string
-        /// array as arguments. In case this method can't be found,
+        /// array as arguments.
         /// </remarks>
-        /// </summary>
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder() =>
             WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TEntryPoint>(Array.Empty<string>()) ??
-            throw new InvalidOperationException($"No method 'public static {nameof(IWebHostBuilder)} CreateWebHostBuilder(string[] args)' " +
-                $"found on '{typeof(TEntryPoint).Assembly.EntryPoint.DeclaringType.FullName}'. Alternatively, " +
-                $"{typeof(WebApplicationFactory<TEntryPoint>).Name} can be extended and 'protected virtual {nameof(IWebHostBuilder)} " +
-                $"{nameof(CreateWebHostBuilder)}()' can be overriden to provide your own {nameof(IWebHostBuilder)} instance.");
+            throw new InvalidOperationException(Resources.FormatMissingCreateWebHostBuilderMethod(
+                nameof(IWebHostBuilder),
+                typeof(TEntryPoint).Assembly.EntryPoint.DeclaringType.FullName,
+                typeof(WebApplicationFactory<TEntryPoint>).Name,
+                nameof(CreateWebHostBuilder)));
 
         /// <summary>
         /// Creates the <see cref="TestServer"/> with the bootstrapped application in <paramref name="builder"/>.
@@ -246,29 +254,38 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// Creates an instance of <see cref="HttpClient"/> that automatically follows
         /// redirects and handles cookies.
         /// </summary>
-        /// <returns></returns>
-        public HttpClient CreateStandardClient() =>
-            CreateClient(new RedirectHandler(), new CookieContainerHandler());
+        /// <returns>The <see cref="HttpClient"/>.</returns>
+        public HttpClient CreateClient() =>
+            CreateClient(ClientOptions);
+
+        /// <summary>
+        /// Creates an instance of <see cref="HttpClient"/> that automatically follows
+        /// redirects and handles cookies.
+        /// </summary>
+        /// <returns>The <see cref="HttpClient"/>.</returns>
+        public HttpClient CreateClient(WebApplicationFactoryClientOptions options) =>
+            CreatePlainClient(options.BaseAddress, options.CreateHandlers());
 
         /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
-        /// send <see cref="HttpRequestMessage"/> to the server.
+        /// send <see cref="HttpRequestMessage"/> to the server. The base address of the <see cref="HttpClient"/>
+        /// instance will be set to <c>http://localhost</c>.
         /// </summary>
-        /// <returns>The <see cref="HttpClient"/></returns>
-        public HttpClient CreateClient(params DelegatingHandler[] handlers)
-        {
-            return CreateClient(new Uri("http://localhost"), handlers);
-        }
+        /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to set up on the
+        /// <see cref="HttpClient"/>.</param>
+        /// <returns>The <see cref="HttpClient"/>.</returns>
+        public HttpClient CreatePlainClient(params DelegatingHandler[] handlers) =>
+            CreatePlainClient(new Uri("http://localhost"), handlers);
 
         /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
         /// send <see cref="HttpRequestMessage"/> to the server.
         /// </summary>
         /// <param name="baseAddress">The base address of the <see cref="HttpClient"/> instance.</param>
-        /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to setup on the
+        /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to set up on the
         /// <see cref="HttpClient"/>.</param>
         /// <returns>The <see cref="HttpClient"/>.</returns>
-        public HttpClient CreateClient(Uri baseAddress, params DelegatingHandler[] handlers)
+        public HttpClient CreatePlainClient(Uri baseAddress, params DelegatingHandler[] handlers)
         {
             EnsureServer();
             if (handlers == null || handlers.Length == 0)

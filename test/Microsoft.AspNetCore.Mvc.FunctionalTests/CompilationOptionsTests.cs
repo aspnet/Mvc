@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public CompilationOptionsTests(MvcTestFixture<RazorWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

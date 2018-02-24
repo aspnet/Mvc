@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public TempDataInCookiesTest(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         protected override HttpClient Client { get; }

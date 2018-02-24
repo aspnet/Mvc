@@ -16,11 +16,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RespectBrowserAcceptHeaderTests(MvcTestFixture<FormatterWebSite.StartupWithRespectBrowserAcceptHeader> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.UseStartup<FormatterWebSite.StartupWithRespectBrowserAcceptHeader>();
-            }
-            Client = fixture.CreateClient();
+            fixture.WebHostBuilder?.UseStartup<FormatterWebSite.StartupWithRespectBrowserAcceptHeader>();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

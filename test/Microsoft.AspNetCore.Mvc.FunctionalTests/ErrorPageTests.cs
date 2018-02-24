@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             "'Microsoft.NET.Sdk.Web' and the 'PreserveCompilationContext' property is not set to false.");
         public ErrorPageTests(MvcTestFixture<ErrorPageMiddlewareWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

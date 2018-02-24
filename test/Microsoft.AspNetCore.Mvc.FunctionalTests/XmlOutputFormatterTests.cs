@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public XmlOutputFormatterTests(MvcTestFixture<FormatterWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

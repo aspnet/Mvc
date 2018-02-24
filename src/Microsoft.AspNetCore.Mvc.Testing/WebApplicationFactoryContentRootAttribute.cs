@@ -59,12 +59,12 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         }
 
         /// <summary>
-        /// The key for the content root associated with this project. Typically <see cref="Assembly.FullName"/>.
+        /// Gets the key for the content root associated with this project. Typically <see cref="Assembly.FullName"/>.
         /// </summary>
         public string Key { get; }
 
         /// <summary>
-        /// The content root path for a given project. This content root can be relative or absolute. If its a
+        /// Gets the content root path for a given project. This content root can be relative or absolute. If it is a
         /// relative path, it will be combined with <see cref="AppContext.BaseDirectory"/>.
         /// </summary>
         public string ContentRootPath { get; }
@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         public string ContentRootTest { get; }
 
         /// <summary>
-        /// A number for determining the probing order when multiple <see cref="WebApplicationFactoryContentRootAttribute"/>
+        /// Gets a number for determining the probing order when multiple <see cref="WebApplicationFactoryContentRootAttribute"/>
         /// instances with the same key are present on the test <see cref="Assembly"/>.
         /// </summary>
         public int Priority { get; }

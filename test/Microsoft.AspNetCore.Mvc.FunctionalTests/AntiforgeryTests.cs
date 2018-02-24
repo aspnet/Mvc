@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public AntiforgeryTests(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

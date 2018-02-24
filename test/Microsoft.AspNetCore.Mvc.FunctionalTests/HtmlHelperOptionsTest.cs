@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public HtmlHelperOptionsTest(MvcTestFixture<RazorWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

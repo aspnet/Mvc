@@ -14,11 +14,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public GlobalAuthorizationFilterTest(MvcTestFixture<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.UseStartup<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter>();
-            }
-            Client = fixture.CreateClient();
+            fixture.WebHostBuilder?.UseStartup<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter>();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }
@@ -71,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(
                 "http://localhost/Home/Login?ReturnUrl=%2FAdministration%2FEitherCookie",
                 response.Headers.Location.ToString());
-         }
-        
+        }
+
     }
 }

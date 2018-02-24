@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public MvcSandboxTest(MvcTestFixture<MvcSandbox.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

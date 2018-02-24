@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public RazorViewLocationSpecificationTest(MvcTestFixture<RazorWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

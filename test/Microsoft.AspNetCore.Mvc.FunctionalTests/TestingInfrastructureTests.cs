@@ -15,12 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public TestingInfrastructureTests(WebApplicationFactory<BasicWebSite.Startup> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.ConfigureTestServices(s => s.AddSingleton<TestService, OverridenService>());
-            }
-
-            Client = fixture.CreateStandardClient();
+            fixture.WebHostBuilder?.ConfigureTestServices(s => s.AddSingleton<TestService, OverridenService>());
+            Client = fixture.CreateClient();
         }
 
         public HttpClient Client { get; }

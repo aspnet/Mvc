@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public InputValidationTests(MvcTestFixture<FormatterWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

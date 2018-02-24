@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public CombineAuthorizeTests(MvcTestFixture<StartupWithGlobalAuthorizeAndAllowCombiningAuthorizeFilters> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

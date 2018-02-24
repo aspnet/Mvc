@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public JsonOutputFormatterTests(MvcTestFixture<FormatterWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

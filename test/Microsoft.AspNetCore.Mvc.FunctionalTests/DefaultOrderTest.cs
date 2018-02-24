@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public DefaultOrderTest(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

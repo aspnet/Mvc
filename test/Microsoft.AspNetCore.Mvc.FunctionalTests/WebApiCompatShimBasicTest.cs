@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public WebApiCompatShimBasicTest(MvcTestFixture<WebApiCompatShimWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

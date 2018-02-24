@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public FileResultTests(MvcTestFixture<FilesWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

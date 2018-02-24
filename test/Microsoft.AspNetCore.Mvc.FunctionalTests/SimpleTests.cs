@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public SimpleTests(MvcTestFixture<SimpleWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

@@ -24,11 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public RequestSizeLimitTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.UseStartup<BasicWebSite.StartupRequestLimitSize>();
-            }
-            Client = fixture.CreateClient();
+            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupRequestLimitSize>();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

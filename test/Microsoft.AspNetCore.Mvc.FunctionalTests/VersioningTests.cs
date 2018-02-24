@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public VersioningTests(MvcTestFixture<VersioningWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

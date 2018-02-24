@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public JsonPatchSampleTest(MvcTestFixture<Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

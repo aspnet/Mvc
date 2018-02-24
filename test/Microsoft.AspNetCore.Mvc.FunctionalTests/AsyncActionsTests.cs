@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public AsyncActionsTests(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreateClient();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }

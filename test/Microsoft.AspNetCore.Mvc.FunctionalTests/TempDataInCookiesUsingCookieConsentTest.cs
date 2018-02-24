@@ -21,11 +21,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public TempDataInCookiesUsingCookieConsentTest(
             MvcTestFixture<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.UseStartup<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent>();
-            }
-            _client = fixture.CreateClient();
+            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent>();
+            _client = fixture.CreatePlainClient();
         }
 
         [Fact]

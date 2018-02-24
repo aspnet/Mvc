@@ -15,11 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RequestFormLimitsTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
-            if (fixture.Server == null)
-            {
-                fixture.WebHostBuilder.UseStartup<BasicWebSite.StartupRequestLimitSize>();
-            }
-            Client = fixture.CreateClient();
+            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupRequestLimitSize>();
+            Client = fixture.CreatePlainClient();
         }
 
         public HttpClient Client { get; }
@@ -71,7 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var result = await response.Content.ReadAsStringAsync();
             Assert.Equal(expected, result);
         }
-        
+
         [Fact]
         public async Task OverrideControllerLevelLimits_UsingDefaultLimits()
         {
