@@ -286,6 +286,25 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
+        public void AddModelErrorWithException()
+        {
+            // Arrange
+            var dictionary = new ModelStateDictionary();
+            var exception = new TestException();
+
+            // Act
+            dictionary.AddModelError("some key", exception);
+
+            // Assert
+            Assert.Equal(1, dictionary.ErrorCount);
+            var kvp = Assert.Single(dictionary);
+            Assert.Equal("some key", kvp.Key);
+            var error = Assert.Single(kvp.Value.Errors);
+            Assert.IsType<TestException>(error.Exception);
+            Assert.Equal("This is a test exception", error.Exception.Message);
+        }
+
+        [Fact]
         public void AddModelErrorCreatesModelStateIfNotPresent()
         {
             // Arrange
@@ -685,6 +704,31 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
+        public void AddModelError_WithException_AddsTooManyModelErrorsException_WhenMaxErrorsIsReached()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 2
+            };
+
+            dictionary.AddModelError("key1", new Exception());
+            dictionary.AddModelError("key2", "error4");
+            dictionary.AddModelError("key3", new Exception());
+
+            // Act and Assert
+            Assert.True(dictionary.HasReachedMaxErrors);
+            Assert.Equal(2, dictionary.ErrorCount);
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
+
+            // TooManyModelErrorsException added instead of key3 exception.
+            Assert.DoesNotContain("key3", dictionary.Keys);
+        }
+
+        [Fact]
         public void AddModelError_WithErrorString_AddsTooManyModelErrors_WhenMaxErrorsIsReached()
         {
             // Arrange
@@ -710,6 +754,32 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // TooManyModelErrorsException added instead of key5 error.
             Assert.DoesNotContain("key5", dictionary.Keys);
+        }
+
+        [Fact]
+        public void TryAddModelError_WithException_ReturnsFalse_AndAddsMaxModelErrorMessage()
+        {
+            // Arrange
+            var expected = "The maximum number of allowed model errors has been reached.";
+            var dictionary = new ModelStateDictionary
+            {
+                MaxAllowedErrors = 3
+            };
+
+            // Act and Assert
+            var result = dictionary.TryAddModelError("key1", "error1");
+            Assert.True(result);
+
+            result = dictionary.TryAddModelError("key2", new Exception());
+            Assert.True(result);
+
+            result = dictionary.TryAddModelError("key3", new Exception());
+            Assert.False(result);
+
+            Assert.Equal(3, dictionary.Count);
+            var error = Assert.Single(dictionary[string.Empty].Errors);
+            Assert.IsType<TooManyModelErrorsException>(error.Exception);
+            Assert.Equal(expected, error.Exception.Message);
         }
 
         [Fact]
@@ -757,7 +827,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_WithException_AddsTooManyModelError_WhenMaxErrorIsReached()
+        public void AddModelError_WithExceptionAndModelMetadata_AddsTooManyModelError_WhenMaxErrorIsReached()
         {
             // Arrange
             var expected = "The maximum number of allowed model errors has been reached.";
@@ -787,7 +857,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void TryAddModelError_WithException_ReturnsFalse_AndAddsMaxModelErrorMessage()
+        public void TryAddModelError_WithExceptionAndModelMetadata_ReturnsFalse_AndAddsMaxModelErrorMessage()
         {
             // Arrange
             var expected = "The maximum number of allowed model errors has been reached.";
@@ -865,7 +935,22 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ModelStateDictionary_ReturnGenericErrorMessage_WhenModelStateNotSet()
+        public void ModelStateDictionary_ReturnExceptionMessage_WhenModelStateNotSet()
+        {
+            // Arrange
+            var expected = "The supplied value is invalid for Length.";
+            var dictionary = new ModelStateDictionary();
+
+            // Act
+            dictionary.TryAddModelError("key", new FormatException("The supplied value is invalid for Length."));
+
+            // Assert
+            var error = Assert.Single(dictionary["key"].Errors);
+            Assert.Equal(expected, error.Exception.Message);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ReturnGenericErrorMessage_WhenModelStateNotSet_WithModelMetadata()
         {
             // Arrange
             var expected = "The supplied value is invalid for Length.";
@@ -934,7 +1019,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void ModelStateDictionary_ReturnSpecificErrorMessage_WhenModelStateSet()
+        public void ModelStateDictionary_ReturnExceptionMessage_WhenModelStateSet()
+        {
+            // Arrange
+            var expected = "The value 'some value' is not valid for Length.";
+            var dictionary = new ModelStateDictionary();
+            dictionary.SetModelValue("key", new string[] { "some value" }, "some value");
+
+            // Act
+            dictionary.TryAddModelError("key", new FormatException("The value 'some value' is not valid for Length."));
+
+            // Assert
+            var error = Assert.Single(dictionary["key"].Errors);
+            Assert.Equal(expected, error.Exception.Message);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_ReturnSpecificErrorMessage_WhenModelStateSet_WithModelMetadata()
         {
             // Arrange
             var expected = "The value 'some value' is not valid for Length.";
@@ -1011,6 +1112,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Arrange
             var dictionary = new ModelStateDictionary();
             dictionary.SetModelValue("key", new string[] { "some value" }, "some value");
+
+            // Act
+            dictionary.TryAddModelError("key", new InvalidOperationException());
+
+            // Assert
+            var error = Assert.Single(dictionary["key"].Errors);
+            Assert.Empty(error.ErrorMessage);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_NoErrorMessage_ForUnrecognizedException_WithModelMetadata()
+        {
+            // Arrange
+            var dictionary = new ModelStateDictionary();
+            dictionary.SetModelValue("key", new string[] { "some value" }, "some value");
             var provider = new EmptyModelMetadataProvider();
             var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
 
@@ -1024,6 +1140,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         [Fact]
         public void ModelStateDictionary_AddsErrorMessage_ForInputFormatterException()
+        {
+            // Arrange
+            var expectedMessage = "This is an InputFormatterException";
+            var dictionary = new ModelStateDictionary();
+
+            // Act
+            dictionary.TryAddModelError("key", new InputFormatterException(expectedMessage));
+
+            // Assert
+            var entry = Assert.Single(dictionary);
+            Assert.Equal("key", entry.Key);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal(expectedMessage, error.ErrorMessage);
+        }
+
+        [Fact]
+        public void ModelStateDictionary_AddsErrorMessage_ForInputFormatterException_WithModelMetadata()
         {
             // Arrange
             var expectedMessage = "This is an InputFormatterException";
@@ -1370,5 +1503,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             public MvcOptions Value { get; } = new MvcOptions();
         }
+    }
+
+    internal class TestException : Exception
+    {
+        public TestException()
+        {
+            Message = "This is a test exception";
+        }
+
+        public override string Message { get; }
     }
 }

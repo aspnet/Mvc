@@ -72,6 +72,7 @@ namespace System.Web.Http.Dispatcher
             modelState.AddModelError("[0].Name", "error2");
             modelState.AddModelError("[0].Address", "error");
             modelState.AddModelError("[2].Name", new Exception("OH NO"), metadata);
+            modelState.AddModelError("[2].Name", new Exception("OH NO 2"));
 
             // Act
             HttpError error = new HttpError(modelState, true);
@@ -85,6 +86,7 @@ namespace System.Web.Http.Dispatcher
             Assert.Contains("error", modelStateError["[0].Address"] as IEnumerable<string>);
             Assert.True(modelStateError.ContainsKey("[2].Name"));
             Assert.Contains("OH NO", modelStateError["[2].Name"] as IEnumerable<string>);
+            Assert.Contains("OH NO 2", modelStateError["[2].Name"] as IEnumerable<string>);
         }
 
         [Fact]
@@ -110,6 +112,7 @@ namespace System.Web.Http.Dispatcher
             modelState.AddModelError("[0].Name", "error2");
             modelState.AddModelError("[0].Address", "error");
             modelState.AddModelError("[2].Name", new Exception("OH NO"), metadata);
+            modelState.AddModelError("[2].Name", new Exception("OH NO 2"));
 
             // Act
             HttpError error = new HttpError(modelState, false);
@@ -123,6 +126,7 @@ namespace System.Web.Http.Dispatcher
             Assert.Contains("error", modelStateError["[0].Address"] as IEnumerable<string>);
             Assert.True(modelStateError.ContainsKey("[2].Name"));
             Assert.DoesNotContain("OH NO", modelStateError["[2].Name"] as IEnumerable<string>);
+            Assert.DoesNotContain("OH NO 2", modelStateError["[2].Name"] as IEnumerable<string>);
         }
 
         [Fact]

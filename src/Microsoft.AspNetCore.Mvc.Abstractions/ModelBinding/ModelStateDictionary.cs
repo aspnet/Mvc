@@ -178,6 +178,67 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        public void AddModelError(string key, Exception exception)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            TryAddModelError(key, exception);
+        }
+
+        /// <summary>
+        /// Attempts to add the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/>
+        /// instance that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
+        /// errors has already been recorded, records a <see cref="TooManyModelErrorsException"/> exception instead.
+        /// </summary>
+        /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
+        /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        /// <returns>
+        /// <c>True</c> if the given error was added, <c>false</c> if the error was ignored.
+        /// See <see cref="MaxAllowedErrors"/>.
+        /// </returns>
+        public bool TryAddModelError(string key, Exception exception)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            if (ErrorCount >= MaxAllowedErrors - 1)
+            {
+                EnsureMaxErrorsReachedRecorded();
+                return false;
+            }
+
+            if (exception is InputFormatterException && !string.IsNullOrEmpty(exception.Message))
+            {
+                // InputFormatterException is a signal that the message is safe to expose to clients
+                return TryAddModelError(key, exception.Message);
+            }
+
+            ErrorCount++;
+            AddModelErrorCore(key, exception);
+            return true;
+        }
+
+        /// <summary>
+        /// Adds the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/> instance
+        /// that is associated with the specified <paramref name="key"/>.
+        /// </summary>
+        /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
+        /// <param name="exception">The <see cref="Exception"/> to add.</param>
         /// <param name="metadata">The <see cref="ModelMetadata"/> associated with the model.</param>
         public void AddModelError(string key, Exception exception, ModelMetadata metadata)
         {
