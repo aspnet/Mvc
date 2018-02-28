@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             Assert.Equal("ValueFromRequest", tempData["TempData"]);
             Assert.Null(pageContext.ViewData["ViewData"]);
 
-            // Ensure the key is retained
+            // Ensure the key is not retained
             Assert.Empty(tempData.RetainedKeys);
         }
 
