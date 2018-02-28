@@ -710,16 +710,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var expected = "The maximum number of allowed model errors has been reached.";
             var dictionary = new ModelStateDictionary
             {
-                MaxAllowedErrors = 2
+                MaxAllowedErrors = 3
             };
 
+            // Act
             dictionary.AddModelError("key1", new Exception());
             dictionary.AddModelError("key2", "error4");
             dictionary.AddModelError("key3", new Exception());
 
-            // Act and Assert
+            // Assert
             Assert.True(dictionary.HasReachedMaxErrors);
-            Assert.Equal(2, dictionary.ErrorCount);
+            Assert.Equal(3, dictionary.ErrorCount);
             var error = Assert.Single(dictionary[string.Empty].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
             Assert.Equal(expected, error.Exception.Message);
@@ -739,13 +740,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             };
             var provider = new EmptyModelMetadataProvider();
             var metadata = provider.GetMetadataForProperty(typeof(string), nameof(string.Length));
+
+            // Act
             dictionary.AddModelError("key1", "error1");
             dictionary.AddModelError("key2", new Exception(), metadata);
             dictionary.AddModelError("key3", new Exception(), metadata);
             dictionary.AddModelError("key4", "error4");
             dictionary.AddModelError("key5", "error5");
 
-            // Act and Assert
+            // Assert
             Assert.True(dictionary.HasReachedMaxErrors);
             Assert.Equal(5, dictionary.ErrorCount);
             var error = Assert.Single(dictionary[string.Empty].Errors);
@@ -780,6 +783,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var error = Assert.Single(dictionary[string.Empty].Errors);
             Assert.IsType<TooManyModelErrorsException>(error.Exception);
             Assert.Equal(expected, error.Exception.Message);
+
+            // TooManyModelErrorsException added instead of key3 exception.
+            Assert.DoesNotContain("key3", dictionary.Keys);
         }
 
         [Fact]

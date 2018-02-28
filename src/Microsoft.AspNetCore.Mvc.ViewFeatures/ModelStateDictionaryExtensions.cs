@@ -15,7 +15,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     {
         /// <summary>
         /// Adds the specified <paramref name="errorMessage"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="expression"/>.
+        /// that is associated with the specified <paramref name="expression"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>
@@ -46,8 +48,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Adds the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="expression"/>.
+        /// that is associated with the specified <paramref name="expression"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
+        /// <remarks>
+        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
+        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
+        /// or relevant information regarding the validation state.
+        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
+        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// </remarks>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>
         /// <param name="expression">An expression to be evaluated against an item in the current model.</param>
@@ -72,7 +83,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Adds the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="expression"/>.
+        /// that is associated with the specified <paramref name="expression"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>

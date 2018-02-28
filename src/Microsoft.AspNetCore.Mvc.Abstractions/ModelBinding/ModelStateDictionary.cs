@@ -174,30 +174,37 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Adds the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="key"/>.
+        /// that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
+        /// <remarks>
+        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
+        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
+        /// or relevant information regarding the validation state.
+        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
+        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// </remarks>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
         public void AddModelError(string key, Exception exception)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (exception == null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
             TryAddModelError(key, exception);
         }
 
         /// <summary>
         /// Attempts to add the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/>
         /// instance that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
-        /// errors has already been recorded, records a <see cref="TooManyModelErrorsException"/> exception instead.
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
+        /// <remarks>
+        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
+        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
+        /// or relevant information regarding the validation state.
+        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
+        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// </remarks>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
         /// <returns>
@@ -235,7 +242,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Adds the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="key"/>.
+        /// that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
@@ -263,7 +272,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to add the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/>
         /// instance that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
-        /// errors has already been recorded, records a <see cref="TooManyModelErrorsException"/> exception instead.
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
@@ -338,7 +348,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
         /// <summary>
         /// Adds the specified <paramref name="errorMessage"/> to the <see cref="ModelStateEntry.Errors"/> instance
-        /// that is associated with the specified <paramref name="key"/>.
+        /// that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="errorMessage">The error message to add.</param>
@@ -360,7 +372,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// Attempts to add the specified <paramref name="errorMessage"/> to the <see cref="ModelStateEntry.Errors"/>
         /// instance that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
-        /// errors has already been recorded, records a <see cref="TooManyModelErrorsException"/> exception instead.
+        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
+        /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="errorMessage">The error message to add.</param>
