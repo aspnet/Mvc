@@ -179,16 +179,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         private static void ValidateViewDataProperty(PropertyInfo property, bool requireViewDataPropertySetters)
         {
-            var attributeName = nameof(ViewDataAttribute);
-            var propertyTypeName = property.DeclaringType.FullName;
-            if (property.GetMethod == null || !property.GetMethod.IsPublic)
-            {
-                throw new InvalidOperationException(
-                    Resources.FormatProperty_MustHaveAPublicGetter(property.DeclaringType.FullName, property.Name, attributeName));
-            }
-
             if (requireViewDataPropertySetters && (property.SetMethod == null || !property.SetMethod.IsPublic))
             {
+                var attributeName = nameof(ViewDataAttribute);
+                var propertyTypeName = property.DeclaringType.FullName;
                 throw new InvalidOperationException(
                     Resources.FormatProperty_MustHaveAPublicSetter(property.DeclaringType.FullName, property.Name, attributeName));
             }
@@ -198,11 +192,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         {
             var attributeName = nameof(TempDataAttribute);
             var propertyTypeName = property.DeclaringType.FullName;
-            if (property.GetMethod == null || !property.GetMethod.IsPublic)
-            {
-                throw new InvalidOperationException(
-                    Resources.FormatProperty_MustHaveAPublicGetter(property.DeclaringType.FullName, property.Name, attributeName));
-            }
 
             if (property.SetMethod == null || !property.SetMethod.IsPublic)
             {

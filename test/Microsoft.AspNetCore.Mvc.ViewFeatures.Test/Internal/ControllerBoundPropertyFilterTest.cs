@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void OnResultExecuting_SkipsWritingToDictionary_IfValueIsUnchaned()
+        public void OnResultExecuting_SkipsWritingToDictionary_IfValueIsUnchanged()
         {
             // Arrange
             var tempDataFactory = GetTempDataFactory(new Dictionary<string, object>
@@ -96,7 +96,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             var viewData = viewDataFactory.GetViewDataDictionary(actionContext);
             Assert.Null(viewData["ViewDataProperty"]);
 
-            // Ensure the key is retained
+            // Ensure the key is not retained
             Assert.Empty(tempData.RetainedKeys);
         }
 

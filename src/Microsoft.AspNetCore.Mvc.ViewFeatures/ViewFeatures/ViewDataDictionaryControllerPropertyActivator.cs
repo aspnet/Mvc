@@ -15,15 +15,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private readonly Func<Type, PropertyActivator<ControllerContext>[]> _getPropertiesToActivate;
         private readonly ControllerViewDataDictionaryFactory _viewDataDictionaryFactory;
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        private readonly ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]> _activateActions
-            = new ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]>();
+        private readonly ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]> _activateActions;
 
         [Obsolete("This constructor is obsolete and will be removed in a future version")]
-        // Note: Remove Legacy code path from GetViewDataDictionary whence this constructor is removed.
         public ViewDataDictionaryControllerPropertyActivator(IModelMetadataProvider modelMetadataProvider)
+            : this(modelMetadataProvider, new ControllerViewDataDictionaryFactory(modelMetadataProvider))
         {
-            _modelMetadataProvider = modelMetadataProvider;
-            _getPropertiesToActivate = GetPropertiesToActivate;
         }
 
         public ViewDataDictionaryControllerPropertyActivator(
@@ -32,6 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         {
             _modelMetadataProvider = modelMetadataProvider ?? throw new ArgumentNullException(nameof(modelMetadataProvider));
             _viewDataDictionaryFactory = viewDataDictionaryFactory ?? throw new ArgumentNullException(nameof(viewDataDictionaryFactory));
+            _activateActions = new ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]>();
             _getPropertiesToActivate = GetPropertiesToActivate;
         }
 
@@ -86,16 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         private ViewDataDictionary GetViewDataDictionary(ControllerContext context)
         {
-            if (_viewDataDictionaryFactory != null)
-            {
-                return _viewDataDictionaryFactory.GetViewDataDictionary(context);
-            }
-
-            var viewData = new ViewDataDictionary(
-                _modelMetadataProvider,
-                context.ModelState);
-
-            return viewData;
+            return _viewDataDictionaryFactory.GetViewDataDictionary(context);
         }
     }
 }

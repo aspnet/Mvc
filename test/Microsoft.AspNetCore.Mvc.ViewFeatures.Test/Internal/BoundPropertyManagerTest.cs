@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             };
             var context = CreateContext(tempDataValues);
 
-            // Arrange
+            // Act
             manager.Populate(instance, context);
 
             // Assert
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             };
             var context = CreateContext(tempDataValues);
 
-            // Arrange
+            // Act
             manager.Save(instance, context);
 
             // Assert
@@ -244,7 +244,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         [Fact]
-        public void Save_DoesNotKeepPropertiesIfValueIsUnchanged()
+        public void Save_DoesNotKeepProperties_IfValueIsUnchanged()
         {
             // Arrange
             var viewOptions = new MvcViewOptions
@@ -262,7 +262,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             };
             var context = CreateContext(tempDataValues);
 
-            // Arrange
+            // Act
             manager.Save(instance, context);
 
             // Assert
