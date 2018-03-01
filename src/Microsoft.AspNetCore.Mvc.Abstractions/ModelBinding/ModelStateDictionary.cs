@@ -180,10 +180,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         /// <remarks>
         /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
-        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
-        /// or relevant information regarding the validation state.
-        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
-        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// when <see cref="ModelMetadata"/> is not available or the exact <paramref name="exception"/> 
+        /// must be maintained for later use (even if it is for example a <see cref="FormatException"/>).
+        /// Where <see cref="ModelMetadata"/> is available, use <see cref="TryAddModelError(string, Exception, ModelMetadata)"/> instead.
         /// </remarks>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
@@ -200,10 +199,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// </summary>
         /// <remarks>
         /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
-        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
-        /// or relevant information regarding the validation state.
-        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
-        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// when <see cref="ModelMetadata"/> is not available or the exact <paramref name="exception"/> 
+        /// must be maintained for later use (even if it is for example a <see cref="FormatException"/>).
+        /// Where <see cref="ModelMetadata"/> is available, use <see cref="TryAddModelError(string, Exception, ModelMetadata)"/> instead.
         /// </remarks>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
@@ -229,12 +227,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return false;
             }
 
-            if (exception is InputFormatterException && !string.IsNullOrEmpty(exception.Message))
-            {
-                // InputFormatterException is a signal that the message is safe to expose to clients
-                return TryAddModelError(key, exception.Message);
-            }
-
             ErrorCount++;
             AddModelErrorCore(key, exception);
             return true;
@@ -247,7 +239,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
-        /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        /// <param name="exception">The <see cref="Exception"/> to add. Some exception types will be replaced with
+        /// a descriptive error message.</param>
         /// <param name="metadata">The <see cref="ModelMetadata"/> associated with the model.</param>
         public void AddModelError(string key, Exception exception, ModelMetadata metadata)
         {
@@ -276,7 +269,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// recorded instead.
         /// </summary>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
-        /// <param name="exception">The <see cref="Exception"/> to add.</param>
+        /// <param name="exception">The <see cref="Exception"/> to add. Some exception types will be replaced with
+        /// a descriptive error message.</param>
         /// <param name="metadata">The <see cref="ModelMetadata"/> associated with the model.</param>
         /// <returns>
         /// <c>True</c> if the given error was added, <c>false</c> if the error was ignored.

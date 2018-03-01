@@ -296,12 +296,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             dictionary.AddModelError("some key", exception);
 
             // Assert
-            Assert.Equal(1, dictionary.ErrorCount);
             var kvp = Assert.Single(dictionary);
             Assert.Equal("some key", kvp.Key);
             var error = Assert.Single(kvp.Value.Errors);
-            Assert.IsType<TestException>(error.Exception);
-            Assert.Equal("This is a test exception", error.Exception.Message);
+            Assert.Same(exception, error.Exception);
         }
 
         [Fact]
@@ -944,15 +942,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void ModelStateDictionary_ReturnExceptionMessage_WhenModelStateNotSet()
         {
             // Arrange
-            var expected = "The supplied value is invalid for Length.";
             var dictionary = new ModelStateDictionary();
+            var exception = new FormatException("The supplied value is invalid for Length.");
 
             // Act
-            dictionary.TryAddModelError("key", new FormatException("The supplied value is invalid for Length."));
+            dictionary.TryAddModelError("key", exception);
 
             // Assert
             var error = Assert.Single(dictionary["key"].Errors);
-            Assert.Equal(expected, error.Exception.Message);
+            Assert.Same(exception, error.Exception);
         }
 
         [Fact]
@@ -1028,16 +1026,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void ModelStateDictionary_ReturnExceptionMessage_WhenModelStateSet()
         {
             // Arrange
-            var expected = "The value 'some value' is not valid for Length.";
             var dictionary = new ModelStateDictionary();
             dictionary.SetModelValue("key", new string[] { "some value" }, "some value");
+            var exception = new FormatException("The value 'some value' is not valid for Length.");
 
             // Act
-            dictionary.TryAddModelError("key", new FormatException("The value 'some value' is not valid for Length."));
+            dictionary.TryAddModelError("key", exception);
 
             // Assert
             var error = Assert.Single(dictionary["key"].Errors);
-            Assert.Equal(expected, error.Exception.Message);
+            Assert.Same(exception, error.Exception);
         }
 
         [Fact]
@@ -1118,13 +1116,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Arrange
             var dictionary = new ModelStateDictionary();
             dictionary.SetModelValue("key", new string[] { "some value" }, "some value");
+            var exception = new InvalidOperationException();
 
             // Act
-            dictionary.TryAddModelError("key", new InvalidOperationException());
+            dictionary.TryAddModelError("key", exception);
 
             // Assert
             var error = Assert.Single(dictionary["key"].Errors);
             Assert.Empty(error.ErrorMessage);
+            Assert.Same(exception, error.Exception);
         }
 
         [Fact]
@@ -1148,17 +1148,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         public void ModelStateDictionary_AddsErrorMessage_ForInputFormatterException()
         {
             // Arrange
-            var expectedMessage = "This is an InputFormatterException";
             var dictionary = new ModelStateDictionary();
+            var exception = new InputFormatterException("This is an InputFormatterException.");
 
             // Act
-            dictionary.TryAddModelError("key", new InputFormatterException(expectedMessage));
+            dictionary.TryAddModelError("key", exception);
 
             // Assert
             var entry = Assert.Single(dictionary);
             Assert.Equal("key", entry.Key);
             var error = Assert.Single(entry.Value.Errors);
-            Assert.Equal(expectedMessage, error.ErrorMessage);
+            Assert.Same(exception, error.Exception);
         }
 
         [Fact]
