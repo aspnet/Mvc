@@ -78,14 +78,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_ForSingleExpression_AddsExpectedException()
+        public void AddModelException_ForSingleExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelError<TestModel>(model => model.Text, exception);
+            dictionary.AddModelException<TestModel>(model => model.Text, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -116,14 +116,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_ForRelationExpression_AddsExpectedException()
+        public void AddModelException_ForRelationExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelError<TestModel>(model => model.Child.Text, exception);
+            dictionary.AddModelException<TestModel>(model => model.Child.Text, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -154,14 +154,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_ForImplicitlyCastedToObjectExpression_AddsExpectedException()
+        public void AddModelException_ForImplicitlyCastedToObjectExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelError<TestModel>(model => model.Child.Value, exception);
+            dictionary.AddModelException<TestModel>(model => model.Child.Value, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelError_ForNotModelsExpression_AddsExpectedException()
+        public void AddModelException_ForNotModelsExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelError<TestModel>(model => variable, exception);
+            dictionary.AddModelException<TestModel>(model => variable, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);

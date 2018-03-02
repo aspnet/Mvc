@@ -53,17 +53,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// recorded instead.
         /// </summary>
         /// <remarks>
-        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
-        /// when <see cref="ModelMetadata"/> is not available and/or the <paramref name="exception"/> has custom
-        /// or relevant information regarding the validation state.
-        /// For cases in which <see cref="ModelMetadata"/> is available, it is recommended that the overload
-        /// with <see cref="ModelMetadata"/> as a parameter be used instead.
+        /// This method allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
+        /// when <see cref="ModelMetadata"/> is not available or the exact <paramref name="exception"/> 
+        /// must be maintained for later use (even if it is for example a <see cref="FormatException"/>).
         /// </remarks>
         /// <typeparam name="TModel">The type of the model.</typeparam>
         /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>
         /// <param name="expression">An expression to be evaluated against an item in the current model.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
-        public static void AddModelError<TModel>(
+        public static void AddModelException<TModel>(
             this ModelStateDictionary modelState,
             Expression<Func<TModel, object>> expression,
             Exception exception)
@@ -78,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            modelState.AddModelError(GetExpressionText(expression), exception);
+            modelState.AddModelException(GetExpressionText(expression), exception);
         }
 
         /// <summary>

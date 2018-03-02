@@ -179,29 +179,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// recorded instead.
         /// </summary>
         /// <remarks>
-        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
+        /// This method allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
         /// when <see cref="ModelMetadata"/> is not available or the exact <paramref name="exception"/> 
         /// must be maintained for later use (even if it is for example a <see cref="FormatException"/>).
-        /// Where <see cref="ModelMetadata"/> is available, use <see cref="TryAddModelError(string, Exception, ModelMetadata)"/> instead.
-        /// </remarks>
-        /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
-        /// <param name="exception">The <see cref="Exception"/> to add.</param>
-        public void AddModelError(string key, Exception exception)
-        {
-            TryAddModelError(key, exception);
-        }
-
-        /// <summary>
-        /// Attempts to add the specified <paramref name="exception"/> to the <see cref="ModelStateEntry.Errors"/>
-        /// instance that is associated with the specified <paramref name="key"/>. If the maximum number of allowed
-        /// errors has already been recorded, ensures that a <see cref="TooManyModelErrorsException"/> exception is
-        /// recorded instead.
-        /// </summary>
-        /// <remarks>
-        /// This overload allows adding the <paramref name="exception"/> to the current <see cref="ModelStateDictionary"/>
-        /// when <see cref="ModelMetadata"/> is not available or the exact <paramref name="exception"/> 
-        /// must be maintained for later use (even if it is for example a <see cref="FormatException"/>).
-        /// Where <see cref="ModelMetadata"/> is available, use <see cref="TryAddModelError(string, Exception, ModelMetadata)"/> instead.
+        /// Where <see cref="ModelMetadata"/> is available, use <see cref="AddModelError(string, Exception, ModelMetadata)"/> instead.
         /// </remarks>
         /// <param name="key">The key of the <see cref="ModelStateEntry"/> to add errors to.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
@@ -209,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <c>True</c> if the given error was added, <c>false</c> if the error was ignored.
         /// See <see cref="MaxAllowedErrors"/>.
         /// </returns>
-        public bool TryAddModelError(string key, Exception exception)
+        public bool AddModelException(string key, Exception exception)
         {
             if (key == null)
             {
