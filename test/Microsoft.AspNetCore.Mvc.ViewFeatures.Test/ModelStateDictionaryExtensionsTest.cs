@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelException_ForSingleExpression_AddsExpectedException()
+        public void TryAddModelException_ForSingleExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelException_ForRelationExpression_AddsExpectedException()
+        public void TryAddModelException_ForRelationExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelException_ForImplicitlyCastedToObjectExpression_AddsExpectedException()
+        public void TryAddModelException_ForImplicitlyCastedToObjectExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
@@ -192,7 +192,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         }
 
         [Fact]
-        public void AddModelException_ForNotModelsExpression_AddsExpectedException()
+        public void TryAddModelException_ForNotModelsExpression_AddsExpectedException()
         {
             // Arrange
             var dictionary = new ModelStateDictionary();
