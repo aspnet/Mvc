@@ -521,6 +521,113 @@ Environment.NewLine;
             Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
         }
 
+        [Fact]
+        public void PasswordTemplate_ReturnsInputElement_IgnoresExpressionValue()
+        {
+            // Arrange
+            var expected = "<input class=\"HtmlEncode[[text-box single-line password]]\" " +
+                "id=\"HtmlEncode[[FieldPrefix]]\" name=\"HtmlEncode[[FieldPrefix]]\" " +
+                "type=\"HtmlEncode[[password]]\" />";
+
+            var model = "Model string";
+
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper(model);
+            var viewData = helper.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            templateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            // Act
+            var result = DefaultEditorTemplates.PasswordTemplate(helper);
+
+            // Assert
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        [Fact]
+        public void PasswordTemplate_ReturnsInputElement_IgnoresFormattedModelValue()
+        {
+            // Arrange
+            var expected = "<input class=\"HtmlEncode[[text-box single-line password]]\" " +
+                "id=\"HtmlEncode[[FieldPrefix]]\" name=\"HtmlEncode[[FieldPrefix]]\" " +
+                "type=\"HtmlEncode[[password]]\" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
+            var viewData = helper.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            templateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            templateInfo.FormattedModelValue = "Formatted string";
+
+            // Act
+            var result = DefaultEditorTemplates.PasswordTemplate(helper);
+
+            // Assert
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        [Fact]
+        public void PasswordTemplate_ReturnsInputElement_IgnoresModelState()
+        {
+            // Arrange
+            var expected = "<input class=\"HtmlEncode[[text-box single-line password]]\" " +
+                "id=\"HtmlEncode[[FieldPrefix]]\" name=\"HtmlEncode[[FieldPrefix]]\" " +
+                "type=\"HtmlEncode[[password]]\" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
+            var viewData = helper.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            templateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            var modelState = viewData.ModelState;
+            modelState.SetModelValue("FieldPRefix", "Raw model string", "Attempted model string");
+
+            // Act
+            var result = DefaultEditorTemplates.PasswordTemplate(helper);
+
+            // Assert
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        [Fact]
+        public void PasswordTemplate_ReturnsInputElement_IgnoresViewData()
+        {
+            // Arrange
+            var expected = "<input class=\"HtmlEncode[[text-box single-line password]]\" " +
+                "id=\"HtmlEncode[[FieldPrefix]]\" name=\"HtmlEncode[[FieldPrefix]]\" " +
+                "type=\"HtmlEncode[[password]]\" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
+            var viewData = helper.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            templateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            viewData["FieldPrefix"] = "ViewData string";
+
+            // Act
+            var result = DefaultEditorTemplates.PasswordTemplate(helper);
+
+            // Assert
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
+        [Fact]
+        public void PasswordTemplate_ReturnsInputElement_UsesHtmlAttributes()
+        {
+            // Arrange
+            var expected = "<input class=\"HtmlEncode[[super text-box single-line password]]\" " +
+                "id=\"HtmlEncode[[FieldPrefix]]\" name=\"HtmlEncode[[FieldPrefix]]\" " +
+                "type=\"HtmlEncode[[password]]\" value=\"HtmlEncode[[Html attributes string]]\" />";
+            var helper = DefaultTemplatesUtilities.GetHtmlHelper<string>(model: null);
+            var viewData = helper.ViewData;
+            var templateInfo = viewData.TemplateInfo;
+            templateInfo.HtmlFieldPrefix = "FieldPrefix";
+
+            viewData["htmlAttributes"] = new { @class = "super", value = "Html attributes string" };
+
+            // Act
+            var result = DefaultEditorTemplates.PasswordTemplate(helper);
+
+            // Assert
+            Assert.Equal(expected, HtmlContentUtilities.HtmlContentToString(result));
+        }
+
         [Theory]
         [MemberData(nameof(TemplateNameData))]
         public void Editor_CallsExpectedHtmlHelper(string templateName, string expectedResult)
