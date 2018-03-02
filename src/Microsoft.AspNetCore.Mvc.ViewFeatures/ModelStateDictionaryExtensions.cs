@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <param name="modelState">The <see cref="ModelStateDictionary"/> instance this method extends.</param>
         /// <param name="expression">An expression to be evaluated against an item in the current model.</param>
         /// <param name="exception">The <see cref="Exception"/> to add.</param>
-        public static void AddModelException<TModel>(
+        public static void TryAddModelException<TModel>(
             this ModelStateDictionary modelState,
             Expression<Func<TModel, object>> expression,
             Exception exception)
@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            modelState.AddModelException(GetExpressionText(expression), exception);
+            modelState.TryAddModelException(GetExpressionText(expression), exception);
         }
 
         /// <summary>

@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelException<TestModel>(model => model.Text, exception);
+            dictionary.TryAddModelException<TestModel>(model => model.Text, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -123,7 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelException<TestModel>(model => model.Child.Text, exception);
+            dictionary.TryAddModelException<TestModel>(model => model.Child.Text, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelException<TestModel>(model => model.Child.Value, exception);
+            dictionary.TryAddModelException<TestModel>(model => model.Child.Value, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var exception = new Exception();
 
             // Act
-            dictionary.AddModelException<TestModel>(model => variable, exception);
+            dictionary.TryAddModelException<TestModel>(model => variable, exception);
 
             // Assert
             var modelState = Assert.Single(dictionary);

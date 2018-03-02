@@ -190,7 +190,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <c>True</c> if the given error was added, <c>false</c> if the error was ignored.
         /// See <see cref="MaxAllowedErrors"/>.
         /// </returns>
-        public bool AddModelException(string key, Exception exception)
+        public bool TryAddModelException(string key, Exception exception)
         {
             if (key == null)
             {
