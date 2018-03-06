@@ -36,8 +36,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     new BadRequestObjectResult(modelState) :
                     new BadRequestObjectResult(errorDetails);
 
-                result.ContentTypes.Add("application/problem+json");
-                result.ContentTypes.Add("application/problem+json");
+                result.ContentTypes.Add("application/json");
+                result.ContentTypes.Add("application/json");
 
                 return result;
             }
