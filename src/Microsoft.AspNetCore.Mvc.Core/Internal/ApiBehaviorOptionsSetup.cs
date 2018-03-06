@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     new BadRequestObjectResult(errorDetails);
 
                 result.ContentTypes.Add("application/json");
+                result.ContentTypes.Add("application/xml");
 
                 return result;
             }
