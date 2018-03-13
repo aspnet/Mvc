@@ -809,18 +809,46 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_InvalidType"), p0, p1, p2);
 
         /// <summary>
-        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public getter and setter.
+        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public getter.
         /// </summary>
-        internal static string TempDataProperties_PublicGetterSetter
+        internal static string Property_MustHaveAPublicGetter
         {
-            get => GetString("TempDataProperties_PublicGetterSetter");
+            get => GetString("Property_MustHaveAPublicGetter");
         }
 
         /// <summary>
-        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public getter and setter.
+        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public getter.
         /// </summary>
-        internal static string FormatTempDataProperties_PublicGetterSetter(object p0, object p1, object p2)
-            => string.Format(CultureInfo.CurrentCulture, GetString("TempDataProperties_PublicGetterSetter"), p0, p1, p2);
+        internal static string FormatProperty_MustHaveAPublicGetter(object p0, object p1, object p2)
+            => string.Format(CultureInfo.CurrentCulture, GetString("Property_MustHaveAPublicGetter"), p0, p1, p2);
+
+        /// <summary>
+        /// Unsupported enum value '{0}'.
+        /// </summary>
+        internal static string UnsupportedEnumType
+        {
+            get => GetString("UnsupportedEnumType");
+        }
+
+        /// <summary>
+        /// Unsupported enum value '{0}'.
+        /// </summary>
+        internal static string FormatUnsupportedEnumType(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("UnsupportedEnumType"), p0);
+
+        /// <summary>
+        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public setter.
+        /// </summary>
+        internal static string Property_MustHaveAPublicSetter
+        {
+            get => GetString("Property_MustHaveAPublicSetter");
+        }
+
+        /// <summary>
+        /// The '{0}.{1}' property with {2} is invalid. A property using {2} must have a public setter.
+        /// </summary>
+        internal static string FormatProperty_MustHaveAPublicSetter(object p0, object p1, object p2)
+            => string.Format(CultureInfo.CurrentCulture, GetString("Property_MustHaveAPublicSetter"), p0, p1, p2);
 
         private static string GetString(string name, params string[] formatterNames)
         {

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -14,24 +13,28 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
     public class ViewDataDictionaryControllerPropertyActivator : IControllerPropertyActivator
     {
         private readonly Func<Type, PropertyActivator<ControllerContext>[]> _getPropertiesToActivate;
+        private readonly ControllerViewDataDictionaryFactory _viewDataDictionaryFactory;
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        private ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]> _activateActions;
-        private bool _initialized;
-        private object _initializeLock = new object();
+        private readonly ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]> _activateActions;
 
+        [Obsolete("This constructor is obsolete and will be removed in a future version")]
         public ViewDataDictionaryControllerPropertyActivator(IModelMetadataProvider modelMetadataProvider)
+            : this(modelMetadataProvider, new ControllerViewDataDictionaryFactory(modelMetadataProvider))
         {
-            _modelMetadataProvider = modelMetadataProvider;
+        }
+
+        public ViewDataDictionaryControllerPropertyActivator(
+            IModelMetadataProvider modelMetadataProvider,
+            ControllerViewDataDictionaryFactory viewDataDictionaryFactory)
+        {
+            _modelMetadataProvider = modelMetadataProvider ?? throw new ArgumentNullException(nameof(modelMetadataProvider));
+            _viewDataDictionaryFactory = viewDataDictionaryFactory ?? throw new ArgumentNullException(nameof(viewDataDictionaryFactory));
+            _activateActions = new ConcurrentDictionary<Type, PropertyActivator<ControllerContext>[]>();
             _getPropertiesToActivate = GetPropertiesToActivate;
         }
 
         public void Activate(ControllerContext actionContext, object controller)
         {
-            LazyInitializer.EnsureInitialized(
-                ref _activateActions,
-                ref _initialized,
-                ref _initializeLock);
-
             var controllerType = controller.GetType();
             var propertiesToActivate = _activateActions.GetOrAdd(
                 controllerType,
@@ -81,9 +84,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
         private ViewDataDictionary GetViewDataDictionary(ControllerContext context)
         {
-            return new ViewDataDictionary(
-                _modelMetadataProvider,
-                context.ModelState);
+            return _viewDataDictionaryFactory.GetViewDataDictionary(context);
         }
     }
 }

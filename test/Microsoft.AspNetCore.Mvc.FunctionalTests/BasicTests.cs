@@ -507,5 +507,22 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(expected, assemblyParts);
         }
+
+        [Fact]
+        public async Task ViewDataProperties_AreTransferredToLayoutPages()
+        {
+            // Act
+            var document = await Client.GetHtmlDocumentAsync("ViewDataProperty");
+
+            // Assert
+            var message = document.QuerySelector("#message").TextContent;
+            Assert.Equal("Message set in action", message);
+
+            var filterMessage = document.QuerySelector("#filter-message").TextContent;
+            Assert.Equal("Value set in OnActionExecuting", filterMessage);
+
+            var title = document.QuerySelector("title").TextContent;
+            Assert.Equal("View Data Property Sample", title);
+        }
     }
 }

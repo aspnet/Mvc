@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         }
 
         /// <summary>
-        /// Gets the controller instance containing the action.
+        /// Gets the controller containing the action, or the handler instance when executing a Razor Page.
         /// </summary>
         public virtual object Controller { get; }
 

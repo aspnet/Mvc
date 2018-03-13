@@ -37,9 +37,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 throw new ArgumentNullException(nameof(context));
             }
 
-            object obj;
             ITempDataDictionary result;
-            if (context.Items.TryGetValue(Key, out obj))
+            if (context.Items.TryGetValue(Key, out var obj))
             {
                 result = (ITempDataDictionary)obj;
             }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace Microsoft.AspNetCore.Mvc.Filters
 {
@@ -44,12 +45,13 @@ namespace Microsoft.AspNetCore.Mvc.Filters
             HandlerMethod = handlerMethod;
             HandlerArguments = handlerArguments;
             HandlerInstance = handlerInstance;
+            ViewData = pageContext.ViewData;
         }
 
         /// <summary>
         /// Gets the descriptor associated with the current page.
         /// </summary>
-        public new virtual CompiledPageActionDescriptor ActionDescriptor => 
+        public new virtual CompiledPageActionDescriptor ActionDescriptor =>
             (CompiledPageActionDescriptor)base.ActionDescriptor;
 
         /// <summary>
@@ -72,5 +74,10 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         /// Gets the object instance containing the handler method.
         /// </summary>
         public virtual object HandlerInstance { get; }
+
+        /// <summary>
+        /// Gets the <see cref="ViewDataDictionary"/>.
+        /// </summary>
+        public virtual ViewDataDictionary ViewData { get; }
     }
 }
