@@ -244,7 +244,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             Logger.AttemptingToBindCollectionUsingIndices(bindingContext);
 
             var indexPropertyName = ModelNames.CreatePropertyModelName(bindingContext.ModelName, "index");
-            var valueProviderResultIndex = bindingContext.ValueProvider.GetValue(indexPropertyName);
+
+            // Remove any value provider that may not use indexPropertyName as-is. Don't match e.g. Model[index].
+            var valueProvider = bindingContext.ValueProvider;
+            if (valueProvider is IKeyRewriterValueProvider keyRewriterValueProvider)
+            {
+                valueProvider = keyRewriterValueProvider.Filter() ?? new CompositeValueProvider();
+            }
+
+            var valueProviderResultIndex = valueProvider.GetValue(indexPropertyName);
             var indexNames = GetIndexNamesFromValueProviderResult(valueProviderResultIndex);
 
             return BindComplexCollectionFromIndexes(bindingContext, indexNames);
