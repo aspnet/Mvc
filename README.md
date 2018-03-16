@@ -26,3 +26,5 @@ This project is part of ASP.NET Core. You can find samples, documentation and ge
 ## Building from source
 
 To run a complete build on command line only, execute `build.cmd` or `build.sh` without arguments. See [developer documentation](https://github.com/aspnet/Home/wiki) for more details.
+
+Test
