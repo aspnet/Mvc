@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
     /// <typeparam name="TElement">Type of elements in the collection.</typeparam>
     public class CollectionModelBinder<TElement> : ICollectionModelBinder
     {
+        private static readonly IValueProvider EmptyValueProvider = new CompositeValueProvider();
         private Func<object> _modelCreator;
 
         /// <summary>
@@ -249,7 +250,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var valueProvider = bindingContext.ValueProvider;
             if (valueProvider is IKeyRewriterValueProvider keyRewriterValueProvider)
             {
-                valueProvider = keyRewriterValueProvider.Filter() ?? new CompositeValueProvider();
+                valueProvider = keyRewriterValueProvider.Filter() ?? EmptyValueProvider;
             }
 
             var valueProviderResultIndex = valueProvider.GetValue(indexPropertyName);

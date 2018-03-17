@@ -117,8 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             foreach (var valueProvider in this)
             {
-                var enumeratedProvider = valueProvider as IEnumerableValueProvider;
-                if (enumeratedProvider != null)
+                if (valueProvider is IEnumerableValueProvider enumeratedProvider)
                 {
                     var result = enumeratedProvider.GetKeysFromPrefix(prefix);
                     if (result != null && result.Count > 0)
@@ -197,12 +196,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 return null;
             }
 
-            if (filteredValueProviders.Count == Count)
-            {
-                // No need for a new CompositeValueProvider.
-                return this;
-            }
-
             return new CompositeValueProvider(filteredValueProviders);
         }
 
@@ -253,12 +246,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // Do not create an empty CompositeValueProvider.
                 return null;
-            }
-
-            if (filteredValueProviders.Count == Count)
-            {
-                // No need for a new CompositeValueProvider because no rewriter-aware provider excluded itself.
-                return this;
             }
 
             return new CompositeValueProvider(filteredValueProviders);

@@ -436,9 +436,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
 
             public override bool Equals(object obj)
             {
-                var other = obj as Person;
-
-                return other != null && Id == other.Id;
+                return obj is Person other && Id == other.Id;
             }
 
             public override int GetHashCode()

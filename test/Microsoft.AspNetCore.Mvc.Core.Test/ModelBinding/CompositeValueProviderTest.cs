@@ -14,6 +14,26 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 {
     public class CompositeValueProviderTest : EnumerableValueProviderTest
     {
+        [Fact]
+        public override void FilterInclude()
+        {
+            // Arrange
+            var provider = GetBindingSourceValueProvider(BindingSource.Query, BackingStore, culture: null);
+            var originalProviders = ((CompositeValueProvider)provider).ToArray();
+            var bindingSource = new BindingSource(
+                BindingSource.Query.Id,
+                displayName: null,
+                isGreedy: true,
+                isFromRequest: true);
+
+            // Act
+            var result = provider.Filter(bindingSource);
+
+            // Assert (does not change inner providers)
+            var newProvider = Assert.IsType<CompositeValueProvider>(result);
+            Assert.Equal(originalProviders, newProvider, ReferenceEqualityComparer.Instance);
+        }
+
         protected override IEnumerableValueProvider GetEnumerableValueProvider(
             BindingSource bindingSource,
             Dictionary<string, StringValues> values,
@@ -132,9 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Act
             var result = provider.Filter();
 
-            // Assert
-            Assert.Same(provider, result);
-            // Also does not change inner providers.
+            // Assert (does not change inner providers)
             var newProvider = Assert.IsType<CompositeValueProvider>(result);
             Assert.Equal(originalProviders, newProvider, ReferenceEqualityComparer.Instance);
         }
