@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public ConsumesAttributeTests(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreatePlainClient();
+            Client = fixture.CreateDefaultClient();
         }
 
         public HttpClient Client { get; }

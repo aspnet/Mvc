@@ -20,9 +20,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public RazorPagesTest(MvcTestFixture<RazorPagesWebSite.Startup> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<RazorPagesWebSite.Startup>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<RazorPagesWebSite.Startup>();
 
         public HttpClient Client { get; }
 

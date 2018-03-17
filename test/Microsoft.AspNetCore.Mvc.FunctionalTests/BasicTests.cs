@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public BasicTests(MvcTestFixture<BasicWebSite.Startup> fixture)
         {
-            Client = fixture.CreatePlainClient();
+            Client = fixture.CreateDefaultClient();
         }
 
         public HttpClient Client { get; }

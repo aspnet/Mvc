@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -24,9 +25,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
         public RequestSizeLimitTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupRequestLimitSize>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<BasicWebSite.StartupRequestLimitSize>();
 
         public HttpClient Client { get; }
 

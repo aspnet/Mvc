@@ -25,8 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             MvcTestFixture<TagHelpersWebSite.Startup> fixture,
             MvcEncodedTestFixture<TagHelpersWebSite.Startup> encodedFixture)
         {
-            Client = fixture.CreatePlainClient();
-            EncodedClient = encodedFixture.CreatePlainClient();
+            Client = fixture.CreateDefaultClient();
+            EncodedClient = encodedFixture.CreateDefaultClient();
         }
 
         public HttpClient Client { get; }

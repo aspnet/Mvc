@@ -17,8 +17,25 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     public class WebApplicationFactoryClientOptions
     {
         /// <summary>
+        /// Initializes a new instance of <see cref="WebApplicationFactoryClientOptions"/>.
+        /// </summary>
+        public WebApplicationFactoryClientOptions()
+        {
+        }
+
+        // Copy constructor
+        internal WebApplicationFactoryClientOptions(WebApplicationFactoryClientOptions clientOptions)
+        {
+            BaseAddress = clientOptions.BaseAddress;
+            AllowAutoRedirect = clientOptions.AllowAutoRedirect;
+            MaxAutomaticRedirections = clientOptions.MaxAutomaticRedirections;
+            HandleCookies = clientOptions.HandleCookies;
+        }
+
+        /// <summary>
         /// Gets or sets the base address of <see cref="HttpClient"/> instances created by calling
         /// <see cref="WebApplicationFactory{TEntryPoint}.CreateClient(WebApplicationFactoryClientOptions)"/>.
+        /// The default is <c>http://localhost</c>.
         /// </summary>
         public Uri BaseAddress { get; set; } = new Uri("http://localhost");
 
@@ -26,13 +43,15 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// Gets or sets whether or not <see cref="HttpClient"/> instances created by calling
         /// <see cref="WebApplicationFactory{TEntryPoint}.CreateClient(WebApplicationFactoryClientOptions)"/>
         /// should automatically follow redirect responses.
-        /// </summary>
+        /// The default is <c>true</c>.
+        /// /// </summary>
         public bool AllowAutoRedirect { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the maximum number of redirect responses that <see cref="HttpClient"/> instances
         /// created by calling <see cref="WebApplicationFactory{TEntryPoint}.CreateClient(WebApplicationFactoryClientOptions)"/>
         /// should follow.
+        /// The default is <c>7</c>.
         /// </summary>
         public int MaxAutomaticRedirections { get; set; } = RedirectHandler.DefaultMaxRedirects;
 
@@ -40,6 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// Gets or sets whether <see cref="HttpClient"/> instances created by calling 
         /// <see cref="WebApplicationFactory{TEntryPoint}.CreateClient(WebApplicationFactoryClientOptions)"/>
         /// should handle cookies.
+        /// The default is <c>true</c>.
         /// </summary>
         public bool HandleCookies { get; set; } = true;
 

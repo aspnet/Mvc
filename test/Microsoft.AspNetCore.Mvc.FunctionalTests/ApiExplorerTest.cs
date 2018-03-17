@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public ApiExplorerTest(MvcTestFixture<ApiExplorerWebSite.Startup> fixture)
         {
-            Client = fixture.CreatePlainClient();
+            Client = fixture.CreateDefaultClient();
         }
 
         public HttpClient Client { get; }

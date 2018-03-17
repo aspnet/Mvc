@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -14,9 +15,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public GlobalAuthorizationFilterTest(MvcTestFixture<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<SecurityWebSite.StartupWithGlobalDenyAnonymousFilter>();
 
         public HttpClient Client { get; }
 

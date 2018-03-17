@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -15,9 +16,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RequestFormLimitsTest(MvcTestFixture<BasicWebSite.StartupRequestLimitSize> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupRequestLimitSize>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<BasicWebSite.StartupRequestLimitSize>();
 
         public HttpClient Client { get; }
 

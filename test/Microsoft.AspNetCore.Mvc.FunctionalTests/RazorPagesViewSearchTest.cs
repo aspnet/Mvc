@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -12,9 +13,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RazorPagesViewSearchTest(MvcTestFixture<RazorPagesWebSite.Startup> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<RazorPagesWebSite.Startup>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<RazorPagesWebSite.Startup>();
 
         public HttpClient Client { get; }
 

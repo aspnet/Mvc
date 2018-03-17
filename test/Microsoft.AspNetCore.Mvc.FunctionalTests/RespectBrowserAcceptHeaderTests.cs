@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -16,9 +17,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public RespectBrowserAcceptHeaderTests(MvcTestFixture<FormatterWebSite.StartupWithRespectBrowserAcceptHeader> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<FormatterWebSite.StartupWithRespectBrowserAcceptHeader>();
-            Client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<FormatterWebSite.StartupWithRespectBrowserAcceptHeader>();
 
         public HttpClient Client { get; }
 

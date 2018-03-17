@@ -1,9 +1,11 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using BasicWebSite;
 using BasicWebSite.Controllers;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,9 +17,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
     {
         public TestingInfrastructureTests(WebApplicationFactory<BasicWebSite.Startup> fixture)
         {
-            fixture.WebHostBuilder?.ConfigureTestServices(s => s.AddSingleton<TestService, OverridenService>());
-            Client = fixture.CreateClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            Client = factory.CreateClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.ConfigureTestServices(s => s.AddSingleton<TestService, OverridenService>());
 
         public HttpClient Client { get; }
 

@@ -21,9 +21,12 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public TempDataInCookiesUsingCookieConsentTest(
             MvcTestFixture<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent> fixture)
         {
-            fixture.WebHostBuilder?.UseStartup<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent>();
-            _client = fixture.CreatePlainClient();
+            var factory = fixture.Factories.FirstOrDefault() ?? fixture.WithWebHostBuilder(ConfigureWebHostBuilder);
+            _client = factory.CreateDefaultClient();
         }
+
+        private static void ConfigureWebHostBuilder(IWebHostBuilder builder) =>
+            builder.UseStartup<BasicWebSite.StartupWithCookieTempDataProviderAndCookieConsent>();
 
         [Fact]
         public async Task CookieTempDataProviderCookie_SetInResponse_OnGrantingConsent()

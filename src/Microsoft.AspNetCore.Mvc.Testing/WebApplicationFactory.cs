@@ -21,8 +21,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
     public class WebApplicationFactory<TEntryPoint> : IDisposable where TEntryPoint : class
     {
         private TestServer _server;
-        private IWebHostBuilder _builder;
+        private Action<IWebHostBuilder> _configuration;
         private IList<HttpClient> _clients = new List<HttpClient>();
+        private List<WebApplicationFactory<TEntryPoint>> _derivedFactories =
+            new List<WebApplicationFactory<TEntryPoint>>();
 
         /// <summary>
         /// <para>
@@ -43,12 +45,19 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </para>
         /// <para>
         /// The application assemblies will be loaded from the dependency context of the assembly containing
-        /// <typeparamref name = "TEntryPoint" />.This means that project dependencies of the assembly containing
-        /// <typeparamref name = "TEntryPoint" /> will be loaded as application assemblies.
+        /// <typeparamref name="TEntryPoint" />. This means that project dependencies of the assembly containing
+        /// <typeparamref name="TEntryPoint" /> will be loaded as application assemblies.
         /// </para>
         /// </summary>
-        public WebApplicationFactory()
+        public WebApplicationFactory() : 
+            this(builder => { }, new WebApplicationFactoryClientOptions())
         {
+        }
+
+        private WebApplicationFactory(Action<IWebHostBuilder> configuration, WebApplicationFactoryClientOptions options)
+        {
+            _configuration = configuration;
+            ClientOptions = options;
         }
 
         /// <summary>
@@ -57,28 +66,37 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         public TestServer Server => _server;
 
         /// <summary>
-        /// Gets the <see cref="WebApplicationFactoryClientOptions"/> used by <see cref="CreateClient()"/>.
+        /// Gets the <see cref="IReadOnlyList{WebApplicationFactory}"/> of factories created from this factory
+        /// by further customizing the <see cref="IWebHostBuilder"/> when calling 
+        /// <see cref="WebApplicationFactory{TEntryPoint}.WithWebHostBuilder(Action{IWebHostBuilder})"/>.
         /// </summary>
-        public WebApplicationFactoryClientOptions ClientOptions { get; } = new WebApplicationFactoryClientOptions();
+        public IReadOnlyList<WebApplicationFactory<TEntryPoint>> Factories => _derivedFactories.AsReadOnly();
 
         /// <summary>
-        /// The <see cref="IWebHostBuilder"/> used to create the <see cref="TestServer"/>.
+        /// Gets the <see cref="WebApplicationFactoryClientOptions"/> used by <see cref="CreateClient()"/>.
         /// </summary>
-        public IWebHostBuilder WebHostBuilder
-        {
-            get
-            {
-                if (_server != null)
-                {
-                    return null;
-                }
-                if (_builder == null)
-                {
-                    EnsureBuilder();
-                }
+        public WebApplicationFactoryClientOptions ClientOptions { get; }
 
-                return _builder;
-            }
+        /// <summary>
+        /// Creates a new <see cref="WebApplicationFactory{TEntryPoint}"/> with a <see cref="IWebHostBuilder"/>
+        /// that is further customized by <paramref name="configuration"/>.
+        /// </summary>
+        /// <param name="configuration">
+        /// An <see cref="Action{IWebHostBuilder}"/> to configure the <see cref="IWebHostBuilder"/>.
+        /// </param>
+        /// <returns>A new <see cref="WebApplicationFactory{TEntryPoint}"/>.</returns>
+        public WebApplicationFactory<TEntryPoint> WithWebHostBuilder(Action<IWebHostBuilder> configuration)
+        {
+            var factory = new WebApplicationFactory<TEntryPoint>(builder => 
+            {
+                _configuration(builder);
+                configuration(builder);
+            },
+            new WebApplicationFactoryClientOptions(ClientOptions));
+
+            _derivedFactories.Add(factory);
+
+            return factory;
         }
 
         private void EnsureServer()
@@ -88,16 +106,17 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                 return;
             }
 
-            EnsureBuilder();
             EnsureDepsFile();
 
-            SetContentRoot();
 
-            ConfigureWebHost(_builder);
-            _server = CreateServer(_builder);
+            var builder = CreateWebHostBuilder();
+            SetContentRoot(builder);
+            ConfigureWebHost(builder);
+            _configuration(builder);
+            _server = CreateServer(builder);
         }
 
-        private void SetContentRoot()
+        private void SetContentRoot(IWebHostBuilder builder)
         {
             var metadataAttributes = GetContentRootMetadataAttributes(
                 typeof(TEntryPoint).Assembly.FullName,
@@ -124,11 +143,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
             if (contentRoot != null)
             {
-                _builder.UseContentRoot(contentRoot);
+                builder.UseContentRoot(contentRoot);
             }
             else
             {
-                _builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name);
+                builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name);
             }
         }
 
@@ -240,16 +259,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         {
         }
 
-        private void EnsureBuilder()
-        {
-            if (_builder != null)
-            {
-                return;
-            }
-
-            _builder = CreateWebHostBuilder();
-        }
-
         /// <summary>
         /// Creates an instance of <see cref="HttpClient"/> that automatically follows
         /// redirects and handles cookies.
@@ -264,7 +273,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </summary>
         /// <returns>The <see cref="HttpClient"/>.</returns>
         public HttpClient CreateClient(WebApplicationFactoryClientOptions options) =>
-            CreatePlainClient(options.BaseAddress, options.CreateHandlers());
+            CreateDefaultClient(options.BaseAddress, options.CreateHandlers());
 
         /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
@@ -274,8 +283,8 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to set up on the
         /// <see cref="HttpClient"/>.</param>
         /// <returns>The <see cref="HttpClient"/>.</returns>
-        public HttpClient CreatePlainClient(params DelegatingHandler[] handlers) =>
-            CreatePlainClient(new Uri("http://localhost"), handlers);
+        public HttpClient CreateDefaultClient(params DelegatingHandler[] handlers) =>
+            CreateDefaultClient(new Uri("http://localhost"), handlers);
 
         /// <summary>
         /// Creates a new instance of an <see cref="HttpClient"/> that can be used to
@@ -285,7 +294,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to set up on the
         /// <see cref="HttpClient"/>.</param>
         /// <returns>The <see cref="HttpClient"/>.</returns>
-        public HttpClient CreatePlainClient(Uri baseAddress, params DelegatingHandler[] handlers)
+        public HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers)
         {
             EnsureServer();
             if (handlers == null || handlers.Length == 0)
@@ -322,6 +331,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             foreach (var client in _clients)
             {
                 client.Dispose();
+            }
+
+            foreach (var factory in _derivedFactories)
+            {
+                factory.Dispose();
             }
 
             _server?.Dispose();
