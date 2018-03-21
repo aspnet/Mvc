@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         /// <summary>
         /// A <see cref="ValueProviderResult"/> that represents a lack of data.
         /// </summary>
-        public static ValueProviderResult None = new ValueProviderResult(new string[0]);
+        public static ValueProviderResult None = new ValueProviderResult(default);
 
         /// <summary>
         /// Creates a new <see cref="ValueProviderResult"/> using <see cref="CultureInfo.InvariantCulture"/>.
@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             get
             {
-                if (Values.Count == 0)
+                if (Values.IsNull)
                 {
                     return null;
                 }

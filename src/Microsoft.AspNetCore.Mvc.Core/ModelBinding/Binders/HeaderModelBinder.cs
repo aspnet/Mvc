@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 {
@@ -128,16 +128,18 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             // Prevent breaking existing users in scenarios where they are binding to a 'string' property
             // and expect the whole comma separated string, if any, as a single string and not as a string array.
-            var values = Array.Empty<string>();
+            var values = default(StringValues);
             if (request.Headers.ContainsKey(headerName))
             {
                 if (bindingContext.ModelMetadata.IsEnumerableType)
                 {
+                    // Convert to multiple values
                     values = request.Headers.GetCommaSeparatedValues(headerName);
                 }
                 else
                 {
-                    values = new[] { (string)request.Headers[headerName] };
+                    // Convert to single value
+                    values = (string)request.Headers[headerName];
                 }
             }
 
@@ -212,23 +214,21 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
         private class HeaderValueProvider : IValueProvider
         {
-            private readonly string[] _values;
+            private readonly StringValues _values;
 
-            public HeaderValueProvider(string[] values)
+            public HeaderValueProvider(StringValues values)
             {
-                Debug.Assert(values != null);
-
                 _values = values;
             }
 
             public bool ContainsPrefix(string prefix)
             {
-                return _values.Length != 0;
+                return !_values.IsNull;
             }
 
             public ValueProviderResult GetValue(string key)
             {
-                if (_values.Length == 0)
+                if (_values.IsNull)
                 {
                     return ValueProviderResult.None;
                 }

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Null(result.FirstValue);
             Assert.Equal(ValueProviderResult.None, result);
             Assert.Null((string)result);
-            Assert.Null((string[])result);
+            Assert.Empty((string[])result);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             Assert.Null(result.FirstValue);
             Assert.Equal(ValueProviderResult.None, result);
             Assert.Null((string)result);
-            Assert.Null((string[])result);
+            Assert.Empty((string[])result);
         }
 
         [Fact]
