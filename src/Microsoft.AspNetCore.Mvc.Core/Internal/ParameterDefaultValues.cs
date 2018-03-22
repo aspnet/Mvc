@@ -21,34 +21,38 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             for (var i = 0; i < parameters.Length; i++)
             {
-                var parameterInfo = parameters[i];
-                object defaultValue;
-
-                if (parameterInfo.HasDefaultValue)
-                {
-                    defaultValue = parameterInfo.DefaultValue;
-                }
-                else
-                {
-                    var defaultValueAttribute = parameterInfo
-                        .GetCustomAttribute<DefaultValueAttribute>(inherit: false);
-
-                    if (defaultValueAttribute?.Value == null)
-                    {
-                        defaultValue = parameterInfo.ParameterType.GetTypeInfo().IsValueType
-                            ? Activator.CreateInstance(parameterInfo.ParameterType)
-                            : null;
-                    }
-                    else
-                    {
-                        defaultValue = defaultValueAttribute.Value;
-                    }
-                }
-
-                values[i] = defaultValue;
+                values[i] = GetParameterDefaultValue(parameters[i], considerDefaultValueAttribute: true);
             }
 
             return values;
+        }
+
+        public static object GetParameterDefaultValue(ParameterInfo parameterInfo, bool considerDefaultValueAttribute)
+        {
+            // In a scenario where the method signature is like "void Foo(Guid id = default(Guid))", 
+            // HasDefaultValue returns true, but the DefaultValue is null. This happens only in case of Reflection,
+            // whereas during execution time, calling the method "Foo()" does indeed supply the default value of
+            // 00000000-0000-0000-0000-000000000000 to the parameter "id".
+            if (parameterInfo.HasDefaultValue && parameterInfo.DefaultValue != null)
+            {
+                return parameterInfo.DefaultValue;
+            }
+            else
+            {
+                object defaultValue = null;
+                if (considerDefaultValueAttribute)
+                {
+                    var defaultValueAttribute = parameterInfo.GetCustomAttribute<DefaultValueAttribute>(inherit: false);
+                    defaultValue = defaultValueAttribute?.Value;
+                }
+
+                if (defaultValue == null && parameterInfo.ParameterType.GetTypeInfo().IsValueType)
+                {
+                    defaultValue = Activator.CreateInstance(parameterInfo.ParameterType);
+                }
+
+                return defaultValue;
+            }
         }
     }
 }
