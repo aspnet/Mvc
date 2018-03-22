@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
@@ -196,9 +197,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 }
                 else
                 {
-                    value = ParameterDefaultValues.GetParameterDefaultValue(
-                        parameter.ParameterInfo,
-                        considerDefaultValueAttribute: false);
+                    ParameterDefaultValue.TryGetDefaultValue(parameter.ParameterInfo, out value);
                 }
 
                 arguments[i] = value;

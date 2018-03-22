@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Assert
             Assert.Equal(
-                new object[] { default(Guid), default(TimeSpan), default(DateTimeOffset) },
+                new object[] { default(Guid), default(TimeSpan), default(DateTime), default(DateTimeOffset) },
                 actualValues);
         }
 
@@ -76,6 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public void DefaultValuesOfStructTypes(
                 Guid guid = default(Guid),
                 TimeSpan timeSpan = default(TimeSpan),
+                DateTime dateTime = default(DateTime),
                 DateTimeOffset dateTimeOffset = default(DateTimeOffset))
             {
             }
