@@ -28,15 +28,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return values;
         }
 
-        public static object GetParameterDefaultValue(ParameterInfo parameterInfo)
+        private static object GetParameterDefaultValue(ParameterInfo parameterInfo)
         {
-            object defaultValue;
-            if (!ParameterDefaultValue.TryGetDefaultValue(parameterInfo, out defaultValue))
+            if (!ParameterDefaultValue.TryGetDefaultValue(parameterInfo, out var defaultValue))
             {
                 var defaultValueAttribute = parameterInfo.GetCustomAttribute<DefaultValueAttribute>(inherit: false);
                 defaultValue = defaultValueAttribute?.Value;
 
-                if (defaultValue == null && parameterInfo.ParameterType.GetTypeInfo().IsValueType)
+                if (defaultValue == null && parameterInfo.ParameterType.IsValueType)
                 {
                     defaultValue = Activator.CreateInstance(parameterInfo.ParameterType);
                 }

@@ -195,9 +195,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 {
                     // Do nothing, already set the value.
                 }
-                else
+                else if (!ParameterDefaultValue.TryGetDefaultValue(parameter.ParameterInfo, out value) &&
+                    parameter.ParameterInfo.ParameterType.IsValueType)
                 {
-                    ParameterDefaultValue.TryGetDefaultValue(parameter.ParameterInfo, out value);
+                    value = Activator.CreateInstance(parameter.ParameterInfo.ParameterType);
                 }
 
                 arguments[i] = value;
