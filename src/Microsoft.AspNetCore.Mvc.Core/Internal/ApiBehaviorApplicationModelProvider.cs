@@ -233,25 +233,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         // Internal for unit testing.
         internal BindingSource InferBindingSourceForParameter(ParameterModel parameter)
         {
-            var parameterType = parameter.ParameterInfo.ParameterType;
             if (ParameterExistsInAllRoutes(parameter.Action, parameter.ParameterName))
             {
                 return BindingSource.Path;
             }
-            else
-            {
-                var parameterMetadata = GetParameterMetadata(parameter);
-                if (parameterMetadata != null)
-                {
-                    var bindingSource = parameterMetadata.IsComplexType ?
-                        BindingSource.Body :
-                        BindingSource.Query;
 
-                    return bindingSource;
-                }
-            }
+            var parameterMetadata = GetParameterMetadata(parameter);
+            var bindingSource = parameterMetadata.IsComplexType ?
+                BindingSource.Body :
+                BindingSource.Query;
 
-            return null;
+            return bindingSource;
         }
 
         private bool ParameterExistsInAllRoutes(ActionModel actionModel, string parameterName)
@@ -279,14 +271,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private ModelMetadata GetParameterMetadata(ParameterModel parameter)
         {
-            if (_modelMetadataProvider is ModelMetadataProvider modelMetadataProvider)
-            {
-                return modelMetadataProvider.GetMetadataForParameter(parameter.ParameterInfo);
-            }
-            else
-            {
-                return _modelMetadataProvider.GetMetadataForType(parameter.ParameterInfo.ParameterType);
-            }
+            // No need for information from attributes on the parameter. Just use its type.
+            return _modelMetadataProvider.GetMetadataForType(parameter.ParameterInfo.ParameterType);
         }
     }
 }
