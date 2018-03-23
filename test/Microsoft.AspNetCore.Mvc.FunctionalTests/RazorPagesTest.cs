@@ -1252,7 +1252,7 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore.InjectedPa
         public async Task Page_Handler_BindsToDefaultValues()
         {
             // Arrange
-            var expected = $"id: 10, guid: {default(Guid)}, boolean: {default(bool)}";
+            var expected = $"id: 10, guid: {default(Guid)}, boolean: {default(bool)}, dateTime: {default(DateTime)}";
 
             // Act
             var content = await Client.GetStringAsync("http://localhost/ModelHandlerTestPage/DefaultValues");

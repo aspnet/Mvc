@@ -36,9 +36,13 @@ namespace RazorPagesWebSite
             MethodName = nameof(OnGetViewCustomerAsync);
         }
 
-        public IActionResult OnGetDefaultValues(bool boolean, int id = 10, Guid guid = default(Guid))
+        public IActionResult OnGetDefaultValues(
+            bool boolean,
+            int id = 10,
+            Guid guid = default(Guid),
+            DateTime dateTime = default(DateTime))
         {
-            return Content($"id: {id}, guid: {guid}, boolean: {boolean}");
+            return Content($"id: {id}, guid: {guid}, boolean: {boolean}, dateTime: {dateTime}");
         }
 
         public async Task<CustomActionResult> OnPostCustomActionResult()
