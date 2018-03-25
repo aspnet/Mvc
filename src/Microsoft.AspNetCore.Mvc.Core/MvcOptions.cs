@@ -117,9 +117,9 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Gets or sets a value that determines if <see cref="HeaderModelBinder"/> should bind to types other than
-        /// <see cref="String"/> or a collection of <see cref="String"/>. If set to <c>true</c>,
-        /// <see cref="HeaderModelBinder"/> would bind to simple types (like <see cref="String"/>, <see cref="Int32"/>,
-        /// <see cref="Enum"/>, <see cref="Boolean"/> etc.) or a collection of simple types. The default value of the
+        /// <see cref="string"/> or a collection of <see cref="string"/>. If set to <c>true</c>,
+        /// <see cref="HeaderModelBinder"/> would bind to simple types (like <see cref="string"/>, <see cref="int"/>,
+        /// <see cref="Enum"/>, <see cref="bool"/> etc.) or a collection of simple types. The default value of the
         /// property is <c>false</c>.
         /// </summary>
         /// <remarks>
