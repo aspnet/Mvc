@@ -1251,6 +1251,19 @@ Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary`1[AspNetCore.InjectedPa
             Assert.Equal("<p>Hey, it's Mr. totally custom here!</p>", content.Trim());
         }
 
+        [Fact]
+        public async Task Page_Handler_BindsToDefaultValues()
+        {
+            // Arrange
+            var expected = $"id: 10, guid: {default(Guid)}, boolean: {default(bool)}, dateTime: {default(DateTime)}";
+
+            // Act
+            var content = await Client.GetStringAsync("http://localhost/ModelHandlerTestPage/DefaultValues");
+
+            // Assert
+            Assert.Equal(expected, content);
+        }
+
         private async Task AddAntiforgeryHeaders(HttpRequestMessage request)
         {
             var getResponse = await Client.GetAsync(request.RequestUri);
