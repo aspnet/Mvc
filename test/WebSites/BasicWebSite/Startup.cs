@@ -28,6 +28,7 @@ namespace BasicWebSite
                     // Filter that records a value in HttpContext.Items
                     options.Filters.Add(new TraceResourceFilter());
                 })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                 .AddXmlDataContractSerializerFormatters();
 
             services.Configure<ApiBehaviorOptions>(options =>

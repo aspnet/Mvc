@@ -1452,6 +1452,20 @@ namespace Microsoft.AspNetCore.Mvc.Core
         internal static string FormatComplexTypeModelBinder_NoParameterlessConstructor_ForParameter(object p0, object p1)
             => string.Format(CultureInfo.CurrentCulture, GetString("ComplexTypeModelBinder_NoParameterlessConstructor_ForParameter"), p0, p1);
 
+        /// <summary>
+        /// Action '{0}' has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body:
+        /// </summary>
+        internal static string ApiController_MultipleBodyParametersFound
+        {
+            get => GetString("ApiController_MultipleBodyParametersFound");
+        }
+
+        /// <summary>
+        /// Action '{0}' has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body:
+        /// </summary>
+        internal static string FormatApiController_MultipleBodyParametersFound(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("ApiController_MultipleBodyParametersFound"), p0);
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);
