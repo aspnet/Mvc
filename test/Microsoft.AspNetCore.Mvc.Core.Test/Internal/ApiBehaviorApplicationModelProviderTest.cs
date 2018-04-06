@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -457,6 +458,28 @@ Environment.NewLine + "int b";
             Assert.Equal(expected, ex.Message);
         }
 
+        [Fact(Skip = "https://github.com/aspnet/Mvc/issues/7609")]
+        public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringBindingSource()
+        {
+            // Arrange
+            var actionName = nameof(ParameterBindingController.ModelBinderAttribute);
+            var context = GetContext(typeof(ParameterBindingController));
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Equal("top", bindingInfo.BinderModelName);
+        }
+
         [Fact]
         public void InferParameterBindingSources_SetsCorrectBindingSourceForComplexTypesWithCancellationToken()
         {
@@ -724,6 +747,9 @@ Environment.NewLine + "int b";
 
             [HttpPut("cancellation")]
             public IActionResult ComplexTypeModelWithCancellationToken(TestModel model, CancellationToken cancellationToken) => null;
+
+            [HttpGet("parameter-with-model-binder-attribute")]
+            public IActionResult ModelBinderAttribute([ModelBinder(Name = "top")] int value) => null;
         }
 
         [ApiController]

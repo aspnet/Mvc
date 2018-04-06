@@ -151,17 +151,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             for (var i = 0; i < actionModel.Parameters.Count; i++)
             {
                 var parameter = actionModel.Parameters[i];
-                if (parameter.BindingInfo != null)
+                var bindingSource = parameter.BindingInfo?.BindingSource;
+                if (bindingSource == null)
                 {
-                    // If the parameter specifies any binding info, don't do any additional work.
-                    continue;
+                    bindingSource = InferBindingSourceForParameter(parameter);
+                    parameter.BindingInfo = new BindingInfo
+                    {
+                        BindingSource = bindingSource,
+                    };
                 }
-
-                var bindingSource = InferBindingSourceForParameter(parameter);
-                parameter.BindingInfo = new BindingInfo
-                {
-                    BindingSource = bindingSource,
-                };
             }
 
             var fromBodyParameters = actionModel.Parameters.Where(p => p.BindingInfo.BindingSource == BindingSource.Body).ToList();
