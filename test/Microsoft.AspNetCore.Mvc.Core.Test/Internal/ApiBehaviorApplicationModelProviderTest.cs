@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -410,7 +409,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Arrange
             var expected =
 $@"Action '{typeof(ControllerWithMultipleInferredFromBodyParameters).FullName}.{nameof(ControllerWithMultipleInferredFromBodyParameters.Action)} ({typeof(ControllerWithMultipleInferredFromBodyParameters).Assembly.GetName().Name})' " +
-"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and specify binding sources (using attributes such as FromQueryAttribute) to correct this:" +
+"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use 'FromQueryAttribute' to specify query string bound, 'FromRouteAttribute' to specify route bound, and 'FromBodyAttribute' for parameters to be bound from body:" +
 Environment.NewLine + "TestModel a" +
 Environment.NewLine + "Car b";
 
@@ -428,7 +427,7 @@ Environment.NewLine + "Car b";
             // Arrange
             var expected =
 $@"Action '{typeof(ControllerWithMultipleInferredOrSpecifiedFromBodyParameters).FullName}.{nameof(ControllerWithMultipleInferredOrSpecifiedFromBodyParameters.Action)} ({typeof(ControllerWithMultipleInferredOrSpecifiedFromBodyParameters).Assembly.GetName().Name})' " +
-"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and specify binding sources (using attributes such as FromQueryAttribute) to correct this:" +
+"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use 'FromQueryAttribute' to specify query string bound, 'FromRouteAttribute' to specify route bound, and 'FromBodyAttribute' for parameters to be bound from body:" +
 Environment.NewLine + "TestModel a" +
 Environment.NewLine + "int b";
 
@@ -446,7 +445,7 @@ Environment.NewLine + "int b";
             // Arrange
             var expected =
 $@"Action '{typeof(ControllerWithMultipleFromBodyParameters).FullName}.{nameof(ControllerWithMultipleFromBodyParameters.Action)} ({typeof(ControllerWithMultipleFromBodyParameters).Assembly.GetName().Name})' " +
-"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and specify binding sources (using attributes such as FromQueryAttribute) to correct this:" +
+"has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use 'FromQueryAttribute' to specify query string bound, 'FromRouteAttribute' to specify route bound, and 'FromBodyAttribute' for parameters to be bound from body:" +
 Environment.NewLine + "decimal a" +
 Environment.NewLine + "int b";
 

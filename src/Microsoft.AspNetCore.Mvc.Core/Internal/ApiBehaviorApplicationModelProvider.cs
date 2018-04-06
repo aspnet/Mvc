@@ -166,11 +166,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             if (fromBodyParameters.Count > 1)
             {
                 var parameters = string.Join(Environment.NewLine, fromBodyParameters.Select(p => p.DisplayName));
-                var message = string.Join(
-                    Environment.NewLine,
-                    Resources.FormatApiController_MultipleBodyParametersFound(actionModel.DisplayName),
-                    parameters);
+                var message = Resources.FormatApiController_MultipleBodyParametersFound(
+                    actionModel.DisplayName,
+                    nameof(FromQueryAttribute),
+                    nameof(FromRouteAttribute),
+                    nameof(FromBodyAttribute));
 
+                message += Environment.NewLine + parameters;
                 throw new InvalidOperationException(message);
             }
         }
