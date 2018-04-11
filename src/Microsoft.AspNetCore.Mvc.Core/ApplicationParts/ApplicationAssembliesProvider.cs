@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         internal static IEnumerable<RuntimeLibrary> GetCandidateLibraries(DependencyContext dependencyContext)
         {
             // When using Microsoft.AspNetCore.App \ Microsoft.AspNetCore.All shared runtimes, entries in the RuntimeLibraries
-            // get "erased" and it is no longer accurate to query to determine a library's dependency closue.
+            // get "erased" and it is no longer accurate to query to determine a library's dependency closure.
             // We'll use CompileLibraries to calculate the dependency graph and runtime library to resolve assemblies to inspect.
             var candidatesResolver = new CandidateResolver(dependencyContext.CompileLibraries, ReferenceAssemblies);
             foreach (var library in dependencyContext.RuntimeLibraries)
