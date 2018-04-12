@@ -293,7 +293,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <param name="handlers">A list of <see cref="DelegatingHandler"/> instances to set up on the
         /// <see cref="HttpClient"/>.</param>
         /// <returns>The <see cref="HttpClient"/>.</returns>
-        public HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers)
+        public virtual HttpClient CreateDefaultClient(Uri baseAddress, params DelegatingHandler[] handlers)
         {
             EnsureServer();
             if (handlers == null || handlers.Length == 0)
