@@ -354,17 +354,21 @@ namespace Microsoft.AspNetCore.Mvc.Testing
                 return;
             }
 
-            foreach (var client in _clients)
+            if (disposing)
             {
-                client.Dispose();
-            }
+                foreach (var client in _clients)
+                {
+                    client.Dispose();
+                }
 
-            foreach (var factory in _derivedFactories)
-            {
-                factory.Dispose();
-            }
+                foreach (var factory in _derivedFactories)
+                {
+                    factory.Dispose();
+                }
 
-            _server?.Dispose();
+                _server?.Dispose();
+            }
+            
             _disposed = true;
         }
 
