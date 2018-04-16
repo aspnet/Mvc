@@ -47,6 +47,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             if (!serveBody)
             {
+                result.FileStream.Dispose();
                 return Task.CompletedTask;
             }
 
@@ -67,6 +68,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             if (range != null && rangeLength == 0)
             {
+                result.FileStream.Dispose();
                 return Task.CompletedTask;
             }
 
