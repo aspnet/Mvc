@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(StandardTestTfms)</TargetFrameworks>
     <PlatformTarget Condition=" '$(TargetFramework)' == 'netcoreapp2.1' "></PlatformTarget>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
@@ -14,6 +15,11 @@
     <Compile Include="..\Microsoft.AspNetCore.Mvc.Formatters.Xml.Test\XmlAssert.cs" />
     <EmbeddedResource Include="compiler\resources\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    <AssemblyAttribute
+      Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Sentinel</_Parameter1>
+      <_Parameter2>Fail</_Parameter2>
+      </AssemblyAttribute>
   </ItemGroup>
 
   <ItemGroup>

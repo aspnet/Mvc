@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Reflection;
 using System.Threading.Tasks;
 using BasicWebSite;
 using BasicWebSite.Controllers;
@@ -84,6 +85,17 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(5, await response.Content.ReadAsAsync<int>());
+        }
+
+        [Fact]
+        public void TestingInfrastructure_WorksWithGenerateAssemblyInfoDisabled()
+        {
+            var attributes = typeof(TestingInfrastructureTests).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>();
+
+            // This test will fail if GenerateAssemblyInfo is turned on.
+            // The fact that other tests continue to work means that our custom assembly info file got added
+            // to the list of files to compile and everything works.
+            Assert.DoesNotContain(attributes,a => a.Key == "Sentinel");
         }
 
         private class OverridenService : TestService
