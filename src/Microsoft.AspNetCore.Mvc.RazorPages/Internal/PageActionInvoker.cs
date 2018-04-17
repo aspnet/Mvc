@@ -278,7 +278,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 _result = new PageResult();
             }
 
-            // We also have some special initialization we need to do for PageResult.
+            // Ensure ViewData is set on PageResult for backwards compatibility (For example, Identity UI accesses
+            // ViewData in a PageFilter's PageHandlerExecutedMethod)
             if (_result is PageResult pageResult)
             {
                 pageResult.ViewData = pageResult.ViewData ?? _pageContext.ViewData;

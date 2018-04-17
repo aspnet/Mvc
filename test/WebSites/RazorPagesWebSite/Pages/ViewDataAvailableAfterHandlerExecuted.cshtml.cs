@@ -20,6 +20,8 @@ namespace RazorPagesWebSite.Pages
         {
             public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
             {
+                // This usage mimics Identity UI where it sets data into ViewData in a PageFilters's
+                // PageHandlerExecuted method.
                 if (context.Result is PageResult pageResult)
                 {
                     pageResult.ViewData["Foo"] = "Bar";
