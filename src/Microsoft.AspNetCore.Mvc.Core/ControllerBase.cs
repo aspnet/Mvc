@@ -229,6 +229,16 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Creates a <see cref="ObjectResult"/> object by specifying a <paramref name="statusCode"/> and <paramref name="value"/>
+        /// </summary>
+        /// <param name="statusCode">The status code to set on the response.</param>
+        /// <param name="value">The value to set on the <see cref="ObjectResult"/>.</param>
+        /// <returns>The created <see cref="ObjectResult"/> object for the response.</returns>
+        [NonAction]
+        public virtual ObjectResult StatusCode(HttpStatusCode statusCode, object value)
+            => StatusCode((int)statusCode, value);
+
+        /// <summary>
         /// Creates a <see cref="ContentResult"/> object with <see cref="StatusCodes.Status200OK"/> by specifying a
         /// <paramref name="content"/> string.
         /// </summary>
