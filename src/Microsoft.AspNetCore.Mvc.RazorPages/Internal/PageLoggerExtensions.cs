@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 "Executing handler method {HandlerName} with arguments ({Arguments}) - ModelState is {ValidationState}");
 
             _handlerMethodExecuted = LoggerMessage.Define<string, string>(
-                LogLevel.Debug,
+                LogLevel.Information,
                 102,
                 "Executed handler method {HandlerName}, returned result {ActionResult}.");
 
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 "Executing an implicit handler method - ModelState is {ValidationState}");
 
             _implicitHandlerMethodExecuted = LoggerMessage.Define<string>(
-                LogLevel.Debug,
+                LogLevel.Information,
                 104,
                 "Executed an implicit handler method, returned result {ActionResult}.");
 
@@ -119,7 +119,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         public static void ExecutedHandlerMethod(this ILogger logger, PageContext context, HandlerMethodDescriptor handler, IActionResult result)
         {
-            if (logger.IsEnabled(LogLevel.Debug))
+            if (logger.IsEnabled(LogLevel.Information))
             {
                 var handlerName = handler.MethodInfo.Name;
                 _handlerMethodExecuted(logger, handlerName, Convert.ToString(result), null);
@@ -128,7 +128,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         public static void ExecutedImplicitHandlerMethod(this ILogger logger, IActionResult result)
         {
-            if (logger.IsEnabled(LogLevel.Debug))
+            if (logger.IsEnabled(LogLevel.Information))
             {
                 _implicitHandlerMethodExecuted(logger, Convert.ToString(result), null);
             }

@@ -164,12 +164,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _pageExecuting = LoggerMessage.Define<string, string>(
                 LogLevel.Information,
                 3,
-                "Route matched with {RouteData}. Executing page {ActionName}");
+                "Route matched with {RouteData}. Executing page {PageName}");
 
             _pageExecuted = LoggerMessage.Define<string, double>(
                 LogLevel.Information,
                 4,
-                "Executed page {ActionName} in {ElapsedMilliseconds}ms");
+                "Executed page {PageName} in {ElapsedMilliseconds}ms");
 
             _challengeResultExecuting = LoggerMessage.Define<string[]>(
                 LogLevel.Information,
