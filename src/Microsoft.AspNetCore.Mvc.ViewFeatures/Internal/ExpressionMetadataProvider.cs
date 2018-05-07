@@ -84,7 +84,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             {
                 try
                 {
-                    return CachedExpressionCompiler.Process(expression)((TModel)container);
+                    var cachedExpression = CachedExpressionCompiler.Process(expression);
+                    if (container != null ||
+                        (expression?.Body as MemberExpression)?.Expression?.NodeType == ExpressionType.Constant)
+                    {
+                        return cachedExpression((TModel)container);
+                    }
+
+                    return null;
                 }
                 catch (NullReferenceException)
                 {
