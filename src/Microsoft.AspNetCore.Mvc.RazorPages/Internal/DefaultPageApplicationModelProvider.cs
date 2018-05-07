@@ -247,6 +247,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 bindingInfo = BindingInfo.GetBindingInfo(attributes);
             }
 
+            // Parameters are always bound. Associate a BindingInfo if no value was inferred.
+            bindingInfo = bindingInfo ?? new BindingInfo();
+
             return new PageParameterModel(parameter, attributes)
             {
                 BindingInfo = bindingInfo,

@@ -231,20 +231,17 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 ModelBinderFactory factory,
                 ModelBinderFactoryContext factoryContext)
             {
-                _factory = factory;
-                Metadata = factoryContext.Metadata;
-                BindingInfo bindingInfo;
-                if (factoryContext.BindingInfo != null)
+                if (factoryContext.BindingInfo == null)
                 {
-                    bindingInfo = new BindingInfo(factoryContext.BindingInfo);
-                }
-                else
-                {
-                    bindingInfo = new BindingInfo();
+                    var message = Resources.FormatPropertyOfTypeCannotBeNull(
+                        nameof(ModelBinderFactoryContext.BindingInfo),
+                        nameof(ModelBinderFactoryContext));
+                    throw new ArgumentException(message, nameof(factoryContext));
                 }
 
-                bindingInfo.TryApplyBindingInfo(Metadata);
-                BindingInfo = bindingInfo;
+                _factory = factory;
+                Metadata = factoryContext.Metadata;
+                BindingInfo = factoryContext.BindingInfo;
 
                 MetadataProvider = _factory._metadataProvider;
                 Visited = new Dictionary<Key, IModelBinder>();
@@ -275,15 +272,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             public override IModelBinder CreateBinder(ModelMetadata metadata)
             {
-                return CreateBinder(
-                    metadata,
-                    new BindingInfo()
-                    {
-                        BinderModelName = metadata.BinderModelName,
-                        BinderType = metadata.BinderType,
-                        BindingSource = metadata.BindingSource,
-                        PropertyFilterProvider = metadata.PropertyFilterProvider,
-                    });
+                var bindingInfo = new BindingInfo();
+                bindingInfo.TryApplyBindingInfo(metadata);
+
+                return CreateBinder(metadata, bindingInfo);
             }
 
             public override IModelBinder CreateBinder(ModelMetadata metadata, BindingInfo bindingInfo)

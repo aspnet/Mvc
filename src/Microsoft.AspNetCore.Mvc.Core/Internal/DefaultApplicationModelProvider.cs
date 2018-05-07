@@ -465,6 +465,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 bindingInfo = BindingInfo.GetBindingInfo(attributes);
             }
 
+            // Parameters are always bound. Associate a BindingInfo if no value was inferred.
+            bindingInfo = bindingInfo ?? new BindingInfo();
+
             var parameterModel = new ParameterModel(parameterInfo, attributes)
             {
                 ParameterName = parameterInfo.Name,

@@ -770,11 +770,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
         // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
         // when such an attribute is associated with a class somewhere in the type hierarchy of an action parameter.
-        [Theory]
-        [MemberData(
-            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
-            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
-        public async Task FromBodyOnPropertyType_WithData_Succeeds(BindingInfo bindingInfo)
+        [Fact]
+        public async Task FromBodyOnPropertyType_WithData_Succeeds()
         {
             // Arrange
             var inputText = "{ \"Street\" : \"someStreet\" }";
@@ -796,7 +793,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor
             {
                 Name = "parameter-name",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
                 ParameterType = typeof(Person6),
             };
 
@@ -813,14 +810,11 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             Assert.Empty(modelState);
         }
 
-        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // [FromBody] cannot be associated with a type.But a[FromBody] or [ModelBinder] subclass or custom
         // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
         // when such an attribute is associated with an action parameter's type.
-        [Theory]
-        [MemberData(
-            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
-            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
-        public async Task FromBodyOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        [Fact]
+        public async Task FromBodyOnParameterType_WithData_Succeeds()
         {
             // Arrange
             var inputText = "{ \"Street\" : \"someStreet\" }";
@@ -842,7 +836,50 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor
             {
                 Name = "parameter-name",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
+                ParameterType = typeof(Address6),
+            };
+
+            // Act
+            var modelBindingResult = await parameterBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            var address = Assert.IsType<Address6>(modelBindingResult.Model);
+            Assert.Equal("someStreet", address.Street, StringComparer.Ordinal);
+
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
+        // [FromBody] cannot be associated with a type. But a [FromBody] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with an action parameter's type.
+        [Fact]
+        public async Task FromBodyOnParameterType_With20CompatibilityVersion_WithData_Succeeds()
+        {
+            // Arrange
+            var inputText = "{ \"Street\" : \"someStreet\" }";
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForType<Address6>()
+                .BindingDetails(binding => binding.BindingSource = BindingSource.Body);
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                request =>
+                {
+                    request.Body = new MemoryStream(Encoding.UTF8.GetBytes(inputText));
+                    request.ContentType = "application/json";
+                },
+                metadataProvider: metadataProvider,
+                compatibilityVersion: CompatibilityVersion.Version_2_0);
+
+            var modelState = testContext.ModelState;
+            var parameterBinder = ModelBindingTestHelper.GetParameterBinder(testContext.HttpContext.RequestServices);
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = new BindingInfo(),
                 ParameterType = typeof(Address6),
             };
 

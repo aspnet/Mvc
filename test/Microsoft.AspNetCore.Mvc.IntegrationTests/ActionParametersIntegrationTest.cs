@@ -503,7 +503,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor()
             {
                 Name = BindingAndValidationController.BindNeverParamInfo.Name,
-                ParameterType = typeof(int)
+                ParameterType = typeof(int),
+                BindingInfo = new BindingInfo(),
             };
 
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -515,6 +516,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelMetadata = modelMetadataProvider
                 .GetMetadataForParameter(BindingAndValidationController.BindNeverParamInfo);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(
@@ -538,7 +540,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor()
             {
                 Name = BindingAndValidationController.BindRequiredParamInfo.Name,
-                ParameterType = typeof(int)
+                ParameterType = typeof(int),
+                BindingInfo = new BindingInfo(),
             };
 
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -553,6 +556,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelMetadata = modelMetadataProvider
                 .GetMetadataForParameter(BindingAndValidationController.BindRequiredParamInfo);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(
@@ -591,7 +595,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor()
             {
                 Name = parameterInfo.Name,
-                ParameterType = parameterInfo.ParameterType
+                ParameterType = parameterInfo.ParameterType,
+                BindingInfo = new BindingInfo(),
             };
 
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -606,6 +611,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelMetadata = modelMetadataProvider
                 .GetMetadataForParameter(parameterInfo);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(
@@ -637,6 +643,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             {
                 Name = parameterInfo.Name,
                 ParameterType = parameterInfo.ParameterType,
+                BindingInfo = new BindingInfo(),
             };
 
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -648,13 +655,14 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelMetadata = modelMetadataProvider
                 .GetMetadataForParameter(parameterInfo);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(
                 parameter,
                 testContext,
                 modelMetadataProvider,
-                modelMetadata);
+                modelMetadata); 
 
             // Assert
             Assert.True(modelBindingResult.IsModelSet, "model is set");
@@ -681,6 +689,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             {
                 Name = parameterInfo.Name,
                 ParameterType = parameterInfo.ParameterType,
+                BindingInfo = new BindingInfo(),
             };
 
             var testContext = ModelBindingTestHelper.GetTestContext(request =>
@@ -693,6 +702,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelMetadata = modelMetadataProvider
                 .GetMetadataForParameter(parameterInfo);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(

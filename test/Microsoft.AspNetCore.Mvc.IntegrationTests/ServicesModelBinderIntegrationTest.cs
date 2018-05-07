@@ -192,11 +192,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // [FromServices] cannot be associated with a type. But a [FromServices] or [ModelBinder] subclass or custom
         // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
         // when such an attribute is associated with a type somewhere in the type hierarchy of an action parameter.
-        [Theory]
-        [MemberData(
-            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
-            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
-        public async Task FromServicesOnPropertyType_WithData_Succeeds(BindingInfo bindingInfo)
+        [Fact]
+        public async Task FromServicesOnPropertyType_WithData_Succeeds()
         {
             // Arrange
             // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass on a custom service.
@@ -211,7 +208,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor
             {
                 Name = "parameter-name",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
                 ParameterType = typeof(Person),
             };
 
@@ -230,11 +227,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // [FromServices] cannot be associated with a type. But a [FromServices] or [ModelBinder] subclass or custom
         // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
         // when such an attribute is associated with an action parameter's type.
-        [Theory]
-        [MemberData(
-            nameof(BinderTypeBasedModelBinderIntegrationTest.NullAndEmptyBindingInfo),
-            MemberType = typeof(BinderTypeBasedModelBinderIntegrationTest))]
-        public async Task FromServicesOnParameterType_WithData_Succeeds(BindingInfo bindingInfo)
+        [Fact]
+        public async Task FromServicesOnParameterType_WithData_Succeeds()
         {
             // Arrange
             // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass on a custom service.
@@ -249,7 +243,43 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ParameterDescriptor
             {
                 Name = "parameter-name",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
+                ParameterType = typeof(JsonOutputFormatter),
+            };
+
+            // Act
+            var modelBindingResult = await parameterBinder.BindModelAsync(parameter, testContext);
+
+            // Assert
+            Assert.True(modelBindingResult.IsModelSet);
+            Assert.IsType<JsonOutputFormatter>(modelBindingResult.Model);
+
+            Assert.True(modelState.IsValid);
+            Assert.Empty(modelState);
+        }
+
+        // [FromServices] cannot be associated with a type. But a [FromServices] or [ModelBinder] subclass or custom
+        // IBindingSourceMetadata implementation might not have the same restriction. Make sure the metadata is honored
+        // when such an attribute is associated with an action parameter's type.
+        [Fact]
+        public async Task FromServicesOnParameterType_WithDataAnd20CompatibilityVersion_Succeeds()
+        {
+            // Arrange
+            // Similar to a custom IBindingSourceMetadata implementation or [ModelBinder] subclass on a custom service.
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider
+                .ForType<JsonOutputFormatter>()
+                .BindingDetails(binding => binding.BindingSource = BindingSource.Services);
+
+            var testContext = ModelBindingTestHelper.GetTestContext(
+                metadataProvider: metadataProvider,
+                compatibilityVersion: CompatibilityVersion.Version_2_0);
+            var modelState = testContext.ModelState;
+            var parameterBinder = ModelBindingTestHelper.GetParameterBinder(testContext.HttpContext.RequestServices);
+            var parameter = new ParameterDescriptor
+            {
+                Name = "parameter-name",
+                BindingInfo = new BindingInfo(),
                 ParameterType = typeof(JsonOutputFormatter),
             };
 

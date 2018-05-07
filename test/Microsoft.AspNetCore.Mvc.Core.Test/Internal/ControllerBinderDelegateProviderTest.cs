@@ -102,7 +102,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 new ParameterDescriptor
                 {
                     Name = nameof(TestController.RequiredButBindNeverProperty),
-                    ParameterType = typeof(object)
+                    ParameterType = typeof(object),
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -310,7 +311,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = "foo",
                     ParameterType = typeof(object),
-                    ParameterInfo = ParameterInfos.NoAttributesParameterInfo
+                    ParameterInfo = ParameterInfos.NoAttributesParameterInfo,
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -364,7 +366,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 new ControllerParameterDescriptor
                 {
                     Name = "foo",
-                    ParameterType = typeof(Person)
+                    ParameterType = typeof(Person),
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -418,7 +421,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = "foo",
                     ParameterType = typeof(object),
-                    ParameterInfo = ParameterInfos.CustomValidationParameterInfo
+                    ParameterInfo = ParameterInfos.CustomValidationParameterInfo,
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -471,7 +475,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = "foo",
                     ParameterType = typeof(object),
-                    ParameterInfo = ParameterInfos.CustomValidationParameterInfo
+                    ParameterInfo = ParameterInfos.CustomValidationParameterInfo,
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -574,6 +579,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = nameof(TestController.ValidatedProperty),
                     ParameterType = typeof(string),
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -624,6 +630,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = nameof(TestController.ValidatedProperty),
                     ParameterType = typeof(string),
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -671,6 +678,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Name = nameof(TestController.StringProperty),
                     ParameterType = typeof(string),
+                    BindingInfo = new BindingInfo(),
                 });
 
             var controllerContext = GetControllerContext(actionDescriptor);
@@ -1225,7 +1233,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         new ParameterDescriptor()
                         {
                             Name = "accountId",
-                            ParameterType = typeof(int)
+                            ParameterType = typeof(int),
+                            BindingInfo = new BindingInfo(),
                         },
                         new ParameterDescriptor()
                         {
@@ -1251,7 +1260,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         new ParameterDescriptor()
                         {
                             Name = "accountId",
-                            ParameterType = typeof(int)
+                            ParameterType = typeof(int),
+                            BindingInfo = new BindingInfo(),
                         }
                     }
                 };

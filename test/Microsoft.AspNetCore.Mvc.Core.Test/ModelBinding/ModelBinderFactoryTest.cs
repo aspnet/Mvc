@@ -28,9 +28,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 metadataProvider,
                 options,
                 GetServices());
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(string));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(string)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act & Assert
@@ -50,9 +56,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 metadataProvider,
                 options,
                 GetServices());
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(string));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(string)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act & Assert
@@ -86,9 +98,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -125,9 +142,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForProperty(typeof(Widget), nameof(Widget.Id));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForProperty(typeof(Widget), nameof(Widget.Id)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -165,9 +187,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -205,9 +232,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Employee));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Employee)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -235,9 +267,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Employee));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Employee)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -266,10 +303,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Employee));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Employee)),
+                Metadata = metadata,
                 CacheToken = new object(),
+                BindingInfo = bindingInfo,
             };
 
             // Act
@@ -376,10 +418,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 metadataProvider,
                 options,
                 GetServices());
-            var factoryContext = new ModelBinderFactoryContext
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(Employee));
+            parameterBindingInfo.TryApplyBindingInfo(metadata);
+
+            var factoryContext = new ModelBinderFactoryContext()
             {
                 BindingInfo = parameterBindingInfo,
-                Metadata = metadataProvider.GetMetadataForType(typeof(Employee)),
+                Metadata = metadata
             };
 
             // Act & Assert
@@ -433,9 +479,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
                 CacheToken = null, // We want the outermost provider to run twice.
             };
 
@@ -495,9 +546,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
                 CacheToken = null, // We want the outermost provider to run twice.
             };
 
@@ -549,9 +605,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
                 CacheToken = null,
             };
 
@@ -613,9 +674,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 options,
                 GetServices());
 
+            var metadata = metadataProvider.GetMetadataForType(typeof(Widget));
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(metadata);
+
             var context = new ModelBinderFactoryContext()
             {
-                Metadata = metadataProvider.GetMetadataForType(typeof(Widget)),
+                Metadata = metadata,
+                BindingInfo = bindingInfo,
                 CacheToken = null,
             };
 

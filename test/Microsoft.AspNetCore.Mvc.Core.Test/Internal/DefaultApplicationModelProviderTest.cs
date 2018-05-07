@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 parameter =>
                 {
                     Assert.Equal("unbound", parameter.ParameterName);
-                    Assert.Null(parameter.BindingInfo);
+                    Assert.Null(parameter.BindingInfo.BindingSource);
                     Assert.Same(action, parameter.Action);
                 });
         }
@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     Assert.Equal("formFileCollection", parameter.ParameterName);
                     // BindingSource for IFormFileCollection comes from ModelMetadata which we are not using here.
-                    Assert.Null(parameter.BindingInfo);
+                    Assert.Null(parameter.BindingInfo.BindingSource);
                     Assert.Same(action, parameter.Action);
 
                     Assert.Empty(parameter.Attributes);
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 parameter =>
                 {
                     Assert.Equal("unbound", parameter.ParameterName);
-                    Assert.Null(parameter.BindingInfo);
+                    Assert.Null(parameter.BindingInfo.BindingSource);
                     Assert.Same(action, parameter.Action);
                 });
         }

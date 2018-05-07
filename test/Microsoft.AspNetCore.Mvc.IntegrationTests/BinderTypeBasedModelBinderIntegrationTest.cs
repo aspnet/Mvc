@@ -133,26 +133,13 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             public string Street { get; set; }
         }
 
-        public static TheoryData<BindingInfo> NullAndEmptyBindingInfo
-        {
-            get
-            {
-                return new TheoryData<BindingInfo>
-                {
-                    null,
-                    new BindingInfo(),
-                };
-            }
-        }
-
         // Make sure the metadata is honored when a [ModelBinder] attribute is associated with an action parameter's
         // type. This should behave identically to such an attribute on an action parameter. (Tests such as
         // BindParameter_WithData_WithPrefix_GetsBound cover associating [ModelBinder] with an action parameter.)
         //
         // This is a regression test for aspnet/Mvc#4652 and aspnet/Mvc#7595
-        [Theory]
-        [MemberData(nameof(NullAndEmptyBindingInfo))]
-        public async Task BinderTypeOnParameterType_WithData_EmptyPrefix_GetsBound(BindingInfo bindingInfo)
+        [Fact]
+        public async Task BinderTypeOnParameterType_WithData_EmptyPrefix_GetsBound()
         {
             // Arrange
             var parameterBinder = ModelBindingTestHelper.GetParameterBinder();
@@ -160,7 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var parameter = new ControllerParameterDescriptor
             {
                 Name = "Parameter1",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
                 ParameterInfo = parameters[0],
                 ParameterType = typeof(Address),
             };
@@ -194,24 +181,23 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // BindParameter_WithData_WithPrefix_GetsBound cover associating [ModelBinder] with an action parameter.)
         //
         // This is a regression test for aspnet/Mvc#4652
-        [Theory]
-        [MemberData(nameof(NullAndEmptyBindingInfo))]
-        public async Task BinderTypeOnParameterType_WithDataEmptyPrefixAndVersion20_GetsBound(
-            BindingInfo bindingInfo)
+        [Fact]
+        public async Task BinderTypeOnParameterType_WithDataAnd20Compatibility_EmptyPrefix_GetsBound()
         {
             // Arrange
-            var testContext = ModelBindingTestHelper.GetTestContext(
-                // ParameterBinder will use ModelMetadata for typeof(Address), not Parameter1's ParameterInfo.
-                updateOptions: options => options.AllowValidatingTopLevelNodes = false);
-
-            var modelState = testContext.ModelState;
-            var parameterBinder = ModelBindingTestHelper.GetParameterBinder(testContext.HttpContext.RequestServices);
-            var parameter = new ParameterDescriptor
+            var parameterBinder = ModelBindingTestHelper.GetParameterBinder();
+            var parameters = typeof(TestController).GetMethod(nameof(TestController.Action)).GetParameters();
+            var parameter = new ControllerParameterDescriptor
             {
                 Name = "Parameter1",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
+                ParameterInfo = parameters[0],
                 ParameterType = typeof(Address),
             };
+
+            var testContext = ModelBindingTestHelper.GetTestContext(compatibilityVersion: CompatibilityVersion.Version_2_0);
+
+            var modelState = testContext.ModelState;
 
             // Act
             var modelBindingResult = await parameterBinder.BindModelAsync(parameter, testContext);
@@ -248,24 +234,30 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // Make sure the metadata is honored when a [ModelBinder] attribute is associated with a property in the type
         // hierarchy of an action parameter. (Tests such as BindProperty_WithData_EmptyPrefix_GetsBound cover
         // associating [ModelBinder] with a class somewhere in the type hierarchy of an action parameter.)
-        [Theory]
-        [MemberData(nameof(NullAndEmptyBindingInfo))]
-        public async Task BinderTypeOnProperty_WithData_EmptyPrefix_GetsBound(BindingInfo bindingInfo)
+        [Fact]
+        public async Task BinderTypeOnProperty_WithData_EmptyPrefixAndVersion20_GetsBound()
         {
             // Arrange
             var parameterBinder = ModelBindingTestHelper.GetParameterBinder();
             var parameter = new ParameterDescriptor
             {
                 Name = "Parameter1",
-                BindingInfo = bindingInfo,
+                BindingInfo = new BindingInfo(),
                 ParameterType = typeof(Person3),
             };
 
-            var testContext = ModelBindingTestHelper.GetTestContext();
+            var testContext = ModelBindingTestHelper.GetTestContext(compatibilityVersion: CompatibilityVersion.Version_2_0);
+
             var modelState = testContext.ModelState;
+            var modelMetadata = ModelBindingTestHelper.GetModelMetadataForParameter(testContext, parameter);
+            parameter.BindingInfo.TryApplyBindingInfo(modelMetadata);
 
             // Act
-            var modelBindingResult = await parameterBinder.BindModelAsync(parameter, testContext);
+            var modelBindingResult = await parameterBinder.BindModelAsync(
+                parameter,
+                testContext,
+                testContext.MetadataProvider,
+                modelMetadata);
 
             // Assert
             // ModelBindingResult
