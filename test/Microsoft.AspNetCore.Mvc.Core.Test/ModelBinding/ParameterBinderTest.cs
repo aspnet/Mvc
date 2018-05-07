@@ -47,47 +47,41 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 {
                     // If the parameter name is not a prefix match, it is ignored. But name is required to create a
                     // ModelBindingContext.
-                    { null, null, "parameterName", string.Empty },
                     { emptyBindingInfo, null, "parameterName", string.Empty },
                     { bindingInfoWithName, null, "parameterName", "bindingInfoName" },
-                    { null, "modelBinderName", "parameterName", "modelBinderName" },
-                    { null, null, "parameterName", string.Empty },
+                    { emptyBindingInfo, "modelBinderName", "parameterName", "modelBinderName" },
                     // Parameter's BindingInfo has highest precedence
                     { bindingInfoWithName, "modelBinderName", "parameterName", "bindingInfoName" },
                 };
             }
         }
 
-        [Theory]
-        [MemberData(nameof(BindModelAsyncData))]
-        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata_IfPrefixDoesNotMatch(
-            BindingInfo parameterBindingInfo,
-            string metadataBinderModelName,
-            string parameterName,
-            string expectedModelName)
+        [Fact]
+        public async Task BindModelAsync_PassesBindingInfoAndMetadata()
         {
             // Arrange
             var binderExecuted = false;
             var metadataProvider = new TestModelMetadataProvider();
             metadataProvider.ForType<Person>().BindingDetails(binding =>
             {
-                binding.BinderModelName = metadataBinderModelName;
+                binding.BinderModelName = "modelBinderName";
             });
 
             var metadata = metadataProvider.GetMetadataForType(typeof(Person));
             var modelBinder = new Mock<IModelBinder>();
             modelBinder
                 .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
-                .Callback((ModelBindingContext context) =>
-                {
-                    Assert.Equal(expectedModelName, context.ModelName, StringComparer.Ordinal);
-                })
                 .Returns(Task.CompletedTask);
+
+            var parameterBindingInfo = new BindingInfo
+            {
+                BinderModelName = "bindingInfoName",
+            };
 
             var parameterDescriptor = new ParameterDescriptor
             {
                 BindingInfo = parameterBindingInfo,
-                Name = parameterName,
+                Name = "parameterName",
                 ParameterType = typeof(Person),
             };
 
@@ -116,6 +110,175 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             // Act & Assert
             await parameterBinder.BindModelAsync(controllerContext, new SimpleValueProvider(), parameterDescriptor);
             Assert.True(binderExecuted);
+        }
+
+        [Fact]
+        public async Task BindModelAsync_UsesNameFromBindingInfo()
+        {
+            // Arrange
+            var binderExecuted = false;
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForType<Person>().BindingDetails(binding =>
+            {
+                binding.BinderModelName = "modelBinderName";
+            });
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback((ModelBindingContext context) =>
+                {
+                    Assert.Equal("bindingInfoName", context.ModelName, StringComparer.Ordinal);
+                    binderExecuted = true;
+                })
+                .Returns(Task.CompletedTask);
+
+            var parameterBindingInfo = new BindingInfo
+            {
+                BinderModelName = "bindingInfoName",
+            };
+
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                BindingInfo = parameterBindingInfo,
+                Name = "parameterName",
+                ParameterType = typeof(Person),
+            };
+
+            var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
+            factory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Returns(modelBinder.Object);
+
+            var parameterBinder = new ParameterBinder(
+                metadataProvider,
+                factory.Object,
+                Mock.Of<IObjectModelValidator>(),
+                _optionsAccessor,
+                NullLoggerFactory.Instance);
+
+            var controllerContext = GetControllerContext();
+
+            // Act & Assert
+            await parameterBinder.BindModelAsync(controllerContext, new SimpleValueProvider(), parameterDescriptor);
+            Assert.True(binderExecuted);
+        }
+
+        [Fact]
+        public async Task BindModelAsync_UsesEmptyString_IfBinderModelNameIsNullAndPrefixDoesNotMatch()
+        {
+            // Arrange
+            var binderExecuted = false;
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForType<Person>().BindingDetails(binding =>
+            {
+                binding.BinderModelName = "modelBinderName";
+                binderExecuted = true;
+            });
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback((ModelBindingContext context) =>
+                {
+                    Assert.Empty(context.ModelName);
+                })
+                .Returns(Task.CompletedTask);
+
+            var parameterBindingInfo = new BindingInfo();
+
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                BindingInfo = parameterBindingInfo,
+                Name = "parameterName",
+                ParameterType = typeof(Person),
+            };
+
+            var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
+            factory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Returns(modelBinder.Object);
+
+            var parameterBinder = new ParameterBinder(
+                metadataProvider,
+                factory.Object,
+                Mock.Of<IObjectModelValidator>(),
+                _optionsAccessor,
+                NullLoggerFactory.Instance);
+
+            var controllerContext = GetControllerContext();
+
+            // Act & Assert
+            await parameterBinder.BindModelAsync(controllerContext, new SimpleValueProvider(), parameterDescriptor);
+            Assert.True(binderExecuted);
+        }
+
+        [Theory]
+        [MemberData(nameof(BindModelAsyncData))]
+        public async Task BindModelAsync_PassesExpectedBindingInfoAndMetadata_IfPrefixDoesNotMatch_WhenTopLevelValidationIsDisabled(
+            BindingInfo parameterBindingInfo,
+            string metadataBinderModelName,
+            string parameterName,
+            string expectedModelName)
+        {
+            // Arrange
+            var binderExecuted = false;
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForType<Person>().BindingDetails(binding =>
+            {
+                binding.BinderModelName = metadataBinderModelName;
+                binding.BindingSource = BindingSource.Custom;
+            });
+
+            var metadata = metadataProvider.GetMetadataForType(typeof(Person));
+            var modelBinder = new Mock<IModelBinder>();
+            modelBinder
+                .Setup(b => b.BindModelAsync(It.IsAny<ModelBindingContext>()))
+                .Callback((ModelBindingContext context) =>
+                {
+                    Assert.Equal(expectedModelName, context.ModelName, StringComparer.Ordinal);
+                })
+                .Returns(Task.CompletedTask);
+
+            var parameterDescriptor = new ParameterDescriptor
+            {
+                BindingInfo = parameterBindingInfo,
+                Name = parameterName,
+                ParameterType = typeof(Person),
+            };
+
+            var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
+            factory
+                .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
+                .Callback((ModelBinderFactoryContext context) =>
+                {
+                    binderExecuted = true;
+
+                    // Verify coalescing with ModelMetadata works.
+                    Assert.Same(context.BindingInfo.BindingSource, BindingSource.Custom);
+
+                    // Confirm expected data is passed through to ModelBindingFactory.
+                    Assert.Same(parameterDescriptor, context.CacheToken);
+                    Assert.Equal(metadata, context.Metadata);
+                })
+                .Returns(modelBinder.Object);
+
+            var optionsAccessor = Options.Create(new MvcOptions());
+
+            var parameterBinder = new ParameterBinder(
+                metadataProvider,
+                factory.Object,
+                Mock.Of<IObjectModelValidator>(),
+                optionsAccessor,
+                NullLoggerFactory.Instance);
+
+            var controllerContext = GetControllerContext();
+
+            // Act & Assert
+            await parameterBinder.BindModelAsync(controllerContext, new SimpleValueProvider(), parameterDescriptor);
+            Assert.True(binderExecuted);
 
         }
 
@@ -124,7 +287,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         {
             // Arrange
             var expectedModelName = "expectedName";
-            var binderExecuted = false;
+            var binderFactoryExecuted = false;
 
             var metadataProvider = new TestModelMetadataProvider();
             var metadata = metadataProvider.GetMetadataForType(typeof(Person));
@@ -141,6 +304,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 Name = expectedModelName,
                 ParameterType = typeof(Person),
+                BindingInfo = new BindingInfo(),
             };
 
             var factory = new Mock<IModelBinderFactory>(MockBehavior.Strict);
@@ -148,9 +312,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 .Setup(f => f.CreateBinder(It.IsAny<ModelBinderFactoryContext>()))
                 .Callback((ModelBinderFactoryContext context) =>
                 {
-                    binderExecuted = true;
+                    binderFactoryExecuted = true;
                     // Confirm expected data is passed through to ModelBindingFactory.
-                    Assert.Null(context.BindingInfo);
+                    Assert.Null(context.BindingInfo.BinderModelName);
                     Assert.Same(parameterDescriptor, context.CacheToken);
                     Assert.Equal(metadata, context.Metadata);
                 })
@@ -173,7 +337,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             // Act & Assert
             await argumentBinder.BindModelAsync(controllerContext, valueProvider, parameterDescriptor);
-            Assert.True(binderExecuted);
+            Assert.True(binderFactoryExecuted);
         }
 
         [Fact]
@@ -189,12 +353,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var parameterBinder = CreateParameterBinder(mockModelMetadata.Object);
             var modelBindingResult = ModelBindingResult.Failed();
 
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(mockModelMetadata.Object);
+
             // Act
             var result = await parameterBinder.BindModelAsync(
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = bindingInfo, },
                 mockModelMetadata.Object,
                 "ignoredvalue");
 
@@ -222,13 +389,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var optionsAccessor = Options.Create(new MvcOptions());
             var parameterBinder = CreateParameterBinder(mockModelMetadata.Object, optionsAccessor: optionsAccessor);
             var modelBindingResult = ModelBindingResult.Failed();
-
             // Act
             var result = await parameterBinder.BindModelAsync(
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = new BindingInfo(), },
                 mockModelMetadata.Object,
                 "ignoredvalue");
 
@@ -257,13 +423,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var parameterBinder = CreateParameterBinder(mockModelMetadata.Object, validator);
             var modelBindingResult = ModelBindingResult.Success(null);
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(mockModelMetadata.Object);
 
             // Act
             var result = await parameterBinder.BindModelAsync(
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = bindingInfo, },
                 mockModelMetadata.Object,
                 "ignoredvalue");
 
@@ -303,7 +471,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = new BindingInfo(), },
                 mockModelMetadata.Object,
                 "ignoredvalue");
 
@@ -432,13 +600,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             var parameterBinder = CreateParameterBinder(mockModelMetadata.Object, validator);
             var modelBindingResult = ModelBindingResult.Success(123);
+            var bindingInfo = new BindingInfo();
+            bindingInfo.TryApplyBindingInfo(mockModelMetadata.Object);
 
             // Act
             var result = await parameterBinder.BindModelAsync(
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = bindingInfo, },
                 mockModelMetadata.Object,
                 50); // This value is ignored, because test explicitly set the ModelBindingResult
 
@@ -479,7 +649,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 actionContext,
                 CreateMockModelBinder(modelBindingResult),
                 CreateMockValueProvider(),
-                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person) },
+                new ParameterDescriptor { Name = "myParam", ParameterType = typeof(Person), BindingInfo = new BindingInfo() },
                 modelMetadata,
                 "ignored");
 

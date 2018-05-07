@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
@@ -143,10 +144,28 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
+            if (parameter.BindingInfo == null)
+            {
+                var message = Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(ParameterDescriptor.BindingInfo),
+                    nameof(ParameterDescriptor));
+
+                throw new ArgumentException(message, nameof(parameter));
+            }
+
             var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            var bindingInfo = parameter.BindingInfo;
+            if (!_mvcOptions.AllowValidatingTopLevelNodes || !(_modelMetadataProvider is ModelMetadataProvider modelMetadataProviderBase))
+            {
+                // If AllowValidatingTopLevelNodes is disabled, ParameterDescriptor.BindingInfo would not have binding info
+                // inferred from ModelMetadata. To continue supporting legacy behavior, clone the passed in BindingInfo and apply ModelMetadata to it.
+                bindingInfo = new BindingInfo(bindingInfo);
+                bindingInfo.TryApplyBindingInfo(metadata);
+            }
+
             var binder = _modelBinderFactory.CreateBinder(new ModelBinderFactoryContext
             {
-                BindingInfo = parameter.BindingInfo,
+                BindingInfo = bindingInfo,
                 Metadata = metadata,
                 CacheToken = parameter,
             });
@@ -198,12 +217,30 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 throw new ArgumentNullException(nameof(parameter));
             }
 
+            if (parameter.BindingInfo == null)
+            {
+                var message = Resources.FormatPropertyOfTypeCannotBeNull(
+                    nameof(ParameterDescriptor.BindingInfo),
+                    nameof(ParameterDescriptor));
+
+                throw new ArgumentException(message, nameof(parameter));
+            }
+
             if (metadata == null)
             {
                 throw new ArgumentNullException(nameof(metadata));
             }
 
-            if (parameter.BindingInfo?.RequestPredicate?.Invoke(actionContext) == false)
+            var bindingInfo = parameter.BindingInfo;
+            if (!_mvcOptions.AllowValidatingTopLevelNodes || !(_modelMetadataProvider is ModelMetadataProvider modelMetadataProviderBase))
+            {
+                // If AllowValidatingTopLevelNodes is disabled, ParameterDescriptor.BindingInfo would not have binding info
+                // inferred from ModelMetadata. To continue supporting legacy behavior, clone the passed in BindingInfo and apply ModelMetadata to it.
+                bindingInfo = new BindingInfo(bindingInfo);
+                bindingInfo.TryApplyBindingInfo(metadata);
+            }
+
+            if (bindingInfo.RequestPredicate?.Invoke(actionContext) == false)
             {
                 return ModelBindingResult.Failed();
             }
@@ -212,13 +249,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 actionContext,
                 valueProvider,
                 metadata,
-                parameter.BindingInfo,
+                bindingInfo,
                 parameter.Name);
             modelBindingContext.Model = value;
 
             Logger.AttemptingToBindParameterOrProperty(parameter, modelBindingContext);
 
-            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
+            var parameterModelName = bindingInfo.BinderModelName;
             if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
@@ -249,7 +286,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 EnforceBindRequiredAndValidate(
                     baseObjectValidator,
                     actionContext,
-                    parameter,
+                    bindingInfo,
                     metadata,
                     modelBindingContext,
                     modelBindingResult);
@@ -277,7 +314,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
         private void EnforceBindRequiredAndValidate(
             ObjectModelValidator baseObjectValidator,
             ActionContext actionContext,
-            ParameterDescriptor parameter,
+            BindingInfo bindingInfo,
             ModelMetadata metadata,
             ModelBindingContext modelBindingContext,
             ModelBindingResult modelBindingResult)
@@ -313,7 +350,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 var modelName = modelBindingContext.ModelName;
 
                 if (string.IsNullOrEmpty(modelBindingContext.ModelName) &&
-                    parameter.BindingInfo?.BinderModelName == null)
+                    bindingInfo.BinderModelName == null)
                 {
                     // If we get here then this is a fallback case. The model name wasn't explicitly set
                     // and we ended up with an empty prefix.

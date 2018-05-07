@@ -197,18 +197,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageWithProperty.Id),
                         ParameterType = typeof(int),
                         Property = type.GetProperty(nameof(PageWithProperty.Id)),
+                        BindingInfo = new BindingInfo(),
                     },
                     new PageBoundPropertyDescriptor()
                     {
                         Name = nameof(PageWithProperty.RouteDifferentValue),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageWithProperty.RouteDifferentValue)),
+                        BindingInfo = new BindingInfo(),
                     },
                     new PageBoundPropertyDescriptor()
                     {
                         Name = nameof(PageWithProperty.PropertyWithNoValue),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageWithProperty.PropertyWithNoValue)),
+                        BindingInfo = new BindingInfo(),
                     }
                 },
                 HandlerTypeInfo = type,
@@ -255,18 +258,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithProperty.Id),
                         ParameterType = typeof(int),
                         Property = type.GetProperty(nameof(PageModelWithProperty.Id)),
+                        BindingInfo = new BindingInfo(),
                     },
                     new PageBoundPropertyDescriptor()
                     {
                         Name = nameof(PageModelWithProperty.RouteDifferentValue),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithProperty.RouteDifferentValue)),
+                        BindingInfo = new BindingInfo(),
                     },
                     new PageBoundPropertyDescriptor()
                     {
                         Name = nameof(PageModelWithProperty.PropertyWithNoValue),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithProperty.PropertyWithNoValue)),
+                        BindingInfo = new BindingInfo(),
                     }
                 },
 
@@ -321,6 +327,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithDefaultValue.PropertyWithDefaultValue),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithDefaultValue.PropertyWithDefaultValue)),
+                        BindingInfo = new BindingInfo(),
                     },
                 },
 
@@ -380,6 +387,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithSupportsGetProperty.Default),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithSupportsGetProperty.Default)),
+                        BindingInfo = new BindingInfo(),
                     },
                 },
 
@@ -439,6 +447,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithSupportsGetProperty.Default),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithSupportsGetProperty.Default)),
+                        BindingInfo = new BindingInfo(),
                     },
                 },
 
@@ -490,6 +499,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithBindNeverProperty.BindNeverProperty),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithBindNeverProperty.BindNeverProperty)),
+                        BindingInfo = new BindingInfo(),
                     },
                 },
 
@@ -537,6 +547,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                         Name = nameof(PageModelWithValidation.Validated),
                         ParameterType = typeof(string),
                         Property = type.GetProperty(nameof(PageModelWithValidation.Validated)),
+                        BindingInfo = new BindingInfo(),
                     },
                 },
 
@@ -587,7 +598,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var type = typeof(PageModelWithExecutors);
             var actionDescriptor = GetActionDescriptorWithHandlerMethod(type, nameof(PageModelWithExecutors.OnGet));
 
-            // Act
             var parameterBinder = new TestParameterBinder(new Dictionary<string, object>()
             {
                 { "id", "value" },
@@ -631,7 +641,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             var type = typeof(PageModelWithExecutors);
             var actionDescriptor = GetActionDescriptorWithHandlerMethod(type, nameof(PageModelWithExecutors.OnGetWithBindNever));
 
-            // Act
             var parameterBinder = new TestParameterBinder(new Dictionary<string, object>()
             {
                 { "id", "value" },
@@ -668,8 +677,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Arrange
             var type = typeof(PageModelWithExecutors);
             var actionDescriptor = GetActionDescriptorWithHandlerMethod(type, nameof(PageModelWithExecutors.OnPostWithValidation));
-
-            // Act
 
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var modelBinderFactory = TestModelBinderFactory.CreateDefault();
@@ -781,7 +788,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                             {
                                 ParameterInfo = parameterInfo,
                                 ParameterType = parameterInfo.ParameterType,
-                                Name = parameterInfo.Name
+                                Name = parameterInfo.Name,
+                                BindingInfo = new BindingInfo(),
                             },
                         },
                     },
