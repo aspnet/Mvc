@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -38,6 +39,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             public static Func<TModel, TResult> Compile(Expression<Func<TModel, TResult>> expression)
             {
+                Debug.Assert(expression != null);
+
                 switch (expression.Body)
                 {
                     // model => model
