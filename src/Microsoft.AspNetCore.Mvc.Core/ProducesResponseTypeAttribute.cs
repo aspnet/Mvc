@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 
@@ -36,6 +37,16 @@ namespace Microsoft.AspNetCore.Mvc
 
             Type = type;
             StatusCode = statusCode;
+        }
+        
+        /// <summary>
+        /// Initializes an instance of <see cref="ProducesResponseTypeAttribute"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> of object that is going to be written in the response.</param>
+        /// <param name="statusCode">The HTTP response status code.</param>
+        public ProducesResponseTypeAttribute(Type type, HttpStatusCode statusCode)
+            : this(type, (int)statusCode)
+        {
         }
 
         /// <summary>
