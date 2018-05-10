@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc.Formatters.Xml\Microsoft.AspNetCore.Mvc.Formatters.Xml.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.Core.TestCommon\Microsoft.AspNetCore.Mvc.Core.TestCommon.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Mvc.ViewFeatures\Microsoft.AspNetCore.Mvc.ViewFeatures.csproj" />
   </ItemGroup>
 

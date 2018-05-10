@@ -1,13 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\src\Microsoft.AspNetCore.Mvc.Testing\build\netstandard2.0\Microsoft.AspNetCore.Mvc.Testing.targets" />
 
   <PropertyGroup>
     <TargetFrameworks>$(StandardTestTfms)</TargetFrameworks>
-    <PlatformTarget Condition=" '$(TargetFramework)' == 'netcoreapp2.2' "></PlatformTarget>
 
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
-    <DefineConstants>$(DefineConstants);FUNCTIONAL_TESTS</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +33,6 @@
     <ProjectReference Include="..\WebSites\FilesWebSite\FilesWebSite.csproj" />
     <ProjectReference Include="..\WebSites\FormatterWebSite\FormatterWebSite.csproj" />
     <ProjectReference Include="..\WebSites\HtmlGenerationWebSite\HtmlGenerationWebSite.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.TestCommon\Microsoft.AspNetCore.Mvc.TestCommon.csproj" />
     <ProjectReference Include="..\..\samples\MvcSandbox\MvcSandbox.csproj" />
     <ProjectReference Include="..\WebSites\RazorBuildWebSite\RazorBuildWebSite.csproj" />
     <ProjectReference Include="..\WebSites\RazorPageExecutionInstrumentationWebSite\RazorPageExecutionInstrumentationWebSite.csproj" />
