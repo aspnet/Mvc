@@ -189,6 +189,86 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
+        public void RendersImageTag_FallbackSrc_AddsFileVersion()
+        {
+            // Arrange
+            var context = MakeTagHelperContext(
+                attributes: new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Alt image text") },
+                    { "src", "/images/test-image.png" },
+                    { "asp-append-version", "true" },
+                    { "asp-fallback-src", "/images/fallback-image.png" }
+                });
+            var output = MakeImageTagHelperOutput(attributes: new TagHelperAttributeList
+            {
+                { "alt", new HtmlString("Alt image text") },
+            });
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new HtmlTestEncoder(), MakeUrlHelperFactory())
+            {
+                ViewContext = viewContext,
+                Src = "/images/test-image.png",
+                AppendVersion = true,
+                FallbackSrc = "/images/fallback-image.png"
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Equal("img", output.TagName);
+            Assert.Equal(3, output.Attributes.Count);
+            var srcAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("src"));
+            Assert.Equal("/images/test-image.png?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk", srcAttribute.Value);
+
+            var onErrorAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("onerror"));
+            Assert.Equal("this.src = '/images/fallback-image.png?v=f4OxZX_x_FO5LcGBSKHWXfwtSx-j1ncoSt3SABJtkGk'", onErrorAttribute.Value);
+        }
+
+        [Fact]
+        public void RendersImageTag_FallbackSrc_NoFileVersion()
+        {
+            // Arrange
+            var context = MakeTagHelperContext(
+                attributes: new TagHelperAttributeList
+                {
+                    { "alt", new HtmlString("Alt image text") },
+                    { "src", "/images/test-image.png" },
+                    { "asp-fallback-src", "/images/fallback-image.png" }
+                });
+            var output = MakeImageTagHelperOutput(attributes: new TagHelperAttributeList
+            {
+                { "alt", new HtmlString("Alt image text") },
+            });
+            var hostingEnvironment = MakeHostingEnvironment();
+            var viewContext = MakeViewContext();
+
+            var helper = new ImageTagHelper(hostingEnvironment, MakeCache(), new HtmlTestEncoder(), MakeUrlHelperFactory())
+            {
+                ViewContext = viewContext,
+                Src = "/images/test-image.png",
+                FallbackSrc = "/images/fallback-image.png"
+            };
+
+            // Act
+            helper.Process(context, output);
+
+            // Assert
+            Assert.True(output.Content.GetContent().Length == 0);
+            Assert.Equal("img", output.TagName);
+            Assert.Equal(3, output.Attributes.Count);
+            var srcAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("src"));
+            Assert.Equal("/images/test-image.png", srcAttribute.Value);
+
+            var onErrorAttribute = Assert.Single(output.Attributes, attr => attr.Name.Equals("onerror"));
+            Assert.Equal("this.src = '/images/fallback-image.png'", onErrorAttribute.Value);
+        }
+
+        [Fact]
         public void RendersImageTag_DoesNotAddFileVersion()
         {
             // Arrange

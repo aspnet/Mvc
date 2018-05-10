@@ -22,10 +22,16 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         "img",
         Attributes = AppendVersionAttributeName + "," + SrcAttributeName,
         TagStructure = TagStructure.WithoutEndTag)]
+    [HtmlTargetElement(
+        "img",
+        Attributes = FallbackSrcAttributeName + "," + SrcAttributeName,
+        TagStructure = TagStructure.WithoutEndTag)]
     public class ImageTagHelper : UrlResolutionTagHelper
     {
         private const string AppendVersionAttributeName = "asp-append-version";
         private const string SrcAttributeName = "src";
+        private const string FallbackSrcAttributeName = "asp-fallback-src";
+        private const string OnErrorAttributeName = "onerror";
 
         private FileVersionProvider _fileVersionProvider;
 
@@ -68,6 +74,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         [HtmlAttributeName(AppendVersionAttributeName)]
         public bool AppendVersion { get; set; }
 
+        /// <summary>
+        /// The URL of the Image tag to fallback to in the case the primary one fails
+        /// </summary>
+        /// <remarks>
+        /// Utilizes the onerror JavaScript handler for fallback
+        /// </remarks>
+        [HtmlAttributeName(FallbackSrcAttributeName)]
+        public string FallbackSrc { get; set; }
+
         protected IHostingEnvironment HostingEnvironment { get; }
 
         protected IMemoryCache Cache { get; }
@@ -98,6 +113,28 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 Src = output.Attributes[SrcAttributeName].Value as string;
 
                 output.Attributes.SetAttribute(SrcAttributeName, _fileVersionProvider.AddFileVersionToPath(Src));
+            }
+
+            //Retrieve any existing onerror handler code
+            var onError = output.Attributes[OnErrorAttributeName]?.Value as string;
+
+            //Check if there's a fallback source and no onerror handler
+            if (!string.IsNullOrWhiteSpace(FallbackSrc) && string.IsNullOrWhiteSpace(onError))
+            {
+                string resolvedUrl;
+                if (TryResolveUrl(FallbackSrc, out resolvedUrl))
+                {
+                    FallbackSrc = resolvedUrl;
+                }
+
+                if (AppendVersion)
+                {
+                    FallbackSrc = _fileVersionProvider.AddFileVersionToPath(FallbackSrc);
+                }
+
+                //Apply fallback handler code
+                onError = $"this.src = '{FallbackSrc}'";
+                output.Attributes.SetAttribute(OnErrorAttributeName, onError);
             }
         }
 
