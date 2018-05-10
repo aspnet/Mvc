@@ -20,6 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string VaryByRouteAttributeName = "vary-by-route";
         private const string VaryByCookieAttributeName = "vary-by-cookie";
         private const string VaryByUserAttributeName = "vary-by-user";
+        private const string VaryByCultureAttributeName = "vary-by-culture";
         private const string ExpiresOnAttributeName = "expires-on";
         private const string ExpiresAfterAttributeName = "expires-after";
         private const string ExpiresSlidingAttributeName = "expires-sliding";
@@ -92,6 +93,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         [HtmlAttributeName(VaryByUserAttributeName)]
         public bool VaryByUser { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if the cached result is to be varied by request culture.
+        /// </summary>
+        [HtmlAttributeName(VaryByCultureAttributeName)]
+        public bool VaryByCulture { get; set; }
 
         /// <summary>
         /// Gets or sets the exact <see cref="DateTimeOffset"/> the cache entry should be evicted.
