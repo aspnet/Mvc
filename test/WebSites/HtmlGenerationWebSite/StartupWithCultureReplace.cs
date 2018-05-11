@@ -27,6 +27,11 @@ namespace HtmlGenerationWebSite
             {
                 options.SupportedCultures.Add(new CultureInfo("fr-FR"));
                 options.SupportedCultures.Add(new CultureInfo("en-GB"));
+
+                options.SupportedUICultures.Add(new CultureInfo("fr-FR"));
+                options.SupportedUICultures.Add(new CultureInfo("fr-CA"));
+                options.SupportedUICultures.Add(new CultureInfo("en-GB"));
+
                 options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
             });
 

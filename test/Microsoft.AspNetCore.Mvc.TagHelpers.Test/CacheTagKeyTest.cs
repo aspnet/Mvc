@@ -347,11 +347,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        [ReplaceCulture("fr-FR", "en-gb")]
-        public void GenerateKey_UsesCultureName_IfVaryByCulture_IsSet()
+        [ReplaceCulture("fr-FR", "es-ES")]
+        public void GenerateKey_UsesCultureAndUICultureName_IfVaryByCulture_IsSet()
         {
             // Arrange
-            var expected = "CacheTagHelper||testid||VaryByCulture||fr-FR";
+            var expected = "CacheTagHelper||testid||VaryByCulture||fr-FR||es-ES";
             var tagHelperContext = GetTagHelperContext();
             var cacheTagHelper = new CacheTagHelper(new CacheTagHelperMemoryCacheFactory(Mock.Of<IMemoryCache>()), new HtmlTestEncoder())
             {
@@ -394,12 +394,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        [ReplaceCulture("zh-Hans", "zh-Hans")]
+        [ReplaceCulture("zh", "zh-Hans")]
         public void GenerateKey_WithVaryByCulture_ComposesWithOtherOptions()
         {
             // Arrange
             var expected = "CacheTagHelper||testid||VaryBy||custom-value||" +
-                "VaryByHeader(content-type||text/html)||VaryByCulture||zh-Hans";
+                "VaryByHeader(content-type||text/html)||VaryByCulture||zh||zh-Hans";
             var tagHelperContext = GetTagHelperContext();
             var cacheTagHelper = new CacheTagHelper(new CacheTagHelperMemoryCacheFactory(Mock.Of<IMemoryCache>()), new HtmlTestEncoder())
             {
@@ -451,6 +451,38 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
+        public void Equality_ReturnsFalse_WhenVaryByCultureIsTrue_AndUICultureIsDifferent()
+        {
+            // Arrange
+            var tagHelperContext = GetTagHelperContext();
+            var cacheTagHelper = new CacheTagHelper(new CacheTagHelperMemoryCacheFactory(Mock.Of<IMemoryCache>()), new HtmlTestEncoder())
+            {
+                ViewContext = GetViewContext(),
+                VaryByCulture = true,
+            };
+
+            // Act
+            CacheTagKey key1;
+            using (new CultureReplacer("fr", "fr-FR"))
+            {
+                key1 = new CacheTagKey(cacheTagHelper, tagHelperContext);
+            }
+
+            CacheTagKey key2;
+            using (new CultureReplacer("fr", "fr-CA"))
+            {
+                key2 = new CacheTagKey(cacheTagHelper, tagHelperContext);
+            }
+            var equals = key1.Equals(key2);
+            var hashCode1 = key1.GetHashCode();
+            var hashCode2 = key2.GetHashCode();
+
+            // Assert
+            Assert.False(equals, "CacheTagKeys must not be equal");
+            Assert.NotEqual(hashCode1, hashCode2);
+        }
+
+        [Fact]
         public void Equality_ReturnsTrue_WhenVaryByCultureIsTrue_AndCultureIsSame()
         {
             // Arrange
@@ -464,12 +496,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             // Act
             CacheTagKey key1;
             CacheTagKey key2;
-            using (new CultureReplacer("fr-FR"))
+            using (new CultureReplacer("fr-FR", "fr-FR"))
             {
                 key1 = new CacheTagKey(cacheTagHelper, tagHelperContext);
-                key2 = new CacheTagKey(cacheTagHelper, tagHelperContext);
             }
 
+            using (new CultureReplacer("fr-fr", "fr-fr"))
+            {
+                key2 = new CacheTagKey(cacheTagHelper, tagHelperContext);
+            }
 
             var equals = key1.Equals(key2);
             var hashCode1 = key1.GetHashCode();

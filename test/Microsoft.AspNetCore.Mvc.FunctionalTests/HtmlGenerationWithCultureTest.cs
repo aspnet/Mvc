@@ -67,6 +67,55 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task CacheTagHelper_AllowsVaryingByUICulture()
+        {
+            // Arrange
+            string culture;
+            string uiCulture;
+            string correlationId;
+            string cachedCorrelationId;
+
+            // Act - 1
+            var document = await Client.GetHtmlDocumentAsync("/CacheTagHelper_VaryByCulture?culture=fr-Fr&ui-culture=fr-FR&correlationId=10");
+            ReadValuesFromDocument();
+
+            // Assert - 1
+            Assert.Equal("fr-FR", culture);
+            Assert.Equal("fr-FR", uiCulture);
+            Assert.Equal("10", correlationId);
+            Assert.Equal("10", cachedCorrelationId);
+
+            // Act - 2
+            document = await Client.GetHtmlDocumentAsync("/CacheTagHelper_VaryByCulture?culture=fr-Fr&ui-culture=fr-CA&correlationId=11");
+            ReadValuesFromDocument();
+
+            // Assert - 2
+            Assert.Equal("fr-FR", culture);
+            Assert.Equal("fr-CA", uiCulture);
+            Assert.Equal("11", correlationId);
+            Assert.Equal("11", cachedCorrelationId);
+
+            // Act - 3
+            document = await Client.GetHtmlDocumentAsync("/CacheTagHelper_VaryByCulture?culture=fr-Fr&ui-culture=fr-FR&correlationId=14");
+            ReadValuesFromDocument();
+
+            // Assert - 3
+            Assert.Equal("fr-FR", culture);
+            Assert.Equal("fr-FR", uiCulture);
+            Assert.Equal("14", correlationId);
+            // Verify we're reading a cached value
+            Assert.Equal("10", cachedCorrelationId);
+
+            void ReadValuesFromDocument()
+            {
+                culture = QuerySelector(document, "#culture").TextContent;
+                uiCulture = QuerySelector(document, "#ui-culture").TextContent;
+                correlationId = QuerySelector(document, "#correlation-id").TextContent;
+                cachedCorrelationId = QuerySelector(document, "#cached-correlation-id").TextContent;
+            }
+        }
+
+        [Fact]
         public async Task CacheTagHelper_VaryByCultureComposesWithOtherVaryByOptions()
         {
             // Arrange

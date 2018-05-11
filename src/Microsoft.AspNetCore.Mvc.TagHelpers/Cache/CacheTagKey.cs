@@ -47,7 +47,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
         private readonly bool _varyByUser;
         private readonly bool _varyByCulture;
         private readonly string _username;
-        private readonly string _requestCulture;
+        private readonly CultureInfo _requestCulture;
+        private readonly CultureInfo _requestUICulture;
 
         private string _generatedKey;
         private int? _hashcode;
@@ -100,7 +101,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
 
             if (_varyByCulture)
             {
-                _requestCulture = CultureInfo.CurrentCulture.Name;
+                _requestCulture = CultureInfo.CurrentCulture;
+                _requestUICulture = CultureInfo.CurrentUICulture;
             }
         }
 
@@ -153,7 +155,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                     .Append(CacheKeyTokenSeparator)
                     .Append(VaryByCulture)
                     .Append(CacheKeyTokenSeparator)
-                    .Append(_requestCulture);
+                    .Append(_requestCulture)
+                    .Append(CacheKeyTokenSeparator)
+                    .Append(_requestUICulture);
             }
 
             _generatedKey = builder.ToString();
@@ -205,8 +209,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
                 AreSame(_routeValues, other._routeValues) &&
                 (_varyByUser == other._varyByUser &&
                     (!_varyByUser || string.Equals(other._username, _username, StringComparison.Ordinal))) &&
-                (_varyByCulture == other._varyByCulture &&
-                    (!_varyByCulture || string.Equals(other._requestCulture, _requestCulture, StringComparison.OrdinalIgnoreCase)));
+                CultureEquals();
+
+            bool CultureEquals()
+            {
+                if (_varyByCulture != other._varyByCulture)
+                {
+                    return false;
+                }
+
+                if (!_varyByCulture)
+                {
+                    // Neither has culture set.
+                    return true;
+                }
+
+                return _requestCulture.Equals(other._requestCulture) &&
+                    _requestUICulture.Equals(other._requestUICulture);
+            }
         }
 
         /// <inheritdoc />
@@ -231,7 +251,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers.Cache
             hashCodeCombiner.Add(_expiresSliding);
             hashCodeCombiner.Add(_varyBy, StringComparer.Ordinal);
             hashCodeCombiner.Add(_username, StringComparer.Ordinal);
-            hashCodeCombiner.Add(_requestCulture, StringComparer.OrdinalIgnoreCase);
+            hashCodeCombiner.Add(_requestCulture);
+            hashCodeCombiner.Add(_requestUICulture);
 
             CombineCollectionHashCode(hashCodeCombiner, VaryByCookieName, _cookies);
             CombineCollectionHashCode(hashCodeCombiner, VaryByHeaderName, _headers);
