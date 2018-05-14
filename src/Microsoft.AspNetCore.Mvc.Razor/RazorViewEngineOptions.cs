@@ -184,7 +184,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// Gets or sets the <see cref="IRazorCompilationCache"/> instance that is used to cache compiled views.
         /// </summary>
         /// <remarks>
-        /// Repalce it with a custom instance to change how compiled views are shared and reused.
+        /// Replace it with a custom instance to change how compiled views are shared and reused.
         /// </remarks>
         public IRazorCompilationCache CompilationCache { get; set; } = new DefaultRazorCompilationCache();
     }
