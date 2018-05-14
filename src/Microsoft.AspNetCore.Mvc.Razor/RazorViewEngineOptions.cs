@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -181,11 +182,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="IRazorCompilationCache"/> instance that is used to cache compiled views.
+        /// Gets or sets the <see cref="IMemoryCache"/> instance that is used to cache compiled views.
         /// </summary>
         /// <remarks>
         /// Replace it with a custom instance to change how compiled views are shared and reused.
         /// </remarks>
-        public IRazorCompilationCache CompilationCache { get; set; } = new DefaultRazorCompilationCache();
+        public IMemoryCache CompiledViewsMemoryCache { get; set; } = new MemoryCache(new MemoryCacheOptions());
     }
 }
