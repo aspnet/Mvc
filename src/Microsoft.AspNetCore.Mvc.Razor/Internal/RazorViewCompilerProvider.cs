@@ -74,6 +74,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 _csharpCompiler,
                 _viewEngineOptions.CompilationCallback,
                 feature.ViewDescriptors,
+                _viewEngineOptions.CompilationCache,
                 _logger);
         }
     }
