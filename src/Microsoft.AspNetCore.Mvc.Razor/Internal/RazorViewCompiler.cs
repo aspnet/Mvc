@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private readonly IFileProvider _fileProvider;
         private readonly RazorProjectEngine _projectEngine;
         private readonly Action<RoslynCompilationContext> _compilationCallback;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
         private readonly CSharpCompiler _csharpCompiler;
 
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             CSharpCompiler csharpCompiler,
             Action<RoslynCompilationContext> compilationCallback,
             IList<CompiledViewDescriptor> precompiledViews,
-            IMemoryCache memoryCache,
+            IMemoryCache cache,
             ILogger logger)
         {
             if (fileProvider == null)
@@ -81,10 +81,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             _projectEngine = projectEngine;
             _csharpCompiler = csharpCompiler;
             _compilationCallback = compilationCallback;
-            _memoryCache = memoryCache;
             _logger = logger;
 
+
             _normalizedPathCache = new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+
+            // This is our L0 cache, and is a durable store. Views migrate into the cache as they are requested
+            // from either the set of known precompiled views, or by being compiled.
+            _cache = cache;
 
             // We need to validate that the all of the precompiled views are unique by path (case-insenstive).
             // We do this because there's no good way to canonicalize paths on windows, and it will create
@@ -122,13 +126,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             // Attempt to lookup the cache entry using the passed in path. This will succeed if the path is already
             // normalized and a cache entry exists.
-            if (_memoryCache.TryGetValue(relativePath, out Task<CompiledViewDescriptor> cachedResult))
+            if (_cache.TryGetValue(relativePath, out Task<CompiledViewDescriptor> cachedResult))
             {
                 return cachedResult;
             }
 
             var normalizedPath = GetNormalizedPath(relativePath);
-            if (_memoryCache.TryGetValue(normalizedPath, out cachedResult))
+            if (_cache.TryGetValue(normalizedPath, out cachedResult))
             {
                 return cachedResult;
             }
@@ -150,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             lock (_cacheLock)
             {
                 // Double-checked locking to handle a possible race.
-                if (_memoryCache.TryGetValue(normalizedPath, out Task<CompiledViewDescriptor> result))
+                if (_cache.TryGetValue(normalizedPath, out Task<CompiledViewDescriptor> result))
                 {
                     return result;
                 }
@@ -187,7 +191,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                     taskSource.SetResult(item.Descriptor);
                 }
 
-                _memoryCache.Set(normalizedPath, taskSource.Task, cacheEntryOptions);
+                _cache.Set(normalizedPath, taskSource.Task, cacheEntryOptions);
             }
 
             // Now the lock has been released so we can do more expensive processing.
