@@ -221,6 +221,35 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             Assert.Null(authorizationContext.Result);
         }
 
+        private class TestPolicyProvider : IAuthorizationPolicyProvider
+        {
+            private AuthorizationPolicy _policy = new AuthorizationPolicyBuilder().RequireAssertion(_ => true).Build();
+
+            public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
+                => Task.FromResult(_policy);
+
+            public Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
+                => Task.FromResult(_policy);
+        }
+
+        [Fact]
+        public async Task AuthorizationFilterCombinesMultipleFiltersWithPolicyProvider()
+        {
+            // Arrange
+            var authorizeFilter = new AuthorizeFilter(new TestPolicyProvider(), new IAuthorizeData[0]);
+            var authorizationContext = GetAuthorizationContext(anonymous: false, registerServices: s => s.Configure<MvcOptions>(o => o.AllowCombiningAuthorizeFilters = true));
+            // Effective policy should fail, if both are combined
+            authorizationContext.Filters.Add(authorizeFilter);
+            var secondFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => false).Build());
+            authorizationContext.Filters.Add(secondFilter);
+
+            // Act
+            await secondFilter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
+        }
+
         [Fact]
         public async Task AuthorizationFilterCombinesMultipleFilters()
         {
