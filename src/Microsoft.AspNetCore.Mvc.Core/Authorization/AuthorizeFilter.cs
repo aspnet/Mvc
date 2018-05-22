@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
             if (_mvcOptions.AllowCombiningAuthorizeFilters)
             {
-                if (!context.IsEffectivePolicy<AuthorizeFilter>(this))
+                if (!context.IsEffectivePolicy(this))
                 {
                     return null;
                 }
@@ -141,7 +141,8 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                     if (context.Filters[i] is AuthorizeFilter authorizeFilter)
                     {
                         builder = builder ?? new AuthorizationPolicyBuilder(effectivePolicy);
-                        builder.Combine(authorizeFilter.Policy);
+                        // Combine using the explicit policy, or the dynamic policy provider
+                        builder.Combine(authorizeFilter.Policy ?? await AuthorizationPolicy.CombineAsync(authorizeFilter.PolicyProvider, authorizeFilter.AuthorizeData));
                     }
                 }
 
