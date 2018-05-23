@@ -226,18 +226,23 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             private AuthorizationPolicy _true = new AuthorizationPolicyBuilder().RequireAssertion(_ => true).Build();
             private AuthorizationPolicy _false = new AuthorizationPolicyBuilder().RequireAssertion(_ => false).Build();
 
+            public int GetPolicyCalls = 0;
+
             public Task<AuthorizationPolicy> GetDefaultPolicyAsync()
                 => Task.FromResult(_true);
 
             public Task<AuthorizationPolicy> GetPolicyAsync(string policyName)
-                => Task.FromResult(policyName == "true" ? _true : _false);
+            {
+                GetPolicyCalls++;
+                return Task.FromResult(policyName == "true" ? _true : _false);
+            }
         }
 
         [Fact]
         public async Task AuthorizationFilterCombinesMultipleFiltersWithPolicyProvider()
         {
             // Arrange
-            var authorizeFilter = new AuthorizeFilter(new TestPolicyProvider(), new IAuthorizeData[] 
+            var authorizeFilter = new AuthorizeFilter(new TestPolicyProvider(), new IAuthorizeData[]
             {
                 new AuthorizeAttribute { Policy = "true"},
                 new AuthorizeAttribute { Policy = "false"}
@@ -253,6 +258,43 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
             // Assert
             Assert.IsType<ForbidResult>(authorizationContext.Result);
+        }
+
+        [Fact]
+        public async Task AuthorizationFilterCombinesMultipleFiltersWithDifferentPolicyProvider()
+        {
+            // Arrange
+            var testProvider1 = new TestPolicyProvider();
+            var testProvider2 = new TestPolicyProvider();
+            var authorizeFilter = new AuthorizeFilter(testProvider1, new IAuthorizeData[] 
+            {
+                new AuthorizeAttribute { Policy = "true"},
+                new AuthorizeAttribute { Policy = "false"}
+            });
+            var authorizationContext = GetAuthorizationContext(anonymous: false, registerServices: s => s.Configure<MvcOptions>(o => o.AllowCombiningAuthorizeFilters = true));
+            // Effective policy should fail, if both are combined
+            authorizationContext.Filters.Add(authorizeFilter);
+            var secondFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => true).Build());
+            authorizationContext.Filters.Add(secondFilter);
+            var thirdFilter = new AuthorizeFilter(testProvider2, new IAuthorizeData[] { new AuthorizeAttribute(policy: "something") });
+            authorizationContext.Filters.Add(thirdFilter);
+
+            // Act
+            await thirdFilter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
+            Assert.Equal(2, testProvider1.GetPolicyCalls);
+            Assert.Equal(1, testProvider2.GetPolicyCalls);
+
+            // Make sure the policy calls are not cached
+            await thirdFilter.OnAuthorizationAsync(authorizationContext);
+
+            // Assert
+            Assert.IsType<ForbidResult>(authorizationContext.Result);
+            Assert.Equal(4, testProvider1.GetPolicyCalls);
+            Assert.Equal(2, testProvider2.GetPolicyCalls);
+
         }
 
         [Fact]

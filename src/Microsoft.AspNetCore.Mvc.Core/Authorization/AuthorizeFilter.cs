@@ -108,6 +108,24 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
 
         bool IFilterFactory.IsReusable => true;
 
+        // Computes the actual policy for this filter using either Policy or PolicyProvider + AuthorizeData
+        private Task<AuthorizationPolicy> ComputePolicyAsync()
+        {
+            if (Policy != null)
+            {
+                return Task.FromResult(Policy);
+            }
+            if (PolicyProvider == null)
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatAuthorizeFilter_AuthorizationPolicyCannotBeCreated(
+                        nameof(AuthorizationPolicy),
+                        nameof(IAuthorizationPolicyProvider)));
+            }
+
+            return AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
+        }
+
         private async Task<AuthorizationPolicy> GetEffectivePolicyAsync(AuthorizationFilterContext context)
         {
             if (_effectivePolicy != null)
@@ -115,7 +133,8 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 return _effectivePolicy;
             }
 
-            var effectivePolicy = Policy;
+            var effectivePolicy = await ComputePolicyAsync();
+            var canCache = PolicyProvider == null;
 
             if (_mvcOptions == null) 
             {
@@ -130,7 +149,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 }
 
                 // Combine all authorize filters into single effective policy that's only run on the closest filter
-                AuthorizationPolicyBuilder builder = null;
+                AuthorizationPolicyBuilder builder = new AuthorizationPolicyBuilder(effectivePolicy);
                 for (var i = 0; i < context.Filters.Count; i++)
                 {
                     if (ReferenceEquals(this, context.Filters[i]))
@@ -142,28 +161,16 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                     {
                         builder = builder ?? new AuthorizationPolicyBuilder(effectivePolicy);
                         // Combine using the explicit policy, or the dynamic policy provider
-                        builder.Combine(authorizeFilter.Policy ?? await AuthorizationPolicy.CombineAsync(authorizeFilter.PolicyProvider, authorizeFilter.AuthorizeData));
+                        builder.Combine(await authorizeFilter.ComputePolicyAsync());
+                        canCache = canCache && authorizeFilter.PolicyProvider == null;
                     }
                 }
 
                 effectivePolicy = builder?.Build() ?? effectivePolicy;
             }
 
-            if (effectivePolicy == null)
-            {
-                if (PolicyProvider == null)
-                {
-                    throw new InvalidOperationException(
-                        Resources.FormatAuthorizeFilter_AuthorizationPolicyCannotBeCreated(
-                            nameof(AuthorizationPolicy),
-                            nameof(IAuthorizationPolicyProvider)));
-                }
-
-                effectivePolicy = await AuthorizationPolicy.CombineAsync(PolicyProvider, AuthorizeData);
-            }
-
-            // We can cache the effective policy when there is no custom policy provider 
-            if (PolicyProvider == null)
+            // We can cache the effective policy when there is no custom policy provider
+            if (canCache)
             {
                 _effectivePolicy = effectivePolicy;
             }
