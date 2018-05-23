@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
         // DefaultAuthorizationPolicyProvider will return the same result for the same input. So a cache could cause
         // undesired access.
         [Fact]
-        public async Task CombinedAuthorizeFilter_CalledTwiceWithNonDefaultProvider()
+        public async Task CombinedAuthorizeFilter_AlwaysCalledWithNonDefaultProvider()
         {
             // Arrange
             var applicationModelProviderContext = GetProviderContext(typeof(AuthorizeController));
@@ -73,6 +73,8 @@ namespace Microsoft.AspNetCore.Mvc.IntegrationTests
             var actionContext = new ActionContext(GetHttpContext(combineAuthorize: true), new RouteData(), new ControllerActionDescriptor());
 
             var authorizationFilterContext = new AuthorizationFilterContext(actionContext, action.Filters);
+
+            authorizationFilterContext.Filters.Add(authorizeFilter);
 
             var secondFilter = new AuthorizeFilter(new AuthorizationPolicyBuilder().RequireAssertion(a => true).Build());
             authorizationFilterContext.Filters.Add(secondFilter);
