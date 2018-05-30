@@ -66,7 +66,14 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <summary>
         /// Gets the <see cref="TestServer"/> created by this <see cref="WebApplicationFactory{TEntryPoint}"/>.
         /// </summary>
-        public TestServer Server => _server;
+        public TestServer Server
+        {
+            get 
+            {
+                EnsureServer(); // alternately throw exception if _server == null
+                return _server;
+            }
+        }
 
         /// <summary>
         /// Gets the <see cref="IReadOnlyList{WebApplicationFactory}"/> of factories created from this factory
