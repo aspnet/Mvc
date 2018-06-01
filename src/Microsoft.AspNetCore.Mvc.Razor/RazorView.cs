@@ -169,6 +169,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             _diagnosticSource.BeforeViewPage(page, context);
 
+            if (page is IRazorPageExecutionFilter filter)
+            {
+                filter.OnExecuting();
+            }
+
             try
             {
                 await page.ExecuteAsync();
