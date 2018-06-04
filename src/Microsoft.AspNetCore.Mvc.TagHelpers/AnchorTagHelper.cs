@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     [HtmlTargetElement("a", Attributes = RouteAttributeName)]
     [HtmlTargetElement("a", Attributes = RouteValuesDictionaryName)]
     [HtmlTargetElement("a", Attributes = RouteValuesPrefix + "*")]
+    [HtmlTargetElement("a", Attributes = AmbientValuesPrefix + "*")]
     public class AnchorTagHelper : TagHelper
     {
         private const string ActionAttributeName = "asp-action";
@@ -37,8 +38,10 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string RouteAttributeName = "asp-route";
         private const string RouteValuesDictionaryName = "asp-all-route-data";
         private const string RouteValuesPrefix = "asp-route-";
+        private const string AmbientValuesPrefix = "asp-add-route-";
         private const string Href = "href";
         private IDictionary<string, string> _routeValues;
+        private IDictionary<string, string> _ambientValues;
 
         /// <summary>
         /// Creates a new <see cref="AnchorTagHelper"/>.
@@ -150,6 +153,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
         }
 
+        [HtmlAttributeName(DictionaryAttributePrefix = AmbientValuesPrefix)]
+        public IDictionary<string, string> AmbientValues
+        {
+            get
+            {
+                if (_ambientValues == null)
+                {
+                    _ambientValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                return _ambientValues;
+            }
+            set
+            {
+                _ambientValues = value;
+            }
+        }
+
         /// <summary>
         /// Gets or sets the <see cref="Rendering.ViewContext"/> for the current request.
         /// </summary>
@@ -222,7 +243,30 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             RouteValueDictionary routeValues = null;
-            if (_routeValues != null && _routeValues.Count > 0)
+            if (_ambientValues != null && _ambientValues.Count > 0)
+            {
+                var __ambientValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                if (_routeValues != null && _routeValues.Count > 0)
+                {
+                    throw new InvalidOperationException(nameof(_routeValues));
+                }
+
+                foreach (var item in ViewContext.HttpContext.Request.Query)
+                {
+                    __ambientValues.Add(item.Key, item.Value);
+                }
+                foreach (var item in _ambientValues)
+                {
+                    if (!__ambientValues.ContainsKey(item.Key))
+                    {
+                        __ambientValues.Add(item.Key, item.Value);
+                    }
+                }
+
+                routeValues = new RouteValueDictionary(__ambientValues);
+
+            }
+            else if (_routeValues != null && _routeValues.Count > 0)
             {
                 routeValues = new RouteValueDictionary(_routeValues);
             }
