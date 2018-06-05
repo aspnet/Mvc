@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             new DiagnosticDescriptor(
                 "MVC1001",
                 "Filters cannot be applied to page handler methods.",
-                "'{0}' cannoted be applied to a Razor Page handler methods. It may be applied either to a PageModel or globally.",
+                "'{0}' cannoted be applied to Razor Page handler methods. It may be applied either to the Razor Page model or applied globally.",
                 "Usage",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             new DiagnosticDescriptor(
                 "MVC1002",
                 "Route attributes cannot be applied to page handler methods.",
-                "'{0}' cannot be applied to a Razor Page handler methods. Routes for Razor Pages must be declared using the @page directive or using conventions.",
+                "'{0}' cannot be applied to Razor Page handler methods. Routes for Razor Pages must be declared using the @page directive or using conventions.",
                 "Usage",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);

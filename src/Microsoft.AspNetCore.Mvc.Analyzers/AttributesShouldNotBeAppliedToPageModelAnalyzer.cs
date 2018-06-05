@@ -18,9 +18,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-#if !DEBUG
             context.EnableConcurrentExecution();
-#endif
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
             context.RegisterCompilationStartAction(compilationStartAnalysisContext =>

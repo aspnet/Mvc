@@ -25,6 +25,10 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers.Test
         }
 
         [Fact]
+        public Task NoDiagnosticsAreReturned_ForControllerBaseActions()
+            => VerifyNoDiagnosticsAreReturned();
+
+        [Fact]
         public Task NoDiagnosticsAreReturned_ForControllerActions()
             => VerifyNoDiagnosticsAreReturned();
 

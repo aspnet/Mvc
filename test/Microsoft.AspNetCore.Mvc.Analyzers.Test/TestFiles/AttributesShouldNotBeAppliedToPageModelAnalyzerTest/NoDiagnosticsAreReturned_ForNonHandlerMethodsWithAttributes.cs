@@ -5,8 +5,6 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers.Test
 {
     public class NoDiagnosticsAreReturned_ForNonHandlerMethodsWithAttributes : PageModel
     {
-        public void OnGet() => OnGet();
-
         [Authorize]
         private void OnGetPrivate() { }
 
