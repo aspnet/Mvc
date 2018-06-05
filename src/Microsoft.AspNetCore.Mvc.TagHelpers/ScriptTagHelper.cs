@@ -322,7 +322,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         var attribute = attributes[i];
                         if (!attribute.Name.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                         {
-                            // do not write integrity attribute unless fallbackintegrityCheck is true
+                            // do not write integrity attribute when fallbackintegrityCheck is false
                             if (attribute.Name.Equals("integrity", StringComparison.OrdinalIgnoreCase) && FallbackIntegrityCheck == false) continue;
 
                             StringWriter.Write(' ');
