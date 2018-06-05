@@ -161,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         {
                             new TagHelperAttribute("asp-fallback-src", "test.js"),
                             new TagHelperAttribute("asp-fallback-test", "isavailable()"),
-                            new TagHelperAttribute("asp-fallback-intergrity-check", "false")
+                            new TagHelperAttribute("asp-fallback-integrity-check", "false")
                         },
                         tagHelper =>
                         {
@@ -202,7 +202,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             new TagHelperAttribute("asp-fallback-src", "test.js"),
                             new TagHelperAttribute("asp-fallback-src-include", "*.js"),
                             new TagHelperAttribute("asp-fallback-test", "isavailable()"),
-                            new TagHelperAttribute("asp-fallback-intergrity-check", "false")
+                            new TagHelperAttribute("asp-fallback-integrity-check", "false")
                         },
                         tagHelper =>
                         {

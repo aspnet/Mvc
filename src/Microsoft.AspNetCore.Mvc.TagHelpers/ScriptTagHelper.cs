@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string SrcExcludeAttributeName = "asp-src-exclude";
         private const string FallbackSrcAttributeName = "asp-fallback-src";
         private const string FallbackSrcIncludeAttributeName = "asp-fallback-src-include";
-        private const string FallbackIntegrityCheckAttributeName = "asp-fallback-intergrity-check";
+        private const string FallbackIntegrityCheckAttributeName = "asp-fallback-integrity-check";
         private const string FallbackSrcExcludeAttributeName = "asp-fallback-src-exclude";
         private const string FallbackTestExpressionAttributeName = "asp-fallback-test";
         private const string SrcAttributeName = "src";
@@ -322,7 +322,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         var attribute = attributes[i];
                         if (!attribute.Name.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                         {
-                            // do not write integrity attribute unless fallbackIntergrityCheck is true
+                            // do not write integrity attribute unless fallbackintegrityCheck is true
                             if (attribute.Name.Equals("integrity", StringComparison.OrdinalIgnoreCase) && FallbackIntegrityCheck == false) continue;
 
                             StringWriter.Write(' ');
