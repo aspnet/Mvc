@@ -1,6 +1,6 @@
 {
   "description": "ASP.NET Core MVC core components. Contains common action result types, attribute routing, application model conventions, API explorer, application parts, filters, formatters, model binding, and more.\r\nCommonly used types:\r\nMicrosoft.AspNetCore.Mvc.AreaAttribute\r\nMicrosoft.AspNetCore.Mvc.BindAttribute\r\nMicrosoft.AspNetCore.Mvc.ControllerBase\r\nMicrosoft.AspNetCore.Mvc.FromBodyAttribute\r\nMicrosoft.AspNetCore.Mvc.FromFormAttribute\r\nMicrosoft.AspNetCore.Mvc.RequireHttpsAttribute\r\nMicrosoft.AspNetCore.Mvc.RouteAttribute",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "packOptions": {
     "repository": {
       "type": "git",
@@ -23,7 +23,7 @@
     "Microsoft.AspNetCore.Authorization": "1.1.3",
     "Microsoft.AspNetCore.Hosting.Abstractions": "1.1.3",
     "Microsoft.AspNetCore.Http": "1.1.2",
-    "Microsoft.AspNetCore.Mvc.Abstractions": "1.1.7",
+    "Microsoft.AspNetCore.Mvc.Abstractions": "1.1.8",
     "Microsoft.AspNetCore.ResponseCaching.Abstractions": "1.1.3",
     "Microsoft.AspNetCore.Routing": "1.1.2",
     "Microsoft.AspNetCore.Routing.DecisionTree.Sources": {
@@ -34,7 +34,7 @@
       "version": "1.1.1",
       "type": "build"
     },
-    "Microsoft.Extensions.DependencyModel": "1.1.2",
+    "Microsoft.Extensions.DependencyModel": "1.1.9-servicing-001741",
     "Microsoft.Extensions.FileProviders.Abstractions": "1.1.1",
     "Microsoft.Extensions.HashCodeCombiner.Sources": {
       "type": "build",

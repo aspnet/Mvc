@@ -1,6 +1,6 @@
 {
   "description": "ASP.NET Core MVC design time hosting infrastructure for the Razor view engine.",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "packOptions": {
     "repository": {
       "type": "git",
