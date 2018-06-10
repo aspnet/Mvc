@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
 
             Logger.AttemptingToBindParameterOrProperty(parameter, modelBindingContext);
 
-            var parameterModelName = parameter.BindingInfo?.BinderModelName ?? metadata.BinderModelName;
+            var parameterModelName = string.IsNullOrEmpty( parameter.BindingInfo?.BinderModelName)? metadata.BinderModelName : parameter.BindingInfo?.BinderModelName;
             if (parameterModelName != null)
             {
                 // The name was set explicitly, always use that as the prefix.
