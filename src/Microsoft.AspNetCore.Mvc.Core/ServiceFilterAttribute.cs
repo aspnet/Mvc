@@ -37,6 +37,20 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             ServiceType = type;
+
+            if (typeof(IFilterFactory).IsAssignableFrom(ServiceType))
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatCannotUseFilterFactoryWithinFilterFactory(ServiceType, GetType()));
+            }
+
+            if (!typeof(IFilterMetadata).IsAssignableFrom(ServiceType))
+            {
+                throw new InvalidOperationException(Resources.FormatFilterFactoryAttribute_TypeMustImplementIFilter(
+                    ServiceType,
+                    typeof(ServiceFilterAttribute),
+                    typeof(IFilterMetadata)));
+            }
         }
 
         /// <inheritdoc />
@@ -58,17 +72,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            var service = serviceProvider.GetRequiredService(ServiceType);
-
-            var filter = service as IFilterMetadata;
-            if (filter == null)
-            {
-                throw new InvalidOperationException(Resources.FormatFilterFactoryAttribute_TypeMustImplementIFilter(
-                    typeof(ServiceFilterAttribute).Name,
-                    typeof(IFilterMetadata).Name));
-            }
-
-            return filter;
+            return (IFilterMetadata)serviceProvider.GetRequiredService(ServiceType);
         }
     }
 }

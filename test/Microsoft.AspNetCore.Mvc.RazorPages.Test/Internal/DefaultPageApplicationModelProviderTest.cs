@@ -1090,9 +1090,16 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         [PageModel]
         [Serializable]
-        [TypeFilter(typeof(object))]
+        [TypeFilter(typeof(TestAuthorizationFilter))]
         private class FilterModel
         {
+        }
+
+        private class TestAuthorizationFilter : IAuthorizationFilter
+        {
+            public void OnAuthorization(AuthorizationFilterContext context)
+            {
+            }
         }
 
         [Fact]
@@ -1178,7 +1185,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 filter => Assert.IsType<PageHandlerPageFilter>(filter));
         }
 
-        [ServiceFilter(typeof(IServiceProvider))]
+        [ServiceFilter(typeof(TestAuthorizationFilter))]
         private class DerivedFromPageModel : PageModel { }
 
         private static DefaultPageApplicationModelProvider CreateProvider()

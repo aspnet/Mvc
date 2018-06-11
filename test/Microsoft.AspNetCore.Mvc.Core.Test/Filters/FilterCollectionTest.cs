@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Testing;
+using System;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Filters
@@ -69,14 +69,14 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         {
             // Arrange
             var collection = new FilterCollection();
-
-            var expectedMessage = $"The type '{typeof(NonFilter).FullName}' must derive from " + $"'{typeof(IFilterMetadata).FullName}'.";
+            var implementationType = typeof(NonFilter);
 
             // Act & Assert
-            ExceptionAssert.ThrowsArgument(
-                () => collection.Add(typeof(NonFilter)),
-                "filterType",
-                expectedMessage);
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => new TypeFilterAttribute(implementationType));
+            Assert.Equal(
+                $"The type '{implementationType}' provided to '{typeof(TypeFilterAttribute)}' must implement '{typeof(IFilterMetadata)}'.",
+                exception.Message);
         }
 
         [Fact]
@@ -140,14 +140,46 @@ namespace Microsoft.AspNetCore.Mvc.Filters
         {
             // Arrange
             var collection = new FilterCollection();
-
-            var expectedMessage = $"The type '{typeof(NonFilter).FullName}' must derive from '{typeof(IFilterMetadata).FullName}'.";
+            var serviceType = typeof(NonFilter);
 
             // Act & Assert
-            ExceptionAssert.ThrowsArgument(
-                () => { collection.AddService(typeof(NonFilter)); },
-                "filterType",
-                expectedMessage);
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => new ServiceFilterAttribute(serviceType));
+            Assert.Equal(
+                $"The type '{serviceType}' provided to '{typeof(ServiceFilterAttribute)}' must implement '{typeof(IFilterMetadata)}'.",
+                exception.Message);
+        }
+
+        [Fact]
+        public void Add_ThrowsException_IfTypeImplementsIFilterFactory()
+        {
+            // Arrange
+            var collection = new FilterCollection();
+            var implementationType = typeof(FilterFactoryImplementingType);
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => collection.Add(implementationType));
+            Assert.Equal(
+                $"Cannot use a filter factory type '{implementationType}' from within another" +
+                $" filter factory type '{typeof(TypeFilterAttribute)}'.",
+                exception.Message);
+        }
+
+        [Fact]
+        public void GenericAdd_ThrowsException_IfTypeImplementsIFilterFactory()
+        {
+            // Arrange
+            var collection = new FilterCollection();
+            var implementationType = typeof(FilterFactoryImplementingType);
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => collection.Add<FilterFactoryImplementingType>());
+            Assert.Equal(
+                $"Cannot use a filter factory type '{implementationType}' from within another" +
+                $" filter factory type '{typeof(TypeFilterAttribute)}'.",
+                exception.Message);
         }
 
         private class MyFilter : IFilterMetadata, IOrderedFilter
@@ -161,6 +193,16 @@ namespace Microsoft.AspNetCore.Mvc.Filters
 
         private class NonFilter
         {
+        }
+
+        private class FilterFactoryImplementingType : IFilterFactory
+        {
+            public bool IsReusable => throw new NotImplementedException();
+
+            public IFilterMetadata CreateInstance(IServiceProvider serviceProvider)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
