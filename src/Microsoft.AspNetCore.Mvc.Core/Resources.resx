@@ -160,7 +160,7 @@
     <value>If an {0} cancels execution by setting the {1} property of {2} to 'true', then it cannot call the next filter by invoking {3}.</value>
   </data>
   <data name="FilterFactoryAttribute_TypeMustImplementIFilter" xml:space="preserve">
-    <value>The type provided to '{0}' must implement '{1}'.</value>
+    <value>The type '{0}' provided to '{1}' must implement '{2}'.</value>
   </data>
   <data name="ActionResult_ActionReturnValueCannotBeNull" xml:space="preserve">
     <value>Cannot return null from an action method with a return type of '{0}'.</value>
@@ -441,5 +441,8 @@
   </data>
   <data name="ApiController_MultipleBodyParametersFound" xml:space="preserve">
     <value>Action '{0}' has more than one parameter that was specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use '{1}' to specify bound from query, '{2}' to specify bound from route, and '{3}' for parameters to be bound from body:</value>
+  </data>
+  <data name="CannotUseFilterFactoryWithinFilterFactory" xml:space="preserve">
+    <value>Cannot use a filter factory type '{0}' from within another filter factory type '{1}'.</value>
   </data>
 </root>

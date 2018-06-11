@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +41,20 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             ImplementationType = type;
+
+            if (typeof(IFilterFactory).IsAssignableFrom(ImplementationType))
+            {
+                throw new InvalidOperationException(
+                    Resources.FormatCannotUseFilterFactoryWithinFilterFactory(ImplementationType, GetType()));
+            }
+
+            if (!typeof(IFilterMetadata).IsAssignableFrom(ImplementationType))
+            {
+                throw new InvalidOperationException(Resources.FormatFilterFactoryAttribute_TypeMustImplementIFilter(
+                    ImplementationType,
+                    typeof(TypeFilterAttribute),
+                    typeof(IFilterMetadata)));
+            }
         }
 
         /// <summary>

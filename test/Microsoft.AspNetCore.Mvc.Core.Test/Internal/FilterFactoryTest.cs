@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var filterProvider = new TestFilterProvider(
                 context => context.Results.Clear(),
                 content => { });
-            var filter = new FilterDescriptor(new TypeFilterAttribute(typeof(object)), FilterScope.Global);
+            var filter = new FilterDescriptor(new TestOrderedFilter(), FilterScope.Global);
             var actionContext = CreateActionContext(new[] { filter });
 
             // Act

@@ -78,14 +78,6 @@ namespace Microsoft.AspNetCore.Mvc.Filters
                 throw new ArgumentNullException(nameof(filterType));
             }
 
-            if (!typeof(IFilterMetadata).IsAssignableFrom(filterType))
-            {
-                var message = Resources.FormatTypeMustDeriveFromType(
-                    filterType.FullName,
-                    typeof(IFilterMetadata).FullName);
-                throw new ArgumentException(message, nameof(filterType));
-            }
-
             var filter = new TypeFilterAttribute(filterType) { Order = order };
             Add(filter);
             return filter;
@@ -158,14 +150,6 @@ namespace Microsoft.AspNetCore.Mvc.Filters
             if (filterType == null)
             {
                 throw new ArgumentNullException(nameof(filterType));
-            }
-
-            if (!typeof(IFilterMetadata).IsAssignableFrom(filterType))
-            {
-                var message = Resources.FormatTypeMustDeriveFromType(
-                    filterType.FullName,
-                    typeof(IFilterMetadata).FullName);
-                throw new ArgumentException(message, nameof(filterType));
             }
 
             var filter = new ServiceFilterAttribute(filterType) { Order = order };
