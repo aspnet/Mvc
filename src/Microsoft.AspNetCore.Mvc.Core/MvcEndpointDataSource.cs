@@ -13,7 +13,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
-    public class MvcEndpointDataSource : EndpointDataSource
+    internal class MvcEndpointDataSource : EndpointDataSource
     {
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly IActionInvokerFactory _invokerFactory;
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var metadataCollection = new EndpointMetadataCollection(descriptors);
 
                 Address address = null;
-                if(action.AttributeRouteInfo != null
+                if (action.AttributeRouteInfo != null
                     && !string.IsNullOrEmpty(action.AttributeRouteInfo.Name))
                 {
                     address = new Address(action.AttributeRouteInfo.Name);
