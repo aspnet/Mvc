@@ -278,6 +278,8 @@ namespace Microsoft.Extensions.DependencyInjection
         private static void ConfigureDefaultServices(IServiceCollection services)
         {
             services.AddRouting();
+
+            services.AddDispatcher();
         }
     }
 }

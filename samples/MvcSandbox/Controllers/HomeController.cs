@@ -27,12 +27,7 @@ namespace MvcSandbox.Controllers
 
         public IActionResult Index()
         {
-            var url = _linkGenerator.GetLink(new LinkGeneratorContext()
-            {
-                SuppliedValues = new RouteValueDictionary(new { action = "Create" })
-            });
-
-            //var url = Url.Action(nameof(CustomersController.Create));
+            var url = Url.Action(nameof(CustomersController.Create));
 
             return Content(
                 $"<html><body><a href=\"{url}\">Create</a></body></html>",
