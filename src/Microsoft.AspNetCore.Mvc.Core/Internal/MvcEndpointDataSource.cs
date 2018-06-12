@@ -13,23 +13,28 @@ using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
-    public class MvcEndpointDataSource : EndpointDataSource
+    internal class MvcEndpointDataSource : EndpointDataSource
     {
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly IActionInvokerFactory _invokerFactory;
+        private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly List<Endpoint> _endpoints;
 
+        private IChangeToken _changeToken;
+
         public MvcEndpointDataSource(
             IActionDescriptorCollectionProvider actions,
-            IActionInvokerFactory invokerFactory)
-            : this(actions, invokerFactory, actionContextAccessor: null)
+            IActionInvokerFactory invokerFactory,
+            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders)
+            : this(actions, invokerFactory, actionDescriptorChangeProviders, actionContextAccessor: null)
         {
         }
 
         public MvcEndpointDataSource(
             IActionDescriptorCollectionProvider actions,
             IActionInvokerFactory invokerFactory,
+            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders,
             IActionContextAccessor actionContextAccessor)
         {
             if (actions == null)
@@ -42,8 +47,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(invokerFactory));
             }
 
+            if (actionDescriptorChangeProviders == null)
+            {
+                throw new ArgumentNullException(nameof(actionDescriptorChangeProviders));
+            }
+
             _actions = actions;
             _invokerFactory = invokerFactory;
+            _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
 
             // The IActionContextAccessor is optional. We want to avoid the overhead of using CallContext
             // if possible.
@@ -89,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 _endpoints.Add(new MatcherEndpoint(
                     next => invokerDelegate,
-                    "/" + action.AttributeRouteInfo.Template,
+                    action.AttributeRouteInfo.Template,
                     action.RouteValues,
                     action.AttributeRouteInfo.Order,
                     metadataCollection,
@@ -97,7 +108,35 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        public override IChangeToken ChangeToken { get; } = NullChangeToken.Singleton;
+        private IChangeToken GetCompositeChangeToken()
+        {
+            if (_actionDescriptorChangeProviders.Length == 1)
+            {
+                return _actionDescriptorChangeProviders[0].GetChangeToken();
+            }
+
+            var changeTokens = new IChangeToken[_actionDescriptorChangeProviders.Length];
+            for (var i = 0; i < _actionDescriptorChangeProviders.Length; i++)
+            {
+                changeTokens[i] = _actionDescriptorChangeProviders[i].GetChangeToken();
+            }
+
+            return new CompositeChangeToken(changeTokens);
+        }
+
+        public override IChangeToken ChangeToken
+        {
+            get
+            {
+                if (_changeToken == null)
+                {
+                    _changeToken = GetCompositeChangeToken();
+                }
+
+                return _changeToken;
+            }
+        }
+
         public override IReadOnlyList<Endpoint> Endpoints => _endpoints;
     }
 }

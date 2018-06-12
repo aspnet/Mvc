@@ -11,59 +11,22 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matchers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace DispatchingWebSite
 {
     public class Startup
     {
-        private static readonly byte[] _homePayload = Encoding.UTF8.GetBytes("Dispatcher sample endpoints:" + Environment.NewLine + "/plaintext");
-
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher(options =>
-            {
-                options.DataSources.Add(new DefaultEndpointDataSource(new[]
-                {
-                    new MatcherEndpoint(
-                        (next) => (httpContext) =>
-                        {
-                            var response = httpContext.Response;
-                            var payloadLength = _homePayload.Length;
-                            response.StatusCode = 200;
-                            response.ContentType = "text/plain";
-                            response.ContentLength = payloadLength;
-                            return response.Body.WriteAsync(_homePayload, 0, payloadLength);
-                        },
-                        "/",
-                        new { controller = "Home", action = "Index" },
-                        0,
-                        EndpointMetadataCollection.Empty,
-                        "ActionAsMethod"),
-                    new MatcherEndpoint(
-                        (next) => (httpContext) =>
-                        {
-                            var response = httpContext.Response;
-                            var payloadLength = _homePayload.Length;
-                            response.StatusCode = 200;
-                            response.ContentType = "text/plain";
-                            response.ContentLength = payloadLength;
-                            return response.Body.WriteAsync(_homePayload, 0, payloadLength);
-                        },
-                        "{controller}/{action}",
-                        new { controller = "Home", action = "Index" },
-                        0,
-                        EndpointMetadataCollection.Empty,
-                        "ActionAsMethod"),
-                }));
-            });
+            services.AddDispatcher();
 
             services.AddMvc();
 
             services.AddScoped<TestResponseGenerator>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddSingleton<EndpointDataSource, MvcEndpointDataSource>();
         }
 
         public void Configure(IApplicationBuilder app)

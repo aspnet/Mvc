@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matchers;
+using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
 
@@ -31,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             };
             var displayName = "DisplayName!";
             var order = 1;
-            var template = "Template!";
+            var template = "/Template!";
             var filterDescriptor = new FilterDescriptor(new ControllerActionFilter(), 1);
 
             var mockDescriptorProvider = new Mock<IActionDescriptorCollectionProvider>();
@@ -56,7 +57,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             // Act
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProvider.Object,
-                new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>()));
+                new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>()),
+                Array.Empty<IActionDescriptorChangeProvider>());
 
             // Assert
             var endpoint = Assert.Single(dataSource.Endpoints);
@@ -110,7 +112,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             // Act
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProviderMock.Object,
-                actionInvokerProviderMock.Object);
+                actionInvokerProviderMock.Object,
+                Array.Empty<IActionDescriptorChangeProvider>());
 
             // Assert
             var endpoint = Assert.Single(dataSource.Endpoints);
@@ -121,6 +124,47 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             invokerDelegate(httpContextMock.Object);
 
             Assert.True(actionInvokerCalled);
+        }
+
+        [Fact]
+        public void ChangeToken_MultipleChangeTokenProviders_ComposedResult()
+        {
+            // Arrange
+            var featureCollection = new FeatureCollection();
+            featureCollection.Set<IEndpointFeature>(new EndpointFeature
+            {
+                Values = new RouteValueDictionary()
+            });
+
+            var httpContextMock = new Mock<HttpContext>();
+            httpContextMock.Setup(m => m.Features).Returns(featureCollection);
+
+            var mockDescriptorProviderMock = new Mock<IActionDescriptorCollectionProvider>();
+            mockDescriptorProviderMock.Setup(m => m.ActionDescriptors).Returns(new ActionDescriptorCollection(new List<ActionDescriptor>(), 0));
+
+            var actionInvokerMock = new Mock<IActionInvoker>();
+
+            var actionInvokerProviderMock = new Mock<IActionInvokerFactory>();
+            actionInvokerProviderMock.Setup(m => m.CreateInvoker(It.IsAny<ActionContext>())).Returns(actionInvokerMock.Object);
+
+            var changeTokenMock = new Mock<IChangeToken>();
+
+            var changeProvider1Mock = new Mock<IActionDescriptorChangeProvider>();
+            changeProvider1Mock.Setup(m => m.GetChangeToken()).Returns(changeTokenMock.Object);
+            var changeProvider2Mock = new Mock<IActionDescriptorChangeProvider>();
+            changeProvider2Mock.Setup(m => m.GetChangeToken()).Returns(changeTokenMock.Object);
+
+            var dataSource = new MvcEndpointDataSource(
+                mockDescriptorProviderMock.Object,
+                actionInvokerProviderMock.Object,
+                new[] { changeProvider1Mock.Object, changeProvider2Mock.Object });
+
+            // Act
+            var changeToken = dataSource.ChangeToken;
+
+            // Assert
+            var compositeChangeToken = Assert.IsType<CompositeChangeToken>(changeToken);
+            Assert.Equal(2, compositeChangeToken.ChangeTokens.Count);
         }
     }
 }

@@ -306,6 +306,13 @@ namespace Microsoft.AspNetCore.Mvc
                             typeof(ApiBehaviorApplicationModelProvider),
                         }
                     },
+                    {
+                        typeof(EndpointDataSource),
+                        new Type[]
+                        {
+                            typeof(MvcEndpointDataSource),
+                        }
+                    },
                 };
             }
         }
@@ -317,6 +324,11 @@ namespace Microsoft.AspNetCore.Mvc
         {
             var serviceDescriptors = services.Where(serviceDescriptor => serviceDescriptor.ServiceType == serviceType);
             var actual = serviceDescriptors.Count();
+
+            if (expectedServiceRegistrationCount != actual)
+            {
+                var l = serviceDescriptors.ToList();
+            }
 
             Assert.True(
                 (expectedServiceRegistrationCount == actual),

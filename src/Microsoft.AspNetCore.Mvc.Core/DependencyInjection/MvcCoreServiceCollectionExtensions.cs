@@ -261,6 +261,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient<MvcAttributeRouteHandler>(); // Many per app
 
             //
+            // Dispatching
+            //
+            services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<EndpointDataSource, MvcEndpointDataSource>());
+
+            //
             // Middleware pipeline filter related
             //
             services.TryAddSingleton<MiddlewareFilterConfigurationProvider>();
