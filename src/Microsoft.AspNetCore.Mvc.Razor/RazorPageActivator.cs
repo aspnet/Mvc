@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     {
         // Name of the "public TModel Model" property on RazorPage<TModel>
         private const string ModelPropertyName = "Model";
-        private readonly ConcurrentDictionary<Type, RazorPagePropertyActivator> _activationInfo;
+        private readonly ConcurrentDictionary<Type, (RazorPagePropertyActivator activator, RazorPageViewDataDictionaryFactory vddFactory)> _activationInfo;
         private readonly IModelMetadataProvider _metadataProvider;
 
         // Value accessors for common singleton properties activated in a RazorPage.
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             HtmlEncoder htmlEncoder,
             IModelExpressionProvider modelExpressionProvider)
         {
-            _activationInfo = new ConcurrentDictionary<Type, RazorPagePropertyActivator>();
+            _activationInfo = new ConcurrentDictionary<Type, (RazorPagePropertyActivator, RazorPageViewDataDictionaryFactory)>();
             _metadataProvider = metadataProvider;
 
             _propertyAccessors = new RazorPagePropertyActivator.PropertyValueAccessors
@@ -63,8 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
 
             var pageType = page.GetType();
-            RazorPagePropertyActivator propertyActivator;
-            if (!_activationInfo.TryGetValue(pageType, out propertyActivator))
+            if (!_activationInfo.TryGetValue(pageType, out var result))
             {
                 // Look for a property named "Model". If it is non-null, we'll assume this is
                 // the equivalent of TModel Model property on RazorPage<TModel>.
@@ -72,16 +71,26 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 // Otherwise if we don't have a model property the activator will just skip setting
                 // the view data.
                 var modelType = pageType.GetRuntimeProperty(ModelPropertyName)?.PropertyType;
-                propertyActivator = new RazorPagePropertyActivator(
-                    pageType,
-                    modelType,
-                    _metadataProvider,
-                    _propertyAccessors);
 
-                propertyActivator = _activationInfo.GetOrAdd(pageType, propertyActivator);
+                var viewDataDictionaryFactory = new RazorPageViewDataDictionaryFactory(_metadataProvider, modelType);
+
+                RazorPagePropertyActivator propertyActivator = null;
+                if (!pageType.IsDefined(typeof(SkipRazorPagePropertyActivationAttribute)))
+                {
+                    propertyActivator = new RazorPagePropertyActivator(
+                        pageType,
+                        modelType,
+                        _metadataProvider,
+                        _propertyAccessors);
+                }
+
+                result = _activationInfo.GetOrAdd(pageType, (propertyActivator, viewDataDictionaryFactory));
             }
 
-            propertyActivator.Activate(page, context);
+            var viewDataDictionary = result.vddFactory.CreateViewDataDictionary(context);
+            context.ViewData = viewDataDictionary;
+
+            result.activator?.Activate(page, context);
         }
     }
 }

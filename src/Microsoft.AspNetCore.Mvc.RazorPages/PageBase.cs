@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +25,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
     /// <summary>
     /// A base class for a Razor page.
     /// </summary>
-    public abstract class PageBase : RazorPageBase
+    [SkipRazorPagePropertyActivation]
+    public abstract class PageBase : RazorPageBase, IRazorPageExecutionFilter
     {
         private IObjectModelValidator _objectValidator;
         private IModelMetadataProvider _metadataProvider;
@@ -106,6 +109,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         {
             // This will never be called by MVC. MVC only calls this method on layout pages, and a Page can never be a layout page.
             throw new NotSupportedException();
+        }
+
+        void IRazorPageExecutionFilter.OnExecuting()
+        {
+            // Invoked right before IRazorPage.ExecuteAsync is called. At this point, ViewContext.ViewData has a VDD<Model> that
+            // wraps VDD from the _ViewStart.
+            if (PageContext == null)
+            {
+                // Incorrectly authored views might have a base class of PageBase but are regular views, not Razor Page files.
+                // No-op in this case.
+                return;
+            }
+
+            Debug.Assert(PageContext.ViewData.GetType() == ViewContext.ViewData.GetType());
+            PageContext.ViewData = ViewContext.ViewData;
         }
 
         /// <inheritdoc />

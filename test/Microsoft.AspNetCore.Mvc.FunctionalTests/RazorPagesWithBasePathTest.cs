@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
+using AngleSharp.Dom.Html;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -551,6 +554,41 @@ Hello from /Pages/Shared/";
 
             var title = document.QuerySelector("title").TextContent;
             Assert.Equal("View Data in Pages", title);
+        }
+
+        [Fact]
+        public async Task ValuesAddedToViewDataDictionary_InViewStart_AreAvailableToPage()
+        {
+            // Act
+            var expected = "Value1 Value2";
+            var document = await Client.GetHtmlDocumentAsync("ViewDataDictionary/ModifiedFromViewStart");
+
+            // Assert
+            var actual = QuerySelector(document, "#value-in-layout").TextContent;
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async Task ValuesAddedToViewDataDictionary_InFilters_AreAvailableToPage()
+        {
+            // Act
+            var expected = "Value1 Value2";
+            var document = await Client.GetHtmlDocumentAsync("ViewDataDictionary/ModifiedFromFilter");
+
+            // Assert
+            var actual = QuerySelector(document, "#value-in-layout").TextContent;
+            Assert.Equal(expected, actual);
+        }
+
+        private static IElement QuerySelector(IHtmlDocument document, string selector)
+        {
+            var element = document.QuerySelector(selector);
+            if (element == null)
+            {
+                throw new ArgumentException($"Document does not contain element that matches the selector {selector}: " + Environment.NewLine + document.DocumentElement.OuterHtml);
+            }
+
+            return element;
         }
     }
 }

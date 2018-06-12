@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                 _razorViewEngine,
                 _razorPageActivator,
                 viewStarts,
-                new RazorPageAdapter(result.Page),
+                result.Page,
                 _htmlEncoder,
                 _diagnosticSource);
 
