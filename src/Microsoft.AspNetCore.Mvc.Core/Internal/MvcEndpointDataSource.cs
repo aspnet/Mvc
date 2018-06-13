@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.EndpointConstraints;
 using Microsoft.AspNetCore.Routing.Matchers;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
@@ -95,8 +96,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     return invoker.InvokeAsync();
                 };
 
-                var descriptors = action.FilterDescriptors.OrderBy(f => f, FilterDescriptorOrderComparer.Comparer).Select(f => f.Filter).ToArray();
-                var metadataCollection = new EndpointMetadataCollection(descriptors);
+                var metadata = new List<object>();
+
+                // Add filter descriptors to endpoint metadata
+                metadata.AddRange(action.FilterDescriptors.OrderBy(f => f, FilterDescriptorOrderComparer.Comparer).Select(f => f.Filter));
+
+                if (action.ActionConstraints != null && action.ActionConstraints.Count > 0)
+                {
+                    foreach (var actionConstraint in action.ActionConstraints)
+                    {
+                        if (actionConstraint is HttpMethodActionConstraint httpMethodActionConstraint)
+                        {
+                            metadata.Add(new HttpMethodEndpointConstraint(httpMethodActionConstraint.HttpMethods));
+                        }
+                    }
+                }
+
+                var metadataCollection = new EndpointMetadataCollection(metadata);
 
                 _endpoints.Add(new MatcherEndpoint(
                     next => invokerDelegate,
