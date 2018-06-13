@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             // Act
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProvider.Object,
-                new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>()),
+                new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
                 Array.Empty<IActionDescriptorChangeProvider>());
 
             // Assert
@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             // Act
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProviderMock.Object,
-                actionInvokerProviderMock.Object,
+                new MvcEndpointInvokerFactory(actionInvokerProviderMock.Object),
                 Array.Empty<IActionDescriptorChangeProvider>());
 
             // Assert
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
 
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProviderMock.Object,
-                actionInvokerProviderMock.Object,
+                new MvcEndpointInvokerFactory(actionInvokerProviderMock.Object),
                 new[] { changeProvider1Mock.Object, changeProvider2Mock.Object });
 
             // Act

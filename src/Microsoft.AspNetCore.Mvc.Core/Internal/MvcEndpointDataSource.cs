@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.EndpointConstraints;
 using Microsoft.AspNetCore.Routing.Matchers;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
@@ -17,26 +16,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     internal class MvcEndpointDataSource : EndpointDataSource
     {
         private readonly IActionDescriptorCollectionProvider _actions;
-        private readonly IActionInvokerFactory _invokerFactory;
+        private readonly MvcEndpointInvokerFactory _invokerFactory;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
-        private readonly IActionContextAccessor _actionContextAccessor;
         private readonly List<Endpoint> _endpoints;
 
         private IChangeToken _changeToken;
 
         public MvcEndpointDataSource(
             IActionDescriptorCollectionProvider actions,
-            IActionInvokerFactory invokerFactory,
+            MvcEndpointInvokerFactory invokerFactory,
             IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders)
-            : this(actions, invokerFactory, actionDescriptorChangeProviders, actionContextAccessor: null)
-        {
-        }
-
-        public MvcEndpointDataSource(
-            IActionDescriptorCollectionProvider actions,
-            IActionInvokerFactory invokerFactory,
-            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders,
-            IActionContextAccessor actionContextAccessor)
         {
             if (actions == null)
             {
@@ -56,10 +45,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _actions = actions;
             _invokerFactory = invokerFactory;
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
-
-            // The IActionContextAccessor is optional. We want to avoid the overhead of using CallContext
-            // if possible.
-            _actionContextAccessor = actionContextAccessor;
 
             _endpoints = new List<Endpoint>();
 
@@ -87,10 +72,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     }
 
                     var actionContext = new ActionContext(context, routeData, action);
-                    if (_actionContextAccessor != null)
-                    {
-                        _actionContextAccessor.ActionContext = actionContext;
-                    }
 
                     var invoker = _invokerFactory.CreateInvoker(actionContext);
                     return invoker.InvokeAsync();
