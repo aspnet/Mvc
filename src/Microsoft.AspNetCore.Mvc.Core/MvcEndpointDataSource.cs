@@ -4,17 +4,33 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matchers;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
+    public class EndpointInfo
+    {
+        public string Template { get; set; }
+        public string Name { get; set; }
+        public object Defaults { get; set; }
+    }
+
+    public class MvcEndpointDataSourceOptions
+    {
+        public List<EndpointInfo> Endpoints { get; set; } = new List<EndpointInfo>();
+    }
+
     internal class MvcEndpointDataSource : EndpointDataSource
     {
+        private readonly IOptions<MvcEndpointDataSourceOptions> _options;
+        private readonly IActionSelector _actionSelector;
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly IActionInvokerFactory _invokerFactory;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
@@ -24,14 +40,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private IChangeToken _changeToken;
 
         public MvcEndpointDataSource(
+            IOptions<MvcEndpointDataSourceOptions> options,
+            IActionSelector actionSelector,
             IActionDescriptorCollectionProvider actions,
             IActionInvokerFactory invokerFactory,
             IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders)
-            : this(actions, invokerFactory, actionDescriptorChangeProviders, actionContextAccessor: null)
+            : this(options, actionSelector, actions, invokerFactory, actionDescriptorChangeProviders, actionContextAccessor: null)
         {
         }
 
         public MvcEndpointDataSource(
+            IOptions<MvcEndpointDataSourceOptions> options,
+            IActionSelector actionSelector,
             IActionDescriptorCollectionProvider actions,
             IActionInvokerFactory invokerFactory,
             IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders,
@@ -52,6 +72,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(actionDescriptorChangeProviders));
             }
 
+            _options = options;
+            _actionSelector = actionSelector;
             _actions = actions;
             _invokerFactory = invokerFactory;
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
@@ -113,6 +135,51 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     metadataCollection,
                     action.DisplayName,
                     address));
+            }
+
+            foreach(var info in _options.Value.Endpoints)
+            {
+                RequestDelegate invokerDelegate = (context) =>
+                {
+                    var values = context.Features.Get<IEndpointFeature>().Values;
+                    var routeData = new RouteData();
+                    foreach (var kvp in values)
+                    {
+                        routeData.Values.Add(kvp.Key, kvp.Value);
+                    }
+
+                    var routeContext = new RouteContext(context);
+                    routeContext.RouteData = routeData;
+                    var candidates = _actionSelector.SelectCandidates(routeContext);
+                    if (candidates == null || candidates.Count == 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    var actionDescriptor = _actionSelector.SelectBestCandidate(routeContext, candidates);
+                    if (actionDescriptor == null)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    var actionContext = new ActionContext(context, routeData, actionDescriptor);
+                    if (_actionContextAccessor != null)
+                    {
+                        _actionContextAccessor.ActionContext = actionContext;
+                    }
+
+                    var invoker = _invokerFactory.CreateInvoker(actionContext);
+                    return invoker.InvokeAsync();
+                };
+
+                _endpoints.Add(new MatcherEndpoint(
+                    next => invokerDelegate,
+                    info.Template,
+                    info.Defaults,
+                    0,
+                    EndpointMetadataCollection.Empty,
+                    null,
+                    new Address() { Name = info.Name }));
             }
         }
 
