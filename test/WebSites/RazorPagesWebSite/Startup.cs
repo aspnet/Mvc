@@ -4,6 +4,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using RazorPagesWebSite.Conventions;
 
@@ -30,6 +31,7 @@ namespace RazorPagesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseAuthentication();
 
             app.UseStaticFiles();
@@ -46,7 +48,7 @@ namespace RazorPagesWebSite
                 SupportedUICultures = supportedCultures
             });
 
-            app.UseMvc();
+            app.UseEndpoint();
         }
     }
 }

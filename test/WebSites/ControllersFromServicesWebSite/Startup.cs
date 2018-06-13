@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllersFromServicesWebSite
@@ -41,6 +42,15 @@ namespace ControllersFromServicesWebSite
             services.AddTransient<QueryValueService>();
             services.AddTransient<ValueService>();
             services.AddHttpContextAccessor();
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}/{id}",
+                    Name = "default"
+                });
+            });
         }
 
         private class TypesPart : ApplicationPart, IApplicationPartTypeProvider
@@ -57,10 +67,8 @@ namespace ControllersFromServicesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute("default", "{controller}/{action}/{id}");
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)

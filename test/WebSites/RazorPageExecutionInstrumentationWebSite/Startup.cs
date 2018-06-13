@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,10 +21,23 @@ namespace RazorPageExecutionInstrumentationWebSite
 
             // Add MVC services to the services container.
             services.AddMvc();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
+
             var listener = new RazorPageDiagnosticListener();
             var diagnosticSource = app.ApplicationServices.GetRequiredService<DiagnosticListener>();
             diagnosticSource.SubscribeWithAdapter(listener);
@@ -38,8 +52,7 @@ namespace RazorPageExecutionInstrumentationWebSite
                 }
             });
 
-            // Add MVC to the request pipeline
-            app.UseMvcWithDefaultRoute();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace RazorWebSite
@@ -27,11 +28,22 @@ namespace RazorWebSite
                         (modelType, stringLocalizerFactory) => stringLocalizerFactory.Create(typeof(SingleType));
                 });
             services.Configure<MvcCompatibilityOptions>(options => options.CompatibilityVersion = CompatibilityVersion.Latest);
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
@@ -47,8 +59,7 @@ namespace RazorWebSite
             });
             app.UseStaticFiles();
 
-            // Add MVC to the request pipeline
-            app.UseMvcWithDefaultRoute();
+            app.UseEndpoint();
         }
     }
 }

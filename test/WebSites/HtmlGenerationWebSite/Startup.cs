@@ -4,6 +4,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,26 +21,35 @@ namespace HtmlGenerationWebSite
 
             services.AddSingleton(typeof(ISignalTokenProviderService<>), typeof(SignalTokenProviderService<>));
             services.AddSingleton<ProductsService>();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area}/{controller}/{action=Index}/{id?}",
+                    Name = "areaRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Product}/{action}",
+                    Name = "productRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=HtmlGeneration_Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseStaticFiles();
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "areaRoute",
-                    template: "{area:exists}/{controller}/{action}/{id?}",
-                    defaults: new { action = "Index" });
-                routes.MapRoute(
-                    name: "productRoute",
-                    template: "Product/{action}",
-                    defaults: new { controller = "Product" });
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action}/{id?}",
-                    defaults: new { controller = "HtmlGeneration_Home", action = "Index" });
-            });
+            app.UseEndpoint();
+            
         }
 
         public static void Main(string[] args)

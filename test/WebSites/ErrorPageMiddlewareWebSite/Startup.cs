@@ -18,8 +18,9 @@ namespace ErrorPageMiddlewareWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
-            app.UseMvc();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)
