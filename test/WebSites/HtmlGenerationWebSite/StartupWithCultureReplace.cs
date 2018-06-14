@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HtmlGenerationWebSite
@@ -19,6 +20,25 @@ namespace HtmlGenerationWebSite
         {
             services.AddLocalization();
             Startup.ConfigureServices(services);
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area}/{controller}/{action=Index}/{id?}",
+                    Name = "areaRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Product}/{action}",
+                    Name = "productRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=HtmlGeneration_Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SecurityWebSite
@@ -27,13 +28,26 @@ namespace SecurityWebSite
             });
 
             services.AddScoped<IPolicyEvaluator, CountingPolicyEvaluator>();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
+
             app.UseAuthentication();
 
-            app.UseMvcWithDefaultRoute();
+            app.UseEndpoint();
         }
     }
 }

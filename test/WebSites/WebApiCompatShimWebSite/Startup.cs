@@ -4,6 +4,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApiCompatShimWebSite
@@ -14,22 +15,44 @@ namespace WebApiCompatShimWebSite
         {
             // Add MVC services to the services container
             services.AddMvc().AddWebApiConventions();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "api/Blog/{controller}/{action}/{id?}",
+                    Name = "named-action"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "api/Admin/{controller}/{id?}",
+                    Name = "unnamed-action"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "api/Store/{controller}/{name?}",
+                    Name = "name-as-parameter"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = 
+                    "api/Support/{extra}/{controller}/{id?}",
+                    Name = "extra-parameter"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}/{id?}",
+                    Name = "default"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                // Tests include different styles of WebAPI conventional routing and action selection - the prefix keeps
-                // them from matching too eagerly.
-                routes.MapWebApiRoute("named-action", "api/Blog/{controller}/{action}/{id?}");
-                routes.MapWebApiRoute("unnamed-action", "api/Admin/{controller}/{id?}");
-                routes.MapWebApiRoute("name-as-parameter", "api/Store/{controller}/{name?}");
-                routes.MapWebApiRoute("extra-parameter", "api/Support/{extra}/{controller}/{id?}");
-
-                // This route can't access any of our webapi controllers
-                routes.MapRoute("default", "{controller}/{action}/{id?}");
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)

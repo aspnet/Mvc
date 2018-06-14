@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,10 +47,21 @@ namespace RazorWebSite
             services.AddTransient<InjectedHelper>();
             services.AddTransient<TaskReturningService>();
             services.AddTransient<FrameworkSpecificHelper>();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
@@ -68,7 +80,7 @@ namespace RazorWebSite
                 }
             });
 
-            app.UseMvcWithDefaultRoute();
+            app.UseEndpoint();
         }
     }
 }

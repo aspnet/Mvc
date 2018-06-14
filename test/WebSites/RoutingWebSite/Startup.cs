@@ -5,6 +5,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace RoutingWebSite
@@ -18,29 +19,33 @@ namespace RoutingWebSite
 
             services.AddScoped<TestResponseGenerator>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area=Travel}/{controller=Home}/{action=Index}/{id?}",
+                    Name = "flightRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}",
+                    Name = "ActionAsMethod"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}/{path?}",
+                    Name = "RouteWithOptionalSegment"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapAreaRoute(
-                   "flightRoute",
-                   "adminRoute",
-                   "{area:exists}/{controller}/{action}",
-                   new { controller = "Home", action = "Index" },
-                   new { area = "Travel" }
-               );
-
-                routes.MapRoute(
-                    "ActionAsMethod",
-                    "{controller}/{action}",
-                    defaults: new { controller = "Home", action = "Index" });
-
-                routes.MapRoute(
-                    "RouteWithOptionalSegment",
-                    "{controller}/{action}/{path?}");
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)

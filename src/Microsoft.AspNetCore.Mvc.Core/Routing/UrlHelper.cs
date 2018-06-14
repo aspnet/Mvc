@@ -21,6 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         private StringBuilder _stringBuilder;
         // Perf: Reuse the RouteValueDictionary across multiple calls of Action for this UrlHelper
         private readonly RouteValueDictionary _routeValueDictionary;
+        private readonly ILinkGenerator _linkGenerator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified
@@ -36,6 +37,17 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             ActionContext = actionContext;
             _routeValueDictionary = new RouteValueDictionary();
+        }
+
+        public UrlHelper(ActionContext actionContext, ILinkGenerator linkGenerator)
+            : this(actionContext)
+        {
+            if (linkGenerator == null)
+            {
+                throw new ArgumentNullException(nameof(linkGenerator));
+            }
+
+            _linkGenerator = linkGenerator;
         }
 
         /// <inheritdoc />
@@ -95,8 +107,30 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 valuesDictionary["controller"] = actionContext.Controller;
             }
 
-            var virtualPathData = GetVirtualPathData(routeName: null, values: valuesDictionary);
-            return GenerateUrl(actionContext.Protocol, actionContext.Host, virtualPathData, actionContext.Fragment);
+            if (_linkGenerator == null)
+            {
+                var virtualPathData = GetVirtualPathData(routeName: null, values: valuesDictionary);
+                return GenerateUrl(actionContext.Protocol, actionContext.Host, virtualPathData, actionContext.Fragment);
+            }
+            else
+            {
+                var canGetLink = _linkGenerator.TryGetLink(
+                    new LinkGeneratorContext()
+                    {
+                        SuppliedValues = valuesDictionary,
+                        AmbientValues = AmbientValues
+                    },
+                    out var link);
+
+                if (!canGetLink)
+                {
+                    //TODO: log here
+
+                    return null;
+                }
+
+                return GenerateUrl(actionContext.Protocol, actionContext.Host, link, actionContext.Fragment);
+            }
         }
 
         /// <inheritdoc />
@@ -122,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                     return true;
                 }
 
-                return false;                    
+                return false;
             }
 
             // Allows "~/" or "~/foo" but not "~//" or "~/\".
@@ -155,8 +189,27 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
 
             var valuesDictionary = routeContext.Values as RouteValueDictionary ?? GetValuesDictionary(routeContext.Values);
-            var virtualPathData = GetVirtualPathData(routeContext.RouteName, valuesDictionary);
-            return GenerateUrl(routeContext.Protocol, routeContext.Host, virtualPathData, routeContext.Fragment);
+
+            if (_linkGenerator == null)
+            {
+                var virtualPathData = GetVirtualPathData(routeContext.RouteName, valuesDictionary);
+                return GenerateUrl(routeContext.Protocol, routeContext.Host, virtualPathData, routeContext.Fragment);
+            }
+            else
+            {
+                var canGetLink = _linkGenerator.TryGetLink(
+                    new LinkGeneratorContext()
+                    {
+                        Address = new Address(routeContext.RouteName),
+                        SuppliedValues = valuesDictionary,
+                        AmbientValues = AmbientValues
+                    },
+                    out var link);
+
+                if (!canGetLink) { return null; }
+
+                return GenerateUrl(routeContext.Protocol, routeContext.Host, link, routeContext.Fragment);
+            }
         }
 
         /// <summary>
@@ -177,29 +230,29 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         }
 
         // Internal for unit testing.
-        internal void AppendPathAndFragment(StringBuilder builder, VirtualPathData pathData, string fragment)
+        internal void AppendPathAndFragment(StringBuilder builder, string virtualPath, string fragment)
         {
             var pathBase = HttpContext.Request.PathBase;
 
             if (!pathBase.HasValue)
             {
-                if (pathData.VirtualPath.Length == 0)
+                if (virtualPath.Length == 0)
                 {
                     builder.Append("/");
                 }
                 else
                 {
-                    if (!pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
+                    if (!virtualPath.StartsWith("/", StringComparison.Ordinal))
                     {
                         builder.Append("/");
                     }
 
-                    builder.Append(pathData.VirtualPath);
+                    builder.Append(virtualPath);
                 }
             }
             else
             {
-                if (pathData.VirtualPath.Length == 0)
+                if (virtualPath.Length == 0)
                 {
                     builder.Append(pathBase.Value);
                 }
@@ -212,12 +265,12 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                         builder.Length--;
                     }
 
-                    if (!pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
+                    if (!virtualPath.StartsWith("/", StringComparison.Ordinal))
                     {
                         builder.Append("/");
                     }
 
-                    builder.Append(pathData.VirtualPath);
+                    builder.Append(virtualPath);
                 }
             }
 
@@ -290,7 +343,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
         private StringBuilder GetStringBuilder()
         {
-            if(_stringBuilder == null)
+            if (_stringBuilder == null)
             {
                 _stringBuilder = new StringBuilder();
             }
@@ -308,19 +361,21 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// <returns>The generated URL.</returns>
         protected virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
         {
-            if (pathData == null)
+            return GenerateUrl(protocol, host, pathData?.VirtualPath, fragment);
+        }
+
+        protected virtual string GenerateUrl(string protocol, string host, string virtualPath, string fragment)
+        {
+            if (virtualPath == null)
             {
                 return null;
             }
-
-            // VirtualPathData.VirtualPath returns string.Empty instead of null.
-            Debug.Assert(pathData.VirtualPath != null);
 
             // Perf: In most of the common cases, GenerateUrl is called with a null protocol, host and fragment.
             // In such cases, we might not need to build any URL as the url generated is mostly same as the virtual path available in pathData.
             // For such common cases, this FastGenerateUrl method saves a string allocation per GenerateUrl call.
             string url;
-            if (TryFastGenerateUrl(protocol, host, pathData, fragment, out url))
+            if (TryFastGenerateUrl(protocol, host, virtualPath, fragment, out url))
             {
                 return url;
             }
@@ -330,7 +385,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             {
                 if (string.IsNullOrEmpty(protocol) && string.IsNullOrEmpty(host))
                 {
-                    AppendPathAndFragment(builder, pathData, fragment);
+                    AppendPathAndFragment(builder, virtualPath, fragment);
                     // We're returning a partial URL (just path + query + fragment), but we still want it to be rooted.
                     if (builder.Length == 0 || builder[0] != '/')
                     {
@@ -346,7 +401,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
                     host = string.IsNullOrEmpty(host) ? HttpContext.Request.Host.Value : host;
                     builder.Append(host);
-                    AppendPathAndFragment(builder, pathData, fragment);
+                    AppendPathAndFragment(builder, virtualPath, fragment);
                 }
 
                 var path = builder.ToString();
@@ -362,7 +417,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         private bool TryFastGenerateUrl(
             string protocol,
             string host,
-            VirtualPathData pathData,
+            string virtualPath,
             string fragment,
             out string url)
         {
@@ -374,14 +429,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 && string.IsNullOrEmpty(fragment)
                 && !pathBase.HasValue)
             {
-                if (pathData.VirtualPath.Length == 0)
+                if (virtualPath.Length == 0)
                 {
                     url = "/";
                     return true;
                 }
-                else if (pathData.VirtualPath.StartsWith("/", StringComparison.Ordinal))
+                else if (virtualPath.StartsWith("/", StringComparison.Ordinal))
                 {
-                    url = pathData.VirtualPath;
+                    url = virtualPath;
                     return true;
                 }
             }

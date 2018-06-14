@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BasicWebSite
@@ -15,10 +16,19 @@ namespace BasicWebSite
         {
             services.AddMvc();
             services.ConfigureBaseWebSiteAuthPolicies();
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}/{id?}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
 
             app.Use((httpContext, next) =>
@@ -34,7 +44,7 @@ namespace BasicWebSite
                 return next();
             });
 
-            app.UseMvcWithDefaultRoute();
+            app.UseEndpoint();
         }
 
         private class RequestBodySizeCheckingStream : Stream

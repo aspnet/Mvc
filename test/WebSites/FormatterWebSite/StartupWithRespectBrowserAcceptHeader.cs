@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FormatterWebSite
@@ -14,15 +15,22 @@ namespace FormatterWebSite
             {
                 options.RespectBrowserAcceptHeader = true;
             });
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute("ActionAsMethod", "{controller}/{action}",
-                    defaults: new { controller = "Home", action = "Index" });
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
     }
 }

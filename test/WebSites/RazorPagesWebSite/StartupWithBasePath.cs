@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using RazorPagesWebSite.Conventions;
 
@@ -25,18 +26,28 @@ namespace RazorPagesWebSite
                     options.Conventions.AllowAnonymousToAreaPage("Accounts", "/RequiresAuth/AllowAnonymous");
                     options.Conventions.Add(new CustomModelTypeConvention());
                 });
+
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area}/{controller=Home}/{action=Index}",
+                    Name = "areaRoute"
+                });
+            });
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
+
             app.UseAuthentication();
 
             app.UseStaticFiles();
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute("areaRoute", "{area:exists}/{controller=Home}/{action=Index}");
-            });
+            app.UseEndpoint();
         }
     }
 }

@@ -4,6 +4,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FilesWebSite
@@ -14,14 +15,21 @@ namespace FilesWebSite
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(name: null, template: "{controller}/{action}", defaults: null);
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)

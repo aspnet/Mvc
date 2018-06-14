@@ -4,6 +4,8 @@
 using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc.Routing
 {
@@ -43,7 +45,18 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 return (IUrlHelper)value;
             }
 
-            var urlHelper = new UrlHelper(context);
+            IUrlHelper urlHelper;
+            var endpointFeature = httpContext.Features?.Get<IEndpointFeature>();
+            if (endpointFeature != null && endpointFeature.Endpoint != null)
+            {
+                var linkGenerator = httpContext.RequestServices.GetRequiredService<ILinkGenerator>();
+                urlHelper = new UrlHelper(context, linkGenerator);
+            }
+            else
+            {
+                urlHelper = new UrlHelper(context);
+            }
+
             httpContext.Items[typeof(IUrlHelper)] = urlHelper;
 
             return urlHelper;

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BasicWebSite
@@ -57,10 +58,31 @@ namespace BasicWebSite
             services.AddSingleton<ContactsRepository>();
             services.AddScoped<RequestIdService>();
             services.AddTransient<ServiceActionFilter>();
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area}/{controller=Home}/{action=Index}",
+                    Name = "areaRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller=Home}/{action=Index}",
+                    Name = "ActionAsMethod"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}/{page}",
+                    Name = "PageRoute"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
+
             app.UseDeveloperExceptionPage();
 
             app.UseStaticFiles();
@@ -68,19 +90,7 @@ namespace BasicWebSite
             // Initializes the RequestId service for each request
             app.UseMiddleware<RequestIdMiddleware>();
 
-            // Add MVC to the request pipeline
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    "areaRoute",
-                    "{area:exists}/{controller}/{action}",
-                    new { controller = "Home", action = "Index" });
-
-                routes.MapRoute("ActionAsMethod", "{controller}/{action}",
-                    defaults: new { controller = "Home", action = "Index" });
-
-                routes.MapRoute("PageRoute", "{controller}/{action}/{page}");
-            });
+            app.UseEndpoint();
         }
     }
 }

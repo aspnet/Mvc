@@ -4,6 +4,7 @@
 using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ApplicationModelWebSite
@@ -21,19 +22,26 @@ namespace ApplicationModelWebSite
                 options.Conventions.Add(new MultipleAreasControllerConvention());
                 options.Conventions.Add(new CloneActionConvention());
             });
+
+            services.Configure<MvcEndpointDataSourceOptions>(o =>
+            {
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{area}/{controller=Home}/{action=Index}",
+                    Name = "areaRoute"
+                });
+                o.Endpoints.Add(new EndpointInfo()
+                {
+                    Template = "{controller}/{action}/{id?}",
+                    Name = "default"
+                });
+            });
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(name: "areaRoute",
-                  template: "{area:exists}/{controller=Home}/{action=Index}");
-
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller}/{action}/{id?}");
-            });
+            app.UseDispatcher();
+            app.UseEndpoint();
         }
 
         public static void Main(string[] args)
