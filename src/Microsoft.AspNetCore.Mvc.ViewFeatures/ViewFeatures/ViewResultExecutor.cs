@@ -147,7 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
-        public async Task ExecuteAsync(ActionContext context, ViewResult result)
+        public virtual async Task ExecuteAsync(ActionContext context, ViewResult result)
         {
             if (context == null)
             {
