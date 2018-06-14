@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matchers;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
@@ -53,12 +54,16 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
                     }
                 }
             }, 0));
+            var options = new Mock<IOptions<MvcEndpointDataSourceOptions>>();
+            options.SetupGet(o => o.Value).Returns(new MvcEndpointDataSourceOptions());
 
             // Act
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProvider.Object,
                 new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
-                Array.Empty<IActionDescriptorChangeProvider>());
+                Array.Empty<IActionDescriptorChangeProvider>(),
+                options.Object,
+                Mock.Of<IActionSelector>());
 
             // Assert
             var endpoint = Assert.Single(dataSource.Endpoints);
@@ -97,6 +102,8 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
                     FilterDescriptors = new List<FilterDescriptor>()
                 }
             }, 0));
+            var options = new Mock<IOptions<MvcEndpointDataSourceOptions>>();
+            options.SetupGet(o => o.Value).Returns(new MvcEndpointDataSourceOptions());
 
             var actionInvokerCalled = false;
             var actionInvokerMock = new Mock<IActionInvoker>();
@@ -113,7 +120,9 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProviderMock.Object,
                 new MvcEndpointInvokerFactory(actionInvokerProviderMock.Object),
-                Array.Empty<IActionDescriptorChangeProvider>());
+                Array.Empty<IActionDescriptorChangeProvider>(),
+                options.Object,
+                Mock.Of<IActionSelector>());
 
             // Assert
             var endpoint = Assert.Single(dataSource.Endpoints);
@@ -154,10 +163,15 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Internal
             var changeProvider2Mock = new Mock<IActionDescriptorChangeProvider>();
             changeProvider2Mock.Setup(m => m.GetChangeToken()).Returns(changeTokenMock.Object);
 
+            var options = new Mock<IOptions<MvcEndpointDataSourceOptions>>();
+            options.SetupGet(o => o.Value).Returns(new MvcEndpointDataSourceOptions());
+
             var dataSource = new MvcEndpointDataSource(
                 mockDescriptorProviderMock.Object,
                 new MvcEndpointInvokerFactory(actionInvokerProviderMock.Object),
-                new[] { changeProvider1Mock.Object, changeProvider2Mock.Object });
+                new[] { changeProvider1Mock.Object, changeProvider2Mock.Object },
+                options.Object,
+                Mock.Of<IActionSelector>());
 
             // Act
             var changeToken = dataSource.ChangeToken;

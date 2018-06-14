@@ -53,10 +53,6 @@ namespace ApiExplorerWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute("default", "{controller}/{action}");
-            //});
             app.UseDispatcher();
             app.UseEndpoint();
         }

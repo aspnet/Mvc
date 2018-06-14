@@ -27,7 +27,7 @@ namespace ApplicationModelWebSite
             {
                 o.Endpoints.Add(new EndpointInfo()
                 {
-                    Template = "{area:exists}/{controller=Home}/{action=Index}",
+                    Template = "{area}/{controller=Home}/{action=Index}",
                     Name = "areaRoute"
                 });
                 o.Endpoints.Add(new EndpointInfo()

@@ -64,7 +64,6 @@ namespace BasicWebSite
                 o.Endpoints.Add(new EndpointInfo()
                 {
                     Template = "{area}/{controller=Home}/{action=Index}",
-                    //Template = "{area:exists}/{controller=Home}/{action=Index}",
                     Name = "areaRoute"
                 });
                 o.Endpoints.Add(new EndpointInfo()

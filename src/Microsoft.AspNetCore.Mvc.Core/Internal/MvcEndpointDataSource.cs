@@ -4,17 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.EndpointConstraints;
 using Microsoft.AspNetCore.Routing.Matchers;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.Mvc.Internal
 {
     internal class MvcEndpointDataSource : EndpointDataSource
     {
+        private readonly IActionSelector _actionSelector;
+        private readonly IOptions<MvcEndpointDataSourceOptions> _options;
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly MvcEndpointInvokerFactory _invokerFactory;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
@@ -25,7 +29,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         public MvcEndpointDataSource(
             IActionDescriptorCollectionProvider actions,
             MvcEndpointInvokerFactory invokerFactory,
-            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders)
+            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders,
+            IOptions<MvcEndpointDataSourceOptions> options,
+            IActionSelector actionSelector)
         {
             if (actions == null)
             {
@@ -42,6 +48,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 throw new ArgumentNullException(nameof(actionDescriptorChangeProviders));
             }
 
+            _actionSelector = actionSelector;
+            _options = options;
             _actions = actions;
             _invokerFactory = invokerFactory;
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
@@ -101,7 +109,48 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     action.RouteValues,
                     action.AttributeRouteInfo.Order,
                     metadataCollection,
-                    action.DisplayName));
+                    action.DisplayName,
+                    new Address(action.AttributeRouteInfo.Name)));
+            }
+
+            foreach (var info in _options.Value.Endpoints)
+            {
+                RequestDelegate invokerDelegate = (context) =>
+                {
+                    var values = context.Features.Get<IEndpointFeature>().Values;
+                    var routeData = new RouteData();
+                    foreach (var kvp in values)
+                    {
+                        routeData.Values.Add(kvp.Key, kvp.Value);
+                    }
+
+                    var routeContext = new RouteContext(context);
+                    routeContext.RouteData = routeData;
+                    var candidates = _actionSelector.SelectCandidates(routeContext);
+                    if (candidates == null || candidates.Count == 0)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    var actionDescriptor = _actionSelector.SelectBestCandidate(routeContext, candidates);
+                    if (actionDescriptor == null)
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    var actionContext = new ActionContext(context, routeData, actionDescriptor);
+                    var invoker = _invokerFactory.CreateInvoker(actionContext);
+                    return invoker.InvokeAsync();
+                };
+
+                _endpoints.Add(new MatcherEndpoint(
+                    next => invokerDelegate,
+                    info.Template,
+                    info.Defaults,
+                    0,
+                    EndpointMetadataCollection.Empty,
+                    null,
+                    new Address() { Name = info.Name }));
             }
         }
 
