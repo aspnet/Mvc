@@ -424,8 +424,12 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 foreach (var metadataAttribute in responseMetadataAttributes)
                 {
                     metadataAttribute.SetContentTypes(contentTypes);
-
-                    if (metadataAttribute.Type != null)
+                    if (metadataAttribute.Type == typeof(void) && type != null
+                        && StatusCodes.Status200OK <= metadataAttribute.StatusCode && metadataAttribute.StatusCode <= StatusCodes.Status203NonAuthoritative)
+                    {
+                        objectTypes[metadataAttribute.StatusCode] = type;
+                    }
+                    else if (metadataAttribute.Type != null)
                     {
                         objectTypes[metadataAttribute.StatusCode] = metadataAttribute.Type;
                     }
