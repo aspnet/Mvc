@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
@@ -98,6 +99,54 @@ namespace Microsoft.AspNetCore.Builder
             routes.Routes.Insert(0, AttributeRouting.CreateAttributeMegaRoute(app.ApplicationServices));
 
             return app.UseRouter(routes.Build());
+        }
+
+        public static IApplicationBuilder UseMvcWithEndpoint(
+            this IApplicationBuilder app,
+            Action<MvcEndpointInfoBuilder> configureRoutes)
+        {
+            if (app == null)
+            {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            if (configureRoutes == null)
+            {
+                throw new ArgumentNullException(nameof(configureRoutes));
+            }
+
+            // Verify if AddMvc was done before calling UseMvc
+            // We use the MvcMarkerService to make sure if all the services were added.
+            if (app.ApplicationServices.GetService(typeof(MvcMarkerService)) == null)
+            {
+                throw new InvalidOperationException(Resources.FormatUnableToFindServices(
+                    nameof(IServiceCollection),
+                    "AddMvc",
+                    "ConfigureServices(...)"));
+            }
+
+            var endpointDataSources = app.ApplicationServices.GetRequiredService<IEnumerable<EndpointDataSource>>();
+
+            MvcEndpointDataSource mvcEndpointDataSource = null;
+            foreach (var dataSource in endpointDataSources)
+            {
+                if (dataSource is MvcEndpointDataSource ds)
+                {
+                    mvcEndpointDataSource = ds;
+                    break;
+                }
+            }
+
+            var constraintResolver = app.ApplicationServices.GetRequiredService<IInlineConstraintResolver>();
+
+            MvcEndpointInfoBuilder routeBuilder = new MvcEndpointInfoBuilder(constraintResolver);
+
+            configureRoutes(routeBuilder);
+
+            mvcEndpointDataSource.ConventionalEndpointInfos.AddRange(routeBuilder.EndpointInfos);
+            mvcEndpointDataSource.InitializeEndpoints();
+
+            return app.UseEndpoint();
         }
     }
 }

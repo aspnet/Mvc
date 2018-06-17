@@ -33,26 +33,24 @@ namespace DispatchingWebSite
         {
             app.UseDispatcher();
 
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapAreaRoute(
-            //       "flightRoute",
-            //       "adminRoute",
-            //       "{area:exists}/{controller}/{action}",
-            //       new { controller = "Home", action = "Index" },
-            //       new { area = "Travel" });
+            app.UseMvcWithEndpoint(routes =>
+            {
+                routes.MapAreaEndpoint(
+                   "flightRoute",
+                   "adminRoute",
+                   "{area:exists}/{controller}/{action}",
+                   new { controller = "Home", action = "Index" },
+                   new { area = "Travel" });
 
-            //    routes.MapRoute(
-            //        "ActionAsMethod",
-            //        "{controller}/{action}",
-            //        defaults: new { controller = "Home", action = "Index" });
+                routes.MapEndpoint(
+                    "ActionAsMethod",
+                    "{controller}/{action}",
+                    defaults: new { controller = "Home", action = "Index" });
 
-            //    routes.MapRoute(
-            //        "RouteWithOptionalSegment",
-            //        "{controller}/{action}/{path?}");
-            //});
-
-            app.UseEndpoint();
+                routes.MapEndpoint(
+                    "RouteWithOptionalSegment",
+                    "{controller}/{action}/{path?}");
+            });
         }
 
         public static void Main(string[] args)
@@ -75,4 +73,3 @@ namespace DispatchingWebSite
                 .UseIISIntegration();
     }
 }
-
