@@ -68,10 +68,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 if (action.AttributeRouteInfo == null)
                 {
-                    // Check each of the conventional endpoints to see if the action would be reachable
-                    // and register an endpoint for each match
+                    // Check each of the conventional templates to see if the action would be reachable
+                    // If the action and template are compatible then create an endpoint with the
+                    // area/controller/action parameter parts replaced with literals
+                    //
                     // e.g. {controller}/{action} with HomeController.Index and HomeController.Login
-                    // would result in multiple endpoints
+                    // would result in endpoints:
                     // - Home/Index
                     // - Home/Login
                     foreach (var endpointInfo in ConventionalEndpointInfos)
@@ -88,9 +90,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             for (var i = 0; i < newEndpointTemplate.Segments.Count; i++)
                             {
                                 // Check if the template can be shortened because the remaining parameters are optional
-                                // e.g. Matching template {controller=Home}/{action=Index} against HomeController.Index
-                                // can be shortened to additional templates:
-                                // - /HomeController
+                                //
+                                // e.g. Matching template {controller=Home}/{action=Index}/{id?} against HomeController.Index
+                                // can resolve to the following endpoints:
+                                // - /Home/Index/{id?}
+                                // - /Home
                                 // - /
                                 if (UseDefaultValuePlusRemainingSegementsOptional(i, action, endpointInfo, newEndpointTemplate))
                                 {
@@ -142,6 +146,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private bool UseDefaultValuePlusRemainingSegementsOptional(int segmentIndex, ActionDescriptor action, MvcEndpointInfo endpointInfo, RouteTemplate template)
         {
+            // Check whether the remaining segments are all optional and one or more of them is
+            // for area/controller/action and has a default value
             var usedDefaultValue = false;
 
             for (var i = segmentIndex; i < template.Segments.Count; i++)
@@ -180,7 +186,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             if (!action.RouteValues.TryGetValue(routeKey, out var actionValue) || string.IsNullOrWhiteSpace(actionValue))
             {
-                // Action does not have a value for this routeKey, most likely area
+                // Action does not have a value for this routeKey, most likely because action is not in an area
                 // Check that the template does not have a parameter for the routeKey
                 var matchingParameter = endpointInfo.ParsedTemplate.Parameters.SingleOrDefault(p => string.Equals(p.Name, routeKey, StringComparison.OrdinalIgnoreCase));
                 if (matchingParameter == null)
@@ -198,6 +204,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var matchingParameter = endpointInfo.ParsedTemplate.Parameters.SingleOrDefault(p => string.Equals(p.Name, routeKey, StringComparison.OrdinalIgnoreCase));
                 if (matchingParameter != null)
                 {
+                    // Check that the value matches against constraints on that parameter
+                    // e.g. For {controller:regex((Home|Login))} the controller value must match the regex
+                    //
                     // REVIEW: This is really ugly
                     if (endpointInfo.Constraints.TryGetValue(routeKey, out var constraint)
                         && !constraint.Match(new DefaultHttpContext() { RequestServices = _serviceProvider }, new DummyRouter(), routeKey, new RouteValueDictionary(action.RouteValues), RouteDirection.IncomingRequest))
@@ -247,6 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             };
 
             var metadata = new List<object>();
+            // REVIEW: Used for debugging. Consider removing before release
             metadata.Add(source);
             metadata.Add(action);
 

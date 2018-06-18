@@ -76,15 +76,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(configureRoutes));
             }
 
-            // Verify if AddMvc was done before calling UseMvc
-            // We use the MvcMarkerService to make sure if all the services were added.
-            if (app.ApplicationServices.GetService(typeof(MvcMarkerService)) == null)
-            {
-                throw new InvalidOperationException(Resources.FormatUnableToFindServices(
-                    nameof(IServiceCollection),
-                    "AddMvc",
-                    "ConfigureServices(...)"));
-            }
+            VerifyMvcIsRegistered(app);
 
             var middlewarePipelineBuilder = app.ApplicationServices.GetRequiredService<MiddlewareFilterBuilder>();
             middlewarePipelineBuilder.ApplicationBuilder = app.New();
@@ -115,15 +107,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(configureRoutes));
             }
 
-            // Verify if AddMvc was done before calling UseMvc
-            // We use the MvcMarkerService to make sure if all the services were added.
-            if (app.ApplicationServices.GetService(typeof(MvcMarkerService)) == null)
-            {
-                throw new InvalidOperationException(Resources.FormatUnableToFindServices(
-                    nameof(IServiceCollection),
-                    "AddMvc",
-                    "ConfigureServices(...)"));
-            }
+            VerifyMvcIsRegistered(app);
 
             var endpointDataSources = app.ApplicationServices.GetRequiredService<IEnumerable<EndpointDataSource>>();
 
@@ -147,6 +131,19 @@ namespace Microsoft.AspNetCore.Builder
             mvcEndpointDataSource.InitializeEndpoints();
 
             return app.UseEndpoint();
+        }
+
+        private static void VerifyMvcIsRegistered(IApplicationBuilder app)
+        {
+            // Verify if AddMvc was done before calling UseMvc
+            // We use the MvcMarkerService to make sure if all the services were added.
+            if (app.ApplicationServices.GetService(typeof(MvcMarkerService)) == null)
+            {
+                throw new InvalidOperationException(Resources.FormatUnableToFindServices(
+                    nameof(IServiceCollection),
+                    "AddMvc",
+                    "ConfigureServices(...)"));
+            }
         }
     }
 }
