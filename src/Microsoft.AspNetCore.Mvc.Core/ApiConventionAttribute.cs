@@ -2,25 +2,79 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc
 {
+    /// <summary>
+    /// API conventions to be applied to an assembly containing MVC controllers or a single controller.
+    /// <para>
+    /// API conventions are used to influence the output of ApiExplorer. 
+    /// </para>
+    /// </summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-    public sealed class ApiConventionAttribute : Attribute, IFilterMetadata
+    public sealed class ApiConventionAttribute : Attribute
     {
+        /// <summary>
+        /// Initializes an <see cref="ApiControllerAttribute"/> instance using <paramref name="conventionType"/>.
+        /// </summary>
+        /// <param name="conventionType">
+        /// The <see cref="Type"/> of the convention. 
+        /// <para>
+        /// Conventions must be static types. Methods in a convention are
+        /// matched to an action method using rules specified by <see cref="ApiConventionNameMatchAttribute" />
+        /// that may be applied to a method name or it's parameters and <see cref="ApiConventionTypeMatchAttribute"/>
+        /// that are applied to parameters.
+        /// </para>
+        /// </param>
         public ApiConventionAttribute(Type conventionType)
         {
             ConventionType = conventionType ?? throw new ArgumentNullException(nameof(conventionType));
+            EnsureValid(conventionType);
+        }
 
-            if (!ConventionType.IsSealed || !ConventionType.IsAbstract)
+        /// <summary>
+        /// Gets the convention type.
+        /// </summary>
+        public Type ConventionType { get; }
+
+        private static void EnsureValid(Type conventionType)
+        {
+            if (!conventionType.IsSealed || !conventionType.IsAbstract)
             {
                 // Conventions must be static viz abstract + sealed.
                 throw new ArgumentException(Resources.FormatApiConventionMustBeStatic(conventionType), nameof(conventionType));
             }
+
+            foreach (var method in conventionType.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                var unsupportedAttributes = method.GetCustomAttributes(inherit: true)
+                    .Where(attribute => !IsAllowedAttribute(attribute))
+                    .ToArray();
+
+                if (unsupportedAttributes.Length == 0)
+                {
+                    continue;
+                }
+
+                var methodDisplayName = TypeNameHelper.GetTypeDisplayName(method.DeclaringType) + "." + method.Name;
+                var errorMessage = Resources.FormatApiConvention_UnsupportedAttributesOnConvention(
+                    methodDisplayName,
+                    Environment.NewLine + string.Join(Environment.NewLine, unsupportedAttributes) + Environment.NewLine,
+                    $"{nameof(ProducesResponseTypeAttribute)}, {nameof(ApiConventionNameMatchAttribute)}");
+
+                throw new ArgumentException(errorMessage, nameof(conventionType));
+            }
         }
 
-        public Type ConventionType { get; }
+        private static bool IsAllowedAttribute(object attribute)
+        {
+            return attribute is ProducesResponseTypeAttribute ||
+                attribute is ApiConventionNameMatchAttribute;
+        }
     }
 }

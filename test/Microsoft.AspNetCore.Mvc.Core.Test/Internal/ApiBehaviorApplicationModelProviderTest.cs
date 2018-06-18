@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -875,40 +876,100 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void ApiConventionAttributeIsNotAdded_IfModelAlreadyHasAttribute()
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfActionHasProducesResponseTypeAttribute()
         {
             // Arrange
-            var attribute = new ApiConventionAttribute(typeof(DefaultApiConventions));
-            var controllerType = CreateTestControllerType();
-
-            var model = new ControllerModel(controllerType.GetTypeInfo(), new[] { attribute })
-            {
-                Filters = { attribute, },
-            };
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new ProducesResponseTypeAttribute(200));
+            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
 
             // Assert
-            Assert.Collection(
-                model.Filters,
-                filter => Assert.Same(attribute, filter));
+            Assert.Empty(actionModel.Properties);
         }
 
         [Fact]
-        public void ApiConventionAttributeIsAdded_IfAttributeExistsInAssembly()
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfActionHasProducesAttribute()
         {
             // Arrange
-            var controllerType = CreateTestControllerType();
-            var model = new ControllerModel(controllerType.GetTypeInfo(), Array.Empty<object>());
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new ProducesAttribute(typeof(object)));
+            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfNoConventionMatches()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.NoMatch)),
+                Array.Empty<object>());
+            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_AddsConventionItem_IfConventionMatches()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
 
             // Assert
             Assert.Collection(
-                model.Filters,
-                filter => Assert.IsType<ApiConventionAttribute>(filter));
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiConventionItem), kvp.Key);
+                    Assert.NotNull(kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_AddsConventionItem_IfActionHasNonConventionBasedFilters()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new AuthorizeFilter());
+            actionModel.Filters.Add(new ServiceFilterAttribute(typeof(object)));
+            actionModel.Filters.Add(new ConsumesAttribute("application/xml"));
+            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiConventionItem), kvp.Key);
+                    Assert.NotNull(kvp.Value);
+                });
         }
 
         // A dynamically generated type in an assembly that has an ApiConventionAttribute.
@@ -1200,6 +1261,13 @@ Environment.NewLine + "int b";
         {
             [HttpGet("test")]
             public IActionResult Action([ModelBinder(typeof(object))] Car car) => null;
+        }
+
+        private class TestApiConventionController
+        {
+            public IActionResult NoMatch() => null;
+
+            public IActionResult Delete(int id) => null;
         }
 
         private class GpsCoordinates
