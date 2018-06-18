@@ -40,6 +40,11 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 throw new ArgumentNullException(nameof(linkGenerator));
             }
 
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             ActionContext = actionContext;
             _ambientValues = ActionContext.RouteData.Values;
             _linkGenerator = linkGenerator;

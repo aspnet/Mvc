@@ -141,8 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         {
             // Perf: RouteValueDictionary can be cast to IDictionary<string, object>, but it is
             // special cased to avoid allocating boxed Enumerator.
-            var routeValuesDictionary = values as RouteValueDictionary;
-            if (routeValuesDictionary != null)
+            if (values is RouteValueDictionary routeValuesDictionary)
             {
                 _routeValueDictionary.Clear();
                 foreach (var kvp in routeValuesDictionary)
@@ -153,8 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 return _routeValueDictionary;
             }
 
-            var dictionaryValues = values as IDictionary<string, object>;
-            if (dictionaryValues != null)
+            if (values is IDictionary<string, object> dictionaryValues)
             {
                 _routeValueDictionary.Clear();
                 foreach (var kvp in dictionaryValues)
