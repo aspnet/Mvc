@@ -43,11 +43,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             // Arrange
             var services = CreateServices();
             var httpContext = CreateHttpContext(services, appBase, host: null, protocol: null);
-            var urlHelperCommon = new UrlHelperCommon(httpContext);
             var builder = new StringBuilder();
 
             // Act
-            urlHelperCommon.AppendPathAndFragment(builder, virtualPath, string.Empty);
+            UrlHelperBase.AppendPathAndFragment(builder, httpContext.Request.PathBase, virtualPath, string.Empty);
 
             // Assert
             Assert.Equal(expected, builder.ToString());
@@ -65,11 +64,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             expected += $"#{fragmentValue}";
             var services = CreateServices();
             var httpContext = CreateHttpContext(services, appBase, host: null, protocol: null);
-            var urlHelperCommon = new UrlHelperCommon(httpContext);
             var builder = new StringBuilder();
 
             // Act
-            urlHelperCommon.AppendPathAndFragment(builder, virtualPath, fragmentValue);
+            UrlHelperBase.AppendPathAndFragment(builder, httpContext.Request.PathBase, virtualPath, fragmentValue);
 
             // Assert
             Assert.Equal(expected, builder.ToString());

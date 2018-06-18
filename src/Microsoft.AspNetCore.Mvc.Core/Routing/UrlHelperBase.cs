@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Microsoft.AspNetCore.Mvc.Routing
 {
-    internal class UrlHelperCommon
+    public abstract class UrlHelperBase : IUrlHelper
     {
         // Perf: Share the StringBuilder object across multiple calls of GenerateURL for this UrlHelper
         private StringBuilder _stringBuilder;
@@ -17,15 +17,22 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         // Perf: Reuse the RouteValueDictionary across multiple calls of Action for this UrlHelper
         private readonly RouteValueDictionary _routeValueDictionary;
 
-        private readonly HttpContext _httpContext;
-
-        public UrlHelperCommon(HttpContext httpContext)
+        public UrlHelperBase(ActionContext actionContext)
         {
-            _httpContext = httpContext;
+            if (actionContext == null)
+            {
+                throw new ArgumentNullException(nameof(actionContext));
+            }
+
+            ActionContext = actionContext;
             _routeValueDictionary = new RouteValueDictionary();
         }
 
-        public bool IsLocalUrl(string url)
+        /// <inheritdoc />
+        public ActionContext ActionContext { get; }
+
+        /// <inheritdoc />
+        public virtual bool IsLocalUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -71,9 +78,126 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             return false;
         }
 
-        public void AppendPathAndFragment(StringBuilder builder, string virtualPath, string fragment)
+        /// <inheritdoc />
+        public virtual string Content(string contentPath)
         {
-            var pathBase = _httpContext.Request.PathBase;
+            if (string.IsNullOrEmpty(contentPath))
+            {
+                return null;
+            }
+            else if (contentPath[0] == '~')
+            {
+                var segment = new PathString(contentPath.Substring(1));
+                var applicationPath = ActionContext.HttpContext.Request.PathBase;
+
+                return applicationPath.Add(segment).Value;
+            }
+
+            return contentPath;
+        }
+
+        /// <inheritdoc />
+        public virtual string Link(string routeName, object values)
+        {
+            return RouteUrl(new UrlRouteContext()
+            {
+                RouteName = routeName,
+                Values = values,
+                Protocol = ActionContext.HttpContext.Request.Scheme,
+                Host = ActionContext.HttpContext.Request.Host.ToUriComponent()
+            });
+        }
+
+        /// <inheritdoc />
+        public abstract string Action(UrlActionContext actionContext);
+
+        /// <inheritdoc />
+        public abstract string RouteUrl(UrlRouteContext routeContext);
+
+        protected RouteValueDictionary GetValuesDictionary(object values)
+        {
+            // Perf: RouteValueDictionary can be cast to IDictionary<string, object>, but it is
+            // special cased to avoid allocating boxed Enumerator.
+            if (values is RouteValueDictionary routeValuesDictionary)
+            {
+                _routeValueDictionary.Clear();
+                foreach (var kvp in routeValuesDictionary)
+                {
+                    _routeValueDictionary.Add(kvp.Key, kvp.Value);
+                }
+
+                return _routeValueDictionary;
+            }
+
+            if (values is IDictionary<string, object> dictionaryValues)
+            {
+                _routeValueDictionary.Clear();
+                foreach (var kvp in dictionaryValues)
+                {
+                    _routeValueDictionary.Add(kvp.Key, kvp.Value);
+                }
+
+                return _routeValueDictionary;
+            }
+
+            return new RouteValueDictionary(values);
+        }
+
+        protected string GenerateUrl(string protocol, string host, string virtualPath, string fragment)
+        {
+            if (virtualPath == null)
+            {
+                return null;
+            }
+
+            // Perf: In most of the common cases, GenerateUrl is called with a null protocol, host and fragment.
+            // In such cases, we might not need to build any URL as the url generated is mostly same as the virtual path available in pathData.
+            // For such common cases, this FastGenerateUrl method saves a string allocation per GenerateUrl call.
+            string url;
+            if (TryFastGenerateUrl(protocol, host, virtualPath, fragment, out url))
+            {
+                return url;
+            }
+
+            var builder = GetStringBuilder();
+            try
+            {
+                var pathBase = ActionContext.HttpContext.Request.PathBase;
+
+                if (string.IsNullOrEmpty(protocol) && string.IsNullOrEmpty(host))
+                {
+                    AppendPathAndFragment(builder, pathBase, virtualPath, fragment);
+                    // We're returning a partial URL (just path + query + fragment), but we still want it to be rooted.
+                    if (builder.Length == 0 || builder[0] != '/')
+                    {
+                        builder.Insert(0, '/');
+                    }
+                }
+                else
+                {
+                    protocol = string.IsNullOrEmpty(protocol) ? "http" : protocol;
+                    builder.Append(protocol);
+
+                    builder.Append("://");
+
+                    host = string.IsNullOrEmpty(host) ? ActionContext.HttpContext.Request.Host.Value : host;
+                    builder.Append(host);
+                    AppendPathAndFragment(builder, pathBase, virtualPath, fragment);
+                }
+
+                var path = builder.ToString();
+                return path;
+            }
+            finally
+            {
+                // Clear the StringBuilder so that it can reused for the next call.
+                builder.Clear();
+            }
+        }
+
+        // for unit testing
+        internal static void AppendPathAndFragment(StringBuilder builder, PathString pathBase, string virtualPath, string fragment)
+        {
             if (!pathBase.HasValue)
             {
                 if (virtualPath.Length == 0)
@@ -120,102 +244,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
         }
 
-        public string Content(string contentPath)
-        {
-            if (string.IsNullOrEmpty(contentPath))
-            {
-                return null;
-            }
-            else if (contentPath[0] == '~')
-            {
-                var segment = new PathString(contentPath.Substring(1));
-                var applicationPath = _httpContext.Request.PathBase;
-
-                return applicationPath.Add(segment).Value;
-            }
-
-            return contentPath;
-        }
-
-        public RouteValueDictionary GetValuesDictionary(object values)
-        {
-            // Perf: RouteValueDictionary can be cast to IDictionary<string, object>, but it is
-            // special cased to avoid allocating boxed Enumerator.
-            if (values is RouteValueDictionary routeValuesDictionary)
-            {
-                _routeValueDictionary.Clear();
-                foreach (var kvp in routeValuesDictionary)
-                {
-                    _routeValueDictionary.Add(kvp.Key, kvp.Value);
-                }
-
-                return _routeValueDictionary;
-            }
-
-            if (values is IDictionary<string, object> dictionaryValues)
-            {
-                _routeValueDictionary.Clear();
-                foreach (var kvp in dictionaryValues)
-                {
-                    _routeValueDictionary.Add(kvp.Key, kvp.Value);
-                }
-
-                return _routeValueDictionary;
-            }
-
-            return new RouteValueDictionary(values);
-        }
-
-        public string GenerateUrl(string protocol, string host, string virtualPath, string fragment)
-        {
-            if (virtualPath == null)
-            {
-                return null;
-            }
-
-            // Perf: In most of the common cases, GenerateUrl is called with a null protocol, host and fragment.
-            // In such cases, we might not need to build any URL as the url generated is mostly same as the virtual path available in pathData.
-            // For such common cases, this FastGenerateUrl method saves a string allocation per GenerateUrl call.
-            string url;
-            if (TryFastGenerateUrl(protocol, host, virtualPath, fragment, out url))
-            {
-                return url;
-            }
-
-            var builder = GetStringBuilder();
-            try
-            {
-                if (string.IsNullOrEmpty(protocol) && string.IsNullOrEmpty(host))
-                {
-                    AppendPathAndFragment(builder, virtualPath, fragment);
-                    // We're returning a partial URL (just path + query + fragment), but we still want it to be rooted.
-                    if (builder.Length == 0 || builder[0] != '/')
-                    {
-                        builder.Insert(0, '/');
-                    }
-                }
-                else
-                {
-                    protocol = string.IsNullOrEmpty(protocol) ? "http" : protocol;
-                    builder.Append(protocol);
-
-                    builder.Append("://");
-
-                    host = string.IsNullOrEmpty(host) ? _httpContext.Request.Host.Value : host;
-                    builder.Append(host);
-                    AppendPathAndFragment(builder, virtualPath, fragment);
-                }
-
-                var path = builder.ToString();
-                return path;
-            }
-            finally
-            {
-                // Clear the StringBuilder so that it can reused for the next call.
-                builder.Clear();
-            }
-        }
-
         private bool TryFastGenerateUrl(
             string protocol,
             string host,
@@ -223,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             string fragment,
             out string url)
         {
-            var pathBase = _httpContext.Request.PathBase;
+            var pathBase = ActionContext.HttpContext.Request.PathBase;
             url = null;
 
             if (string.IsNullOrEmpty(protocol)

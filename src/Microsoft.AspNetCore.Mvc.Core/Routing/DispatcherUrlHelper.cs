@@ -11,15 +11,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     /// An implementation of <see cref="IUrlHelper"/> that uses <see cref="ILinkGenerator"/> to build URLs 
     /// for ASP.NET MVC within an application.
     /// </summary>
-    public class DispatcherUrlHelper : IUrlHelper
+    internal class DispatcherUrlHelper : UrlHelperBase
     {
-        private readonly UrlHelperCommon _urlHelperCommon;
         private readonly ILogger<DispatcherUrlHelper> _logger;
         private readonly ILinkGenerator _linkGenerator;
         private readonly RouteValueDictionary _ambientValues;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified
+        /// Initializes a new instance of the <see cref="DispatcherUrlHelper"/> class using the specified
         /// <paramref name="actionContext"/>.
         /// </summary>
         /// <param name="actionContext">The <see cref="Mvc.ActionContext"/> for the current request.</param>
@@ -29,12 +28,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             ActionContext actionContext,
             ILinkGenerator linkGenerator,
             ILogger<DispatcherUrlHelper> logger)
+            : base(actionContext)
         {
-            if (actionContext == null)
-            {
-                throw new ArgumentNullException(nameof(actionContext));
-            }
-
             if (linkGenerator == null)
             {
                 throw new ArgumentNullException(nameof(linkGenerator));
@@ -45,52 +40,45 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            ActionContext = actionContext;
             _ambientValues = ActionContext.RouteData.Values;
             _linkGenerator = linkGenerator;
-            _urlHelperCommon = new UrlHelperCommon(actionContext.HttpContext);
             _logger = logger;
         }
 
         /// <inheritdoc />
-        public ActionContext ActionContext { get; }
-
-        /// <inheritdoc />
-        public virtual string Action(UrlActionContext actionContext)
+        public override string Action(UrlActionContext urlActionContext)
         {
-            if (actionContext == null)
+            if (urlActionContext == null)
             {
-                throw new ArgumentNullException(nameof(actionContext));
+                throw new ArgumentNullException(nameof(urlActionContext));
             }
 
-            var valuesDictionary = _urlHelperCommon.GetValuesDictionary(actionContext.Values);
+            var valuesDictionary = GetValuesDictionary(urlActionContext.Values);
 
-            if (actionContext.Action == null)
+            if (urlActionContext.Action == null)
             {
-                object action;
                 if (!valuesDictionary.ContainsKey("action") &&
-                    _ambientValues.TryGetValue("action", out action))
+                    _ambientValues.TryGetValue("action", out var action))
                 {
                     valuesDictionary["action"] = action;
                 }
             }
             else
             {
-                valuesDictionary["action"] = actionContext.Action;
+                valuesDictionary["action"] = urlActionContext.Action;
             }
 
-            if (actionContext.Controller == null)
+            if (urlActionContext.Controller == null)
             {
-                object controller;
                 if (!valuesDictionary.ContainsKey("controller") &&
-                    _ambientValues.TryGetValue("controller", out controller))
+                    _ambientValues.TryGetValue("controller", out var controller))
                 {
                     valuesDictionary["controller"] = controller;
                 }
             }
             else
             {
-                valuesDictionary["controller"] = actionContext.Controller;
+                valuesDictionary["controller"] = urlActionContext.Controller;
             }
 
             var successfullyGeneratedLink = _linkGenerator.TryGetLink(
@@ -108,30 +96,18 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 return null;
             }
 
-            return _urlHelperCommon.GenerateUrl(actionContext.Protocol, actionContext.Host, link, actionContext.Fragment);
+            return GenerateUrl(urlActionContext.Protocol, urlActionContext.Host, link, urlActionContext.Fragment);
         }
 
         /// <inheritdoc />
-        public string Content(string contentPath)
-        {
-            return _urlHelperCommon.Content(contentPath);
-        }
-
-        /// <inheritdoc />
-        public bool IsLocalUrl(string url)
-        {
-            return _urlHelperCommon.IsLocalUrl(url);
-        }
-
-        /// <inheritdoc />
-        public string RouteUrl(UrlRouteContext routeContext)
+        public override string RouteUrl(UrlRouteContext routeContext)
         {
             if (routeContext == null)
             {
                 throw new ArgumentNullException(nameof(routeContext));
             }
 
-            var valuesDictionary = routeContext.Values as RouteValueDictionary ?? _urlHelperCommon.GetValuesDictionary(routeContext.Values);
+            var valuesDictionary = routeContext.Values as RouteValueDictionary ?? GetValuesDictionary(routeContext.Values);
 
             var successfullyGeneratedLink = _linkGenerator.TryGetLink(
                 new LinkGeneratorContext()
@@ -147,19 +123,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 return null;
             }
 
-            return _urlHelperCommon.GenerateUrl(routeContext.Protocol, routeContext.Host, link, routeContext.Fragment);
-        }
-
-        /// <inheritdoc />
-        public string Link(string routeName, object values)
-        {
-            return RouteUrl(new UrlRouteContext()
-            {
-                RouteName = routeName,
-                Values = values,
-                Protocol = ActionContext.HttpContext.Request.Scheme,
-                Host = ActionContext.HttpContext.Request.Host.ToUriComponent()
-            });
+            return GenerateUrl(routeContext.Protocol, routeContext.Host, link, routeContext.Fragment);
         }
     }
 }

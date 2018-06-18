@@ -11,28 +11,17 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     /// An implementation of <see cref="IUrlHelper"/> that contains methods to
     /// build URLs for ASP.NET MVC within an application.
     /// </summary>
-    public class UrlHelper : IUrlHelper
+    public class UrlHelper : UrlHelperBase
     {
-        private readonly UrlHelperCommon _urlHelperCommon;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlHelper"/> class using the specified
         /// <paramref name="actionContext"/>.
         /// </summary>
         /// <param name="actionContext">The <see cref="Mvc.ActionContext"/> for the current request.</param>
         public UrlHelper(ActionContext actionContext)
+            : base(actionContext)
         {
-            if (actionContext == null)
-            {
-                throw new ArgumentNullException(nameof(actionContext));
-            }
-
-            ActionContext = actionContext;
-            _urlHelperCommon = new UrlHelperCommon(actionContext.HttpContext);
         }
-
-        /// <inheritdoc />
-        public ActionContext ActionContext { get; }
 
         /// <summary>
         /// Gets the <see cref="RouteValueDictionary"/> associated with the current request.
@@ -51,20 +40,19 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         protected IRouter Router => ActionContext.RouteData.Routers[0];
 
         /// <inheritdoc />
-        public virtual string Action(UrlActionContext actionContext)
+        public override string Action(UrlActionContext actionContext)
         {
             if (actionContext == null)
             {
                 throw new ArgumentNullException(nameof(actionContext));
             }
 
-            var valuesDictionary = _urlHelperCommon.GetValuesDictionary(actionContext.Values);
+            var valuesDictionary = GetValuesDictionary(actionContext.Values);
 
             if (actionContext.Action == null)
             {
-                object action;
                 if (!valuesDictionary.ContainsKey("action") &&
-                    AmbientValues.TryGetValue("action", out action))
+                    AmbientValues.TryGetValue("action", out var action))
                 {
                     valuesDictionary["action"] = action;
                 }
@@ -76,9 +64,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             if (actionContext.Controller == null)
             {
-                object controller;
                 if (!valuesDictionary.ContainsKey("controller") &&
-                    AmbientValues.TryGetValue("controller", out controller))
+                    AmbientValues.TryGetValue("controller", out var controller))
                 {
                     valuesDictionary["controller"] = controller;
                 }
@@ -93,20 +80,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         }
 
         /// <inheritdoc />
-        public virtual bool IsLocalUrl(string url)
-        {
-            return _urlHelperCommon.IsLocalUrl(url);
-        }
-
-        /// <inheritdoc />
-        public virtual string RouteUrl(UrlRouteContext routeContext)
+        public override string RouteUrl(UrlRouteContext routeContext)
         {
             if (routeContext == null)
             {
                 throw new ArgumentNullException(nameof(routeContext));
             }
 
-            var valuesDictionary = routeContext.Values as RouteValueDictionary ?? _urlHelperCommon.GetValuesDictionary(routeContext.Values);
+            var valuesDictionary = routeContext.Values as RouteValueDictionary ?? GetValuesDictionary(routeContext.Values);
             var virtualPathData = GetVirtualPathData(routeContext.RouteName, valuesDictionary);
             return GenerateUrl(routeContext.Protocol, routeContext.Host, virtualPathData, routeContext.Fragment);
         }
@@ -128,24 +109,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             return Router.GetVirtualPath(context);
         }
 
-        /// <inheritdoc />
-        public virtual string Content(string contentPath)
-        {
-            return _urlHelperCommon.Content(contentPath);
-        }
-
-        /// <inheritdoc />
-        public virtual string Link(string routeName, object values)
-        {
-            return RouteUrl(new UrlRouteContext()
-            {
-                RouteName = routeName,
-                Values = values,
-                Protocol = HttpContext.Request.Scheme,
-                Host = HttpContext.Request.Host.ToUriComponent()
-            });
-        }
-
         /// <summary>
         /// Generates the URL using the specified components.
         /// </summary>
@@ -156,7 +119,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// <returns>The generated URL.</returns>
         protected virtual string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
         {
-            return _urlHelperCommon.GenerateUrl(protocol, host, pathData?.VirtualPath, fragment);
+            return GenerateUrl(protocol, host, pathData?.VirtualPath, fragment);
         }
     }
 }
