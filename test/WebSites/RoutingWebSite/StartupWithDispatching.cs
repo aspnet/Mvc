@@ -14,9 +14,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace DispatchingWebSite
+namespace RoutingWebSite
 {
-    public class Startup
+    public class StartupWithDispatching
     {
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
@@ -52,24 +52,5 @@ namespace DispatchingWebSite
                     "{controller}/{action}/{path?}");
             });
         }
-
-        public static void Main(string[] args)
-        {
-            var host = CreateWebHostBuilder(args)
-                .ConfigureLogging((hostingContext, logging) =>
-                {
-                    logging.AddConsole();
-                })
-                .Build();
-
-            host.Run();
-        }
-
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            new WebHostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseStartup<Startup>()
-                .UseKestrel()
-                .UseIISIntegration();
     }
 }
