@@ -284,7 +284,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 action.RouteValues,
                 order,
                 metadataCollection,
-                action.DisplayName);
+                action.DisplayName,
+                address: null);
             return endpoint;
         }
 
