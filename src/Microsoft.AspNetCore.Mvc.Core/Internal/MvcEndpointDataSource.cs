@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 for (var j = 0; j < segment.Parts.Count; j++)
                 {
                     var part = segment.Parts[j];
-                    if (part.IsOptional || part.IsOptionalSeperator)
+                    if (part.IsOptional || part.IsOptionalSeperator || part.IsCatchAll)
                     {
                         continue;
                     }

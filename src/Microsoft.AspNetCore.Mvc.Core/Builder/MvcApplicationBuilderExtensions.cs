@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
@@ -109,17 +110,10 @@ namespace Microsoft.AspNetCore.Builder
 
             VerifyMvcIsRegistered(app);
 
-            var endpointDataSources = app.ApplicationServices.GetRequiredService<IEnumerable<EndpointDataSource>>();
-
-            MvcEndpointDataSource mvcEndpointDataSource = null;
-            foreach (var dataSource in endpointDataSources)
-            {
-                if (dataSource is MvcEndpointDataSource ds)
-                {
-                    mvcEndpointDataSource = ds;
-                    break;
-                }
-            }
+            var mvcEndpointDataSource = app.ApplicationServices
+                .GetRequiredService<IEnumerable<EndpointDataSource>>()
+                .OfType<MvcEndpointDataSource>()
+                .First();
 
             var constraintResolver = app.ApplicationServices.GetRequiredService<IInlineConstraintResolver>();
 
