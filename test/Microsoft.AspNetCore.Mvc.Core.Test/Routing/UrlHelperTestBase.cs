@@ -829,6 +829,100 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             Assert.Same(urlHelper, actionContext.HttpContext.Items[typeof(IUrlHelper)] as IUrlHelper);
         }
 
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelper(
+                appRoot: "",
+                host: null,
+                protocol: null,
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var routeData = urlHelper.ActionContext.RouteData;
+            routeData.Values.Add("first", "a");
+            routeData.Values.Add("controller", "Store");
+            routeData.Values.Add("action", "Buy");
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_AffectsOtherRouteValues()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelper(
+                appRoot: "",
+                host: null,
+                protocol: null,
+                "default",
+                "{first}/{second}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var routeData = urlHelper.ActionContext.RouteData;
+            routeData.Values.Add("first", "a");
+            routeData.Values.Add("second", "x");
+            routeData.Values.Add("controller", "Store");
+            routeData.Values.Add("action", "Buy");
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            //
+            // 'second' gets no special treatment, and picks up its default value instead.
+            var url = urlHelper.Action("Checkout", new { first = "b" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/default/Store/Checkout", url);
+        }
+
+        // Regression test for aspnet/Mvc#2859
+        [Fact]
+        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController_ActionPassedInRouteValues()
+        {
+            // Arrange
+            var urlHelper = CreateUrlHelper(
+                appRoot: "",
+                host: null,
+                protocol: null,
+                "default",
+                "{first}/{controller}/{action}",
+                new { second = "default", controller = "default", action = "default" });
+
+            var routeData = urlHelper.ActionContext.RouteData;
+            routeData.Values.Add("first", "a");
+            routeData.Values.Add("controller", "Store");
+            routeData.Values.Add("action", "Buy");
+
+            // Act
+            //
+            // In this test the 'first' route value has changed, meaning that *normally* the
+            // 'controller' value could not be used. However 'controller' and 'action' are treated
+            // specially by UrlHelper.
+            var url = urlHelper.Action(action: null, values: new { first = "b", action = "Checkout" });
+
+            // Assert
+            Assert.NotNull(url);
+            Assert.Equal("/b/Store/Checkout", url);
+        }
+
+
         protected abstract IServiceProvider CreateServices();
 
         protected abstract IUrlHelper CreateUrlHelper(ActionContext actionContext);
@@ -844,6 +938,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             string protocol,
             string routeName,
             string template);
+
+        protected abstract IUrlHelper CreateUrlHelper(
+            string appRoot,
+            string host,
+            string protocol,
+            string routeName,
+            string template,
+            object defaults);
 
         protected virtual IUrlHelper CreateUrlHelper(string appRoot, string host, string protocol)
         {

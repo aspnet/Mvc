@@ -14,99 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 {
     public class UrlHelperTest : UrlHelperTestBase
     {
-        public static TheoryData GeneratePathFromRoute_HandlesLeadingAndTrailingSlashesData =>
-            new TheoryData<string, string, string>
-            {
-                {  null, "", "/" },
-                {  null, "/", "/"  },
-                {  null, "Hello", "/Hello" },
-                {  null, "/Hello", "/Hello" },
-                { "/", "", "/" },
-                { "/", "hello", "/hello" },
-                { "/", "/hello", "/hello" },
-                { "/hello", "", "/hello" },
-                { "/hello/", "", "/hello/" },
-                { "/hello", "/", "/hello/" },
-                { "/hello/", "world", "/hello/world" },
-                { "/hello/", "/world", "/hello/world" },
-                { "/hello/", "/world 123", "/hello/world 123" },
-                { "/hello/", "/world%20123", "/hello/world%20123" },
-            };
-
-        [Theory]
-        [MemberData(nameof(GeneratePathFromRoute_HandlesLeadingAndTrailingSlashesData))]
-        public void AppendPathAndFragment_HandlesLeadingAndTrailingSlashes(
-            string appBase,
-            string virtualPath,
-            string expected)
-        {
-            // Arrange
-            var services = CreateServices();
-            var httpContext = CreateHttpContext(services, appBase, host: null, protocol: null);
-            var builder = new StringBuilder();
-
-            // Act
-            UrlHelperBase.AppendPathAndFragment(builder, httpContext.Request.PathBase, virtualPath, string.Empty);
-
-            // Assert
-            Assert.Equal(expected, builder.ToString());
-        }
-
-        [Theory]
-        [MemberData(nameof(GeneratePathFromRoute_HandlesLeadingAndTrailingSlashesData))]
-        public void AppendPathAndFragment_AppendsFragments(
-            string appBase,
-            string virtualPath,
-            string expected)
-        {
-            // Arrange
-            var fragmentValue = "fragment-value";
-            expected += $"#{fragmentValue}";
-            var services = CreateServices();
-            var httpContext = CreateHttpContext(services, appBase, host: null, protocol: null);
-            var builder = new StringBuilder();
-
-            // Act
-            UrlHelperBase.AppendPathAndFragment(builder, httpContext.Request.PathBase, virtualPath, fragmentValue);
-
-            // Assert
-            Assert.Equal(expected, builder.ToString());
-        }
-
-        [Theory]
-        [InlineData(null, null, null, "/", null, "/")]
-        [InlineData(null, null, null, "/Hello", null, "/Hello")]
-        [InlineData(null, null, null, "Hello", null, "/Hello")]
-        [InlineData("/", null, null, "", null, "/")]
-        [InlineData("/hello/", null, null, "/world", null, "/hello/world")]
-        [InlineData("/hello/", "https", "myhost", "/world", "fragment-value", "https://myhost/hello/world#fragment-value")]
-        public void GenerateUrl_FastAndSlowPathsReturnsExpected(
-            string appBase,
-            string protocol,
-            string host,
-            string virtualPath,
-            string fragment,
-            string expected)
-        {
-            // Arrange
-            var router = Mock.Of<IRouter>();
-            var pathData = new VirtualPathData(router, virtualPath)
-            {
-                VirtualPath = virtualPath
-            };
-            var services = CreateServices();
-            var httpContext = CreateHttpContext(services, appBase, host, protocol);
-            var actionContext = CreateActionContext(httpContext);
-            actionContext.RouteData.Routers.Add(router);
-            var urlHelper = new TestUrlHelper(actionContext);
-
-            // Act
-            var url = urlHelper.GenerateUrl(protocol, host, pathData, fragment);
-
-            // Assert
-            Assert.Equal(expected, url);
-        }
-
         protected override IServiceProvider CreateServices()
         {
             var services = GetCommonServices();
@@ -152,6 +59,27 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var actionContext = CreateActionContext(context);
             actionContext.RouteData.Routers.Add(router);
 
+            return CreateUrlHelper(actionContext);
+        }
+
+        protected override IUrlHelper CreateUrlHelper(
+            string appRoot,
+            string host,
+            string protocol,
+            string routeName,
+            string template,
+            object defaults)
+        {
+            var services = CreateServices();
+            var routeBuilder = CreateRouteBuilder(services);
+            routeBuilder.MapRoute(
+                routeName,
+                template,
+                defaults);
+            var router = routeBuilder.Build();
+            var httpContext = CreateHttpContext(services, appRoot, host, protocol);
+            var actionContext = CreateActionContext(httpContext);
+            actionContext.RouteData.Routers.Add(router);
             return CreateUrlHelper(actionContext);
         }
 
@@ -216,24 +144,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             {
                 context.Handler = (c) => Task.FromResult(0);
                 return Task.FromResult(false);
-            }
-        }
-
-        private class TestUrlHelper : UrlHelper
-        {
-            public TestUrlHelper(ActionContext actionContext) :
-                base(actionContext)
-            {
-
-            }
-
-            public new string GenerateUrl(string protocol, string host, VirtualPathData pathData, string fragment)
-            {
-                return base.GenerateUrl(
-                    protocol,
-                    host,
-                    pathData,
-                    fragment);
             }
         }
     }

@@ -15,105 +15,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 {
     public class DispatcherUrlHelperTest : UrlHelperTestBase
     {
-        // Regression test for aspnet/Mvc#2859
-        [Fact]
-        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController()
-        {
-            // Arrange
-            var endpoint = GetEndpoint(
-                "default",
-                "{first}/{controller}/{action}",
-                new { second = "default", controller = "default", action = "default" });
-
-            var services = CreateServices(new[] { endpoint });
-            var httpContext = CreateHttpContext(services, appRoot: "", host: null, protocol: null);
-            var actionContext = CreateActionContext(httpContext);
-            actionContext.RouteData = new RouteData();
-            actionContext.RouteData.Values.Add("first", "a");
-            actionContext.RouteData.Values.Add("controller", "Store");
-            actionContext.RouteData.Values.Add("action", "Buy");
-
-            var urlHelper = CreateUrlHelper(actionContext);
-
-            // Act
-            //
-            // In this test the 'first' route value has changed, meaning that *normally* the
-            // 'controller' value could not be used. However 'controller' and 'action' are treated
-            // specially by UrlHelper.
-            var url = urlHelper.Action("Checkout", new { first = "b" });
-
-            // Assert
-            Assert.NotNull(url);
-            Assert.Equal("/b/Store/Checkout", url);
-        }
-
-        // Regression test for aspnet/Mvc#2859
-        [Fact]
-        public void Action_RouteValueInvalidation_AffectsOtherRouteValues()
-        {
-            // Arrange
-            var endpoint = GetEndpoint(
-                "default",
-                "{first}/{second}/{controller}/{action}",
-                new { second = "default", controller = "default", action = "default" });
-
-            var services = CreateServices(new[] { endpoint });
-            var httpContext = CreateHttpContext(services, appRoot: "", host: null, protocol: null);
-            var actionContext = CreateActionContext(httpContext);
-            actionContext.RouteData = new RouteData();
-            actionContext.RouteData.Values.Add("first", "a");
-            actionContext.RouteData.Values.Add("second", "x");
-            actionContext.RouteData.Values.Add("controller", "Store");
-            actionContext.RouteData.Values.Add("action", "Buy");
-
-            var urlHelper = CreateUrlHelper(actionContext);
-
-            // Act
-            //
-            // In this test the 'first' route value has changed, meaning that *normally* the
-            // 'controller' value could not be used. However 'controller' and 'action' are treated
-            // specially by UrlHelper.
-            //
-            // 'second' gets no special treatment, and picks up its default value instead.
-            var url = urlHelper.Action("Checkout", new { first = "b" });
-
-            // Assert
-            Assert.NotNull(url);
-            Assert.Equal("/b/default/Store/Checkout", url);
-        }
-
-        // Regression test for aspnet/Mvc#2859
-        [Fact]
-        public void Action_RouteValueInvalidation_DoesNotAffectActionAndController_ActionPassedInRouteValues()
-        {
-            // Arrange
-            var endpoint = GetEndpoint(
-                "default",
-                "{first}/{controller}/{action}",
-                new { second = "default", controller = "default", action = "default" });
-
-            var services = CreateServices(new MatcherEndpoint[] { endpoint });
-            var httpContext = CreateHttpContext(services, appRoot: "", host: null, protocol: null);
-            var actionContext = CreateActionContext(httpContext);
-            actionContext.RouteData = new RouteData();
-            actionContext.RouteData.Values.Add("first", "a");
-            actionContext.RouteData.Values.Add("controller", "Store");
-            actionContext.RouteData.Values.Add("action", "Buy");
-
-            var urlHelper = CreateUrlHelper(actionContext);
-
-            // Act
-            //
-            // In this test the 'first' route value has changed, meaning that *normally* the
-            // 'controller' value could not be used. However 'controller' and 'action' are treated
-            // specially by UrlHelper.
-            var url = urlHelper.Action(action: null, values: new { first = "b", action = "Checkout" });
-
-            // Assert
-            Assert.NotNull(url);
-            Assert.Equal("/b/Store/Checkout", url);
-        }
-
         protected override IUrlHelper CreateUrlHelper(string appRoot, string host, string protocol)
         {
             return CreateUrlHelper(Enumerable.Empty<MatcherEndpoint>(), appRoot, host, protocol);
@@ -122,40 +23,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         protected override IUrlHelper CreateUrlHelperWithDefaultRoutes(string appRoot, string host, string protocol)
         {
             return CreateUrlHelper(GetDefaultEndpoints(), appRoot, host, protocol);
-        }
-
-        private IUrlHelper CreateUrlHelper(
-            IEnumerable<MatcherEndpoint> endpoints,
-            string appRoot,
-            string host,
-            string protocol)
-        {
-            var serviceProvider = CreateServices(endpoints);
-            var httpContext = CreateHttpContext(serviceProvider, appRoot, host, protocol);
-            var actionContext = CreateActionContext(httpContext);
-            return CreateUrlHelper(actionContext);
-        }
-
-        private List<MatcherEndpoint> GetDefaultEndpoints()
-        {
-            var endpoints = new List<MatcherEndpoint>();
-            endpoints.Add(new MatcherEndpoint(
-                next => (httpContext) => Task.CompletedTask,
-                "{controller}/{action}/{id}",
-                new { id = "defaultid" },
-                0,
-                EndpointMetadataCollection.Empty,
-                "RouteWithNoName",
-                address: null));
-            endpoints.Add(new MatcherEndpoint(
-                next => (httpContext) => Task.CompletedTask,
-                "named/{controller}/{action}/{id}",
-                new { id = "defaultid" },
-                0,
-                EndpointMetadataCollection.Empty,
-                "RouteWithNoName",
-                new Address("namedroute")));
-            return endpoints;
         }
 
         protected override IUrlHelper CreateUrlHelperWithDefaultRoutes(
@@ -202,6 +69,55 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         protected override IServiceProvider CreateServices()
         {
             return CreateServices(Enumerable.Empty<Endpoint>());
+        }
+
+        protected override IUrlHelper CreateUrlHelper(
+            string appRoot,
+            string host,
+            string protocol,
+            string routeName,
+            string template,
+            object defaults)
+        {
+            var endpoint = GetEndpoint(routeName, template, defaults);
+            var services = CreateServices(new[] { endpoint });
+            var httpContext = CreateHttpContext(services, appRoot: "", host: null, protocol: null);
+            var actionContext = CreateActionContext(httpContext);
+            return CreateUrlHelper(actionContext);
+        }
+
+        private IUrlHelper CreateUrlHelper(
+            IEnumerable<MatcherEndpoint> endpoints,
+            string appRoot,
+            string host,
+            string protocol)
+        {
+            var serviceProvider = CreateServices(endpoints);
+            var httpContext = CreateHttpContext(serviceProvider, appRoot, host, protocol);
+            var actionContext = CreateActionContext(httpContext);
+            return CreateUrlHelper(actionContext);
+        }
+
+        private List<MatcherEndpoint> GetDefaultEndpoints()
+        {
+            var endpoints = new List<MatcherEndpoint>();
+            endpoints.Add(new MatcherEndpoint(
+                next => (httpContext) => Task.CompletedTask,
+                "{controller}/{action}/{id}",
+                new { id = "defaultid" },
+                0,
+                EndpointMetadataCollection.Empty,
+                "RouteWithNoName",
+                address: null));
+            endpoints.Add(new MatcherEndpoint(
+                next => (httpContext) => Task.CompletedTask,
+                "named/{controller}/{action}/{id}",
+                new { id = "defaultid" },
+                0,
+                EndpointMetadataCollection.Empty,
+                "RouteWithNoName",
+                new Address("namedroute")));
+            return endpoints;
         }
 
         private IServiceProvider CreateServices(IEnumerable<Endpoint> endpoints)

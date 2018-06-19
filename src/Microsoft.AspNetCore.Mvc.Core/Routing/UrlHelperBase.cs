@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         // Perf: Reuse the RouteValueDictionary across multiple calls of Action for this UrlHelper
         private readonly RouteValueDictionary _routeValueDictionary;
 
-        public UrlHelperBase(ActionContext actionContext)
+        protected UrlHelperBase(ActionContext actionContext)
         {
             if (actionContext == null)
             {
