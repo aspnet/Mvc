@@ -13,6 +13,7 @@ namespace SecurityWebSite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             // Add framework services.
             services.AddMvc();
             services.AddAntiforgery();
@@ -28,11 +29,12 @@ namespace SecurityWebSite
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseAuthentication();
 
-            app.UseMvc(routes =>
+            app.UseMvcWithEndpoint(routes =>
             {
-                routes.MapRoute(
+                routes.MapEndpoint(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });

@@ -13,6 +13,7 @@ namespace ApplicationModelWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             services.AddMvc(options =>
             {
                 options.Conventions.Add(new ApplicationDescription("Common Application Description"));
@@ -25,12 +26,13 @@ namespace ApplicationModelWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
+            app.UseDispatcher();
+            app.UseMvcWithEndpoint(routes =>
             {
-                routes.MapRoute(name: "areaRoute",
+                routes.MapEndpoint(name: "areaRoute",
                   template: "{area:exists}/{controller=Home}/{action=Index}");
 
-                routes.MapRoute(
+                routes.MapEndpoint(
                     name: "default",
                     template: "{controller}/{action}/{id?}");
             });

@@ -18,6 +18,7 @@ namespace ApiExplorerWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             services.AddTransient<ILoggerFactory, LoggerFactory>();
             services.AddMvc(options =>
             {
@@ -43,9 +44,10 @@ namespace ApiExplorerWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseMvc(routes =>
+            app.UseDispatcher();
+            app.UseMvcWithEndpoint(routes =>
             {
-                routes.MapRoute("default", "{controller}/{action}");
+                routes.MapEndpoint("default", "{controller}/{action}");
             });
         }
 

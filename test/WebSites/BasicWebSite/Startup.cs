@@ -17,6 +17,7 @@ namespace BasicWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Api", _ => { });
             services.AddTransient<IAuthorizationHandler, ManagerHandler>();
@@ -61,6 +62,8 @@ namespace BasicWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
+
             app.UseDeveloperExceptionPage();
 
             app.UseStaticFiles();
@@ -69,17 +72,17 @@ namespace BasicWebSite
             app.UseMiddleware<RequestIdMiddleware>();
 
             // Add MVC to the request pipeline
-            app.UseMvc(routes =>
+            app.UseMvcWithEndpoint(routes =>
             {
-                routes.MapRoute(
+                routes.MapEndpoint(
                     "areaRoute",
                     "{area:exists}/{controller}/{action}",
                     new { controller = "Home", action = "Index" });
 
-                routes.MapRoute("ActionAsMethod", "{controller}/{action}",
+                routes.MapEndpoint("ActionAsMethod", "{controller}/{action}",
                     defaults: new { controller = "Home", action = "Index" });
 
-                routes.MapRoute("PageRoute", "{controller}/{action}/{page}");
+                routes.MapEndpoint("PageRoute", "{controller}/{action}/{page}");
             });
         }
     }

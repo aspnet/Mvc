@@ -17,6 +17,7 @@ namespace RazorWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             var updateableFileProvider = new UpdateableFileProvider();
             services.AddSingleton(updateableFileProvider);
             services.AddSingleton<ITagHelperComponent, TestHeadTagHelperComponent>();
@@ -50,6 +51,7 @@ namespace RazorWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
@@ -68,7 +70,10 @@ namespace RazorWebSite
                 }
             });
 
-            app.UseMvcWithDefaultRoute();
+            app.UseMvcWithEndpoint(routes =>
+            {
+                routes.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }

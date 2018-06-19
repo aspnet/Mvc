@@ -10,6 +10,7 @@ namespace BasicWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDispatcher();
             services.AddMvc();
 
             services.Configure<CookiePolicyOptions>(o =>
@@ -22,11 +23,15 @@ namespace BasicWebSite
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
 
             app.UseCookiePolicy();
 
-            app.UseMvcWithDefaultRoute();
+            app.UseMvcWithEndpoint(r =>
+            {
+                r.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }
