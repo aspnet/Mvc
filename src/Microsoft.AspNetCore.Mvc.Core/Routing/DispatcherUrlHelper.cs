@@ -15,7 +15,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     {
         private readonly ILogger<DispatcherUrlHelper> _logger;
         private readonly ILinkGenerator _linkGenerator;
-        private readonly RouteValueDictionary _ambientValues;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DispatcherUrlHelper"/> class using the specified
@@ -40,7 +39,6 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            _ambientValues = ActionContext.RouteData.Values;
             _linkGenerator = linkGenerator;
             _logger = logger;
         }
@@ -58,7 +56,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             if (urlActionContext.Action == null)
             {
                 if (!valuesDictionary.ContainsKey("action") &&
-                    _ambientValues.TryGetValue("action", out var action))
+                    AmbientValues.TryGetValue("action", out var action))
                 {
                     valuesDictionary["action"] = action;
                 }
@@ -71,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             if (urlActionContext.Controller == null)
             {
                 if (!valuesDictionary.ContainsKey("controller") &&
-                    _ambientValues.TryGetValue("controller", out var controller))
+                    AmbientValues.TryGetValue("controller", out var controller))
                 {
                     valuesDictionary["controller"] = controller;
                 }
@@ -85,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 new LinkGeneratorContext()
                 {
                     SuppliedValues = valuesDictionary,
-                    AmbientValues = _ambientValues
+                    AmbientValues = AmbientValues
                 },
                 out var link);
 
@@ -114,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 {
                     Address = new Address(routeContext.RouteName),
                     SuppliedValues = valuesDictionary,
-                    AmbientValues = _ambientValues
+                    AmbientValues = AmbientValues
                 },
                 out var link);
 

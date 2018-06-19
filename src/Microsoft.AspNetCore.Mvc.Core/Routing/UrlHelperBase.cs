@@ -25,8 +25,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
 
             ActionContext = actionContext;
+            AmbientValues = actionContext.RouteData.Values;
             _routeValueDictionary = new RouteValueDictionary();
         }
+
+        /// <summary>
+        /// Gets the <see cref="RouteValueDictionary"/> associated with the current request.
+        /// </summary>
+        protected RouteValueDictionary AmbientValues { get; }
 
         /// <inheritdoc />
         public ActionContext ActionContext { get; }
