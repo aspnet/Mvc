@@ -149,7 +149,7 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                 }
 
                 // Combine all authorize filters into single effective policy that's only run on the closest filter
-                AuthorizationPolicyBuilder builder = new AuthorizationPolicyBuilder(effectivePolicy);
+                var builder = new AuthorizationPolicyBuilder(effectivePolicy);
                 for (var i = 0; i < context.Filters.Count; i++)
                 {
                     if (ReferenceEquals(this, context.Filters[i]))
@@ -159,7 +159,6 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
                     
                     if (context.Filters[i] is AuthorizeFilter authorizeFilter)
                     {
-                        builder = builder ?? new AuthorizationPolicyBuilder(effectivePolicy);
                         // Combine using the explicit policy, or the dynamic policy provider
                         builder.Combine(await authorizeFilter.ComputePolicyAsync());
                         canCache = canCache && authorizeFilter.PolicyProvider == null;
