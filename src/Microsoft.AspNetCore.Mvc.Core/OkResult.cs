@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// An <see cref="StatusCodeResult"/> that when executed will produce an empty
     /// <see cref="StatusCodes.Status200OK"/> response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class OkResult : StatusCodeResult
     {
         private const int DefaultStatusCode = StatusCodes.Status200OK;

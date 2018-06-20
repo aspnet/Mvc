@@ -47,26 +47,19 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         }
 
         [Fact]
-        public async Task GetResponseMetadata_ReturnsValueFromProducesAttribute()
+        public async Task GetResponseMetadata_IgnoresProducesAttribute()
         {
             // Arrange
             var compilation = await GetResponseMetadataCompilation();
             var controller = compilation.GetTypeByMetadataName($"{Namespace}.{nameof(GetResponseMetadata_ControllerActionWithAttributes)}");
-            var method = (IMethodSymbol)controller.GetMembers(nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithPrducesAttribute)).First();
+            var method = (IMethodSymbol)controller.GetMembers(nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesAttribute)).First();
             var typeCache = new ApiControllerTypeCache(compilation);
 
             // Act
             var result = SymbolApiResponseMetadataProvider.GetResponseMetadata(typeCache, method);
 
             // Assert
-            Assert.Collection(
-                result,
-                metadata =>
-                {
-                    Assert.Equal(200, metadata.StatusCode);
-                    Assert.NotNull(metadata.Attribute);
-                    Assert.Null(metadata.Convention);
-                });
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -162,7 +155,30 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         }
 
         [Fact]
-        public async Task GetResponseMetadata_ReturnsValueFromCustomResponseTypeMetadataProvider()
+        public async Task GetResponseMetadata_ReturnsValueFromCustomProducesResponseType()
+        {
+            // Arrange
+            var compilation = await GetResponseMetadataCompilation();
+            var controller = compilation.GetTypeByMetadataName($"{Namespace}.{nameof(GetResponseMetadata_ControllerActionWithAttributes)}");
+            var method = (IMethodSymbol)controller.GetMembers(nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithCustomProducesResponseTypeAttributeWithArguments)).First();
+            var typeCache = new ApiControllerTypeCache(compilation);
+
+            // Act
+            var result = SymbolApiResponseMetadataProvider.GetResponseMetadata(typeCache, method);
+
+            // Assert
+            Assert.Collection(
+                result,
+                metadata =>
+                {
+                    Assert.Equal(201, metadata.StatusCode);
+                    Assert.NotNull(metadata.Attribute);
+                    Assert.Null(metadata.Convention);
+                });
+        }
+
+        [Fact]
+        public async Task GetResponseMetadata_IgnoresCustomResponseTypeMetadataProvider()
         {
             // Arrange
             var compilation = await GetResponseMetadataCompilation();
@@ -174,23 +190,31 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             var result = SymbolApiResponseMetadataProvider.GetResponseMetadata(typeCache, method);
 
             // Assert
-            Assert.Collection(
-                result,
-                metadata =>
-                {
-                    Assert.Equal(204, metadata.StatusCode);
-                    Assert.NotNull(metadata.Attribute);
-                    Assert.Null(metadata.Convention);
-                });
+            Assert.Empty(result);
         }
 
         [Fact]
-        public async Task GetResponseMetadata_ReturnsDefaultValueFromCustomResponseTypeMetadataProviderWithIncorrectStatusCodeType()
+        public Task GetResponseMetadata_IgnoresAttributesWithIncorrectStatusCodeType()
+        {
+            return GetResponseMetadata_IgnoresInvalidOrUnsupportedAttribues(
+                nameof(GetResponseMetadata_ControllerActionWithAttributes),
+                nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesResponseTypeWithIncorrectStatusCodeType));
+        }
+
+        [Fact]
+        public Task GetResponseMetadata_IgnoresDerivedAttributesWithoutPropertyOnConstructorArguments()
+        {
+            return GetResponseMetadata_IgnoresInvalidOrUnsupportedAttribues(
+                nameof(GetResponseMetadata_ControllerActionWithAttributes),
+                nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithCustomProducesResponseTypeAttributeWithoutArguments));
+        }
+
+        private async Task GetResponseMetadata_IgnoresInvalidOrUnsupportedAttribues(string typeName, string methodName)
         {
             // Arrange
             var compilation = await GetResponseMetadataCompilation();
-            var controller = compilation.GetTypeByMetadataName($"{Namespace}.{nameof(GetResponseMetadata_ControllerActionWithAttributes)}");
-            var method = (IMethodSymbol)controller.GetMembers(nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithCustomApiResponseMetadataProviderWithIncorrectStatusCodeType)).First();
+            var controller = compilation.GetTypeByMetadataName($"{Namespace}.{typeName}");
+            var method = (IMethodSymbol)controller.GetMembers(methodName).First();
             var typeCache = new ApiControllerTypeCache(compilation);
 
             // Act
@@ -205,6 +229,73 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                     Assert.NotNull(metadata.Attribute);
                     Assert.Null(metadata.Convention);
                 });
+        }
+
+        [Fact]
+        public Task GetStatusCode_ReturnsValueFromConstructor()
+        {
+            //  Arrange
+            var actionName = nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesResponseType_StatusCodeInConstructor);
+            var expected = 201;
+
+            // Act & Assert
+            return GetStatusCodeTest(actionName, expected);
+        }
+
+        [Fact]
+        public Task GetStatusCode_ReturnsValueFromProperty()
+        {
+            //  Arrange
+            var actionName = nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesResponseType_StatusCodeAndTypeInConstructorAndProperty);
+            var expected = 201;
+
+            // Act & Assert
+            return GetStatusCodeTest(actionName, expected);
+        }
+
+        [Fact]
+        public Task GetStatusCode_ReturnsValueFromConstructor_WhenTypeIsSpecified()
+        {
+            //  Arrange
+            var actionName = nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesResponseType_StatusCodeAndTypeInConstructor);
+            var expected = 202;
+
+            // Act & Assert
+            return GetStatusCodeTest(actionName, expected);
+        }
+
+        [Fact]
+        public Task GetStatusCode_Returns200_IfTypeIsNotInteger()
+        {
+            //  Arrange
+            var actionName = nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithProducesResponseTypeWithIncorrectStatusCodeType);
+            var expected = 200;
+
+            // Act & Assert
+            return GetStatusCodeTest(actionName, expected);
+        }
+
+        [Fact]
+        public Task GetStatusCode_ReturnsValueFromDerivedAttributes()
+        {
+            //  Arrange
+            var actionName = nameof(GetResponseMetadata_ControllerActionWithAttributes.ActionWithCustomProducesResponseTypeAttributeWithArguments);
+            var expected = 201;
+
+            // Act & Assert
+            return GetStatusCodeTest(actionName, expected);
+        }
+
+        private async Task GetStatusCodeTest(string actionName, int expected)
+        {
+            var compilation = await GetResponseMetadataCompilation();
+            var controller = compilation.GetTypeByMetadataName($"{Namespace}.{nameof(GetResponseMetadata_ControllerActionWithAttributes)}");
+            var method = (IMethodSymbol)controller.GetMembers(actionName).First();
+            var attribute = method.GetAttributes().First();
+
+            var statusCode = SymbolApiResponseMetadataProvider.GetStatusCode(attribute);
+
+            Assert.Equal(expected, statusCode);
         }
 
         private Task<Compilation> GetResponseMetadataCompilation() => GetCompilation("GetResponseMetadataTests");

@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// Represents an <see cref="UnauthorizedResult"/> that when
     /// executed will produce an Unauthorized (401) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class UnauthorizedResult : StatusCodeResult
     {
         private const int DefaultStatusCode = StatusCodes.Status401Unauthorized;

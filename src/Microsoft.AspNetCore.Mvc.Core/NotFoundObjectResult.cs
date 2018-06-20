@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ObjectResult"/> that when executed will produce a Not Found (404) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class NotFoundObjectResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status404NotFound;

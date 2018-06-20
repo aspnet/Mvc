@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// A <see cref="StatusCodeResult"/> that when executed will produce a 204 No Content response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class NoContentResult : StatusCodeResult
     {
         private const int DefaultStatusCode = StatusCodes.Status204NoContent;

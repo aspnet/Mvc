@@ -9,9 +9,12 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
     internal class SymbolApiResponseMetadataProvider
     {
+        private const string StatusCodeProperty = "StatusCode";
+        private const string StatusCodeConstructorParameter = "statusCode";
+
         internal static IList<ApiResponseMetadata> GetResponseMetadata(ApiControllerTypeCache typeCache, IMethodSymbol methodSymbol)
         {
-            var responseMetadataAttributes = methodSymbol.GetAttributes(typeCache.IApiResponseMetadataProvider, inherit: true);
+            var responseMetadataAttributes = methodSymbol.GetAttributes(typeCache.ProducesResponseTypeAttribute, inherit: true);
             var metadataItems = new List<ApiResponseMetadata>();
             foreach (var attribute in responseMetadataAttributes)
             {
@@ -24,15 +27,14 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             return metadataItems;
         }
 
-        private static int GetStatusCode(AttributeData attribute)
+        internal static int GetStatusCode(AttributeData attribute)
         {
             const int DefaultStatusCode = 200;
-
             for (var i = 0; i < attribute.NamedArguments.Length; i++)
             {
                 var namedArgument = attribute.NamedArguments[i];
                 var namedArgumentValue = namedArgument.Value;
-                if (string.Equals(namedArgument.Key, "StatusCode", StringComparison.Ordinal) &&
+                if (string.Equals(namedArgument.Key,  StatusCodeProperty, StringComparison.Ordinal) &&
                     namedArgumentValue.Kind == TypedConstantKind.Primitive &&
                     (namedArgumentValue.Type.SpecialType & SpecialType.System_Int32) == SpecialType.System_Int32 &&
                     namedArgumentValue.Value is int statusCode)
@@ -50,7 +52,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             for (var i = 0; i < constructorParameters.Length; i++)
             {
                 var parameter = constructorParameters[i];
-                if (string.Equals(parameter.Name, "StatusCode", StringComparison.OrdinalIgnoreCase) &&
+                if (string.Equals(parameter.Name, StatusCodeConstructorParameter, StringComparison.Ordinal) &&
                     (parameter.Type.SpecialType & SpecialType.System_Int32) == SpecialType.System_Int32)
                 {
                     if (attribute.ConstructorArguments.Length < i)

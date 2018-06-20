@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// An <see cref="ObjectResult"/> that when executed performs content negotiation, formats the entity body, and
     /// will produce a <see cref="StatusCodes.Status200OK"/> response if negotiation and formatting succeed.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class OkObjectResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status200OK;

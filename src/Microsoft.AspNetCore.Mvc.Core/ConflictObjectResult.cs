@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ObjectResult"/> that when executed will produce a Conflict (409) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class ConflictObjectResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status409Conflict;

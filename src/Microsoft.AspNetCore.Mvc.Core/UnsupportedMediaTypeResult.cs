@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// A <see cref="StatusCodeResult"/> that when
     /// executed will produce a UnsupportedMediaType (415) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class UnsupportedMediaTypeResult : StatusCodeResult
     {
         private const int DefaultStatusCode = StatusCodes.Status415UnsupportedMediaType;

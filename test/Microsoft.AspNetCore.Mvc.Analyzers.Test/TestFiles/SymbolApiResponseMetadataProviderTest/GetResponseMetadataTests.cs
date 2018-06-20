@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
     public class GetResponseMetadata_ControllerActionWithAttributes : ControllerBase
     {
         [Produces(typeof(Person))]
-        public IActionResult ActionWithPrducesAttribute(int id) => null;
+        public IActionResult ActionWithProducesAttribute(int id) => null;
 
         [ProducesResponseType(201)]
         public IActionResult ActionWithProducesResponseType_StatusCodeInConstructor() => null;
@@ -34,8 +34,14 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         [CustomResponseType(Type = typeof(Person), StatusCode = 204)]
         public IActionResult ActionWithCustomApiResponseMetadataProvider() => null;
 
-        [CustomResponseTypeDerived(Type = typeof(Person), StatusCode = "204")]
-        public IActionResult ActionWithCustomApiResponseMetadataProviderWithIncorrectStatusCodeType() => null;
+        [Produces201ResponseType]
+        public IActionResult ActionWithCustomProducesResponseTypeAttributeWithoutArguments() => null;
+
+        [Produces201ResponseType(201)]
+        public IActionResult ActionWithCustomProducesResponseTypeAttributeWithArguments() => null;
+
+        [CustomInvalidProducesResponseType(Type = typeof(Person), StatusCode = "204")]
+        public IActionResult ActionWithProducesResponseTypeWithIncorrectStatusCodeType() => null;
     }
 
     public class Person { }
@@ -51,9 +57,21 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         }
     }
 
-    public class CustomResponseTypeDerivedAttribute : CustomResponseTypeAttribute
+    public class Produces201ResponseTypeAttribute : ProducesResponseTypeAttribute
+    {
+        public Produces201ResponseTypeAttribute() : base(201) { }
+
+        public Produces201ResponseTypeAttribute(int statusCode) : base(statusCode) { }
+    }
+
+    public class CustomInvalidProducesResponseTypeAttribute : ProducesResponseTypeAttribute
     {
         private string _statusCode;
+
+        public CustomInvalidProducesResponseTypeAttribute() 
+            : base(0)
+        {
+        }
 
         public new string StatusCode
         {

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ObjectResult"/> that when executed will produce a Bad Request (400) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class BadRequestObjectResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status400BadRequest;

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ActionResult"/> that returns an Accepted (202) response with a Location header.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class AcceptedResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status202Accepted;

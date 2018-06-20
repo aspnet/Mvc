@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ActionResult"/> that returns a Created (201) response with a Location header.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class CreatedAtActionResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status201Created;

@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// <summary>
     /// An <see cref="ObjectResult"/> that when executed will produce a Unprocessable Entity (422) response.
     /// </summary>
-    [StatusCode(DefaultStatusCode)]
+    [DefaultStatusCode(DefaultStatusCode)]
     public class UnprocessableEntityObjectResult : ObjectResult
     {
         private const int DefaultStatusCode = StatusCodes.Status422UnprocessableEntity;

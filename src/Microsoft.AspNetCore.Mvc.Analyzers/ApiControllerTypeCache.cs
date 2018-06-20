@@ -5,16 +5,16 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
-    internal sealed class ApiControllerTypeCache
+    internal readonly struct ApiControllerTypeCache
     {
         public ApiControllerTypeCache(Compilation compilation)
         {
             ApiConventionAttribute = compilation.GetTypeByMetadataName(SymbolNames.ApiConventionAttribute);
-            IApiResponseMetadataProvider = compilation.GetTypeByMetadataName(SymbolNames.IApiResponseMetadataProvider);
+            ProducesResponseTypeAttribute = compilation.GetTypeByMetadataName(SymbolNames.ProducesResponseTypeAttribute);
         }
 
         public INamedTypeSymbol ApiConventionAttribute { get; }
 
-        public INamedTypeSymbol IApiResponseMetadataProvider { get; }
+        public INamedTypeSymbol ProducesResponseTypeAttribute { get; }
     }
 }
