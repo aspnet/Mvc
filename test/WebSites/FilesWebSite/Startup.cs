@@ -13,7 +13,7 @@ namespace FilesWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(options => options.EnableEndpointRouting = true);
         }
 
         public void Configure(IApplicationBuilder app)

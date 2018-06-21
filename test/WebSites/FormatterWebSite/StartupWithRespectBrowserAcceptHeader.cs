@@ -13,6 +13,7 @@ namespace FormatterWebSite
             services.AddMvc(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
+                options.EnableEndpointRouting = true;
             });
         }
 
