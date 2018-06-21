@@ -16,7 +16,6 @@ namespace RazorWebSite
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             services
@@ -33,7 +32,6 @@ namespace RazorWebSite
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
             app.UseRequestLocalization(new RequestLocalizationOptions
             {
@@ -50,10 +48,7 @@ namespace RazorWebSite
             app.UseStaticFiles();
 
             // Add MVC to the request pipeline
-            app.UseMvcWithEndpoint(routes =>
-            {
-                routes.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
         }
     }
 }

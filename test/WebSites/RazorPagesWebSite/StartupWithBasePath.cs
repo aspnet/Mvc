@@ -12,7 +12,6 @@ namespace RazorPagesWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options => options.LoginPath = "/Login");
             services.AddMvc()
@@ -30,17 +29,14 @@ namespace RazorPagesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-
             app.UseAuthentication();
 
             app.UseStaticFiles();
 
-            app.UseMvcWithEndpoint(routes =>
+            app.UseMvc(routes =>
             {
-                routes.MapEndpoint("areaRoute", "{area:exists}/{controller=Home}/{action=Index}");
+                routes.MapRoute("areaRoute", "{area:exists}/{controller=Home}/{action=Index}");
             });
-
         }
     }
 }

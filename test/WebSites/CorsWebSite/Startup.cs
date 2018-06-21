@@ -13,7 +13,6 @@ namespace CorsWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             services.AddMvc();
             services.Configure<CorsOptions>(options =>
             {
@@ -75,12 +74,7 @@ namespace CorsWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-
-            app.UseMvcWithEndpoint(routes =>
-            {
-                routes.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvc();
         }
 
         public static void Main(string[] args)

@@ -11,7 +11,6 @@ namespace FormatterWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             services.AddMvc(options =>
             {
                 options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Developer)));
@@ -25,11 +24,10 @@ namespace FormatterWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-
-            app.UseMvcWithEndpoint(routes =>
+            app.UseMvc(routes =>
             {
-                routes.MapEndpoint("default", "{controller=Home}/{action=Index}");
+                routes.MapRoute("ActionAsMethod", "{controller}/{action}",
+                    defaults: new { controller = "Home", action = "Index" });
             });
         }
     }

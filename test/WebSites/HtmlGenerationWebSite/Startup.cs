@@ -14,7 +14,6 @@ namespace HtmlGenerationWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             // Add MVC services to the services container. Change default FormTagHelper.AntiForgery to false. Usually
             // null which is interpreted as true unless element includes an action attribute.
             services.AddMvc().InitializeTagHelper<FormTagHelper>((helper, _) => helper.Antiforgery = false);
@@ -25,20 +24,18 @@ namespace HtmlGenerationWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-
             app.UseStaticFiles();
-            app.UseMvcWithEndpoint(routes =>
+            app.UseMvc(routes =>
             {
-                routes.MapEndpoint(
+                routes.MapRoute(
                     name: "areaRoute",
                     template: "{area:exists}/{controller}/{action}/{id?}",
                     defaults: new { action = "Index" });
-                routes.MapEndpoint(
+                routes.MapRoute(
                     name: "productRoute",
                     template: "Product/{action}",
                     defaults: new { controller = "Product" });
-                routes.MapEndpoint(
+                routes.MapRoute(
                     name: "default",
                     template: "{controller}/{action}/{id?}",
                     defaults: new { controller = "HtmlGeneration_Home", action = "Index" });

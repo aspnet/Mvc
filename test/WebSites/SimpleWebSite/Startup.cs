@@ -16,7 +16,6 @@ namespace SimpleWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             // Example 1
             services
                 .AddMvcCore()
@@ -27,12 +26,7 @@ namespace SimpleWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-
-            app.UseMvcWithEndpoint(routes =>
-            {
-                routes.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
         }
 
         public static void Main(string[] args)

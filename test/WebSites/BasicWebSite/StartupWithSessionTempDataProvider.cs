@@ -10,7 +10,6 @@ namespace BasicWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             // CookieTempDataProvider is the default ITempDataProvider, so we must override it with session.
             services
                 .AddMvc()
@@ -22,13 +21,9 @@ namespace BasicWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
             app.UseDeveloperExceptionPage();
             app.UseSession();
-            app.UseMvcWithEndpoint(r =>
-            {
-                r.MapEndpoint("default", "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
         }
     }
 }

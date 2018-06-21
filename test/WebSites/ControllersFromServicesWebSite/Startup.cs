@@ -21,7 +21,6 @@ namespace ControllersFromServicesWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDispatcher();
             var builder = services
                 .AddMvc()
                 .ConfigureApplicationPartManager(manager => manager.ApplicationParts.Clear())
@@ -58,10 +57,9 @@ namespace ControllersFromServicesWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseDispatcher();
-            app.UseMvcWithEndpoint(routes =>
+            app.UseMvc(routes =>
             {
-                routes.MapEndpoint("default", "{controller}/{action}/{id}");
+                routes.MapRoute("default", "{controller}/{action}/{id}");
             });
         }
 
