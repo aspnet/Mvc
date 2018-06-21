@@ -41,5 +41,21 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// Gets or sets the parameter descriptor.
         /// </summary>
         public ParameterDescriptor ParameterDescriptor { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that determines if the parameter is required.
+        /// </summary>
+        /// <remarks>
+        /// A parameter is considered required if
+        /// a) If it's bound from the request body (<see cref="BindingSource.Body"/>).
+        /// b) If it's a required route value.
+        /// c) If it has annotations (e.g. BindRequiredAttribute) that indicate it's required.
+        /// </remarks>
+        public bool IsRequired { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default value for a parameter.
+        /// </summary>
+        public object DefaultValue { get; set; }
     }
 }
