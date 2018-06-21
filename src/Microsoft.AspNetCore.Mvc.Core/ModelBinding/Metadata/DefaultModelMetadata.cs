@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
 
         /// <inheritdoc />
         public override bool IsRequired
-        { 
+        {
             get
             {
                 if (!_isRequired.HasValue)

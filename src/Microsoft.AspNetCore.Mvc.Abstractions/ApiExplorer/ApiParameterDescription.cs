@@ -47,9 +47,11 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         /// </summary>
         /// <remarks>
         /// A parameter is considered required if
-        /// a) If it's bound from the request body (<see cref="BindingSource.Body"/>).
-        /// b) If it's a required route value.
-        /// c) If it has annotations (e.g. BindRequiredAttribute) that indicate it's required.
+        /// <list type="bullet">
+        /// <item>it's bound from the request body (<see cref="BindingSource.Body"/>).</item>
+        /// <item>it's a required route value.</item>
+        /// <item>it has annotations (e.g. BindRequiredAttribute) that indicate it's required.</item>
+        /// </list>
         /// </remarks>
         public bool IsRequired { get; set; }
 

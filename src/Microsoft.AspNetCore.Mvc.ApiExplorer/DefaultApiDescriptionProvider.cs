@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
     /// Implements a provider of <see cref="ApiDescription"/> for actions represented
     /// by <see cref="ControllerActionDescriptor"/>.
     /// </summary>
-    public partial class DefaultApiDescriptionProvider : IApiDescriptionProvider
+    public class DefaultApiDescriptionProvider : IApiDescriptionProvider
     {
         private readonly MvcOptions _mvcOptions;
         private readonly IActionResultTypeMapper _mapper;
@@ -318,7 +318,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 else
                 {
                     if (parameter.ParameterDescriptor is ControllerParameterDescriptor controllerParameter &&
-                    ParameterDefaultValues.TryGetDeclaredParameterDefaultValue(controllerParameter.ParameterInfo, out var defaultValue))
+                        ParameterDefaultValues.TryGetDeclaredParameterDefaultValue(controllerParameter.ParameterInfo, out var defaultValue))
                     {
                         parameter.DefaultValue = defaultValue;
                     }

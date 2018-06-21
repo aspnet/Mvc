@@ -1531,7 +1531,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
         }
 
         [Fact]
-        public void ProcessDefaultValue_SetsDefaultRouteValue_FromParameterInfo()
+        public void ProcessDefaultValue_SetsDefaultValue_FromParameterInfo()
         {
             // Arrange
             var methodInfo = GetType().GetMethod(nameof(ParameterDefaultValue), BindingFlags.Instance | BindingFlags.NonPublic);
