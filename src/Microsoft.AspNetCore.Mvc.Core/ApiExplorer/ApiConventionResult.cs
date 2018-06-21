@@ -5,16 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
-namespace Microsoft.AspNetCore.Mvc.Infrastructure
+namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 {
     /// <summary>
     /// Metadata associated with an action method via API convention.
     /// </summary>
-    public sealed class ApiConventionItem
+    public sealed class ApiConventionResult
     {
-        public ApiConventionItem(IReadOnlyList<IApiResponseMetadataProvider> responseMetadataProviders)
+        public ApiConventionResult(IReadOnlyList<IApiResponseMetadataProvider> responseMetadataProviders)
         {
             ResponseMetadataProviders = responseMetadataProviders ??
                 throw new ArgumentNullException(nameof(responseMetadataProviders));
@@ -22,7 +21,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
         public IReadOnlyList<IApiResponseMetadataProvider> ResponseMetadataProviders { get; }
 
-        internal static ApiConventionItem GetApiConventionItem(MethodInfo method, ApiConventionAttribute[] apiConventionAttributes)
+        internal static ApiConventionResult GetApiConvention(MethodInfo method, ApiConventionTypeAttribute[] apiConventionAttributes)
         {
             foreach (var attribute in apiConventionAttributes)
             {
@@ -33,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                         .OfType<IApiResponseMetadataProvider>()
                         .ToArray();
 
-                    return new ApiConventionItem(metadataProviders);
+                    return new ApiConventionResult(metadataProviders);
                 }
             }
 
@@ -108,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             ApiConventionTypeMatchBehavior GetTypeMatchBehavior(ParameterInfo parameter)
             {
                 var typeMatchAttribute = parameter.GetCustomAttribute<ApiConventionTypeMatchAttribute>(inherit: false);
-                return typeMatchAttribute?.MatchBehavior ?? ApiConventionTypeMatchBehavior.Exact;
+                return typeMatchAttribute?.MatchBehavior ?? ApiConventionTypeMatchBehavior.AssignableFrom;
             }
         }
 
@@ -184,9 +183,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             {
                 case ApiConventionTypeMatchBehavior.Any:
                     return true;
-
-                case ApiConventionTypeMatchBehavior.Exact:
-                    return type == conventionType;
 
                 case ApiConventionTypeMatchBehavior.AssignableFrom:
                     return conventionType.IsAssignableFrom(type);

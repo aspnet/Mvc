@@ -5,39 +5,39 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Infrastructure
+namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 {
-    public class ApiConventionItemTest
+    public class ApiConventionResultTest
     {
         [Fact]
-        public void GetApiConventionItem_ReturnsNull_IfNoConventionMatches()
+        public void GetApiConvention_ReturnsNull_IfNoConventionMatches()
         {
             // Arrange
-            var method = typeof(GetApiConventionItem_ReturnsNull_IfNoConventionMatchesController).GetMethod(nameof(GetApiConventionItem_ReturnsNull_IfNoConventionMatchesController.NoMatch));
-            var convention = new ApiConventionAttribute(typeof(DefaultApiConventions));
+            var method = typeof(GetApiConvention_ReturnsNull_IfNoConventionMatchesController).GetMethod(nameof(GetApiConvention_ReturnsNull_IfNoConventionMatchesController.NoMatch));
+            var convention = new ApiConventionTypeAttribute(typeof(DefaultApiConventions));
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, new[] { convention });
+            var result = ApiConventionResult.GetApiConvention(method, new[] { convention });
 
             // Assert
             Assert.Null(result);
         }
 
-        public class GetApiConventionItem_ReturnsNull_IfNoConventionMatchesController
+        public class GetApiConvention_ReturnsNull_IfNoConventionMatchesController
         {
             public IActionResult NoMatch(int id) => null;
         }
 
         [Fact]
-        public void GetApiConventionItem_ReturnsResultFromConvention()
+        public void GetApiConvention_ReturnsResultFromConvention()
         {
             // Arrange
-            var method = typeof(GetApiConventionItem_ReturnsResultFromConventionController)
-                .GetMethod(nameof(GetApiConventionItem_ReturnsResultFromConventionController.Match));
-            var convention = new ApiConventionAttribute(typeof(GetApiConventionItem_ReturnsResultFromConventionType));
+            var method = typeof(GetApiConvention_ReturnsResultFromConventionController)
+                .GetMethod(nameof(GetApiConvention_ReturnsResultFromConventionController.Match));
+            var convention = new ApiConventionTypeAttribute(typeof(GetApiConvention_ReturnsResultFromConventionType));
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, new[] { convention });
+            var result = ApiConventionResult.GetApiConvention(method, new[] { convention });
 
             // Assert
             Assert.NotNull(result);
@@ -47,12 +47,12 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 r => Assert.Equal(403, r.StatusCode));
         }
 
-        public class GetApiConventionItem_ReturnsResultFromConventionController
+        public class GetApiConvention_ReturnsResultFromConventionController
         {
             public IActionResult Match(int id) => null;
         }
 
-        public static class GetApiConventionItem_ReturnsResultFromConventionType
+        public static class GetApiConvention_ReturnsResultFromConventionType
         {
             [ProducesResponseType(200)]
             [ProducesResponseType(202)]
@@ -65,19 +65,19 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void GetApiConventionItem_ReturnsResultFromFirstMatchingConvention()
+        public void GetApiConvention_ReturnsResultFromFirstMatchingConvention()
         {
             // Arrange
-            var method = typeof(GetApiConventionItem_ReturnsResultFromFirstMatchingConventionController)
-                .GetMethod(nameof(GetApiConventionItem_ReturnsResultFromFirstMatchingConventionController.Get));
+            var method = typeof(GetApiConvention_ReturnsResultFromFirstMatchingConventionController)
+                .GetMethod(nameof(GetApiConvention_ReturnsResultFromFirstMatchingConventionController.Get));
             var conventions = new[]
             {
-                new ApiConventionAttribute(typeof(GetApiConventionItem_ReturnsResultFromConventionType)),
-                new ApiConventionAttribute(typeof(DefaultApiConventions)),
+                new ApiConventionTypeAttribute(typeof(GetApiConvention_ReturnsResultFromConventionType)),
+                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, conventions);
+            var result = ApiConventionResult.GetApiConvention(method, conventions);
 
             // Assert
             Assert.NotNull(result);
@@ -88,24 +88,24 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 r => Assert.Equal(404, r.StatusCode));
         }
 
-        public class GetApiConventionItem_ReturnsResultFromFirstMatchingConventionController
+        public class GetApiConvention_ReturnsResultFromFirstMatchingConventionController
         {
             public IActionResult Get(int id) => null;
         }
 
         [Fact]
-        public void GetApiConventionItem_GetAction_MatchesDefaultConvention()
+        public void GetApiConvention_GetAction_MatchesDefaultConvention()
         {
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.GetUser));
             var conventions = new[]
             {
-                new ApiConventionAttribute(typeof(DefaultApiConventions)),
+                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, conventions);
+            var result = ApiConventionResult.GetApiConvention(method, conventions);
 
             // Assert
             Assert.NotNull(result);
@@ -116,18 +116,18 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void GetApiConventionItem_PostAction_MatchesDefaultConvention()
+        public void GetApiConvention_PostAction_MatchesDefaultConvention()
         {
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.PostUser));
             var conventions = new[]
             {
-                new ApiConventionAttribute(typeof(DefaultApiConventions)),
+                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, conventions);
+            var result = ApiConventionResult.GetApiConvention(method, conventions);
 
             // Assert
             Assert.NotNull(result);
@@ -138,18 +138,18 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void GetApiConventionItem_PutAction_MatchesDefaultConvention()
+        public void GetApiConvention_PutAction_MatchesDefaultConvention()
         {
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.PutUser));
             var conventions = new[]
             {
-                new ApiConventionAttribute(typeof(DefaultApiConventions)),
+                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, conventions);
+            var result = ApiConventionResult.GetApiConvention(method, conventions);
 
             // Assert
             Assert.NotNull(result);
@@ -161,18 +161,18 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void GetApiConventionItem_DeleteAction_MatchesDefaultConvention()
+        public void GetApiConvention_DeleteAction_MatchesDefaultConvention()
         {
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.Delete));
             var conventions = new[]
             {
-                new ApiConventionAttribute(typeof(DefaultApiConventions)),
+                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionItem.GetApiConventionItem(method, conventions);
+            var result = ApiConventionResult.GetApiConvention(method, conventions);
 
             // Assert
             Assert.NotNull(result);
@@ -204,7 +204,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void IsNameMatch_WithAny_AlwaysReturnsTrue(string name, string conventionName)
         {
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Any);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Any);
 
             // Assert
             Assert.True(result);
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "name";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
 
             // Assert
             Assert.False(result);
@@ -232,7 +232,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Different";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
 
             // Assert
             Assert.False(result);
@@ -246,7 +246,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Regular";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
 
             // Assert
             Assert.False(result);
@@ -260,7 +260,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "RegularName";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
 
             // Assert
             Assert.False(result);
@@ -274,7 +274,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "parameterName";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Exact);
 
             // Assert
             Assert.True(result);
@@ -288,7 +288,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "PostPerson";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.True(result);
@@ -302,7 +302,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Post";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.True(result);
@@ -316,7 +316,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Post";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.False(result);
@@ -330,7 +330,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "post";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.False(result);
@@ -344,7 +344,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Post";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.False(result);
@@ -358,7 +358,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Post";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Prefix);
 
             // Assert
             Assert.False(result);
@@ -372,7 +372,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "diff";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.False(result);
@@ -386,7 +386,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "idx";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.False(result);
@@ -400,7 +400,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "test";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.True(result);
@@ -414,7 +414,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "Test";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.False(result);
@@ -428,7 +428,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionName = "id";
 
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.True(result);
@@ -440,7 +440,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void IsNameMatch_WithSuffix_ReturnFalse_IfNameIsNotProperSuffix(string name, string conventionName)
         {
             // Act
-            var result = ApiConventionItem.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
+            var result = ApiConventionResult.IsNameMatch(name, conventionName, ApiConventionNameMatchBehavior.Suffix);
 
             // Assert
             Assert.False(result);
@@ -453,52 +453,10 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         public void IsTypeMatch_WithAny_ReturnsTrue(Type type, Type conventionType)
         {
             // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.Any);
+            var result = ApiConventionResult.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.Any);
 
             // Assert
             Assert.True(result);
-        }
-
-        [Fact]
-        public void IsTypeMatch_WithExact_ReturnsTrueForExactType()
-        {
-            // Arrange
-            var type = typeof(int);
-            var conventionType = typeof(int);
-
-            // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.Exact);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsTypeMatch_WithExact_ReturnsFalseForDifferentTypes()
-        {
-            // Arrange
-            var type = typeof(int);
-            var conventionType = typeof(string);
-
-            // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.Exact);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IsTypeMatch_WithExact_ReturnsFalseForDerivedTypes()
-        {
-            // Arrange
-            var type = typeof(Base);
-            var conventionType = typeof(Derived);
-
-            // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.Exact);
-
-            // Assert
-            Assert.False(result);
         }
 
         [Fact]
@@ -509,7 +467,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionType = typeof(Base);
 
             // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
+            var result = ApiConventionResult.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
 
             // Assert
             Assert.True(result);
@@ -523,7 +481,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionType = typeof(Base);
 
             // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
+            var result = ApiConventionResult.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
 
             // Assert
             Assert.True(result);
@@ -537,7 +495,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionType = typeof(Derived);
 
             // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
+            var result = ApiConventionResult.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
 
             // Assert
             Assert.False(result);
@@ -551,7 +509,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionType = typeof(Derived);
 
             // Act
-            var result = ApiConventionItem.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
+            var result = ApiConventionResult.IsTypeMatch(type, conventionType, ApiConventionTypeMatchBehavior.AssignableFrom);
 
             // Assert
             Assert.False(result);
@@ -565,7 +523,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.Post));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.False(result);
@@ -579,7 +537,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.GetNoArgs));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.False(result);
@@ -593,7 +551,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.GetTwoArgs));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.False(result);
@@ -607,7 +565,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.GetParameterNotMatching));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.False(result);
@@ -621,7 +579,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.Get));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.True(result);
@@ -635,7 +593,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.Search));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.True(result);
@@ -649,7 +607,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var conventionMethod = typeof(TestConvention).GetMethod(nameof(TestConvention.SearchWithParams));
 
             // Act
-            var result = ApiConventionItem.IsMatch(method, conventionMethod);
+            var result = ApiConventionResult.IsMatch(method, conventionMethod);
 
             // Assert
             Assert.True(result);
@@ -683,7 +641,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             public static void Post(Derived model) { }
 
             [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Prefix)]
-            public static void GetParameterNotMatching([ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.Exact)] Derived model) { }
+            public static void GetParameterNotMatching([ApiConventionTypeMatch(ApiConventionTypeMatchBehavior.AssignableFrom)] Derived model) { }
 
             [ApiConventionNameMatch(ApiConventionNameMatchBehavior.Any)]
             public static void Search(

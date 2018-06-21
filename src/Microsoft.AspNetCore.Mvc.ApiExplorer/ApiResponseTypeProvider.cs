@@ -39,11 +39,11 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
             var responseMetadataAttributes = GetResponseMetadataAttributes(action);
             if (responseMetadataAttributes.Count == 0 && 
-                action.Properties.TryGetValue(typeof(ApiConventionItem), out var apiConventionItem) &&
-                apiConventionItem != null)
+                action.Properties.TryGetValue(typeof(ApiConventionResult), out var result))
             {
                 // Action does not have any conventions. Use conventions on it if present.
-                responseMetadataAttributes = ((ApiConventionItem)apiConventionItem).ResponseMetadataProviders;
+                var apiConventionResult = (ApiConventionResult)result;
+                responseMetadataAttributes = apiConventionResult.ResponseMetadataProviders;
             }
 
             var apiResponseTypes = GetApiResponseTypes(responseMetadataAttributes, runtimeReturnType);

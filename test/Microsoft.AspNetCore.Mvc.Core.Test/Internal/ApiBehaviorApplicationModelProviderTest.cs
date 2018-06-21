@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -883,7 +884,7 @@ Environment.NewLine + "int b";
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
                 Array.Empty<object>());
             actionModel.Filters.Add(new ProducesResponseTypeAttribute(200));
-            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
             ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
@@ -900,7 +901,7 @@ Environment.NewLine + "int b";
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
                 Array.Empty<object>());
             actionModel.Filters.Add(new ProducesAttribute(typeof(object)));
-            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
             ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
@@ -916,7 +917,7 @@ Environment.NewLine + "int b";
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.NoMatch)),
                 Array.Empty<object>());
-            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
             ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
@@ -932,7 +933,7 @@ Environment.NewLine + "int b";
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
                 Array.Empty<object>());
-            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
             ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
@@ -942,7 +943,7 @@ Environment.NewLine + "int b";
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiConventionItem), kvp.Key);
+                    Assert.Equal(typeof(ApiConventionResult), kvp.Key);
                     Assert.NotNull(kvp.Value);
                 });
         }
@@ -957,7 +958,7 @@ Environment.NewLine + "int b";
             actionModel.Filters.Add(new AuthorizeFilter());
             actionModel.Filters.Add(new ServiceFilterAttribute(typeof(object)));
             actionModel.Filters.Add(new ConsumesAttribute("application/xml"));
-            var attributes = new[] { new ApiConventionAttribute(typeof(DefaultApiConventions)) };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
             ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
@@ -967,7 +968,7 @@ Environment.NewLine + "int b";
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiConventionItem), kvp.Key);
+                    Assert.Equal(typeof(ApiConventionResult), kvp.Key);
                     Assert.NotNull(kvp.Value);
                 });
         }
@@ -976,7 +977,7 @@ Environment.NewLine + "int b";
         private static TypeBuilder CreateTestControllerType()
         {
             var attributeBuilder = new CustomAttributeBuilder(
-                typeof(ApiConventionAttribute).GetConstructor(new[] { typeof(Type) }),
+                typeof(ApiConventionTypeAttribute).GetConstructor(new[] { typeof(Type) }),
                 new[] { typeof(DefaultApiConventions) });
 
             var assemblyName = new AssemblyName("TestAssembly");

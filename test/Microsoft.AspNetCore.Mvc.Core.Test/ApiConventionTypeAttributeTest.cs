@@ -3,13 +3,13 @@
 
 using System;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Testing;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Core.Test
+namespace Microsoft.AspNetCore.Mvc
 {
-    public class ApiConventionAttributeTest
+    public class ApiConventionTypeAttributeTest
     {
         [Fact]
         public void Constructor_ThrowsIfConventionMethodIsAnnotatedWithProducesAttribute()
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             // Act & Assert
             ExceptionAssert.ThrowsArgument(
-                () => new ApiConventionAttribute(typeof(ConventionWithProducesAttribute)),
+                () => new ApiConventionTypeAttribute(typeof(ConventionWithProducesAttribute)),
                 "conventionType",
                 expected);
         }
@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             // Act & Assert
             ExceptionAssert.ThrowsArgument(
-                () => new ApiConventionAttribute(typeof(ConventionWithRouteAttribute)),
+                () => new ApiConventionTypeAttribute(typeof(ConventionWithRouteAttribute)),
                 "conventionType",
                 expected);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test
 
             // Act & Assert
             ExceptionAssert.ThrowsArgument(
-                () => new ApiConventionAttribute(typeof(ConventionWitUnsupportedAttributes)),
+                () => new ApiConventionTypeAttribute(typeof(ConventionWitUnsupportedAttributes)),
                 "conventionType",
                 expected);
         }

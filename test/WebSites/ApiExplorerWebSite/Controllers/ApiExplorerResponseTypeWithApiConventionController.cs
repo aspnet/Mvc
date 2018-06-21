@@ -9,7 +9,7 @@ namespace ApiExplorerWebSite
 {
     [ApiController]
     [Route("ApiExplorerResponseTypeWithApiConventionController/[Action]")]
-    [ApiConvention(typeof(DefaultApiConventions))]
+    [ApiConventionType(typeof(DefaultApiConventions))]
     public class ApiExplorerResponseTypeWithApiConventionController : Controller
     {
         [HttpGet]

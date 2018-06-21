@@ -4,8 +4,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Core;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -14,10 +14,14 @@ namespace Microsoft.AspNetCore.Mvc
     /// API conventions to be applied to an assembly containing MVC controllers or a single controller.
     /// <para>
     /// API conventions are used to influence the output of ApiExplorer. 
+    /// Conventions must be static types. Methods in a convention are
+    /// matched to an action method using rules specified by <see cref="ApiConventionNameMatchAttribute" />
+    /// that may be applied to a method name or it's parameters and <see cref="ApiConventionTypeMatchAttribute"/>
+    /// that are applied to parameters.
     /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-    public sealed class ApiConventionAttribute : Attribute
+    public sealed class ApiConventionTypeAttribute : Attribute
     {
         /// <summary>
         /// Initializes an <see cref="ApiControllerAttribute"/> instance using <paramref name="conventionType"/>.
@@ -31,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// that are applied to parameters.
         /// </para>
         /// </param>
-        public ApiConventionAttribute(Type conventionType)
+        public ApiConventionTypeAttribute(Type conventionType)
         {
             ConventionType = conventionType ?? throw new ArgumentNullException(nameof(conventionType));
             EnsureValid(conventionType);

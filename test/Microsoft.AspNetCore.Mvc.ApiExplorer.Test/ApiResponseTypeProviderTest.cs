@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Xunit;
@@ -25,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             var actionDescriptor = GetControllerActionDescriptor(
                 typeof(GetApiResponseTypes_ReturnsResponseTypesFromActionIfPresentController),
                 nameof(GetApiResponseTypes_ReturnsResponseTypesFromActionIfPresentController.Get));
-            actionDescriptor.Properties[typeof(ApiConventionItem)] = new ApiConventionItem(new[]
+            actionDescriptor.Properties[typeof(ApiConventionResult)] = new ApiConventionResult(new[]
             {
                 new ProducesResponseTypeAttribute(201),
                 new ProducesResponseTypeAttribute(404),
@@ -64,7 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 });
         }
 
-        [ApiConvention(typeof(DefaultApiConventions))]
+        [ApiConventionType(typeof(DefaultApiConventions))]
         public class GetApiResponseTypes_ReturnsResponseTypesFromActionIfPresentController : ControllerBase
         {
             [Produces(typeof(BaseModel))]
@@ -81,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 typeof(GetApiResponseTypes_ReturnsResponseTypesFromDefaultConventionsController),
                 nameof(GetApiResponseTypes_ReturnsResponseTypesFromDefaultConventionsController.DeleteBase));
 
-            actionDescriptor.Properties[typeof(ApiConventionItem)] = new ApiConventionItem(new[]
+            actionDescriptor.Properties[typeof(ApiConventionResult)] = new ApiConventionResult(new[]
             {
                 new ProducesResponseTypeAttribute(200),
                 new ProducesResponseTypeAttribute(400),
@@ -119,7 +118,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                });
         }
 
-        [ApiConvention(typeof(DefaultApiConventions))]
+        [ApiConventionType(typeof(DefaultApiConventions))]
         public class GetApiResponseTypes_ReturnsResponseTypesFromDefaultConventionsController : ControllerBase
         {
             public Task<ActionResult<BaseModel>> DeleteBase(int id) => null;
@@ -152,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                });
         }
 
-        [ApiConvention(typeof(DefaultApiConventions))]
+        [ApiConventionType(typeof(DefaultApiConventions))]
         public class GetApiResponseTypes_ReturnsDefaultResultsIfNoConventionsMatchController : ControllerBase
         {
             public Task<ActionResult<BaseModel>> PostModel(int id, BaseModel model) => null;

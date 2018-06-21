@@ -72,11 +72,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
 
                 var controllerHasSelectorModel = controllerModel.Selectors.Any(s => s.AttributeRouteModel != null);
-                var conventions = controllerModel.Attributes.OfType<ApiConventionAttribute>().ToArray();
+                var conventions = controllerModel.Attributes.OfType<ApiConventionTypeAttribute>().ToArray();
                 if (conventions.Length == 0)
                 {
                     var controllerAssembly = controllerModel.ControllerType.Assembly;
-                    conventions = controllerAssembly.GetCustomAttributes<ApiConventionAttribute>().ToArray();
+                    conventions = controllerAssembly.GetCustomAttributes<ApiConventionTypeAttribute>().ToArray();
                 }
 
                 foreach (var actionModel in controllerModel.Actions)
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return bindingSource;
         }
 
-        internal static void DiscoverApiConvention(ActionModel actionModel, ApiConventionAttribute[] apiConventionAttributes)
+        internal static void DiscoverApiConvention(ActionModel actionModel, ApiConventionTypeAttribute[] apiConventionAttributes)
         {
             if (actionModel.Filters.OfType<IApiResponseMetadataProvider>().Any())
             {
@@ -250,10 +250,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return;
             }
 
-            var apiConventionItem = ApiConventionItem.GetApiConventionItem(actionModel.ActionMethod, apiConventionAttributes);
+            var apiConventionItem = ApiConventionResult.GetApiConvention(actionModel.ActionMethod, apiConventionAttributes);
             if (apiConventionItem != null)
             {
-                actionModel.Properties[typeof(ApiConventionItem)] = apiConventionItem;
+                actionModel.Properties[typeof(ApiConventionResult)] = apiConventionItem;
             }
         }
 
