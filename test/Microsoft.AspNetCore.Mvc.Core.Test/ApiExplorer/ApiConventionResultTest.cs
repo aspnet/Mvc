@@ -3,6 +3,8 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ApiExplorer
@@ -14,13 +16,14 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
         {
             // Arrange
             var method = typeof(GetApiConvention_ReturnsNull_IfNoConventionMatchesController).GetMethod(nameof(GetApiConvention_ReturnsNull_IfNoConventionMatchesController.NoMatch));
-            var convention = new ApiConventionTypeAttribute(typeof(DefaultApiConventions));
+            var attribute = new ApiConventionTypeAttribute(typeof(DefaultApiConventions));
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, new[] { convention });
+            var result = ApiConventionResult.TryGetApiConvention(method, new[] { attribute }, out var conventionResult);
 
             // Assert
-            Assert.Null(result);
+            Assert.False(result);
+            Assert.Null(conventionResult);
         }
 
         public class GetApiConvention_ReturnsNull_IfNoConventionMatchesController
@@ -34,15 +37,15 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             // Arrange
             var method = typeof(GetApiConvention_ReturnsResultFromConventionController)
                 .GetMethod(nameof(GetApiConvention_ReturnsResultFromConventionController.Match));
-            var convention = new ApiConventionTypeAttribute(typeof(GetApiConvention_ReturnsResultFromConventionType));
+            var attribute = new ApiConventionTypeAttribute(typeof(GetApiConvention_ReturnsResultFromConventionType));
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, new[] { convention });
+            var result = ApiConventionResult.TryGetApiConvention(method, new[] { attribute }, out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(201, r.StatusCode),
                 r => Assert.Equal(403, r.StatusCode));
         }
@@ -70,19 +73,19 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             // Arrange
             var method = typeof(GetApiConvention_ReturnsResultFromFirstMatchingConventionController)
                 .GetMethod(nameof(GetApiConvention_ReturnsResultFromFirstMatchingConventionController.Get));
-            var conventions = new[]
+            var attributes = new[]
             {
                 new ApiConventionTypeAttribute(typeof(GetApiConvention_ReturnsResultFromConventionType)),
                 new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
             };
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, conventions);
+            var result = ApiConventionResult.TryGetApiConvention(method, attributes, result: out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(200, r.StatusCode),
                 r => Assert.Equal(202, r.StatusCode),
                 r => Assert.Equal(404, r.StatusCode));
@@ -99,18 +102,15 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.GetUser));
-            var conventions = new[]
-            {
-                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
-            };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, conventions);
+            var result = ApiConventionResult.TryGetApiConvention(method, attributes, out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(200, r.StatusCode),
                 r => Assert.Equal(404, r.StatusCode));
         }
@@ -121,18 +121,15 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             // Arrange
             var method = typeof(DefaultConventionController)
                 .GetMethod(nameof(DefaultConventionController.PostUser));
-            var conventions = new[]
-            {
-                new ApiConventionTypeAttribute(typeof(DefaultApiConventions)),
-            };
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, conventions);
+            var result = ApiConventionResult.TryGetApiConvention(method, attributes, out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(201, r.StatusCode),
                 r => Assert.Equal(400, r.StatusCode));
         }
@@ -149,12 +146,12 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             };
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, conventions);
+            var result = ApiConventionResult.TryGetApiConvention(method, conventions, out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(204, r.StatusCode),
                 r => Assert.Equal(400, r.StatusCode),
                 r => Assert.Equal(404, r.StatusCode));
@@ -172,12 +169,12 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             };
 
             // Act
-            var result = ApiConventionResult.GetApiConvention(method, conventions);
+            var result = ApiConventionResult.TryGetApiConvention(method, conventions, out var conventionResult);
 
             // Assert
-            Assert.NotNull(result);
+            Assert.True(result);
             Assert.Collection(
-                result.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
+                conventionResult.ResponseMetadataProviders.OrderBy(o => o.StatusCode),
                 r => Assert.Equal(200, r.StatusCode),
                 r => Assert.Equal(400, r.StatusCode),
                 r => Assert.Equal(404, r.StatusCode));
@@ -611,6 +608,106 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
             // Assert
             Assert.True(result);
+        }
+
+        [Fact]
+        public void GetNameMatchBehavior_ReturnsExact_WhenNoAttributesArePresent()
+        {
+            // Arrange
+            var expected = ApiConventionNameMatchBehavior.Exact;
+            var attributes = new object[0];
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetNameMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetNameMatchBehavior_ReturnsExact_WhenNoNameMatchBehaviorAttributeIsSpecified()
+        {
+            // Arrange
+            var expected = ApiConventionNameMatchBehavior.Exact;
+            var attributes = new object[] { new CLSCompliantAttribute(false), new ProducesResponseTypeAttribute(200) };
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetNameMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetNameMatchBehavior_ReturnsValueFromAttributes()
+        {
+            // Arrange
+            var expected = ApiConventionNameMatchBehavior.Prefix;
+            var attributes = new object[]
+            {
+                new CLSCompliantAttribute(false),
+                new ApiConventionNameMatchAttribute(expected),
+                new ProducesResponseTypeAttribute(200) }
+            ;
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetNameMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetTypeMatchBehavior_ReturnsIsAssignableFrom_WhenNoAttributesArePresent()
+        {
+            // Arrange
+            var expected = ApiConventionTypeMatchBehavior.AssignableFrom;
+            var attributes = new object[0];
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetTypeMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetTypeMatchBehavior_ReturnsIsAssignableFrom_WhenNoMatchingAttributesArePresent()
+        {
+            // Arrange
+            var expected = ApiConventionTypeMatchBehavior.AssignableFrom;
+            var attributes = new object[] { new CLSCompliantAttribute(false), new ProducesResponseTypeAttribute(200) };
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetTypeMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void GetTypeMatchBehavior_ReturnsValueFromAttributes()
+        {
+            // Arrange
+            var expected = ApiConventionTypeMatchBehavior.Any;
+            var attributes = new object[]
+            {
+                new CLSCompliantAttribute(false),
+                new ApiConventionTypeMatchAttribute(expected),
+                new ProducesResponseTypeAttribute(200) }
+            ;
+            var provider = Mock.Of<ICustomAttributeProvider>(p => p.GetCustomAttributes(false) == attributes);
+
+            // Act
+            var result = ApiConventionResult.GetTypeMatchBehavior(provider);
+
+            // Assert
+            Assert.Equal(expected, result);
         }
 
         public class Base { }

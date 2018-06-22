@@ -250,10 +250,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 return;
             }
 
-            var apiConventionItem = ApiConventionResult.GetApiConvention(actionModel.ActionMethod, apiConventionAttributes);
-            if (apiConventionItem != null)
+            if (ApiConventionResult.TryGetApiConvention(actionModel.ActionMethod, apiConventionAttributes, out var result))
             {
-                actionModel.Properties[typeof(ApiConventionResult)] = apiConventionItem;
+                actionModel.Properties[typeof(ApiConventionResult)] = result;
             }
         }
 

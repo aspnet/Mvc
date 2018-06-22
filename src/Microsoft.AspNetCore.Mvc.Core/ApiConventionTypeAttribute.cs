@@ -19,12 +19,17 @@ namespace Microsoft.AspNetCore.Mvc
     /// that may be applied to a method name or it's parameters and <see cref="ApiConventionTypeMatchAttribute"/>
     /// that are applied to parameters.
     /// </para>
+    /// <para>
+    /// When no attributes are found specifying the behavior, MVC matches method names and parameter names are matched
+    /// using <see cref="ApiConventionNameMatchBehavior.Exact"/> and parameter types are matched
+    /// using <see cref="ApiConventionTypeMatchBehavior.AssignableFrom"/>.
+    /// </para>
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public sealed class ApiConventionTypeAttribute : Attribute
     {
         /// <summary>
-        /// Initializes an <see cref="ApiControllerAttribute"/> instance using <paramref name="conventionType"/>.
+        /// Initializes an <see cref="ApiConventionTypeAttribute"/> instance using <paramref name="conventionType"/>.
         /// </summary>
         /// <param name="conventionType">
         /// The <see cref="Type"/> of the convention. 

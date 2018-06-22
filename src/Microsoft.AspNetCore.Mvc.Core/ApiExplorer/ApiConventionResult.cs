@@ -21,7 +21,10 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
         public IReadOnlyList<IApiResponseMetadataProvider> ResponseMetadataProviders { get; }
 
-        internal static ApiConventionResult GetApiConvention(MethodInfo method, ApiConventionTypeAttribute[] apiConventionAttributes)
+        internal static bool TryGetApiConvention(
+            MethodInfo method,
+            ApiConventionTypeAttribute[] apiConventionAttributes,
+            out ApiConventionResult result)
         {
             foreach (var attribute in apiConventionAttributes)
             {
@@ -32,11 +35,13 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                         .OfType<IApiResponseMetadataProvider>()
                         .ToArray();
 
-                    return new ApiConventionResult(metadataProviders);
+                    result = new ApiConventionResult(metadataProviders);
+                    return true;
                 }
             }
 
-            return null;
+            result = null;
+            return false;
         }
 
         private static MethodInfo GetConventionMethod(MethodInfo method, Type conventionType)
@@ -54,61 +59,77 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
         internal static bool IsMatch(MethodInfo methodInfo, MethodInfo conventionMethod)
         {
-            var methodNameMatchBehavior = GetNameMatchBehavior(conventionMethod);
-            if (!IsNameMatch(methodInfo.Name, conventionMethod.Name, methodNameMatchBehavior))
+            return MethodMatches() && ParametersMatch();
+
+            bool MethodMatches()
             {
-                return false;
-            }
-
-            var methodParameters = methodInfo.GetParameters();
-            var conventionMethodParameters = conventionMethod.GetParameters();
-
-            for (var i = 0; i < conventionMethodParameters.Length; i++)
-            {
-                var conventionParameter = conventionMethodParameters[i];
-                if (conventionParameter.IsDefined(typeof(ParamArrayAttribute)))
-                {
-                    return true;
-                }
-
-                if (methodParameters.Length <= i)
+                var methodNameMatchBehavior = GetNameMatchBehavior(conventionMethod);
+                if (!IsNameMatch(methodInfo.Name, conventionMethod.Name, methodNameMatchBehavior))
                 {
                     return false;
                 }
 
-                var nameMatchBehavior = GetNameMatchBehavior(conventionParameter);
-                var typeMatchBehavior = GetTypeMatchBehavior(conventionParameter);
-
-                if (!IsTypeMatch(methodParameters[i].ParameterType, conventionParameter.ParameterType, typeMatchBehavior) ||
-                    !IsNameMatch(methodParameters[i].Name, conventionParameter.Name, nameMatchBehavior))
-                {
-                    return false;
-                }
+                return true;
             }
 
-            // Ensure convention has at least as many parameters as the method. params convention argument are handled
-            // inside the for loop.
-            return methodParameters.Length == conventionMethodParameters.Length;
-
-            ApiConventionNameMatchBehavior GetNameMatchBehavior(ICustomAttributeProvider attributeProvider)
+            bool ParametersMatch()
             {
-                var attributes = attributeProvider.GetCustomAttributes(inherit: false);
-                for (var i = 0; i < attributes.Length; i++)
+                var methodParameters = methodInfo.GetParameters();
+                var conventionMethodParameters = conventionMethod.GetParameters();
+
+                for (var i = 0; i < conventionMethodParameters.Length; i++)
                 {
-                    if (attributes[i] is ApiConventionNameMatchAttribute nameMatchAttribute)
+                    var conventionParameter = conventionMethodParameters[i];
+                    if (conventionParameter.IsDefined(typeof(ParamArrayAttribute)))
                     {
-                        return nameMatchAttribute.MatchBehavior;
+                        return true;
+                    }
+
+                    if (methodParameters.Length <= i)
+                    {
+                        return false;
+                    }
+
+                    var nameMatchBehavior = GetNameMatchBehavior(conventionParameter);
+                    var typeMatchBehavior = GetTypeMatchBehavior(conventionParameter);
+
+                    if (!IsTypeMatch(methodParameters[i].ParameterType, conventionParameter.ParameterType, typeMatchBehavior) ||
+                        !IsNameMatch(methodParameters[i].Name, conventionParameter.Name, nameMatchBehavior))
+                    {
+                        return false;
                     }
                 }
 
-                return ApiConventionNameMatchBehavior.Exact;
+                // Ensure convention has at least as many parameters as the method. params convention argument are handled
+                // inside the for loop.
+                return methodParameters.Length == conventionMethodParameters.Length;
+            }
+        }
+
+        internal static ApiConventionNameMatchBehavior GetNameMatchBehavior(ICustomAttributeProvider attributeProvider)
+        {
+            var attribute = GetCustomAttribute<ApiConventionNameMatchAttribute>(attributeProvider);
+            return attribute?.MatchBehavior ?? ApiConventionNameMatchBehavior.Exact;
+        }
+
+        internal static ApiConventionTypeMatchBehavior GetTypeMatchBehavior(ICustomAttributeProvider attributeProvider)
+        {
+            var attribute = GetCustomAttribute<ApiConventionTypeMatchAttribute>(attributeProvider);
+            return attribute?.MatchBehavior ?? ApiConventionTypeMatchBehavior.AssignableFrom;
+        }
+
+        private static TAttribute GetCustomAttribute<TAttribute>(ICustomAttributeProvider attributeProvider)
+        {
+            var attributes = attributeProvider.GetCustomAttributes(inherit: false);
+            for (var i = 0; i < attributes.Length; i++)
+            {
+                if (attributes[i] is TAttribute attribute)
+                {
+                    return attribute;
+                }
             }
 
-            ApiConventionTypeMatchBehavior GetTypeMatchBehavior(ParameterInfo parameter)
-            {
-                var typeMatchAttribute = parameter.GetCustomAttribute<ApiConventionTypeMatchAttribute>(inherit: false);
-                return typeMatchAttribute?.MatchBehavior ?? ApiConventionTypeMatchBehavior.AssignableFrom;
-            }
+            return default;
         }
 
         internal static bool IsNameMatch(string name, string conventionName, ApiConventionNameMatchBehavior nameMatchBehavior)
@@ -133,45 +154,58 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
             bool IsNameMatchPrefix()
             {
-                if (!name.StartsWith(conventionName, StringComparison.Ordinal))
+                if (name.Length < conventionName.Length)
                 {
                     return false;
                 }
 
                 if (name.Length == conventionName.Length)
                 {
-                    return true;
+                    // name = "Post", conventionName = "Post"
+                    return string.Equals(name, conventionName, StringComparison.Ordinal);
                 }
 
+                if (!name.StartsWith(conventionName, StringComparison.Ordinal))
+                {
+                    // name = "GetPerson", conventionName = "Post"
+                    return false;
+                }
+
+                // Check for name = "PostPerson", conventionName = "Post"
+                // Verify the first letter after the convention name is upper case. In this case 'P' from "Person"
                 return char.IsUpper(name[conventionName.Length]);
             }
 
             bool IsNameMatchSuffix()
             {
-                // name = id, conventionName = id
-                if (string.Equals(name, conventionName, StringComparison.Ordinal))
+                if (name.Length < conventionName.Length)
                 {
-                    return true;
-                }
-
-                if (name.Length <= conventionName.Length)
-                {
+                    // name = "person", conventionName = "personName"
                     return false;
                 }
 
-                // name = personId, conventionName = id
+                if (name.Length == conventionName.Length)
+                {
+                    // name = id, conventionName = id
+                    return string.Equals(name, conventionName, StringComparison.Ordinal);
+                }
+
+                // Check for name = personName, conventionName = name
                 var index = name.Length - conventionName.Length - 1;
                 if (!char.IsLower(name[index]))
                 {
+                    // Verify letter before "name" is lowercase. In this case the letter 'n' at the end of "person"
                     return false;
                 }
 
                 index++;
                 if (name[index] != char.ToUpper(conventionName[0]))
                 {
+                    // Verify the first letter from convention is upper case. In this case 'n' from "name"
                     return false;
                 }
 
+                // Match the remaining letters with exact case. i.e. match "ame" from "personName", "name"
                 index++;
                 return string.Compare(name, index, conventionName, 1, conventionName.Length - 1, StringComparison.Ordinal) == 0;
             }
