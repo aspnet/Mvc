@@ -82,8 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 (mvcAddress.TargetActionDescriptor != null ||
                 !string.IsNullOrEmpty(mvcAddress.TargetActionName) ||
                 !string.IsNullOrEmpty(mvcAddress.TargetControllerName) ||
-                !string.IsNullOrEmpty(mvcAddress.TargetPageName) ||
-                !string.IsNullOrEmpty(mvcAddress.TargetHandlerName)))
+                !string.IsNullOrEmpty(mvcAddress.TargetPageName)))
             {
                 endpoints = FindByMvcAddress(mvcAddress);
             }
@@ -135,32 +134,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // If another layer already calculated the target action descriptor and gave us, just use it
             if (address.TargetActionDescriptor != null)
             {
-                return FindEndpointsByActionDescriptor(address.TargetActionDescriptor);
+                return FindEndpointsByActionDescriptor(new[] { address.TargetActionDescriptor });
             }
 
             var linkTarget = GetLinkTarget(address);
 
-            ActionDescriptor targetActionDescriptor = null;
+            IEnumerable<ActionDescriptor> targetActionDescriptors = null;
             if (linkTarget == LinkTarget.Mvc)
             {
-                targetActionDescriptor = GetTargetControllerActionDescriptor(address);
+                targetActionDescriptors = GetTargetControllerActionDescriptors(address);
             }
             else if (linkTarget == LinkTarget.RazorPages)
             {
-                targetActionDescriptor = GetTargetPageActionDescriptor(address);
+                targetActionDescriptors = GetTargetPageActionDescriptor(address);
             }
 
-            if (targetActionDescriptor == null)
+            if (targetActionDescriptors == null)
             {
                 return Empty;
             }
 
-            return FindEndpointsByActionDescriptor(targetActionDescriptor);
+            return FindEndpointsByActionDescriptor(targetActionDescriptors);
         }
 
-        private ActionDescriptor GetTargetControllerActionDescriptor(MvcAddress address)
+        private IEnumerable<ActionDescriptor> GetTargetControllerActionDescriptors(MvcAddress address)
         {
-            ActionDescriptor targetActionDescriptor = null;
+            IEnumerable<ActionDescriptor> targetActionDescriptors = null;
             // Same controller, different action
             if (!string.IsNullOrEmpty(address.TargetActionName) &&
                 string.IsNullOrEmpty(address.TargetControllerName))
@@ -168,30 +167,30 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var currentActionDescriptor = (ControllerActionDescriptor)address.CurrentActionContext.ActionDescriptor;
                 var currentControllerType = currentActionDescriptor.ControllerTypeInfo;
 
-                targetActionDescriptor = _actionDescriptorCollectionProvider.ActionDescriptors.Items
+                targetActionDescriptors = _actionDescriptorCollectionProvider.ActionDescriptors.Items
                     .OfType<ControllerActionDescriptor>()
-                    .FirstOrDefault(ad => ad.ControllerTypeInfo.Equals(currentControllerType) &&
+                    .Where(ad => ad.ControllerTypeInfo.Equals(currentControllerType) &&
                     string.Equals(ad.ActionName, address.TargetActionName, StringComparison.OrdinalIgnoreCase));
             }
             // Different controller, different action
             else if (!string.IsNullOrEmpty(address.TargetActionName) &&
                 !string.IsNullOrEmpty(address.TargetControllerName))
             {
-                targetActionDescriptor = _actionDescriptorCollectionProvider.ActionDescriptors.Items
+                targetActionDescriptors = _actionDescriptorCollectionProvider.ActionDescriptors.Items
                     .OfType<ControllerActionDescriptor>()
-                    .FirstOrDefault(
+                    .Where(
                     ad => string.Equals(ad.ControllerName, address.TargetControllerName, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(ad.ActionName, address.TargetActionName, StringComparison.OrdinalIgnoreCase));
             }
-            return targetActionDescriptor;
+            return targetActionDescriptors;
         }
 
-        private ActionDescriptor GetTargetPageActionDescriptor(MvcAddress address)
+        private IEnumerable<ActionDescriptor> GetTargetPageActionDescriptor(MvcAddress address)
         {
             if (!string.IsNullOrEmpty(address.TargetPageName))
             {
-                var targetActionDescriptor = _actionDescriptorCollectionProvider.ActionDescriptors.Items
-                    .FirstOrDefault(ad =>
+                var targetActionDescriptors = _actionDescriptorCollectionProvider.ActionDescriptors.Items
+                    .Where(ad =>
                     {
                         if (ad.RouteValues.TryGetValue("page", out var pageName) &&
                             string.Equals(address.TargetPageName, pageName, StringComparison.OrdinalIgnoreCase))
@@ -200,29 +199,33 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         }
                         return false;
                     });
-                return targetActionDescriptor;
+                return targetActionDescriptors;
             }
 
             return null;
         }
 
-        private IEnumerable<Endpoint> FindEndpointsByActionDescriptor(ActionDescriptor targetActionDescriptor)
+        private IEnumerable<Endpoint> FindEndpointsByActionDescriptor(IEnumerable<ActionDescriptor> targetActionDescriptors)
         {
             foreach (var endpoint in _matcherEndpoints)
             {
-                var actionDescriptor = endpoint.Metadata.GetMetadata<ActionDescriptor>();
-                if (actionDescriptor == null)
+                var endpointActionDescriptor = endpoint.Metadata.GetMetadata<ActionDescriptor>();
+                if (endpointActionDescriptor == null)
                 {
                     continue;
                 }
 
-                if (actionDescriptor.Equals(targetActionDescriptor))
+                foreach (var actionDescriptor in targetActionDescriptors)
                 {
-                    yield return endpoint;
-                }
-                else
-                {
-                    continue;
+
+                    if (endpointActionDescriptor.Equals(actionDescriptor))
+                    {
+                        yield return endpoint;
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
             }
 
