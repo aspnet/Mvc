@@ -24,6 +24,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
     /// </remarks>
     public abstract class BindingSourceValueProvider : IBindingSourceValueProvider
     {
+        public BindingSourceValueProvider()
+        {
+        }
+
         /// <summary>
         /// Creates a new <see cref="BindingSourceValueProvider"/>.
         /// </summary>
