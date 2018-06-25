@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -507,6 +508,7 @@ Environment.NewLine + "int b";
 
         [Fact]
         public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringFor_ParameterWithModelBinderType_AndExplicitModelName()
+<<<<<<< HEAD
         {
             // Arrange
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
@@ -556,6 +558,57 @@ Environment.NewLine + "int b";
         {
             // Arrange
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+=======
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ModelBinderOnParameterController.ModelBinderTypeWithExplicitModelName);
+            var context = GetContext(typeof(ModelBinderOnParameterController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Custom, bindingInfo.BindingSource);
+            Assert.Equal("foo", bindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void PreservesBindingSourceInference_ForFromQueryParameter_WithDefaultName()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ParameterBindingController.FromQuery);
+            var context = GetContext(typeof(ParameterBindingController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Null(bindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void PreservesBindingSourceInference_ForFromQueryParameter_WithCustomName()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+>>>>>>> 53857d052f403421c5d68bdc3cd81588c7dcacb1
             var actionName = nameof(ParameterBindingController.FromQueryWithCustomName);
             var context = GetContext(typeof(ParameterBindingController), modelMetadataProvider);
             var provider = GetProvider();
@@ -621,6 +674,7 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+<<<<<<< HEAD
         public void PreservesBindingSourceInference_ForFromQueryParameterOnCollectionType()
         {
             // Arrange
@@ -690,6 +744,8 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+=======
+>>>>>>> 53857d052f403421c5d68bdc3cd81588c7dcacb1
         public void PreservesBindingSourceInference_ForFromRouteParameter_WithDefaultName()
         {
             // Arrange
@@ -943,6 +999,59 @@ Environment.NewLine + "int b";
             Assert.Equal("multipart/form-data", Assert.Single(consumesAttribute.ContentTypes));
         }
 
+        [Fact]
+        public void ApiConventionAttributeIsNotAdded_IfModelAlreadyHasAttribute()
+        {
+            // Arrange
+            var attribute = new ApiConventionAttribute(typeof(DefaultApiConventions));
+            var controllerType = CreateTestControllerType();
+
+            var model = new ControllerModel(controllerType.GetTypeInfo(), new[] { attribute })
+            {
+                Filters = { attribute, },
+            };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+
+            // Assert
+            Assert.Collection(
+                model.Filters,
+                filter => Assert.Same(attribute, filter));
+        }
+
+        [Fact]
+        public void ApiConventionAttributeIsAdded_IfAttributeExistsInAssembly()
+        {
+            // Arrange
+            var controllerType = CreateTestControllerType();
+            var model = new ControllerModel(controllerType.GetTypeInfo(), Array.Empty<object>());
+
+            // Act
+            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+
+            // Assert
+            Assert.Collection(
+                model.Filters,
+                filter => Assert.IsType<ApiConventionAttribute>(filter));
+        }
+
+        // A dynamically generated type in an assembly that has an ApiConventionAttribute.
+        private static TypeBuilder CreateTestControllerType()
+        {
+            var attributeBuilder = new CustomAttributeBuilder(
+                typeof(ApiConventionAttribute).GetConstructor(new[] { typeof(Type) }),
+                new[] { typeof(DefaultApiConventions) });
+
+            var assemblyName = new AssemblyName("TestAssembly");
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+            assemblyBuilder.SetCustomAttribute(attributeBuilder);
+
+            var module = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
+            var controllerType = module.DefineType("TestController");
+            return controllerType;
+        }
+
         private static ApiBehaviorApplicationModelProvider GetProvider(
             ApiBehaviorOptions options = null,
             IModelMetadataProvider modelMetadataProvider = null)
@@ -1078,7 +1187,11 @@ Environment.NewLine + "int b";
 
             [HttpGet("parameter-with-model-binder-attribute")]
             public IActionResult ModelBinderAttribute([ModelBinder(Name = "top")] int value) => null;
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 53857d052f403421c5d68bdc3cd81588c7dcacb1
             [HttpGet("parameter-with-fromquery")]
             public IActionResult FromQuery([FromQuery] int value) => null;
 
@@ -1091,6 +1204,7 @@ Environment.NewLine + "int b";
             [HttpGet("parameter-with-fromquery-on-complextype-and-customname")]
             public IActionResult FromQueryOnComplexTypeWithCustomName([FromQuery(Name = "gps")] GpsCoordinates gpsCoordinates) => null;
 
+<<<<<<< HEAD
             [HttpGet("parameter-with-fromquery-on-collection-type")]
             public IActionResult FromQueryOnCollectionType([FromQuery] ICollection<int> value) => null;
 
@@ -1100,6 +1214,8 @@ Environment.NewLine + "int b";
             [HttpGet("parameter-with-fromquery-on-array-type-customname")]
             public IActionResult FromQueryOnArrayTypeWithCustomName([FromQuery(Name = "ids")] int[] value) => null;
 
+=======
+>>>>>>> 53857d052f403421c5d68bdc3cd81588c7dcacb1
             [HttpGet("parameter-with-fromroute")]
             public IActionResult FromRoute([FromRoute] int value) => null;
 

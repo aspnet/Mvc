@@ -34,9 +34,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string SrcExcludeAttributeName = "asp-src-exclude";
         private const string FallbackSrcAttributeName = "asp-fallback-src";
         private const string FallbackSrcIncludeAttributeName = "asp-fallback-src-include";
+        private const string SuppressFallbackIntegrityAttributeName = "asp-suppress-fallback-integrity";
         private const string FallbackSrcExcludeAttributeName = "asp-fallback-src-exclude";
         private const string FallbackTestExpressionAttributeName = "asp-fallback-test";
         private const string SrcAttributeName = "src";
+        private const string IntegrityAttributeName = "integrity";
         private const string AppendVersionAttributeName = "asp-append-version";
         private static readonly Func<Mode, Mode, int> Compare = (a, b) => a - b;
         private FileVersionProvider _fileVersionProvider;
@@ -130,6 +132,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string FallbackSrc { get; set; }
 
         /// <summary>
+        /// Boolean value that determines if an integrity hash will be compared with <see cref="FallbackSrc"/> value.
+        /// </summary>
+        [HtmlAttributeName(SuppressFallbackIntegrityAttributeName)]
+        public bool SuppressFallbackIntegrity { get; set; }
+
+        /// <summary>
         /// Value indicating if file version should be appended to src urls.
         /// </summary>
         /// <remarks>
@@ -168,7 +176,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         protected JavaScriptEncoder JavaScriptEncoder { get; }
 
         // Internal for ease of use when testing.
+#pragma warning disable PUB0001 // Pubternal type in public API
         protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
+#pragma warning restore PUB0001
 
         // Shared writer for determining the string content of a TagHelperAttribute's Value.
         private StringWriter StringWriter
@@ -310,6 +320,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                         var attribute = attributes[i];
                         if (!attribute.Name.Equals(SrcAttributeName, StringComparison.OrdinalIgnoreCase))
                         {
+                            if (SuppressFallbackIntegrity && string.Equals(IntegrityAttributeName, attribute.Name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+
                             StringWriter.Write(' ');
                             attribute.WriteTo(StringWriter, HtmlEncoder);
                         }

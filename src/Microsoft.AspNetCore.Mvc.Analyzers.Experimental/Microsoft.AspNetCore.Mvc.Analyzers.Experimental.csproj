@@ -19,7 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers\dotnet\cs\" />
+    <SignedPackageFile Include="analyzers/dotnet/cs/$(TargetFileName)" Certificate="$(AssemblySigningCertName)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers\dotnet\cs" />
   </ItemGroup>
 
 </Project>

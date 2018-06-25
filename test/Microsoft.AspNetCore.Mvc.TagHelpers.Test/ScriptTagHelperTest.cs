@@ -12,11 +12,9 @@ using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
-using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -161,6 +159,20 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     {
                         new TagHelperAttributeList
                         {
+                            new TagHelperAttribute("asp-fallback-src", "test.js"),
+                            new TagHelperAttribute("asp-fallback-test", "isavailable()"),
+                            new TagHelperAttribute("asp-suppress-fallback-integrity", "false")
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrc = "test.js";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                            tagHelper.SuppressFallbackIntegrity = false;
+                        }
+                    },
+                    {
+                        new TagHelperAttributeList
+                        {
                             new TagHelperAttribute("asp-fallback-src-include", "*.js"),
                             new TagHelperAttribute("asp-fallback-test", "isavailable()")
                         },
@@ -182,6 +194,22 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             tagHelper.FallbackSrc = "test.js";
                             tagHelper.FallbackSrcInclude = "*.css";
                             tagHelper.FallbackTestExpression = "isavailable()";
+                        }
+                    },
+                    {
+                        new TagHelperAttributeList
+                        {
+                            new TagHelperAttribute("asp-fallback-src", "test.js"),
+                            new TagHelperAttribute("asp-fallback-src-include", "*.js"),
+                            new TagHelperAttribute("asp-fallback-test", "isavailable()"),
+                            new TagHelperAttribute("asp-suppress-fallback-integrity", "false")
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackSrc = "test.js";
+                            tagHelper.FallbackSrcInclude = "*.css";
+                            tagHelper.FallbackTestExpression = "isavailable()";
+                            tagHelper.SuppressFallbackIntegrity = false;
                         }
                     },
                     {

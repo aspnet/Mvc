@@ -1453,7 +1453,7 @@ namespace Microsoft.AspNetCore.Mvc.Core
             => string.Format(CultureInfo.CurrentCulture, GetString("ComplexTypeModelBinder_NoParameterlessConstructor_ForParameter"), p0, p1);
 
         /// <summary>
-        /// Action '{0}' has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use '{1}' to specify query string bound, '{2}' to specify route bound, and '{3}' for parameters to be bound from body:
+        /// Action '{0}' has more than one parameter that was specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use '{1}' to specify bound from query, '{2}' to specify bound from route, and '{3}' for parameters to be bound from body:
         /// </summary>
         internal static string ApiController_MultipleBodyParametersFound
         {
@@ -1461,10 +1461,38 @@ namespace Microsoft.AspNetCore.Mvc.Core
         }
 
         /// <summary>
-        /// Action '{0}' has more than one parameter that were specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use '{1}' to specify query string bound, '{2}' to specify route bound, and '{3}' for parameters to be bound from body:
+        /// Action '{0}' has more than one parameter that was specified or inferred as bound from request body. Only one parameter per action may be bound from body. Inspect the following parameters, and use '{1}' to specify bound from query, '{2}' to specify bound from route, and '{3}' for parameters to be bound from body:
         /// </summary>
         internal static string FormatApiController_MultipleBodyParametersFound(object p0, object p1, object p2, object p3)
             => string.Format(CultureInfo.CurrentCulture, GetString("ApiController_MultipleBodyParametersFound"), p0, p1, p2, p3);
+
+        /// <summary>
+        /// API convention type '{0}' must be a static type.
+        /// </summary>
+        internal static string ApiConventionMustBeStatic
+        {
+            get => GetString("ApiConventionMustBeStatic");
+        }
+
+        /// <summary>
+        /// API convention type '{0}' must be a static type.
+        /// </summary>
+        internal static string FormatApiConventionMustBeStatic(object p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("ApiConventionMustBeStatic"), p0);
+
+        /// <summary>
+        /// Invalid type parameter '{0}' specified for '{1}'.
+        /// </summary>
+        internal static string InvalidTypeTForActionResultOfT
+        {
+            get => GetString("InvalidTypeTForActionResultOfT");
+        }
+
+        /// <summary>
+        /// Invalid type parameter '{0}' specified for '{1}'.
+        /// </summary>
+        internal static string FormatInvalidTypeTForActionResultOfT(object p0, object p1)
+            => string.Format(CultureInfo.CurrentCulture, GetString("InvalidTypeTForActionResultOfT"), p0, p1);
 
         private static string GetString(string name, params string[] formatterNames)
         {

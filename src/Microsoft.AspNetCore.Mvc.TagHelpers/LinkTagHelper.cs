@@ -40,6 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string HrefIncludeAttributeName = "asp-href-include";
         private const string HrefExcludeAttributeName = "asp-href-exclude";
         private const string FallbackHrefAttributeName = "asp-fallback-href";
+        private const string SuppressFallbackIntegrityAttributeName = "asp-suppress-fallback-integrity";
         private const string FallbackHrefIncludeAttributeName = "asp-fallback-href-include";
         private const string FallbackHrefExcludeAttributeName = "asp-fallback-href-exclude";
         private const string FallbackTestClassAttributeName = "asp-fallback-test-class";
@@ -48,6 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string AppendVersionAttributeName = "asp-append-version";
         private const string HrefAttributeName = "href";
         private const string RelAttributeName = "rel";
+        private const string IntegrityAttributeName = "integrity";
         private static readonly Func<Mode, Mode, int> Compare = (a, b) => a - b;
 
         private FileVersionProvider _fileVersionProvider;
@@ -148,6 +150,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public string FallbackHref { get; set; }
 
         /// <summary>
+        /// Boolean value that determines if an integrity hash will be compared with <see cref="FallbackHref"/> value.
+        /// </summary>
+        [HtmlAttributeName(SuppressFallbackIntegrityAttributeName)]
+        public bool SuppressFallbackIntegrity { get; set; }
+
+        /// <summary>
         /// Value indicating if file version should be appended to the href urls.
         /// </summary>
         /// <remarks>
@@ -204,7 +212,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         protected JavaScriptEncoder JavaScriptEncoder { get; }
 
         // Internal for ease of use when testing.
+#pragma warning disable PUB0001 // Pubternal type in public API
         protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
+#pragma warning restore PUB0001
 
         // Shared writer for determining the string content of a TagHelperAttribute's Value.
         private StringWriter StringWriter
@@ -361,6 +371,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 var attribute = attributes[i];
                 if (string.Equals(attribute.Name, HrefAttributeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (SuppressFallbackIntegrity && string.Equals(attribute.Name, IntegrityAttributeName, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

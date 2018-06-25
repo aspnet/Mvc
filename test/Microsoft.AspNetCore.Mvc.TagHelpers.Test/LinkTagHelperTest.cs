@@ -12,11 +12,9 @@ using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
-using Microsoft.AspNetCore.Mvc.TestCommon;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -265,7 +263,49 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                             tagHelper.FallbackTestValue = "hidden";
                             tagHelper.AppendVersion = true;
                         }
-                    }
+                    },
+                    // asp-suppress-fallback-integrity Attribute true
+                    {
+                        new TagHelperAttributeList
+                        {
+                            new TagHelperAttribute("asp-fallback-href", "test.css"),
+                            new TagHelperAttribute("asp-fallback-test-class", "hidden"),
+                            new TagHelperAttribute("asp-fallback-test-property", "visibility"),
+                            new TagHelperAttribute("asp-fallback-test-value", "hidden"),
+                            new TagHelperAttribute("asp-append-version", "true"),
+                            new TagHelperAttribute("asp-suppress-fallback-integrity", "true")
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackHref = "test.css";
+                            tagHelper.FallbackTestClass = "hidden";
+                            tagHelper.FallbackTestProperty = "visibility";
+                            tagHelper.FallbackTestValue = "hidden";
+                            tagHelper.AppendVersion = true;
+                            tagHelper.SuppressFallbackIntegrity = true;
+                        }
+                    },
+                    // asp-suppress-fallback-integrity Attribute false
+                    {
+                        new TagHelperAttributeList
+                        {
+                            new TagHelperAttribute("asp-fallback-href", "test.css"),
+                            new TagHelperAttribute("asp-fallback-test-class", "hidden"),
+                            new TagHelperAttribute("asp-fallback-test-property", "visibility"),
+                            new TagHelperAttribute("asp-fallback-test-value", "hidden"),
+                            new TagHelperAttribute("asp-append-version", "true"),
+                            new TagHelperAttribute("asp-suppress-fallback-integrity", "false")
+                        },
+                        tagHelper =>
+                        {
+                            tagHelper.FallbackHref = "test.css";
+                            tagHelper.FallbackTestClass = "hidden";
+                            tagHelper.FallbackTestProperty = "visibility";
+                            tagHelper.FallbackTestValue = "hidden";
+                            tagHelper.AppendVersion = true;
+                            tagHelper.SuppressFallbackIntegrity = false;
+                        }
+                    },
                 };
             }
         }
