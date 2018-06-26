@@ -484,6 +484,31 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringFor_ParameterWithModelBinder_WithoutExplicitName_OnCollection()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ModelBinderOnParameterController.ModelBinderAttributeWithOutExplicitModelNameOnCollection);
+            var context = GetContext(typeof(ModelBinderOnParameterController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Null(bindingInfo.BinderModelName);
+
+        }
+
+        [Fact]
         public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringFor_ParameterWithModelBinderType()
         {
             // Arrange
@@ -1186,6 +1211,9 @@ Environment.NewLine + "int b";
         {
             [HttpGet]
             public IActionResult ModelBinderAttributeWithExplicitModelName([ModelBinder(Name = "top")] int value) => null;
+
+            [HttpGet]
+            public IActionResult ModelBinderAttributeWithOutExplicitModelNameOnCollection([ModelBinder] int[] value) => null;
 
             [HttpGet]
             public IActionResult ModelBinderType([ModelBinder(typeof(TestModelBinder))] string name) => null;
