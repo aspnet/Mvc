@@ -484,31 +484,6 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringFor_ParameterWithModelBinder_WithoutExplicitName_OnCollection()
-        {
-            // Arrange
-            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
-            var actionName = nameof(ModelBinderOnParameterController.ModelBinderAttributeWithOutExplicitModelNameOnCollection);
-            var context = GetContext(typeof(ModelBinderOnParameterController), modelMetadataProvider);
-            var provider = GetProvider();
-
-            // Act
-            provider.OnProvidersExecuting(context);
-
-            // Assert
-            var controller = Assert.Single(context.Result.Controllers);
-            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
-            var parameter = Assert.Single(action.Parameters);
-
-            var bindingInfo = parameter.BindingInfo;
-
-            Assert.NotNull(bindingInfo);
-            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
-            Assert.Null(bindingInfo.BinderModelName);
-
-        }
-
-        [Fact]
         public void OnProvidersExecuting_PreservesBindingInfo_WhenInferringFor_ParameterWithModelBinderType()
         {
             // Arrange
@@ -891,6 +866,22 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundCollectionProperty));
+
+            var provider = GetProvider();
+
+            // Act
+            provider.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Null(property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
         public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
         {
             // Arrange
@@ -1213,9 +1204,6 @@ Environment.NewLine + "int b";
             public IActionResult ModelBinderAttributeWithExplicitModelName([ModelBinder(Name = "top")] int value) => null;
 
             [HttpGet]
-            public IActionResult ModelBinderAttributeWithOutExplicitModelNameOnCollection([ModelBinder] int[] value) => null;
-
-            [HttpGet]
             public IActionResult ModelBinderType([ModelBinder(typeof(TestModelBinder))] string name) => null;
 
             [HttpGet]
@@ -1277,6 +1265,15 @@ Environment.NewLine + "int b";
             public TestModel TestProperty { get; set; }
 
             public IActionResult SomeAction([FromQuery] TestModel test) => null;
+        }
+
+        [ApiController]
+        private class ControllerWithBoundCollectionProperty
+        {
+            [FromQuery]
+            public List<int> TestProperty { get; set; }
+
+            public IActionResult SomeAction([FromQuery] List<int> test) => null;
         }
 
         private class Car { }
