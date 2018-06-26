@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc
@@ -10,10 +11,64 @@ namespace Microsoft.AspNetCore.Mvc
     public class MvcJsonOptionsExtensionsTests
     {
         [Fact]
+        public void UseCamelCasing_WillSet_DefaultContractResolver_AsContractResolver()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var expected = typeof(DefaultContractResolver);
+
+            // Act
+            options.UseCamelCasing(processDictionaryKeys: true);
+            var actual = options.SerializerSettings.ContractResolver;
+
+            // Assert
+            Assert.IsType(expected, actual);
+        }
+
+        [Fact]
+        public void UseCamelCasing_WillSet_CamelCasingStrategy_NameStrategy()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new DefaultContractResolver()
+            {
+                NamingStrategy = new DefaultNamingStrategy()
+            };
+            var expected = typeof(CamelCaseNamingStrategy);
+
+            // Act
+            options.UseCamelCasing(processDictionaryKeys: true);
+            var resolver = options.SerializerSettings.ContractResolver as DefaultContractResolver;
+            var actual = resolver.NamingStrategy;
+
+            // Assert
+            Assert.IsType(expected, actual);
+        }
+
+        [Fact]
+        public void UseCamelCasing_WillNot_OverrideSpecifiedNames()
+        {
+            // Arrange
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: true);
+            var annotatedFoo = new AnnotatedFoo()
+            {
+                HelloWorld = "Hello"
+            };
+            var expected = "{\"HELLO-WORLD\":\"Hello\"}";
+
+            // Act
+            var actual = SerializeToJson(options, value: annotatedFoo);
+
+            // Assert
+            Assert.Equal(expected, actual);   
+        }
+        
+        [Fact]
         public void UseCamelCasing_WillChange_PropertyNames()
         {
             // Arrange
-            var options = new MvcJsonOptions().UseCamelCasing();
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: true);
             var foo = new { TestName = "TestFoo", TestValue = 10 };
             var expected = "{\"testName\":\"TestFoo\",\"testValue\":10}";
 
@@ -28,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc
         public void UseCamelCasing_WillChangeFirstPartBeforeSeparator_InPropertyName()
         {
             // Arrange
-            var options = new MvcJsonOptions().UseCamelCasing();
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: true);
             var foo = new { TestFoo_TestValue = "Test" };
             var expected = "{\"testFoo_TestValue\":\"Test\"}";
 
@@ -40,10 +95,10 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void UseCamelCasing_WillChange_DictionaryKeys()
+        public void UseCamelCasing_ProcessDictionaryKeys_WillChange_DictionaryKeys_IfTrue()
         {
             // Arrange
-            var options = new MvcJsonOptions().UseCamelCasing();
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: true);
             var dictionary = new Dictionary<string, int>
             {
                 ["HelloWorld"] = 1,
@@ -59,10 +114,10 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void UseCamelCasing_WillChangeFirstPartBeforeSeparator_InDictionaryKey()
+        public void UseCamelCasing_ProcessDictionaryKeys_WillChangeFirstPartBeforeSeparator_InDictionaryKey_IfTrue()
         {
             // Arrange
-            var options = new MvcJsonOptions().UseCamelCasing();
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: true);
             var dictionary = new Dictionary<string, int>()
             {
                 ["HelloWorld_HelloWorld"] = 1
@@ -77,6 +132,78 @@ namespace Microsoft.AspNetCore.Mvc
             Assert.Equal(expected, actual);
         }
 
+        [Fact]
+        public void UseCamelCasing_ProcessDictionaryKeys_WillNotChangeDictionaryKeys_IfFalse()
+        {
+            // Arrange
+            var options = new MvcJsonOptions().UseCamelCasing(processDictionaryKeys: false);
+            var dictionary = new Dictionary<string, int>
+            {
+                ["HelloWorld"] = 1,
+                ["HELLO-WORLD"] = 2
+            };
+            var expected = "{\"HelloWorld\":1,\"HELLO-WORLD\":2}";
+
+            // Act
+            var actual = SerializeToJson(options, value: dictionary);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UseMemberCasing_WillSet_DefaultContractResolver_AsContractResolver()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var expected = typeof(DefaultContractResolver);
+
+            // Act
+            options.UseMemberCasing();
+            var actual = options.SerializerSettings.ContractResolver;
+
+            // Assert
+            Assert.IsType(expected, actual);
+        }
+
+        [Fact]
+        public void UseMemberCasing_WillNotChange_OverrideSpecifiedNames()
+        {
+            // Arrange
+            var options = new MvcJsonOptions().UseMemberCasing();
+            var annotatedFoo = new AnnotatedFoo()
+            {
+                HelloWorld = "Hello"
+            };
+            var expected = "{\"HELLO-WORLD\":\"Hello\"}";
+
+            // Act
+            var actual = SerializeToJson(options, value: annotatedFoo);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UseMemberCasing_WillSet_DefaultNamingStrategy_AsNamingStrategy()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy()
+            };
+            var expected = typeof(DefaultNamingStrategy);
+
+            // Act
+            options.UseMemberCasing();
+            var resolver = options.SerializerSettings.ContractResolver as DefaultContractResolver;
+            var actual = resolver.NamingStrategy;
+
+            // Assert
+            Assert.IsType(expected, actual);
+        }
 
         [Fact]
         public void UseMemberCasing_WillNotChange_PropertyNames()
@@ -119,6 +246,12 @@ namespace Microsoft.AspNetCore.Mvc
                 value: value,
                 formatting: Formatting.None,
                 settings: options.SerializerSettings);
+        }
+
+        private class AnnotatedFoo
+        {
+            [JsonProperty("HELLO-WORLD")]
+            public string HelloWorld { get; set; }
         }
     }
 }
