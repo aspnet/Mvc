@@ -6,7 +6,7 @@ using System.IO;
 #if GENERATE_SQL_SCRIPTS
 using System.Linq;
 #endif
-using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using BasicApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
 using Npgsql;
@@ -35,19 +36,10 @@ namespace BasicApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var rsa = new RSACryptoServiceProvider(2048);
-            var key = new RsaSecurityKey(rsa.ExportParameters(true));
-
-            services.AddSingleton(new SigningCredentials(
-                key,
-                SecurityAlgorithms.RsaSha256Signature));
-
-            services.AddAuthentication().AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters.IssuerSigningKey = key;
-                options.TokenValidationParameters.ValidAudience = "Myself";
-                options.TokenValidationParameters.ValidIssuer = "BasicApi";
-            });
+            services.AddSingleton<SecurityKey, TestSecurityKey>(); // For TokenController and TestSigningCredentials
+            services.AddSingleton<SigningCredentials, TestSigningCredentials>(); // For ConfigureJwtBearerOptions
+            services.ConfigureOptions<ConfigureJwtBearerOptions>();
+            services.AddAuthentication().AddJwtBearer();
 
             var connectionString = Configuration["ConnectionString"];
             var databaseType = Configuration["Database"];
@@ -241,6 +233,52 @@ namespace BasicApi
                 .UseConfiguration(configuration)
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>();
+        }
+
+        private class TestSecurityKey : X509SecurityKey
+        {
+            public TestSecurityKey(IHostingEnvironment hostingEnvironment)
+                : base(new X509Certificate2(
+                      fileName: Path.Combine(hostingEnvironment.ContentRootPath, "testCert.pfx"),
+                      password: "DO_NOT_USE_THIS_CERT_IN_PRODUCTION"))
+            {
+            }
+        }
+
+        private class TestSigningCredentials : SigningCredentials
+        {
+            public TestSigningCredentials(SecurityKey securityKey)
+                : base(securityKey, SecurityAlgorithms.RsaSha256Signature)
+            {
+            }
+        }
+
+        private class ConfigureJwtBearerOptions : IConfigureNamedOptions<JwtBearerOptions>
+        {
+            private readonly SecurityKey _securityKey;
+
+            public ConfigureJwtBearerOptions(SecurityKey securityKey)
+            {
+                _securityKey = securityKey;
+            }
+
+            public void Configure(JwtBearerOptions options)
+            {
+                // No-op. Never called in this app.
+            }
+
+            public void Configure(string name, JwtBearerOptions options)
+            {
+                // Ignore the name. App only uses JwtBearerDefaults.AuthenticationScheme.
+                if (options == null)
+                {
+                    throw new ArgumentNullException(nameof(options));
+                }
+
+                options.TokenValidationParameters.IssuerSigningKey = _securityKey;
+                options.TokenValidationParameters.ValidAudience = "Myself";
+                options.TokenValidationParameters.ValidIssuer = "BasicApi";
+            }
         }
     }
 }
