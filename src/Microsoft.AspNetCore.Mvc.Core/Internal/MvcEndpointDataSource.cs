@@ -278,6 +278,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             var metadataCollection = new EndpointMetadataCollection(metadata);
+
             var endpoint = new MatcherEndpoint(
                 next => invokerDelegate,
                 template,

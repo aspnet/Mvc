@@ -442,19 +442,21 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(urlHelper));
             }
 
+            object page = null;
             var routeValues = new RouteValueDictionary(values);
             var ambientValues = urlHelper.ActionContext.RouteData.Values;
             if (string.IsNullOrEmpty(pageName))
             {
                 if (!routeValues.ContainsKey("page") &&
-                    ambientValues.TryGetValue("page", out var value))
+                    ambientValues.TryGetValue("page", out page))
                 {
-                    routeValues["page"] = value;
+                    routeValues["page"] = page;
                 }
             }
             else
             {
-                routeValues["page"] = CalculatePageName(urlHelper.ActionContext, pageName);
+                page = CalculatePageName(urlHelper.ActionContext, pageName);
+                routeValues["page"] = page;
             }
 
             if (string.IsNullOrEmpty(pageHandler))
@@ -469,6 +471,19 @@ namespace Microsoft.AspNetCore.Mvc
             else
             {
                 routeValues["handler"] = pageHandler;
+            }
+
+            if (urlHelper is DispatcherUrlHelper dispatcherUrlHelper)
+            {
+                return dispatcherUrlHelper.Page(new UrlPageContext
+                {
+                    PageName = (string)page,
+                    PageHandlerName = pageHandler,
+                    Values = routeValues,
+                    Fragment = fragment,
+                    Host = host,
+                    Protocol = protocol
+                });
             }
 
             return urlHelper.RouteUrl(

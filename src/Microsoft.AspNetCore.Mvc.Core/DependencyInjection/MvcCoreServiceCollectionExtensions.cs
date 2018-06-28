@@ -266,6 +266,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<EndpointDataSource, MvcEndpointDataSource>());
             services.TryAddSingleton<MvcEndpointInvokerFactory>();
+            services.TryAddSingleton<MvcEndpointFinder>();
 
             //
             // Middleware pipeline filter related

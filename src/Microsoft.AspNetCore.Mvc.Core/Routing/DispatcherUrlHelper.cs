@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
     {
         private readonly ILogger<DispatcherUrlHelper> _logger;
         private readonly ILinkGenerator _linkGenerator;
+        private readonly IEndpointFinder _endpointFinder;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DispatcherUrlHelper"/> class using the specified
@@ -22,10 +24,12 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         /// </summary>
         /// <param name="actionContext">The <see cref="Mvc.ActionContext"/> for the current request.</param>
         /// <param name="linkGenerator">The <see cref="ILinkGenerator"/> used to generate the link.</param>
+        /// <param name="endpointFinder"></param>
         /// <param name="logger">The <see cref="ILogger"/>.</param>
         public DispatcherUrlHelper(
             ActionContext actionContext,
             ILinkGenerator linkGenerator,
+            MvcEndpointFinder endpointFinder,
             ILogger<DispatcherUrlHelper> logger)
             : base(actionContext)
         {
@@ -40,6 +44,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
 
             _linkGenerator = linkGenerator;
+            _endpointFinder = endpointFinder;
             _logger = logger;
         }
 
@@ -51,38 +56,25 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 throw new ArgumentNullException(nameof(urlActionContext));
             }
 
-            var valuesDictionary = GetValuesDictionary(urlActionContext.Values);
+            var explicitRouteValues = GetValuesDictionary(urlActionContext.Values);
 
-            if (urlActionContext.Action == null)
-            {
-                if (!valuesDictionary.ContainsKey("action") &&
-                    AmbientValues.TryGetValue("action", out var action))
-                {
-                    valuesDictionary["action"] = action;
-                }
-            }
-            else
-            {
-                valuesDictionary["action"] = urlActionContext.Action;
-            }
+            UpdateExplicitRouteValues("action", urlActionContext.Action, explicitRouteValues, out var actionName);
+            UpdateExplicitRouteValues("controller", urlActionContext.Controller, explicitRouteValues, out var controllerName);
 
-            if (urlActionContext.Controller == null)
-            {
-                if (!valuesDictionary.ContainsKey("controller") &&
-                    AmbientValues.TryGetValue("controller", out var controller))
+            var endpoints = _endpointFinder.FindEndpoints(
+                new MvcAddress()
                 {
-                    valuesDictionary["controller"] = controller;
-                }
-            }
-            else
-            {
-                valuesDictionary["controller"] = urlActionContext.Controller;
-            }
+                    Name = null,
+                    CurrentActionContext = ActionContext,
+                    TargetControllerName = controllerName?.ToString(),
+                    TargetActionName = actionName?.ToString(),
+                });
 
             var successfullyGeneratedLink = _linkGenerator.TryGetLink(
                 new LinkGeneratorContext()
                 {
-                    SuppliedValues = valuesDictionary,
+                    Endpoints = endpoints,
+                    SuppliedValues = explicitRouteValues,
                     AmbientValues = AmbientValues
                 },
                 out var link);
@@ -106,13 +98,28 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
 
             var valuesDictionary = routeContext.Values as RouteValueDictionary ?? GetValuesDictionary(routeContext.Values);
+            valuesDictionary.TryGetValue("controller", out var controllerName);
+            valuesDictionary.TryGetValue("action", out var actionName);
+            valuesDictionary.TryGetValue("page", out var pageName);
+            valuesDictionary.TryGetValue("handler", out var pageHandlerName);
+
+            var endpoints = _endpointFinder.FindEndpoints(
+                new MvcAddress
+                {
+                    Name = routeContext.RouteName,
+                    CurrentActionContext = ActionContext,
+                    TargetControllerName = controllerName?.ToString(),
+                    TargetActionName = actionName?.ToString(),
+                    TargetPageName = pageName?.ToString(),
+                    TargetHandlerName = pageHandlerName?.ToString(),
+                });
 
             var successfullyGeneratedLink = _linkGenerator.TryGetLink(
                 new LinkGeneratorContext()
                 {
-                    Address = new Address(routeContext.RouteName),
                     SuppliedValues = valuesDictionary,
-                    AmbientValues = AmbientValues
+                    AmbientValues = AmbientValues,
+                    Endpoints = endpoints,
                 },
                 out var link);
 
@@ -122,6 +129,82 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
 
             return GenerateUrl(routeContext.Protocol, routeContext.Host, link, routeContext.Fragment);
+        }
+
+        public string Page(UrlPageContext urlPageContext)
+        {
+            if (urlPageContext == null)
+            {
+                throw new ArgumentNullException(nameof(urlPageContext));
+            }
+
+            var explicitRouteValues = GetValuesDictionary(urlPageContext.Values);
+
+            UpdateExplicitRouteValues("page", urlPageContext.PageName, explicitRouteValues, out var pageName);
+
+            if (string.IsNullOrEmpty(urlPageContext.PageHandlerName))
+            {
+                if (!explicitRouteValues.ContainsKey("handler") &&
+                    AmbientValues.TryGetValue("handler", out var handler))
+                {
+                    // Clear out formaction unless it's explicitly specified in the routeValues.
+                    explicitRouteValues["handler"] = null;
+                }
+            }
+            else
+            {
+                explicitRouteValues["handler"] = urlPageContext.PageHandlerName;
+            }
+
+            var endpoints = _endpointFinder.FindEndpoints(
+                new MvcAddress()
+                {
+                    Name = null,
+                    CurrentActionContext = ActionContext,
+                    TargetPageName = pageName?.ToString(),
+                    TargetHandlerName = urlPageContext.PageHandlerName
+                });
+
+            var successfullyGeneratedLink = _linkGenerator.TryGetLink(
+                new LinkGeneratorContext()
+                {
+                    Endpoints = endpoints,
+                    SuppliedValues = explicitRouteValues,
+                    AmbientValues = AmbientValues
+                },
+                out var link);
+
+            if (!successfullyGeneratedLink)
+            {
+                //TODO: log here
+
+                return null;
+            }
+
+            return GenerateUrl(urlPageContext.Protocol, urlPageContext.Host, link, urlPageContext.Fragment);
+        }
+
+        private void UpdateExplicitRouteValues(
+            string key,
+            string value,
+            RouteValueDictionary explicitValues,
+            out object routeValue)
+        {
+            routeValue = null;
+            if (string.IsNullOrEmpty(value))
+            {
+                if (!explicitValues.ContainsKey(key) &&
+                    AmbientValues.TryGetValue(key, out var ambientValue))
+                {
+                    explicitValues[key] = ambientValue;
+                    routeValue = ambientValue;
+                }
+            }
+            else
+            {
+                explicitValues[key] = value;
+                routeValue = value;
+            }
         }
     }
 }

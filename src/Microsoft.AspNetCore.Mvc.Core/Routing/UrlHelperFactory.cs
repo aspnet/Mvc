@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Core;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -50,8 +51,9 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             if (endpointFeature?.Endpoint != null)
             {
                 var linkGenerator = httpContext.RequestServices.GetRequiredService<ILinkGenerator>();
+                var endpointFinder = httpContext.RequestServices.GetRequiredService<MvcEndpointFinder>();
                 var logger = httpContext.RequestServices.GetRequiredService<ILogger<DispatcherUrlHelper>>();
-                urlHelper = new DispatcherUrlHelper(context, linkGenerator, logger);
+                urlHelper = new DispatcherUrlHelper(context, linkGenerator, endpointFinder, logger);
             }
             else
             {
