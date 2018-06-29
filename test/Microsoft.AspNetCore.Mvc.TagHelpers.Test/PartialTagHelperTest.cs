@@ -608,16 +608,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
         
         [Fact]
-        public void Optional_DefaultValue_IsFalse()
-        {
-            // Arrage
-            var tagHelper = new PartialTagHelper(Mock.Of<ICompositeViewEngine>(), Mock.Of<IViewBufferScope>());
-
-            // Assert
-            Assert.False(tagHelper.Optional);
-        }
-
-        [Fact]
         public async Task ProcessAsync_IfOptional_And_ViewIsNotFound_WillNotRenderAnything()
         {
             // Arrange
