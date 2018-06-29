@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     {
         private const string ForAttributeName = "for";
         private const string ModelAttributeName = "model";
+        private const string RequiredAttributeName = "required";
         private object _model;
         private bool _hasModel;
         private bool _hasFor;
@@ -75,6 +76,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
+        /// Indicates if this partial view must be rendered
+        /// </summary>
+        [HtmlAttributeName(RequiredAttributeName)]
+        public bool Required { get; set; } = true;
+
+        /// <summary>
         /// A <see cref="ViewDataDictionary"/> to pass into the partial view.
         /// </summary>
         public ViewDataDictionary ViewData { get; set; }
@@ -96,16 +103,21 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var model = ResolveModel();
-            var viewBuffer = new ViewBuffer(_viewBufferScope, Name, ViewBuffer.PartialViewPageSize);
-            using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
-            {
-                await RenderPartialViewAsync(writer, model);
+            var viewEngineResult = FindView();
 
-                // Reset the TagName. We don't want `partial` to render.
-                output.TagName = null;
-                output.Content.SetHtmlContent(viewBuffer);
+            if (viewEngineResult.Success)
+            {
+                var model = ResolveModel();
+                var viewBuffer = new ViewBuffer(_viewBufferScope, Name, ViewBuffer.PartialViewPageSize);
+                using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
+                {
+                    await RenderPartialViewAsync(writer, model, viewEngineResult.View);
+                    output.Content.SetHtmlContent(viewBuffer);
+                }
             }
+
+            // Reset the TagName. We don't want `partial` to render.
+            output.TagName = null;
         }
 
         // Internal for testing
@@ -139,7 +151,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return ViewContext.ViewData.Model;
         }
 
-        private async Task RenderPartialViewAsync(TextWriter writer, object model)
+        private ViewEngineResult FindView()
         {
             var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, Name, isMainPage: false);
             var getViewLocations = viewEngineResult.SearchedLocations;
@@ -148,7 +160,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 viewEngineResult = _viewEngine.FindView(ViewContext, Name, isMainPage: false);
             }
 
-            if (!viewEngineResult.Success)
+            if (!viewEngineResult.Success && Required)
             {
                 var searchedLocations = Enumerable.Concat(getViewLocations, viewEngineResult.SearchedLocations);
                 var locations = string.Empty;
@@ -161,7 +173,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     Resources.FormatViewEngine_PartialViewNotFound(Name, locations));
             }
 
-            var view = viewEngineResult.View;
+            return viewEngineResult;
+        }
+
+        private async Task RenderPartialViewAsync(TextWriter writer, object model, IView view)
+        {
             // Determine which ViewData we should use to construct a new ViewData
             var baseViewData = ViewData ?? ViewContext.ViewData;
             var newViewData = new ViewDataDictionary<object>(baseViewData, model);
@@ -177,5 +193,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 await view.RenderAsync(partialViewContext);
             }
         }
+
     }
 }
