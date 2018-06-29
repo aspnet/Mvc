@@ -569,7 +569,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_Throws_If_Required_And_GetViewAndFindReturnNotFoundResults()
+        public async Task ProcessAsync_Throws_If_NotOptional_And_GetViewAndFindReturnNotFoundResults()
         {
             // Arrange
             var bufferScope = new TestViewBufferScope();
@@ -596,7 +596,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 Name = partialName,
                 ViewContext = viewContext,
                 ViewData = viewData,
-                Required = true
+                Optional = false
             };
             var tagHelperContext = GetTagHelperContext();
             var output = GetTagHelperOutput();
@@ -608,17 +608,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
         
         [Fact]
-        public void Required_DefaultValue_IsTrue()
+        public void Optional_DefaultValue_IsFalse()
         {
             // Arrage
             var tagHelper = new PartialTagHelper(Mock.Of<ICompositeViewEngine>(), Mock.Of<IViewBufferScope>());
 
             // Assert
-            Assert.True(tagHelper.Required);
+            Assert.False(tagHelper.Optional);
         }
 
         [Fact]
-        public async Task ProcessAsync_IfNotRequired_And_ViewIsNotFound_WillNotRenderAnything()
+        public async Task ProcessAsync_IfOptional_And_ViewIsNotFound_WillNotRenderAnything()
         {
             // Arrange
             var expected = string.Empty;
@@ -645,7 +645,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 Name = partialName,
                 ViewContext = viewContext,
-                Required = false
+                Optional = true
             };
             var tagHelperContext = GetTagHelperContext();
             var output = GetTagHelperOutput();
@@ -655,7 +655,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
             // Assert
             var content = HtmlContentUtilities.HtmlContentToString(output.Content, new HtmlTestEncoder());
-            Assert.Equal(expected, content);
+            Assert.Empty(content);
         }
 
         private static ViewContext GetViewContext()

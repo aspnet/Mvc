@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     {
         private const string ForAttributeName = "for";
         private const string ModelAttributeName = "model";
-        private const string RequiredAttributeName = "required";
+        private const string OptionalAttributeName = "optional";
         private object _model;
         private bool _hasModel;
         private bool _hasFor;
@@ -76,10 +76,11 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
-        /// Indicates if this partial view must be rendered
+        /// When optional, executing the tag helper will no-op if the view cannot be located. 
+        /// Otherwise will throw stating the view could not be found.
         /// </summary>
-        [HtmlAttributeName(RequiredAttributeName)]
-        public bool Required { get; set; } = true;
+        [HtmlAttributeName(OptionalAttributeName)]
+        public bool Optional { get; set; }
 
         /// <summary>
         /// A <see cref="ViewDataDictionary"/> to pass into the partial view.
@@ -160,7 +161,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 viewEngineResult = _viewEngine.FindView(ViewContext, Name, isMainPage: false);
             }
 
-            if (!viewEngineResult.Success && Required)
+            if (!viewEngineResult.Success && !Optional)
             {
                 var searchedLocations = Enumerable.Concat(getViewLocations, viewEngineResult.SearchedLocations);
                 var locations = string.Empty;
@@ -193,6 +194,5 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 await view.RenderAsync(partialViewContext);
             }
         }
-
     }
 }
