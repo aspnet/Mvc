@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,9 @@ using System.Reflection.Emit;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -621,6 +624,75 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void PreservesBindingSourceInference_ForFromQueryParameterOnCollectionType()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ParameterBindingController.FromQueryOnCollectionType);
+            var context = GetContext(typeof(ParameterBindingController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Null(bindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void PreservesBindingSourceInference_ForFromQueryOnArrayType()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ParameterBindingController.FromQueryOnArrayType);
+            var context = GetContext(typeof(ParameterBindingController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Null(bindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void PreservesBindingSourceInference_FromQueryOnArrayTypeWithCustomName()
+        {
+            // Arrange
+            var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
+            var actionName = nameof(ParameterBindingController.FromQueryOnArrayTypeWithCustomName);
+            var context = GetContext(typeof(ParameterBindingController), modelMetadataProvider);
+            var provider = GetProvider();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var controller = Assert.Single(context.Result.Controllers);
+            var action = Assert.Single(controller.Actions, a => a.ActionName == actionName);
+            var parameter = Assert.Single(action.Parameters);
+
+            var bindingInfo = parameter.BindingInfo;
+            Assert.NotNull(bindingInfo);
+            Assert.Same(BindingSource.Query, bindingInfo.BindingSource);
+            Assert.Equal("ids", bindingInfo.BinderModelName);
+        }
+
+        [Fact]
         public void PreservesBindingSourceInference_ForFromRouteParameter_WithDefaultName()
         {
             // Arrange
@@ -796,6 +868,22 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundCollectionProperty));
+
+            var provider = GetProvider();
+
+            // Act
+            provider.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Null(property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
         public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
         {
             // Arrange
@@ -875,47 +963,107 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void ApiConventionAttributeIsNotAdded_IfModelAlreadyHasAttribute()
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfActionHasProducesResponseTypeAttribute()
         {
             // Arrange
-            var attribute = new ApiConventionAttribute(typeof(DefaultApiConventions));
-            var controllerType = CreateTestControllerType();
-
-            var model = new ControllerModel(controllerType.GetTypeInfo(), new[] { attribute })
-            {
-                Filters = { attribute, },
-            };
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new ProducesResponseTypeAttribute(200));
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
 
             // Assert
-            Assert.Collection(
-                model.Filters,
-                filter => Assert.Same(attribute, filter));
+            Assert.Empty(actionModel.Properties);
         }
 
         [Fact]
-        public void ApiConventionAttributeIsAdded_IfAttributeExistsInAssembly()
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfActionHasProducesAttribute()
         {
             // Arrange
-            var controllerType = CreateTestControllerType();
-            var model = new ControllerModel(controllerType.GetTypeInfo(), Array.Empty<object>());
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new ProducesAttribute(typeof(object)));
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
-            ApiBehaviorApplicationModelProvider.AddGloballyConfiguredApiConventions(model);
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_DoesNotAddConventionItem_IfNoConventionMatches()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.NoMatch)),
+                Array.Empty<object>());
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_AddsConventionItem_IfConventionMatches()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
 
             // Assert
             Assert.Collection(
-                model.Filters,
-                filter => Assert.IsType<ApiConventionAttribute>(filter));
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiConventionResult), kvp.Key);
+                    Assert.NotNull(kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiConvention_AddsConventionItem_IfActionHasNonConventionBasedFilters()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>());
+            actionModel.Filters.Add(new AuthorizeFilter());
+            actionModel.Filters.Add(new ServiceFilterAttribute(typeof(object)));
+            actionModel.Filters.Add(new ConsumesAttribute("application/xml"));
+            var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
+
+            // Act
+            ApiBehaviorApplicationModelProvider.DiscoverApiConvention(actionModel, attributes);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiConventionResult), kvp.Key);
+                    Assert.NotNull(kvp.Value);
+                });
         }
 
         // A dynamically generated type in an assembly that has an ApiConventionAttribute.
         private static TypeBuilder CreateTestControllerType()
         {
             var attributeBuilder = new CustomAttributeBuilder(
-                typeof(ApiConventionAttribute).GetConstructor(new[] { typeof(Type) }),
+                typeof(ApiConventionTypeAttribute).GetConstructor(new[] { typeof(Type) }),
                 new[] { typeof(DefaultApiConventions) });
 
             var assemblyName = new AssemblyName("TestAssembly");
@@ -1062,7 +1210,7 @@ Environment.NewLine + "int b";
 
             [HttpGet("parameter-with-model-binder-attribute")]
             public IActionResult ModelBinderAttribute([ModelBinder(Name = "top")] int value) => null;
-            
+
             [HttpGet("parameter-with-fromquery")]
             public IActionResult FromQuery([FromQuery] int value) => null;
 
@@ -1074,6 +1222,15 @@ Environment.NewLine + "int b";
 
             [HttpGet("parameter-with-fromquery-on-complextype-and-customname")]
             public IActionResult FromQueryOnComplexTypeWithCustomName([FromQuery(Name = "gps")] GpsCoordinates gpsCoordinates) => null;
+
+            [HttpGet("parameter-with-fromquery-on-collection-type")]
+            public IActionResult FromQueryOnCollectionType([FromQuery] ICollection<int> value) => null;
+
+            [HttpGet("parameter-with-fromquery-on-array-type")]
+            public IActionResult FromQueryOnArrayType([FromQuery] int[] value) => null;
+
+            [HttpGet("parameter-with-fromquery-on-array-type-customname")]
+            public IActionResult FromQueryOnArrayTypeWithCustomName([FromQuery(Name = "ids")] int[] value) => null;
 
             [HttpGet("parameter-with-fromroute")]
             public IActionResult FromRoute([FromRoute] int value) => null;
@@ -1172,6 +1329,15 @@ Environment.NewLine + "int b";
             public IActionResult SomeAction([FromQuery] TestModel test) => null;
         }
 
+        [ApiController]
+        private class ControllerWithBoundCollectionProperty
+        {
+            [FromQuery]
+            public List<int> TestProperty { get; set; }
+
+            public IActionResult SomeAction([FromQuery] List<int> test) => null;
+        }
+
         private class Car { }
 
         [ApiController]
@@ -1200,6 +1366,13 @@ Environment.NewLine + "int b";
         {
             [HttpGet("test")]
             public IActionResult Action([ModelBinder(typeof(object))] Car car) => null;
+        }
+
+        private class TestApiConventionController
+        {
+            public IActionResult NoMatch() => null;
+
+            public IActionResult Delete(int id) => null;
         }
 
         private class GpsCoordinates
