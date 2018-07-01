@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,10 +23,14 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     {
         private const string ForAttributeName = "for";
         private const string ModelAttributeName = "model";
+        private const string FallbackAttributeName = "fallback";
+        private const string OptionalAttributeName = "optional";
         private object _model;
         private bool _hasModel;
         private bool _hasFor;
         private ModelExpression _for;
+        private string _fallback;
+        private bool _hasFallback;
 
         private readonly ICompositeViewEngine _viewEngine;
         private readonly IViewBufferScope _viewBufferScope;
@@ -75,6 +80,34 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         /// <summary>
+        /// When optional, executing the tag helper will no-op if the view cannot be located. 
+        /// Otherwise will throw stating the view could not be found.
+        /// Cannot be used together with <see cref="Fallback"/>.
+        /// </summary>
+        [HtmlAttributeName(OptionalAttributeName)]
+        public bool Optional { get; set; }
+
+        /// <summary>
+        /// View to lookup if main view cannot be located.
+        /// Will throw if main view and fallback cannot be located.
+        /// Cannot be used together with <see cref="Optional"/>.
+        /// </summary>
+        [HtmlAttributeName(FallbackAttributeName)]
+        public string Fallback
+        {
+            get => _fallback;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new ArgumentNullException(nameof(Fallback));
+                }
+                _fallback = value;
+                _hasFallback = true;
+            }
+        }
+
+        /// <summary>
         /// A <see cref="ViewDataDictionary"/> to pass into the partial view.
         /// </summary>
         public ViewDataDictionary ViewData { get; set; }
@@ -96,16 +129,42 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var model = ResolveModel();
-            var viewBuffer = new ViewBuffer(_viewBufferScope, Name, ViewBuffer.PartialViewPageSize);
-            using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
+            if (Optional && _hasFallback)
             {
-                await RenderPartialViewAsync(writer, model);
-
-                // Reset the TagName. We don't want `partial` to render.
-                output.TagName = null;
-                output.Content.SetHtmlContent(viewBuffer);
+                throw new InvalidOperationException(
+                    Resources.FormatPartialTagHelper_InvalidModelAttributes(
+                    typeof(PartialTagHelper).FullName,
+                    FallbackAttributeName,
+                    OptionalAttributeName));
             }
+
+            ViewEngineResult result;
+            if (Optional)
+            {
+                result = Find(Name);
+            }
+            else if (_hasFallback)
+            {
+                result = FindPartialWithFallback();
+            }
+            else
+            {
+                result = FindPartial();
+            }
+            
+            if (result.Success)
+            {
+                var model = ResolveModel();
+                var viewBuffer = new ViewBuffer(_viewBufferScope, result.ViewName, ViewBuffer.PartialViewPageSize);
+                using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
+                {
+                    await RenderPartialViewAsync(writer, model, result.View);
+                    output.Content.SetHtmlContent(viewBuffer);
+                }
+            }
+
+            // Reset the TagName. We don't want `partial` to render.
+            output.TagName = null;
         }
 
         // Internal for testing
@@ -139,29 +198,60 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return ViewContext.ViewData.Model;
         }
 
-        private async Task RenderPartialViewAsync(TextWriter writer, object model)
+        private ViewEngineResult FindPartial()
         {
-            var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, Name, isMainPage: false);
+            var viewEngineResult = Find(Name);
+
+            if (!viewEngineResult.Success)
+            {
+                var notFoundMessage = NotFoundMessage(Name, viewEngineResult.SearchedLocations);
+                throw new InvalidOperationException(notFoundMessage);
+            }
+
+            return viewEngineResult;
+        }
+        
+        private ViewEngineResult FindPartialWithFallback()
+        {
+            var viewEngineResult = Find(Name);
+            var partialSearchedLocations = viewEngineResult.SearchedLocations;
+
+            if (!viewEngineResult.Success)
+            {
+                viewEngineResult = Find(Fallback);
+            }
+
+            if (!viewEngineResult.Success)
+            {
+                var partialNotFoundMessage = NotFoundMessage(Name, partialSearchedLocations);
+                var fallbackNotFoundMessage = NotFoundMessage(Fallback, viewEngineResult.SearchedLocations);
+                var notFoundMessage = partialNotFoundMessage + Environment.NewLine + fallbackNotFoundMessage;
+                throw new InvalidOperationException(notFoundMessage);
+            }
+
+            return viewEngineResult;
+        }
+
+        private ViewEngineResult Find(string partialName)
+        {
+            var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, partialName, isMainPage: false);
             var getViewLocations = viewEngineResult.SearchedLocations;
             if (!viewEngineResult.Success)
             {
-                viewEngineResult = _viewEngine.FindView(ViewContext, Name, isMainPage: false);
+                viewEngineResult = _viewEngine.FindView(ViewContext, partialName, isMainPage: false);
             }
 
             if (!viewEngineResult.Success)
             {
                 var searchedLocations = Enumerable.Concat(getViewLocations, viewEngineResult.SearchedLocations);
-                var locations = string.Empty;
-                if (searchedLocations.Any())
-                {
-                    locations += Environment.NewLine + string.Join(Environment.NewLine, searchedLocations);
-                }
-
-                throw new InvalidOperationException(
-                    Resources.FormatViewEngine_PartialViewNotFound(Name, locations));
+                return ViewEngineResult.NotFound(partialName, searchedLocations);
             }
 
-            var view = viewEngineResult.View;
+            return viewEngineResult;
+        }
+
+        private async Task RenderPartialViewAsync(TextWriter writer, object model, IView view)
+        {
             // Determine which ViewData we should use to construct a new ViewData
             var baseViewData = ViewData ?? ViewContext.ViewData;
             var newViewData = new ViewDataDictionary<object>(baseViewData, model);
@@ -176,6 +266,17 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 await view.RenderAsync(partialViewContext);
             }
+        }
+
+        private string NotFoundMessage(string name, IEnumerable<string> searchedLocations)
+        {
+            var locations = string.Empty;
+            if (searchedLocations.Any())
+            {
+                locations += Environment.NewLine + string.Join(Environment.NewLine, searchedLocations);
+            }
+            
+            return Resources.FormatViewEngine_PartialViewNotFound(name, locations);
         }
     }
 }
