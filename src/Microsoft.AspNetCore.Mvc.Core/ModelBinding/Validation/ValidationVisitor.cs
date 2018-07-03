@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
@@ -15,6 +16,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
     /// </summary>
     public class ValidationVisitor
     {
+        private bool _isTopLevel;
+
         /// <summary>
         /// Creates a new <see cref="ValidationVisitor"/>.
         /// </summary>
@@ -106,6 +109,8 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
 
                 return true;
             }
+
+            _isTopLevel = true;
 
             return Visit(metadata, key, model);
         }
@@ -204,6 +209,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             {
                 if (Metadata.IsEnumerableType)
                 {
+                    _isTopLevel = false;
                     return VisitComplexType(DefaultCollectionValidationStrategy.Instance);
                 }
 
@@ -212,6 +218,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                     return VisitComplexType(DefaultComplexObjectValidationStrategy.Instance);
                 }
 
+                // It's possible that a derived simple type i.e. something with a TypeConverter to string implements
+                // IValidatableObject. But, this is not currently supported -- base class must do the implementation.
+                _isTopLevel = false;
                 return VisitSimpleType();
             }
         }
@@ -220,6 +229,15 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         protected virtual bool VisitComplexType(IValidationStrategy defaultStrategy)
         {
             var isValid = true;
+
+            var savedMetadata = Metadata;
+            if (_isTopLevel && Model != null && Model.GetType() != Metadata.ModelType)
+            {
+                // Handle the polymorphic binder case.
+                Metadata = MetadataProvider.GetMetadataForType(Model.GetType());
+            }
+
+            _isTopLevel = false;
 
             if (Model != null && Metadata.ValidateChildren)
             {
@@ -233,6 +251,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 // code will set it to 'valid' or 'invalid'
                 SuppressValidation(Key);
             }
+
+            // Done validating children. Restore Metadata because ValidationAttributes on a parameter or property are
+            // far more likely than a derived type implementing IValidatableObject. (But, could handle that case too,
+            // delaying this restoration and complicating ValidateNode().)
+            Metadata = savedMetadata;
 
             // Double-checking HasReachedMaxErrors just in case this model has no properties.
             // If validation has failed for any children, only validate the parent if ValidateComplexTypesIfChildValidationFails is true.
