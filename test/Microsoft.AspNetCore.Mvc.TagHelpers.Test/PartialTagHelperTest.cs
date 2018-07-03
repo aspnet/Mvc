@@ -647,46 +647,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             var content = HtmlContentUtilities.HtmlContentToString(output.Content, new HtmlTestEncoder());
             Assert.Empty(content);
         }
-
-        [Fact]
-        public async Task ProcessAsync_Throws_If_IsOptional_And_HasFallback()
-        {
-            // Arrange
-            var bufferScope = new TestViewBufferScope();
-            var partialName = "_Partial";
-            var fallbackName = "_Fallback";
-            var expected = Resources.FormatPartialTagHelper_InvalidModelAttributes(
-                typeof(PartialTagHelper).FullName, 
-                "fallback",
-                "optional");
-            var viewData = new ViewDataDictionary(new TestModelMetadataProvider(), new ModelStateDictionary());
-            var viewContext = GetViewContext();
-
-            var view = Mock.Of<IView>();
-            var viewEngine = new Mock<ICompositeViewEngine>();
-            viewEngine.Setup(v => v.GetView(It.IsAny<string>(), partialName, false))
-                .Returns(ViewEngineResult.NotFound(partialName, new[] { "NotFound1", "NotFound2" }));
-
-            viewEngine.Setup(v => v.FindView(viewContext, partialName, false))
-                .Returns(ViewEngineResult.NotFound(partialName, new[] { $"NotFound3", $"NotFound4" }));
-
-            var tagHelper = new PartialTagHelper(viewEngine.Object, bufferScope)
-            {
-                Name = partialName,
-                ViewContext = viewContext,
-                ViewData = viewData,
-                Optional = true,
-                Fallback = fallbackName
-            };
-            var tagHelperContext = GetTagHelperContext();
-            var output = GetTagHelperOutput();
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => tagHelper.ProcessAsync(tagHelperContext, output));
-            Assert.Equal(expected, exception.Message);
-        }
-
+        
         [Fact]
         public async Task ProcessAsync_RendersMainPartial_If_FallbackIsSet_AndMainPartialIsFound()
         {
@@ -738,18 +699,13 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         }
 
         [Fact]
-        public async Task ProcessAsync_IfHasFallback_Throws_When_MainPartialAndFallback_IsNotFound()
+        public async Task ProcessAsync_IfHasFallback_Throws_When_MainPartialAndFallback_AreNotFound()
         {
             // Arrange
             var bufferScope = new TestViewBufferScope();
             var partialName = "_Partial";
             var fallbackName = "_Fallback";
             var expected = string.Join(Environment.NewLine,
-                $"The partial view '{partialName}' was not found. The following locations were searched:",
-                "PartialNotFound1",
-                "PartialNotFound2",
-                "PartialNotFound3",
-                "PartialNotFound4",
                 $"The partial view '{fallbackName}' was not found. The following locations were searched:",
                 "FallbackNotFound1",
                 "FallbackNotFound2",

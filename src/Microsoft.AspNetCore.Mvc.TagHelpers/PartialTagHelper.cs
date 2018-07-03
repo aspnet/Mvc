@@ -29,8 +29,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private bool _hasModel;
         private bool _hasFor;
         private ModelExpression _for;
-        private string _fallback;
-        private bool _hasFallback;
 
         private readonly ICompositeViewEngine _viewEngine;
         private readonly IViewBufferScope _viewBufferScope;
@@ -82,30 +80,15 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// <summary>
         /// When optional, executing the tag helper will no-op if the view cannot be located. 
         /// Otherwise will throw stating the view could not be found.
-        /// Cannot be used together with <see cref="Fallback"/>.
         /// </summary>
         [HtmlAttributeName(OptionalAttributeName)]
         public bool Optional { get; set; }
 
         /// <summary>
         /// View to lookup if main view cannot be located.
-        /// Will throw if main view and fallback cannot be located.
-        /// Cannot be used together with <see cref="Optional"/>.
         /// </summary>
         [HtmlAttributeName(FallbackAttributeName)]
-        public string Fallback
-        {
-            get => _fallback;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    throw new ArgumentNullException(nameof(Fallback));
-                }
-                _fallback = value;
-                _hasFallback = true;
-            }
-        }
+        public string Fallback { get; set; }
 
         /// <summary>
         /// A <see cref="ViewDataDictionary"/> to pass into the partial view.
@@ -129,29 +112,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (Optional && _hasFallback)
+            var result = Find(Name);
+            if (!result.Success && !string.IsNullOrEmpty(Fallback))
             {
-                throw new InvalidOperationException(
-                    Resources.FormatPartialTagHelper_InvalidModelAttributes(
-                    typeof(PartialTagHelper).FullName,
-                    FallbackAttributeName,
-                    OptionalAttributeName));
+                result = Find(Fallback);
             }
 
-            ViewEngineResult result;
-            if (Optional)
-            {
-                result = Find(Name);
-            }
-            else if (_hasFallback)
-            {
-                result = FindPartialWithFallback();
-            }
-            else
-            {
-                result = FindPartial();
-            }
-            
             if (result.Success)
             {
                 var model = ResolveModel();
@@ -160,6 +126,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 {
                     await RenderPartialViewAsync(writer, model, result.View);
                     output.Content.SetHtmlContent(viewBuffer);
+                }
+            }
+            else
+            {
+                if (!Optional)
+                {
+                    var locations = string.Empty;
+                    if (result.SearchedLocations.Any())
+                    {
+                        locations += Environment.NewLine + string.Join(Environment.NewLine, result.SearchedLocations);
+                    }
+                    throw new InvalidOperationException(
+                        Resources.FormatViewEngine_PartialViewNotFound(result.ViewName, locations));
                 }
             }
 
@@ -198,40 +177,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return ViewContext.ViewData.Model;
         }
 
-        private ViewEngineResult FindPartial()
-        {
-            var viewEngineResult = Find(Name);
-
-            if (!viewEngineResult.Success)
-            {
-                var notFoundMessage = NotFoundMessage(Name, viewEngineResult.SearchedLocations);
-                throw new InvalidOperationException(notFoundMessage);
-            }
-
-            return viewEngineResult;
-        }
-        
-        private ViewEngineResult FindPartialWithFallback()
-        {
-            var viewEngineResult = Find(Name);
-            var partialSearchedLocations = viewEngineResult.SearchedLocations;
-
-            if (!viewEngineResult.Success)
-            {
-                viewEngineResult = Find(Fallback);
-            }
-
-            if (!viewEngineResult.Success)
-            {
-                var partialNotFoundMessage = NotFoundMessage(Name, partialSearchedLocations);
-                var fallbackNotFoundMessage = NotFoundMessage(Fallback, viewEngineResult.SearchedLocations);
-                var notFoundMessage = partialNotFoundMessage + Environment.NewLine + fallbackNotFoundMessage;
-                throw new InvalidOperationException(notFoundMessage);
-            }
-
-            return viewEngineResult;
-        }
-
         private ViewEngineResult Find(string partialName)
         {
             var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, partialName, isMainPage: false);
@@ -266,17 +211,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             {
                 await view.RenderAsync(partialViewContext);
             }
-        }
-
-        private string NotFoundMessage(string name, IEnumerable<string> searchedLocations)
-        {
-            var locations = string.Empty;
-            if (searchedLocations.Any())
-            {
-                locations += Environment.NewLine + string.Join(Environment.NewLine, searchedLocations);
-            }
-            
-            return Resources.FormatViewEngine_PartialViewNotFound(name, locations);
         }
     }
 }
