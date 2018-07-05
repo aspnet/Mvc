@@ -260,7 +260,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             }
             else
             {
-                return builder.UseEnvironment("Development");
+                var environmentName = builder.GetSetting(WebHostDefaults.EnvironmentKey) ??
+                                      EnvironmentName.Development;
+                return builder.UseEnvironment(environmentName);
             }
         }
 
