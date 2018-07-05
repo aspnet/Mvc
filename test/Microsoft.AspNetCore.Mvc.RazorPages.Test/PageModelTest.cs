@@ -1949,8 +1949,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             {
                 PageContext = new PageContext
                 {
-                    ViewData = viewData
-                }
+                    ViewData = viewData,
+                },
             };
 
             // Act
@@ -1971,8 +1971,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             {
                 PageContext = new PageContext
                 {
-                    ViewData = viewData
-                }
+                    ViewData = viewData,
+                },
             };
 
             // Act

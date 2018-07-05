@@ -1752,8 +1752,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             {
                 ViewContext = new ViewContext
                 {
-                    ViewData = viewData
-                }
+                    ViewData = viewData,
+                },
             };
 
             // Act
@@ -1774,8 +1774,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             {
                 ViewContext = new ViewContext
                 {
-                    ViewData = viewData
-                }
+                    ViewData = viewData,
+                },
             };
 
             // Act
@@ -1796,8 +1796,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
             {
                 ViewContext = new ViewContext
                 {
-                    ViewData = viewData
-                }
+                    ViewData = viewData,
+                },
             };
 
             var arguments = new { Arg1 = "Hi", Arg2 = "There" };
