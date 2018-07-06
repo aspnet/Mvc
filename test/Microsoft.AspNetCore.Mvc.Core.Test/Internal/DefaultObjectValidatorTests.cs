@@ -78,6 +78,32 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
+        public void Validate_SimpleType_WithDerivedModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedSimpleType("Fred");
+            var validationState = new ValidationStateDictionary
+            {
+                {
+                    model,
+                    new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(SimpleType)) }
+                }
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var entry = Assert.Single(modelState);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal("Name is just too.", error.ErrorMessage);
+        }
+
+        [Fact]
         public void Validate_SimpleType_MaxErrorsReached()
         {
             // Arrange
@@ -228,6 +254,56 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
             error = Assert.Single(entry.Errors);
             Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Profession"), error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_ComplexReferenceType_WithDerivedModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedPerson { Name = "Mario", Profession = "Plumber" };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(Person)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Empty(kvp.Key);
+            Assert.Equal(ModelValidationState.Invalid, kvp.Value.ValidationState);
+            var error = Assert.Single(kvp.Value.Errors);
+            Assert.Equal("Person is just too.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_ComplexReferenceType_WithDerivedModel_InvalidWithNoDuplicates()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedUser { Password = "password", ConfirmPassword = "password" };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(User)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Empty(kvp.Key);
+            Assert.Equal(ModelValidationState.Invalid, kvp.Value.ValidationState);
+            var error = Assert.Single(kvp.Value.Errors);
+            Assert.Equal("Password does not meet complexity requirements.", error.ErrorMessage);
         }
 
         [Fact]
@@ -1244,6 +1320,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public Family Family { get; set; }
         }
 
+        private class DerivedPerson : Person, IValidatableObject
+        {
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                yield return new ValidationResult("Person is just too.");
+            }
+        }
+
         private class Family
         {
             public List<Person> Members { get; set; }
@@ -1327,6 +1411,44 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     yield return new ValidationResult("Password does not meet complexity requirements.");
                 }
+            }
+        }
+
+        private class DerivedUser : User
+        {
+        }
+
+        private class SimpleType
+        {
+            public SimpleType(string name)
+            {
+                Name = name;
+            }
+
+            public static implicit operator string(SimpleType value)
+            {
+                return value.Name;
+            }
+
+            public string Name { get; }
+        }
+
+        // Always invalid
+        private class DerivedSimpleType : SimpleType, IValidatableObject
+        {
+            public DerivedSimpleType(string name)
+                : base(name)
+            {
+            }
+
+            public static implicit operator string(DerivedSimpleType value)
+            {
+                return value.Name;
+            }
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                yield return new ValidationResult("Name is just too.");
             }
         }
 

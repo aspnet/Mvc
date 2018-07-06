@@ -432,7 +432,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
                 stringLocalizer: null);
 
             var parameterBinder = CreateParameterBinder(mockModelMetadata.Object, validator);
-            var modelBindingResult = ModelBindingResult.Success(123);
+            var modelBindingResult = ModelBindingResult.Success("123");
 
             // Act
             var result = await parameterBinder.BindModelAsync(
@@ -473,7 +473,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             var parameterBinder = CreateBackCompatParameterBinder(
                 modelMetadata,
                 mockValidator.Object);
-            var modelBindingResult = ModelBindingResult.Success(123);
+            var modelBindingResult = ModelBindingResult.Success("123");
 
             // Act
             var result = await parameterBinder.BindModelAsync(

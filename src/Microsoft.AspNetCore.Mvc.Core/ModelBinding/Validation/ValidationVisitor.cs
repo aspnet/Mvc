@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 
@@ -15,6 +18,13 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
     /// </summary>
     public class ValidationVisitor
     {
+        private const string DataAnnotationsModelValidatorTypeName =
+            "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.DataAnnotationsModelValidator";
+        private const string RequiredAttributeTypeName =
+            "System.ComponentModel.DataAnnotations.RequiredAttribute";
+        private const string ValidatableObjectAdapterTypeName =
+            "Microsoft.AspNetCore.Mvc.DataAnnotations.Internal.ValidatableObjectAdapter";
+        private static MethodInfo DataAnnotationsModelValidatorAttributeGetter;
         private bool _isTopLevel;
 
         /// <summary>
@@ -76,6 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         /// Indicates whether validation of a complex type should be performed if validation fails for any of its children. The default behavior is false.
         /// </summary>
         public bool ValidateComplexTypesIfChildValidationFails { get; set; }
+
         /// <summary>
         /// Validates a object.
         /// </summary>
@@ -127,6 +138,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             if (state != ModelValidationState.Invalid)
             {
                 var validators = Cache.GetValidators(Metadata, ValidatorProvider);
+                if (_isTopLevel && Model != null && Model.GetType() != Metadata.ModelType)
+                {
+                    validators = AddDerivedValidators(validators);
+                }
 
                 var count = validators.Count;
                 if (count > 0)
@@ -208,7 +223,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             {
                 if (Metadata.IsEnumerableType)
                 {
-                    _isTopLevel = false;
                     return VisitComplexType(DefaultCollectionValidationStrategy.Instance);
                 }
 
@@ -217,9 +231,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                     return VisitComplexType(DefaultComplexObjectValidationStrategy.Instance);
                 }
 
-                // It's possible that a derived simple type i.e. something with a TypeConverter to string implements
-                // IValidatableObject. But, this is not currently supported -- base class must do the implementation.
-                _isTopLevel = false;
                 return VisitSimpleType();
             }
         }
@@ -230,17 +241,19 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             var isValid = true;
 
             var savedMetadata = Metadata;
-            if (_isTopLevel && Model != null && Model.GetType() != Metadata.ModelType)
+            var savedTopLevel = _isTopLevel;
+            if (_isTopLevel && Model != null && !Metadata.IsEnumerableType && Model.GetType() != Metadata.ModelType)
             {
-                // Handle the polymorphic binder case.
+                // Handle properties of a derived type in the polymorphic binder case. (Derived collections can't have
+                // metadata that overrides validation of their elements.)
                 Metadata = MetadataProvider.GetMetadataForType(Model.GetType());
             }
-
-            _isTopLevel = false;
 
             if (Model != null && Metadata.ValidateChildren)
             {
                 var strategy = Strategy ?? defaultStrategy;
+                _isTopLevel = false;
+
                 isValid = VisitChildren(strategy);
             }
             else if (Model != null)
@@ -251,9 +264,9 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 SuppressValidation(Key);
             }
 
-            // Done validating children. Restore Metadata because ValidationAttributes on a parameter or property are
-            // far more likely than a derived type implementing IValidatableObject. (But, could handle that case too,
-            // delaying this restoration and complicating ValidateNode().)
+            // Done validating children. Restore metadata because ValidateNode needs original information about the
+            // parameter or property.
+            _isTopLevel = savedTopLevel;
             Metadata = savedMetadata;
 
             // Double-checking HasReachedMaxErrors just in case this model has no properties.
@@ -327,6 +340,110 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             return entry;
         }
 
+        // Handle the derived type itself in the polymorphic model binder case. For example, derived type may implement
+        // IValidatableObject though base type does not.
+        //
+        // Case not specific to IValidatableObject because an IValidationMetadataProvider could add a validator to type
+        // metadata even if e.g the underlying ValidationAttribute cannot be associated with a class.
+        private IReadOnlyList<IModelValidator> AddDerivedValidators(IReadOnlyList<IModelValidator> validators)
+        {
+            var derivedMetadata = MetadataProvider.GetMetadataForType(Model.GetType());
+            var derivedValidators = Cache.GetValidators(derivedMetadata, ValidatorProvider);
+            if (derivedValidators.Count == 0)
+            {
+                return validators;
+            }
+
+            if (validators.Count == 0)
+            {
+                // Simple case: The only validators are associated with the derived type.
+                return derivedValidators;
+            }
+
+            if (derivedValidators.Count == 1 && IsValidatableObjectAdapter(derivedValidators[0]))
+            {
+                // If derived type implements IValidatableObject but base does not, add the adapter. Nothing to do if
+                // validators collection already contains a ValidatableObjectAdapter.
+                if (!validators.Any(v => IsValidatableObjectAdapter(v)))
+                {
+                    validators = validators
+                        .Concat(derivedValidators)
+                        .ToArray();
+                }
+
+                return validators;
+            }
+
+            // Likely an IValidationMetadataProvider implementation has associated validators with the derived type.
+            // (May have also done so for the base type.)
+            bool IsRequiredAttributeValidator(IModelValidator validator) =>
+                IsDataAnnotationsModelValidator(validator) &&
+                string.Equals(
+                    RequiredAttributeTypeName,
+                    GetValidationAttribute(validator).GetType().FullName,
+                    StringComparison.Ordinal);
+
+            // Ensure RequiredAttribute validator, if any, remains first.
+            var firstValidator = validators[0];
+            var firstDerivedValidator = derivedValidators[0];
+            IEnumerable<IModelValidator> mergedValidators;
+            if (IsRequiredAttributeValidator(firstValidator) &&
+                IsRequiredAttributeValidator(firstDerivedValidator))
+            {
+                // RequiredAttribute likely associated with parameter or property. (Can't be positive because
+                // ModelMetadata.IsRequired adds a unique RequiredAttribute to ModelMetadata.ValidatorMetadata.)
+                mergedValidators = validators.Concat(derivedValidators.Skip(1));
+            }
+            else if (IsRequiredAttributeValidator(firstDerivedValidator))
+            {
+                // Move firstDerivedValidator to head of the list.
+                mergedValidators = derivedValidators
+                    .Take(1)
+                    .Concat(validators)
+                    .Concat(derivedValidators.Skip(1));
+            }
+            else
+            {
+                mergedValidators = validators.Concat(derivedValidators);
+            }
+
+            // Remove duplicate validators for the same attribute. This also removes duplicate ValidatableObjectAdapter
+            // instances. But, may still get extra error messages from overridden ValidationAttribute instances or
+            // duplicate non-ValidationAttribute validators.
+            validators = mergedValidators
+                .Distinct(ModelValidatorComparer.Instance)
+                .ToArray();
+
+            return validators;
+        }
+
+        private static object GetValidationAttribute(IModelValidator validator)
+        {
+            if (!IsDataAnnotationsModelValidator(validator))
+            {
+                return null;
+            }
+
+            if (DataAnnotationsModelValidatorAttributeGetter == null)
+            {
+                var propertyInfo = validator.GetType().GetProperty("Attribute");
+                var methodInfo = propertyInfo.GetGetMethod();
+                Interlocked.CompareExchange(ref DataAnnotationsModelValidatorAttributeGetter, methodInfo, null);
+            }
+
+            return DataAnnotationsModelValidatorAttributeGetter.Invoke(validator, Array.Empty<object>());
+        }
+
+        private static bool IsDataAnnotationsModelValidator(IModelValidator validator) => string.Equals(
+            DataAnnotationsModelValidatorTypeName,
+            validator.GetType().FullName,
+            StringComparison.Ordinal);
+
+        private static bool IsValidatableObjectAdapter(IModelValidator validator) => string.Equals(
+            ValidatableObjectAdapterTypeName,
+            validator.GetType().FullName,
+            StringComparison.Ordinal);
+
         protected struct StateManager : IDisposable
         {
             private readonly ValidationVisitor _visitor;
@@ -376,6 +493,77 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 _visitor.Strategy = _strategy;
 
                 _visitor.CurrentPath.Pop(_newModel);
+            }
+        }
+
+        private class ModelValidatorComparer : IEqualityComparer<IModelValidator>
+        {
+            public static readonly ModelValidatorComparer Instance = new ModelValidatorComparer();
+
+            private ModelValidatorComparer()
+            {
+            }
+
+            public bool Equals(IModelValidator x, IModelValidator y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                if (x == null || y == null)
+                {
+                    return false;
+                }
+
+                if (x.GetType() != y.GetType())
+                {
+                    return false;
+                }
+
+                if (IsValidatableObjectAdapter(x))
+                {
+                    // All ValidatableObjectAdapter instances do the same thing.
+                    return true;
+                }
+
+                if (!IsDataAnnotationsModelValidator(x))
+                {
+                    // Know nothing about semantics of other validators.
+                    return false;
+                }
+
+                var xAttribute = GetValidationAttribute(x);
+                var yAttribute = GetValidationAttribute(y);
+                if (ReferenceEquals(xAttribute, yAttribute))
+                {
+                    return true;
+                }
+
+                if (xAttribute == null || yAttribute == null)
+                {
+                    return false;
+                }
+
+                // Attribute overrides Equals() to confirm internal states match.
+                return xAttribute.Equals(yAttribute);
+            }
+
+            public int GetHashCode(IModelValidator obj)
+            {
+                if (IsValidatableObjectAdapter(obj))
+                {
+                    return 0;
+                }
+
+                if (!IsDataAnnotationsModelValidator(obj))
+                {
+                    return obj.GetHashCode();
+                }
+
+                var attribute = GetValidationAttribute(obj);
+
+                return attribute.GetHashCode();
             }
         }
     }
