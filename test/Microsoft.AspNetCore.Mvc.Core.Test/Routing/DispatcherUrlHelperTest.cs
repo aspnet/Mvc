@@ -38,6 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 template,
                 new RouteValueDictionary(),
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 0,
                 EndpointMetadataCollection.Empty,
                 null));
@@ -54,6 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                     "/",
                     new RouteValueDictionary(),
                     new RouteValueDictionary(),
+                    new List<MatchProcessorReference>(),
                     0,
                     EndpointMetadataCollection.Empty,
                     null)
@@ -125,6 +127,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 template,
                 new RouteValueDictionary(defaults),
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 order,
                 metadata,
                 "DisplayName");
@@ -152,6 +155,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 template,
                 defaults,
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 0,
                 EndpointMetadataCollection.Empty,
                 null);
