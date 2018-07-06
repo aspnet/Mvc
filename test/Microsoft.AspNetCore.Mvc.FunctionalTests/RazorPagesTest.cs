@@ -11,7 +11,6 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Testing;
 using Newtonsoft.Json.Linq;

@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BasicWebSite.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
