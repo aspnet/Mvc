@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -1213,6 +1215,33 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// <returns>The created <see cref="UnauthorizedResult"/> for the response.</returns>
         public virtual UnauthorizedResult Unauthorized()
             => new UnauthorizedResult();
+
+        /// <summary>
+        /// Creates a <see cref="PartialViewResult"/> by specifying the name of a partial to render.
+        /// </summary>
+        /// <param name="viewName">The partial name.</param>
+        /// <returns>The created <see cref="PartialViewResult"/> object for the response.</returns>
+        public virtual PartialViewResult Partial(string viewName)
+        {
+            return Partial(viewName, model: null);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="PartialViewResult"/> by specifying the name of a partial to render and the model object.
+        /// </summary>
+        /// <param name="viewName">The partial name.</param>
+        /// <param name="model">The model to be passed into the partial.</param>
+        /// <returns>The created <see cref="PartialViewResult"/> object for the response.</returns>
+        public virtual PartialViewResult Partial(string viewName, object model)
+        {
+            ViewContext.ViewData.Model = model;
+
+            return new PartialViewResult
+            {
+                ViewName = viewName,
+                ViewData = ViewContext.ViewData
+            };
+        }
 
         #region ViewComponentResult
         /// <summary>

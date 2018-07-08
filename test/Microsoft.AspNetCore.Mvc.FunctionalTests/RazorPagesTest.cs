@@ -145,6 +145,38 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task Page_Handler_ReturnPartialWithoutModel()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RenderPartialWithoutModel");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Welcome, <b>Guest</b>!!", content.Trim());
+        }
+
+        [Fact]
+        public async Task Page_Handler_ReturnPartialWithModel()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/RenderPartialWithModel");
+
+            // Act
+            var response = await Client.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Welcome, <b>Admin</b>!!", content.Trim());
+        }
+
+        [Fact]
         public async Task Page_Handler_AsyncReturnTypeImplementsIActionResult()
         {
             // Arrange & Act
