@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
     {
         private const string ForAttributeName = "for";
         private const string ModelAttributeName = "model";
+        private const string FallbackAttributeName = "fallback";
         private const string OptionalAttributeName = "optional";
         private object _model;
         private bool _hasModel;
@@ -83,6 +85,12 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public bool Optional { get; set; }
 
         /// <summary>
+        /// View to lookup if main view cannot be located.
+        /// </summary>
+        [HtmlAttributeName(FallbackAttributeName)]
+        public string Fallback { get; set; }
+
+        /// <summary>
         /// A <see cref="ViewDataDictionary"/> to pass into the partial view.
         /// </summary>
         public ViewDataDictionary ViewData { get; set; }
@@ -104,16 +112,33 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var viewEngineResult = FindView();
+            var result = Find(Name);
+            if (!result.Success && !string.IsNullOrEmpty(Fallback))
+            {
+                result = Find(Fallback);
+            }
 
-            if (viewEngineResult.Success)
+            if (result.Success)
             {
                 var model = ResolveModel();
-                var viewBuffer = new ViewBuffer(_viewBufferScope, Name, ViewBuffer.PartialViewPageSize);
+                var viewBuffer = new ViewBuffer(_viewBufferScope, result.ViewName, ViewBuffer.PartialViewPageSize);
                 using (var writer = new ViewBufferTextWriter(viewBuffer, Encoding.UTF8))
                 {
-                    await RenderPartialViewAsync(writer, model, viewEngineResult.View);
+                    await RenderPartialViewAsync(writer, model, result.View);
                     output.Content.SetHtmlContent(viewBuffer);
+                }
+            }
+            else
+            {
+                if (!Optional)
+                {
+                    var locations = string.Empty;
+                    if (result.SearchedLocations.Any())
+                    {
+                        locations += Environment.NewLine + string.Join(Environment.NewLine, result.SearchedLocations);
+                    }
+                    throw new InvalidOperationException(
+                        Resources.FormatViewEngine_PartialViewNotFound(result.ViewName, locations));
                 }
             }
 
@@ -152,26 +177,19 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             return ViewContext.ViewData.Model;
         }
 
-        private ViewEngineResult FindView()
+        private ViewEngineResult Find(string partialName)
         {
-            var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, Name, isMainPage: false);
+            var viewEngineResult = _viewEngine.GetView(ViewContext.ExecutingFilePath, partialName, isMainPage: false);
             var getViewLocations = viewEngineResult.SearchedLocations;
             if (!viewEngineResult.Success)
             {
-                viewEngineResult = _viewEngine.FindView(ViewContext, Name, isMainPage: false);
+                viewEngineResult = _viewEngine.FindView(ViewContext, partialName, isMainPage: false);
             }
 
-            if (!viewEngineResult.Success && !Optional)
+            if (!viewEngineResult.Success)
             {
                 var searchedLocations = Enumerable.Concat(getViewLocations, viewEngineResult.SearchedLocations);
-                var locations = string.Empty;
-                if (searchedLocations.Any())
-                {
-                    locations += Environment.NewLine + string.Join(Environment.NewLine, searchedLocations);
-                }
-
-                throw new InvalidOperationException(
-                    Resources.FormatViewEngine_PartialViewNotFound(Name, locations));
+                return ViewEngineResult.NotFound(partialName, searchedLocations);
             }
 
             return viewEngineResult;
