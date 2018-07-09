@@ -78,6 +78,84 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
+        public void Validate_SimpleType_WithDerivedModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedSimpleType("Fred");
+            var validationState = new ValidationStateDictionary
+            {
+                {
+                    model,
+                    new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(SimpleType)) }
+                }
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var entry = Assert.Single(modelState);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal("Name is just too.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_Object_WithDerivedSimpleModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator(IsStringRequiredProvider.Instance);
+            var model = "   ";
+            var validationState = new ValidationStateDictionary
+            {
+                {
+                    model,
+                    new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(object)) }
+                }
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var entry = Assert.Single(modelState);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Object"), error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_Object_WithDerivedSimpleModel_InvalidWithNoDuplicates()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator(IsAlwaysRequiredProvider.Instance);
+            var model = "   ";
+            var validationState = new ValidationStateDictionary
+            {
+                {
+                    model,
+                    new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(object)) }
+                }
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var entry = Assert.Single(modelState);
+            var error = Assert.Single(entry.Value.Errors);
+            Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Object"), error.ErrorMessage);
+        }
+
+        [Fact]
         public void Validate_SimpleType_MaxErrorsReached()
         {
             // Arrange
@@ -228,6 +306,83 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal(ModelValidationState.Invalid, entry.ValidationState);
             error = Assert.Single(entry.Errors);
             Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Profession"), error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_ComplexReferenceType_WithDerivedModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedPerson { Name = "Mario", Profession = "Plumber" };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(Person)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Empty(kvp.Key);
+            Assert.Equal(ModelValidationState.Invalid, kvp.Value.ValidationState);
+            var error = Assert.Single(kvp.Value.Errors);
+            Assert.Equal("Person is just too.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_ComplexReferenceType_WithDerivedModel_InvalidWithNoDuplicates()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedUser { Password = "password", ConfirmPassword = "password" };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(User)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, prefix: string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+            var kvp = Assert.Single(modelState);
+            Assert.Empty(kvp.Key);
+            Assert.Equal(ModelValidationState.Invalid, kvp.Value.ValidationState);
+            var error = Assert.Single(kvp.Value.Errors);
+            Assert.Equal("Password does not meet complexity requirements.", error.ErrorMessage);
+        }
+
+        [Fact]
+        public void Validate_ComplexReferenceType_WithDerivedProperty_Valid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new Person
+            {
+                // Yes, we know Luigi is Mario's brother :)
+                Friend = new DerivedPerson { Name = "Luigi", Profession = "Plumber" },
+                Name = "Mario",
+                Profession = "Plumber",
+            };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(Person)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, string.Empty, model);
+
+            // Assert
+            // Ignores IValidatableObject implementation because it's not on the declared property type.
+            Assert.True(modelState.IsValid);
         }
 
         [Fact]
@@ -849,6 +1004,47 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal(ValidationAttributeUtil.GetRequiredErrorMessage("Profession"), error.ErrorMessage);
         }
 
+        [Fact]
+        public void Validate_CollectionType_WithDerivedModel_Invalid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new DerivedListOfPerson { new Person { Name = "Mario", Profession = "Plumber" } };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(List<Person>)) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, string.Empty, model);
+
+            // Assert
+            Assert.False(modelState.IsValid);
+        }
+
+        [Fact]
+        public void Validate_CollectionType_WithDerivedElement_Valid()
+        {
+            // Arrange
+            var actionContext = new ActionContext();
+            var modelState = actionContext.ModelState;
+            var validator = CreateValidator();
+            var model = new[] { new DerivedPerson { Name = "Mario", Profession = "Plumber" } };
+            var validationState = new ValidationStateDictionary
+            {
+                { model, new ValidationStateEntry { Metadata = MetadataProvider.GetMetadataForType(typeof(Person[])) } },
+            };
+
+            // Act
+            validator.Validate(actionContext, validationState, string.Empty, model);
+
+            // Assert
+            // Ignores IValidatableObject implementation because it's not on the declared element type.
+            Assert.True(modelState.IsValid);
+        }
+
         public static TheoryData<object, Type> ValidCollectionData
         {
             get
@@ -1220,6 +1416,39 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Equal<string>(keys.OrderBy(k => k).ToArray(), modelState.Keys.OrderBy(k => k).ToArray());
         }
 
+        // Mark everything as required.
+        private class IsAlwaysRequiredProvider : IValidationMetadataProvider
+        {
+            public static readonly IsAlwaysRequiredProvider Instance = new IsAlwaysRequiredProvider();
+
+            private IsAlwaysRequiredProvider()
+            {
+            }
+
+            public void CreateValidationMetadata(ValidationMetadataProviderContext context)
+            {
+                context.ValidationMetadata.ValidatorMetadata.Add(new RequiredAttribute());
+            }
+        }
+
+        // Mark string type as required.
+        private class IsStringRequiredProvider : IValidationMetadataProvider
+        {
+            public static readonly IsStringRequiredProvider Instance = new IsStringRequiredProvider();
+
+            private IsStringRequiredProvider()
+            {
+            }
+
+            public void CreateValidationMetadata(ValidationMetadataProviderContext context)
+            {
+                if (context.Key.MetadataKind == ModelMetadataKind.Type && context.Key.ModelType == typeof(string))
+                {
+                    context.ValidationMetadata.ValidatorMetadata.Add(new RequiredAttribute());
+                }
+            }
+        }
+
         private class ThrowingProperty
         {
             public string WatchOut
@@ -1242,6 +1471,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public Person Friend { get; set; }
 
             public Family Family { get; set; }
+        }
+
+        private class DerivedPerson : Person, IValidatableObject
+        {
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                yield return new ValidationResult("Person is just too.");
+            }
+        }
+
+        private class DerivedListOfPerson : List<Person>, IValidatableObject
+        {
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                yield return new ValidationResult("List is just too.");
+            }
         }
 
         private class Family
@@ -1327,6 +1572,44 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     yield return new ValidationResult("Password does not meet complexity requirements.");
                 }
+            }
+        }
+
+        private class DerivedUser : User
+        {
+        }
+
+        private class SimpleType
+        {
+            public SimpleType(string name)
+            {
+                Name = name;
+            }
+
+            public static implicit operator string(SimpleType value)
+            {
+                return value.Name;
+            }
+
+            public string Name { get; }
+        }
+
+        // Always invalid
+        private class DerivedSimpleType : SimpleType, IValidatableObject
+        {
+            public DerivedSimpleType(string name)
+                : base(name)
+            {
+            }
+
+            public static implicit operator string(DerivedSimpleType value)
+            {
+                return value.Name;
+            }
+
+            public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+            {
+                yield return new ValidationResult("Name is just too.");
             }
         }
 
