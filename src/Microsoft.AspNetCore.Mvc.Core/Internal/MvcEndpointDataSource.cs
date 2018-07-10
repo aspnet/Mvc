@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ConventionalEndpointInfos = new List<MvcEndpointInfo>();
         }
 
-        internal void InitializeEndpoints()
+        private void InitializeEndpoints()
         {
             foreach (var action in _actions.ActionDescriptors.Items)
             {
