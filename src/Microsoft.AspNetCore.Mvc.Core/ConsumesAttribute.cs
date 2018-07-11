@@ -69,8 +69,6 @@ namespace Microsoft.AspNetCore.Mvc
         /// </summary>
         public MediaTypeCollection ContentTypes { get; set; }
 
-        public int Order => throw new NotImplementedException();
-
         /// <inheritdoc />
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
