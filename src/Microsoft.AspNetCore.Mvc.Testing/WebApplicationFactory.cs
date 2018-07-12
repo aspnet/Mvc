@@ -128,6 +128,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void SetContentRoot(IWebHostBuilder builder)
         {
+            if (TrySetContentRootUsingEnvironmentVariables(builder))
+                return;
+
             var metadataAttributes = GetContentRootMetadataAttributes(
                 typeof(TEntryPoint).Assembly.FullName,
                 typeof(TEntryPoint).Assembly.GetName().Name);
@@ -159,6 +162,19 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             {
                 builder.UseSolutionRelativeContentRoot(typeof(TEntryPoint).Assembly.GetName().Name);
             }
+        }
+
+        private bool TrySetContentRootUsingEnvironmentVariables(IWebHostBuilder builder)
+        {
+            var expectedSettingName = "TEST_CONTENTROOT_" + typeof(TEntryPoint).Assembly.GetName().Name.ToUpper().Replace(".", "_");
+            var settingValue = builder.GetSetting(expectedSettingName);
+            if (settingValue == null)
+            {
+                return false;
+            }
+
+            builder.UseContentRoot(settingValue);
+            return true;
         }
 
         private WebApplicationFactoryContentRootAttribute[] GetContentRootMetadataAttributes(
