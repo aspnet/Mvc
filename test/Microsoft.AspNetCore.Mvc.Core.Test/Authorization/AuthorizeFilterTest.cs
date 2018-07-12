@@ -294,7 +294,6 @@ namespace Microsoft.AspNetCore.Mvc.Authorization
             Assert.IsType<ForbidResult>(authorizationContext.Result);
             Assert.Equal(4, testProvider1.GetPolicyCalls);
             Assert.Equal(2, testProvider2.GetPolicyCalls);
-
         }
 
         [Fact]
