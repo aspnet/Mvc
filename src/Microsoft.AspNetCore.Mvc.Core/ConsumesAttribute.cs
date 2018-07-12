@@ -195,12 +195,12 @@ namespace Microsoft.AspNetCore.Mvc
         /// <inheritdoc />
         public bool Accept(EndpointConstraintContext context)
         {
-            // If this constraint is not closest to the action, it will be skipped.
+            // If this constraint is not closest to the endpoint, it will be skipped.
             if (!IsApplicable(context.CurrentCandidate.Endpoint))
             {
                 // Since the constraint is to be skipped, returning true here
                 // will let the current candidate ignore this constraint and will
-                // be selected based on other constraints for this action.
+                // be selected based on other constraints for this endpoint.
                 return true;
             }
 
@@ -208,19 +208,19 @@ namespace Microsoft.AspNetCore.Mvc
 
             // If the request content type is null we need to act like pass through.
             // In case there is a single candidate with a constraint it should be selected.
-            // If there are multiple actions with consumes action constraints this should result in ambiguous exception
-            // unless there is another action without a consumes constraint.
+            // If there are multiple endpoints with consumes endpoint constraints this should result in ambiguous exception
+            // unless there is another endpoint without a consumes constraint.
             if (requestContentType == null)
             {
-                var isActionWithoutConsumeConstraintPresent = context.Candidates.Any(
+                var isEndpointWithoutConsumeConstraintPresent = context.Candidates.Any(
                     candidate => candidate.Constraints == null ||
                     !candidate.Constraints.Any(constraint => constraint is IConsumesEndpointConstraint));
 
-                return !isActionWithoutConsumeConstraintPresent;
+                return !isEndpointWithoutConsumeConstraintPresent;
             }
 
-            // Confirm the request's content type is more specific than (a media type this action supports e.g. OK
-            // if client sent "text/plain" data and this action supports "text/*".
+            // Confirm the request's content type is more specific than (a media type this endpoint supports e.g. OK
+            // if client sent "text/plain" data and this endpoint supports "text/*".
             if (IsSubsetOfAnyContentType(requestContentType))
             {
                 return true;
@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Mvc
                 return false;
             }
 
-            // Run the matching logic for all IConsumesActionConstraints we can find, and see what matches.
+            // Run the matching logic for all IConsumesEndpointConstraints we can find, and see what matches.
             // 1). If we have a unique best match, then only that constraint should return true.
             // 2). If we have multiple matches, then all constraints that match will return true
             // , resulting in ambiguity(maybe).
