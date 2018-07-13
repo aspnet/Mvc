@@ -129,7 +129,9 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         private void SetContentRoot(IWebHostBuilder builder)
         {
             if (TrySetContentRootUsingEnvironmentVariables(builder))
+            {
                 return;
+            }
 
             var metadataAttributes = GetContentRootMetadataAttributes(
                 typeof(TEntryPoint).Assembly.FullName,
