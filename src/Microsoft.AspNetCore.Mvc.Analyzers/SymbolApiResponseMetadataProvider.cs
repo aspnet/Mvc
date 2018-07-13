@@ -124,13 +124,16 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             return DefaultStatusCode;
         }
 
-        internal static IList<ActualApiResponseMetadata> GetActualResponseMetadata(
+        internal static bool TryGetActualResponseMetadata(
             in ApiControllerSymbolCache symbolCache,
             SemanticModel semanticModel,
             MethodDeclarationSyntax methodSyntax,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out IList<ActualApiResponseMetadata> actualResponseMetadata)
         {
-            var actualResponseMetadatas = new List<ActualApiResponseMetadata>();
+            actualResponseMetadata = new List<ActualApiResponseMetadata>();
+
+            var hasUnreadableReturnStatements = false;
 
             foreach (var returnStatementSyntax in methodSyntax.DescendantNodes(_shouldDescendIntoChildren).OfType<ReturnStatementSyntax>())
             {
@@ -142,11 +145,15 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
                 if (responseMetadata != null)
                 {
-                    actualResponseMetadatas.Add(responseMetadata.Value);
+                    actualResponseMetadata.Add(responseMetadata.Value);
+                }
+                else
+                {
+                    hasUnreadableReturnStatements = true;
                 }
             }
 
-            return actualResponseMetadatas;
+            return hasUnreadableReturnStatements;
         }
 
         internal static ActualApiResponseMetadata? InspectReturnStatementSyntax(

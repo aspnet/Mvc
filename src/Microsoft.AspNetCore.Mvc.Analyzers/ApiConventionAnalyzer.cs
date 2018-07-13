@@ -41,6 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         {
             compilationStartAnalysisContext.RegisterSyntaxNodeAction(syntaxNodeContext =>
             {
+                var cancellationToken = syntaxNodeContext.CancellationToken;
                 var methodSyntax = (MethodDeclarationSyntax)syntaxNodeContext.Node;
                 var semanticModel = syntaxNodeContext.SemanticModel;
                 var method = semanticModel.GetDeclaredSymbol(methodSyntax, syntaxNodeContext.CancellationToken);
@@ -52,8 +53,8 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
                 var conventionAttributes = GetConventionTypeAttributes(symbolCache, method);
                 var declaredResponseMetadata = SymbolApiResponseMetadataProvider.GetDeclaredResponseMetadata(symbolCache, method, conventionAttributes);
-                var actualResponseMetadata = SymbolApiResponseMetadataProvider.GetActualResponseMetadata(symbolCache, semanticModel, methodSyntax, syntaxNodeContext.CancellationToken);
 
+                var hasUnreadableStatusCodes = SymbolApiResponseMetadataProvider.TryGetActualResponseMetadata(symbolCache, semanticModel, methodSyntax, cancellationToken, out var actualResponseMetadata);
                 var hasUndocumentedStatusCodes = false;
                 foreach (var item in actualResponseMetadata)
                 {
@@ -79,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                     }
                 }
 
-                if (hasUndocumentedStatusCodes)
+                if (hasUndocumentedStatusCodes || hasUnreadableStatusCodes)
                 {
                     // If we produced analyzer warnings about undocumented status codes, don't attempt to determine
                     // if there are documented status codes that are missing from the method body.
