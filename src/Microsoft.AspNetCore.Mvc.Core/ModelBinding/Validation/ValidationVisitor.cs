@@ -189,26 +189,24 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             }
 
             var entry = GetValidationEntry(model);
-            var nonNullKey = key ?? string.Empty;
+            key = entry?.Key ?? key ?? string.Empty;
+            metadata = entry?.Metadata ?? metadata;
+            var strategy = entry?.Strategy;
 
-            // Use entry.Key even if null for SuppressValidation call because we might not have entries in model state.
             if (ModelState.HasReachedMaxErrors)
             {
-                SuppressValidation(entry == null ? nonNullKey : entry.Key);
+                SuppressValidation(key);
                 return false;
             }
             else if (entry != null && entry.SuppressValidation)
             {
+                // Use the key on the entry, because we might not have entries in model state.
                 SuppressValidation(entry.Key);
                 CurrentPath.Pop(model);
                 return true;
             }
 
-            // From here on, ignore entry.Key if null.
-            key = entry?.Key ?? nonNullKey;
-            metadata = entry?.Metadata ?? metadata;
-            var strategy = entry?.Strategy;
-            using (StateManager.Recurse(this, key, metadata, model, strategy))
+            using (StateManager.Recurse(this, key ?? string.Empty, metadata, model, strategy))
             {
                 if (Metadata.IsEnumerableType)
                 {
@@ -298,7 +296,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
             var entries = ModelState.FindKeysWithPrefix(key);
             foreach (var entry in entries)
             {
-                entry.Value.ValidationState = ModelValidationState.Skipped;
+                if (entry.Value.ValidationState != ModelValidationState.Invalid)
+                {
+                    entry.Value.ValidationState = ModelValidationState.Skipped;
+                }
             }
         }
 
