@@ -165,7 +165,12 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         {
             for (var i = 0; i < actualResponseMetadata.Count; i++)
             {
-                if (actualResponseMetadata[i].StatusCode == statusCode)
+                if (actualResponseMetadata[i].IsDefaultResponse)
+                {
+                    return statusCode == 200 || statusCode == 201;
+                }
+
+                else if(actualResponseMetadata[i].StatusCode == statusCode)
                 {
                     return true;
                 }

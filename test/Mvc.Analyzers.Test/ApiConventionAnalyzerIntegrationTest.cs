@@ -83,6 +83,10 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         public Task DiagnosticsAreReturned_IfMethodWithConvention_DoesNotReturnDocumentedStatusCode()
             => RunTestFor1006(404);
 
+        [Fact]
+        public Task DiagnosticsAreReturned_IfMethodWithProducesResponseTypeAttribute_DoesNotDocumentSuccessStatusCode()
+            => RunTestFor1006(200);
+
         private async Task RunNoDiagnosticsAreReturned([CallerMemberName] string testMethod = "")
         {
             // Arrange
