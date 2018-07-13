@@ -4,7 +4,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
@@ -128,7 +130,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             }
 
             // Ensure GenerateSelect() _never_ looks anything up in ViewData.
-            var items = Items ?? Enumerable.Empty<SelectListItem>();
+            var items = Items ?? EnumItems() ?? Enumerable.Empty<SelectListItem>();
 
             if (For == null)
             {
@@ -167,6 +169,24 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     output.PostContent.AppendHtml(tagBuilder.InnerHtml);
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="IEnumerable{SelectListItem}"/> created from enum values if <see cref="For"/> is an enum.
+        /// </summary>
+        private IEnumerable<SelectListItem> EnumItems()
+        {
+            var type = For?.ModelExplorer?.ModelType;
+            if (type?.IsEnum ?? false)
+            {
+                return Enum.GetValues(type).Cast<Enum>()
+                    .Select(ev => new SelectListItem(
+                        type.GetMember(ev.ToString()).First().GetCustomAttribute<DisplayAttribute>()?.GetName() ?? ev.ToString(),
+                        ev.ToString("d")
+                     ));
+            }
+
+            return null;
         }
     }
 }
