@@ -14,6 +14,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
     [XmlRoot("Error")]
     public sealed class SerializableErrorWrapper : IXmlSerializable, IUnwrappable
     {
+        // Silly spelling of empty1111 to avoid collisions with other ModelState entries.
+        private static readonly string EmptyKey = "\x00C9m\x00FEt\x00DD1111";
+
         // Note: XmlSerializer requires to have default constructor
         public SerializableErrorWrapper()
         {
@@ -63,6 +66,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 var key = XmlConvert.DecodeName(reader.LocalName);
                 var value = reader.ReadInnerXml();
+                if (string.Equals(EmptyKey, key, StringComparison.Ordinal))
+                {
+                    key = string.Empty;
+                }
 
                 SerializableError.Add(key, value);
                 reader.MoveToContent();
@@ -81,6 +88,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 var key = keyValuePair.Key;
                 var value = keyValuePair.Value;
+                if (string.IsNullOrEmpty(key))
+                {
+                    key = EmptyKey;
+                }
+
                 writer.WriteStartElement(XmlConvert.EncodeLocalName(key));
                 if (value != null)
                 {
