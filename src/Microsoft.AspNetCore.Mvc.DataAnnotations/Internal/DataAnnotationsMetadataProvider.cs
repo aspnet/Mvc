@@ -317,15 +317,24 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var attributes = context.Attributes.ToList();
+
+            var attributesInComposite = new List<object>();
+            foreach (var compositeAttribute in attributes.OfType<CompositeValidationAttribute>())
+            {
+                attributesInComposite.AddRange(compositeAttribute.GetAttributes());
+            }
+            attributes.AddRange(attributesInComposite);
+
             // RequiredAttribute marks a property as required by validation - this means that it
             // must have a non-null value on the model during validation.
-            var requiredAttribute = context.Attributes.OfType<RequiredAttribute>().FirstOrDefault();
+            var requiredAttribute = attributes.OfType<RequiredAttribute>().FirstOrDefault();
             if (requiredAttribute != null)
             {
                 context.ValidationMetadata.IsRequired = true;
             }
 
-            foreach (var attribute in context.Attributes.OfType<ValidationAttribute>())
+            foreach (var attribute in attributes.OfType<ValidationAttribute>())
             {
                 // If another provider has already added this attribute, do not repeat it.
                 // This will prevent attributes like RemoteAttribute (which implement ValidationAttribute and
