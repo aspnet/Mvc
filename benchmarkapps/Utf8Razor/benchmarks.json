@@ -1,0 +1,39 @@
+{
+  "Default": {
+    "Client": "Wrk",
+    "Headers": {
+      "Cache-Control": "no-cache"
+    },
+    "PresetHeaders": "Html",
+    "ReadyStateText": "Application started.",
+    "Source": {
+      "BranchOrCommit": "release/2.2",
+      "Project": "benchmarkapps/Utf8Razor/Utf8Razor.csproj",
+      "Repository": "https://github.com/aspnet/mvc.git"
+    }
+  },
+  "Utf8Razor.Utf16Large": {
+    "Path": "/utf16large"
+  },
+  "Utf8Razor.Utf8Large": {
+    "Path": "/utf8large"
+  },
+  "Utf8Razor.Utf16Medium": {
+    "Path": "/utf16medium"
+  },
+  "Utf8Razor.Utf8Medium": {
+    "Path": "/utf8medium"
+  },
+  "Utf8Razor.Utf16Small": {
+    "Path": "/utf16small"
+  },
+  "Utf8Razor.Utf8Small": {
+    "Path": "/utf8small"
+  },
+  "Utf8Razor.Utf16Tiny": {
+    "Path": "/utf16tiny"
+  },
+  "Utf8Razor.Utf8Tiny": {
+    "Path": "/utf8tiny"
+  }
+}

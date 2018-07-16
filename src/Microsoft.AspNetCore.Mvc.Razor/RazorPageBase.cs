@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Antiforgery;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
 using Microsoft.AspNetCore.Razor.Runtime.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -354,7 +356,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             SectionWriters[name] = section;
         }
 
-
         /// <summary>
         /// Writes the specified <paramref name="value"/> with HTML encoding to <see cref="Output"/>.
         /// </summary>
@@ -436,6 +437,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             if (!string.IsNullOrEmpty(value))
             {
                 Output.Write(value);
+            }
+        }
+        
+        /// <summary>
+        /// EXPERIMENTAL - WARNING HAXXXXX
+        /// </summary>
+        /// <param name="value"></param>
+        public virtual void WriteLiteral(ReadOnlyMemory<byte> value)
+        {
+            var writer = Output;
+            if (writer is ViewBufferTextWriter bufferedWriter)
+            {
+                bufferedWriter.Write(new MemoryHtmlContent(value));
+            }
+            else  if (writer is HttpResponseStreamWriter responseWriter && responseWriter.Encoding.WebName == "utf-8")
+            {
+                responseWriter.Write(value);
+            }
+            else
+            {
+                // Slow path
+                var chars = Encoding.UTF8.GetChars(value.ToArray());
+                writer.Write(chars);
             }
         }
 

@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 {
@@ -238,6 +239,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 throw new ArgumentNullException(nameof(encoder));
             }
 
+            var realWriter = writer is PagedBufferedTextWriter pagedWriter ? pagedWriter.Inner as HttpResponseStreamWriter : null;
+
             for (var i = 0; i < Count; i++)
             {
                 var page = this[i];
@@ -256,6 +259,16 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         await valueAsViewBuffer.WriteToAsync(writer, encoder);
                         continue;
                     }
+
+#if NETCOREAPP2_2
+                    if (value.Value is MemoryHtmlContent memoryContent && 
+                        realWriter != null)
+                    {
+                        await writer.FlushAsync();
+                        await realWriter.WriteEncodedAsync(memoryContent.Value);
+                        continue;
+                    }
+#endif
 
                     if (value.Value is IHtmlContent valueAsHtmlContent)
                     {

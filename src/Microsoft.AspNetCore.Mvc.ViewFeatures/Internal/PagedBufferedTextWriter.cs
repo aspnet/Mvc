@@ -24,6 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public override Encoding Encoding => _inner.Encoding;
 
+        public TextWriter Inner => _inner;
+
         public override void Flush()
         {
             // Don't do anything. We'll call FlushAsync.

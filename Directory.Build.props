@@ -19,6 +19,7 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseRoutingFromFeatureBranch>true</UseRoutingFromFeatureBranch>
+    <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
 
 </Project>
