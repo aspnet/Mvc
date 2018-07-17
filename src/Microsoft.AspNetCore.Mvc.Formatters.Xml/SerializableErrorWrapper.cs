@@ -14,8 +14,9 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
     [XmlRoot("Error")]
     public sealed class SerializableErrorWrapper : IXmlSerializable, IUnwrappable
     {
-        // Silly spelling of empty1111 to avoid collisions with other ModelState entries.
-        private static readonly string EmptyKey = "\x00C9m\x00FEt\x00DD1111";
+        // Silly spelling of MVC-Empty to avoid collisions with other ModelState entries and emphasize element's unique
+        // nature.
+        private static readonly string EmptyKey = "MV\x00C7-\x00C9m\x00FEt\x00FF";
 
         // Note: XmlSerializer requires to have default constructor
         public SerializableErrorWrapper()

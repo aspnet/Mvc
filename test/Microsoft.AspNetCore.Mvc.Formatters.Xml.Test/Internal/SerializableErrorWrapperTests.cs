@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         {
             // Arrange
             var serializableErrorXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                "<Error><\x00C9m\x00FEt\x00DD1111>Test error 0</\x00C9m\x00FEt\x00DD1111>" +
+                "<Error><MV\x00C7-\x00C9m\x00FEt\x00FF>Test error 0</MV\x00C7-\x00C9m\x00FEt\x00FF>" +
                 "<key1>Test Error 1 Test Error 2</key1>" +
                 "<key2>Test Error 3</key2></Error>";
             var serializer = new DataContractSerializer(typeof(SerializableErrorWrapper));
@@ -100,7 +100,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
             var serializableError = new SerializableError(modelState);
             var outputStream = new MemoryStream();
             var expectedContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                "<Error><\x00C9m\x00FEt\x00DD1111>Test error 0</\x00C9m\x00FEt\x00DD1111>" +
+                "<Error><MV\x00C7-\x00C9m\x00FEt\x00FF>Test error 0</MV\x00C7-\x00C9m\x00FEt\x00FF>" +
                 "<key1>Test Error 1 Test Error 2</key1>" +
                 "<key2>Test Error 3</key2></Error>";
 
