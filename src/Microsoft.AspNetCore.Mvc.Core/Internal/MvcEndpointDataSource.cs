@@ -264,17 +264,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var matchingParameter = endpointInfo.ParsedTemplate.Parameters.SingleOrDefault(p => string.Equals(p.Name, routeKey, StringComparison.OrdinalIgnoreCase));
                 if (matchingParameter != null)
                 {
-                    // Check that the value matches against constraints on that parameter
-                    // e.g. For {controller:regex((Home|Login))} the controller value must match the regex
-                    //
-                    // REVIEW: This is really ugly
-                    if (endpointInfo.Constraints.TryGetValue(routeKey, out var constraint)
-                        && !constraint.Match(new DefaultHttpContext() { RequestServices = _serviceProvider }, new DummyRouter(), routeKey, new RouteValueDictionary(action.RouteValues), RouteDirection.IncomingRequest))
-                    {
-                        // Did not match constraint
-                        return false;
-                    }
-
                     return true;
                 }
             }

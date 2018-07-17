@@ -31,7 +31,6 @@ namespace Microsoft.AspNetCore.Builder
                 // defaults. The parser will throw for invalid routes.
                 ParsedTemplate = TemplateParser.Parse(template);
 
-                Constraints = GetConstraints(constraintResolver, ParsedTemplate, nonInlineConstraints);
                 MatchProcessorReferences = GetMatchProcessorReferences(ParsedTemplate, nonInlineConstraints);
 
                 Defaults = defaults;
@@ -53,7 +52,6 @@ namespace Microsoft.AspNetCore.Builder
         // Inline and non-inline defaults merged into one
         public RouteValueDictionary MergedDefaults { get; }
 
-        public IDictionary<string, IRouteConstraint> Constraints { get; }
         public List<MatchProcessorReference> MatchProcessorReferences { get; }
         public RouteValueDictionary DataTokens { get; }
         internal RouteTemplate ParsedTemplate { get; private set; }
