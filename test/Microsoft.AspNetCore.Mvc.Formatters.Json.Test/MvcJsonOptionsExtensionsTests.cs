@@ -1,31 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc
+namespace Microsoft.Extensions.DependencyInjection
 {
     public class MvcJsonOptionsExtensionsTests
     {
-        [Fact]
-        public void UseCamelCasing_WillSet_DefaultContractResolver_AsContractResolver()
-        {
-            // Arrange
-            var options = new MvcJsonOptions();
-            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            var expected = typeof(DefaultContractResolver);
-
-            // Act
-            options.UseCamelCasing(processDictionaryKeys: true);
-            var actual = options.SerializerSettings.ContractResolver;
-
-            // Assert
-            Assert.IsType(expected, actual);
-        }
-
         [Fact]
         public void UseCamelCasing_WillSet_CamelCasingStrategy_NameStrategy()
         {
@@ -152,22 +139,6 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void UseMemberCasing_WillSet_DefaultContractResolver_AsContractResolver()
-        {
-            // Arrange
-            var options = new MvcJsonOptions();
-            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-            var expected = typeof(DefaultContractResolver);
-
-            // Act
-            options.UseMemberCasing();
-            var actual = options.SerializerSettings.ContractResolver;
-
-            // Assert
-            Assert.IsType(expected, actual);
-        }
-
-        [Fact]
         public void UseMemberCasing_WillNotChange_OverrideSpecifiedNames()
         {
             // Arrange
@@ -238,6 +209,36 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UseCamelCasing_WillThrow_IfContractResolver_IsNot_DefaultContractResolver()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var expectedMessage = Resources.InvalidContractResolverForJsonCasingConfiguration(
+                nameof(CamelCasePropertyNamesContractResolver));
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => options.UseCamelCasing(processDictionaryKeys: false));
+            Assert.Equal(expectedMessage, actual: exception.Message);
+        }
+
+        [Fact]
+        public void UseMemberCasing_WillThrow_IfContractResolver_IsNot_DefaultContractResolver()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            var expectedMessage = Resources.InvalidContractResolverForJsonCasingConfiguration(
+                nameof(CamelCasePropertyNamesContractResolver));
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => options.UseMemberCasing());
+            Assert.Equal(expectedMessage, actual: exception.Message);
         }
 
         private static string SerializeToJson(MvcJsonOptions options, object value)

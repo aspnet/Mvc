@@ -2,17 +2,20 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.AspNetCore.Mvc
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class MvcJsonOptionsExtensions
     {
         /// <summary>
-        /// Camel case property names.
+        /// Configures the casing behavior of JSON serialization to use camel case for property names, 
+        /// and optionally for dynamic types and dictionary keys.
         /// </summary>
         /// <param name="options"><see cref="MvcJsonOptions"/></param>
-        /// <param name="processDictionaryKeys">If true will camel case dictionary keys.</param>
+        /// <param name="processDictionaryKeys">If true will camel case dictionary keys and properties of dynamic objects.</param>
         /// <returns><see cref="MvcJsonOptions"/> with camel case settings</returns>
         public static MvcJsonOptions UseCamelCasing(this MvcJsonOptions options, bool processDictionaryKeys)
         {
@@ -23,38 +26,26 @@ namespace Microsoft.AspNetCore.Mvc
             
             if (options.SerializerSettings.ContractResolver.GetType() != typeof(DefaultContractResolver))
             {
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy
-                    {
-                        ProcessDictionaryKeys = processDictionaryKeys
-                    }
-                };
-                return options;
+                var contractResolverName = options.SerializerSettings.ContractResolver.GetType().Name;
+                throw new InvalidOperationException(
+                    Resources.InvalidContractResolverForJsonCasingConfiguration(contractResolverName));
             }
 
-            var defaultResolver = options.SerializerSettings.ContractResolver as DefaultContractResolver;
-
-            if (defaultResolver.NamingStrategy.GetType() == typeof(CamelCaseNamingStrategy))
+            var resolver = (DefaultContractResolver)options.SerializerSettings.ContractResolver;
+            resolver.NamingStrategy = new CamelCaseNamingStrategy
             {
-                defaultResolver.NamingStrategy.ProcessDictionaryKeys = processDictionaryKeys;
-            }
-            else
-            {
-                defaultResolver.NamingStrategy = new CamelCaseNamingStrategy
-                {
-                    ProcessDictionaryKeys = processDictionaryKeys
-                };
-            }
+                ProcessDictionaryKeys = processDictionaryKeys
+            };
 
             return options;
         }
 
         /// <summary>
-        /// Property names and dictionary keys are unchanged.
+        /// Configures the casing behavior of JSON serialization to use the member's casing for property names, 
+        /// properties of dynamic types, and dictionary keys.
         /// </summary>
         /// <param name="options"><see cref="MvcJsonOptions"/></param>
-        /// <returns><see cref="MvcJsonOptions"/> with settings that use member casing.</returns>
+        /// <returns><see cref="MvcJsonOptions"/> with member casing settings.</returns>
         public static MvcJsonOptions UseMemberCasing(this MvcJsonOptions options)
         {
             if (options == null)
@@ -64,18 +55,13 @@ namespace Microsoft.AspNetCore.Mvc
 
             if (options.SerializerSettings.ContractResolver.GetType() != typeof(DefaultContractResolver))
             {
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver()
-                {
-                    NamingStrategy = new DefaultNamingStrategy()
-                };
+                var contractResolverName = options.SerializerSettings.ContractResolver.GetType().Name;
+                throw new InvalidOperationException(
+                    Resources.InvalidContractResolverForJsonCasingConfiguration(contractResolverName));
             }
 
-            var resolver = options.SerializerSettings.ContractResolver as DefaultContractResolver;
-
-            if (resolver.NamingStrategy.GetType() != typeof(DefaultNamingStrategy))
-            {
-                resolver.NamingStrategy = new DefaultNamingStrategy();
-            }
+            var resolver = (DefaultContractResolver)options.SerializerSettings.ContractResolver;
+            resolver.NamingStrategy = new DefaultNamingStrategy();
 
             return options;
         }
