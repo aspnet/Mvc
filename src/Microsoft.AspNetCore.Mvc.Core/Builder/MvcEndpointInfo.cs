@@ -18,8 +18,7 @@ namespace Microsoft.AspNetCore.Builder
             string template,
             RouteValueDictionary defaults,
             IDictionary<string, object> nonInlineConstraints,
-            RouteValueDictionary dataTokens,
-            IInlineConstraintResolver constraintResolver)
+            RouteValueDictionary dataTokens)
         {
             Name = name;
             Template = template ?? string.Empty;
@@ -98,37 +97,6 @@ namespace Microsoft.AspNetCore.Builder
             }
 
             return matchProcessorReferences;
-        }
-
-        private static IDictionary<string, IRouteConstraint> GetConstraints(
-            IInlineConstraintResolver inlineConstraintResolver,
-            RouteTemplate parsedTemplate,
-            IDictionary<string, object> constraints)
-        {
-            var constraintBuilder = new RouteConstraintBuilder(inlineConstraintResolver, parsedTemplate.TemplateText);
-
-            if (constraints != null)
-            {
-                foreach (var kvp in constraints)
-                {
-                    constraintBuilder.AddConstraint(kvp.Key, kvp.Value);
-                }
-            }
-
-            foreach (var parameter in parsedTemplate.Parameters)
-            {
-                if (parameter.IsOptional)
-                {
-                    constraintBuilder.SetOptional(parameter.Name);
-                }
-
-                foreach (var inlineConstraint in parameter.InlineConstraints)
-                {
-                    constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Constraint);
-                }
-            }
-
-            return constraintBuilder.Build();
         }
 
         private static RouteValueDictionary GetDefaults(
