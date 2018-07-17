@@ -335,13 +335,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // Currently they need to implement IActionConstraintMetadata
                 foreach (var actionConstraint in action.ActionConstraints)
                 {
-                    if (actionConstraint is IEndpointConstraintMetadata)
-                    {
-                        metadata.Add(actionConstraint);
-                    }
-                    else if (actionConstraint is HttpMethodActionConstraint httpMethodActionConstraint)
+                    if (actionConstraint is HttpMethodActionConstraint httpMethodActionConstraint)
                     {
                         metadata.Add(new HttpMethodEndpointConstraint(httpMethodActionConstraint.HttpMethods));
+                    }
+                    else if (actionConstraint is IEndpointConstraintMetadata)
+                    {
+                        // The constraint might have been added earlier, e.g. it is also a filter descriptor
+                        if (!metadata.Contains(actionConstraint))
+                        {
+                            metadata.Add(actionConstraint);
+                        }
                     }
                 }
             }
