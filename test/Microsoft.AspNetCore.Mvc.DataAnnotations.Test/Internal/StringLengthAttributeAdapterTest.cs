@@ -103,8 +103,8 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
                 kvp => { Assert.Equal("data-val-length", kvp.Key); Assert.Equal(expectedMessage, kvp.Value); },
                 kvp => { Assert.Equal("data-val-length-max", kvp.Key); Assert.Equal("10", kvp.Value); },
-                kvp => { Assert.Equal("data-val-length-min", kvp.Key); Assert.Equal("3", kvp.Value); },
-                kvp => { Assert.Equal("maxlength", kvp.Key); Assert.Equal("10", kvp.Value); });
+                kvp => { Assert.Equal("maxlength", kvp.Key); Assert.Equal("10", kvp.Value); },
+                kvp => { Assert.Equal("data-val-length-min", kvp.Key); Assert.Equal("3", kvp.Value); });
         }
 
         [Fact]
@@ -164,8 +164,8 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("original", kvp.Value); },
                 kvp => { Assert.Equal("data-val-length", kvp.Key); Assert.Equal("original", kvp.Value); },
                 kvp => { Assert.Equal("data-val-length-max", kvp.Key); Assert.Equal("original", kvp.Value); },
-                kvp => { Assert.Equal("data-val-length-min", kvp.Key); Assert.Equal("original", kvp.Value); },
-                kvp => { Assert.Equal("maxlength", kvp.Key); Assert.Equal("original", kvp.Value); });
+                kvp => { Assert.Equal("maxlength", kvp.Key); Assert.Equal("original", kvp.Value); },
+                kvp => { Assert.Equal("data-val-length-min", kvp.Key); Assert.Equal("original", kvp.Value); });
         }
     }
 }
