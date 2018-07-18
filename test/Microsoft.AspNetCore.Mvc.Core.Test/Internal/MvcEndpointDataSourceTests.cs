@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matchers;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
 using Xunit;
@@ -252,34 +251,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void InitializeEndpoints_MultipleActions_WithActionConstraint()
+        public void InitializeEndpoints_MultipleActions()
         {
             // Arrange
-            var actionDescriptorCollection = GetActionDescriptorCollection(
-                new { controller = "TestController", action = "TestAction" },
-                new { controller = "TestController", action = "TestAction1" },
-                new { controller = "TestController", action = "TestAction2" });
-            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
-            dataSource.ConventionalEndpointInfos.Add(CreateEndpointInfo(
-                string.Empty,
-                "{controller}/{action}",
-                constraints: new RouteValueDictionary(new { action = "(TestAction1|TestAction2)" })));
-
-            // Act
-            var endpoints = dataSource.Endpoints;
-
-            // Assert
-            Assert.Collection(endpoints,
-                (e) => Assert.Equal("TestController/TestAction1", Assert.IsType<MatcherEndpoint>(e).Template),
-                (e) => Assert.Equal("TestController/TestAction2", Assert.IsType<MatcherEndpoint>(e).Template));
-        }
-
-        [Theory]
-        [InlineData("{controller}/{action}", new[] { "TestController1/TestAction1", "TestController1/TestAction2", "TestController1/TestAction3", "TestController2/TestAction1" })]
-        [InlineData("{controller}/{action:regex((TestAction1|TestAction2))}", new[] { "TestController1/TestAction1", "TestController1/TestAction2", "TestController2/TestAction1" })]
-        public void InitializeEndpoints_MultipleActions(string endpointInfoRoute, string[] finalEndpointTemplates)
-        {
-            // Arrange
+            var endpointInfoRoute = "{controller}/{action}";
+            var finalEndpointTemplates = new[]
+            {
+                "TestController1/TestAction1",
+                "TestController1/TestAction2",
+                "TestController1/TestAction3",
+                "TestController2/TestAction1"
+            };
             var actionDescriptorCollection = GetActionDescriptorCollection(
                 new { controller = "TestController1", action = "TestAction1" },
                 new { controller = "TestController1", action = "TestAction2" },
@@ -600,15 +582,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             string name,
             string template,
             RouteValueDictionary defaults = null,
-            IDictionary<string, object> constraints = null,
+            IDictionary<string, object> nonInlineConstraints = null,
             RouteValueDictionary dataTokens = null)
         {
             var routeOptions = new RouteOptions();
             var routeOptionsSetup = new MvcCoreRouteOptionsSetup();
             routeOptionsSetup.Configure(routeOptions);
 
-            var constraintResolver = new DefaultInlineConstraintResolver(Options.Create<RouteOptions>(routeOptions));
-            return new MvcEndpointInfo(name, template, defaults, constraints, dataTokens, constraintResolver);
+            return new MvcEndpointInfo(name, template, defaults, nonInlineConstraints, dataTokens);
         }
 
         private IActionDescriptorCollectionProvider GetActionDescriptorCollection(params object[] requiredValues)

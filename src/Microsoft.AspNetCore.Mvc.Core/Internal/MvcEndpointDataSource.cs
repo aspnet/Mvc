@@ -115,6 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                         endpointInfo.Name,
                                         subTemplate,
                                         endpointInfo.Defaults,
+                                        endpointInfo.MatchProcessorReferences,
                                         ++conventionalRouteOrder,
                                         endpointInfo);
                                     _endpoints.Add(subEndpoint);
@@ -140,6 +141,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                 endpointInfo.Name,
                                 newTemplate,
                                 endpointInfo.Defaults,
+                                endpointInfo.MatchProcessorReferences,
                                 ++conventionalRouteOrder,
                                 endpointInfo);
                             _endpoints.Add(endpoint);
@@ -148,11 +150,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 }
                 else
                 {
+                    var newEndpointTemplate = TemplateParser.Parse(action.AttributeRouteInfo.Template);
+                    var matchProcessorReferences = GetMatchProcessorReferences(newEndpointTemplate);
+
                     var endpoint = CreateEndpoint(
                         action,
                         action.AttributeRouteInfo.Name,
                         action.AttributeRouteInfo.Template,
                         nonInlineDefaults: null,
+                        matchProcessorReferences,
                         action.AttributeRouteInfo.Order,
                         action.AttributeRouteInfo);
                     _endpoints.Add(endpoint);
@@ -214,6 +220,28 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return usedDefaultValue;
         }
 
+        private List<MatchProcessorReference> GetMatchProcessorReferences(RouteTemplate routeTemplate)
+        {
+            var matchProcessorReferences = new List<MatchProcessorReference>();
+
+            foreach (var parameter in routeTemplate.Parameters)
+            {
+                if (parameter.InlineConstraints != null)
+                {
+                    foreach (var constraint in parameter.InlineConstraints)
+                    {
+                        matchProcessorReferences.Add(
+                            new MatchProcessorReference(
+                                parameter.Name,
+                                optional: parameter.IsOptional,
+                                constraintText: constraint.Constraint));
+                    }
+                }
+            }
+
+            return matchProcessorReferences;
+        }
+
         private bool MatchRouteValue(ActionDescriptor action, MvcEndpointInfo endpointInfo, string routeKey)
         {
             if (!action.RouteValues.TryGetValue(routeKey, out var actionValue) || string.IsNullOrWhiteSpace(actionValue))
@@ -236,17 +264,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var matchingParameter = endpointInfo.ParsedTemplate.Parameters.SingleOrDefault(p => string.Equals(p.Name, routeKey, StringComparison.OrdinalIgnoreCase));
                 if (matchingParameter != null)
                 {
-                    // Check that the value matches against constraints on that parameter
-                    // e.g. For {controller:regex((Home|Login))} the controller value must match the regex
-                    //
-                    // REVIEW: This is really ugly
-                    if (endpointInfo.Constraints.TryGetValue(routeKey, out var constraint)
-                        && !constraint.Match(new DefaultHttpContext() { RequestServices = _serviceProvider }, new DummyRouter(), routeKey, new RouteValueDictionary(action.RouteValues), RouteDirection.IncomingRequest))
-                    {
-                        // Did not match constraint
-                        return false;
-                    }
-
                     return true;
                 }
             }
@@ -272,6 +289,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             string routeName,
             string template,
             object nonInlineDefaults,
+            List<MatchProcessorReference> matchProcessorReferences,
             int order,
             object source)
         {

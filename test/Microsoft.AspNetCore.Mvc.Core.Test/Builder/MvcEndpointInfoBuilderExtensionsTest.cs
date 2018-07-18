@@ -1,12 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Moq;
@@ -31,13 +27,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
 
             Assert.Null(endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
-            Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<StringRouteConstraint>(kvp.Value);
-                });
             Assert.Empty(endpointInfo.DataTokens);
             Assert.Collection(
                 endpointInfo.Defaults.OrderBy(kvp => kvp.Key),
@@ -66,13 +55,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
 
             Assert.Equal("admin_area", endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
-            Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<StringRouteConstraint>(kvp.Value);
-                });
             Assert.Empty(endpointInfo.DataTokens);
             Assert.Collection(
                 endpointInfo.Defaults.OrderBy(kvp => kvp.Key),
@@ -107,18 +89,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
 
             Assert.Equal("admin_area", endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
-            Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<StringRouteConstraint>(kvp.Value);
-                },
-                kvp =>
-                {
-                    Assert.Equal("id", kvp.Key);
-                    Assert.IsType<IntRouteConstraint>(kvp.Value);
-                });
             Assert.Empty(endpointInfo.DataTokens);
             Assert.Collection(
                 endpointInfo.Defaults.OrderBy(kvp => kvp.Key),
@@ -154,18 +124,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
 
             Assert.Equal("admin_area", endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
-            Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<StringRouteConstraint>(kvp.Value);
-                },
-                kvp =>
-                {
-                    Assert.Equal("id", kvp.Key);
-                    Assert.IsType<IntRouteConstraint>(kvp.Value);
-                });
             Assert.Collection(
                 endpointInfo.DataTokens.OrderBy(kvp => kvp.Key),
                 kvp =>
@@ -208,13 +166,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
             Assert.Equal("admin_area", endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
             Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<IntRouteConstraint>(kvp.Value);
-                });
-            Assert.Collection(
                 endpointInfo.DataTokens.OrderBy(kvp => kvp.Key),
                 kvp =>
                 {
@@ -245,23 +196,6 @@ namespace Microsoft.AspNetCore.Mvc.Core.Test.Builder
 
             Assert.Null(endpointInfo.Name);
             Assert.Equal("site/Admin/", endpointInfo.Template);
-            Assert.Collection(
-                endpointInfo.Constraints.OrderBy(kvp => kvp.Key),
-                kvp =>
-                {
-                    Assert.Equal("area", kvp.Key);
-                    Assert.IsType<StringRouteConstraint>(kvp.Value);
-
-                    var values = new RouteValueDictionary(new { area = areaName });
-                    var match = kvp.Value.Match(
-                        new DefaultHttpContext(),
-                        route: new Mock<IRouter>().Object,
-                        routeKey: kvp.Key,
-                        values: values,
-                        routeDirection: RouteDirection.UrlGeneration);
-
-                    Assert.True(match);
-                });
             Assert.Empty(endpointInfo.DataTokens);
             Assert.Collection(
                 endpointInfo.Defaults.OrderBy(kvp => kvp.Key),

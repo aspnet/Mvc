@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Constraints;
+using Microsoft.AspNetCore.Routing.Matchers;
 using Microsoft.AspNetCore.Routing.Template;
 
 namespace Microsoft.AspNetCore.Builder
@@ -15,9 +17,8 @@ namespace Microsoft.AspNetCore.Builder
             string name,
             string template,
             RouteValueDictionary defaults,
-            IDictionary<string, object> constraints,
-            RouteValueDictionary dataTokens,
-            IInlineConstraintResolver constraintResolver)
+            IDictionary<string, object> nonInlineConstraints,
+            RouteValueDictionary dataTokens)
         {
             Name = name;
             Template = template ?? string.Empty;
@@ -29,7 +30,8 @@ namespace Microsoft.AspNetCore.Builder
                 // defaults. The parser will throw for invalid routes.
                 ParsedTemplate = TemplateParser.Parse(template);
 
-                Constraints = GetConstraints(constraintResolver, ParsedTemplate, constraints);
+                MatchProcessorReferences = GetMatchProcessorReferences(ParsedTemplate, nonInlineConstraints);
+
                 Defaults = defaults;
                 MergedDefaults = GetDefaults(ParsedTemplate, defaults);
             }
@@ -49,39 +51,52 @@ namespace Microsoft.AspNetCore.Builder
         // Inline and non-inline defaults merged into one
         public RouteValueDictionary MergedDefaults { get; }
 
-        public IDictionary<string, IRouteConstraint> Constraints { get; }
+        public List<MatchProcessorReference> MatchProcessorReferences { get; }
         public RouteValueDictionary DataTokens { get; }
         internal RouteTemplate ParsedTemplate { get; private set; }
 
-        private static IDictionary<string, IRouteConstraint> GetConstraints(
-            IInlineConstraintResolver inlineConstraintResolver,
+        private static List<MatchProcessorReference> GetMatchProcessorReferences(
             RouteTemplate parsedTemplate,
-            IDictionary<string, object> constraints)
+            IDictionary<string, object> nonInlineConstraints)
         {
-            var constraintBuilder = new RouteConstraintBuilder(inlineConstraintResolver, parsedTemplate.TemplateText);
-
-            if (constraints != null)
+            var matchProcessorReferences = new List<MatchProcessorReference>();
+            if (nonInlineConstraints != null)
             {
-                foreach (var kvp in constraints)
+                foreach (var kvp in nonInlineConstraints)
                 {
-                    constraintBuilder.AddConstraint(kvp.Key, kvp.Value);
+                    var constraint = kvp.Value as IRouteConstraint;
+                    if (constraint == null)
+                    {
+                        var regexPattern = kvp.Value as string;
+                        if (regexPattern == null)
+                        {
+                            throw new InvalidOperationException("Non inline constraint is not a valid IRouteConstraint");
+                        }
+
+                        var constraintsRegEx = "^(" + regexPattern + ")$";
+                        constraint = new RegexRouteConstraint(constraintsRegEx);
+                    }
+
+                    matchProcessorReferences.Add(new MatchProcessorReference(kvp.Key, constraint));
                 }
             }
 
             foreach (var parameter in parsedTemplate.Parameters)
             {
-                if (parameter.IsOptional)
+                if (parameter.InlineConstraints != null)
                 {
-                    constraintBuilder.SetOptional(parameter.Name);
-                }
-
-                foreach (var inlineConstraint in parameter.InlineConstraints)
-                {
-                    constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Constraint);
+                    foreach (var constraint in parameter.InlineConstraints)
+                    {
+                        matchProcessorReferences.Add(
+                            new MatchProcessorReference(
+                                parameter.Name,
+                                optional: parameter.IsOptional,
+                                constraintText: constraint.Constraint));
+                    }
                 }
             }
 
-            return constraintBuilder.Build();
+            return matchProcessorReferences;
         }
 
         private static RouteValueDictionary GetDefaults(

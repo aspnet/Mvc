@@ -92,8 +92,7 @@ namespace Microsoft.AspNetCore.Builder
                 template,
                 new RouteValueDictionary(defaults),
                 new RouteValueDictionary(constraints),
-                new RouteValueDictionary(dataTokens),
-                endpointBuilder.ConstraintResolver));
+                new RouteValueDictionary(dataTokens)));
 
             return endpointBuilder;
         }
