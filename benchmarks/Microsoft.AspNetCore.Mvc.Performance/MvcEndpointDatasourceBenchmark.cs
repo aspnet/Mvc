@@ -52,6 +52,21 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             };
         }
 
+        [Benchmark]
+        public void AttributeRouteEndpoints()
+        {
+            var endpointDataSource = CreateMvcEndpointDataSource(_attributeActionDescriptorCollectionProvider);
+            var endpoints = endpointDataSource.Endpoints;
+        }
+
+        [Benchmark]
+        public void ConventionalEndpoints()
+        {
+            var endpointDataSource = CreateMvcEndpointDataSource(_conventionalActionDescriptorCollectionProvider);
+            endpointDataSource.ConventionalEndpointInfos.AddRange(_conventionalEndpointInfos);
+            var endpoints = endpointDataSource.Endpoints;
+        }
+
         private ActionDescriptor CreateActionDescriptor(int id, bool attributeRoute)
         {
             var actionDescriptor = new ActionDescriptor
@@ -73,21 +88,6 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             }
 
             return actionDescriptor;
-        }
-
-        [Benchmark]
-        public void AttributeRouteEndpoints()
-        {
-            var endpointDataSource = CreateMvcEndpointDataSource(_attributeActionDescriptorCollectionProvider);
-            var endpoints = endpointDataSource.Endpoints;
-        }
-
-        [Benchmark]
-        public void ConventionalEndpoints()
-        {
-            var endpointDataSource = CreateMvcEndpointDataSource(_conventionalActionDescriptorCollectionProvider);
-            endpointDataSource.ConventionalEndpointInfos.AddRange(_conventionalEndpointInfos);
-            var endpoints = endpointDataSource.Endpoints;
         }
 
         private MvcEndpointDataSource CreateMvcEndpointDataSource(
