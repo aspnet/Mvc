@@ -7,7 +7,6 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Newtonsoft.Json.Linq;
 using ShimResources = Microsoft.AspNetCore.Mvc.WebApiCompatShim.Resources;
 
 namespace System.Web.Http
@@ -20,9 +19,6 @@ namespace System.Web.Http
     [XmlRoot("Error")]
     public sealed class HttpError : Dictionary<string, object>, IXmlSerializable
     {
-        // Silly spelling of empty1111 to avoid collisions with other ModelState entries.
-        private static readonly string EmptyKey = "\x00C9m\x00FEt\x00DD1111";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpError"/> class.
         /// </summary>
@@ -99,7 +95,7 @@ namespace System.Web.Http
             Message = ShimResources.HttpError_BadRequest;
 
             var modelStateError = new HttpError();
-            foreach (var keyModelStatePair in modelState)
+            foreach (KeyValuePair<string, ModelStateEntry> keyModelStatePair in modelState)
             {
                 var key = keyModelStatePair.Key;
                 var errors = keyModelStatePair.Value.Errors;
@@ -119,7 +115,6 @@ namespace System.Web.Http
                                     error.ErrorMessage;
                         }
                     }).ToArray();
-
                     modelStateError.Add(key, errorMessages);
                 }
             }
@@ -230,57 +225,13 @@ namespace System.Web.Http
         /// <returns>The value of the error property.</returns>
         public TValue GetPropertyValue<TValue>(string key)
         {
-            if (TryGetValue(key, out var value))
+            object value;
+            if (TryGetValue(key, out value) && value is TValue)
             {
-                // Special case for round-tripping an HttpError when using JSON.
-                if (typeof(TValue) == typeof(HttpError) &&
-                    value is JObject jObject)
-                {
-                    value = GetHttpError(jObject);
-                }
-
-                if (value is TValue result)
-                {
-                    return result;
-                }
+                return (TValue)value;
             }
 
-            return default;
-        }
-
-        private HttpError GetHttpError(JObject jObject)
-        {
-            var httpError = new HttpError();
-            foreach (var kvp in jObject)
-            {
-                var key = kvp.Key;
-                if (string.Equals(EmptyKey, key, StringComparison.Ordinal))
-                {
-                    key = string.Empty;
-                }
-
-                // In the ModelState case, HttpError uses string[] values but in the InnerException case, it
-                // uses string values. However InnerExceptions can nest...
-                object value;
-                switch (kvp.Value)
-                {
-                    case JArray jArray:
-                        value = jArray.Values<string>().ToArray();
-                        break;
-
-                    case JObject innerObject:
-                        value = GetHttpError(innerObject);
-                        break;
-
-                    default:
-                        value = kvp.Value.Value<string>();
-                        break;
-                }
-
-                httpError.Add(key, value);
-            }
-
-            return httpError;
+            return default(TValue);
         }
 
         XmlSchema IXmlSerializable.GetSchema()
@@ -290,11 +241,6 @@ namespace System.Web.Http
 
         void IXmlSerializable.ReadXml(XmlReader reader)
         {
-            ReadXml(reader, this);
-        }
-
-        private void ReadXml(XmlReader reader, HttpError httpError)
-        {
             if (reader.IsEmptyElement)
             {
                 reader.Read();
@@ -302,32 +248,14 @@ namespace System.Web.Http
             }
 
             reader.ReadStartElement();
-            while (reader.NodeType != XmlNodeType.EndElement)
+            while (reader.NodeType != System.Xml.XmlNodeType.EndElement)
             {
                 var key = XmlConvert.DecodeName(reader.LocalName);
-                object value;
-                if (string.Equals(HttpErrorKeys.InnerExceptionKey, key, StringComparison.Ordinal) ||
-                    string.Equals(HttpErrorKeys.ModelStateKey, key, StringComparison.Ordinal))
-                {
-                    var innerReader = reader.ReadSubtree();
-                    var innerError = new HttpError();
-                    ReadXml(innerReader, innerError);
-                    value = innerError;
-                }
-                else
-                {
-                    value = reader.ReadInnerXml();
-                }
+                var value = reader.ReadInnerXml();
 
-                if (string.Equals(EmptyKey, key, StringComparison.Ordinal))
-                {
-                    key = string.Empty;
-                }
-
-                httpError.Add(key, value);
+                Add(key, value);
                 reader.MoveToContent();
             }
-
             reader.ReadEndElement();
         }
 
@@ -337,15 +265,11 @@ namespace System.Web.Http
             {
                 var key = keyValuePair.Key;
                 var value = keyValuePair.Value;
-                if (string.IsNullOrEmpty(key))
-                {
-                    key = EmptyKey;
-                }
-
                 writer.WriteStartElement(XmlConvert.EncodeLocalName(key));
                 if (value != null)
                 {
-                    if (!(value is HttpError innerError))
+                    var innerError = value as HttpError;
+                    if (innerError == null)
                     {
                         writer.WriteValue(value);
                     }
@@ -354,7 +278,6 @@ namespace System.Web.Http
                         ((IXmlSerializable)innerError).WriteXml(writer);
                     }
                 }
-
                 writer.WriteEndElement();
             }
         }
