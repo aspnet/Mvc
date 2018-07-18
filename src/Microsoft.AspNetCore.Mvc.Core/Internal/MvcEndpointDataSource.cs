@@ -23,10 +23,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private readonly MvcEndpointInvokerFactory _invokerFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
-        private readonly List<Endpoint> _endpoints;
         private readonly object _lock = new object();
 
-        private IChangeToken _changeToken;
+        private List<Endpoint> _endpoints;
         private bool _initialized;
 
         public MvcEndpointDataSource(
@@ -60,12 +59,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _serviceProvider = serviceProvider;
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
 
-            _endpoints = new List<Endpoint>();
             ConventionalEndpointInfos = new List<MvcEndpointInfo>();
+
+            Extensions.Primitives.ChangeToken.OnChange(
+                GetCompositeChangeToken,
+                UpdateEndpoints);
         }
 
-        private void InitializeEndpoints()
+        private List<Endpoint> CreateEndpoints()
         {
+            List<Endpoint> endpoints = new List<Endpoint>();
+
             foreach (var action in _actions.ActionDescriptors.Items)
             {
                 if (action.AttributeRouteInfo == null)
@@ -117,7 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                         endpointInfo.Defaults,
                                         ++conventionalRouteOrder,
                                         endpointInfo);
-                                    _endpoints.Add(subEndpoint);
+                                    endpoints.Add(subEndpoint);
                                 }
 
                                 var segment = newEndpointTemplate.Segments[i];
@@ -142,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                 endpointInfo.Defaults,
                                 ++conventionalRouteOrder,
                                 endpointInfo);
-                            _endpoints.Add(endpoint);
+                            endpoints.Add(endpoint);
                         }
                     }
                 }
@@ -155,9 +159,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         nonInlineDefaults: null,
                         action.AttributeRouteInfo.Order,
                         action.AttributeRouteInfo);
-                    _endpoints.Add(endpoint);
+                    endpoints.Add(endpoint);
                 }
             }
+
+            return endpoints;
         }
 
         private bool IsMvcParameter(string name)
@@ -392,18 +398,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return new CompositeChangeToken(changeTokens);
         }
 
-        public override IChangeToken ChangeToken
-        {
-            get
-            {
-                if (_changeToken == null)
-                {
-                    _changeToken = GetCompositeChangeToken();
-                }
-
-                return _changeToken;
-            }
-        }
+        public override IChangeToken ChangeToken => GetCompositeChangeToken();
 
         public override IReadOnlyList<Endpoint> Endpoints
         {
@@ -415,13 +410,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         if (!_initialized)
                         {
-                            InitializeEndpoints();
+                            _endpoints = CreateEndpoints();
                             _initialized = true;
                         }
                     }
                 }
 
                 return _endpoints;
+            }
+        }
+
+        private void UpdateEndpoints()
+        {
+            lock (_lock)
+            {
+                _initialized = false;
+                _endpoints = CreateEndpoints();
+                _initialized = true;
             }
         }
 
