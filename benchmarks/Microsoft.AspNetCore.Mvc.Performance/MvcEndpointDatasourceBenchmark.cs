@@ -20,10 +20,10 @@ namespace Microsoft.AspNetCore.Mvc.Performance
 {
     public class MvcEndpointDataSourceBenchmark
     {
-        private const string DefaultRoute = "{Controller}/{Action=Index}/{id?}";
+        private const string DefaultRoute = "{Controller=Home}/{Action=Index}/{id?}";
 
-        private MockActionDescriptorCollectionProvider _conventionalActionDescriptorCollectionProvider;
-        private MockActionDescriptorCollectionProvider _attributeActionDescriptorCollectionProvider;
+        private MockActionDescriptorCollectionProvider _conventionalActionProvider;
+        private MockActionDescriptorCollectionProvider _attributeActionProvider;
         private List<MvcEndpointInfo> _conventionalEndpointInfos;
 
         [Params(1, 100, 1000)]
@@ -32,11 +32,11 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         [GlobalSetup]
         public void Setup()
         {
-            _conventionalActionDescriptorCollectionProvider = new MockActionDescriptorCollectionProvider(
+            _conventionalActionProvider = new MockActionDescriptorCollectionProvider(
                 Enumerable.Range(0, ActionCount).Select(i => CreateActionDescriptor(i, false)).ToList()
                 );
 
-            _attributeActionDescriptorCollectionProvider = new MockActionDescriptorCollectionProvider(
+            _attributeActionProvider = new MockActionDescriptorCollectionProvider(
                 Enumerable.Range(0, ActionCount).Select(i => CreateActionDescriptor(i, true)).ToList()
                 );
 
@@ -55,14 +55,14 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         [Benchmark]
         public void AttributeRouteEndpoints()
         {
-            var endpointDataSource = CreateMvcEndpointDataSource(_attributeActionDescriptorCollectionProvider);
+            var endpointDataSource = CreateMvcEndpointDataSource(_attributeActionProvider);
             var endpoints = endpointDataSource.Endpoints;
         }
 
         [Benchmark]
         public void ConventionalEndpoints()
         {
-            var endpointDataSource = CreateMvcEndpointDataSource(_conventionalActionDescriptorCollectionProvider);
+            var endpointDataSource = CreateMvcEndpointDataSource(_conventionalActionProvider);
             endpointDataSource.ConventionalEndpointInfos.AddRange(_conventionalEndpointInfos);
             var endpoints = endpointDataSource.Endpoints;
         }
@@ -91,19 +91,12 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         }
 
         private MvcEndpointDataSource CreateMvcEndpointDataSource(
-            IActionDescriptorCollectionProvider actionDescriptorCollectionProvider = null,
-            MvcEndpointInvokerFactory mvcEndpointInvokerFactory = null,
-            IEnumerable<IActionDescriptorChangeProvider> actionDescriptorChangeProviders = null)
+            IActionDescriptorCollectionProvider actionDescriptorCollectionProvider)
         {
-            if (actionDescriptorCollectionProvider == null)
-            {
-                actionDescriptorCollectionProvider = new MockActionDescriptorCollectionProvider(new List<ActionDescriptor>());
-            }
-
             var dataSource = new MvcEndpointDataSource(
                 actionDescriptorCollectionProvider,
-                mvcEndpointInvokerFactory ?? new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
-                actionDescriptorChangeProviders ?? Array.Empty<IActionDescriptorChangeProvider>(),
+                new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
+                Array.Empty<IActionDescriptorChangeProvider>(),
                 new MockServiceProvider());
 
             return dataSource;
