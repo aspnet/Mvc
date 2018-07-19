@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.EndpointConstraints;
@@ -336,7 +338,17 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     if (actionConstraint is HttpMethodActionConstraint httpMethodActionConstraint)
                     {
-                        metadata.Add(new HttpMethodEndpointConstraint(httpMethodActionConstraint.HttpMethods));
+                        var httpEndpointConstraint = new HttpMethodEndpointConstraint(httpMethodActionConstraint.HttpMethods);
+
+                        // yolo
+                        if (httpMethodActionConstraint.GetType().Name == "CorsHttpMethodActionConstraint")
+                        {
+                            metadata.Add(new CorsHttpMethodEndpointConstraint(httpEndpointConstraint));
+                        }
+                        else
+                        {
+                            metadata.Add(httpEndpointConstraint);
+                        }
                     }
                     else if (actionConstraint is IEndpointConstraintMetadata)
                     {
@@ -443,5 +455,52 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         private class SuppressLinkGenerationMetadata : ISuppressLinkGenerationMetadata { }
+    }
+
+    public class CorsHttpMethodEndpointConstraint : HttpMethodEndpointConstraint, IActionConstraintMetadata
+    {
+        private readonly string OriginHeader = "Origin";
+        private readonly string AccessControlRequestMethod = "Access-Control-Request-Method";
+        private readonly string PreflightHttpMethod = "OPTIONS";
+
+        public CorsHttpMethodEndpointConstraint(HttpMethodEndpointConstraint constraint)
+            : base(constraint.HttpMethods)
+        {
+        }
+
+        public override bool Accept(EndpointConstraintContext context)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            var methods = (ReadOnlyCollection<string>)HttpMethods;
+            if (methods.Count == 0)
+            {
+                return true;
+            }
+
+            var request = context.HttpContext.Request;
+            // Perf: Check http method before accessing the Headers collection.
+            if (string.Equals(request.Method, PreflightHttpMethod, StringComparison.OrdinalIgnoreCase) &&
+                request.Headers.ContainsKey(OriginHeader) &&
+                request.Headers.TryGetValue(AccessControlRequestMethod, out var accessControlRequestMethod) &&
+                !StringValues.IsNullOrEmpty(accessControlRequestMethod))
+            {
+                for (var i = 0; i < methods.Count; i++)
+                {
+                    var supportedMethod = methods[i];
+                    if (string.Equals(supportedMethod, accessControlRequestMethod, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            return base.Accept(context);
+        }
     }
 }
