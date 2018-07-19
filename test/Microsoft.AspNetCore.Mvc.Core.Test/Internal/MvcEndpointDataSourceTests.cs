@@ -253,6 +253,37 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
+        public void Endpoints_CalledMultipleTimes_ReturnsSameInstance()
+        {
+            // Arrange
+            var actionDescriptorCollectionProviderMock = new Mock<IActionDescriptorCollectionProvider>();
+            actionDescriptorCollectionProviderMock
+                .Setup(m => m.ActionDescriptors)
+                .Returns(new ActionDescriptorCollection(new[]
+                {
+                    CreateActionDescriptor(new { controller = "TestController", action = "TestAction" })
+                }, version: 0));
+
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollectionProviderMock.Object);
+            dataSource.ConventionalEndpointInfos.Add(CreateEndpointInfo(
+                string.Empty,
+                "{controller}/{action}",
+                new RouteValueDictionary(new { action = "TestAction" })));
+
+            // Act
+            var endpoints1 = dataSource.Endpoints;
+            var endpoints2 = dataSource.Endpoints;
+
+            // Assert
+            Assert.Collection(endpoints1,
+                (e) => Assert.Equal("TestController", Assert.IsType<MatcherEndpoint>(e).Template),
+                (e) => Assert.Equal("TestController/TestAction", Assert.IsType<MatcherEndpoint>(e).Template));
+            Assert.Same(endpoints1, endpoints2);
+
+            actionDescriptorCollectionProviderMock.VerifyGet(m => m.ActionDescriptors, Times.Once);
+        }
+
+        [Fact]
         public void Endpoints_ChangeTokenTriggered_EndpointsRecreated()
         {
             // Arrange

@@ -19,14 +19,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     internal class MvcEndpointDataSource : EndpointDataSource
     {
+        private readonly object _lock = new object();
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly MvcEndpointInvokerFactory _invokerFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
-        private readonly object _lock = new object();
 
         private List<Endpoint> _endpoints;
-        private bool _initialized;
 
         public MvcEndpointDataSource(
             IActionDescriptorCollectionProvider actions,
@@ -404,19 +403,22 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             get
             {
-                if (!_initialized)
+                // Want to initialize endpoints once and then cache while ensuring a null collection is never returned
+                // Local copy for thread safety + double check locking
+                var localEndpoints = _endpoints;
+                if (localEndpoints == null)
                 {
                     lock (_lock)
                     {
-                        if (!_initialized)
+                        localEndpoints = _endpoints;
+                        if (localEndpoints == null)
                         {
-                            _endpoints = CreateEndpoints();
-                            _initialized = true;
+                            _endpoints = localEndpoints = CreateEndpoints();
                         }
                     }
                 }
 
-                return _endpoints;
+                return localEndpoints;
             }
         }
 
@@ -424,9 +426,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             lock (_lock)
             {
-                _initialized = false;
                 _endpoints = CreateEndpoints();
-                _initialized = true;
             }
         }
 
