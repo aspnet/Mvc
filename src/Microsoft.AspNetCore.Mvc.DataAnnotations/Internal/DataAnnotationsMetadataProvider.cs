@@ -317,15 +317,26 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var attributes = context.Attributes.ToList();
+
+            var count = attributes.Count;
+            for (var i = 0;  i < count; i++)
+            {
+                if (attributes[i] is ValidationProviderAttribute validationProviderAttribute)
+                {
+                    attributes.AddRange(validationProviderAttribute.GetValidationAttributes());
+                }
+            }
+
             // RequiredAttribute marks a property as required by validation - this means that it
             // must have a non-null value on the model during validation.
-            var requiredAttribute = context.Attributes.OfType<RequiredAttribute>().FirstOrDefault();
+            var requiredAttribute = attributes.OfType<RequiredAttribute>().FirstOrDefault();
             if (requiredAttribute != null)
             {
                 context.ValidationMetadata.IsRequired = true;
             }
 
-            foreach (var attribute in context.Attributes.OfType<ValidationAttribute>())
+            foreach (var attribute in attributes.OfType<ValidationAttribute>())
             {
                 // If another provider has already added this attribute, do not repeat it.
                 // This will prevent attributes like RemoteAttribute (which implement ValidationAttribute and

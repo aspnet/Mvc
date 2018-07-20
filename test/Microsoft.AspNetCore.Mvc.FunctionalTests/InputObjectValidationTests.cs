@@ -182,5 +182,67 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("xyz", await response.Content.ReadAsStringAsync());
         }
+
+        [Fact]
+        public async Task ValidationProviderAttribute_WillValidateObject()
+        {
+            // Arrange
+            var invalidRequestData = "{\"FirstName\":\"TestName\", \"LastName\": \"Test\"}";
+            var content = new StringContent(invalidRequestData, Encoding.UTF8, "application/json");
+            var expectedErrorMessage =
+                "{\"FirstName\":[\"The field FirstName must match the regular expression '[A-Z][a-z]*'.\"," +
+                "\"The field FirstName must be a string with a maximum length of 5.\"]}";
+
+            // Act
+            var response = await Client.PostAsync(
+                "http://localhost/Validation/ValidationProviderAttribute", content);
+
+            // Assert
+            Assert.Equal(expected: StatusCodes.Status400BadRequest, actual: (int)response.StatusCode);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedErrorMessage, actual: responseContent);
+        }
+
+        [Fact]
+        public async Task ValidationProviderAttribute_DoesNotInterfere_WithOtherValidationAttributes()
+        {
+            // Arrange
+            var invalidRequestData = "{\"FirstName\":\"Test\", \"LastName\": \"Testsson\"}";
+            var content = new StringContent(invalidRequestData, Encoding.UTF8, "application/json");
+            var expectedErrorMessage = 
+                "{\"LastName\":[\"The field LastName must be a string with a maximum length of 5.\"]}";
+
+            // Act
+            var response = await Client.PostAsync(
+                "http://localhost/Validation/ValidationProviderAttribute", content);
+
+            // Assert
+            Assert.Equal(expected: StatusCodes.Status400BadRequest, actual: (int)response.StatusCode);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedErrorMessage, actual: responseContent);
+        }
+
+        [Fact]
+        public async Task ValidationProviderAttribute_RequiredAttributeErrorMessage_WillComeFirst()
+        {
+            // Arrange
+            var invalidRequestData = "{\"FirstName\":\"Testname\", \"LastName\": \"\"}";
+            var content = new StringContent(invalidRequestData, Encoding.UTF8, "application/json");
+            var expectedError = 
+                "{\"LastName\":[\"The LastName field is required.\"]," +
+                "\"FirstName\":[\"The field FirstName must be a string with a maximum length of 5.\"]}";
+
+            // Act
+            var response = await Client.PostAsync(
+                "http://localhost/Validation/ValidationProviderAttribute", content);
+
+            // Assert
+            Assert.Equal(expected: StatusCodes.Status400BadRequest, actual: (int)response.StatusCode);
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Assert.Equal(expectedError, actual: responseContent);
+        }
     }
 }
