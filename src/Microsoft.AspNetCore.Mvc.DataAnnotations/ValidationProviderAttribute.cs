@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations
     public abstract class ValidationProviderAttribute : Attribute
     {
         /// <summary>
-        /// Gets one or more <see cref="ValidationAttribute" /> instances associated with this attribute.
+        /// Gets <see cref="ValidationAttribute" /> instances associated with this attribute.
         /// </summary>
         /// <returns>Sequence of <see cref="ValidationAttribute" /> associated with this attribute.</returns>
         public abstract IEnumerable<ValidationAttribute> GetValidationAttributes();
