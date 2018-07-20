@@ -1242,20 +1242,20 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
         }
 
         [Fact]
-        public void CreateValidationMetadata_WillAddValidationAttributes_From_CompositeValidationAttribute()
+        public void CreateValidationMetadata_WillAddValidationAttributes_From_ValidationProviderAttribute()
         {
             // Arrange
             var provider = new DataAnnotationsMetadataProvider(
                 Options.Create(new MvcDataAnnotationsLocalizationOptions()),
                 stringLocalizerFactory: null);
-            var compositeValidationAttribute = new FooCompositeValidationAttribute(
+            var validationProviderAttribute = new FooCompositeValidationAttribute(
                 attributes: new List<ValidationAttribute>
                 {
                     new RequiredAttribute(),
                     new StringLengthAttribute(5)
                 });
 
-            var attributes = new Attribute[] { new EmailAddressAttribute(), compositeValidationAttribute };
+            var attributes = new Attribute[] { new EmailAddressAttribute(), validationProviderAttribute };
             var key = ModelMetadataIdentity.ForProperty(typeof(string), "Length", typeof(string));
             var context = new ValidationMetadataProviderContext(key, GetModelAttributes(new object[0], attributes));
 
@@ -1578,7 +1578,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             public string Name { get; private set; }
         }
 
-        private class FooCompositeValidationAttribute : CompositeValidationAttribute
+        private class FooCompositeValidationAttribute : ValidationProviderAttribute
         {
             private IEnumerable<ValidationAttribute> _attributes;
 
@@ -1587,7 +1587,7 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
                 _attributes = attributes;
             }
 
-            public override IEnumerable<ValidationAttribute> GetAttributes()
+            public override IEnumerable<ValidationAttribute> GetValidationAttributes()
             {
                 return _attributes;
             }

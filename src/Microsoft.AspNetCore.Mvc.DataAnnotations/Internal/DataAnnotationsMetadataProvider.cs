@@ -319,12 +319,14 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
 
             var attributes = context.Attributes.ToList();
 
-            var attributesInComposite = new List<object>();
-            foreach (var compositeAttribute in attributes.OfType<CompositeValidationAttribute>())
+            var count = attributes.Count;
+            for (var i = 0;  i < count; i++)
             {
-                attributesInComposite.AddRange(compositeAttribute.GetAttributes());
+                if (attributes[i] is ValidationProviderAttribute validationProviderAttribute)
+                {
+                    attributes.AddRange(validationProviderAttribute.GetValidationAttributes());
+                }
             }
-            attributes.AddRange(attributesInComposite);
 
             // RequiredAttribute marks a property as required by validation - this means that it
             // must have a non-null value on the model during validation.

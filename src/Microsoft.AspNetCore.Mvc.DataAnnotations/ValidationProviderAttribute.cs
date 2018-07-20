@@ -11,12 +11,12 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations
     /// Abstract class for grouping attributes of type <see cref="ValidationAttribute"/> into
     /// one <see cref="Attribute"/>
     /// </summary>
-    public abstract class CompositeValidationAttribute : Attribute
+    public abstract class ValidationProviderAttribute : Attribute
     {
         /// <summary>
-        /// Get attributes associated with this attribute.
+        /// Gets one or more <see cref="ValidationAttribute" /> instances associated with this attribute.
         /// </summary>
-        /// <returns><see cref="IEnumerable{ValidationAttribute}"/> associated with this attribute.</returns>
-        public abstract IEnumerable<ValidationAttribute> GetAttributes();
+        /// <returns>Sequence of <see cref="ValidationAttribute" /> associated with this attribute.</returns>
+        public abstract IEnumerable<ValidationAttribute> GetValidationAttributes();
     }
 }

@@ -1,0 +1,24 @@
+﻿@model HtmlGenerationWebSite.Models.ValidationProviderAttributeModel
+
+@{
+    ViewBag.Title = "ValidationProviderAttribute Page";
+}
+
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<html>
+<body>
+    <form asp-controller="HtmlGeneration_ValidationProviderAttribute"
+          asp-action="Index"
+          asp-antiforgery="true">
+        <div>
+            <label asp-for="Name"></label>
+            <input asp-for="Name" type="text" class="form-control" />
+            <span asp-validation-for="Name"></span>
+        </div>
+        <div asp-validation-summary="All"></div>
+        <div asp-validation-summary="ModelOnly"></div>
+        <input type="submit" />
+    </form>
+</body>
+</html>

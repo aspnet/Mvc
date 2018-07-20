@@ -613,6 +613,75 @@ Products: Music Systems, Televisions (3)";
             Assert.Empty(content.TextContent);
         }
 
+        [Fact]
+        public async Task ValidationProviderAttribute_ValidationTagHelpers_GeneratesExpectedDataAttributes()
+        {
+            // Arrange
+            var outputFile =
+                "compiler/resources/HtmlGenerationWebSite.HtmlGeneration_ValidationProviderAttribute.Index.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://localhost/HtmlGeneration_ValidationProviderAttribute");
+
+            // Act
+            var response = await Client.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            responseContent = responseContent.Trim();
+            var forgeryToken =
+                AntiforgeryTestHelper.RetrieveAntiforgeryToken(responseContent, "HtmlGeneration_ValidationProviderAttribute");
+
+#if GENERATE_BASELINES
+            // Reverse usual substitution and insert a format item into the new file content.
+            responseContent = responseContent.Replace(forgeryToken, "{0}");
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            expectedContent = string.Format(expectedContent, forgeryToken);
+            Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
+        [Fact]
+        public async Task ValidationProviderAttribute_ValidationTagHelpers_GeneratesExpectedSpansAndDivsOnValidationError()
+        {
+            // Arrange
+            var outputFile =
+                "compiler/resources/HtmlGenerationWebSite.HtmlGeneration_ValidationProviderAttribute.Index.WithModelErrors.html";
+            var expectedContent =
+                await ResourceFile.ReadResourceAsync(_resourcesAssembly, outputFile, sourceFile: false);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/HtmlGeneration_ValidationProviderAttribute");
+            var nameValueCollection = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string,string>("Name", "12345absdef")
+            };
+            request.Content = new FormUrlEncodedContent(nameValueCollection);
+
+            // Act
+            var response = await Client.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            responseContent = responseContent.Trim();
+            var forgeryToken =
+                AntiforgeryTestHelper.RetrieveAntiforgeryToken(responseContent, "HtmlGeneration_ValidationProviderAttribute");
+
+#if GENERATE_BASELINES
+            // Reverse usual substitution and insert a format item into the new file content.
+            responseContent = responseContent.Replace(forgeryToken, "{0}");
+            ResourceFile.UpdateFile(_resourcesAssembly, outputFile, expectedContent, responseContent);
+#else
+            expectedContent = string.Format(expectedContent, forgeryToken);
+            Assert.Equal(expectedContent.Trim(), responseContent, ignoreLineEndingDifferences: true);
+#endif
+        }
+
         private static HttpRequestMessage RequestWithLocale(string url, string locale)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
