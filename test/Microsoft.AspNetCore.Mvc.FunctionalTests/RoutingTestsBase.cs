@@ -873,7 +873,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public virtual async Task AttributeRoutedAction_LinkWithName_WithNameOverrridenFromController()
+        public virtual async Task AttributeRoutedAction_LinkWithName_WithNameOverridenFromController()
         {
             // Arrange & Act
             var response = await Client.DeleteAsync("http://localhost/api/Company/5");

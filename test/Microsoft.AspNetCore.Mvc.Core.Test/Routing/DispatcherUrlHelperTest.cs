@@ -38,6 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 next => httpContext => Task.CompletedTask,
                 RoutePatternFactory.Parse(template),
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 0,
                 EndpointMetadataCollection.Empty,
                 null));
@@ -53,6 +54,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                     next => cntxt => Task.CompletedTask,
                     RoutePatternFactory.Parse("/"),
                     new RouteValueDictionary(),
+                    new List<MatchProcessorReference>(),
                     0,
                     EndpointMetadataCollection.Empty,
                     null)
@@ -123,6 +125,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 next => (httpContext) => Task.CompletedTask,
                 RoutePatternFactory.Parse(template, defaults, constraints: null),
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 order,
                 metadata,
                 "DisplayName");
@@ -149,6 +152,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 next => c => Task.CompletedTask,
                 RoutePatternFactory.Parse(template, defaults, constraints: null),
                 new RouteValueDictionary(),
+                new List<MatchProcessorReference>(),
                 0,
                 EndpointMetadataCollection.Empty,
                 null);
