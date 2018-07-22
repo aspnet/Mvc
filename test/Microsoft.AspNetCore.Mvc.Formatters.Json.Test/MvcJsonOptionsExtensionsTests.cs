@@ -216,9 +216,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // Arrange
             var options = new MvcJsonOptions();
-            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            options.SerializerSettings.ContractResolver = new FooContractResolver();
             var expectedMessage = Resources.InvalidContractResolverForJsonCasingConfiguration(
-                nameof(CamelCasePropertyNamesContractResolver));
+                nameof(FooContractResolver));
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(
@@ -231,9 +231,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // Arrange
             var options = new MvcJsonOptions();
-            options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            options.SerializerSettings.ContractResolver = new FooContractResolver();
             var expectedMessage = Resources.InvalidContractResolverForJsonCasingConfiguration(
-                nameof(CamelCasePropertyNamesContractResolver));
+                nameof(FooContractResolver));
 
             // Act & Assert
             var exception = Assert.Throws<InvalidOperationException>(
@@ -253,6 +253,14 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             [JsonProperty("HELLO-WORLD")]
             public string HelloWorld { get; set; }
+        }
+
+        private class FooContractResolver : IContractResolver
+        {
+            public JsonContract ResolveContract(Type type)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
