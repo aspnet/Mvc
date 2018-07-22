@@ -37,11 +37,16 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             else
             {
+                if (options.SerializerSettings.ContractResolver == null)
+                {
+                    throw new InvalidOperationException(Resources.ContractResolverCannotBeNull());
+                }
+
                 var contractResolverName = options.SerializerSettings.ContractResolver.GetType().Name;
                 throw new InvalidOperationException(
                     Resources.InvalidContractResolverForJsonCasingConfiguration(contractResolverName));
             }
-
+            
             return options;
         }
 
@@ -67,6 +72,11 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             else
             {
+                if (options.SerializerSettings.ContractResolver == null)
+                {
+                    throw new InvalidOperationException(Resources.ContractResolverCannotBeNull());
+                }
+
                 var contractResolverName = options.SerializerSettings.ContractResolver.GetType().Name;
                 throw new InvalidOperationException(
                     Resources.InvalidContractResolverForJsonCasingConfiguration(contractResolverName));

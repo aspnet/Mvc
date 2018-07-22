@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ContractResolverCannotBeNull" xml:space="preserve">
+    <value>ContractResolver cannot be null.</value>
+  </data>
   <data name="InvalidContractResolverForJsonCasingConfiguration" xml:space="preserve">
     <value>Cannot configure JSON casing behavior on '{0}' contract resolver. The supported contract resolver is DefaultContractResolver.</value>
   </data>

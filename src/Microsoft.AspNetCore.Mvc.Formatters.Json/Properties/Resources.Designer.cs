@@ -16,6 +16,12 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json
         internal static string InvalidContractResolverForJsonCasingConfiguration(object p0)
             => string.Format(CultureInfo.CurrentCulture, GetString("InvalidContractResolverForJsonCasingConfiguration"), p0);
 
+        /// <summary>
+        /// ContractResolver cannot be null.
+        /// </summary>
+        internal static string ContractResolverCannotBeNull()
+            => string.Format(CultureInfo.CurrentCulture, GetString("ContractResolverCannotBeNull"));
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

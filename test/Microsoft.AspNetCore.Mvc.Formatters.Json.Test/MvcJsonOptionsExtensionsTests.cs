@@ -241,6 +241,34 @@ namespace Microsoft.Extensions.DependencyInjection
             Assert.Equal(expectedMessage, actual: exception.Message);
         }
 
+        [Fact]
+        public void UseCamelCasing_WillThrow_IfContractResolver_IsNull()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = null;
+            var expectedMessage = Resources.ContractResolverCannotBeNull();
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => options.UseCamelCasing(processDictionaryKeys: true));
+            Assert.Equal(expectedMessage, actual: exception.Message);
+        }
+
+        [Fact]
+        public void UseMemberCasing_WillThrow_IfContractResolver_IsNull()
+        {
+            // Arrange
+            var options = new MvcJsonOptions();
+            options.SerializerSettings.ContractResolver = null;
+            var expectedMessage = Resources.ContractResolverCannotBeNull();
+
+            // Act & Assert
+            var exception = Assert.Throws<InvalidOperationException>(
+                () => options.UseMemberCasing());
+            Assert.Equal(expectedMessage, actual: exception.Message);
+        }
+
         private static string SerializeToJson(MvcJsonOptions options, object value)
         {
             return JsonConvert.SerializeObject(
