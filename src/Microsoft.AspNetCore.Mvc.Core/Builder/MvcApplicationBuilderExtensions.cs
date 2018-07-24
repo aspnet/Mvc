@@ -92,21 +92,28 @@ namespace Microsoft.AspNetCore.Builder
                 var constraintResolver = app.ApplicationServices
                     .GetRequiredService<IInlineConstraintResolver>();
 
-                EndpointRouteBuilder endpointRouteBuilder = new EndpointRouteBuilder(app);
+                var endpointRouteBuilder = new EndpointRouteBuilder(app);
 
                 configureRoutes(endpointRouteBuilder);
 
-                foreach (var route in endpointRouteBuilder.Routes.OfType<Route>())
+                foreach (var router in endpointRouteBuilder.Routes)
                 {
-                    var endpointInfo = new MvcEndpointInfo(
-                        route.Name,
-                        route.RouteTemplate,
-                        route.Defaults,
-                        route.Constraints.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value),
-                        route.DataTokens,
-                        constraintResolver);
+                    if (router is Route route)
+                    {
+                        var endpointInfo = new MvcEndpointInfo(
+                            route.Name,
+                            route.RouteTemplate,
+                            route.Defaults,
+                            route.Constraints.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value),
+                            route.DataTokens,
+                            constraintResolver);
 
-                    mvcEndpointDataSource.ConventionalEndpointInfos.Add(endpointInfo);
+                        mvcEndpointDataSource.ConventionalEndpointInfos.Add(endpointInfo);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Cannot use '{router.GetType().FullName}' with Global Routing.");
+                    }
                 }
 
                 return app.UseEndpoint();
@@ -132,7 +139,7 @@ namespace Microsoft.AspNetCore.Builder
             {
                 ApplicationBuilder = applicationBuilder;
                 Routes = new List<IRouter>();
-                DefaultHandler = DummyRouter.Instance;
+                DefaultHandler = NullRouter.Instance;
             }
 
             public IApplicationBuilder ApplicationBuilder { get; }
