@@ -18,6 +18,9 @@ namespace Microsoft.AspNetCore.Builder
     /// </summary>
     public static class MvcApplicationBuilderExtensions
     {
+        // Property key set by routing when middleware is registered
+        private const string GlobalRoutingRegisteredKey = "__GlobalRoutingMiddlewareRegistered";
+
         /// <summary>
         /// Adds MVC to the <see cref="IApplicationBuilder"/> request execution pipeline.
         /// </summary>
@@ -114,6 +117,13 @@ namespace Microsoft.AspNetCore.Builder
                     {
                         throw new InvalidOperationException($"Cannot use '{router.GetType().FullName}' with Global Routing.");
                     }
+                }
+
+                if (!app.Properties.TryGetValue(GlobalRoutingRegisteredKey, out _))
+                {
+                    // Matching middleware has not been registered yet
+                    // For back-compat register middleware so an endpoint is matched and then immediately used
+                    app.UseGlobalRouting();
                 }
 
                 return app.UseEndpoint();

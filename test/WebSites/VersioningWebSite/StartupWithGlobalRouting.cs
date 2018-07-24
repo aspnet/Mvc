@@ -13,11 +13,8 @@ namespace VersioningWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRouting();
-
             // Add MVC services to the services container
-            services
-                .AddMvc()
+            services.AddMvc()
                 .AddMvcOptions(options => options.EnableGlobalRouting = true);
 
             services.AddScoped<TestResponseGenerator>();
@@ -26,14 +23,7 @@ namespace VersioningWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseGlobalRouting();
-
-            app.UseMvc(endpoints =>
-            {
-                endpoints.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
         }
     }
 }

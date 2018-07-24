@@ -12,10 +12,7 @@ namespace RoutingWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRouting();
-
-            services
-                .AddMvc()
+            services.AddMvc()
                 .AddMvcOptions(options => options.EnableGlobalRouting = true);
 
             services.AddScoped<TestResponseGenerator>();
@@ -24,8 +21,6 @@ namespace RoutingWebSite
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseGlobalRouting();
-
             app.UseMvc(routes =>
             {
                 routes.MapAreaRoute(
