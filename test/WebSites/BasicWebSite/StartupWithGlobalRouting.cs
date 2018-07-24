@@ -31,9 +31,9 @@ namespace BasicWebSite
 
             app.UseGlobalRouting();
 
-            app.UseMvcWithEndpoint(routes =>
+            app.UseMvc(routes =>
             {
-                routes.MapEndpoint(
+                routes.MapRoute(
                     "ActionAsMethod",
                     "{controller}/{action}",
                     defaults: new { controller = "Home", action = "Index" });

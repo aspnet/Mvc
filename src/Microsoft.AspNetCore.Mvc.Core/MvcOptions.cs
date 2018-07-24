@@ -65,6 +65,8 @@ namespace Microsoft.AspNetCore.Mvc
             };
         }
 
+        public bool EnableGlobalRouting { get; set; }
+
         /// <summary>
         /// Gets or sets the flag which decides whether body model binding (for example, on an
         /// action method parameter with <see cref="FromBodyAttribute"/>) should treat empty

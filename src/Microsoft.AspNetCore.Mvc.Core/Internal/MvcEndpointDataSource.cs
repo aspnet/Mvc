@@ -260,19 +260,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return false;
         }
 
-        private class DummyRouter : IRouter
-        {
-            public VirtualPathData GetVirtualPath(VirtualPathContext context)
-            {
-                return null;
-            }
-
-            public Task RouteAsync(RouteContext context)
-            {
-                return Task.CompletedTask;
-            }
-        }
-
         private MatcherEndpoint CreateEndpoint(
             ActionDescriptor action,
             string routeName,
@@ -440,6 +427,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
 
             public string Name { get; }
+        }
+    }
+
+    internal class DummyRouter : IRouter
+    {
+        public static IRouter Instance = new DummyRouter();
+
+        public VirtualPathData GetVirtualPath(VirtualPathContext context)
+        {
+            return null;
+        }
+
+        public Task RouteAsync(RouteContext context)
+        {
+            return Task.CompletedTask;
         }
     }
 }

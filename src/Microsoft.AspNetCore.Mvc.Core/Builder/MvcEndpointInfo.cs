@@ -94,7 +94,8 @@ namespace Microsoft.AspNetCore.Builder
             {
                 if (parameter.DefaultValue != null)
                 {
-                    if (result.ContainsKey(parameter.Name))
+                    if (result.TryGetValue(parameter.Name, out var value) &&
+                        value != parameter.DefaultValue)
                     {
                         throw new InvalidOperationException(
                             string.Format(CultureInfo.CurrentCulture, "The route parameter '{0}' has both an inline default value and an explicit default value specified. A route parameter cannot contain an inline default value when a default value is specified explicitly. Consider removing one of them.", parameter.Name));
