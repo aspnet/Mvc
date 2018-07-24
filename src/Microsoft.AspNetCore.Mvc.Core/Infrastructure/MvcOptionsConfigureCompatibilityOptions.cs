@@ -30,7 +30,6 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                     values[nameof(MvcOptions.AllowValidatingTopLevelNodes)] = true;
                     values[nameof(MvcOptions.InputFormatterExceptionPolicy)] = InputFormatterExceptionPolicy.MalformedInputExceptions;
                     values[nameof(MvcOptions.SuppressBindingUndefinedValueToEnumType)] = true;
-                    values[nameof(MvcOptions.EnableGlobalRouting)] = true;
                 }
 
                 return values;
