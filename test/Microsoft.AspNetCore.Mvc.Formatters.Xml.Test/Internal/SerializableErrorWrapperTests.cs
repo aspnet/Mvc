@@ -58,9 +58,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
         {
             // Arrange
             var serializableErrorXml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                "<Error><MV\x00C7-\x00C9m\x00FEt\x00FF>Test error 0</MV\x00C7-\x00C9m\x00FEt\x00FF>" +
+                "<Error><MVC-Empty>Test error 0</MVC-Empty>" +
                 "<key1>Test Error 1 Test Error 2</key1>" +
-                "<key2>Test Error 3</key2></Error>";
+                "<key2>Test Error 3</key2>" +
+                "<list_x005B_3_x005D_.key3>Test Error 4</list_x005B_3_x005D_.key3></Error>";
             var serializer = new DataContractSerializer(typeof(SerializableErrorWrapper));
 
             // Act
@@ -85,6 +86,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
                 {
                     Assert.Equal("key2", kvp.Key);
                     Assert.Equal("Test Error 3", kvp.Value);
+                },
+                kvp =>
+                {
+                    Assert.Equal("list[3].key3", kvp.Key);
+                    Assert.Equal("Test Error 4", kvp.Value);
                 });
         }
 
@@ -97,12 +103,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml.Internal
             modelState.AddModelError("key1", "Test Error 1");
             modelState.AddModelError("key1", "Test Error 2");
             modelState.AddModelError("key2", "Test Error 3");
+            modelState.AddModelError("list[3].key3", "Test Error 4");
             var serializableError = new SerializableError(modelState);
             var outputStream = new MemoryStream();
             var expectedContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                "<Error><MV\x00C7-\x00C9m\x00FEt\x00FF>Test error 0</MV\x00C7-\x00C9m\x00FEt\x00FF>" +
+                "<Error><MVC-Empty>Test error 0</MVC-Empty>" +
                 "<key1>Test Error 1 Test Error 2</key1>" +
-                "<key2>Test Error 3</key2></Error>";
+                "<key2>Test Error 3</key2>" +
+                "<list_x005B_3_x005D_.key3>Test Error 4</list_x005B_3_x005D_.key3></Error>";
 
             // Act
             using (var xmlWriter = XmlWriter.Create(outputStream))
