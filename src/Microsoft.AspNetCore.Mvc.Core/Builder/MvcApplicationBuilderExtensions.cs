@@ -101,7 +101,9 @@ namespace Microsoft.AspNetCore.Builder
 
                 foreach (var router in endpointRouteBuilder.Routes)
                 {
-                    if (router is Route route)
+                    // Only accept Microsoft.AspNetCore.Routing.Route when converting to endpoint
+                    // Sub-types could have additional customization that we can't knowingly convert
+                    if (router is Route route && router.GetType() == typeof(Route))
                     {
                         var endpointInfo = new MvcEndpointInfo(
                             route.Name,
