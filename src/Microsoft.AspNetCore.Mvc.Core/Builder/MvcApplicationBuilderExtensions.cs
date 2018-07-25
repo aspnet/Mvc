@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Builder
     /// </summary>
     public static class MvcApplicationBuilderExtensions
     {
-        // Property key set by routing when middleware is registered
+        // Property key set in routing package by UseGlobalRouting to indicate middleware is registered
         private const string GlobalRoutingRegisteredKey = "__GlobalRoutingMiddlewareRegistered";
 
         /// <summary>
