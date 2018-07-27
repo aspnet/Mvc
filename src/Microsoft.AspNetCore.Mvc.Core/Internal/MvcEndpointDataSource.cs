@@ -3,15 +3,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.EndpointConstraints;
 using Microsoft.AspNetCore.Routing.Matchers;
+using Microsoft.AspNetCore.Routing.Metadata;
 using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.AspNetCore.Routing.Template;
 using Microsoft.Extensions.Primitives;
@@ -336,7 +339,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     if (actionConstraint is HttpMethodActionConstraint httpMethodActionConstraint)
                     {
-                        metadata.Add(new HttpMethodEndpointConstraint(httpMethodActionConstraint.HttpMethods));
+                        // yolo
+                        if (httpMethodActionConstraint.GetType().Name == "CorsHttpMethodActionConstraint")
+                        {
+                            metadata.Add(new HttpMethodMetadata(httpMethodActionConstraint.HttpMethods, acceptCorsPreflight: true));
+                        }
+                        else
+                        {
+                            metadata.Add(new HttpMethodMetadata(httpMethodActionConstraint.HttpMethods, acceptCorsPreflight: false));
+                        }
                     }
                     else if (actionConstraint is IEndpointConstraintMetadata)
                     {
