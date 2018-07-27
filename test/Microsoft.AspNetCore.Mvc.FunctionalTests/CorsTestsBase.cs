@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task PreflightRequestOnNonCorsEnabledController_DoesNotMatchTheAction()
+        public virtual async Task PreflightRequestOnNonCorsEnabledController_DoesNotMatchTheAction()
         {
             // Arrange
             var request = new HttpRequestMessage(new HttpMethod("OPTIONS"), "http://localhost/NonCors/Post");
