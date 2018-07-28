@@ -303,6 +303,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                     var httpMethodMetadata = Assert.Single(descriptor.EndpointMetadata.OfType<IHttpMethodMetadata>());
                     Assert.Equal(httpMethod, httpMethodMetadata.HttpMethods.Single(), ignoreCase: true);
+                    Assert.False(httpMethodMetadata.AcceptCorsPreflight);
                 };
             }
         }
