@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing.Metadata;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Cors.Internal
 {
@@ -90,7 +89,7 @@ namespace Microsoft.AspNetCore.Mvc.Cors.Internal
 
                 for (int j = 0; j < selectorModel.EndpointMetadata.Count; j++)
                 {
-                    if (selectorModel.EndpointMetadata[j] is IHttpMethodMetadata httpMethodMetadata)
+                    if (selectorModel.EndpointMetadata[j] is HttpMethodMetadata httpMethodMetadata)
                     {
                         selectorModel.EndpointMetadata[j] = new HttpMethodMetadata(httpMethodMetadata.HttpMethods, true);
                     }
