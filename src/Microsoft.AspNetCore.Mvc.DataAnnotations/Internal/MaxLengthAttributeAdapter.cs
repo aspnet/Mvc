@@ -29,7 +29,6 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             MergeAttribute(context.Attributes, "data-val", "true");
             MergeAttribute(context.Attributes, "data-val-maxlength", GetErrorMessage(context));
             MergeAttribute(context.Attributes, "data-val-maxlength-max", _max);
-            MergeAttribute(context.Attributes, "maxlength", _max);
         }
 
         /// <inheritdoc />

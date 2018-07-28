@@ -35,7 +35,6 @@ namespace Microsoft.AspNetCore.Mvc.DataAnnotations.Internal
             if (Attribute.MaximumLength != int.MaxValue)
             {
                 MergeAttribute(context.Attributes, "data-val-length-max", _max);
-                MergeAttribute(context.Attributes, "maxlength", _max);
             }
 
             if (Attribute.MinimumLength != 0)
