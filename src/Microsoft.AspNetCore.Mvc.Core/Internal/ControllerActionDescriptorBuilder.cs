@@ -165,7 +165,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 AddActionConstraints(actionDescriptor, actionSelector, controllerConstraints);
 
-                actionDescriptor.EndpointMetadata = actionSelector.EndpointMetadata.ToArray();
+                // REVIEW: Need to get metadata from controller
+                actionDescriptor.EndpointMetadata = actionSelector.EndpointMetadata.ToList();
             }
 
             return actionDescriptors;
