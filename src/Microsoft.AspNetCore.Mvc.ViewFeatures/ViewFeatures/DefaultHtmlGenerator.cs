@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -724,6 +725,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
+            AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             // If there are any errors for a named field, we add this CSS attribute.
@@ -1241,6 +1243,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var valueParameter = FormatValue(value, format);
             var usedModelState = false;
+            var addMaxLengthAttribute = false;
             switch (inputType)
             {
                 case InputType.CheckBox:
@@ -1282,6 +1285,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         tagBuilder.MergeAttribute("value", valueParameter, isExplicitValue);
                     }
 
+                    addMaxLengthAttribute = true;
+
                     break;
 
                 case InputType.Text:
@@ -1308,6 +1313,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     if (addValue)
                     {
                         tagBuilder.MergeAttribute("value", attributeValue, replaceExisting: isExplicitValue);
+                        addMaxLengthAttribute = true;
                     }
 
                     break;
@@ -1322,6 +1328,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             if (viewContext.ViewData.ModelState.TryGetValue(fullName, out var entry) && entry.Errors.Count > 0)
             {
                 tagBuilder.AddCssClass(HtmlHelper.ValidationInputCssClassName);
+            }
+
+            if (addMaxLengthAttribute)
+            {
+                AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
             AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
@@ -1370,6 +1381,39 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             if (!string.IsNullOrEmpty(placeholder))
             {
                 tagBuilder.MergeAttribute("placeholder", placeholder);
+            }
+        }
+
+        /// <summary>
+        /// Adds a maxlength attribute to the <paramref name="tagBuilder" />.
+        /// </summary>
+        /// <param name="viewData">A <see cref="ViewDataDictionary"/> instance for the current scope.</param>
+        /// <param name="tagBuilder">A <see cref="TagBuilder"/> instance.</param>
+        /// <param name="modelExplorer">The <see cref="ModelExplorer"/> for the <paramref name="expression"/>.</param>
+        /// <param name="expression">Expression name, relative to the current model.</param>
+        protected virtual void AddMaxLengthAttribute(
+            ViewDataDictionary viewData,
+            TagBuilder tagBuilder,
+            ModelExplorer modelExplorer,
+            string expression)
+        {
+            modelExplorer = modelExplorer ?? ExpressionMetadataProvider.FromStringExpression(
+                expression,
+                viewData,
+                _metadataProvider);
+
+            var maxLengthAttribute = modelExplorer.Metadata.ValidatorMetadata.OfType<MaxLengthAttribute>().SingleOrDefault();
+            if (maxLengthAttribute != null)
+            {
+                tagBuilder.MergeAttribute("maxlength", maxLengthAttribute.Length.ToString());
+            }
+            else
+            {
+                var stringLengthAttribute = modelExplorer.Metadata.ValidatorMetadata.OfType<StringLengthAttribute>().SingleOrDefault();
+                if (stringLengthAttribute != null)
+                {
+                    tagBuilder.MergeAttribute("maxlength", stringLengthAttribute.MaximumLength.ToString());
+                }
             }
         }
 

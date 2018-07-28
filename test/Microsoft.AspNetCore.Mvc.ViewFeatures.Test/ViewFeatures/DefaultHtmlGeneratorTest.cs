@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -188,6 +189,64 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Assert
             var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "name");
             Assert.Equal(expected, attribute.Value);
+        }
+
+        [Fact]
+        public void GenerateTextArea_WithMaxLengthValidationAttribute_AddsMaxLengthAttribute()
+        {
+            // Arrange
+            var model = new ModelWithMaxLengthMetadata();
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: model, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength));
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, model);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextArea(
+                viewContext,
+                modelExplorer,
+                expression: nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
+                rows: 1,
+                columns: 1,
+                htmlAttributes: htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(ModelWithMaxLengthMetadata.MaxLengthAttributeValue, Int32.Parse(attribute.Value));
+        }
+
+        [Fact]
+        public void GenerateTextArea_WithStringLengthValidationAttribute_AddsMaxLengthAttribute()
+        {
+            // Arrange
+            var model = new ModelWithMaxLengthMetadata();
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: model, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), nameof(ModelWithMaxLengthMetadata.FieldWithStringLength));
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, model);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextArea(
+                viewContext,
+                modelExplorer,
+                expression: nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
+                rows: 1,
+                columns: 1,
+                htmlAttributes: htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(ModelWithMaxLengthMetadata.StringLengthAttributeValue, Int32.Parse(attribute.Value));
         }
 
         [Fact]
@@ -818,6 +877,20 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Four = 4,
             FortyTwo = 42,
             All = -1,
+        }
+
+        private class ModelWithMaxLengthMetadata
+        {
+            internal const int MaxLengthAttributeValue = 77;
+            internal const int StringLengthAttributeValue = 7;
+
+            [MaxLength(MaxLengthAttributeValue)]
+            public string FieldWithMaxLength { get; set; }
+
+            [StringLength(StringLengthAttributeValue)]
+            public string FieldWithStringLength { get; set; }
+
+            public string FieldWithoutAttributes { get; set; }
         }
 
         private class Model
