@@ -510,8 +510,8 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
         private bool MatchesEitherSubtypeOrSuffix(MediaType set)
         {
-            return set.SubTypeWithoutSuffix.Equals(SubTypeWithoutSuffix, StringComparison.OrdinalIgnoreCase) ||
-                set.SubTypeSuffix.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
+            return set.SubType.Equals(SubType, StringComparison.OrdinalIgnoreCase) ||
+                set.SubType.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool ContainsAllParameters(MediaTypeParameterParser setParameters)
