@@ -508,7 +508,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             return set.SubTypeSuffix.Equals(SubTypeSuffix, StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool MatchesEitherSubtypeOrSuffix(MediaTypeHeaderValue set)
+        private bool MatchesEitherSubtypeOrSuffix(MediaType set)
         {
             return set.SubType.Equals(SubType, StringComparison.OrdinalIgnoreCase) ||
                 set.SubType.Equals(Suffix, StringComparison.OrdinalIgnoreCase);
