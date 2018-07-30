@@ -488,7 +488,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             }
             else
             {
-                // If this subtype matches either the subtype or suffix of the set,
+                // If this subtype or suffix matches the subtype of the set,
                 // it is considered a subtype.
                 // Ex: application/json > application/val+json
                 return MatchesEitherSubtypeOrSuffix(set);
