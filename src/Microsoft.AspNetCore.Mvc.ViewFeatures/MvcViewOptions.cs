@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -17,15 +18,18 @@ namespace Microsoft.AspNetCore.Mvc
     public class MvcViewOptions : IEnumerable<ICompatibilitySwitch>
     {
         private readonly CompatibilitySwitch<bool> _suppressTempDataAttributePrefix;
+        private readonly CompatibilitySwitch<bool> _maxLengthAttributeRenderingEnabled;
         private readonly ICompatibilitySwitch[] _switches;
         private HtmlHelperOptions _htmlHelperOptions = new HtmlHelperOptions();
 
         public MvcViewOptions()
         {
             _suppressTempDataAttributePrefix = new CompatibilitySwitch<bool>(nameof(SuppressTempDataAttributePrefix));
+            _maxLengthAttributeRenderingEnabled = new CompatibilitySwitch<bool>(nameof(MaxLengthAttributeRenderingEnabled));
             _switches = new[]
             {
                 _suppressTempDataAttributePrefix,
+                _maxLengthAttributeRenderingEnabled
             };
         }
 
@@ -85,6 +89,17 @@ namespace Microsoft.AspNetCore.Mvc
         {
             get => _suppressTempDataAttributePrefix.Value;
             set => _suppressTempDataAttributePrefix.Value = value;
+        }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether the maxlength attribute should be rendered for compatible HTML input elements,
+        /// when they're bound to models marked with either
+        /// <see cref="StringLengthAttribute"/> or <see cref="MaxLengthAttribute"/> attributes.
+        /// </summary>
+        public bool MaxLengthAttributeRenderingEnabled
+        {
+            get => _maxLengthAttributeRenderingEnabled.Value;
+            set => _maxLengthAttributeRenderingEnabled.Value = value;
         }
 
         /// <summary>

@@ -56,12 +56,5 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// <see cref="IHtmlHelper.ValidationSummary"/> and other overloads.
         /// </summary>
         public string ValidationSummaryMessageElement { get; set; } = "span";
-
-        /// <summary>
-        /// Gets or sets a value that indicates whether the maxlength attribute should be rendered for compatible HTML input elements,
-        /// when they're bound to models marked with either
-        /// <see cref="System.ComponentModel.DataAnnotations.StringLengthAttribute"/> or <see cref="System.ComponentModel.DataAnnotations.MaxLengthAttribute"/> attributes.
-        /// </summary>
-        public bool MaxLengthAttributeRenderingEnabled { get; set; } = false;
     }
 }

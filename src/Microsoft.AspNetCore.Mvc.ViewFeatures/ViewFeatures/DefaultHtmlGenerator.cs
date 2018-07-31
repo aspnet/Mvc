@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = optionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
 
-            MaxLengthAttributeRenderingEnabled = optionsAccessor.Value.HtmlHelperOptions.MaxLengthAttributeRenderingEnabled;
+            MaxLengthAttributeRenderingEnabled = optionsAccessor.Value.MaxLengthAttributeRenderingEnabled;
         }
 
         /// <summary> 

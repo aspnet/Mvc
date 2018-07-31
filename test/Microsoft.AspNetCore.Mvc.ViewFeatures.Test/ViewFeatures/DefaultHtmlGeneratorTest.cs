@@ -858,12 +858,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private static IHtmlGenerator GetGenerator(IModelMetadataProvider metadataProvider)
         {
             var mvcViewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
-            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(() =>
-            {
-                var result = new MvcViewOptions();
-                result.HtmlHelperOptions.MaxLengthAttributeRenderingEnabled = true;
-                return result;
-            });
+            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions() { MaxLengthAttributeRenderingEnabled = true });
 
             var htmlEncoder = Mock.Of<HtmlEncoder>();
             var antiforgery = new Mock<IAntiforgery>();
