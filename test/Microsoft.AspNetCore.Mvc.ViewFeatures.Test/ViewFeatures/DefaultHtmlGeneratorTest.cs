@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Arrange
             var metadataProvider = new TestModelMetadataProvider();
             var htmlGenerator = GetGenerator(metadataProvider);
-            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider, new HtmlHelperOptions { MaxLengthAttributeRenderingEnabled = true });
             var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
             var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
             var htmlAttributes = new Dictionary<string, object>
@@ -857,7 +857,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private static IHtmlGenerator GetGenerator(IModelMetadataProvider metadataProvider)
         {
             var mvcViewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
-            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions());
+            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(() =>
+            {
+                var result = new MvcViewOptions();
+                result.HtmlHelperOptions.MaxLengthAttributeRenderingEnabled = true;
+                return result;
+            });
 
             var htmlEncoder = Mock.Of<HtmlEncoder>();
             var antiforgery = new Mock<IAntiforgery>();
@@ -883,7 +888,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         // GetCurrentValues uses only the ModelStateDictionary and ViewDataDictionary from the passed ViewContext.
-        private static ViewContext GetViewContext<TModel>(TModel model, IModelMetadataProvider metadataProvider)
+        private static ViewContext GetViewContext<TModel>(TModel model, IModelMetadataProvider metadataProvider, HtmlHelperOptions htmlHelperOptions = null)
         {
             var actionContext = new ActionContext(new DefaultHttpContext(), new RouteData(), new ActionDescriptor());
             var viewData = new ViewDataDictionary<TModel>(metadataProvider, actionContext.ModelState)
@@ -897,7 +902,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 viewData,
                 Mock.Of<ITempDataDictionary>(),
                 TextWriter.Null,
-                new HtmlHelperOptions());
+                htmlHelperOptions ?? new HtmlHelperOptions());
         }
 
         public enum RegularEnum

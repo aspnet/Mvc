@@ -97,7 +97,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = optionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
+
+            MaxLengthAttributeRenderingEnabled = optionsAccessor.Value.HtmlHelperOptions.MaxLengthAttributeRenderingEnabled;
         }
+
+        /// <inheritdoc />
+        public bool MaxLengthAttributeRenderingEnabled { get; }
 
         /// <inheritdoc />
         public string IdAttributeDotReplacement { get; }
@@ -729,7 +734,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
-            AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
+            if (this.MaxLengthAttributeRenderingEnabled)
+            {
+                AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
+            }
+
             AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
 
             // If there are any errors for a named field, we add this CSS attribute.
@@ -1245,7 +1254,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
-            if (_maxLengthInputTypes.Contains(suppliedTypeString))
+            if (MaxLengthAttributeRenderingEnabled && _maxLengthInputTypes.Contains(suppliedTypeString))
             {
                 AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
