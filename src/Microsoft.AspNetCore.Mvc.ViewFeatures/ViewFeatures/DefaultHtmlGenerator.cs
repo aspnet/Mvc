@@ -31,6 +31,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private static readonly string[] _placeholderInputTypes =
             new[] { "text", "search", "url", "tel", "email", "password", "number" };
 
+        // See: (http://www.w3.org/TR/html5/sec-forms.html#apply)
+        private static readonly string[] _maxLengthInputTypes =
+            new[] { "text", "search", "url", "tel", "email", "password" };
+
         private readonly IAntiforgery _antiforgery;
         private readonly IModelMetadataProvider _metadataProvider;
         private readonly IUrlHelperFactory _urlHelperFactory;
@@ -1241,9 +1245,13 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
+            if (_maxLengthInputTypes.Contains(suppliedTypeString))
+            {
+                AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
+            }
+
             var valueParameter = FormatValue(value, format);
             var usedModelState = false;
-            var addMaxLengthAttribute = false;
             switch (inputType)
             {
                 case InputType.CheckBox:
@@ -1285,8 +1293,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                         tagBuilder.MergeAttribute("value", valueParameter, isExplicitValue);
                     }
 
-                    addMaxLengthAttribute = true;
-
                     break;
 
                 case InputType.Text:
@@ -1313,7 +1319,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                     if (addValue)
                     {
                         tagBuilder.MergeAttribute("value", attributeValue, replaceExisting: isExplicitValue);
-                        addMaxLengthAttribute = true;
                     }
 
                     break;
@@ -1328,11 +1333,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             if (viewContext.ViewData.ModelState.TryGetValue(fullName, out var entry) && entry.Errors.Count > 0)
             {
                 tagBuilder.AddCssClass(HtmlHelper.ValidationInputCssClassName);
-            }
-
-            if (addMaxLengthAttribute)
-            {
-                AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
             AddValidationAttributes(viewContext, tagBuilder, modelExplorer, expression);
