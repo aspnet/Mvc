@@ -101,7 +101,11 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             MaxLengthAttributeRenderingEnabled = optionsAccessor.Value.HtmlHelperOptions.MaxLengthAttributeRenderingEnabled;
         }
 
-        /// <inheritdoc />
+        /// <summary> 
+        /// Gets or sets a value that indicates whether the maxlength attribute should be rendered for compatible HTML input elements, 
+        /// when they're bound to models marked with either 
+        /// <see cref="StringLengthAttribute"/> or <see cref="MaxLengthAttribute"/> attributes. 
+        /// </summary>
         public bool MaxLengthAttributeRenderingEnabled { get; }
 
         /// <inheritdoc />
@@ -734,7 +738,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
-            if (this.MaxLengthAttributeRenderingEnabled)
+            if (MaxLengthAttributeRenderingEnabled)
             {
                 AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
