@@ -12,8 +12,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
     /// </summary>
     public interface IHtmlGenerator
     {
-        bool MaxLengthAttributeRenderingEnabled { get; }
-
         string IdAttributeDotReplacement { get; }
 
         string Encode(string value);
