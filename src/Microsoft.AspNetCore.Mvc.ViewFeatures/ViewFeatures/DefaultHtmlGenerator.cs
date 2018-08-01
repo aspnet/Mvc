@@ -98,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             // Underscores are fine characters in id's.
             IdAttributeDotReplacement = optionsAccessor.Value.HtmlHelperOptions.IdAttributeDotReplacement;
 
-            MaxLengthAttributeRenderingEnabled = optionsAccessor.Value.MaxLengthAttributeRenderingEnabled;
+            AllowRenderingMaxLengthAttribute = optionsAccessor.Value.AllowRenderingMaxLengthAttribute;
         }
 
         /// <summary> 
@@ -106,7 +106,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         /// when they're bound to models marked with either 
         /// <see cref="StringLengthAttribute"/> or <see cref="MaxLengthAttribute"/> attributes. 
         /// </summary>
-        public bool MaxLengthAttributeRenderingEnabled { get; }
+        /// <remarks>If both attributes are specified, the one with the smaller value will be used for the rendered `maxlength` attribute.</remarks>
+        protected bool AllowRenderingMaxLengthAttribute { get; }
 
         /// <inheritdoc />
         public string IdAttributeDotReplacement { get; }
@@ -738,7 +739,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             }
 
             AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
-            if (MaxLengthAttributeRenderingEnabled)
+            if (AllowRenderingMaxLengthAttribute)
             {
                 AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
@@ -1258,7 +1259,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 AddPlaceholderAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
 
-            if (MaxLengthAttributeRenderingEnabled && _maxLengthInputTypes.Contains(suppliedTypeString))
+            if (AllowRenderingMaxLengthAttribute && _maxLengthInputTypes.Contains(suppliedTypeString))
             {
                 AddMaxLengthAttribute(viewContext.ViewData, tagBuilder, modelExplorer, expression);
             }
@@ -1415,18 +1416,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 viewData,
                 _metadataProvider);
 
-            var maxLengthAttribute = modelExplorer.Metadata.ValidatorMetadata.OfType<MaxLengthAttribute>().SingleOrDefault();
-            if (maxLengthAttribute != null)
+            var maxLengthAttributeValues = modelExplorer.Metadata.ValidatorMetadata.OfType<MaxLengthAttribute>().Select(item => item.Length);
+            var stringLengthAttributeValues = modelExplorer.Metadata.ValidatorMetadata.OfType<StringLengthAttribute>().Select(item => item.MaximumLength);
+            var minValue = maxLengthAttributeValues.Union(stringLengthAttributeValues).OrderBy(item => item);
+            if (minValue.Any())
             {
-                tagBuilder.MergeAttribute("maxlength", maxLengthAttribute.Length.ToString());
-            }
-            else
-            {
-                var stringLengthAttribute = modelExplorer.Metadata.ValidatorMetadata.OfType<StringLengthAttribute>().SingleOrDefault();
-                if (stringLengthAttribute != null)
-                {
-                    tagBuilder.MergeAttribute("maxlength", stringLengthAttribute.MaximumLength.ToString());
-                }
+                tagBuilder.MergeAttribute("maxlength", minValue.First().ToString());
             }
         }
 

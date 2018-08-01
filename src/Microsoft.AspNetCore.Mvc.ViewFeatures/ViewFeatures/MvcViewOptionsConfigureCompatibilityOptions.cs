@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
                 if (Version >= CompatibilityVersion.Version_2_2)
                 {
-                    values[nameof(MvcViewOptions.MaxLengthAttributeRenderingEnabled)] = true;
+                    values[nameof(MvcViewOptions.AllowRenderingMaxLengthAttribute)] = true;
                 }
 
                 return values;

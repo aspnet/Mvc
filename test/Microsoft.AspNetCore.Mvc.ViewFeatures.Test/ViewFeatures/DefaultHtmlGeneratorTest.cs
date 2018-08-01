@@ -191,102 +191,167 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal(expected, attribute.Value);
         }
 
-        [Fact]
-        public void GenerateTextArea_RendersMaxLength_WhenMaxLengthAttributePresent()
+        [Theory]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength), ModelWithMaxLengthMetadata.MaxLengthAttributeValue)]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithStringLength), ModelWithMaxLengthMetadata.StringLengthAttributeValue)]
+        public void GenerateTextArea_RendersMaxLength(string expression, int expectedValue)
         {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextArea(viewContext, modelExplorer, expression, rows: 1, columns: 1, htmlAttributes),
-                ModelWithMaxLengthMetadata.MaxLengthAttributeValue);
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextArea(viewContext, modelExplorer, expression, rows: 1, columns: 1, htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
+        }
+
+        [Theory]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength), ModelWithMaxLengthMetadata.MaxLengthAttributeValue)]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithStringLength), ModelWithMaxLengthMetadata.StringLengthAttributeValue)]
+        public void GeneratePassword_RendersMaxLength(string expression, int expectedValue)
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GeneratePassword(viewContext, modelExplorer, expression, null, htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
+        }
+
+        [Theory]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength), ModelWithMaxLengthMetadata.MaxLengthAttributeValue)]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithStringLength), ModelWithMaxLengthMetadata.StringLengthAttributeValue)]
+        public void GenerateTextBox_RendersMaxLength(string expression, int expectedValue)
+        {
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
         }
 
         [Fact]
-        public void GenerateTextArea_RendersMaxLength_WhenStringLengthAttributePresent()
+        public void GenerateTextBox_RendersMaxLength_WithMinimumValueFromBothAttributes()
         {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextArea(viewContext, modelExplorer, expression, rows: 1, columns: 1, htmlAttributes),
-                ModelWithMaxLengthMetadata.StringLengthAttributeValue);
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), nameof(ModelWithMaxLengthMetadata.FieldWithBothAttributes));
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextBox(viewContext, modelExplorer, nameof(ModelWithMaxLengthMetadata.FieldWithBothAttributes), null, null, htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(Math.Min(ModelWithMaxLengthMetadata.MaxLengthAttributeValue, ModelWithMaxLengthMetadata.StringLengthAttributeValue), Int32.Parse(attribute.Value));
         }
 
         [Fact]
-        public void GeneratePassword_RendersMaxLength_WhenMaxLengthAttributePresent()
+        public void GenerateTextBox_DoesNotRenderMaxLength_WhenNoAttributesPresent()
         {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GeneratePassword(viewContext, modelExplorer, expression, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.MaxLengthAttributeValue);
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), nameof(ModelWithMaxLengthMetadata.FieldWithoutAttributes));
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextBox(viewContext, modelExplorer, nameof(ModelWithMaxLengthMetadata.FieldWithoutAttributes), null, null, htmlAttributes);
+
+            // Assert
+            Assert.DoesNotContain(tagBuilder.Attributes, a => a.Key == "maxlength");
         }
 
-        [Fact]
-        public void GeneratePassword_RendersMaxLength_WhenStringLengthAttributePresent()
+        [Theory]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength), ModelWithMaxLengthMetadata.MaxLengthAttributeValue)]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithStringLength), ModelWithMaxLengthMetadata.StringLengthAttributeValue)]
+        public void GenerateTextBox_SearchType_RendersMaxLength(string expression, int expectedValue)
         {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GeneratePassword(viewContext, modelExplorer, expression, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.StringLengthAttributeValue);
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+                { "type", "search"}
+            };
+
+            // Act
+            var tagBuilder = htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes);
+
+            // Assert
+            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
+            Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
         }
 
-        [Fact]
-        public void GenerateTextBox_RendersMaxLength_WhenMaxLengthAttributePresent()
+        [Theory]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength))]
+        [InlineData(nameof(ModelWithMaxLengthMetadata.FieldWithStringLength))]
+        public void GenerateHidden_DoesNotRenderMaxLength(string expression)
         {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.MaxLengthAttributeValue);
-        }
+            // Arrange
+            var metadataProvider = new TestModelMetadataProvider();
+            var htmlGenerator = GetGenerator(metadataProvider);
+            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
+            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
+            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "name", "testElement" },
+            };
 
-        [Fact]
-        public void GenerateTextBox_RendersMaxLength_WhenStringLengthAttributePresent()
-        {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.StringLengthAttributeValue);
-        }
+            // Act
+            var tagBuilder = htmlGenerator.GenerateHidden(viewContext, modelExplorer, expression, null, false, htmlAttributes);
 
-        [Fact]
-        public void GenerateTextBox_SearchType_RendersMaxLength_WhenMaxLengthAttributePresent()
-        {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
-                htmlAttributes => htmlAttributes.Add("type", "search"),
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.MaxLengthAttributeValue);
-        }
-
-        [Fact]
-        public void GenerateTextBox_SearchType_RendersMaxLength_WhenStringLengthAttributePresent()
-        {
-            Generate_RendersMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
-                htmlAttributes => htmlAttributes.Add("type", "search"),
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateTextBox(viewContext, modelExplorer, expression, null, null, htmlAttributes),
-                ModelWithMaxLengthMetadata.StringLengthAttributeValue);
-        }
-
-        [Fact]
-        public void GenerateHidden_DoesNotRenderMaxLength_WhenStringLengthAttributePresent()
-        {
-            Generate_DoesNotRenderMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithStringLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateHidden(viewContext, modelExplorer, expression, null, false, htmlAttributes));
-        }
-
-        [Fact]
-        public void GenerateHidden_DoesNotRenderMaxLength_WhenMaxLengthAttributePresent()
-        {
-            Generate_DoesNotRenderMaxLengthAttribute(
-                nameof(ModelWithMaxLengthMetadata.FieldWithMaxLength),
-                null,
-                (htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression) => htmlGenerator.GenerateHidden(viewContext, modelExplorer, expression, null, false, htmlAttributes));
+            // Assert
+            Assert.DoesNotContain(tagBuilder.Attributes, a => a.Key == "maxlength");
         }
 
         [Fact]
@@ -858,7 +923,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         private static IHtmlGenerator GetGenerator(IModelMetadataProvider metadataProvider)
         {
             var mvcViewOptionsAccessor = new Mock<IOptions<MvcViewOptions>>();
-            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions() { MaxLengthAttributeRenderingEnabled = true });
+            mvcViewOptionsAccessor.SetupGet(accessor => accessor.Value).Returns(new MvcViewOptions() { AllowRenderingMaxLengthAttribute = true });
 
             var htmlEncoder = Mock.Of<HtmlEncoder>();
             var antiforgery = new Mock<IAntiforgery>();
@@ -928,31 +993,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
         }
 
-        private static void Generate_DoesNotRenderMaxLengthAttribute(
-            string expression,
-            Action<Dictionary<string, object>> customizeHtmlAttributes,
-            Func<IHtmlGenerator, ViewContext, ModelExplorer, Dictionary<string, object>, string, TagBuilder> getTagBuilder)
-        {
-            // Arrange
-            var metadataProvider = new TestModelMetadataProvider();
-            var htmlGenerator = GetGenerator(metadataProvider);
-            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
-            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
-            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
-            var htmlAttributes = new Dictionary<string, object>
-            {
-                { "name", "testElement" },
-            };
-
-            customizeHtmlAttributes?.Invoke(htmlAttributes);
-
-            // Act
-            var tagBuilder = getTagBuilder(htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression);
-
-            // Assert
-            Assert.DoesNotContain(tagBuilder.Attributes, a => a.Key == "maxlength");
-        }
-
         public enum RegularEnum
         {
             Zero,
@@ -983,6 +1023,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             public string FieldWithStringLength { get; set; }
 
             public string FieldWithoutAttributes { get; set; }
+
+            [MaxLength(MaxLengthAttributeValue)]
+            [StringLength(StringLengthAttributeValue)]
+            public string FieldWithBothAttributes { get; set; }
         }
 
         private class Model

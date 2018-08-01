@@ -18,18 +18,18 @@ namespace Microsoft.AspNetCore.Mvc
     public class MvcViewOptions : IEnumerable<ICompatibilitySwitch>
     {
         private readonly CompatibilitySwitch<bool> _suppressTempDataAttributePrefix;
-        private readonly CompatibilitySwitch<bool> _maxLengthAttributeRenderingEnabled;
+        private readonly CompatibilitySwitch<bool> _allowRenderingMaxLengthAttribute;
         private readonly ICompatibilitySwitch[] _switches;
         private HtmlHelperOptions _htmlHelperOptions = new HtmlHelperOptions();
 
         public MvcViewOptions()
         {
             _suppressTempDataAttributePrefix = new CompatibilitySwitch<bool>(nameof(SuppressTempDataAttributePrefix));
-            _maxLengthAttributeRenderingEnabled = new CompatibilitySwitch<bool>(nameof(MaxLengthAttributeRenderingEnabled));
+            _allowRenderingMaxLengthAttribute = new CompatibilitySwitch<bool>(nameof(AllowRenderingMaxLengthAttribute));
             _switches = new[]
             {
                 _suppressTempDataAttributePrefix,
-                _maxLengthAttributeRenderingEnabled
+                _allowRenderingMaxLengthAttribute
             };
         }
 
@@ -92,14 +92,15 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
-        /// Gets or sets a value that indicates whether the maxlength attribute should be rendered for compatible HTML input elements,
+        /// Gets or sets a value that indicates whether the maxlength attribute should be rendered for compatible HTML elements,
         /// when they're bound to models marked with either
         /// <see cref="StringLengthAttribute"/> or <see cref="MaxLengthAttribute"/> attributes.
         /// </summary>
-        public bool MaxLengthAttributeRenderingEnabled
+        /// <remarks>If both attributes are specified, the one with the smaller value will be used for the rendered `maxlength` attribute.</remarks>
+        public bool AllowRenderingMaxLengthAttribute
         {
-            get => _maxLengthAttributeRenderingEnabled.Value;
-            set => _maxLengthAttributeRenderingEnabled.Value = value;
+            get => _allowRenderingMaxLengthAttribute.Value;
+            set => _allowRenderingMaxLengthAttribute.Value = value;
         }
 
         /// <summary>
