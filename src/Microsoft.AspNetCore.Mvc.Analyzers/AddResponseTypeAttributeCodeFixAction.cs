@@ -51,6 +51,19 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 documentEditor.AddAttribute(context.MethodSyntax, CreateProducesDefaultResponseTypeAttribute());
             }
 
+            var apiConventionMethodAttribute = context.Method.GetAttributes(context.SymbolCache.ApiConventionMethodAttribute).FirstOrDefault();
+
+            if (apiConventionMethodAttribute != null)
+            {
+                // Remove [ApiConventionMethodAttribute] declared on the method since it's no longer required
+                var attributeSyntax = await apiConventionMethodAttribute
+                    .ApplicationSyntaxReference
+                    .GetSyntaxAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                documentEditor.RemoveNode(attributeSyntax);
+            }
+
             return documentEditor.GetChangedDocument();
         }
 

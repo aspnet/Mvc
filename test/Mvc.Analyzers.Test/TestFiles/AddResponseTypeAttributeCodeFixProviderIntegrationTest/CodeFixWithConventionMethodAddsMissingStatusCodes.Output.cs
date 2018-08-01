@@ -4,7 +4,6 @@
     [Route("[controller]/[action]")]
     public class CodeFixWithConventionMethodAddsMissingStatusCodes : ControllerBase
     {
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Find))]
         [ProducesResponseType(202)]
         [ProducesResponseType(404)]
         [ProducesDefaultResponseType]
