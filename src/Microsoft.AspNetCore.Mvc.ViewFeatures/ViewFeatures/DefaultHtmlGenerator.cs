@@ -1416,12 +1416,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 viewData,
                 _metadataProvider);
 
-            var maxLengthAttributeValues = modelExplorer.Metadata.ValidatorMetadata.OfType<MaxLengthAttribute>().Select(item => item.Length);
-            var stringLengthAttributeValues = modelExplorer.Metadata.ValidatorMetadata.OfType<StringLengthAttribute>().Select(item => item.MaximumLength);
-            var minValue = maxLengthAttributeValues.Union(stringLengthAttributeValues).OrderBy(item => item);
-            if (minValue.Any())
+            int? maxLengthValue = null;
+            foreach (var attribute in modelExplorer.Metadata.ValidatorMetadata)
             {
-                tagBuilder.MergeAttribute("maxlength", minValue.First().ToString());
+                if (attribute is MaxLengthAttribute maxLengthAttribute && (!maxLengthValue.HasValue || maxLengthValue.Value > maxLengthAttribute.Length))
+                {
+                    maxLengthValue = maxLengthAttribute.Length;
+                }
+                else if (attribute is StringLengthAttribute stringLengthAttribute && (!maxLengthValue.HasValue || maxLengthValue.Value > stringLengthAttribute.MaximumLength))
+                {
+                    maxLengthValue = stringLengthAttribute.MaximumLength;
+                }
+            }
+
+            if (maxLengthValue.HasValue)
+            {
+                tagBuilder.MergeAttribute("maxlength", maxLengthValue.Value.ToString());
             }
         }
 

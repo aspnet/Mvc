@@ -966,33 +966,6 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 new HtmlHelperOptions());
         }
 
-        private static void Generate_RendersMaxLengthAttribute(
-            string expression,
-            Action<Dictionary<string, object>> customizeHtmlAttributes,
-            Func<IHtmlGenerator, ViewContext, ModelExplorer, Dictionary<string, object>, string, TagBuilder> getTagBuilder,
-            int expectedValue)
-        {
-            // Arrange
-            var metadataProvider = new TestModelMetadataProvider();
-            var htmlGenerator = GetGenerator(metadataProvider);
-            var viewContext = GetViewContext<ModelWithMaxLengthMetadata>(model: null, metadataProvider: metadataProvider);
-            var modelMetadata = metadataProvider.GetMetadataForProperty(typeof(ModelWithMaxLengthMetadata), expression);
-            var modelExplorer = new ModelExplorer(metadataProvider, modelMetadata, null);
-            var htmlAttributes = new Dictionary<string, object>
-            {
-                { "name", "testElement" },
-            };
-
-            customizeHtmlAttributes?.Invoke(htmlAttributes);
-
-            // Act
-            var tagBuilder = getTagBuilder(htmlGenerator, viewContext, modelExplorer, htmlAttributes, expression);
-
-            // Assert
-            var attribute = Assert.Single(tagBuilder.Attributes, a => a.Key == "maxlength");
-            Assert.Equal(expectedValue, Int32.Parse(attribute.Value));
-        }
-
         public enum RegularEnum
         {
             Zero,
