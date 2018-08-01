@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
@@ -10,8 +9,6 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Internal;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Net.Http.Headers;
 using Resources = Microsoft.AspNetCore.Mvc.Core.Resources;
 
@@ -40,16 +37,28 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(contentType));
             }
 
-            // We want to ensure that the given provided content types are valid values, so
-            // we validate them using the semantics of MediaTypeHeaderValue.
-            MediaTypeHeaderValue.Parse(contentType);
+            ContentTypes = new MediaTypeCollection
+            {
+                ParseMediaTypeHeaderValue(contentType),
+            };
 
             for (var i = 0; i < otherContentTypes.Length; i++)
             {
-                MediaTypeHeaderValue.Parse(otherContentTypes[i]);
+                ContentTypes.Add(ParseMediaTypeHeaderValue(otherContentTypes[i]));
             }
 
-            ContentTypes = GetContentTypes(contentType, otherContentTypes);
+            MediaTypeHeaderValue ParseMediaTypeHeaderValue(string value)
+            {
+                // We want to ensure that the given provided content types are valid values, so
+                // we validate them using the semantics of MediaTypeHeaderValue.
+                var mediaType = MediaTypeHeaderValue.Parse(value);
+                if (mediaType.MatchesAllSubTypes || mediaType.MatchesAllTypes)
+                {
+                    throw new InvalidOperationException(Resources.FormatMatchAllContentTypeIsNotAllowed(mediaType));
+                }
+
+                return mediaType;
+            }
         }
 
         // The value used is a non default value so that it avoids getting mixed with other action constraints
@@ -73,16 +82,18 @@ namespace Microsoft.AspNetCore.Mvc
 
             // Only execute if the current filter is the one which is closest to the action.
             // Ignore all other filters. This is to ensure we have a overriding behavior.
-            if (IsApplicable(context.ActionDescriptor))
+            if (!IsEffectivePolicy(context.ActionDescriptor))
             {
-                var requestContentType = context.HttpContext.Request.ContentType;
+                return;
+            }
 
-                // Confirm the request's content type is more specific than a media type this action supports e.g. OK
-                // if client sent "text/plain" data and this action supports "text/*".
-                if (requestContentType != null && !IsSubsetOfAnyContentType(requestContentType))
-                {
-                    context.Result = new UnsupportedMediaTypeResult();
-                }
+            var requestContentType = context.HttpContext.Request.ContentType;
+
+            // Confirm the request's content type is more specific than a media type this action supports e.g. OK
+            // if client sent "text/plain" data and this action supports "text/*".
+            if (requestContentType != null && !IsSubsetOfAnyContentType(requestContentType))
+            {
+                context.Result = new UnsupportedMediaTypeResult();
             }
         }
 
@@ -112,8 +123,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <inheritdoc />
         public bool Accept(ActionConstraintContext context)
         {
-            // If this constraint is not closest to the action, it will be skipped.
-            if (!IsApplicable(context.CurrentCandidate.Action))
+            if (!IsEffectivePolicy(context.CurrentCandidate.Action))
             {
                 // Since the constraint is to be skipped, returning true here
                 // will let the current candidate ignore this constraint and will
@@ -122,11 +132,6 @@ namespace Microsoft.AspNetCore.Mvc
             }
 
             var requestContentType = context.RouteContext.HttpContext.Request.ContentType;
-
-            // If the request content type is null we need to act like pass through.
-            // In case there is a single candidate with a constraint it should be selected.
-            // If there are multiple actions with consumes action constraints this should result in ambiguous exception
-            // unless there is another action without a consumes constraint.
             if (requestContentType == null)
             {
                 var isActionWithoutConsumeConstraintPresent = context.Candidates.Any(
@@ -136,33 +141,26 @@ namespace Microsoft.AspNetCore.Mvc
                 return !isActionWithoutConsumeConstraintPresent;
             }
 
-            // Confirm the request's content type is more specific than (a media type this action supports e.g. OK
-            // if client sent "text/plain" data and this action supports "text/*".
             if (IsSubsetOfAnyContentType(requestContentType))
             {
                 return true;
             }
 
+            // The current action isn't a candidate. The next course of action is to determine if there is another
+            // candidate with an IConsumesActionConstraint filter that accept the current request. There are two possibilities
+            // a) None of the candidates match. We'll return a 415 from the first candidate.
+            // b) Another candidate will eventually match.
+            // Only the first candidate needs to probe the other candidates to determine this.
+
             var firstCandidate = context.Candidates[0];
             if (firstCandidate.Action != context.CurrentCandidate.Action)
             {
-                // If the current candidate is not same as the first candidate,
-                // we need not probe other candidates to see if they apply.
-                // Only the first candidate is allowed to probe other candidates and based on the result select itself.
                 return false;
             }
 
-            // Run the matching logic for all IConsumesActionConstraints we can find, and see what matches.
-            // 1). If we have a unique best match, then only that constraint should return true.
-            // 2). If we have multiple matches, then all constraints that match will return true
-            // , resulting in ambiguity(maybe).
-            // 3). If we have no matches, then we choose the first constraint to return true.It will later return a 415
-            foreach (var candidate in context.Candidates)
+            for (var i = 1; i < context.Candidates.Count; i++)
             {
-                if (candidate.Action == firstCandidate.Action)
-                {
-                    continue;
-                }
+                var candidate = context.Candidates[i];
 
                 var tempContext = new ActionConstraintContext()
                 {
@@ -171,52 +169,32 @@ namespace Microsoft.AspNetCore.Mvc
                     CurrentCandidate = candidate
                 };
 
-                if (candidate.Constraints == null || candidate.Constraints.Count == 0 ||
-                    candidate.Constraints.Any(constraint => constraint is IConsumesActionConstraint &&
-                                                            constraint.Accept(tempContext)))
+                if (candidate.Constraints == null ||
+                    candidate.Constraints.Count == 0 ||
+                    candidate.Constraints.OfType<IConsumesActionConstraint>().Any(constraint => constraint.Accept(tempContext)))
                 {
-                    // There is someone later in the chain which can handle the request.
-                    // end the process here.
+                    // There is another candidate in the chain that can handle the request.
                     return false;
                 }
             }
 
-            // There is no one later in the chain that can handle this content type return a false positive so that
-            // later we can detect and return a 415.
             return true;
         }
 
-        private bool IsApplicable(ActionDescriptor actionDescriptor)
+        private bool IsEffectivePolicy(ActionDescriptor actionDescriptor)
         {
-            // If there are multiple IConsumeActionConstraints which are defined at the class and
-            // at the action level, the one closest to the action overrides the others. To ensure this
-            // we take advantage of the fact that ConsumesAttribute is both an IActionFilter and an
-            // IConsumeActionConstraint. Since filterdescriptor collection is ordered (the last filter is the one
-            // closest to the action), we apply this constraint only if there is no IConsumeActionConstraint after this.
-            return actionDescriptor.FilterDescriptors.Last(
-                filter => filter.Filter is IConsumesActionConstraint).Filter == this;
-        }
-
-        private MediaTypeCollection GetContentTypes(string firstArg, string[] args)
-        {
-            var completeArgs = new List<string>();
-            completeArgs.Add(firstArg);
-            completeArgs.AddRange(args);
-            var contentTypes = new MediaTypeCollection();
-            foreach (var arg in completeArgs)
+            // The most specific policy is the one closest to the action (nearest the end of the list).
+            var filterDescriptors = actionDescriptor.FilterDescriptors;
+            for (var i = filterDescriptors.Count - 1; i >= 0; i--)
             {
-                var mediaType = new MediaType(arg);
-                if (mediaType.MatchesAllSubTypes ||
-                    mediaType.MatchesAllTypes)
+                var filter = filterDescriptors[i].Filter;
+                if (filter is IConsumesActionConstraint)
                 {
-                    throw new InvalidOperationException(
-                        Resources.FormatMatchAllContentTypeIsNotAllowed(arg));
+                    return object.ReferenceEquals(filter, this);
                 }
-
-                contentTypes.Add(arg);
             }
 
-            return contentTypes;
+            return false;
         }
 
         /// <inheritdoc />
