@@ -7,7 +7,7 @@
     "PresetHeaders": "Json",
     "ReadyStateText": "Application started.",
     "Source": {
-      "BranchOrCommit": "release/2.2",
+      "BranchOrCommit": "dougbu/use.certificate",
       "Project": "benchmarkapps/BasicApi/BasicApi.csproj",
       "Repository": "https://github.com/aspnet/mvc.git"
     }
