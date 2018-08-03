@@ -75,6 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             {
                 var descriptor = new PageActionDescriptor
                 {
+                    ActionConstraints = selector.ActionConstraints,
                     AttributeRouteInfo = new AttributeRouteInfo
                     {
                         Name = selector.AttributeRouteModel.Name,
