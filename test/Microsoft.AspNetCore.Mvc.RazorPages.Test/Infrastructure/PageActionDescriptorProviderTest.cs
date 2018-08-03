@@ -198,9 +198,42 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             var result = Assert.Single(context.Results);
             var descriptor = Assert.IsType<PageActionDescriptor>(result);
             Assert.Equal(model.RelativePath, descriptor.RelativePath);
-            Assert.Collection(
-                descriptor.ActionConstraints,
-                c => Assert.Same(expected, c));
+            var actual = Assert.Single(descriptor.ActionConstraints);
+            Assert.Same(expected, actual);
+        }
+
+        [Fact]
+        public void GetDescriptors_CopiesEndPointMetadataFromModel()
+        {
+            // Arrange
+            var expected = new object();
+            var model = new PageRouteModel("/Test.cshtml", "/Test", "Accounts")
+            {
+                Selectors =
+                {
+                    new SelectorModel
+                    {
+                        AttributeRouteModel = new AttributeRouteModel(),
+                        EndpointMetadata = { expected }
+                    }
+                },
+            };
+            var applicationModelProvider = new TestPageRouteModelProvider(model);
+            var provider = new PageActionDescriptorProvider(
+                new[] { applicationModelProvider },
+                GetAccessor<MvcOptions>(),
+                GetRazorPagesOptions());
+            var context = new ActionDescriptorProviderContext();
+
+            // Act
+            provider.OnProvidersExecuting(context);
+
+            // Assert
+            var result = Assert.Single(context.Results);
+            var descriptor = Assert.IsType<PageActionDescriptor>(result);
+            Assert.Equal(model.RelativePath, descriptor.RelativePath);
+            var actual = Assert.Single(descriptor.EndpointMetadata);
+            Assert.Same(expected, actual);
         }
 
         [Fact]
