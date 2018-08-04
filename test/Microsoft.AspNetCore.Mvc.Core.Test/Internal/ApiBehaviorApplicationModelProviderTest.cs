@@ -225,7 +225,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void InferBindingSourceForParameter_ReturnsPath_IfParameterAppearsInAnyRoutes_MulitpleRoutes()
+        public void InferBindingSourceForParameter_ReturnsPath_IfParameterAppearsInAnyRoutes_MultipleRoutes()
         {
             // Arrange
             var actionName = nameof(ParameterBindingController.ParameterInMultipleRoutes);

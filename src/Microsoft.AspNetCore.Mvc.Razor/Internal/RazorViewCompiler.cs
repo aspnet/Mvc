@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             // from either the set of known precompiled views, or by being compiled.
             _cache = cache;
 
-            // We need to validate that the all of the precompiled views are unique by path (case-insenstive).
+            // We need to validate that the all of the precompiled views are unique by path (case-insensitive).
             // We do this because there's no good way to canonicalize paths on windows, and it will create
             // problems when deploying to linux. Rather than deal with these issues, we just don't support
             // views that differ only by case.

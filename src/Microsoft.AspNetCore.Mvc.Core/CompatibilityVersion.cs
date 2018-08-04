@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// </example>
     /// </para>
     /// <para>
-    /// Setting compatiblity version to a specific version will change the default values of various
+    /// Setting compatibility version to a specific version will change the default values of various
     /// settings to match a particular minor release of ASP.NET Core MVC. 
     /// </para>
     /// </remarks>

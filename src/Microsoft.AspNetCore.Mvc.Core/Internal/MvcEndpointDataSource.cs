@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                 // - /Home/Index/{id?}
                                 // - /Home
                                 // - /
-                                if (UseDefaultValuePlusRemainingSegementsOptional(i, action, endpointInfo, newEndpointTemplate))
+                                if (UseDefaultValuePlusRemainingSegmentsOptional(i, action, endpointInfo, newEndpointTemplate))
                                 {
                                     var subTemplate = RouteTemplateWriter.ToString(newEndpointTemplate.Segments.Take(i));
 
@@ -182,7 +182,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return false;
         }
 
-        private bool UseDefaultValuePlusRemainingSegementsOptional(
+        private bool UseDefaultValuePlusRemainingSegmentsOptional(
             int segmentIndex,
             ActionDescriptor action,
             MvcEndpointInfo endpointInfo,

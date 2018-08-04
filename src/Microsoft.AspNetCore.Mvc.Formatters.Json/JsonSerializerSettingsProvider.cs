@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
 
                 MissingMemberHandling = MissingMemberHandling.Ignore,
 
-                // Limit the object graph we'll consume to a fixed depth. This prevents stackoverflow exceptions
+                // Limit the object graph we'll consume to a fixed depth. This prevents StackOverflowExceptions
                 // from deserialization errors that might occur from deeply nested objects.
                 MaxDepth = DefaultMaxDepth,
 

@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             var loggerFactory = context.Services.GetRequiredService<ILoggerFactory>();
-            
+
             // If the model type is ICollection<> then we can call its Add method, so we can always support it.
             var collectionType = ClosedGenericMatcher.ExtractGenericInterface(modelType, typeof(ICollection<>));
             if (collectionType != null)
@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             }
 
             // If the model type is IEnumerable<> then we need to know if we can assign a List<> to it, since
-            // that's what we would create. (The cases handled here are IEnumerable<>, IReadOnlyColection<> and
+            // that's what we would create. (The cases handled here are IEnumerable<>, IReadOnlyCollection<> and
             // IReadOnlyList<>).
             var enumerableType = ClosedGenericMatcher.ExtractGenericInterface(modelType, typeof(IEnumerable<>));
             if (enumerableType != null)

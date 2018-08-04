@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 throw new ArgumentNullException(nameof(options));
             }
 
-            // Evaluate DefaultValues onces so subclasses don't have to cache.
+            // Evaluate DefaultValues once so subclasses don't have to cache.
             var defaultValues = DefaultValues;
 
             foreach (var @switch in options)

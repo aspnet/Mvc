@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         public void OnProvidersExecuting(PageRouteModelProviderContext context)
         {
-            // When RootDirectory and AreaRootDirectory overlap, e.g. RootDirectory = /, AreaRootDirectoryy = /Areas;
+            // When RootDirectory and AreaRootDirectory overlap, e.g. RootDirectory = /, AreaRootDirectory = /Areas;
             // we need to ensure that the page is only route-able via the area route. By adding area routes first,
             // we'll ensure non area routes get skipped when it encounters an IsAlreadyRegistered check.
 

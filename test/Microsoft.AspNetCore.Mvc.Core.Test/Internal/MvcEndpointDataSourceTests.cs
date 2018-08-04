@@ -506,7 +506,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             Assert.Empty(endpoints);
         }
 
-        // Since area, controller, action and page are special, check to see if the followin test succeeds for a 
+        // Since area, controller, action and page are special, check to see if the following test succeeds for a 
         // custom required value too.
         [Fact(Skip = "Needs review")]
         public void NonReservedRequiredValue_WithNoCorresponding_TemplateParameter_DoesNotProduceEndpoint()
