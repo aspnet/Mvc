@@ -301,15 +301,54 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             var propertyEntry = new DefaultMetadataDetails(propertyKey, attributes);
             if (propertyHelper.Property.CanRead && propertyHelper.Property.GetMethod?.IsPublic == true)
             {
+                var methodInfo = propertyHelper.Property.GetMethod;
+#if NETSTANDARD2_0
                 var getter = PropertyHelper.MakeNullSafeFastPropertyGetter(propertyHelper.Property);
                 propertyEntry.PropertyGetter = getter;
+#else
+                //var getter = PropertyHelper.MakeNullSafeFastPropertyGetter(propertyHelper.Property);
+                //propertyEntry.PropertyGetter = getter;
+
+                //propertyEntry.PropertyGetter = (obj) =>
+                //{
+                //    return methodInfo.Invoke(obj, Array.Empty<object>());
+                //};
+
+                propertyEntry.PropertyGetter = (obj) =>
+                {
+                    var reciever = TypedReference.Create(ref obj, propertyKey.ContainerType);
+
+                    object result = null;
+                    var @return = TypedReference.Create(ref result, propertyHelper.Property.PropertyType);
+                    methodInfo.Invoke2(@return, reciever);
+                    return result;
+                };
+#endif
             }
 
             if (propertyHelper.Property.CanWrite &&
                 propertyHelper.Property.SetMethod?.IsPublic == true &&
                 !containerType.IsValueType)
             {
+                var methodInfo = propertyHelper.Property.SetMethod;
+#if NETSTANDARD2_0
                 propertyEntry.PropertySetter = propertyHelper.ValueSetter;
+#else
+                //propertyEntry.PropertySetter = propertyHelper.ValueSetter;
+
+                //propertyEntry.PropertySetter = (obj, value) =>
+                //{
+                //    methodInfo.Invoke(obj, new[] { value, });
+                //};
+
+                propertyEntry.PropertySetter = (obj, value) =>
+                {
+                    var reciever = TypedReference.Create(ref obj, propertyKey.ContainerType);
+                    var param = TypedReference.Create(ref value, propertyHelper.Property.PropertyType);
+
+                    methodInfo.Invoke2(reciever, param);
+                };
+#endif
             }
 
             return propertyEntry;
