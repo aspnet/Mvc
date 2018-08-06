@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using System.IO;
 using System.Linq.Expressions;
 using System.Security.Claims;
@@ -202,6 +203,15 @@ namespace Microsoft.AspNetCore.Mvc
         [NonAction]
         public virtual StatusCodeResult StatusCode(int statusCode)
             => new StatusCodeResult(statusCode);
+
+        /// <summary>
+        /// Creates a <see cref="StatusCodeResult"/> object by specifying a <paramref name="statusCode"/>.
+        /// </summary>
+        /// <param name="statusCode">The status code to set on the response.</param>
+        /// <returns>The created <see cref="StatusCodeResult"/> object for the response.</returns>
+        [NonAction]
+        public virtual StatusCodeResult StatusCode(HttpStatusCode statusCode)
+            => new StatusCodeResult((int)statusCode);
 
         /// <summary>
         /// Creates a <see cref="ObjectResult"/> object by specifying a <paramref name="statusCode"/> and <paramref name="value"/>
