@@ -5,8 +5,8 @@
     public class CodeFixAddsMissingStatusCodes : ControllerBase
     {
         [ProducesResponseType(404)]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Http.StatusCodes.Status400BadRequest)]
         [ProducesDefaultResponseType]
         public IActionResult GetItem(int id)
         {

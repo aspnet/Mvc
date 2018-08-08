@@ -17,9 +17,9 @@ namespace TestApp._OUTPUT_
 {
     public class CodeFixAddsFullyQualifiedProducesResponseType : BaseController
     {
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(202)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(400)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(404)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
         [Microsoft.AspNetCore.Mvc.ProducesDefaultResponseType]
         public object GetItem(int id)
         {

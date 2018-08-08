@@ -4,8 +4,8 @@
     [Route("[controller]/[action]")]
     public class CodeFixWithConventionMethodAddsMissingStatusCodes : ControllerBase
     {
-        [ProducesResponseType(202)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(Http.StatusCodes.Status202Accepted)]
+        [ProducesResponseType(Http.StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
         public ActionResult<string> GetItem(int id)
         {

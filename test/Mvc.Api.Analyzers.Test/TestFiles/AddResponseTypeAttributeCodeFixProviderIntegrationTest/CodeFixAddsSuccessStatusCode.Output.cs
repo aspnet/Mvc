@@ -8,9 +8,9 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers._OUTPUT_
     [Route("[controller]/[action]")]
     public class CodeFixAddsSuccessStatusCode : ControllerBase
     {
-        [ProducesResponseType(201)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(Http.StatusCodes.Status201Created)]
+        [ProducesResponseType(Http.StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(Http.StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
         public ActionResult<object> GetItem(string id)
         {

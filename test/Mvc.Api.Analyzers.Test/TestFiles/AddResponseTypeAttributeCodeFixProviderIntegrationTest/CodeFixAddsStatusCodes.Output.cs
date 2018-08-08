@@ -4,8 +4,8 @@
     [Route("[controller]/[action]")]
     public class CodeFixAddsStatusCodesController : ControllerBase
     {
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(Http.StatusCodes.Status200OK)]
+        [ProducesResponseType(Http.StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
         public IActionResult GetItem(int id)
         {
