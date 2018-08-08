@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             var documentEditor = await DocumentEditor.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
             foreach (var statusCode in statusCodes.OrderBy(s => s))
             {
-                documentEditor.AddAttribute(context.MethodSyntax, CreateProducesResponseTypeAttribute(statusCode));
+                documentEditor.AddAttribute(context.MethodSyntax, CreateProducesResponseTypeAttribute(context, statusCode));
             }
 
             if (!declaredResponseMetadata.Any(m => m.IsDefault && m.AttributeSource == context.Method))
@@ -75,10 +75,35 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             var methodSyntax = methodReturnStatement.FirstAncestorOrSelf<MethodDeclarationSyntax>();
             var method = semanticModel.GetDeclaredSymbol(methodSyntax, cancellationToken);
 
+            var statusCodesType = semanticModel.Compilation.GetTypeByMetadataName(ApiSymbolNames.HttpStatusCodes);
+            var statusCodeConstants = GetStatusCodeConstants(statusCodesType);
+
             var symbolCache = new ApiControllerSymbolCache(semanticModel.Compilation);
 
-            var codeActionContext = new CodeActionContext(semanticModel, symbolCache, method, methodSyntax, cancellationToken);
+            var codeActionContext = new CodeActionContext(semanticModel, symbolCache, method, methodSyntax, statusCodeConstants, cancellationToken);
             return codeActionContext;
+        }
+
+        private static Dictionary<int, string> GetStatusCodeConstants(INamespaceOrTypeSymbol statusCodesType)
+        {
+            var statusCodeConstants = new Dictionary<int, string>();
+
+            if (statusCodesType != null)
+            {
+                foreach (var member in statusCodesType.GetMembers())
+                {
+                    if (member is IFieldSymbol field &&
+                        field.Type.SpecialType == SpecialType.System_Int32 &&
+                        field.Name.StartsWith("Status") &&
+                        field.HasConstantValue &&
+                        field.ConstantValue is int statusCode)
+                    {
+                        statusCodeConstants[statusCode] = field.Name;
+                    }
+                }
+            }
+
+            return statusCodeConstants;
         }
 
         private ICollection<int> CalculateStatusCodesToApply(CodeActionContext context, IList<DeclaredApiResponseMetadata> declaredResponseMetadata)
@@ -105,14 +130,29 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             return statusCodes;
         }
 
-        private static AttributeSyntax CreateProducesResponseTypeAttribute(int statusCode)
+        private static AttributeSyntax CreateProducesResponseTypeAttribute(CodeActionContext context, int statusCode)
         {
+            var statusCodeSyntax = CreateStatusCodeSyntax(context, statusCode);
+
             return SyntaxFactory.Attribute(
                 SyntaxFactory.ParseName(ApiSymbolNames.ProducesResponseTypeAttribute)
                     .WithAdditionalAnnotations(Simplifier.Annotation),
                 SyntaxFactory.AttributeArgumentList().AddArguments(
-                    SyntaxFactory.AttributeArgument(
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(statusCode)))));
+                    SyntaxFactory.AttributeArgument(statusCodeSyntax)));
+        }
+
+        private static ExpressionSyntax CreateStatusCodeSyntax(CodeActionContext context, int statusCode)
+        {
+            if (context.StatusCodeConstants.TryGetValue(statusCode, out var constantName))
+            {
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ParseTypeName(ApiSymbolNames.HttpStatusCodes)
+                        .WithAdditionalAnnotations(Simplifier.Annotation),
+                    SyntaxFactory.IdentifierName(constantName));
+            }
+
+            return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(statusCode));
         }
 
         private static AttributeSyntax CreateProducesDefaultResponseTypeAttribute()
@@ -124,21 +164,24 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 
         private readonly struct CodeActionContext
         {
-            public CodeActionContext(
-                SemanticModel semanticModel,
+            public CodeActionContext(SemanticModel semanticModel,
                 ApiControllerSymbolCache symbolCache,
                 IMethodSymbol method,
                 MethodDeclarationSyntax methodSyntax,
+                Dictionary<int, string> statusCodeConstants,
                 CancellationToken cancellationToken)
             {
                 SemanticModel = semanticModel;
                 SymbolCache = symbolCache;
                 Method = method;
                 MethodSyntax = methodSyntax;
+                StatusCodeConstants = statusCodeConstants;
                 CancellationToken = cancellationToken;
             }
 
             public MethodDeclarationSyntax MethodSyntax { get; }
+
+            public Dictionary<int, string> StatusCodeConstants { get; }
 
             public IMethodSymbol Method { get; }
 
