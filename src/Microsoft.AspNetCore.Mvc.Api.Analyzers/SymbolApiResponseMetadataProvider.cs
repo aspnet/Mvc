@@ -382,28 +382,14 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
                 return true;
             }
 
-            if (expression is MemberAccessExpressionSyntax memberAccess)
+            if (expression is IdentifierNameSyntax || expression is MemberAccessExpressionSyntax)
             {
-                var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+                var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
                 if (symbolInfo.Symbol is IFieldSymbol field && field.HasConstantValue && field.ConstantValue is int constantStatusCode)
                 {
                     // Covers the 'return StatusCode(StatusCodes.Status200OK)' case.
-                    statusCode = constantStatusCode;
-                    return true;
-                }
-
-                statusCode = default;
-                return false;
-            }
-
-            if (expression is IdentifierNameSyntax identifier)
-            {
-                var symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken);
-
-                if (symbolInfo.Symbol is IFieldSymbol field && field.HasConstantValue && field.ConstantValue is int constantStatusCode)
-                {
-                    // Covers the 'return StatusCode(StatusCode)' case, where 'StatusCode' is a constant field.
+                    // It also covers the 'return StatusCode(StatusCode)' case, where 'StatusCode' is a constant field.
                     statusCode = constantStatusCode;
                     return true;
                 }
