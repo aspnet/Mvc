@@ -40,9 +40,12 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             }
 
             var documentEditor = await DocumentEditor.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
+
+            var addUsingDirective = false;
             foreach (var statusCode in statusCodes.OrderBy(s => s))
             {
-                documentEditor.AddAttribute(context.MethodSyntax, CreateProducesResponseTypeAttribute(context, statusCode));
+                documentEditor.AddAttribute(context.MethodSyntax, CreateProducesResponseTypeAttribute(context, statusCode, out var addUsing));
+                addUsingDirective |= addUsing;
             }
 
             if (!declaredResponseMetadata.Any(m => m.IsDefault && m.AttributeSource == context.Method))
@@ -64,7 +67,16 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
                 documentEditor.RemoveNode(attributeSyntax);
             }
 
-            return documentEditor.GetChangedDocument();
+            var document = documentEditor.GetChangedDocument();
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            if (root is CompilationUnitSyntax compilationUnit && addUsingDirective)
+            {
+                root = compilationUnit.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")));
+            }
+
+            return document.WithSyntaxRoot(root);
         }
 
         private async Task<CodeActionContext> CreateCodeActionContext(CancellationToken cancellationToken)
@@ -130,9 +142,9 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             return statusCodes;
         }
 
-        private static AttributeSyntax CreateProducesResponseTypeAttribute(CodeActionContext context, int statusCode)
+        private static AttributeSyntax CreateProducesResponseTypeAttribute(CodeActionContext context, int statusCode, out bool addUsingDirective)
         {
-            var statusCodeSyntax = CreateStatusCodeSyntax(context, statusCode);
+            var statusCodeSyntax = CreateStatusCodeSyntax(context, statusCode, out addUsingDirective);
 
             return SyntaxFactory.Attribute(
                 SyntaxFactory.ParseName(ApiSymbolNames.ProducesResponseTypeAttribute)
@@ -141,10 +153,11 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
                     SyntaxFactory.AttributeArgument(statusCodeSyntax)));
         }
 
-        private static ExpressionSyntax CreateStatusCodeSyntax(CodeActionContext context, int statusCode)
+        private static ExpressionSyntax CreateStatusCodeSyntax(CodeActionContext context, int statusCode, out bool addUsingDirective)
         {
             if (context.StatusCodeConstants.TryGetValue(statusCode, out var constantName))
             {
+                addUsingDirective = true;
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.ParseTypeName(ApiSymbolNames.HttpStatusCodes)
@@ -152,6 +165,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
                     SyntaxFactory.IdentifierName(constantName));
             }
 
+            addUsingDirective = false;
             return SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(statusCode));
         }
 

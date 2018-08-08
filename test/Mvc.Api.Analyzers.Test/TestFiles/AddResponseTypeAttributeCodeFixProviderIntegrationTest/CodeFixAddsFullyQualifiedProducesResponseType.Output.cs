@@ -1,4 +1,5 @@
-﻿
+﻿using Microsoft.AspNetCore.Http;
+
 [assembly: Microsoft.AspNetCore.Mvc.ApiConventionType(typeof(Microsoft.AspNetCore.Mvc.DefaultApiConventions))]
 
 namespace TestApp._OUTPUT_
@@ -17,9 +18,9 @@ namespace TestApp._OUTPUT_
 {
     public class CodeFixAddsFullyQualifiedProducesResponseType : BaseController
     {
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status202Accepted)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status400BadRequest)]
-        [Microsoft.AspNetCore.Mvc.ProducesResponseType(Microsoft.AspNetCore.Http.StatusCodes.Status404NotFound)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(StatusCodes.Status202Accepted)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Microsoft.AspNetCore.Mvc.ProducesResponseType(StatusCodes.Status404NotFound)]
         [Microsoft.AspNetCore.Mvc.ProducesDefaultResponseType]
         public object GetItem(int id)
         {
