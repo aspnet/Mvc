@@ -42,5 +42,14 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 "Usage",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MVC1004_ParameterNameCollidesWithTopLevelProperty =
+            new DiagnosticDescriptor(
+                "MVC1004",
+                "Rename model bound parameter.",
+                "Top level property on '{0}' has the same name as parameter '{1}'. This may produce incorrect model binding. Consider renaming the parameter name.",
+                "Usage",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
     }
 }
