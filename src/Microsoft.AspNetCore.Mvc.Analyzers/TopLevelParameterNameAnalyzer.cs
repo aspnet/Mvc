@@ -3,7 +3,9 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -56,14 +58,15 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
                 if (method.ContainingType.HasAttribute(symbolCache.IApiBehaviorMetadata, inherit: true))
                 {
-                    // Don't execute the analyzer on ApiController instances.
+                    // The issue of parameter name collision with properties affects complex model-bound types 
+                    // and not input formatting. Ignore ApiController instances since they default to formatting.
                     return;
                 }
 
                 for (var i = 0; i < method.Parameters.Length; i++)
                 {
-                    var parameter = method.Parameters[0];
-                    if (HasProblematicTopLevelProperty(parameter.Type, parameter.Name))
+                    var parameter = method.Parameters[i];
+                    if (IsProblematicParameter(symbolCache, parameter))
                     {
                         var location = parameter.Locations.Length != 0 ?
                             parameter.Locations[0] :
@@ -80,16 +83,30 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             }, SymbolKind.Method);
         }
 
-        private bool HasProblematicTopLevelProperty(ITypeSymbol type, string name)
+        internal static bool IsProblematicParameter(in SymbolCache symbolCache, IParameterSymbol parameter)
         {
+            if (parameter.GetAttributes(symbolCache.FromBodyAttribute).Any())
+            {
+                // Ignore input formatted parameters.
+                return false;
+            }
+
+            var parameterName = GetName(symbolCache, parameter.GetAttributes(symbolCache.IModelNameProvider)) ?? parameter.Name;
+
+            var type = parameter.Type;
             while (type != null)
             {
                 foreach (var member in type.GetMembers())
                 {
-                    if (member.DeclaredAccessibility == Accessibility.Public &&
-                        !member.IsStatic &&
-                        member.Kind == SymbolKind.Property &&
-                        string.Equals(name, member.Name, StringComparison.OrdinalIgnoreCase))
+                    if (member.DeclaredAccessibility != Accessibility.Public ||
+                        member.IsStatic &&
+                        member.Kind != SymbolKind.Property)
+                    {
+                        continue;
+                    }
+
+                    var propertyName = GetName(symbolCache, member.GetAttributes(symbolCache.IModelNameProvider)) ?? member.Name;
+                    if (string.Equals(parameterName, propertyName, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
@@ -101,13 +118,42 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             return false;
         }
 
-        private readonly struct SymbolCache
+        private static string GetName(in SymbolCache symbolCache, IEnumerable<AttributeData> attributes)
+        {
+            foreach (var attribute in attributes)
+            {
+                // BindAttribute uses the Prefix property as an alias for IModelNameProvider.Name
+                var nameProperty = attribute.AttributeClass == symbolCache.BindAttribute ? "Prefix" : "Name";
+
+                // All of the built-in attributes (FromQueryAttribute, ModelBinderAttribute etc) only support setting the name via
+                // a property. We'll ignore constructor values.
+                for (var i = 0; i < attribute.NamedArguments.Length; i++)
+                {
+                    var namedArgument = attribute.NamedArguments[i];
+                    var namedArgumentValue = namedArgument.Value;
+                    if (string.Equals(namedArgument.Key, nameProperty, StringComparison.Ordinal) &&
+                        namedArgumentValue.Kind == TypedConstantKind.Primitive &&
+                        namedArgumentValue.Type.SpecialType == SpecialType.System_String &&
+                        namedArgumentValue.Value is string name)
+                    {
+                        return name;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        internal readonly struct SymbolCache
         {
             public SymbolCache(Compilation compilation)
             {
+                BindAttribute = compilation.GetTypeByMetadataName(SymbolNames.BindAttribute);
                 ControllerAttribute = compilation.GetTypeByMetadataName(SymbolNames.ControllerAttribute);
+                FromBodyAttribute = compilation.GetTypeByMetadataName(SymbolNames.FromBodyAttribute);
                 IApiBehaviorMetadata = compilation.GetTypeByMetadataName(SymbolNames.IApiBehaviorMetadata);
-                NonControllerAttribute = compilation.GetTypeByMetadataName(SymbolNames.ControllerAttribute);
+                IModelNameProvider = compilation.GetTypeByMetadataName(SymbolNames.IModelNameProvider);
+                NonControllerAttribute = compilation.GetTypeByMetadataName(SymbolNames.NonControllerAttribute);
                 NonActionAttribute = compilation.GetTypeByMetadataName(SymbolNames.NonActionAttribute);
 
                 var disposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
@@ -115,8 +161,11 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 IDisposableDispose = members.Length == 1 ? (IMethodSymbol)members[0] : null;
             }
 
+            public INamedTypeSymbol BindAttribute { get; }
             public INamedTypeSymbol ControllerAttribute { get; }
+            public INamedTypeSymbol FromBodyAttribute { get; }
             public INamedTypeSymbol IApiBehaviorMetadata { get; }
+            public INamedTypeSymbol IModelNameProvider { get; }
             public INamedTypeSymbol NonControllerAttribute { get; }
             public INamedTypeSymbol NonActionAttribute { get; }
             public IMethodSymbol IDisposableDispose { get; }
