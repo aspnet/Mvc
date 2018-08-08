@@ -24,6 +24,8 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             ProducesDefaultResponseTypeAttribute = compilation.GetTypeByMetadataName(ApiSymbolNames.ProducesDefaultResponseTypeAttribute);
             ProducesResponseTypeAttribute = compilation.GetTypeByMetadataName(ApiSymbolNames.ProducesResponseTypeAttribute);
 
+            StatusCodeValueAttribute = compilation.GetTypeByMetadataName(ApiSymbolNames.StatusCodeValueAttribute);
+
             var disposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
             var members = disposable.GetMembers(nameof(IDisposable.Dispose));
             IDisposableDispose = members.Length == 1 ? (IMethodSymbol)members[0] : null;
@@ -56,5 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
         public INamedTypeSymbol ProducesDefaultResponseTypeAttribute { get; }
 
         public INamedTypeSymbol ProducesResponseTypeAttribute { get; }
+
+        public INamedTypeSymbol StatusCodeValueAttribute { get; }
     }
 }
