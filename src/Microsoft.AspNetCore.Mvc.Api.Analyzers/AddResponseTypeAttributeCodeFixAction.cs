@@ -73,7 +73,14 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 
             if (root is CompilationUnitSyntax compilationUnit && addUsingDirective)
             {
-                root = compilationUnit.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")));
+                const string @namespace = "Microsoft.AspNetCore.Http";
+
+                var declaredUsings = new HashSet<string>(compilationUnit.Usings.Select(x => x.Name.ToString()));
+
+                if (!declaredUsings.Contains(@namespace))
+                {
+                    root = compilationUnit.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(@namespace)));
+                }
             }
 
             return document.WithSyntaxRoot(root);
