@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                     return;
                 }
 
-                if (!MvcFacts.IsController(method.ContainingType, symbolCache.ControllerAttribute, symbolCache.NonControllerAttribute) &&
+                if (!MvcFacts.IsController(method.ContainingType, symbolCache.ControllerAttribute, symbolCache.NonControllerAttribute) ||
                     !MvcFacts.IsControllerAction(method, symbolCache.NonActionAttribute, symbolCache.IDisposableDispose))
                 {
                     return;
@@ -99,7 +99,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 foreach (var member in type.GetMembers())
                 {
                     if (member.DeclaredAccessibility != Accessibility.Public ||
-                        member.IsStatic &&
+                        member.IsStatic ||
                         member.Kind != SymbolKind.Property)
                     {
                         continue;

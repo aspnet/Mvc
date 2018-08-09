@@ -36,6 +36,10 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             => RunNoDiagnosticsAreReturned();
 
         [Fact]
+        public Task NoDiagnosticsAreReturnedForNonActions()
+            => RunNoDiagnosticsAreReturned();
+
+        [Fact]
         public async Task IsProblematicParameter_ReturnsTrue_IfParameterNameIsTheSameAsModelProperty()
         {
             var result = await IsProblematicParameterTest();
@@ -72,6 +76,34 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
         [Fact]
         public async Task IsProblematicParameter_ReturnsFalse_ForFromBodyParameter()
+        {
+            var result = await IsProblematicParameterTest();
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task IsProblematicParameter_IgnoresStaticProperties()
+        {
+            var result = await IsProblematicParameterTest();
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task IsProblematicParameter_IgnoresFields()
+        {
+            var result = await IsProblematicParameterTest();
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task IsProblematicParameter_IgnoresMethods()
+        {
+            var result = await IsProblematicParameterTest();
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task IsProblematicParameter_IgnoresNonPublicProperties()
         {
             var result = await IsProblematicParameterTest();
             Assert.False(result);
