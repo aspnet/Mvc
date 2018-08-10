@@ -35,6 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 if (Version >= CompatibilityVersion.Version_2_2)
                 {
                     values[nameof(MvcOptions.EnableEndpointRouting)] = true;
+                    values[nameof(MvcOptions.MaxValidationDepth)] = 200;
                 }
 
                 return values;
