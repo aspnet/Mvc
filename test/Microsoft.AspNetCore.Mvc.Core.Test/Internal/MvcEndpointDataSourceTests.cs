@@ -185,9 +185,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [InlineData("{controller}/{action}/{*catchAll}", new[] { "TestController/TestAction/{*catchAll}" })]
         [InlineData("{controller}/{action=TestAction}/{*catchAll}", new[] { "TestController", "TestController/TestAction/{*catchAll}" })]
         [InlineData("{controller}/{action=TestAction}/{id?}/{*catchAll}", new[] { "TestController", "TestController/TestAction/{id?}/{*catchAll}" })]
-        //[InlineData("{controller}/{action}.{ext?}", new[] { "TestController/TestAction.{ext?}" })]
-        //[InlineData("{controller}/{action=TestAction}.{ext?}", new[] { "TestController", "TestController/TestAction.{ext?}" })]
-        public void Endpoints_SingleAction(string endpointInfoRoute, string[] finalEndpointTemplates)
+        [InlineData("{controller}/{action}.{ext?}", new[] { "TestController/TestAction.{ext?}" })]
+        [InlineData("{controller}/{action=TestAction}.{ext?}", new[] { "TestController", "TestController/TestAction.{ext?}" })]
+        public void Endpoints_SingleAction(string endpointInfoRoute, string[] finalEndpointPatterns)
         {
             // Arrange
             var actionDescriptorCollection = GetActionDescriptorCollection(
@@ -199,7 +199,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var endpoints = dataSource.Endpoints;
 
             // Assert
-            var inspectors = finalEndpointTemplates
+            var inspectors = finalEndpointPatterns
                 .Select(t => new Action<Endpoint>(e => Assert.Equal(t, Assert.IsType<RouteEndpoint>(e).RoutePattern.RawText)))
                 .ToArray();
 

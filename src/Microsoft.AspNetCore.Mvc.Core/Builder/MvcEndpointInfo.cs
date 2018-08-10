@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Template;
+using Microsoft.AspNetCore.Routing.Patterns;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -13,35 +13,35 @@ namespace Microsoft.AspNetCore.Builder
     {
         public MvcEndpointInfo(
             string name,
-            string template,
+            string pattern,
             RouteValueDictionary defaults,
             IDictionary<string, object> constraints,
             RouteValueDictionary dataTokens,
             IInlineConstraintResolver constraintResolver)
         {
             Name = name;
-            Template = template ?? string.Empty;
+            Pattern = pattern ?? string.Empty;
             DataTokens = dataTokens;
 
             try
             {
-                // Data we parse from the template will be used to fill in the rest of the constraints or
+                // Data we parse from the pattern will be used to fill in the rest of the constraints or
                 // defaults. The parser will throw for invalid routes.
-                ParsedTemplate = TemplateParser.Parse(template);
+                ParsedPattern = RoutePatternFactory.Parse(pattern);
 
-                Constraints = GetConstraints(constraintResolver, ParsedTemplate, constraints);
+                Constraints = GetConstraints(constraintResolver, ParsedPattern, constraints);
                 Defaults = defaults;
-                MergedDefaults = GetDefaults(ParsedTemplate, defaults);
+                MergedDefaults = GetDefaults(ParsedPattern, defaults);
             }
             catch (Exception exception)
             {
                 throw new RouteCreationException(
-                    string.Format(CultureInfo.CurrentCulture, "An error occurred while creating the route with name '{0}' and template '{1}'.", name, template), exception);
+                    string.Format(CultureInfo.CurrentCulture, "An error occurred while creating the route with name '{0}' and pattern '{1}'.", name, pattern), exception);
             }
         }
 
         public string Name { get; }
-        public string Template { get; }
+        public string Pattern { get; }
 
         // Non-inline defaults
         public RouteValueDictionary Defaults { get; }
@@ -51,14 +51,14 @@ namespace Microsoft.AspNetCore.Builder
 
         public IDictionary<string, IRouteConstraint> Constraints { get; }
         public RouteValueDictionary DataTokens { get; }
-        internal RouteTemplate ParsedTemplate { get; private set; }
+        internal RoutePattern ParsedPattern { get; private set; }
 
         private static IDictionary<string, IRouteConstraint> GetConstraints(
             IInlineConstraintResolver inlineConstraintResolver,
-            RouteTemplate parsedTemplate,
+            RoutePattern parsedTemplate,
             IDictionary<string, object> constraints)
         {
-            var constraintBuilder = new RouteConstraintBuilder(inlineConstraintResolver, parsedTemplate.TemplateText);
+            var constraintBuilder = new RouteConstraintBuilder(inlineConstraintResolver, parsedTemplate.RawText);
 
             if (constraints != null)
             {
@@ -75,9 +75,9 @@ namespace Microsoft.AspNetCore.Builder
                     constraintBuilder.SetOptional(parameter.Name);
                 }
 
-                foreach (var inlineConstraint in parameter.InlineConstraints)
+                foreach (var inlineConstraint in parameter.Constraints)
                 {
-                    constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Constraint);
+                    constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Content);
                 }
             }
 
@@ -85,18 +85,18 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         private static RouteValueDictionary GetDefaults(
-            RouteTemplate parsedTemplate,
+            RoutePattern parsedTemplate,
             RouteValueDictionary defaults)
         {
             var result = defaults == null ? new RouteValueDictionary() : new RouteValueDictionary(defaults);
 
             foreach (var parameter in parsedTemplate.Parameters)
             {
-                if (parameter.DefaultValue != null)
+                if (parameter.Default != null)
                 {
                     if (result.TryGetValue(parameter.Name, out var value))
                     {
-                        if (!object.Equals(value, parameter.DefaultValue))
+                        if (!object.Equals(value, parameter.Default))
                         {
                             throw new InvalidOperationException(
                                 string.Format(CultureInfo.CurrentCulture, "The route parameter '{0}' has both an inline default value and an explicit default value specified. A route parameter cannot contain an inline default value when a default value is specified explicitly. Consider removing one of them.", parameter.Name));
@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Builder
                     }
                     else
                     {
-                        result.Add(parameter.Name, parameter.DefaultValue);
+                        result.Add(parameter.Name, parameter.Default);
                     }
                 }
             }
