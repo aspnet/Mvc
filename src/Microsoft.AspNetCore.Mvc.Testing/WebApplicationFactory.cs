@@ -52,6 +52,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </summary>
         public WebApplicationFactory()
         {
+            if (typeof(TEntryPoint).Assembly.EntryPoint == null)
+            {
+                throw new InvalidOperationException(Resources.FormatInvalidAssemblyEntryPoint(typeof(TEntryPoint).Name, typeof(TEntryPoint).Assembly.GetName().Name));
+            }
             _configuration = ConfigureWebHost;
         }
 
