@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Testing
             => string.Format(CultureInfo.CurrentCulture, GetString("MissingDepsFile"), p0, p1);
 
         /// <summary>
-        /// The provided class '{0}' in Assembly '{1}' is not an entry point to the assembly of the application. A common cause for this error is providing a class from a class library.
+        /// The provided Type '{0}' does not belong to an assembly with an entry point. A common cause for this error is providing a Type from a class library.
         /// </summary>
         internal static string InvalidAssemblyEntryPoint
         {
@@ -47,10 +47,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         }
 
         /// <summary>
-        /// The provided class '{0}' in Assembly '{1}' is not an entry point to the assembly of the application. A common cause for this error is providing a class from a class library.
+        /// The provided Type '{0}' does not belong to an assembly with an entry point. A common cause for this error is providing a Type from a class library.
         /// </summary>
-        internal static string FormatInvalidAssemblyEntryPoint(string p0, string p1)
-            => string.Format(CultureInfo.CurrentCulture, GetString("InvalidAssemblyEntryPoint"), p0, p1);
+        internal static string FormatInvalidAssemblyEntryPoint(string p0)
+            => string.Format(CultureInfo.CurrentCulture, GetString("InvalidAssemblyEntryPoint"), p0);
 
         private static string GetString(string name, params string[] formatterNames)
         {

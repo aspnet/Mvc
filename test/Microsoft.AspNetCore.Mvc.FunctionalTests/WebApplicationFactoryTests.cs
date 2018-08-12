@@ -16,8 +16,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             var ex = Assert.Throws<InvalidOperationException>(() => new WebApplicationFactory<ClassLibraryStartup>());
             // Use string literal as Mvc.Testing.Resources is inaccessable (marked as internal)
-            Assert.Equal($"The provided class '{typeof(ClassLibraryStartup).Name}' in Assembly '{typeof(ClassLibraryStartup).Assembly.GetName().Name}' is not an entry point to the assembly of the application. " +
-                $"A common cause for this error is providing a class from a class library.",
+            Assert.Equal($"The provided Type '{typeof(ClassLibraryStartup).Name}' does not belong to an assembly with an entry point. A common cause for this error is providing a Type from a class library.",
                 ex.Message);
         }
     }
