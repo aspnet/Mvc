@@ -1322,6 +1322,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act & Assert
             var ex = Assert.Throws<InvalidOperationException>(() => validator.Validate(actionContext, validationState, prefix: string.Empty, model));
             Assert.Equal(expected, ex.Message);
+            Assert.NotNull(ex.HelpLink);
         }
 
         private static DefaultObjectValidator CreateValidator(Type excludedType)

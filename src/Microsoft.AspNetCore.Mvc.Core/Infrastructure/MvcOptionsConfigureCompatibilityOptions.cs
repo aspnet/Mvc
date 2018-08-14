@@ -35,7 +35,9 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 if (Version >= CompatibilityVersion.Version_2_2)
                 {
                     values[nameof(MvcOptions.EnableEndpointRouting)] = true;
-                    values[nameof(MvcOptions.MaxValidationDepth)] = 200;
+
+                    // Matches JsonSerializerSettingsProvider.DefaultMaxDepth
+                    values[nameof(MvcOptions.MaxValidationDepth)] = 32;
                 }
 
                 return values;

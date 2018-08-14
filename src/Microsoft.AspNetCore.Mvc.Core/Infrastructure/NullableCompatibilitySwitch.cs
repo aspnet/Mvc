@@ -5,16 +5,26 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
     internal class NullableCompatibilitySwitch<TValue> : ICompatibilitySwitch where TValue : struct
     {
+        private TValue? _value;
+
         public NullableCompatibilitySwitch(string name)
         {
             Name = name;
         }
 
-        public bool IsValueSet => Value.HasValue;
+        public bool IsValueSet { get; private set; }
 
         public string Name { get; }
 
-        public TValue? Value { get; set; }
+        public TValue? Value
+        {
+            get => _value;
+            set
+            {
+                IsValueSet = true;
+                _value = value;
+            }
+        }
 
         object ICompatibilitySwitch.Value
         {

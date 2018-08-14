@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using FormatterWebSite;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Testing.xunit;
 using Newtonsoft.Json;
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Arrange
             var invalidRequestData = "{\"FirstName\":\"Test\", \"LastName\": \"Testsson\"}";
             var content = new StringContent(invalidRequestData, Encoding.UTF8, "application/json");
-            var expectedErrorMessage = 
+            var expectedErrorMessage =
                 "{\"LastName\":[\"The field LastName must be a string with a maximum length of 5.\"]}";
 
             // Act
@@ -231,7 +231,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             // Arrange
             var invalidRequestData = "{\"FirstName\":\"Testname\", \"LastName\": \"\"}";
             var content = new StringContent(invalidRequestData, Encoding.UTF8, "application/json");
-            var expectedError = 
+            var expectedError =
                 "{\"LastName\":[\"The LastName field is required.\"]," +
                 "\"FirstName\":[\"The field FirstName must be a string with a maximum length of 5.\"]}";
 
@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task ValidationThrowsError_WhenValidationExceedsMaxValidationDepth()
         {
             // Arrange
-            var expected = $"ValidationVisitor exceeded the maximum configured validation depth '200' when validating property 'BinaryLength' on type '{typeof(SecurityIdentifier)}'. " +
+            var expected = $"ValidationVisitor exceeded the maximum configured validation depth '32' when validating property 'Value' on type '{typeof(RecurisveIdentifier)}'. " +
                 "This may indicate a very deep or infinitely recursive object graph. Consider modifying 'MvcOptions.MaxValidationDepth' or suppressing validation on the model type.";
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, "Validation/ValidationThrowsError_WhenValidationExceedsMaxValidationDepth")
             {

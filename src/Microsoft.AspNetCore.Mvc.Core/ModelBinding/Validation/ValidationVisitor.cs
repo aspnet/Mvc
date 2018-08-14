@@ -243,7 +243,10 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 }
 
                 message += " " + Resources.FormatValidationVisitor_ExceededMaxDepthFix(nameof(MvcOptions), nameof(MvcOptions.MaxValidationDepth));
-                throw new InvalidOperationException(message);
+                throw new InvalidOperationException(message)
+                {
+                    HelpLink = "https://aka.ms/AA21ue1",
+                };
             }
 
             var entry = GetValidationEntry(model);

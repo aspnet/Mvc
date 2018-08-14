@@ -2,23 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Security.Principal;
 using Newtonsoft.Json;
 
 namespace FormatterWebSite
 {
     public class InfinitelyRecursiveModel
     {
-        [JsonConverter(typeof(StringSecurityConverter))]
-        public SecurityIdentifier Id { get; set; } = new SecurityIdentifier("S-1-5-21-1004336348-1177238915-682003330-512");
+        [JsonConverter(typeof(StringIdentifierConverter))]
+        public RecurisveIdentifier Id { get; set; }
 
-        private class StringSecurityConverter : JsonConverter
+        private class StringIdentifierConverter : JsonConverter
         {
-            public override bool CanConvert(Type objectType) => objectType == typeof(SecurityIdentifier);
+            public override bool CanConvert(Type objectType) => objectType == typeof(RecurisveIdentifier);
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                return new SecurityIdentifier(reader.Value.ToString());
+                return new RecurisveIdentifier(reader.Value.ToString());
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
