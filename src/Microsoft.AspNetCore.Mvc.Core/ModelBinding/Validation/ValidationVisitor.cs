@@ -234,6 +234,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
                 switch (metadata.MetadataKind)
                 {
                     case ModelMetadataKind.Property:
+                        // Print a nicer message if we know we're validating a property.
                         message = Resources.FormatValidationVisitor_ExceededMaxPropertyDepth(nameof(ValidationVisitor), MaxValidationDepth, metadata.Name, metadata.ContainerType);
                         break;
 
