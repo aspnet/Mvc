@@ -80,8 +80,6 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Validation
         protected ModelMetadata Metadata { get; set; }
         protected IValidationStrategy Strategy { get; set; }
 
-        protected int ValidationDepth { get; set; }
-
         /// <summary>
         /// Gets or sets the maximum depth to constrain the validation visitor when validating.
         /// <para>

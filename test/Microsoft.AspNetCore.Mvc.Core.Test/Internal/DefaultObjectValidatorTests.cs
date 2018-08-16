@@ -1512,13 +1512,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             public string City { get; set; }
         }
 
-        private class InfinitelyRecursiveType
-        {
-            public string Name { get; set; }
-
-            public InfinitelyRecursiveType RecursiveProperty => new InfinitelyRecursiveType();
-        }
-
         private class DepthObject
         {
             public DepthObject(int maxAllowedDepth, int depth = 0)

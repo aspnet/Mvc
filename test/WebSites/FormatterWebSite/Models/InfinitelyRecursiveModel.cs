@@ -9,15 +9,15 @@ namespace FormatterWebSite
     public class InfinitelyRecursiveModel
     {
         [JsonConverter(typeof(StringIdentifierConverter))]
-        public RecurisiveIdentifier Id { get; set; }
+        public RecursiveIdentifier Id { get; set; }
 
         private class StringIdentifierConverter : JsonConverter
         {
-            public override bool CanConvert(Type objectType) => objectType == typeof(RecurisiveIdentifier);
+            public override bool CanConvert(Type objectType) => objectType == typeof(RecursiveIdentifier);
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
-                return new RecurisiveIdentifier(reader.Value.ToString());
+                return new RecursiveIdentifier(reader.Value.ToString());
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
