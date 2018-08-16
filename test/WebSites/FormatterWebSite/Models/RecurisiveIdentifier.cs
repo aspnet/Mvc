@@ -4,15 +4,15 @@
 namespace FormatterWebSite
 {
     // A System.Security.Principal.SecurityIdentifier like type that works on xplat
-    public class RecurisveIdentifier
+    public class RecurisiveIdentifier
     {
-        public RecurisveIdentifier(string identifier)
+        public RecurisiveIdentifier(string identifier)
         {
             Value = identifier;
         }
 
         public string Value { get; }
 
-        public RecurisveIdentifier AccountIdentifier => new RecurisveIdentifier(Value);
+        public RecurisiveIdentifier AccountIdentifier => new RecurisiveIdentifier(Value);
     }
 }

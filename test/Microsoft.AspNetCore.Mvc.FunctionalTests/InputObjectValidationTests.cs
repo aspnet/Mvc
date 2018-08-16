@@ -251,7 +251,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public async Task ValidationThrowsError_WhenValidationExceedsMaxValidationDepth()
         {
             // Arrange
-            var expected = $"ValidationVisitor exceeded the maximum configured validation depth '32' when validating property 'Value' on type '{typeof(RecurisveIdentifier)}'. " +
+            var expected = $"ValidationVisitor exceeded the maximum configured validation depth '32' when validating property 'Value' on type '{typeof(RecurisiveIdentifier)}'. " +
                 "This may indicate a very deep or infinitely recursive object graph. Consider modifying 'MvcOptions.MaxValidationDepth' or suppressing validation on the model type.";
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, "Validation/ValidationThrowsError_WhenValidationExceedsMaxValidationDepth")
             {
