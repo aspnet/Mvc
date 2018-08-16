@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
     {
         private readonly IActionDescriptorProvider[] _actionDescriptorProviders;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
+        private readonly ChangeTokenContext _changeTokenContext;
         private ActionDescriptorCollection _collection;
         private int _version = -1;
 
@@ -36,9 +38,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
 
-            ChangeToken.OnChange(
-                GetCompositeChangeToken,
-                UpdateCollection);
+            _changeTokenContext = new ChangeTokenContext(GetCompositeChangeToken, UpdateCollection);
+            OnChange(_changeTokenContext);
         }
 
         private IChangeToken GetCompositeChangeToken()
@@ -64,7 +65,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             get
             {
-                if (_collection == null)
+                var changeToken = _changeTokenContext.ChangeToken;
+                if (_collection == null || (changeToken != null && changeToken.HasChanged))
                 {
                     UpdateCollection();
                 }
@@ -90,6 +92,48 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _collection = new ActionDescriptorCollection(
                 new ReadOnlyCollection<ActionDescriptor>(context.Results),
                 Interlocked.Increment(ref _version));
+        }
+
+        public class ChangeTokenContext
+        {
+
+            public ChangeTokenContext(Func<IChangeToken> producer, Action consumer)
+            {
+                Producer = producer;
+                Consumer = consumer;
+                ChangeToken = null;
+            }
+
+            public Func<IChangeToken> Producer { get; }
+
+            public Action Consumer { get; }
+
+            public IChangeToken ChangeToken;
+        }
+
+        private static IDisposable OnChange(ChangeTokenContext context)
+        {
+            Action<object> callback = null;
+            callback = s =>
+            {
+                // The order here is important. We need to take the token and then apply our changes BEFORE
+                // registering. This prevents us from possible having two change updates to process concurrently.
+                //
+                // If the token changes after we take the token, then we'll process the update immediately upon
+                // registering the callback.
+                var changeToken = context.Producer();
+                context.ChangeToken = changeToken;
+                try
+                {
+                    context.Consumer();
+                }
+                finally // We always want to ensure the callback is registered
+                {
+                    changeToken.RegisterChangeCallback(callback, null);
+                }
+            };
+
+            return context.ChangeToken.RegisterChangeCallback(callback, null);
         }
     }
 }
