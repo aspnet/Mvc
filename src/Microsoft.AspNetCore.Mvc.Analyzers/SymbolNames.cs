@@ -58,5 +58,9 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         public const string ProducesResponseTypeAttribute = "Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute";
 
         public const string RenderPartialMethod = "RenderPartial";
+
+        public const string RequiredAttribute = "RequiredAttribute";
+
+        public const string CollectionType= "SourceComplexParameterSymbol";
     }
 }

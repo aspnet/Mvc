@@ -52,5 +52,14 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 helpLinkUri: "https://aka.ms/AA20pbc");
+
+        public static readonly DiagnosticDescriptor MVC1005_ParameterAttributeAvoidUsingRequiredOncollections =
+            new DiagnosticDescriptor(
+                "MVC1005",
+                "Use of 'RequiredAttribute' should be avoided on collection",
+              "Use of '{0}' should be avoided. This always made model validation is true. Consider using [MinLength(1)].",
+                "Usage",
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
     }
 }
