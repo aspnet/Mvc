@@ -123,6 +123,24 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public static bool IsCollection(this ITypeSymbol source)
+        {
+            if (source.Kind == SymbolKind.ArrayType)
+            {
+                return true;
+            }
+
+            foreach (var @interface in source.AllInterfaces)
+            {
+                if (@interface.MetadataName == "IEnumerable")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool HasAttribute(this ISymbol symbol, ITypeSymbol attribute)
         {
             foreach (var declaredAttribute in symbol.GetAttributes())
@@ -145,5 +163,6 @@ namespace Microsoft.CodeAnalysis
                 typeSymbol = typeSymbol.BaseType;
             }
         }
+
     }
 }

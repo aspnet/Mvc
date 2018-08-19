@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Analyzer.Testing;
-using Microsoft.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Analyzers
@@ -19,31 +18,30 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             => RunTest();
 
         [Fact]
-        public async Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttribute()
-        {
-            {
-                // Arrange
-                var testSource = MvcTestSource.Read(GetType().Name, nameof(DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttribute));
+        public Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttribute()
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
 
-                //Act
-                var result = await Runner.GetDiagnosticsAsync(testSource.Source);
-
-                Assert.Empty(result);
-            }
-        }
 
         [Fact]
         public Task NoDiagnosticsAreReturnedIfParameterIsRenamedUsingBindingAttribute()
-            => RunNoDiagnosticsAreReturned();
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterNameAnalyzerTest));
 
         [Fact]
         public Task NoDiagnosticsAreReturnedForNonActions()
-            => RunNoDiagnosticsAreReturned();
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterNameAnalyzerTest));
 
-        private async Task RunNoDiagnosticsAreReturned([CallerMemberName] string testMethod = "")
+        [Fact]
+        public Task RunNoDiagnosticsAreReturnedForNonCollectionsParameterWithRequired()
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
+
+        [Fact]
+        public Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttributeForIEnumerable()
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
+
+        private async Task RunNoDiagnosticsAreReturned(string typename, [CallerMemberName] string testMethod = "")
         {
             // Arrange
-            var testSource = MvcTestSource.Read(nameof(TopLevelParameterNameAnalyzerTest), testMethod);
+            var testSource = MvcTestSource.Read(typename, testMethod);
             var expectedLocation = testSource.DefaultMarkerLocation;
 
             // Act

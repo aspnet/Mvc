@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TestFiles\TopLevelParameterAttributeAnalyzerTest\DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttributeForIEnumerable.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestFiles\TopLevelParameterAttributeAnalyzerTest\DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttributeForIEnumerable.cs" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

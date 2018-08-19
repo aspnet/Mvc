@@ -56,13 +56,14 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 {
                     var parameter = method.Parameters[i];
 
-                    if (parameter.GetType().Name == SymbolNames.CollectionType)
+                    if (parameter.Type.IsCollection())
                     {
                         if (IsProblematicParameter(parameter))
                         {
                             var location = parameter.Locations.Length != 0 ?
                                 parameter.Locations[0] :
                                 Location.None;
+                            var descriptor = DiagnosticDescriptors.MVC1005_ParameterAttributeAvoidUsingRequiredOncollections;
 
                             symbolAnalysisContext.ReportDiagnostic(
                                 Diagnostic.Create(
@@ -79,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
         private bool IsProblematicParameter(IParameterSymbol parameter)
         {
-            return parameter.GetAttributes().Any(Attribute => Equals(Attribute.AttributeClass.MetadataName, SymbolNames.RequiredAttribute));
+            return parameter.GetAttributes().Any(attribute => Equals(attribute.AttributeClass.MetadataName, SymbolNames.RequiredAttribute));
         }
 
         internal readonly struct SymbolCache

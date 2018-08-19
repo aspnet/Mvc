@@ -56,8 +56,8 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         public static readonly DiagnosticDescriptor MVC1005_ParameterAttributeAvoidUsingRequiredOncollections =
             new DiagnosticDescriptor(
                 "MVC1005",
-                "Use of 'RequiredAttribute' should be avoided on collection",
-              "Use of '{0}' should be avoided. This always made model validation is true. Consider using [MinLength(1)].",
+                "Use of '{0}' should be avoided on collections.",
+                "Use of '{0}' should be avoided. This always made model validation is true. Consider using [MinLength(1)].",
                 "Usage",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
