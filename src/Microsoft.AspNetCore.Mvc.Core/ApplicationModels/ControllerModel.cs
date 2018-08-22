@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     [DebuggerDisplay("{DisplayName}")]
     public class ControllerModel : ICommonModel, IFilterModel, IApiExplorerModel
     {
+        private IReadOnlyList<object> _controllerAssemblyAttributes;
+
         public ControllerModel(
             TypeInfo controllerType,
             IReadOnlyList<object> attributes)
@@ -97,6 +99,22 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public IList<PropertyModel> ControllerProperties { get; }
 
         public IList<IFilterMetadata> Filters { get; }
+
+        // For unit testing.
+        internal IReadOnlyList<object> ControllerAssemblyAttributes
+        {
+            get
+            {
+                if (_controllerAssemblyAttributes == null)
+                {
+                    _controllerAssemblyAttributes = ControllerType.Assembly.GetCustomAttributes(inherit: true);
+                }
+
+                return _controllerAssemblyAttributes;
+            }
+            set => _controllerAssemblyAttributes = value;
+        }
+
 
         /// <summary>
         /// Gets a collection of route values that must be present in the 

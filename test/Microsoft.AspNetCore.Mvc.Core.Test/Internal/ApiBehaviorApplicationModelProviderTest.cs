@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -1042,9 +1041,6 @@ Environment.NewLine + "int b";
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
                 Array.Empty<object>());
-            actionModel.Filters.Add(new AuthorizeFilter());
-            actionModel.Filters.Add(new ServiceFilterAttribute(typeof(object)));
-            actionModel.Filters.Add(new ConsumesAttribute("application/xml"));
             var attributes = new[] { new ApiConventionTypeAttribute(typeof(DefaultApiConventions)) };
 
             // Act
@@ -1058,6 +1054,170 @@ Environment.NewLine + "int b";
                     Assert.Equal(typeof(ApiConventionResult), kvp.Key);
                     Assert.NotNull(kvp.Value);
                 });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_SetsProblemDetails_IfActionHasNoAttributes()
+        {
+            // Arrange
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new object() });
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>())
+            {
+                Controller = controllerModel,
+            };
+            var provider = GetProvider();
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
+                    Assert.Equal(typeof(ProblemDetails), kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnControllerAsssembly()
+        {
+            // Arrange
+            var expected = typeof(InvalidTimeZoneException);
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new object() })
+            {
+                ControllerAssemblyAttributes = new object[]
+                {
+                    new AssemblyCompanyAttribute("Test"),
+                    new ApiErrorTypeAttribute(expected),
+                    new AssemblyProductAttribute("Test")
+                },
+            };
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>())
+            {
+                Controller = controllerModel,
+            };
+            var provider = GetProvider();
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
+                    Assert.Equal(expected, kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnController()
+        {
+            // Arrange
+            var expected = typeof(InvalidTimeZoneException);
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ApiErrorTypeAttribute(expected) })
+            {
+                ControllerAssemblyAttributes = new object[]
+                {
+                    new ApiErrorTypeAttribute(typeof(Guid)),
+                },
+            };
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>())
+            {
+                Controller = controllerModel,
+            };
+            var provider = GetProvider();
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
+                    Assert.Equal(expected, kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnAction()
+        {
+            // Arrange
+            var expected = typeof(InvalidTimeZoneException);
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ApiErrorTypeAttribute(typeof(Guid)) });
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                new[] { new ApiErrorTypeAttribute(expected) })
+            {
+                Controller = controllerModel,
+            };
+            var provider = GetProvider();
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
+                    Assert.Equal(expected, kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_SetsVoidsType()
+        {
+            // Arrange
+            var expected = typeof(void);
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                new[] { new ApiErrorTypeAttribute(expected) });
+            var provider = GetProvider();
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Collection(
+                actionModel.Properties,
+                kvp =>
+                {
+                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
+                    Assert.Equal(expected, kvp.Value);
+                });
+        }
+
+        [Fact]
+        public void DiscoverApiErrorType_DoesNothing_IfSuppressClientErrorFactoryIsSet()
+        {
+            // Arrange
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                new[] { new ApiErrorTypeAttribute(typeof(ProblemDetails)) });
+            var provider = GetProvider(new ApiBehaviorOptions
+            {
+                InvalidModelStateResponseFactory = _ => null,
+                SuppressUseClientErrorFactory = true
+            });
+
+            // Act
+            provider.DiscoverApiErrorType(actionModel);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
         }
 
         [Fact]

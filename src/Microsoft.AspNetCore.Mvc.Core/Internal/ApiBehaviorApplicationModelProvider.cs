@@ -81,8 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 var conventions = controllerModel.Attributes.OfType<ApiConventionTypeAttribute>().ToArray();
                 if (conventions.Length == 0)
                 {
-                    var controllerAssembly = controllerModel.ControllerType.Assembly;
-                    conventions = controllerAssembly.GetCustomAttributes<ApiConventionTypeAttribute>().ToArray();
+                    conventions = controllerModel.ControllerAssemblyAttributes.OfType<ApiConventionTypeAttribute>().ToArray();
                 }
 
                 foreach (var actionModel in controllerModel.Actions)
@@ -105,6 +104,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     AddMultipartFormDataConsumesAttribute(actionModel);
 
                     DiscoverApiConvention(actionModel, conventions);
+
+                    DiscoverApiErrorType(actionModel);
                 }
             }
         }
@@ -272,6 +273,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 actionModel.Properties[typeof(ApiConventionResult)] = result;
             }
+        }
+
+        internal void DiscoverApiErrorType(ActionModel actionModel)
+        {
+            if (_apiBehaviorOptions.SuppressUseClientErrorFactory)
+            {
+                return;
+            }
+
+            var errorTypeAttribute =
+                actionModel.Attributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault() ??
+                actionModel.Controller.Attributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault() ??
+                actionModel.Controller.ControllerAssemblyAttributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault();
+
+            actionModel.Properties[typeof(ApiErrorTypeAttribute)] = errorTypeAttribute?.Type ?? typeof(ProblemDetails);
         }
 
         private bool ParameterExistsInAnyRoute(ActionModel actionModel, string parameterName)
