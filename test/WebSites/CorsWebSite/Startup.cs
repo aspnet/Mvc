@@ -13,7 +13,7 @@ namespace CorsWebSite
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(options => options.EnableEndpointRouting = true);
             services.Configure<CorsOptions>(options =>
             {
                 options.AddPolicy(

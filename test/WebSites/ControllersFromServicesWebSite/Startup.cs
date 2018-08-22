@@ -22,7 +22,7 @@ namespace ControllersFromServicesWebSite
         public void ConfigureServices(IServiceCollection services)
         {
             var builder = services
-                .AddMvc()
+                .AddMvc(options => options.EnableEndpointRouting = true)
                 .ConfigureApplicationPartManager(manager => manager.ApplicationParts.Clear())
                 .AddApplicationPart(typeof(TimeScheduleController).GetTypeInfo().Assembly)
                 .ConfigureApplicationPartManager(manager =>

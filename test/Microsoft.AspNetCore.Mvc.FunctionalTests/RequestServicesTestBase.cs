@@ -76,7 +76,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task RequestServices_Constraint()
+        public async virtual Task RequestServices_Constraint()
         {
             // Arrange
             var url = "http://localhost/RequestScopedService/FromConstraint";

@@ -14,7 +14,7 @@ namespace RazorPagesWebSite
         {
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options => options.LoginPath = "/Login");
-            services.AddMvc()
+            services.AddMvc(options => options.EnableEndpointRouting = true)
                 .AddCookieTempDataProvider()
                 .AddRazorPagesOptions(options =>
                 {

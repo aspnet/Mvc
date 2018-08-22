@@ -19,7 +19,7 @@ namespace RazorWebSite
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             services
-                .AddMvc()
+                .AddMvc(options => options.EnableEndpointRouting = true)
                 .AddViewLocalization()
                 .AddDataAnnotationsLocalization((options) =>
                 {
@@ -32,6 +32,7 @@ namespace RazorWebSite
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app)
         {
+            app.UseGlobalRouting();
             app.UseDeveloperExceptionPage();
             app.UseRequestLocalization(new RequestLocalizationOptions
             {

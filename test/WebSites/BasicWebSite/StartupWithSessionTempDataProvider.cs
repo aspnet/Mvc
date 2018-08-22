@@ -12,7 +12,7 @@ namespace BasicWebSite
         {
             // CookieTempDataProvider is the default ITempDataProvider, so we must override it with session.
             services
-                .AddMvc()
+                .AddMvc(options => options.EnableEndpointRouting = true)
                 .AddSessionStateTempDataProvider();
             services.AddSession();
 

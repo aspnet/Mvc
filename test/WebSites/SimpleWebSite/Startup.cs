@@ -18,7 +18,7 @@ namespace SimpleWebSite
         {
             // Example 1
             services
-                .AddMvcCore()
+                .AddMvcCore(options => options.EnableEndpointRouting = true)
                 .AddAuthorization()
                 .AddFormatterMappings(m => m.SetMediaTypeMappingForFormat("js", new MediaTypeHeaderValue("application/json")))
                 .AddJsonFormatters(j => j.Formatting = Formatting.Indented);
