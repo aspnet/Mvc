@@ -53,11 +53,11 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 isEnabledByDefault: true,
                 helpLinkUri: "https://aka.ms/AA20pbc");
 
-        public static readonly DiagnosticDescriptor MVC1005_ParameterAttributeAvoidUsingRequiredOncollections =
+        public static readonly DiagnosticDescriptor MVC1005_AttributeAvoidUsingRequiredAndBindRequired =
             new DiagnosticDescriptor(
                 "MVC1005",
                 "Use of '{0}' should be avoided on collections.",
-                "Use of '{0}' should be avoided. This always made model validation is true. Consider using [MinLength(1)].",
+                "Use of '{0}' should be avoided. This always made model validation is true. Consider using '{1}'.",
                 "Usage",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);

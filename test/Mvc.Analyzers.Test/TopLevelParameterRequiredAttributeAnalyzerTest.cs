@@ -5,9 +5,9 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
-    public class TopLevelParameterAttributeAnalyzerTest
+    public class TopLevelParameterRequiredAttributeAnalyzerTest
     {
-        private MvcDiagnosticAnalyzerRunner Runner { get; } = new MvcDiagnosticAnalyzerRunner(new TopLevelParameterAttributeAnalyzer());
+        private MvcDiagnosticAnalyzerRunner Runner { get; } = new MvcDiagnosticAnalyzerRunner(new TopLevelParameterRequiredAttributeAnalyzer());
 
         [Fact]
         public Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithRequiredAttributeForArray()
@@ -19,7 +19,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
         [Fact]
         public Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttribute()
-            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterRequiredAttributeAnalyzerTest));
 
 
         [Fact]
@@ -32,11 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
 
         [Fact]
         public Task RunNoDiagnosticsAreReturnedForNonCollectionsParameterWithRequired()
-            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
-
-        [Fact]
-        public Task DiagnosticsAreReturned_ForControllerActionsWithParametersWithOutRequiredAttributeForIEnumerable()
-            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterAttributeAnalyzerTest));
+            => RunNoDiagnosticsAreReturned(nameof(TopLevelParameterRequiredAttributeAnalyzerTest));
 
         private async Task RunNoDiagnosticsAreReturned(string typename, [CallerMemberName] string testMethod = "")
         {
@@ -54,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         private async Task RunTest([CallerMemberName] string testMethod = "")
         {
             // Arrange
-            var descriptor = DiagnosticDescriptors.MVC1005_ParameterAttributeAvoidUsingRequiredOncollections;
+            var descriptor = DiagnosticDescriptors.MVC1005_AttributeAvoidUsingRequiredAndBindRequired;
             var testSource = MvcTestSource.Read(GetType().Name, testMethod);
             var expectedLocation = testSource.DefaultMarkerLocation;
 
@@ -69,7 +65,7 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                     Assert.Equal(descriptor.Id, diagnostic.Id);
                     Assert.Same(descriptor, diagnostic.Descriptor);
                     AnalyzerAssert.DiagnosticLocation(expectedLocation, diagnostic.Location);
-                    Assert.Equal(string.Format(descriptor.MessageFormat.ToString(), SymbolNames.RequiredAttribute), diagnostic.GetMessage());
+                    Assert.Equal(string.Format(descriptor.MessageFormat.ToString(), "RequiredAttribute", "MinLength(1)"), diagnostic.GetMessage());
                 });
         }
     }

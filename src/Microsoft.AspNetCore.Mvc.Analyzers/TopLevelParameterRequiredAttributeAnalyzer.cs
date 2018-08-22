@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.AspNetCore.Mvc.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TopLevelParameterAttributeAnalyzer : DiagnosticAnalyzer
+    public class TopLevelParameterRequiredAttributeAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-            DiagnosticDescriptors.MVC1005_ParameterAttributeAvoidUsingRequiredOncollections);
+            DiagnosticDescriptors.MVC1005_AttributeAvoidUsingRequiredAndBindRequired);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -56,20 +56,19 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 {
                     var parameter = method.Parameters[i];
 
-                    if (parameter.Type.IsCollection())
+                    if (IsEnumerable(parameter.Type, symbolCache.IEnumerableInterface))
                     {
-                        if (IsProblematicParameter(parameter))
+                        if (IsProblematicParameter(parameter, symbolCache.RequiredAttribute))
                         {
                             var location = parameter.Locations.Length != 0 ?
                                 parameter.Locations[0] :
                                 Location.None;
-                            var descriptor = DiagnosticDescriptors.MVC1005_ParameterAttributeAvoidUsingRequiredOncollections;
 
                             symbolAnalysisContext.ReportDiagnostic(
                                 Diagnostic.Create(
-                                    DiagnosticDescriptors.MVC1005_ParameterAttributeAvoidUsingRequiredOncollections,
+                                    DiagnosticDescriptors.MVC1005_AttributeAvoidUsingRequiredAndBindRequired,
                                     location,
-                                    SymbolNames.RequiredAttribute));
+                                    "RequiredAttribute","MinLength(1)"));
                         }
                     }
                 }
@@ -78,9 +77,26 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             }, SymbolKind.Method);
         }
 
-        private bool IsProblematicParameter(IParameterSymbol parameter)
+        public static bool IsEnumerable(ITypeSymbol source, INamedTypeSymbol iEnumerableInterface)
         {
-            return parameter.GetAttributes().Any(attribute => Equals(attribute.AttributeClass.MetadataName, SymbolNames.RequiredAttribute));
+            if (source.Kind == SymbolKind.ArrayType)
+            {
+                return true;
+            }
+            foreach (var @interface in source.AllInterfaces)
+            {
+                if (@interface == iEnumerableInterface)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsProblematicParameter(IParameterSymbol parameter, INamedTypeSymbol requiredAttribute)
+        {
+            return parameter.GetAttributes(requiredAttribute).Any();
         }
 
         internal readonly struct SymbolCache
@@ -91,6 +107,9 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
                 NonControllerAttribute = compilation.GetTypeByMetadataName(SymbolNames.NonControllerAttribute);
                 NonActionAttribute = compilation.GetTypeByMetadataName(SymbolNames.NonActionAttribute);
 
+                IEnumerableInterface = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
+                RequiredAttribute = compilation.GetTypeByMetadataName(SymbolNames.RequiredAttribute);
+
                 var disposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
                 var members = disposable.GetMembers(nameof(IDisposable.Dispose));
                 IDisposableDispose = members.Length == 1 ? (IMethodSymbol)members[0] : null;
@@ -99,7 +118,8 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
             public INamedTypeSymbol ControllerAttribute { get; }
             public INamedTypeSymbol NonControllerAttribute { get; }
             public INamedTypeSymbol NonActionAttribute { get; }
-
+            public INamedTypeSymbol IEnumerableInterface { get; }
+            public INamedTypeSymbol RequiredAttribute { get; }
             public IMethodSymbol IDisposableDispose { get; }
         }
     }
