@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Matching;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
@@ -694,12 +695,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             IDictionary<string, object> constraints = null,
             RouteValueDictionary dataTokens = null)
         {
-            var routeOptions = new RouteOptions();
-            var routeOptionsSetup = new MvcCoreRouteOptionsSetup();
-            routeOptionsSetup.Configure(routeOptions);
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddRouting();
 
-            var constraintResolver = new DefaultInlineConstraintResolver(Options.Create<RouteOptions>(routeOptions));
-            return new MvcEndpointInfo(name, template, defaults, constraints, dataTokens, constraintResolver);
+            var routeOptionsSetup = new MvcCoreRouteOptionsSetup();
+            serviceCollection.Configure<RouteOptions>(routeOptionsSetup.Configure);
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var parameterPolicyFactory = serviceProvider.GetRequiredService<ParameterPolicyFactory>();
+            return new MvcEndpointInfo(name, template, defaults, constraints, dataTokens, parameterPolicyFactory);
         }
 
         private IActionDescriptorCollectionProvider GetActionDescriptorCollection(params object[] requiredValues)

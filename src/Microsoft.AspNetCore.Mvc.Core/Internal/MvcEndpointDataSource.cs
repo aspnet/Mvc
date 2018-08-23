@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private readonly object _lock = new object();
         private readonly IActionDescriptorCollectionProvider _actions;
         private readonly MvcEndpointInvokerFactory _invokerFactory;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly DefaultHttpContext _httpContextInstance;
         private readonly IActionDescriptorChangeProvider[] _actionDescriptorChangeProviders;
 
         private List<Endpoint> _endpoints;
@@ -55,8 +55,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             _actions = actions;
             _invokerFactory = invokerFactory;
-            _serviceProvider = serviceProvider;
             _actionDescriptorChangeProviders = actionDescriptorChangeProviders.ToArray();
+            _httpContextInstance = new DefaultHttpContext() { RequestServices = serviceProvider };
 
             ConventionalEndpointInfos = new List<MvcEndpointInfo>();
 
@@ -287,13 +287,16 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     // Check that the value matches against constraints on that parameter
                     // e.g. For {controller:regex((Home|Login))} the controller value must match the regex
-                    //
-                    // REVIEW: This is really ugly
-                    if (endpointInfo.Constraints.TryGetValue(routeKey, out var constraint)
-                        && !constraint.Match(new DefaultHttpContext() { RequestServices = _serviceProvider }, NullRouter.Instance, routeKey, new RouteValueDictionary(action.RouteValues), RouteDirection.IncomingRequest))
+                    if (endpointInfo.Constraints.TryGetValue(routeKey, out var constraints))
                     {
-                        // Did not match constraint
-                        return false;
+                        foreach (var constraint in constraints)
+                        {
+                            if (!constraint.Match(_httpContextInstance, NullRouter.Instance, routeKey, new RouteValueDictionary(action.RouteValues), RouteDirection.IncomingRequest))
+                            {
+                                // Did not match constraint
+                                return false;
+                            }
+                        }
                     }
 
                     return true;
@@ -343,7 +346,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var endpoint = new RouteEndpoint(
                 requestDelegate,
-                RoutePatternFactory.Parse(template, defaults, parameterPolicies: null, segments),
+                RoutePatternFactory.Pattern(patternRawText, defaults, parameterPolicies: null, segments),
                 order,
                 metadataCollection,
                 action.DisplayName);

@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Builder
             RouteValueDictionary defaults,
             IDictionary<string, object> constraints,
             RouteValueDictionary dataTokens,
-            IInlineConstraintResolver constraintResolver)
+            ParameterPolicyFactory parameterPolicyFactory)
         {
             Name = name;
             Pattern = pattern ?? string.Empty;
@@ -27,10 +27,11 @@ namespace Microsoft.AspNetCore.Builder
             {
                 // Data we parse from the pattern will be used to fill in the rest of the constraints or
                 // defaults. The parser will throw for invalid routes.
-                ParsedPattern = RoutePatternFactory.Parse(pattern);
+                ParsedPattern = RoutePatternFactory.Parse(pattern, defaults: null, constraints);
+                Constraints = BuildConstraints(parameterPolicyFactory);
 
-                Constraints = GetConstraints(constraintResolver, ParsedPattern, constraints);
                 Defaults = defaults;
+                // Merge defaults outside of RoutePattern because the defaults will already have values from pattern
                 MergedDefaults = GetDefaults(ParsedPattern, defaults);
             }
             catch (Exception exception)
@@ -38,6 +39,31 @@ namespace Microsoft.AspNetCore.Builder
                 throw new RouteCreationException(
                     string.Format(CultureInfo.CurrentCulture, "An error occurred while creating the route with name '{0}' and pattern '{1}'.", name, pattern), exception);
             }
+        }
+
+        private Dictionary<string, IList<IRouteConstraint>> BuildConstraints(ParameterPolicyFactory parameterPolicyFactory)
+        {
+            var constraints = new Dictionary<string, IList<IRouteConstraint>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var parameter in ParsedPattern.Parameters)
+            {
+                foreach (var parameterPolicy in parameter.ParameterPolicies)
+                {
+                    var createdPolicy = parameterPolicyFactory.Create(parameter, parameterPolicy);
+                    if (createdPolicy is IRouteConstraint routeConstraint)
+                    {
+                        if (!constraints.TryGetValue(parameter.Name, out var paramConstraints))
+                        {
+                            paramConstraints = new List<IRouteConstraint>();
+                            constraints.Add(parameter.Name, paramConstraints);
+                        }
+
+                        paramConstraints.Add(routeConstraint);
+                    }
+                }
+            }
+
+            return constraints;
         }
 
         public string Name { get; }
@@ -49,40 +75,9 @@ namespace Microsoft.AspNetCore.Builder
         // Inline and non-inline defaults merged into one
         public RouteValueDictionary MergedDefaults { get; }
 
-        public IDictionary<string, IRouteConstraint> Constraints { get; }
+        public IDictionary<string, IList<IRouteConstraint>> Constraints { get; }
         public RouteValueDictionary DataTokens { get; }
         internal RoutePattern ParsedPattern { get; private set; }
-
-        private static IDictionary<string, IRouteConstraint> GetConstraints(
-            IInlineConstraintResolver inlineConstraintResolver,
-            RoutePattern parsedTemplate,
-            IDictionary<string, object> constraints)
-        {
-            var constraintBuilder = new RouteConstraintBuilder(inlineConstraintResolver, parsedTemplate.RawText);
-
-            if (constraints != null)
-            {
-                foreach (var kvp in constraints)
-                {
-                    constraintBuilder.AddConstraint(kvp.Key, kvp.Value);
-                }
-            }
-
-            foreach (var parameter in parsedTemplate.Parameters)
-            {
-                if (parameter.IsOptional)
-                {
-                    constraintBuilder.SetOptional(parameter.Name);
-                }
-
-                foreach (var inlineConstraint in parameter.Constraints)
-                {
-                    constraintBuilder.AddResolvedConstraint(parameter.Name, inlineConstraint.Content);
-                }
-            }
-
-            return constraintBuilder.Build();
-        }
 
         private static RouteValueDictionary GetDefaults(
             RoutePattern parsedTemplate,

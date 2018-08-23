@@ -42,7 +42,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     sb.Append("*");
                 }
                 sb.Append(parameterPart.Name);
-                foreach (var item in parameterPart.Constraints)
+                foreach (var item in parameterPart.ParameterPolicies)
                 {
                     sb.Append(":");
                     sb.Append(item.Content);
