@@ -79,6 +79,15 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
             WrapperProviderFactories = new List<IWrapperProviderFactory>();
             WrapperProviderFactories.Add(new EnumerableWrapperProviderFactory(WrapperProviderFactories));
             WrapperProviderFactories.Add(new SerializableErrorWrapperProviderFactory());
+            WrapperProviderFactories.Add(new WrapperProviderFactory(
+                typeof(ProblemDetails),
+                typeof(ProblemDetailsWrapper),
+                value => new ProblemDetailsWrapper((ProblemDetails)value)));
+
+            WrapperProviderFactories.Add(new WrapperProviderFactory(
+                typeof(ValidationProblemDetails),
+                typeof(ValidationProblemDetailsWrapper),
+                value => new ValidationProblemDetailsWrapper((ValidationProblemDetails)value)));
 
             _logger = loggerFactory?.CreateLogger(GetType());
         }
