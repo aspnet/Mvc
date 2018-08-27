@@ -3,18 +3,17 @@
 
 using System;
 using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
 
 namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
 {
     /// <summary>
-    /// Wrapper class for <see cref="Mvc.ValidationProblemDetails"/> to enable it to be serialized by the xml formatters.
+    /// Wrapper class for <see cref="ValidationProblemDetails"/> to enable it to be serialized by the xml formatters.
     /// </summary>
-    [XmlRoot(nameof(Mvc.ValidationProblemDetails))]
-    public sealed class ValidationProblemDetailsWrapper : IXmlSerializable, IUnwrappable
+    [XmlRoot(nameof(ValidationProblemDetails))]
+    public class ValidationProblemDetailsWrapper : ProblemDetailsWrapper, IUnwrappable
     {
-        private static readonly string EmptyKey = SerializableErrorWrapper.EmptyKey;
+        private static readonly string ErrorKey = "Mvc-Errors";
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValidationProblemDetailsWrapper"/>.
@@ -28,47 +27,32 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         /// Initializes a new instance of <see cref="ValidationProblemDetailsWrapper"/> for the specified
         /// <paramref name="problemDetails"/>.
         /// </summary>
-        /// <param name="problemDetails">The <see cref="ValidationProblemDetails"/>.</param>
+        /// <param name="problemDetails">The <see cref="ProblemDetails"/>.</param>
         public ValidationProblemDetailsWrapper(ValidationProblemDetails problemDetails)
+            : base(problemDetails)
         {
-            ValidationProblemDetails = problemDetails;
+            ProblemDetails = problemDetails;
         }
 
-        /// <summary>
-        /// Gets the wrapped <see cref="Mvc.ValidationProblemDetails"/>.
-        /// </summary>
-        public ValidationProblemDetails ValidationProblemDetails { get; }
+        internal new ValidationProblemDetails ProblemDetails { get; }
 
         /// <inheritdoc />
-        public XmlSchema GetSchema() => null;
-
-        /// <inheritdoc />
-        public void ReadXml(XmlReader reader)
+        protected override void ReadValue(XmlReader reader, string name)
         {
-            if (reader.IsEmptyElement)
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            if (string.Equals(name, ErrorKey, StringComparison.Ordinal))
             {
                 reader.Read();
-                return;
+                ReadErrorProperty(reader);
             }
-
-            reader.ReadStartElement();
-            while (reader.NodeType != XmlNodeType.EndElement)
+            else
             {
-                var key = XmlConvert.DecodeName(reader.LocalName);
-                if (key == nameof(ValidationProblemDetails.Errors))
-                {
-                    reader.Read();
-                    ReadErrorProperty(reader);
-                }
-                else
-                {
-                    ProblemDetailsWrapper.ReadProperty(reader, ValidationProblemDetails, key);
-                }
-
-                reader.MoveToContent();
+                base.ReadValue(reader, name);
             }
-
-            reader.ReadEndElement();
         }
 
         private void ReadErrorProperty(XmlReader reader)
@@ -87,18 +71,24 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                     key = string.Empty;
                 }
 
-                ValidationProblemDetails.Errors.Add(key, new[] { value });
+                ProblemDetails.Errors.Add(key, new[] { value });
                 reader.MoveToContent();
             }
         }
 
         /// <inheritdoc />
-        public void WriteXml(XmlWriter writer)
+        public override void WriteXml(XmlWriter writer)
         {
-            ProblemDetailsWrapper.WriteProblemDetails(writer, ValidationProblemDetails);
-            writer.WriteStartElement(XmlConvert.EncodeLocalName(nameof(ValidationProblemDetails.Errors)));
+            if (writer == null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
 
-            foreach (var keyValuePair in ValidationProblemDetails.Errors)
+            base.WriteXml(writer);
+
+            writer.WriteStartElement(XmlConvert.EncodeLocalName(ErrorKey));
+
+            foreach (var keyValuePair in ProblemDetails.Errors)
             {
                 var key = keyValuePair.Key;
                 var value = keyValuePair.Value;
@@ -118,15 +108,14 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             writer.WriteEndElement();
         }
 
-        /// <inheritdoc />
-        public object Unwrap(Type declaredType)
-        {
+        object IUnwrappable.Unwrap(Type declaredType)
+        { 
             if (declaredType == null)
             {
                 throw new ArgumentNullException(nameof(declaredType));
             }
 
-            return ValidationProblemDetails;
+            return ProblemDetails;
         }
     }
 }

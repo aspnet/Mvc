@@ -101,7 +101,10 @@ namespace BasicWebSite
                 Detail = "Detail",
                 Status = 404,
                 Instance = "Instance",
-                ["tracking-id"] = 27,
+                Extension =
+                {
+                    ["tracking-id"] = 27,
+                },
             });
         }
 
@@ -112,7 +115,10 @@ namespace BasicWebSite
             {
                 Title = "Error",
                 Status = 400,
-                ["tracking-id"] = "27",
+                Extension =
+                {
+                    ["tracking-id"] = "27",
+                },
                 Errors =
                 {
                     { "Error1", new[] { "Error Message" } },

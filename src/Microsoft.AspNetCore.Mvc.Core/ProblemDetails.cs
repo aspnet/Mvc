@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -12,18 +13,6 @@ namespace Microsoft.AspNetCore.Mvc
     /// </summary>
     public class ProblemDetails
     {
-        /// <summary>
-        /// Gets or sets values for extension members. Extension members appear in the same namespace as
-        /// other members of a problem type.
-        /// </summary>
-        /// <param name="key">The extension member name.</param>
-        /// <returns>The value.</returns>
-        public object this[string key]
-        {
-            get => ExtensionMembers[key];
-            set => ExtensionMembers[key] = value;
-        }
-
         /// <summary>
         /// A URI reference [RFC3986] that identifies the problem type. This specification encourages that, when
         /// dereferenced, it provide human-readable documentation for the problem type
@@ -60,9 +49,17 @@ namespace Microsoft.AspNetCore.Mvc
         public string Instance { get; set; }
 
         /// <summary>
-        /// Gets the backing collection for extension members.
+        /// Gets the <see cref="IDictionary{TKey, TValue}"/> for extension members.
+        /// <para>
+        /// Problem type definitions MAY extend the problem details object with additional members. Extension members appear in the same namespace as
+        /// other members of a problem type.
+        /// </para>
         /// </summary>
+        /// <remarks>
+        /// The round-tripping behavior for <see cref="Extension"/> is determined by the implementation of the Input \ Output formatters.
+        /// In particular, complex types or collection types may not round-trip in the original format when using the built-in JSON or XML formatters.
+        /// </remarks>
         [JsonExtensionData]
-        public IDictionary<string, object> ExtensionMembers { get; } = new Dictionary<string, object>(StringComparer.Ordinal);
+        public IDictionary<string, object> Extension { get; } = new Dictionary<string, object>(StringComparer.Ordinal);
     }
 }

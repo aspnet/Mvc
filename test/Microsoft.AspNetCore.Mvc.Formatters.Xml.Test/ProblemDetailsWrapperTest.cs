@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(403, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.ExtensionMembers,
+                problemDetails.Extension,
                 kvp =>
                 {
                     Assert.Equal("key1", kvp.Key);
@@ -58,8 +58,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 Title = "Some title",
                 Detail = "Some detail",
-                ["key1"] = "Test Value 1",
-                ["[Key2]"] = "Test Value 2",
+                Extension =
+                {
+                    ["key1"] = "Test Value 1",
+                    ["[Key2]"] = "Test Value 2",
+                },
             };
 
             var wrapper = new ProblemDetailsWrapper(problemDetails);

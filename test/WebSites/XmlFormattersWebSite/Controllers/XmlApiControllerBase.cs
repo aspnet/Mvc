@@ -22,8 +22,11 @@ namespace XmlFormattersWebSite
             {
                 Instance = "instance",
                 Title = "title",
-                ["Correlation"] = "correlation",
-                ["Accounts"] = new[] { "Account1", "Account2" },
+                Extension =
+                {
+                    ["Correlation"] = "correlation",
+                    ["Accounts"] = new[] { "Account1", "Account2" },
+                },
             });
         }
 
@@ -38,7 +41,10 @@ namespace XmlFormattersWebSite
             {
                 Detail = "some detail",
                 Type = "some type",
-                ["CorrelationId"] = "correlation",
+                Extension =
+                {
+                    ["CorrelationId"] = "correlation",
+                },
                 Errors =
                 {
                     ["Error1"] = new[] { "ErrorValue"},

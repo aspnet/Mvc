@@ -13,8 +13,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
     /// Wrapper class for <see cref="Mvc.ProblemDetails"/> to enable it to be serialized by the xml formatters.
     /// </summary>
     [XmlRoot(nameof(ProblemDetails))]
-    public sealed class ProblemDetailsWrapper : IXmlSerializable, IUnwrappable
+    public class ProblemDetailsWrapper : IXmlSerializable, IUnwrappable
     {
+        /// <summary>
+        /// Key used to represent dictionary elements with empty keys
+        /// </summary>
+        protected static readonly string EmptyKey = SerializableErrorWrapper.EmptyKey;
+
         /// <summary>
         /// Initializes a new instance of <see cref="ProblemDetailsWrapper"/>.
         /// </summary>
@@ -31,17 +36,19 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             ProblemDetails = problemDetails;
         }
 
-        /// <summary>
-        /// Gets the wrapped <see cref="Mvc.ProblemDetails"/>.
-        /// </summary>
-        public ProblemDetails ProblemDetails { get; }
+        internal ProblemDetails ProblemDetails { get; }
 
         /// <inheritdoc />
         public XmlSchema GetSchema() => null;
 
         /// <inheritdoc />
-        public void ReadXml(XmlReader reader)
+        public virtual void ReadXml(XmlReader reader)
         {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
             if (reader.IsEmptyElement)
             {
                 reader.Read();
@@ -52,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             while (reader.NodeType != XmlNodeType.EndElement)
             {
                 var key = XmlConvert.DecodeName(reader.LocalName);
-                ReadProperty(reader, ProblemDetails, key);
+                ReadValue(reader, key);
 
                 reader.MoveToContent();
             }
@@ -60,82 +67,102 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             reader.ReadEndElement();
         }
 
-        internal static void ReadProperty(XmlReader reader, ProblemDetails problemDetails, string key)
+        /// <summary>
+        /// Reads the value for the specified <paramref name="name"/> from the <paramref name="reader"/>.
+        /// </summary>
+        /// <param name="reader">The <see cref="XmlReader"/>.</param>
+        /// <param name="name">The name of the node.</param>
+        protected virtual void ReadValue(XmlReader reader, string name)
         {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
             var value = reader.ReadInnerXml();
 
-            if (key == nameof(problemDetails.Detail))
+            switch (name)
             {
-                problemDetails.Detail = value;
-            }
-            else if (key == nameof(problemDetails.Instance))
-            {
-                problemDetails.Instance = value;
-            }
-            else if (key == nameof(problemDetails.Status))
-            {
-                problemDetails.Status = string.IsNullOrEmpty(value) ?
-                    (int?)null :
-                    int.Parse(value, CultureInfo.InvariantCulture);
-            }
-            else if (key == nameof(problemDetails.Title))
-            {
-                problemDetails.Title = value;
-            }
-            else if (key == nameof(problemDetails.Type))
-            {
-                problemDetails.Type = value;
-            }
-            else
-            {
-                problemDetails.ExtensionMembers.Add(key, value);
+                case nameof(ProblemDetails.Detail):
+                    ProblemDetails.Detail = value;
+                    break;
+
+                case nameof(ProblemDetails.Instance):
+                    ProblemDetails.Instance = value;
+                    break;
+
+                case nameof(ProblemDetails.Status):
+                    ProblemDetails.Status = string.IsNullOrEmpty(value) ?
+                        (int?)null :
+                        int.Parse(value, CultureInfo.InvariantCulture);
+                    break;
+
+                case nameof(ProblemDetails.Title):
+                    ProblemDetails.Title = value;
+                    break;
+
+                case nameof(ProblemDetails.Type):
+                    ProblemDetails.Type = value;
+                    break;
+
+                default:
+                    if (string.Equals(name, EmptyKey, StringComparison.Ordinal))
+                    {
+                        name = string.Empty;
+                    }
+
+                    ProblemDetails.Extension.Add(name, value);
+                    break;
             }
         }
 
         /// <inheritdoc />
-        public void WriteXml(XmlWriter writer) => WriteProblemDetails(writer, ProblemDetails);
-        
-        internal static void WriteProblemDetails(XmlWriter writer, ProblemDetails problemDetails)
-        {
-            if (!string.IsNullOrEmpty(problemDetails.Detail))
+        public virtual void WriteXml(XmlWriter writer)
+        { 
+            if (!string.IsNullOrEmpty(ProblemDetails.Detail))
             {
                 writer.WriteElementString(
-                    XmlConvert.EncodeLocalName(nameof(problemDetails.Detail)),
-                    problemDetails.Detail);
+                    XmlConvert.EncodeLocalName(nameof(ProblemDetails.Detail)),
+                    ProblemDetails.Detail);
             }
 
-            if (!string.IsNullOrEmpty(problemDetails.Instance))
+            if (!string.IsNullOrEmpty(ProblemDetails.Instance))
             {
                 writer.WriteElementString(
-                    XmlConvert.EncodeLocalName(nameof(problemDetails.Instance)),
-                    problemDetails.Instance);
+                    XmlConvert.EncodeLocalName(nameof(ProblemDetails.Instance)),
+                    ProblemDetails.Instance);
             }
 
-            if (problemDetails.Status.HasValue)
+            if (ProblemDetails.Status.HasValue)
             {
-                writer.WriteStartElement(XmlConvert.EncodeLocalName(nameof(problemDetails.Status)));
-                writer.WriteValue(problemDetails.Status.Value);
+                writer.WriteStartElement(XmlConvert.EncodeLocalName(nameof(ProblemDetails.Status)));
+                writer.WriteValue(ProblemDetails.Status.Value);
                 writer.WriteEndElement();
             }
 
-            if (!string.IsNullOrEmpty(problemDetails.Title))
+            if (!string.IsNullOrEmpty(ProblemDetails.Title))
             {
                 writer.WriteElementString(
-                    XmlConvert.EncodeLocalName(nameof(problemDetails.Title)),
-                    problemDetails.Title);
+                    XmlConvert.EncodeLocalName(nameof(ProblemDetails.Title)),
+                    ProblemDetails.Title);
             }
 
-            if (!string.IsNullOrEmpty(problemDetails.Type))
+            if (!string.IsNullOrEmpty(ProblemDetails.Type))
             {
                 writer.WriteElementString(
-                    XmlConvert.EncodeLocalName(nameof(problemDetails.Type)),
-                    problemDetails.Type);
+                    XmlConvert.EncodeLocalName(nameof(ProblemDetails.Type)),
+                    ProblemDetails.Type);
             }
 
-            foreach (var keyValuePair in problemDetails.ExtensionMembers)
+            foreach (var keyValuePair in ProblemDetails.Extension)
             {
                 var key = keyValuePair.Key;
                 var value = keyValuePair.Value;
+
+                if (string.IsNullOrEmpty(key))
+                {
+                    key = EmptyKey;
+                }
 
                 writer.WriteStartElement(XmlConvert.EncodeLocalName(key));
                 if (value != null)
@@ -147,8 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
         }
 
-        /// <inheritdoc />
-        public object Unwrap(Type declaredType)
+        object IUnwrappable.Unwrap(Type declaredType)
         {
             if (declaredType == null)
             {

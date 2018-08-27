@@ -22,10 +22,10 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Instance>Some instance</Instance>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_key2_x005D_>Test Value 2</_x005B_key2_x005D_>" +
-                "<Errors>" +
+                "<Mvc-Errors>" +
                 "<error1>Test error 1 Test error 2</error1>" +
                 "<_x005B_error2_x005D_>Test error 3</_x005B_error2_x005D_>" +
-                "</Errors>" +
+                "</Mvc-Errors>" +
                 "</ValidationProblemDetails>";
             var serializer = new DataContractSerializer(typeof(ValidationProblemDetailsWrapper));
 
@@ -34,13 +34,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 new MemoryStream(Encoding.UTF8.GetBytes(xml)));
 
             // Assert
-            var problemDetails = Assert.IsType<ValidationProblemDetailsWrapper>(value).ValidationProblemDetails;
+            var problemDetails = Assert.IsType<ValidationProblemDetailsWrapper>(value).ProblemDetails;
             Assert.Equal("Some title", problemDetails.Title);
             Assert.Equal("Some instance", problemDetails.Instance);
             Assert.Equal(400, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.ExtensionMembers,
+                problemDetails.Extension,
                 kvp =>
                 {
                     Assert.Equal("key1", kvp.Key);
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Instance>Some instance</Instance>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_key2_x005D_>Test Value 2</_x005B_key2_x005D_>" +
-                "<Errors />" +
+                "<Mvc-Errors />" +
                 "</ValidationProblemDetails>";
             var serializer = new DataContractSerializer(typeof(ValidationProblemDetailsWrapper));
 
@@ -86,13 +86,13 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 new MemoryStream(Encoding.UTF8.GetBytes(xml)));
 
             // Assert
-            var problemDetails = Assert.IsType<ValidationProblemDetailsWrapper>(value).ValidationProblemDetails;
+            var problemDetails = Assert.IsType<ValidationProblemDetailsWrapper>(value).ProblemDetails;
             Assert.Equal("Some title", problemDetails.Title);
             Assert.Equal("Some instance", problemDetails.Instance);
             Assert.Equal(400, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.ExtensionMembers,
+                problemDetails.Extension,
                 kvp =>
                 {
                     Assert.Equal("key1", kvp.Key);
@@ -115,8 +115,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 Title = "Some title",
                 Detail = "Some detail",
-                ["key1"] = "Test Value 1",
-                ["[Key2]"] = "Test Value 2",
+                Extension =
+                {
+                    ["key1"] = "Test Value 1",
+                    ["[Key2]"] = "Test Value 2"
+                },
                 Errors =
                 {
                     { "error1", new[] {"Test error 1", "Test error 2" } },
@@ -132,10 +135,49 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Title>Some title</Title>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_Key2_x005D_>Test Value 2</_x005B_Key2_x005D_>" +
-                "<Errors>" +
+                "<Mvc-Errors>" +
                 "<error1>Test error 1 Test error 2</error1>" +
                 "<_x005B_error2_x005D_>Test error 3</_x005B_error2_x005D_>" +
-                "</Errors>" +
+                "</Mvc-Errors>" +
+                "</ValidationProblemDetails>";
+
+            // Act
+            using (var xmlWriter = XmlWriter.Create(outputStream))
+            {
+                var dataContractSerializer = new DataContractSerializer(wrapper.GetType());
+                dataContractSerializer.WriteObject(xmlWriter, wrapper);
+            }
+            outputStream.Position = 0;
+            var res = new StreamReader(outputStream, Encoding.UTF8).ReadToEnd();
+
+            // Assert
+            Assert.Equal(expectedContent, res);
+        }
+
+        [Fact]
+        public void WriteXml_WithNoValidationErrors()
+        {
+            // Arrange
+            var problemDetails = new ValidationProblemDetails
+            {
+                Title = "Some title",
+                Detail = "Some detail",
+                Extension =
+                {
+                    ["key1"] = "Test Value 1",
+                    ["[Key2]"] = "Test Value 2"
+                },
+            };
+
+            var wrapper = new ValidationProblemDetailsWrapper(problemDetails);
+            var outputStream = new MemoryStream();
+            var expectedContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ValidationProblemDetails>" +
+                "<Detail>Some detail</Detail>" +
+                "<Title>Some title</Title>" +
+                "<key1>Test Value 1</key1>" +
+                "<_x005B_Key2_x005D_>Test Value 2</_x005B_Key2_x005D_>" +
+                "<Mvc-Errors />" +
                 "</ValidationProblemDetails>";
 
             // Act
