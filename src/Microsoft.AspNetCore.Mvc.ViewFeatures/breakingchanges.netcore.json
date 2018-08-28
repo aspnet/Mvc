@@ -1,0 +1,37 @@
+[
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor",
+    "MemberId": "protected .ctor(Microsoft.AspNetCore.Mvc.Infrastructure.IHttpResponseStreamWriterFactory writerFactory, Microsoft.AspNetCore.Mvc.ViewEngines.ICompositeViewEngine viewEngine, System.Diagnostics.DiagnosticSource diagnosticSource)",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor",
+    "MemberId": "protected System.Diagnostics.DiagnosticSource get_DiagnosticSource()",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor",
+    "MemberId": "public .ctor(Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.MvcViewOptions> viewOptions, Microsoft.AspNetCore.Mvc.Infrastructure.IHttpResponseStreamWriterFactory writerFactory, Microsoft.AspNetCore.Mvc.ViewEngines.ICompositeViewEngine viewEngine, Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataDictionaryFactory tempDataFactory, System.Diagnostics.DiagnosticSource diagnosticSource, Microsoft.AspNetCore.Mvc.ModelBinding.IModelMetadataProvider modelMetadataProvider)",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewComponents.DefaultViewComponentInvoker : Microsoft.AspNetCore.Mvc.ViewComponents.IViewComponentInvoker",
+    "MemberId": "public .ctor(Microsoft.AspNetCore.Mvc.ViewComponents.IViewComponentFactory viewComponentFactory, Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.ViewComponentInvokerCache viewComponentInvokerCache, System.Diagnostics.DiagnosticSource diagnosticSource, Microsoft.Extensions.Logging.ILogger logger)",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewComponents.DefaultViewComponentInvokerFactory : Microsoft.AspNetCore.Mvc.ViewComponents.IViewComponentInvokerFactory",
+    "MemberId": "public .ctor(Microsoft.AspNetCore.Mvc.ViewComponents.IViewComponentFactory viewComponentFactory, Microsoft.AspNetCore.Mvc.ViewFeatures.Internal.ViewComponentInvokerCache viewComponentInvokerCache, System.Diagnostics.DiagnosticSource diagnosticSource, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory)",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewFeatures.PartialViewResultExecutor : Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor, Microsoft.AspNetCore.Mvc.Infrastructure.IActionResultExecutor<Microsoft.AspNetCore.Mvc.PartialViewResult>",
+    "MemberId": "public .ctor(Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.MvcViewOptions> viewOptions, Microsoft.AspNetCore.Mvc.Infrastructure.IHttpResponseStreamWriterFactory writerFactory, Microsoft.AspNetCore.Mvc.ViewEngines.ICompositeViewEngine viewEngine, Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataDictionaryFactory tempDataFactory, System.Diagnostics.DiagnosticSource diagnosticSource, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, Microsoft.AspNetCore.Mvc.ModelBinding.IModelMetadataProvider modelMetadataProvider)",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor : Microsoft.AspNetCore.Mvc.ViewFeatures.ViewExecutor, Microsoft.AspNetCore.Mvc.Infrastructure.IActionResultExecutor<Microsoft.AspNetCore.Mvc.ViewResult>",
+    "MemberId": "public .ctor(Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Mvc.MvcViewOptions> viewOptions, Microsoft.AspNetCore.Mvc.Infrastructure.IHttpResponseStreamWriterFactory writerFactory, Microsoft.AspNetCore.Mvc.ViewEngines.ICompositeViewEngine viewEngine, Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataDictionaryFactory tempDataFactory, System.Diagnostics.DiagnosticSource diagnosticSource, Microsoft.Extensions.Logging.ILoggerFactory loggerFactory, Microsoft.AspNetCore.Mvc.ModelBinding.IModelMetadataProvider modelMetadataProvider)",
+    "Kind": "Removal"
+  }
+]
