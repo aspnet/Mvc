@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             // Arrange
             var expected = @"<ValidationProblemDetails><Status>400</Status><Title>One or more validation errors occurred.</Title>
-<Mvc-Errors><State>The State field is required.</State></Mvc-Errors></ValidationProblemDetails>";
+<MVC-Errors><State>The State field is required.</State></MVC-Errors></ValidationProblemDetails>";
 
             // Act
             var response = await Client.GetAsync("/api/XmlSerializerApi/ActionReturningValidationProblem");
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         {
             // Arrange
             var expected = @"<ValidationProblemDetails><Detail>some detail</Detail><Status>400</Status><Title>One or more validation errors occurred.</Title>
-<Type>some type</Type><CorrelationId>correlation</CorrelationId><Mvc-Errors><Error1>ErrorValue</Error1></Mvc-Errors></ValidationProblemDetails>";
+<Type>some type</Type><CorrelationId>correlation</CorrelationId><MVC-Errors><Error1>ErrorValue</Error1></MVC-Errors></ValidationProblemDetails>";
 
             // Act
             var response = await Client.GetAsync("/api/XmlSerializerApi/ActionReturningValidationDetailsWithMetadata");

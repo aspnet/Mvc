@@ -306,7 +306,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             Assert.Equal("Error", validationProblemDetails.Title);
             Assert.Equal(400, validationProblemDetails.Status);
-            Assert.Equal("27", validationProblemDetails.Extension["tracking-id"]);
+            Assert.Equal("27", validationProblemDetails.Extensions["tracking-id"]);
             Assert.Collection(
                 validationProblemDetails.Errors,
                 kvp =>

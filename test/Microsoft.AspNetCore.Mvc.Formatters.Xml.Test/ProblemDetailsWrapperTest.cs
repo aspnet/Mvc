@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -22,6 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Instance>Some instance</Instance>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_key2_x005D_>Test Value 2</_x005B_key2_x005D_>" +
+                "<MVC-Empty>Test Value 3</MVC-Empty>" +
                 "</ProblemDetails>";
             var serializer = new DataContractSerializer(typeof(ProblemDetailsWrapper));
 
@@ -36,16 +38,21 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(403, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.Extension,
+                problemDetails.Extensions.OrderBy(kvp => kvp.Key),
                 kvp =>
                 {
-                    Assert.Equal("key1", kvp.Key);
-                    Assert.Equal("Test Value 1", kvp.Value);
+                    Assert.Empty(kvp.Key);
+                    Assert.Equal("Test Value 3", kvp.Value);
                 },
                 kvp =>
                 {
                     Assert.Equal("[key2]", kvp.Key);
                     Assert.Equal("Test Value 2", kvp.Value);
+                },
+                kvp =>
+                {
+                    Assert.Equal("key1", kvp.Key);
+                    Assert.Equal("Test Value 1", kvp.Value);
                 });
         }
 
@@ -58,10 +65,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 Title = "Some title",
                 Detail = "Some detail",
-                Extension =
+                Extensions =
                 {
                     ["key1"] = "Test Value 1",
                     ["[Key2]"] = "Test Value 2",
+                    [""] = "Test Value 3",
                 },
             };
 
@@ -73,6 +81,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Title>Some title</Title>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_Key2_x005D_>Test Value 2</_x005B_Key2_x005D_>" +
+                "<MVC-Empty>Test Value 3</MVC-Empty>" +
                 "</ProblemDetails>";
 
             // Act

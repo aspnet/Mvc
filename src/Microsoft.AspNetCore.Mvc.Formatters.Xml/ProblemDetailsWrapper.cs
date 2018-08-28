@@ -111,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                         name = string.Empty;
                     }
 
-                    ProblemDetails.Extension.Add(name, value);
+                    ProblemDetails.Extensions.Add(name, value);
                     break;
             }
         }
@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                     ProblemDetails.Type);
             }
 
-            foreach (var keyValuePair in ProblemDetails.Extension)
+            foreach (var keyValuePair in ProblemDetails.Extensions)
             {
                 var key = keyValuePair.Key;
                 var value = keyValuePair.Value;

@@ -56,10 +56,10 @@ namespace Microsoft.AspNetCore.Mvc
         /// </para>
         /// </summary>
         /// <remarks>
-        /// The round-tripping behavior for <see cref="Extension"/> is determined by the implementation of the Input \ Output formatters.
+        /// The round-tripping behavior for <see cref="Extensions"/> is determined by the implementation of the Input \ Output formatters.
         /// In particular, complex types or collection types may not round-trip in the original format when using the built-in JSON or XML formatters.
         /// </remarks>
         [JsonExtensionData]
-        public IDictionary<string, object> Extension { get; } = new Dictionary<string, object>(StringComparer.Ordinal);
+        public IDictionary<string, object> Extensions { get; } = new Dictionary<string, object>(StringComparer.Ordinal);
     }
 }

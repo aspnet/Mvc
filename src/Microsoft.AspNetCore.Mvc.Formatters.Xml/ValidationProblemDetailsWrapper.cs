@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
     [XmlRoot(nameof(ValidationProblemDetails))]
     public class ValidationProblemDetailsWrapper : ProblemDetailsWrapper, IUnwrappable
     {
-        private static readonly string ErrorKey = "Mvc-Errors";
+        private static readonly string ErrorKey = "MVC-Errors";
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValidationProblemDetailsWrapper"/>.
@@ -85,6 +85,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             }
 
             base.WriteXml(writer);
+
+            if (ProblemDetails.Errors.Count == 0)
+            {
+                return;
+            }
 
             writer.WriteStartElement(XmlConvert.EncodeLocalName(ErrorKey));
 

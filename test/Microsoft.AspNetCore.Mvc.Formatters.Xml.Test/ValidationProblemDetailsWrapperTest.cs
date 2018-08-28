@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -22,10 +23,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Instance>Some instance</Instance>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_key2_x005D_>Test Value 2</_x005B_key2_x005D_>" +
-                "<Mvc-Errors>" +
+                "<MVC-Errors>" +
                 "<error1>Test error 1 Test error 2</error1>" +
                 "<_x005B_error2_x005D_>Test error 3</_x005B_error2_x005D_>" +
-                "</Mvc-Errors>" +
+                "<MVC-Empty>Test error 4</MVC-Empty>" +
+                "</MVC-Errors>" +
                 "</ValidationProblemDetails>";
             var serializer = new DataContractSerializer(typeof(ValidationProblemDetailsWrapper));
 
@@ -40,29 +42,34 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(400, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.Extension,
-                kvp =>
-                {
-                    Assert.Equal("key1", kvp.Key);
-                    Assert.Equal("Test Value 1", kvp.Value);
-                },
+                problemDetails.Extensions.OrderBy(kvp => kvp.Key),
                 kvp =>
                 {
                     Assert.Equal("[key2]", kvp.Key);
                     Assert.Equal("Test Value 2", kvp.Value);
+                },
+                kvp =>
+                {
+                    Assert.Equal("key1", kvp.Key);
+                    Assert.Equal("Test Value 1", kvp.Value);
                 });
 
             Assert.Collection(
-                problemDetails.Errors,
+                problemDetails.Errors.OrderBy(kvp => kvp.Key),
                 kvp =>
                 {
-                    Assert.Equal("error1", kvp.Key);
-                    Assert.Equal(new[] { "Test error 1 Test error 2" }, kvp.Value);
+                    Assert.Empty(kvp.Key);
+                    Assert.Equal(new[] { "Test error 4" }, kvp.Value);
                 },
                 kvp =>
                 {
                     Assert.Equal("[error2]", kvp.Key);
                     Assert.Equal(new[] { "Test error 3" }, kvp.Value);
+                },
+                kvp =>
+                {
+                    Assert.Equal("error1", kvp.Key);
+                    Assert.Equal(new[] { "Test error 1 Test error 2" }, kvp.Value);
                 });
         }
 
@@ -77,7 +84,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Instance>Some instance</Instance>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_key2_x005D_>Test Value 2</_x005B_key2_x005D_>" +
-                "<Mvc-Errors />" +
                 "</ValidationProblemDetails>";
             var serializer = new DataContractSerializer(typeof(ValidationProblemDetailsWrapper));
 
@@ -92,7 +98,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             Assert.Equal(400, problemDetails.Status);
 
             Assert.Collection(
-                problemDetails.Extension,
+                problemDetails.Extensions,
                 kvp =>
                 {
                     Assert.Equal("key1", kvp.Key);
@@ -108,6 +114,29 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
         }
 
         [Fact]
+        public void ReadXml_ReadsValidationProblemDetailsXml_WithEmptyErrorsElement()
+        {
+            // Arrange
+            var xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+                "<ValidationProblemDetails>" +
+                "<Title>Some title</Title>" +
+                "<Status>400</Status>" +
+                "<MVC-Errors />" +
+                "</ValidationProblemDetails>";
+            var serializer = new DataContractSerializer(typeof(ValidationProblemDetailsWrapper));
+
+            // Act
+            var value = serializer.ReadObject(
+                new MemoryStream(Encoding.UTF8.GetBytes(xml)));
+
+            // Assert
+            var problemDetails = Assert.IsType<ValidationProblemDetailsWrapper>(value).ProblemDetails;
+            Assert.Equal("Some title", problemDetails.Title);
+            Assert.Equal(400, problemDetails.Status);
+            Assert.Empty(problemDetails.Errors);
+        }
+
+        [Fact]
         public void WriteXml_WritesValidXml()
         {
             // Arrange
@@ -115,7 +144,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 Title = "Some title",
                 Detail = "Some detail",
-                Extension =
+                Extensions =
                 {
                     ["key1"] = "Test Value 1",
                     ["[Key2]"] = "Test Value 2"
@@ -124,6 +153,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 {
                     { "error1", new[] {"Test error 1", "Test error 2" } },
                     { "[error2]", new[] {"Test error 3" } },
+                    { "", new[] { "Test error 4" } },
                 }
             };
 
@@ -135,10 +165,11 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Title>Some title</Title>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_Key2_x005D_>Test Value 2</_x005B_Key2_x005D_>" +
-                "<Mvc-Errors>" +
+                "<MVC-Errors>" +
                 "<error1>Test error 1 Test error 2</error1>" +
                 "<_x005B_error2_x005D_>Test error 3</_x005B_error2_x005D_>" +
-                "</Mvc-Errors>" +
+                "<MVC-Empty>Test error 4</MVC-Empty>" +
+                "</MVC-Errors>" +
                 "</ValidationProblemDetails>";
 
             // Act
@@ -162,7 +193,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
             {
                 Title = "Some title",
                 Detail = "Some detail",
-                Extension =
+                Extensions =
                 {
                     ["key1"] = "Test Value 1",
                     ["[Key2]"] = "Test Value 2"
@@ -177,7 +208,6 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Xml
                 "<Title>Some title</Title>" +
                 "<key1>Test Value 1</key1>" +
                 "<_x005B_Key2_x005D_>Test Value 2</_x005B_Key2_x005D_>" +
-                "<Mvc-Errors />" +
                 "</ValidationProblemDetails>";
 
             // Act
