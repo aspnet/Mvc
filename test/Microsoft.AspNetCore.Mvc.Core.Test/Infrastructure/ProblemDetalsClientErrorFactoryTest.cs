@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             }));
 
             // Act
-            var result = factory.GetClientError(new ActionContext(), clientError);
+            var result = factory.GetClientError(GetActionContext(), clientError);
 
             // Assert
             var objectResult = Assert.IsType<ObjectResult>(result);
@@ -49,7 +50,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             }));
 
             // Act
-            var result = factory.GetClientError(new ActionContext(), clientError);
+            var result = factory.GetClientError(GetActionContext(), clientError);
 
             // Assert
             var objectResult = Assert.IsType<ObjectResult>(result);
@@ -60,6 +61,41 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             Assert.Equal("Summary", problemDetails.Title);
             Assert.Null(problemDetails.Detail);
             Assert.Null(problemDetails.Instance);
+        }
+
+        [Fact]
+        public void GetClientError_SetsTraceIdentifier()
+        {
+            // Arrange
+            var clientError = new UnsupportedMediaTypeResult();
+            var factory = new ProblemDetailsClientErrorFactory(Options.Create(new ApiBehaviorOptions
+            {
+                ClientErrorMapping =
+                {
+                    [415] = new ClientErrorData { Link = "Some link", Title = "Summary" },
+                },
+            }));
+
+            // Act
+            var result = factory.GetClientError(GetActionContext(), clientError);
+
+            // Assert
+            var objectResult = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(new[] { "application/problem+json", "application/problem+xml" }, objectResult.ContentTypes);
+            var problemDetails = Assert.IsType<ProblemDetails>(objectResult.Value);
+
+            Assert.Equal("42", problemDetails.Extensions["requestId"]);
+        }
+
+        private static ActionContext GetActionContext()
+        {
+            return new ActionContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    TraceIdentifier = "42",
+                }
+            };
         }
     }
 }

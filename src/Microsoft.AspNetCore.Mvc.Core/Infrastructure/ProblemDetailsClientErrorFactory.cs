@@ -8,6 +8,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 {
     internal class ProblemDetailsClientErrorFactory : IClientErrorFactory
     {
+        private static readonly string RequestIdentifierKey = "requestId";
         private readonly ApiBehaviorOptions _options;
 
         public ProblemDetailsClientErrorFactory(IOptions<ApiBehaviorOptions> options)
@@ -28,6 +29,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             {
                 problemDetails.Title = errorData.Title;
                 problemDetails.Type = errorData.Link;
+                problemDetails.Extensions[RequestIdentifierKey] = actionContext.HttpContext.TraceIdentifier;
             }
 
             return new ObjectResult(problemDetails)
