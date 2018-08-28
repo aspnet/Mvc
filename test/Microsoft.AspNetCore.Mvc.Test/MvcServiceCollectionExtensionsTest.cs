@@ -265,7 +265,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             services.AddSingleton<IHostingEnvironment>(GetHostingEnvironment());
             services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
-            services.AddSingleton<DiagnosticSource>(new DiagnosticListener("Microsoft.AspNet"));
+            services.AddSingleton<DiagnosticListener>(new DiagnosticListener("Microsoft.AspNet"));
             services.AddSingleton<IConfiguration>(new ConfigurationBuilder().Build());
             services.AddLogging();
             services.AddOptions();

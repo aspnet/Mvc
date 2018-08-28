@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private readonly IRazorViewEngine _viewEngine;
         private readonly IRazorPageActivator _pageActivator;
         private readonly HtmlEncoder _htmlEncoder;
-        private readonly DiagnosticSource _diagnosticSource;
+        private readonly DiagnosticListener _diagnosticListener;
         private IViewBufferScope _bufferScope;
 
         /// <summary>
@@ -36,14 +36,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </param>
         /// <param name="razorPage">The <see cref="IRazorPage"/> instance to execute.</param>
         /// <param name="htmlEncoder">The HTML encoder.</param>
-        /// <param name="diagnosticSource">The <see cref="DiagnosticSource"/>.</param>
+        /// <param name="diagnosticListener">The <see cref="DiagnosticListener"/>.</param>
         public RazorView(
             IRazorViewEngine viewEngine,
             IRazorPageActivator pageActivator,
             IReadOnlyList<IRazorPage> viewStartPages,
             IRazorPage razorPage,
             HtmlEncoder htmlEncoder,
-            DiagnosticSource diagnosticSource)
+            DiagnosticListener diagnosticListener)
         {
             if (viewEngine == null)
             {
@@ -70,9 +70,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new ArgumentNullException(nameof(htmlEncoder));
             }
 
-            if (diagnosticSource == null)
+            if (diagnosticListener == null)
             {
-                throw new ArgumentNullException(nameof(diagnosticSource));
+                throw new ArgumentNullException(nameof(diagnosticListener));
             }
 
             _viewEngine = viewEngine;
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             ViewStartPages = viewStartPages;
             RazorPage = razorPage;
             _htmlEncoder = htmlEncoder;
-            _diagnosticSource = diagnosticSource;
+            _diagnosticListener = diagnosticListener;
         }
 
         /// <inheritdoc />
@@ -171,7 +171,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
             OnAfterPageActivated?.Invoke(page, context);
 
-            _diagnosticSource.BeforeViewPage(page, context);
+            _diagnosticListener.BeforeViewPage(page, context);
 
             try
             {
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             }
             finally
             {
-                _diagnosticSource.AfterViewPage(page, context);
+                _diagnosticListener.AfterViewPage(page, context);
             }
         }
 

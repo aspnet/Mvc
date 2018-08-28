@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
         private const string ViewPathFormat = "Components/{0}/{1}";
         private const string DefaultViewName = "Default";
 
-        private DiagnosticSource _diagnosticSource;
+        private DiagnosticListener _diagnosticListener;
 
         /// <summary>
         /// Gets or sets the view name.
@@ -116,12 +116,12 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
             var view = result.EnsureSuccessful(originalLocations).View;
             using (view as IDisposable)
             {
-                if (_diagnosticSource == null)
+                if (_diagnosticListener == null)
                 {
-                    _diagnosticSource = viewContext.HttpContext.RequestServices.GetRequiredService<DiagnosticSource>();
+                    _diagnosticListener = viewContext.HttpContext.RequestServices.GetRequiredService<DiagnosticListener>();
                 }
 
-                _diagnosticSource.ViewComponentBeforeViewExecute(context, view);
+                _diagnosticListener.ViewComponentBeforeViewExecute(context, view);
 
                 var childViewContext = new ViewContext(
                     viewContext,
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewComponents
                     context.Writer);
                 await view.RenderAsync(childViewContext);
 
-                _diagnosticSource.ViewComponentAfterViewExecute(context, view);
+                _diagnosticListener.ViewComponentAfterViewExecute(context, view);
             }
         }
 

@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             {
                 valueAccessor = valueAccessors.JsonHelperAccessor;
             }
-            else if (property.PropertyType == typeof(DiagnosticSource))
+            else if (property.PropertyType == typeof(DiagnosticListener))
             {
                 valueAccessor = valueAccessors.DiagnosticSourceAccessor;
             }

@@ -277,14 +277,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var actionContext = new ActionContext(httpContext, new RouteData(), actionDescriptor);
 
-            var diagnosticSource = new DiagnosticListener("Microsoft.AspNetCore");
-            diagnosticSource.SubscribeWithAdapter(new TestDiagnosticListener());
+            var diagnosticListener = new DiagnosticListener("Microsoft.AspNetCore");
+            diagnosticListener.SubscribeWithAdapter(new TestDiagnosticListener());
 
             var invoker = new TestControllerActionInvoker(
                 filters,
                 new MockControllerFactory(controller ?? this),
                 new NullLoggerFactory().CreateLogger<ControllerActionInvoker>(),
-                diagnosticSource,
+                diagnosticListener,
                 new ActionResultTypeMapper(),
                 actionContext,
                 new List<IValueProviderFactory>(),
@@ -389,14 +389,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 IFilterMetadata[] filters,
                 MockControllerFactory controllerFactory,
                 ILogger logger,
-                DiagnosticSource diagnosticSource,
+                DiagnosticListener diagnosticListener,
                 IActionResultTypeMapper mapper,
                 ActionContext actionContext,
                 IReadOnlyList<IValueProviderFactory> valueProviderFactories,
                 int maxAllowedErrorsInModelState)
                 : base(
                       logger,
-                      diagnosticSource,
+                      diagnosticListener,
                       mapper,
                       CreatControllerContext(actionContext, valueProviderFactories, maxAllowedErrorsInModelState),
                       CreateCacheEntry((ControllerActionDescriptor)actionContext.ActionDescriptor, controllerFactory),

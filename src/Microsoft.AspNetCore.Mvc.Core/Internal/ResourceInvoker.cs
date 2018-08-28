@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public abstract class ResourceInvoker
     {
-        protected readonly DiagnosticSource _diagnosticSource;
+        protected readonly DiagnosticListener _diagnosticListener;
         protected readonly ILogger _logger;
         protected readonly IActionResultTypeMapper _mapper;
         protected readonly ActionContext _actionContext;
@@ -38,14 +38,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         protected object _instance;
 
         public ResourceInvoker(
-            DiagnosticSource diagnosticSource,
+            DiagnosticListener diagnosticListener,
             ILogger logger,
             IActionResultTypeMapper mapper,
             ActionContext actionContext,
             IFilterMetadata[] filters,
             IList<IValueProviderFactory> valueProviderFactories)
         {
-            _diagnosticSource = diagnosticSource ?? throw new ArgumentNullException(nameof(diagnosticSource));
+            _diagnosticListener = diagnosticListener ?? throw new ArgumentNullException(nameof(diagnosticListener));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _actionContext = actionContext ?? throw new ArgumentNullException(nameof(actionContext));
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             try
             {
-                _diagnosticSource.BeforeAction(
+                _diagnosticListener.BeforeAction(
                     _actionContext.ActionDescriptor,
                     _actionContext.HttpContext,
                     _actionContext.RouteData);
@@ -89,7 +89,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
             finally
             {
-                _diagnosticSource.AfterAction(
+                _diagnosticListener.AfterAction(
                     _actionContext.ActionDescriptor,
                     _actionContext.HttpContext,
                     _actionContext.RouteData);
@@ -130,7 +130,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var actionContext = _actionContext;
 
-            _diagnosticSource.BeforeActionResult(actionContext, result);
+            _diagnosticListener.BeforeActionResult(actionContext, result);
             _logger.BeforeExecutingActionResult(result);
 
             try
@@ -139,7 +139,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
             finally
             {
-                _diagnosticSource.AfterActionResult(actionContext, result);
+                _diagnosticListener.AfterActionResult(actionContext, result);
                 _logger.AfterExecutingActionResult(result);
             }
         }
@@ -196,7 +196,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IAsyncAuthorizationFilter)state;
                         var authorizationContext = _authorizationContext;
 
-                        _diagnosticSource.BeforeOnAuthorizationAsync(authorizationContext, filter);
+                        _diagnosticListener.BeforeOnAuthorizationAsync(authorizationContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             FilterTypeConstants.AuthorizationFilter,
                             nameof(IAsyncAuthorizationFilter.OnAuthorizationAsync),
@@ -220,7 +220,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IAsyncAuthorizationFilter)state;
                         var authorizationContext = _authorizationContext;
 
-                        _diagnosticSource.AfterOnAuthorizationAsync(authorizationContext, filter);
+                        _diagnosticListener.AfterOnAuthorizationAsync(authorizationContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             FilterTypeConstants.AuthorizationFilter,
                             nameof(IAsyncAuthorizationFilter.OnAuthorizationAsync),
@@ -242,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IAuthorizationFilter)state;
                         var authorizationContext = _authorizationContext;
 
-                        _diagnosticSource.BeforeOnAuthorization(authorizationContext, filter);
+                        _diagnosticListener.BeforeOnAuthorization(authorizationContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             FilterTypeConstants.AuthorizationFilter,
                             nameof(IAuthorizationFilter.OnAuthorization),
@@ -250,7 +250,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         filter.OnAuthorization(authorizationContext);
 
-                        _diagnosticSource.AfterOnAuthorization(authorizationContext, filter);
+                        _diagnosticListener.AfterOnAuthorization(authorizationContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             FilterTypeConstants.AuthorizationFilter,
                             nameof(IAuthorizationFilter.OnAuthorization),
@@ -333,7 +333,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IAsyncResourceFilter)state;
                         var resourceExecutingContext = _resourceExecutingContext;
 
-                        _diagnosticSource.BeforeOnResourceExecution(resourceExecutingContext, filter);
+                        _diagnosticListener.BeforeOnResourceExecution(resourceExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             FilterTypeConstants.ResourceFilter,
                             nameof(IAsyncResourceFilter.OnResourceExecutionAsync),
@@ -364,7 +364,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                                 Result = _resourceExecutingContext.Result,
                             };
 
-                            _diagnosticSource.AfterOnResourceExecution(_resourceExecutedContext, filter);
+                            _diagnosticListener.AfterOnResourceExecution(_resourceExecutedContext, filter);
                             _logger.AfterExecutingMethodOnFilter(
                                 FilterTypeConstants.ResourceFilter,
                                 nameof(IAsyncResourceFilter.OnResourceExecutionAsync),
@@ -388,7 +388,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IResourceFilter)state;
                         var resourceExecutingContext = _resourceExecutingContext;
 
-                        _diagnosticSource.BeforeOnResourceExecuting(resourceExecutingContext, filter);
+                        _diagnosticListener.BeforeOnResourceExecuting(resourceExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             FilterTypeConstants.ResourceFilter,
                             nameof(IResourceFilter.OnResourceExecuting),
@@ -396,7 +396,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         filter.OnResourceExecuting(resourceExecutingContext);
 
-                        _diagnosticSource.AfterOnResourceExecuting(resourceExecutingContext, filter);
+                        _diagnosticListener.AfterOnResourceExecuting(resourceExecutingContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             FilterTypeConstants.ResourceFilter,
                             nameof(IResourceFilter.OnResourceExecuting),
@@ -432,7 +432,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IResourceFilter)state;
                         var resourceExecutedContext = _resourceExecutedContext;
 
-                        _diagnosticSource.BeforeOnResourceExecuted(resourceExecutedContext, filter);
+                        _diagnosticListener.BeforeOnResourceExecuted(resourceExecutedContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             FilterTypeConstants.ResourceFilter,
                             nameof(IResourceFilter.OnResourceExecuted),
@@ -440,7 +440,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         filter.OnResourceExecuted(resourceExecutedContext);
 
-                        _diagnosticSource.AfterOnResourceExecuted(resourceExecutedContext, filter);
+                        _diagnosticListener.AfterOnResourceExecuted(resourceExecutedContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             FilterTypeConstants.ResourceFilter,
                             nameof(IResourceFilter.OnResourceExecuted),
@@ -528,7 +528,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         // we'll call the filter. Otherwise there's nothing to do.
                         if (exceptionContext?.Exception != null && !exceptionContext.ExceptionHandled)
                         {
-                            _diagnosticSource.BeforeOnExceptionAsync(exceptionContext, filter);
+                            _diagnosticListener.BeforeOnExceptionAsync(exceptionContext, filter);
                             _logger.BeforeExecutingMethodOnFilter(
                                 FilterTypeConstants.ExceptionFilter,
                                 nameof(IAsyncExceptionFilter.OnExceptionAsync),
@@ -555,7 +555,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (IAsyncExceptionFilter)state;
                         var exceptionContext = _exceptionContext;
 
-                        _diagnosticSource.AfterOnExceptionAsync(exceptionContext, filter);
+                        _diagnosticListener.AfterOnExceptionAsync(exceptionContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             FilterTypeConstants.ExceptionFilter,
                             nameof(IAsyncExceptionFilter.OnExceptionAsync),
@@ -595,7 +595,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         // we'll call the filter. Otherwise there's nothing to do.
                         if (exceptionContext?.Exception != null && !exceptionContext.ExceptionHandled)
                         {
-                            _diagnosticSource.BeforeOnException(exceptionContext, filter);
+                            _diagnosticListener.BeforeOnException(exceptionContext, filter);
                             _logger.BeforeExecutingMethodOnFilter(
                                 FilterTypeConstants.ExceptionFilter,
                                 nameof(IExceptionFilter.OnException),
@@ -603,7 +603,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                             filter.OnException(exceptionContext);
 
-                            _diagnosticSource.AfterOnException(exceptionContext, filter);
+                            _diagnosticListener.AfterOnException(exceptionContext, filter);
                             _logger.AfterExecutingMethodOnFilter(
                                 FilterTypeConstants.ExceptionFilter,
                                 nameof(IExceptionFilter.OnException),
@@ -905,7 +905,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (TFilterAsync)state;
                         var resultExecutingContext = _resultExecutingContext;
 
-                        _diagnosticSource.BeforeOnResultExecution(resultExecutingContext, filter);
+                        _diagnosticListener.BeforeOnResultExecution(resultExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IAsyncResultFilter.OnResultExecutionAsync),
@@ -945,7 +945,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             };
                         }
 
-                        _diagnosticSource.AfterOnResultExecution(_resultExecutedContext, filter);
+                        _diagnosticListener.AfterOnResultExecution(_resultExecutedContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IAsyncResultFilter.OnResultExecutionAsync),
@@ -962,7 +962,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (TFilter)state;
                         var resultExecutingContext = _resultExecutingContext;
 
-                        _diagnosticSource.BeforeOnResultExecuting(resultExecutingContext, filter);
+                        _diagnosticListener.BeforeOnResultExecuting(resultExecutingContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IResultFilter.OnResultExecuting),
@@ -970,7 +970,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         filter.OnResultExecuting(resultExecutingContext);
 
-                        _diagnosticSource.AfterOnResultExecuting(resultExecutingContext, filter);
+                        _diagnosticListener.AfterOnResultExecuting(resultExecutingContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IResultFilter.OnResultExecuting),
@@ -1012,7 +1012,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         var filter = (TFilter)state;
                         var resultExecutedContext = _resultExecutedContext;
 
-                        _diagnosticSource.BeforeOnResultExecuted(resultExecutedContext, filter);
+                        _diagnosticListener.BeforeOnResultExecuted(resultExecutedContext, filter);
                         _logger.BeforeExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IResultFilter.OnResultExecuted),
@@ -1020,7 +1020,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                         filter.OnResultExecuted(resultExecutedContext);
 
-                        _diagnosticSource.AfterOnResultExecuted(resultExecutedContext, filter);
+                        _diagnosticListener.AfterOnResultExecuted(resultExecutedContext, filter);
                         _logger.AfterExecutingMethodOnFilter(
                             resultFilterKind,
                             nameof(IResultFilter.OnResultExecuted),

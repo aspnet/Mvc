@@ -20,21 +20,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private readonly IReadOnlyList<IValueProviderFactory> _valueProviderFactories;
         private readonly int _maxModelValidationErrors;
         private readonly ILogger _logger;
-        private readonly DiagnosticSource _diagnosticSource;
+        private readonly DiagnosticListener _diagnosticListener;
         private readonly IActionResultTypeMapper _mapper;
 
         public ControllerActionInvokerProvider(
             ControllerActionInvokerCache controllerActionInvokerCache,
             IOptions<MvcOptions> optionsAccessor,
             ILoggerFactory loggerFactory,
-            DiagnosticSource diagnosticSource,
+            DiagnosticListener diagnosticListener,
             IActionResultTypeMapper mapper)
         {
             _controllerActionInvokerCache = controllerActionInvokerCache;
             _valueProviderFactories = optionsAccessor.Value.ValueProviderFactories.ToArray();
             _maxModelValidationErrors = optionsAccessor.Value.MaxModelValidationErrors;
             _logger = loggerFactory.CreateLogger<ControllerActionInvoker>();
-            _diagnosticSource = diagnosticSource;
+            _diagnosticListener = diagnosticListener;
             _mapper = mapper;
         }
 
@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 var invoker = new ControllerActionInvoker(
                     _logger,
-                    _diagnosticSource,
+                    _diagnosticListener,
                     _mapper,
                     controllerContext,
                     cacheResult.cacheEntry,

@@ -109,7 +109,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <inheritdoc />
-        public override void BeginContext(int position, int length, bool isLiteral)
+        protected override void BeginContextImpl(int position, int length, bool isLiteral)
         {
             const string BeginContextEvent = "Microsoft.AspNetCore.Mvc.Razor.BeginInstrumentationContext";
 
@@ -129,7 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <inheritdoc />
-        public override void EndContext()
+        protected override void EndContextImpl()
         {
             const string EndContextEvent = "Microsoft.AspNetCore.Mvc.Razor.EndInstrumentationContext";
 

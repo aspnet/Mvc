@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             UrlHelperFactory = new UrlHelperFactory();
         }
 
-        private DiagnosticSource DiagnosticSource { get; }
+        private DiagnosticListener DiagnosticSource { get; }
 
         private HtmlEncoder HtmlEncoder { get; }
 

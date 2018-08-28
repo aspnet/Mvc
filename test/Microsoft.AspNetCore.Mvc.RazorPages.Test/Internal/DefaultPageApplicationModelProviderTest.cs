@@ -38,12 +38,12 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private class InvalidPageWithWrongBaseClass : RazorPageBase
         {
-            public override void BeginContext(int position, int length, bool isLiteral)
+            protected override void BeginContextImpl(int position, int length, bool isLiteral)
             {
                 throw new NotImplementedException();
             }
 
-            public override void EndContext()
+            protected override void EndContextImpl()
             {
                 throw new NotImplementedException();
             }

@@ -83,10 +83,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         public IDictionary<string, RenderAsyncDelegate> PreviousSectionWriters { get; set; }
 
         /// <summary>
-        /// Gets or sets a <see cref="System.Diagnostics.DiagnosticSource"/> instance used to instrument the page execution.
+        /// Gets or sets a <see cref="System.Diagnostics.DiagnosticListener"/> instance used to instrument the page execution.
         /// </summary>
         [RazorInject]
-        public DiagnosticSource DiagnosticSource { get; set; }
+        public DiagnosticListener DiagnosticSource { get; set; }
 
         /// <summary>
         /// Gets the <see cref="System.Text.Encodings.Web.HtmlEncoder"/> to use when this <see cref="RazorPage"/>
@@ -673,9 +673,29 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             EndContext();
         }
 
-        public abstract void BeginContext(int position, int length, bool isLiteral);
+        public void BeginContext(int position, int length, bool isLiteral)
+        {
+            // Inlinable fast-path check if Diagnositcs is enabled
+            if (DiagnosticSource?.IsEnabled() == true)
+            {
+                // Virtual (non-inline) call only when Diagnositcs is enabled
+                BeginContextImpl(position, length, isLiteral);
+            }
+        }
 
-        public abstract void EndContext();
+        protected abstract void BeginContextImpl(int position, int length, bool isLiteral);
+
+        public void EndContext()
+        {
+            // Inlinable fast-path check if Diagnositcs is enabled
+            if (DiagnosticSource?.IsEnabled() == true)
+            {
+                // Virtual (non-inline) call only when Diagnositcs is enabled
+                EndContextImpl();
+            }
+        }
+
+        protected abstract void EndContextImpl();
 
         private bool IsBoolFalseOrNullValue(string prefix, object value)
         {

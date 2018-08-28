@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private readonly HtmlHelperOptions _htmlHelperOptions;
         private readonly IPageHandlerMethodSelector _selector;
         private readonly RazorProjectFileSystem _razorFileSystem;
-        private readonly DiagnosticSource _diagnosticSource;
+        private readonly DiagnosticListener _diagnosticListener;
         private readonly ILogger<PageActionInvoker> _logger;
         private readonly IActionResultTypeMapper _mapper;
         private volatile InnerCache _currentCache;
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             IOptions<HtmlHelperOptions> htmlHelperOptions,
             IPageHandlerMethodSelector selector,
             RazorProjectFileSystem razorFileSystem,
-            DiagnosticSource diagnosticSource,
+            DiagnosticListener diagnosticListener,
             ILoggerFactory loggerFactory,
             IActionResultTypeMapper mapper)
         {
@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             _htmlHelperOptions = htmlHelperOptions.Value;
             _selector = selector;
             _razorFileSystem = razorFileSystem;
-            _diagnosticSource = diagnosticSource;
+            _diagnosticListener = diagnosticListener;
             _logger = loggerFactory.CreateLogger<PageActionInvoker>();
             _mapper = mapper;
         }
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
             return new PageActionInvoker(
                 _selector,
-                _diagnosticSource,
+                _diagnosticListener,
                 _logger,
                 _mapper,
                 pageContext,
