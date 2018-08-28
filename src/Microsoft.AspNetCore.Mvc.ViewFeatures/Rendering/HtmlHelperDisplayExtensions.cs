@@ -482,6 +482,7 @@ namespace Microsoft.AspNetCore.Mvc.Rendering
                 additionalViewData: null);
         }
 
+
         /// <summary>
         /// Returns HTML markup for the current model, using a display template and specified additional view data. The
         /// template is found using the model's <see cref="ModelBinding.ModelMetadata"/>.
