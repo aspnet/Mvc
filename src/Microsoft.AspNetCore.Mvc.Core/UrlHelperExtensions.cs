@@ -202,6 +202,27 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         /// <summary>
+        /// Generates an absolute URL for the specified <paramref name="actionName"/> and action
+        /// <paramref name="values"/>, which contains the protocol (such as "http" or "https") and host name from the
+        /// current request.
+        /// </summary>
+        /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
+        /// <param name="actionName">The name of the action that is used to generate URL.</param>
+        /// <param name="values">An object that contains action values.</param>
+        /// <returns>The generated absolute URL.</returns>
+        public static string ActionLink(this IUrlHelper helper, string actionName, object values)
+        {
+            var httpContext = helper.ActionContext.HttpContext;
+            return helper.Action(new UrlActionContext()
+            {
+                Action = actionName,
+                Protocol = httpContext.Request.Scheme,
+                Host = httpContext.Request.Host.ToUriComponent(),
+                Values = values
+            });
+        }
+
+        /// <summary>
         /// Generates a URL with an absolute path for the specified route <paramref name="values"/>.
         /// </summary>
         /// <param name="helper">The <see cref="IUrlHelper"/>.</param>
