@@ -92,38 +92,35 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         /// <inheritdoc />
         public IHtmlContentBuilder Append(string unencoded)
         {
-            if (unencoded == null)
+            if (unencoded != null)
             {
-                return this;
+                // Text that needs encoding is the uncommon case in views, which is why it
+                // creates a wrapper and pre-encoded text does not.
+                AppendValue(new ViewBufferValue(new EncodingWrapper(unencoded)));
             }
 
-            // Text that needs encoding is the uncommon case in views, which is why it
-            // creates a wrapper and pre-encoded text does not.
-            AppendValue(new ViewBufferValue(new EncodingWrapper(unencoded)));
             return this;
         }
 
         /// <inheritdoc />
         public IHtmlContentBuilder AppendHtml(IHtmlContent content)
         {
-            if (content == null)
+            if (content != null)
             {
-                return this;
+                AppendValue(new ViewBufferValue(content));
             }
 
-            AppendValue(new ViewBufferValue(content));
             return this;
         }
 
         /// <inheritdoc />
         public IHtmlContentBuilder AppendHtml(string encoded)
         {
-            if (encoded == null)
+            if (encoded != null)
             {
-                return this;
+                AppendValue(new ViewBufferValue(encoded));
             }
 
-            AppendValue(new ViewBufferValue(encoded));
             return this;
         }
 
@@ -135,10 +132,18 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         private ViewBufferPage GetCurrentPage()
         {
-            if (_currentPage == null || _currentPage.IsFull)
+            var currentPage = _currentPage;
+            if (currentPage == null || currentPage.IsFull)
             {
-                AddPage(new ViewBufferPage(_bufferScope.GetPage(_pageSize)));
+                return AppendNewPage();
             }
+
+            return currentPage;
+        }
+
+        private ViewBufferPage AppendNewPage()
+        {
+            AddPage(new ViewBufferPage(_bufferScope.GetPage(_pageSize)));
             return _currentPage;
         }
 
