@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -17,7 +18,47 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 {
     public class KnownRouteValueConstraintTests
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IRouteConstraint _constraint = new KnownRouteValueConstraint();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        [Fact]
+        public void ResolveFromServices_InjectsServiceProvider_HttpContextNotNeeded()
+        {
+            // Arrange
+            var actionDescriptor = CreateActionDescriptor("testArea",
+                                                          "testController",
+                                                          "testAction");
+            actionDescriptor.RouteValues.Add("randomKey", "testRandom");
+            var descriptorCollectionProvider = CreateActionDesciprtorCollectionProvider(actionDescriptor);
+
+            var services = new ServiceCollection();
+            services.AddRouting();
+            services.AddSingleton(descriptorCollectionProvider);
+
+            var routeOptionsSetup = new MvcCoreRouteOptionsSetup();
+            services.Configure<RouteOptions>(routeOptionsSetup.Configure);
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            var inlineConstraintResolver = serviceProvider.GetRequiredService<IInlineConstraintResolver>();
+            var constraint = inlineConstraintResolver.ResolveConstraint("exists");
+
+            var values = new RouteValueDictionary()
+            {
+                { "area", "testArea" },
+                { "controller", "testController" },
+                { "action", "testAction" },
+                { "randomKey", "testRandom" }
+            };
+
+            // Act
+            var knownRouteValueConstraint = Assert.IsType<KnownRouteValueConstraint>(constraint);
+            var match = knownRouteValueConstraint.Match(httpContext: null, route: null, "area", values, RouteDirection.IncomingRequest);
+
+            // Assert
+            Assert.True(match);
+        }
 
         [Theory]
         [InlineData("area", RouteDirection.IncomingRequest)]

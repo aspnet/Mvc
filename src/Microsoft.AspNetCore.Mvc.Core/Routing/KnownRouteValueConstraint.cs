@@ -17,6 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         private readonly IActionDescriptorCollectionProvider _actionDescriptorCollectionProvider;
         private RouteValuesCollection _cachedValuesCollection;
 
+        [Obsolete("This constructor is obsolete. Use KnownRouteValueConstraint.ctor(IActionDescriptorCollectionProvider) instead.")]
         public KnownRouteValueConstraint()
         {
             // Empty constructor for backwards compatibility
