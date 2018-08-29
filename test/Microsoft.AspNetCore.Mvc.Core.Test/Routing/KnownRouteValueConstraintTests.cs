@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -27,8 +26,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         {
             // Arrange
             var actionDescriptor = CreateActionDescriptor("testArea",
-                                                          "testController",
-                                                          "testAction");
+                "testController",
+                "testAction");
             actionDescriptor.RouteValues.Add("randomKey", "testRandom");
             var descriptorCollectionProvider = CreateActionDesciprtorCollectionProvider(actionDescriptor);
 
@@ -96,8 +95,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         {
             // Arrange
             var actionDescriptor = CreateActionDescriptor("testArea",
-                                                          "testController",
-                                                          "testAction");
+                "testController",
+                "testAction");
             actionDescriptor.RouteValues.Add("randomKey", "testRandom");
             var httpContext = GetHttpContext(actionDescriptor);
             var route = Mock.Of<IRouter>();
@@ -156,8 +155,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         public void RouteValue_IsNotAString_MatchFails(RouteDirection direction)
         {
             var actionDescriptor = CreateActionDescriptor("testArea",
-                                                          controller: null,
-                                                          action: null);
+                controller: null,
+                action: null);
             var httpContext = GetHttpContext(actionDescriptor);
             var route = Mock.Of<IRouter>();
             var values = new RouteValueDictionary()
@@ -211,8 +210,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
         {
             // Arrange
             var actionDescriptor = CreateActionDescriptor("testArea",
-                                                          "testController",
-                                                          "testAction");
+                "testController",
+                "testAction");
             actionDescriptor.RouteValues.Add("randomKey", "testRandom");
 
             var provider = CreateActionDesciprtorCollectionProvider(actionDescriptor);

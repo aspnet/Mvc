@@ -75,13 +75,9 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
         private ActionDescriptorCollection GetAndValidateActionDescriptors(HttpContext httpContext)
         {
-            IActionDescriptorCollectionProvider actionDescriptorsProvider = null;
+            var actionDescriptorsProvider = _actionDescriptorCollectionProvider;
 
-            if (_actionDescriptorCollectionProvider != null)
-            {
-                actionDescriptorsProvider = _actionDescriptorCollectionProvider;
-            }
-            else
+            if (actionDescriptorsProvider == null)
             {
                 // Only validate that HttpContext was passed to constraint if it is needed
                 if (httpContext == null)
@@ -97,8 +93,9 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             if (actionDescriptors == null)
             {
                 throw new InvalidOperationException(
-                    Resources.FormatPropertyOfTypeCannotBeNull(nameof(IActionDescriptorCollectionProvider.ActionDescriptors),
-                                                               actionDescriptorsProvider.GetType()));
+                    Resources.FormatPropertyOfTypeCannotBeNull(
+                        nameof(IActionDescriptorCollectionProvider.ActionDescriptors),
+                        actionDescriptorsProvider.GetType()));
             }
 
             return actionDescriptors;
