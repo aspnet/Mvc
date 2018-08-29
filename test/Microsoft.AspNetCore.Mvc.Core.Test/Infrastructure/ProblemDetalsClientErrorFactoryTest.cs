@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -64,7 +65,34 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         [Fact]
-        public void GetClientError_SetsTraceIdentifier()
+        public void GetClientError_UsesActivityId_ToSetTraceId()
+        {
+            // Arrange
+            using (new ActivityReplacer())
+            {
+                var clientError = new UnsupportedMediaTypeResult();
+                var factory = new ProblemDetailsClientErrorFactory(Options.Create(new ApiBehaviorOptions
+                {
+                    ClientErrorMapping =
+                {
+                    [415] = new ClientErrorData { Link = "Some link", Title = "Summary" },
+                },
+                }));
+
+                // Act
+                var result = factory.GetClientError(GetActionContext(), clientError);
+
+                // Assert
+                var objectResult = Assert.IsType<ObjectResult>(result);
+                Assert.Equal(new[] { "application/problem+json", "application/problem+xml" }, objectResult.ContentTypes);
+                var problemDetails = Assert.IsType<ProblemDetails>(objectResult.Value);
+
+                Assert.Equal(Activity.Current.Id, problemDetails.Extensions["traceId"]);
+            }
+        }
+
+        [Fact]
+        public void GetClientError_UsesHttpContext_ToSetTraceIdIfActivityIdIsNotSet()
         {
             // Arrange
             var clientError = new UnsupportedMediaTypeResult();
@@ -84,7 +112,7 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             Assert.Equal(new[] { "application/problem+json", "application/problem+xml" }, objectResult.ContentTypes);
             var problemDetails = Assert.IsType<ProblemDetails>(objectResult.Value);
 
-            Assert.Equal("42", problemDetails.Extensions["requestId"]);
+            Assert.Equal("42", problemDetails.Extensions["traceId"]);
         }
 
         private static ActionContext GetActionContext()
