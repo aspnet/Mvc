@@ -157,7 +157,57 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 ex.Message);
         }
 
-        private static HttpContext GetHttpContext(ActionDescriptor actionDescriptor)
+        [Theory]
+        [InlineData("area", RouteDirection.IncomingRequest)]
+        [InlineData("controller", RouteDirection.IncomingRequest)]
+        [InlineData("action", RouteDirection.IncomingRequest)]
+        [InlineData("randomKey", RouteDirection.IncomingRequest)]
+        [InlineData("area", RouteDirection.UrlGeneration)]
+        [InlineData("controller", RouteDirection.UrlGeneration)]
+        [InlineData("action", RouteDirection.UrlGeneration)]
+        [InlineData("randomKey", RouteDirection.UrlGeneration)]
+        public void ServiceInjected_RouteKey_Exists_MatchSucceeds(string keyName, RouteDirection direction)
+        {
+            // Arrange
+            var actionDescriptor = CreateActionDescriptor("testArea",
+                                                          "testController",
+                                                          "testAction");
+            actionDescriptor.RouteValues.Add("randomKey", "testRandom");
+
+            var provider = CreateActionDesciprtorCollectionProvider(actionDescriptor);
+
+            var constraint = new KnownRouteValueConstraint(provider);
+
+            var values = new RouteValueDictionary()
+            {
+                { "area", "testArea" },
+                { "controller", "testController" },
+                { "action", "testAction" },
+                { "randomKey", "testRandom" }
+            };
+
+            // Act
+            var match = constraint.Match(httpContext: null, route: null, keyName, values, direction);
+
+            // Assert
+            Assert.True(match);
+        }
+
+        private static HttpContext GetHttpContext(ActionDescriptor actionDescriptor, bool setupRequestServices = true)
+        {
+            var descriptorCollectionProvider = CreateActionDesciprtorCollectionProvider(actionDescriptor);
+
+            var context = new Mock<HttpContext>();
+            if (setupRequestServices)
+            {
+                context.Setup(o => o.RequestServices
+                    .GetService(typeof(IActionDescriptorCollectionProvider)))
+                    .Returns(descriptorCollectionProvider);
+            }
+            return context.Object;
+        }
+
+        private static IActionDescriptorCollectionProvider CreateActionDesciprtorCollectionProvider(ActionDescriptor actionDescriptor)
         {
             var actionProvider = new Mock<IActionDescriptorProvider>(MockBehavior.Strict);
 
@@ -176,12 +226,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var descriptorCollectionProvider = new DefaultActionDescriptorCollectionProvider(
                 new[] { actionProvider.Object },
                 Enumerable.Empty<IActionDescriptorChangeProvider>());
-
-            var context = new Mock<HttpContext>();
-            context.Setup(o => o.RequestServices
-                .GetService(typeof(IActionDescriptorCollectionProvider)))
-                .Returns(descriptorCollectionProvider);
-            return context.Object;
+            return descriptorCollectionProvider;
         }
 
         private static ActionDescriptor CreateActionDescriptor(string area, string controller, string action)
