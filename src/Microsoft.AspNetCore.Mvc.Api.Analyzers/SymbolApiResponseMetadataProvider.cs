@@ -276,14 +276,134 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 
                 return new ActualApiResponseMetadata(returnStatementSyntax, statusCode.Value);
             }
-            else if (!symbolCache.IActionResult.IsAssignableFrom(statementReturnType))
+
+            if (!symbolCache.IActionResult.IsAssignableFrom(statementReturnType))
             {
                 // Return expression does not have a DefaultStatusCodeAttribute and it is not
                 // an instance of IActionResult. Must be returning the "model".
                 return new ActualApiResponseMetadata(returnStatementSyntax);
             }
 
+            if (returnExpression is InvocationExpressionSyntax invocation)
+            {
+                // Covers the 'return StatusCode(200)' case.
+                if (TryGetParameterStatusCode(semanticModel, invocation.Expression, invocation.ArgumentList, cancellationToken, out var statusCode))
+                {
+                    return new ActualApiResponseMetadata(returnStatementSyntax, statusCode);
+                }
+
+                return null;
+            }
+
+            if (returnExpression is ObjectCreationExpressionSyntax creation)
+            {
+                // Covers the 'return new ObjectResult(...) { StatusCode = 200 }' case.
+                if (TryGetInitializerStatusCode(semanticModel, creation.Initializer, cancellationToken, out var statusCode))
+                {
+                    return new ActualApiResponseMetadata(returnStatementSyntax, statusCode);
+                }
+
+                // Covers the 'return new StatusCodeResult(200) case.
+                if (TryGetParameterStatusCode(semanticModel, creation, creation.ArgumentList, cancellationToken, out statusCode))
+                {
+                    return new ActualApiResponseMetadata(returnStatementSyntax, statusCode);
+                }
+            }
+
             return null;
+        }
+
+        private static bool TryGetInitializerStatusCode(
+            SemanticModel semanticModel,
+            InitializerExpressionSyntax initializer,
+            CancellationToken cancellationToken,
+            out int statusCode)
+        {
+            if (initializer == null)
+            {
+                statusCode = default;
+                return false;
+            }
+
+            foreach (var assignment in initializer.Expressions.OfType<AssignmentExpressionSyntax>())
+            {
+                if (assignment.Left is IdentifierNameSyntax identifier)
+                {
+                    var symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+
+                    if (symbolInfo.Symbol is IPropertySymbol property && property.Name.Equals("StatusCode"))
+                    {
+                        return TryGetExpressionStatusCode(semanticModel, assignment.Right, cancellationToken, out statusCode);
+                    }
+                }
+            }
+
+            statusCode = default;
+            return false;
+        }
+
+        private static bool TryGetParameterStatusCode(
+            SemanticModel semanticModel,
+            ExpressionSyntax expression,
+            BaseArgumentListSyntax argumentList,
+            CancellationToken cancellationToken,
+            out int statusCode)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+            if (symbolInfo.Symbol is IMethodSymbol method)
+            {
+                var statusCodeParameter = method.Parameters.FirstOrDefault(parameter =>
+                    parameter.Type.SpecialType == SpecialType.System_Int32 &&
+                    parameter.Name.Equals("statusCode"));
+
+                if (statusCodeParameter != null)
+                {
+                    var argument = argumentList.Arguments[statusCodeParameter.Ordinal];
+
+                    return TryGetExpressionStatusCode(semanticModel, argument.Expression, cancellationToken, out statusCode);
+                }
+            }
+
+            statusCode = default;
+            return false;
+        }
+
+        private static bool TryGetExpressionStatusCode(
+            SemanticModel semanticModel,
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken,
+            out int statusCode)
+        {
+            if (expression is LiteralExpressionSyntax literal && literal.Token.Value is int literalStatusCode)
+            {
+                // Covers the 'return StatusCode(200)' case.
+                statusCode = literalStatusCode;
+                return true;
+            }
+
+            if (expression is IdentifierNameSyntax || expression is MemberAccessExpressionSyntax)
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+                if (symbolInfo.Symbol is IFieldSymbol field && field.HasConstantValue && field.ConstantValue is int constantStatusCode)
+                {
+                    // Covers the 'return StatusCode(StatusCodes.Status200OK)' case.
+                    // It also covers the 'return StatusCode(StatusCode)' case, where 'StatusCode' is a constant field.
+                    statusCode = constantStatusCode;
+                    return true;
+                }
+
+                if (symbolInfo.Symbol is ILocalSymbol local && local.HasConstantValue && local.ConstantValue is int localStatusCode)
+                {
+                    // Covers the 'return StatusCode(statusCode)' case, where 'statusCode' is a local constant.
+                    statusCode = localStatusCode;
+                    return true;
+                }
+            }
+
+            statusCode = default;
+            return false;
         }
 
         private static bool ShouldDescendIntoChildren(SyntaxNode syntaxNode)
