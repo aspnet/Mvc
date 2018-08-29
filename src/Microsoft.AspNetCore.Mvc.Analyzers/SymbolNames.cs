@@ -60,5 +60,9 @@ namespace Microsoft.AspNetCore.Mvc.Analyzers
         public const string ProducesResponseTypeAttribute = "Microsoft.AspNetCore.Mvc.ProducesResponseTypeAttribute";
 
         public const string RenderPartialMethod = "RenderPartial";
+
+        public const string RequiredAttribute = "System.ComponentModel.DataAnnotations.RequiredAttribute";
+        public const string BindRequiredAttribute = "Microsoft.AspNetCore.Mvc.ModelBinding.BindRequiredAttribute";
+        public const string NullableType = "System.Nullable<T>";
     }
 }

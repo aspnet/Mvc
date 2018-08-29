@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+
         private static bool HasAttribute(this ISymbol symbol, ITypeSymbol attribute)
         {
             foreach (var declaredAttribute in symbol.GetAttributes())
@@ -145,5 +146,6 @@ namespace Microsoft.CodeAnalysis
                 typeSymbol = typeSymbol.BaseType;
             }
         }
+
     }
 }
