@@ -47,7 +47,6 @@ namespace RoutingWebSite
                     "RouteWithOptionalSegment",
                     "{controller}/{action}/{path?}");
             });
-
         }
     }
 }
