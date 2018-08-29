@@ -91,6 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        // Very common trival method; nudge it to inline https://github.com/aspnet/Mvc/pull/8339
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder Append(string unencoded)
         {
@@ -105,6 +106,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        // Very common trival method; nudge it to inline https://github.com/aspnet/Mvc/pull/8339
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder AppendHtml(IHtmlContent content)
         {
@@ -117,6 +119,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        // Very common trival method; nudge it to inline https://github.com/aspnet/Mvc/pull/8339
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder AppendHtml(string encoded)
         {
@@ -128,6 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return this;
         }
 
+        // Very common trival method; nudge it to inline https://github.com/aspnet/Mvc/pull/8339
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AppendValue(ViewBufferValue value)
         {
@@ -135,18 +139,21 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             page.Append(value);
         }
 
+        // Very common trival method; nudge it to inline https://github.com/aspnet/Mvc/pull/8339
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ViewBufferPage GetCurrentPage()
         {
             var currentPage = _currentPage;
             if (currentPage == null || currentPage.IsFull)
             {
+                // Uncommon slow-path
                 return AppendNewPage();
             }
 
             return currentPage;
         }
 
+        // Slow path for above, don't inline
         [MethodImpl(MethodImplOptions.NoInlining)]
         private ViewBufferPage AppendNewPage()
         {
