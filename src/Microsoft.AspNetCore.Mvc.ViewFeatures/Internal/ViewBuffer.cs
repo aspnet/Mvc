@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
@@ -90,6 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder Append(string unencoded)
         {
             if (unencoded != null)
@@ -103,6 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder AppendHtml(IHtmlContent content)
         {
             if (content != null)
@@ -114,6 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
         }
 
         /// <inheritdoc />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IHtmlContentBuilder AppendHtml(string encoded)
         {
             if (encoded != null)
@@ -124,12 +128,14 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return this;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void AppendValue(ViewBufferValue value)
         {
             var page = GetCurrentPage();
             page.Append(value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ViewBufferPage GetCurrentPage()
         {
             var currentPage = _currentPage;
@@ -141,6 +147,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             return currentPage;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private ViewBufferPage AppendNewPage()
         {
             AddPage(new ViewBufferPage(_bufferScope.GetPage(_pageSize)));
