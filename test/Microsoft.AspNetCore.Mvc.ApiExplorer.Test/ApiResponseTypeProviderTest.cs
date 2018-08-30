@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 new ProducesResponseTypeAttribute(415),
             });
 
-            actionDescriptor.Properties[typeof(ApiErrorTypeAttribute)] = errorType;
+            actionDescriptor.Properties[typeof(ProducesErrorResponseTypeAttribute)] = new ProducesErrorResponseTypeAttribute(errorType);
 
             var provider = GetProvider();
 
@@ -376,7 +376,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 new ProducesDefaultResponseTypeAttribute(),
             });
 
-            actionDescriptor.Properties[typeof(ApiErrorTypeAttribute)] = errorType;
+            actionDescriptor.Properties[typeof(ProducesErrorResponseTypeAttribute)] = new ProducesErrorResponseTypeAttribute(errorType);
 
             var provider = GetProvider();
 
@@ -419,7 +419,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 new ProducesDefaultResponseTypeAttribute(typeof(DivideByZeroException)),
             });
 
-            actionDescriptor.Properties[typeof(ApiErrorTypeAttribute)] = errorType;
+            actionDescriptor.Properties[typeof(ProducesErrorResponseTypeAttribute)] = new ProducesErrorResponseTypeAttribute(errorType);
 
             var provider = GetProvider();
 
@@ -470,7 +470,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 new ProducesResponseTypeAttribute(500),
             });
 
-            actionDescriptor.Properties[typeof(ApiErrorTypeAttribute)] = typeof(InvalidTimeZoneException);
+            actionDescriptor.Properties[typeof(ProducesErrorResponseTypeAttribute)] = new ProducesErrorResponseTypeAttribute(typeof(InvalidTimeZoneException));
 
             var provider = GetProvider();
 
@@ -516,7 +516,7 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                 new ProducesDefaultResponseTypeAttribute(),
             });
 
-            actionDescriptor.Properties[typeof(ApiErrorTypeAttribute)] = typeof(void);
+            actionDescriptor.Properties[typeof(ProducesErrorResponseTypeAttribute)] = new ProducesErrorResponseTypeAttribute(typeof(void));
 
             var provider = GetProvider();
 

@@ -1057,9 +1057,10 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void DiscoverApiErrorType_SetsProblemDetails_IfActionHasNoAttributes()
+        public void DiscoverErrorResponseType_SetsProblemDetails_IfActionHasNoAttributes()
         {
             // Arrange
+            var expected = typeof(ProblemDetails);
             var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new object() });
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
@@ -1070,20 +1071,46 @@ Environment.NewLine + "int b";
             var provider = GetProvider();
 
             // Act
-            provider.DiscoverApiErrorType(actionModel);
+            provider.DiscoverErrorResponseType(actionModel);
 
             // Assert
             Assert.Collection(
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
-                    Assert.Equal(typeof(ProblemDetails), kvp.Value);
+                    Assert.Equal(typeof(ProducesErrorResponseTypeAttribute), kvp.Key);
+                    var value = Assert.IsType<ProducesErrorResponseTypeAttribute>(kvp.Value);
+                    Assert.Equal(expected, value.Type);
                 });
         }
 
         [Fact]
-        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnControllerAsssembly()
+        public void DiscoverErrorResponseType_DoesNotSetDefaultProblemDetailsResponse_IfSuppressMapClientErrorsIsSet()
+        {
+            // Arrange
+            var expected = typeof(ProblemDetails);
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new object() });
+            var actionModel = new ActionModel(
+                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
+                Array.Empty<object>())
+            {
+                Controller = controllerModel,
+            };
+            var provider = GetProvider(new ApiBehaviorOptions
+            {
+                InvalidModelStateResponseFactory = _ => null,
+                SuppressMapClientErrors = true,
+            });
+
+            // Act
+            provider.DiscoverErrorResponseType(actionModel);
+
+            // Assert
+            Assert.Empty(actionModel.Properties);
+        }
+
+        [Fact]
+        public void DiscoverErrorResponseType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnControllerAsssembly()
         {
             // Arrange
             var expected = typeof(InvalidTimeZoneException);
@@ -1092,7 +1119,7 @@ Environment.NewLine + "int b";
                 ControllerAssemblyAttributes = new object[]
                 {
                     new AssemblyCompanyAttribute("Test"),
-                    new ApiErrorTypeAttribute(expected),
+                    new ProducesErrorResponseTypeAttribute(expected),
                     new AssemblyProductAttribute("Test")
                 },
             };
@@ -1105,28 +1132,29 @@ Environment.NewLine + "int b";
             var provider = GetProvider();
 
             // Act
-            provider.DiscoverApiErrorType(actionModel);
+            provider.DiscoverErrorResponseType(actionModel);
 
             // Assert
             Assert.Collection(
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
-                    Assert.Equal(expected, kvp.Value);
+                    Assert.Equal(typeof(ProducesErrorResponseTypeAttribute), kvp.Key);
+                    var value = Assert.IsType<ProducesErrorResponseTypeAttribute>(kvp.Value);
+                    Assert.Equal(expected, value.Type);
                 });
         }
 
         [Fact]
-        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnController()
+        public void DiscoverErrorResponseType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnController()
         {
             // Arrange
             var expected = typeof(InvalidTimeZoneException);
-            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ApiErrorTypeAttribute(expected) })
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ProducesErrorResponseTypeAttribute(expected) })
             {
                 ControllerAssemblyAttributes = new object[]
                 {
-                    new ApiErrorTypeAttribute(typeof(Guid)),
+                    new ProducesErrorResponseTypeAttribute(typeof(Guid)),
                 },
             };
             var actionModel = new ActionModel(
@@ -1138,86 +1166,69 @@ Environment.NewLine + "int b";
             var provider = GetProvider();
 
             // Act
-            provider.DiscoverApiErrorType(actionModel);
+            provider.DiscoverErrorResponseType(actionModel);
 
             // Assert
             Assert.Collection(
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
-                    Assert.Equal(expected, kvp.Value);
+                    Assert.Equal(typeof(ProducesErrorResponseTypeAttribute), kvp.Key);
+                    var value = Assert.IsType<ProducesErrorResponseTypeAttribute>(kvp.Value);
+                    Assert.Equal(expected, value.Type);
                 });
         }
 
         [Fact]
-        public void DiscoverApiErrorType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnAction()
+        public void DiscoverErrorResponseType_UsesValueFromApiErrorTypeAttribute_SpecifiedOnAction()
         {
             // Arrange
             var expected = typeof(InvalidTimeZoneException);
-            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ApiErrorTypeAttribute(typeof(Guid)) });
+            var controllerModel = new ControllerModel(typeof(TestApiConventionController).GetTypeInfo(), new[] { new ProducesErrorResponseTypeAttribute(typeof(Guid)) });
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
-                new[] { new ApiErrorTypeAttribute(expected) })
+                new[] { new ProducesErrorResponseTypeAttribute(expected) })
             {
                 Controller = controllerModel,
             };
             var provider = GetProvider();
 
             // Act
-            provider.DiscoverApiErrorType(actionModel);
+            provider.DiscoverErrorResponseType(actionModel);
 
             // Assert
             Assert.Collection(
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
-                    Assert.Equal(expected, kvp.Value);
+                    Assert.Equal(typeof(ProducesErrorResponseTypeAttribute), kvp.Key);
+                    var value = Assert.IsType<ProducesErrorResponseTypeAttribute>(kvp.Value);
+                    Assert.Equal(expected, value.Type);
                 });
         }
 
         [Fact]
-        public void DiscoverApiErrorType_SetsVoidsType()
+        public void DiscoverErrorResponseType_AllowsVoidsType()
         {
             // Arrange
             var expected = typeof(void);
             var actionModel = new ActionModel(
                 typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
-                new[] { new ApiErrorTypeAttribute(expected) });
+                new[] { new ProducesErrorResponseTypeAttribute(expected) });
             var provider = GetProvider();
 
             // Act
-            provider.DiscoverApiErrorType(actionModel);
+            provider.DiscoverErrorResponseType(actionModel);
 
             // Assert
             Assert.Collection(
                 actionModel.Properties,
                 kvp =>
                 {
-                    Assert.Equal(typeof(ApiErrorTypeAttribute), kvp.Key);
-                    Assert.Equal(expected, kvp.Value);
+                    Assert.Equal(typeof(ProducesErrorResponseTypeAttribute), kvp.Key);
+                    var value = Assert.IsType<ProducesErrorResponseTypeAttribute>(kvp.Value);
+                    Assert.Equal(expected, value.Type);
                 });
-        }
-
-        [Fact]
-        public void DiscoverApiErrorType_DoesNothing_IfSuppressClientErrorFactoryIsSet()
-        {
-            // Arrange
-            var actionModel = new ActionModel(
-                typeof(TestApiConventionController).GetMethod(nameof(TestApiConventionController.Delete)),
-                new[] { new ApiErrorTypeAttribute(typeof(ProblemDetails)) });
-            var provider = GetProvider(new ApiBehaviorOptions
-            {
-                InvalidModelStateResponseFactory = _ => null,
-                SuppressUseClientErrorFactory = true
-            });
-
-            // Act
-            provider.DiscoverApiErrorType(actionModel);
-
-            // Assert
-            Assert.Empty(actionModel.Properties);
         }
 
         [Fact]

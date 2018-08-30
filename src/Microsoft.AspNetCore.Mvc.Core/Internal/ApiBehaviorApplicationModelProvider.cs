@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Core;
@@ -18,6 +17,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 {
     public class ApiBehaviorApplicationModelProvider : IApplicationModelProvider
     {
+        private readonly ProducesErrorResponseTypeAttribute DefaultErrorType = new ProducesErrorResponseTypeAttribute(typeof(ProblemDetails));
         private readonly ApiBehaviorOptions _apiBehaviorOptions;
         private readonly IModelMetadataProvider _modelMetadataProvider;
         private readonly ModelStateInvalidFilter _modelStateInvalidFilter;
@@ -105,7 +105,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                     DiscoverApiConvention(actionModel, conventions);
 
-                    DiscoverApiErrorType(actionModel);
+                    DiscoverErrorResponseType(actionModel);
                 }
             }
         }
@@ -275,19 +275,23 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        internal void DiscoverApiErrorType(ActionModel actionModel)
+        internal void DiscoverErrorResponseType(ActionModel actionModel)
         {
-            if (_apiBehaviorOptions.SuppressUseClientErrorFactory)
+            var errorTypeAttribute =
+                actionModel.Attributes.OfType<ProducesErrorResponseTypeAttribute>().FirstOrDefault() ??
+                actionModel.Controller.Attributes.OfType<ProducesErrorResponseTypeAttribute>().FirstOrDefault() ??
+                actionModel.Controller.ControllerAssemblyAttributes.OfType<ProducesErrorResponseTypeAttribute>().FirstOrDefault();
+
+            if (!_apiBehaviorOptions.SuppressMapClientErrors)
             {
-                return;
+                // If ClientErrorFactory is being used and the application does not supply a error response type, assume ProblemDetails.
+                errorTypeAttribute = errorTypeAttribute ?? DefaultErrorType;
             }
 
-            var errorTypeAttribute =
-                actionModel.Attributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault() ??
-                actionModel.Controller.Attributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault() ??
-                actionModel.Controller.ControllerAssemblyAttributes.OfType<ApiErrorTypeAttribute>().FirstOrDefault();
-
-            actionModel.Properties[typeof(ApiErrorTypeAttribute)] = errorTypeAttribute?.Type ?? typeof(ProblemDetails);
+            if (errorTypeAttribute != null)
+            {
+                actionModel.Properties[typeof(ProducesErrorResponseTypeAttribute)] = errorTypeAttribute;
+            }
         }
 
         private bool ParameterExistsInAnyRoute(ActionModel actionModel, string parameterName)

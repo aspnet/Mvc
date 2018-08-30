@@ -47,9 +47,9 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
             }
 
             var defaultErrorType = typeof(void);
-            if (action.Properties.TryGetValue(typeof(ApiErrorTypeAttribute), out result))
+            if (action.Properties.TryGetValue(typeof(ProducesErrorResponseTypeAttribute), out result))
             {
-                defaultErrorType = (Type)result;
+                defaultErrorType = ((ProducesErrorResponseTypeAttribute)result).Type;
             }
 
             var apiResponseTypes = GetApiResponseTypes(responseMetadataAttributes, runtimeReturnType, defaultErrorType);
