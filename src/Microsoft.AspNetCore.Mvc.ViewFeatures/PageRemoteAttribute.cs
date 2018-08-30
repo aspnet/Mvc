@@ -10,60 +10,29 @@ using Resources = Microsoft.AspNetCore.Mvc.ViewFeatures.Resources;
 namespace Microsoft.AspNetCore.Mvc
 {
     /// <summary>
-    /// A <see cref="RemoteAttribute"/> for razor page handler which configures Unobtrusive validation 
+    /// A <see cref="RemoteAttributeBase"/> for razor page handler which configures Unobtrusive validation 
     /// to send an Ajax request to the web site. The invoked handler should return JSON indicating 
     /// whether the value is valid.
     /// </summary>
     /// <remarks>Does no server-side validation of the final form submission.</remarks>
-    public class PageRemoteAttribute : RemoteAttribute
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public class PageRemoteAttribute : RemoteAttributeBase
     {
-        private readonly string _pageHandler;
-        private readonly string _pageName;
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="PageRemoteAttribute"/> class.
-        /// </summary>
-        /// <remarks>
-        /// Will use ambient page name and handler name when generating the URL where client
-        /// should send a validation request.
-        /// </remarks>
-        public PageRemoteAttribute()
-            : this(pageHandler: null)
-        {
-
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PageRemoteAttribute"/> class.
-        /// </summary>
-        /// <param name="pageHandler">
         /// The handler name used when generating the URL where client should send a validation request.
-        /// </param>
-        public PageRemoteAttribute(string pageHandler)
-            : this(pageHandler, pageName: null)
-        { }
+        /// </summary>
+        /// <remarks>
+        /// If not set the ambient value will be used when generating the URL.
+        /// </remarks>
+        public string PageHandler { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PageRemoteAttribute"/> class.
-        /// </summary>
-        /// <param name="pageHandler">
-        /// The page handler name used when generating the URL where client should send a validation request.
-        /// </param>
-        /// <param name="pageName">
         /// The page name used when generating the URL where client should send a validation request.
-        /// </param>
+        /// </summary>
         /// <remarks>
-        /// <para>
-        /// If <paramref name="pageName"/> or <paramref name="pageHandler"/> is <c>null</c>, uses the corresponding
-        /// ambient value.
-        /// </para>
+        /// If not set the ambient value will be used when generating the URL.
         /// </remarks>
-        public PageRemoteAttribute(string pageHandler, string pageName)
-            : base()
-        {
-            _pageHandler = pageHandler;
-            _pageName = pageName;
-        }
+        public string PageName { get; set; }
 
         /// <inheritdoc />
         protected override string GetUrl(ClientModelValidationContext context)
@@ -77,8 +46,8 @@ namespace Microsoft.AspNetCore.Mvc
             var factory = services.GetRequiredService<IUrlHelperFactory>();
             var urlHelper = factory.GetUrlHelper(context.ActionContext);
 
-            var url = urlHelper.Page(_pageName, _pageHandler);
-
+            var url = urlHelper.Page(PageName, PageHandler, RouteData);
+            
             if (url == null)
             {
                 throw new InvalidOperationException(Resources.RemoteAttribute_NoUrlFound);
