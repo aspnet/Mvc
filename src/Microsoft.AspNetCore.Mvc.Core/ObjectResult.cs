@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <summary>
         /// Gets or sets the HTTP status code.
         /// </summary>
+        [StatusCodeValue]
         public int? StatusCode { get; set; }
 
         public override Task ExecuteResultAsync(ActionContext context)
