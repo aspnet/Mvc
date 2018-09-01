@@ -116,6 +116,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
         }
 
+        public bool WatchForChanges { get; internal set; }
+
         /// <inheritdoc />
         public Task<CompiledViewDescriptor> CompileAsync(string relativePath)
         {
@@ -254,15 +256,25 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
                 // Used to validate and recompile
                 NormalizedPath = normalizedPath,
-                ExpirationTokens = new List<IChangeToken>(),
             };
 
-            var checksums = precompiledView.Item.GetChecksumMetadata();
-            for (var i = 0; i < checksums.Count; i++)
+            if (WatchForChanges)
             {
-                // We rely on Razor to provide the right set of checksums. Trust the compiler, it has to do a good job,
-                // so it probably will.
-                item.ExpirationTokens.Add(_fileProvider.Watch(checksums[i].Identifier));
+                var expirationTokens = new List<IChangeToken>();
+
+                var checksums = precompiledView.Item.GetChecksumMetadata();
+                for (var i = 0; i < checksums.Count; i++)
+                {
+                    // We rely on Razor to provide the right set of checksums. Trust the compiler, it has to do a good job,
+                    // so it probably will.
+                    expirationTokens.Add(_fileProvider.Watch(checksums[i].Identifier));
+                }
+
+                item.ExpirationTokens = expirationTokens;
+            }
+            else
+            {
+                item.ExpirationTokens = Array.Empty<IChangeToken>();
             }
 
             // We also need to create a new descriptor, because the original one doesn't have expiration tokens on
@@ -282,10 +294,19 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         private ViewCompilerWorkItem CreateRuntimeCompilationWorkItem(string normalizedPath)
         {
-            var expirationTokens = new List<IChangeToken>()
+            IList<IChangeToken> expirationTokens;
+
+            if (WatchForChanges)
             {
-                _fileProvider.Watch(normalizedPath),
-            };
+                expirationTokens = new List<IChangeToken>()
+                {
+                    _fileProvider.Watch(normalizedPath),
+                };
+            }
+            else
+            {
+                expirationTokens = Array.Empty<IChangeToken>();
+            }
 
             var projectItem = _projectEngine.FileSystem.GetItem(normalizedPath);
             if (!projectItem.Exists)
@@ -313,9 +334,24 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             _logger.ViewCompilerFoundFileToCompile(normalizedPath);
 
-            // OK this means we can do compilation. For now let's just identify the other files we need to watch
-            // so we can create the cache entry. Compilation will happen after we release the lock.
+            if (WatchForChanges)
+            {
+                // OK this means we can do compilation. For now let's just identify the other files we need to watch
+                // so we can create the cache entry. Compilation will happen after we release the lock.
+                GetChangeTokensFromImports(expirationTokens, projectItem);
+            }
 
+            return new ViewCompilerWorkItem()
+            {
+                SupportsCompilation = true,
+
+                NormalizedPath = normalizedPath,
+                ExpirationTokens = expirationTokens,
+            };
+        }
+
+        private void GetChangeTokensFromImports(IList<IChangeToken> expirationTokens, RazorProjectItem projectItem)
+        {
             var importFeature = _projectEngine.ProjectFeatures.OfType<IImportProjectFeature>().FirstOrDefault();
 
             // There should always be an import feature unless someone has misconfigured their RazorProjectEngine.
@@ -330,14 +366,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             {
                 expirationTokens.Add(_fileProvider.Watch(physicalImport.FilePath));
             }
-
-            return new ViewCompilerWorkItem()
-            {
-                SupportsCompilation = true,
-
-                NormalizedPath = normalizedPath,
-                ExpirationTokens = expirationTokens,
-            };
         }
 
         protected virtual CompiledViewDescriptor CompileAndEmit(string relativePath)

@@ -181,5 +181,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 _compilationCallback = value;
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value that determines if Razor Views and Razor Pages are updated if files change on disk.
+        /// This option is initialized to <see langword="true"/> in development, that is <see cref="IHostingEnvironment.EnvironmentName"/>
+        /// is <see cref="EnvironmentName.Development" />, otherwise <see langword="false"/>.
+        /// </summary>
+        public bool AllowUpdatingViewsOnChange { get; set; }
     }
 }

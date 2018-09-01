@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.FileProviders;
@@ -18,11 +19,13 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         private readonly IFileProvider _fileProvider;
         private readonly string[] _searchPatterns;
         private readonly string[] _additionalFilesToTrack;
+        private readonly bool _watchForChanges;
 
         public PageActionDescriptorChangeProvider(
             RazorTemplateEngine templateEngine,
             IRazorViewEngineFileProviderAccessor fileProviderAccessor,
-            IOptions<RazorPagesOptions> razorPagesOptions)
+            IOptions<RazorPagesOptions> razorPagesOptions,
+            IOptions<RazorViewEngineOptions> razorViewEngineOptions)
         {
             if (templateEngine == null)
             {
@@ -39,51 +42,69 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 throw new ArgumentNullException(nameof(razorPagesOptions));
             }
 
-            _fileProvider = fileProviderAccessor.FileProvider;
-
-            var rootDirectory = razorPagesOptions.Value.RootDirectory;
-            Debug.Assert(!string.IsNullOrEmpty(rootDirectory));
-            rootDirectory = rootDirectory.TrimEnd('/');
-
-            // Search pattern that matches all cshtml files under the Pages RootDirectory
-            var pagesRootSearchPattern = rootDirectory + "/**/*.cshtml";
-
-            // pagesRootSearchPattern will miss _ViewImports outside the RootDirectory despite these influencing
-            // compilation. e.g. when RootDirectory = /Dir1/Dir2, the search pattern will ignore changes to 
-            // [/_ViewImports.cshtml, /Dir1/_ViewImports.cshtml]. We need to additionally account for these.
-            var importFileAtPagesRoot = rootDirectory + "/" + templateEngine.Options.ImportsFileName;
-            var additionalImportFilePaths = templateEngine.GetImportItems(importFileAtPagesRoot)
-                .Select(item => item.FilePath);
-
-            if (razorPagesOptions.Value.AllowAreas)
+            _watchForChanges = razorViewEngineOptions.Value.AllowUpdatingViewsOnChange;
+            if (_watchForChanges)
             {
-                // Search pattern that matches all cshtml files under the Pages AreaRootDirectory
-                var areaRootSearchPattern = "/Areas/**/*.cshtml";
+                (_fileProvider, _searchPatterns, _additionalFilesToTrack) = Initialize();
+            }
 
-                var importFileAtAreaPagesRoot = $"/Areas/{templateEngine.Options.ImportsFileName}";
-                var importPathsOutsideAreaPagesRoot = templateEngine.GetImportItems(importFileAtAreaPagesRoot)
+            (IFileProvider, string[] searchPatterns, string[] additionalFilesToTrack) Initialize()
+            {
+                var fileProvider = fileProviderAccessor.FileProvider;
+
+                var rootDirectory = razorPagesOptions.Value.RootDirectory;
+                Debug.Assert(!string.IsNullOrEmpty(rootDirectory));
+                rootDirectory = rootDirectory.TrimEnd('/');
+
+                // Search pattern that matches all cshtml files under the Pages RootDirectory
+                var pagesRootSearchPattern = rootDirectory + "/**/*.cshtml";
+
+                // pagesRootSearchPattern will miss _ViewImports outside the RootDirectory despite these influencing
+                // compilation. e.g. when RootDirectory = /Dir1/Dir2, the search pattern will ignore changes to 
+                // [/_ViewImports.cshtml, /Dir1/_ViewImports.cshtml]. We need to additionally account for these.
+                var importFileAtPagesRoot = rootDirectory + "/" + templateEngine.Options.ImportsFileName;
+                var additionalImportFilePaths = templateEngine.GetImportItems(importFileAtPagesRoot)
                     .Select(item => item.FilePath);
 
-                additionalImportFilePaths = additionalImportFilePaths
-                    .Concat(importPathsOutsideAreaPagesRoot)
-                    .Distinct(StringComparer.OrdinalIgnoreCase);
+                string[] searchPatterns;
 
-                _searchPatterns = new[]
+                if (razorPagesOptions.Value.AllowAreas)
                 {
-                    pagesRootSearchPattern,
-                    areaRootSearchPattern
-                };
-            }
-            else
-            {
-                _searchPatterns = new[] { pagesRootSearchPattern, };
-            }
+                    // Search pattern that matches all cshtml files under the Pages AreaRootDirectory
+                    var areaRootSearchPattern = "/Areas/**/*.cshtml";
 
-            _additionalFilesToTrack = additionalImportFilePaths.ToArray();
+                    var importFileAtAreaPagesRoot = $"/Areas/{templateEngine.Options.ImportsFileName}";
+                    var importPathsOutsideAreaPagesRoot = templateEngine.GetImportItems(importFileAtAreaPagesRoot)
+                        .Select(item => item.FilePath);
+
+                    additionalImportFilePaths = additionalImportFilePaths
+                        .Concat(importPathsOutsideAreaPagesRoot)
+                        .Distinct(StringComparer.OrdinalIgnoreCase);
+
+                    searchPatterns = new[]
+                    {
+                        pagesRootSearchPattern,
+                        areaRootSearchPattern
+                    };
+                }
+                else
+                {
+                    searchPatterns = new[] { pagesRootSearchPattern, };
+                }
+
+                var additionalFilesToTrack = additionalImportFilePaths.ToArray();
+
+                return (fileProvider, searchPatterns, additionalFilesToTrack);
+            }
         }
 
         public IChangeToken GetChangeToken()
         {
+            if (!_watchForChanges)
+            {
+                return NullChangeToken.Singleton;
+            }
+
             var changeTokens = new IChangeToken[_additionalFilesToTrack.Length + _searchPatterns.Length];
             for (var i = 0; i < _additionalFilesToTrack.Length; i++)
             {
