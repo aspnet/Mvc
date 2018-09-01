@@ -2233,6 +2233,19 @@ namespace Microsoft.AspNetCore.Mvc
             => new ForbidResult();
 
         /// <summary>
+        /// Creates a <see cref="ForbidObjectResult"/> (<see cref="StatusCodes.Status403Forbidden"/> by default).
+        /// </summary>
+        /// <param name="value">The content value to format in the entity body.</param>
+        /// <returns>The created <see cref="ForbidObjectResult"/> for the response.</returns>
+        /// <remarks>
+        /// Some authentication schemes, such as cookies, will convert <see cref="StatusCodes.Status403Forbidden"/> to
+        /// a redirect to show a login page.
+        /// </remarks>
+        [NonAction]
+        public virtual ForbidObjectResult Forbid(object value)
+            => new ForbidObjectResult(value);
+
+        /// <summary>
         /// Creates a <see cref="ForbidResult"/> (<see cref="StatusCodes.Status403Forbidden"/> by default) with the
         /// specified authentication schemes.
         /// </summary>
