@@ -72,7 +72,7 @@ namespace Microsoft.AspNetCore.Mvc.Localization
         public string Name { get; }
 
         /// <summary>
-        /// The string resource. It doesn't include arguments, even if they are passed in.
+        /// The original resource string, prior to formatting with any constructor arguments.
         /// </summary>
         public string Value { get; }
 
