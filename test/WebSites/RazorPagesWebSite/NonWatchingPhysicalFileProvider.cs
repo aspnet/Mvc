@@ -5,7 +5,7 @@ using System;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
 
-namespace BasicWebSite
+namespace RazorPagesWebSite
 {
     public class NonWatchingPhysicalFileProvider : PhysicalFileProvider, IFileProvider
     {

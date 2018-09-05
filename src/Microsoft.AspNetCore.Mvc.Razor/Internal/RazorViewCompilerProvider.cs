@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 _compilationMemoryCacheProvider.CompilationMemoryCache,
                 _logger)
             {
-                WatchForChanges = _viewEngineOptions.AllowUpdatingViewsOnChange,
+                WatchForChanges = _viewEngineOptions.AllowRecompilingViewsOnFileChange,
             };
         }
     }

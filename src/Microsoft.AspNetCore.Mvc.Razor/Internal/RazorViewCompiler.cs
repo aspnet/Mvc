@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
         }
 
-        public bool WatchForChanges { get; internal set; }
+        public bool WatchForChanges { get; set; }
 
         /// <inheritdoc />
         public Task<CompiledViewDescriptor> CompileAsync(string relativePath)
@@ -256,26 +256,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
                 // Used to validate and recompile
                 NormalizedPath = normalizedPath,
+
+                ExpirationTokens = GetExpirationTokens(precompiledView),
             };
-
-            if (WatchForChanges)
-            {
-                var expirationTokens = new List<IChangeToken>();
-
-                var checksums = precompiledView.Item.GetChecksumMetadata();
-                for (var i = 0; i < checksums.Count; i++)
-                {
-                    // We rely on Razor to provide the right set of checksums. Trust the compiler, it has to do a good job,
-                    // so it probably will.
-                    expirationTokens.Add(_fileProvider.Watch(checksums[i].Identifier));
-                }
-
-                item.ExpirationTokens = expirationTokens;
-            }
-            else
-            {
-                item.ExpirationTokens = Array.Empty<IChangeToken>();
-            }
 
             // We also need to create a new descriptor, because the original one doesn't have expiration tokens on
             // it. These will be used by the view location cache, which is like an L1 cache for views (this class is
@@ -294,18 +277,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         private ViewCompilerWorkItem CreateRuntimeCompilationWorkItem(string normalizedPath)
         {
-            IList<IChangeToken> expirationTokens;
+            IList<IChangeToken> expirationTokens = Array.Empty<IChangeToken>();
 
             if (WatchForChanges)
             {
-                expirationTokens = new List<IChangeToken>()
-                {
-                    _fileProvider.Watch(normalizedPath),
-                };
-            }
-            else
-            {
-                expirationTokens = Array.Empty<IChangeToken>();
+                var changeToken = _fileProvider.Watch(normalizedPath);
+                expirationTokens = new List<IChangeToken> { changeToken };
             }
 
             var projectItem = _projectEngine.FileSystem.GetItem(normalizedPath);
@@ -332,14 +309,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 };
             }
 
-            _logger.ViewCompilerFoundFileToCompile(normalizedPath);
+            GetChangeTokensFromImports(expirationTokens, projectItem);
 
-            if (WatchForChanges)
-            {
-                // OK this means we can do compilation. For now let's just identify the other files we need to watch
-                // so we can create the cache entry. Compilation will happen after we release the lock.
-                GetChangeTokensFromImports(expirationTokens, projectItem);
-            }
+            _logger.ViewCompilerFoundFileToCompile(normalizedPath);
 
             return new ViewCompilerWorkItem()
             {
@@ -350,8 +322,35 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
         }
 
+        private IList<IChangeToken> GetExpirationTokens(CompiledViewDescriptor precompiledView)
+        {
+            if (!WatchForChanges)
+            {
+                return Array.Empty<IChangeToken>();
+            }
+
+            var checksums = precompiledView.Item.GetChecksumMetadata();
+            var expirationTokens = new List<IChangeToken>(checksums.Count);
+
+            for (var i = 0; i < checksums.Count; i++)
+            {
+                // We rely on Razor to provide the right set of checksums. Trust the compiler, it has to do a good job,
+                // so it probably will.
+                expirationTokens.Add(_fileProvider.Watch(checksums[i].Identifier));
+            }
+
+            return expirationTokens;
+        }
+
         private void GetChangeTokensFromImports(IList<IChangeToken> expirationTokens, RazorProjectItem projectItem)
         {
+            if (!WatchForChanges)
+            {
+                return;
+            }
+
+            // OK this means we can do compilation. For now let's just identify the other files we need to watch
+            // so we can create the cache entry. Compilation will happen after we release the lock.
             var importFeature = _projectEngine.ProjectFeatures.OfType<IImportProjectFeature>().FirstOrDefault();
 
             // There should always be an import feature unless someone has misconfigured their RazorProjectEngine.

@@ -31,7 +31,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem).Engine,
                 fileSystem);
             var razorPageOptions = Options.Create(new RazorPagesOptions());
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, razorPageOptions, razorViewEngineOptions);
 
             // Act
@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 fileSystem);
             var options = Options.Create(new RazorPagesOptions());
             options.Value.RootDirectory = rootDirectory;
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
 
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options, razorViewEngineOptions);
 
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem).Engine,
                 fileSystem);
             var options = Options.Create(new RazorPagesOptions { AllowAreas = true });
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options, razorViewEngineOptions);
 
             // Act
@@ -107,7 +107,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             templateEngine.Options.ImportsFileName = "_ViewImports.cshtml";
             var options = Options.Create(new RazorPagesOptions());
             options.Value.RootDirectory = "/dir1/dir2";
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
 
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options, razorViewEngineOptions);
 
@@ -135,7 +135,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             options.Value.RootDirectory = "/dir1/dir2";
             options.Value.AllowAreas = true;
 
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options, razorViewEngineOptions);
 
             // Act & Assert
@@ -160,7 +160,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 fileSystem);
             templateEngine.Options.ImportsFileName = "_ViewImports.cshtml";
             var options = Options.Create(new RazorPagesOptions { AllowAreas = false });
-            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowUpdatingViewsOnChange = true });
+            var razorViewEngineOptions = Options.Create(new RazorViewEngineOptions { AllowRecompilingViewsOnFileChange = true });
 
             var changeProvider = new PageActionDescriptorChangeProvider(templateEngine, accessor, options, razorViewEngineOptions);
 

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 {
-    // Verifies that updating Razor files (views and pages) with AllowUpdatingViewsOnChange=true works
+    // Verifies that updating Razor files (views and pages) with AllowRecompilingViewsOnFileChange=true works
     public class RazorFileUpdateTests : IClassFixture<MvcTestFixture<RazorWebSite.Startup>>
     {
         public RazorFileUpdateTests(MvcTestFixture<RazorWebSite.Startup> fixture)
@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
                 builder.UseStartup<RazorWebSite.Startup>();
                 builder.ConfigureTestServices(services =>
                 {
-                    services.Configure<RazorViewEngineOptions>(options => options.AllowUpdatingViewsOnChange = true);
+                    services.Configure<RazorViewEngineOptions>(options => options.AllowRecompilingViewsOnFileChange = true);
                 });
             });
             Client = factory.CreateDefaultClient();

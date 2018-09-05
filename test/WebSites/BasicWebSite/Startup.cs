@@ -4,23 +4,14 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BasicWebSite
 {
     public class Startup
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
-
-        public Startup(IHostingEnvironment hostingEnvironment)
-        {
-            _hostingEnvironment = hostingEnvironment;
-        }
-
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
@@ -28,7 +19,7 @@ namespace BasicWebSite
                 .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("Api", _ => { });
             services.AddTransient<IAuthorizationHandler, ManagerHandler>();
 
-            var builder = services
+            services
                 .AddMvc(options =>
                 {
                     options.Conventions.Add(new ApplicationDescription("This is a basic website."));
@@ -40,16 +31,6 @@ namespace BasicWebSite
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Latest)
                 .AddXmlDataContractSerializerFormatters();
-
-            if (!_hostingEnvironment.IsDevelopment())
-            {
-                // Ensure we don't have code paths that call IFileProvider.Watch in the default code path.
-                builder.AddRazorOptions(options =>
-                {
-                    options.FileProviders.Clear();
-                    options.FileProviders.Add(new NonWatchingPhysicalFileProvider(_hostingEnvironment.ContentRootPath));
-                });
-            }
 
             services.ConfigureBaseWebSiteAuthPolicies();
 
