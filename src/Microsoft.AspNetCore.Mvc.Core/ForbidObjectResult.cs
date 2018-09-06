@@ -107,6 +107,7 @@ namespace Microsoft.AspNetCore.Mvc
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var executor = context.HttpContext.RequestServices.GetRequiredService<IActionResultExecutor<ForbidObjectResult>>();
             var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<ForbidResult>();
 
@@ -123,6 +124,8 @@ namespace Microsoft.AspNetCore.Mvc
             {
                 await context.HttpContext.ForbidAsync(Properties);
             }
+
+            await executor.ExecuteAsync(context, this);
         }
     }
 }
