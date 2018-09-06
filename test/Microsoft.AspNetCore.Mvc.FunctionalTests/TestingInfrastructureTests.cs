@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using RazorPagesClassLibrary;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.FunctionalTests
@@ -34,6 +36,15 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal("Test", response);
+        }
+
+        [Fact]
+        public void TestingInfrastructure_CreateClientThrowsInvalidOperationForNonEntryPoint()
+        {
+            var factory = new WebApplicationFactory<ClassLibraryStartup>();
+            var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateClient());
+            Assert.Equal($"The provided Type '{typeof(RazorPagesClassLibrary.ClassLibraryStartup).Name}' does not belong to an assembly with an entry point. A common cause for this error is providing a Type from a class library.",
+               ex.Message);
         }
 
         [Fact]
