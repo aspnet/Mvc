@@ -119,7 +119,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
             EnsureDepsFile();
 
-
             var builder = CreateWebHostBuilder();
             SetContentRoot(builder);
             _configuration(builder);
@@ -251,6 +250,11 @@ namespace Microsoft.AspNetCore.Mvc.Testing
 
         private void EnsureDepsFile()
         {
+            if (typeof(TEntryPoint).Assembly.EntryPoint == null)
+            {
+                throw new InvalidOperationException(Resources.FormatInvalidAssemblyEntryPoint(typeof(TEntryPoint).Name));
+            }
+
             var depsFileName = $"{typeof(TEntryPoint).Assembly.GetName().Name}.deps.json";
             var depsFile = new FileInfo(Path.Combine(AppContext.BaseDirectory, depsFileName));
             if (!depsFile.Exists)
@@ -272,10 +276,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder()
         {
-            if (typeof(TEntryPoint).Assembly.EntryPoint == null)
-            {
-                throw new InvalidOperationException(Resources.FormatInvalidAssemblyEntryPoint(typeof(TEntryPoint).Name));
-            }
             var builder = WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TEntryPoint>(Array.Empty<string>());
             if (builder == null)
             {
