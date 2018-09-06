@@ -52,10 +52,6 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// </summary>
         public WebApplicationFactory()
         {
-            if (typeof(TEntryPoint).Assembly.EntryPoint == null)
-            {
-                throw new InvalidOperationException(Resources.FormatInvalidAssemblyEntryPoint(typeof(TEntryPoint).Name));
-            }
             _configuration = ConfigureWebHost;
         }
 
@@ -276,6 +272,10 @@ namespace Microsoft.AspNetCore.Mvc.Testing
         /// <returns>A <see cref="IWebHostBuilder"/> instance.</returns>
         protected virtual IWebHostBuilder CreateWebHostBuilder()
         {
+            if (typeof(TEntryPoint).Assembly.EntryPoint == null)
+            {
+                throw new InvalidOperationException(Resources.FormatInvalidAssemblyEntryPoint(typeof(TEntryPoint).Name));
+            }
             var builder = WebHostBuilderFactory.CreateFromTypesAssemblyEntryPoint<TEntryPoint>(Array.Empty<string>());
             if (builder == null)
             {

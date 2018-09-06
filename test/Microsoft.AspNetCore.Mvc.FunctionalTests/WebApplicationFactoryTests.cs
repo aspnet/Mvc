@@ -14,7 +14,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         [Fact]
         public void ConstructorThrowsInvalidOperationForNonEntryPoint()
         {
-            var ex = Assert.Throws<InvalidOperationException>(() => new WebApplicationFactory<ClassLibraryStartup>());
+            var factory = new WebApplicationFactory<ClassLibraryStartup>();
+
+            var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateClient());
+
             // Use string literal as Mvc.Testing.Resources is inaccessable (marked as internal)
             Assert.Equal($"The provided Type '{typeof(ClassLibraryStartup).Name}' does not belong to an assembly with an entry point. A common cause for this error is providing a Type from a class library.",
                 ex.Message);
