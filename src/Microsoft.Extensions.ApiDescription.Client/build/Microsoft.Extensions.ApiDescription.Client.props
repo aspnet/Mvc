@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <Project>
-  <Import Project="NSwagServiceReference.props" />
   <PropertyGroup>
     <_GenerationTasksAssemblyTarget Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_GenerationTasksAssemblyTarget>
     <_GenerationTasksAssemblyTarget Condition="'$(MSBuildRuntimeType)' != 'Core'">net461</_GenerationTasksAssemblyTarget>
-    <_GenerationTasksAssemblyPath>$(MSBuildThisFileDirectory)/../tasks/$(_GenerationTasksAssemblyTarget)/GenerationTasks.dll</_GenerationTasksAssemblyPath>
+    <_GenerationTasksAssemblyPath>$(MSBuildThisFileDirectory)/../tasks/$(_GenerationTasksAssemblyTarget)/Microsoft.Extensions.ApiDescription.Client.dll</_GenerationTasksAssemblyPath>
     <_GenerationTasksAssemblyTarget />
   </PropertyGroup>
   <UsingTask TaskName="GenerationTasks.GetFileReferenceMetadata" AssemblyFile="$(_GenerationTasksAssemblyPath)" />
