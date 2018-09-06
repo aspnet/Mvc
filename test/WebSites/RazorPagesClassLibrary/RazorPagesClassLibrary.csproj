@@ -18,7 +18,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="bin\Debug\netstandard2.0\RazorPagesClassLibrary.deps.json" Link="RazorPagesClassLibrary.deps.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(OutDir)\RazorPagesClassLibrary.deps.json" Link="RazorPagesClassLibrary.deps.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
