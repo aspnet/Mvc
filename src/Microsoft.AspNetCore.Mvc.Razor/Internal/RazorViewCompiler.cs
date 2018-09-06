@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             }
         }
 
-        public bool WatchForChanges { get; set; }
+        public bool AllowRecompilingViewsOnFileChange { get; set; }
 
         /// <inheritdoc />
         public Task<CompiledViewDescriptor> CompileAsync(string relativePath)
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             IList<IChangeToken> expirationTokens = Array.Empty<IChangeToken>();
 
-            if (WatchForChanges)
+            if (AllowRecompilingViewsOnFileChange)
             {
                 var changeToken = _fileProvider.Watch(normalizedPath);
                 expirationTokens = new List<IChangeToken> { changeToken };
@@ -309,9 +309,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 };
             }
 
-            GetChangeTokensFromImports(expirationTokens, projectItem);
-
             _logger.ViewCompilerFoundFileToCompile(normalizedPath);
+
+            GetChangeTokensFromImports(expirationTokens, projectItem);
 
             return new ViewCompilerWorkItem()
             {
@@ -324,7 +324,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         private IList<IChangeToken> GetExpirationTokens(CompiledViewDescriptor precompiledView)
         {
-            if (!WatchForChanges)
+            if (!AllowRecompilingViewsOnFileChange)
             {
                 return Array.Empty<IChangeToken>();
             }
@@ -344,7 +344,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
         private void GetChangeTokensFromImports(IList<IChangeToken> expirationTokens, RazorProjectItem projectItem)
         {
-            if (!WatchForChanges)
+            if (!AllowRecompilingViewsOnFileChange)
             {
                 return;
             }

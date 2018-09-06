@@ -204,9 +204,9 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </para>
         /// </summary>
         /// <value>
-        /// The default value is <see langword="true"/> if the version is
-        /// <see cref="CompatibilityVersion.Version_2_2"/> or later and <see cref="IHostingEnvironment.EnvironmentName"/> is <c>Development</c>; 
-        /// <see langword="false"/> otherwise.
+        /// The default value is <see langword="true"/> if the version is <see cref = "CompatibilityVersion.Version_2_1" />
+        /// or earlier. If the version is later and <see cref= "IHostingEnvironment.EnvironmentName" /> is <c>Development</c>,
+        /// the default value is <see langword="true"/>. Otherwise, the default value is <see langword="false" />.
         /// </value>
         /// <remarks>
         /// <para>
@@ -220,11 +220,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// </para>
         /// <para>
         /// If the application's compatibility version is set to <see cref="CompatibilityVersion.Version_2_1"/> or
-        /// lower then this setting will have the value <see langword="false"/> unless explicitly configured.
+        /// lower then this setting will have the value <see langword="true"/> unless explicitly configured.
         /// </para>
         /// <para>
         /// If the application's compatibility version is set to <see cref="CompatibilityVersion.Version_2_2"/> or
-        /// higher then this setting will have the value <see langword="true"/> unless explicitly configured.
+        /// higher then this setting will have the value <see langword="false"/> unless
+        /// <see cref="IHostingEnvironment.EnvironmentName"/>  is <c>Development</c> or the value is explicitly configured.
         /// </para>
         /// </remarks>
         public bool AllowRecompilingViewsOnFileChange

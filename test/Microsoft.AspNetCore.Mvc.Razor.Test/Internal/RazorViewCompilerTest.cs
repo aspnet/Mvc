@@ -44,13 +44,13 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         [Fact]
-        public async Task CompileAsync_ReturnsResultWithExpirationToken_WhenWatching()
+        public async Task CompileAsync_ReturnsResultWithExpirationToken_WhenWatchingForFileChanges()
         {
             // Arrange
             var path = "/file/does-not-exist";
             var fileProvider = new TestFileProvider();
             var viewCompiler = GetViewCompiler(fileProvider);
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act
             var result1 = await viewCompiler.CompileAsync(path);
@@ -82,14 +82,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         [Fact]
-        public async Task CompileAsync_AddsChangeTokensForViewStartsIfFileExists_WhenWatching()
+        public async Task CompileAsync_AddsChangeTokensForViewStartsIfFileExists_WhenWatchingForFileChanges()
         {
             // Arrange
             var path = "/file/exists/FilePath.cshtml";
             var fileProvider = new TestFileProvider();
             fileProvider.AddFile(path, "Content");
             var viewCompiler = GetViewCompiler(fileProvider);
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act
             var result = await viewCompiler.CompileAsync(path);
@@ -155,14 +155,14 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         [Fact]
-        public async Task CompileAsync_InvalidatesCache_IfChangeTokenExpires_WhenWatching()
+        public async Task CompileAsync_InvalidatesCache_IfChangeTokenExpires_WhenWatchingForFileChanges()
         {
             // Arrange
             var path = "/Views/Home/Index.cshtml";
             var fileProvider = new TestFileProvider();
             var fileInfo = fileProvider.AddFile(path, "some content");
             var viewCompiler = GetViewCompiler(fileProvider);
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act 1
             var result1 = await viewCompiler.CompileAsync(path);
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = new TestFileProvider();
             var fileInfo = fileProvider.AddFile(path, "some content");
             var viewCompiler = GetViewCompiler(fileProvider);
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
             var expected2 = new CompiledViewDescriptor();
 
             // Act 1
@@ -216,7 +216,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             var fileProvider = new TestFileProvider();
             var fileInfo = fileProvider.AddFile(path, "some content");
             var viewCompiler = GetViewCompiler(fileProvider);
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
             var expected2 = new CompiledViewDescriptor();
 
             // Act 1
@@ -393,7 +393,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
 
             var viewCompiler = GetViewCompiler(fileProvider, precompiledViews: new[] { precompiledView });
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act
             var result = await viewCompiler.CompileAsync(path);
@@ -488,7 +488,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
 
             var viewCompiler = GetViewCompiler(fileProvider, precompiledViews: new[] { precompiledView });
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act - 1
             var result = await viewCompiler.CompileAsync(path);
@@ -526,7 +526,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
 
             var viewCompiler = GetViewCompiler(fileProvider, precompiledViews: new[] { precompiledView });
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act - 1
             var result = await viewCompiler.CompileAsync(path);
@@ -563,7 +563,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
 
             var viewCompiler = GetViewCompiler(fileProvider, precompiledViews: new[] { precompiledView });
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
             viewCompiler.Compile = _ => expected1;
 
             // Act - 1
@@ -605,7 +605,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             };
 
             var viewCompiler = GetViewCompiler(fileProvider, precompiledViews: new[] { precompiledView });
-            viewCompiler.WatchForChanges = true;
+            viewCompiler.AllowRecompilingViewsOnFileChange = true;
 
             // Act - 1
             var result = await viewCompiler.CompileAsync(path);

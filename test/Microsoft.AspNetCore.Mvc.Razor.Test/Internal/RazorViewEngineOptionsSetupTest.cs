@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             hostingEnv.SetupGet(e => e.ContentRootFileProvider)
                 .Returns(expected);
 
-            var optionsSetup = GetSetup(hostingEnv.Object);
+            var optionsSetup = GetSetup(hostingEnvironment: hostingEnv.Object);
 
             // Act
             optionsSetup.Configure(options);
@@ -39,8 +39,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var options = new RazorViewEngineOptions();
-            var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = CompatibilityVersion.Version_2_1 };
-            var optionsSetup = GetSetup(compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(CompatibilityVersion.Version_2_1);
 
             // Act
             optionsSetup.Configure(options);
@@ -53,13 +52,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         [Theory]
         [InlineData(CompatibilityVersion.Version_2_2)]
         [InlineData(CompatibilityVersion.Latest)]
-        public void PostConfigure_SetsAllowRecompilingViewsOnFileChange_InDevelopmentMode(CompatibilityVersion version)
+        public void PostConfigure_SetsAllowRecompilingViewsOnFileChange_InDevelopmentMode(CompatibilityVersion compatibilityVersion)
         {
             // Arrange
             var options = new RazorViewEngineOptions();
             var hostingEnv = Mock.Of<IHostingEnvironment>(env => env.EnvironmentName == EnvironmentName.Development);
-            var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = version };
-            var optionsSetup = GetSetup(hostingEnv, compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(compatibilityVersion, hostingEnv);
 
             // Act
             optionsSetup.Configure(options);
@@ -72,13 +70,12 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         [Theory]
         [InlineData(CompatibilityVersion.Version_2_2)]
         [InlineData(CompatibilityVersion.Latest)]
-        public void PostConfigure_DoesNotSetAllowRecompilingViewsOnFileChange_WhenNotInDevelopment(CompatibilityVersion version)
+        public void PostConfigure_DoesNotSetAllowRecompilingViewsOnFileChange_WhenNotInDevelopment(CompatibilityVersion compatibilityVersion)
         {
             // Arrange
             var options = new RazorViewEngineOptions();
             var hostingEnv = Mock.Of<IHostingEnvironment>(env => env.EnvironmentName == EnvironmentName.Staging);
-            var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = version };
-            var optionsSetup = GetSetup(hostingEnv, compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(compatibilityVersion, hostingEnv);
 
             // Act
             optionsSetup.Configure(options);
@@ -94,7 +91,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             // Arrange
             var hostingEnv = Mock.Of<IHostingEnvironment>(env => env.EnvironmentName == EnvironmentName.Staging);
             var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = CompatibilityVersion.Version_2_1 };
-            var optionsSetup = GetSetup(hostingEnv, compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(CompatibilityVersion.Version_2_1, hostingEnv);
             var serviceProvider = new ServiceCollection()
                 .AddOptions()
                 .AddSingleton<IConfigureOptions<RazorViewEngineOptions>>(optionsSetup)
@@ -114,7 +111,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
             // Arrange
             var hostingEnv = Mock.Of<IHostingEnvironment>(env => env.EnvironmentName == EnvironmentName.Production);
             var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = CompatibilityVersion.Version_2_2 };
-            var optionsSetup = GetSetup(hostingEnv, compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(CompatibilityVersion.Version_2_2, hostingEnv);
             var serviceProvider = new ServiceCollection()
                 .AddOptions()
                 .AddSingleton<IConfigureOptions<RazorViewEngineOptions>>(optionsSetup)
@@ -132,8 +129,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         {
             // Arrange
             var hostingEnv = Mock.Of<IHostingEnvironment>(env => env.EnvironmentName == EnvironmentName.Production);
-            var compatibilityVersion = new MvcCompatibilityOptions { CompatibilityVersion = CompatibilityVersion.Version_2_2 };
-            var optionsSetup = GetSetup(hostingEnv, compatibilityOptions: compatibilityVersion);
+            var optionsSetup = GetSetup(CompatibilityVersion.Version_2_2, hostingEnv);
             var serviceProvider = new ServiceCollection()
                 .AddOptions()
                 .AddSingleton<IConfigureOptions<RazorViewEngineOptions>>(optionsSetup)
@@ -148,11 +144,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         }
 
         private static RazorViewEngineOptionsSetup GetSetup(
-            IHostingEnvironment hostingEnvironment = null, 
-            MvcCompatibilityOptions compatibilityOptions = null)
+            CompatibilityVersion compatibilityVersion = CompatibilityVersion.Latest,
+            IHostingEnvironment hostingEnvironment = null)
         {
             hostingEnvironment = hostingEnvironment ?? Mock.Of<IHostingEnvironment>();
-            compatibilityOptions = compatibilityOptions ?? new MvcCompatibilityOptions();
+            var compatibilityOptions = new MvcCompatibilityOptions { CompatibilityVersion = compatibilityVersion };
 
             return new RazorViewEngineOptionsSetup(
                 hostingEnvironment,
