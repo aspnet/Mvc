@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.Abstractions
         public IList<IActionConstraintMetadata> ActionConstraints { get; set; }
 
         /// <summary>
-        /// Gets or set the endpoint metadata for this action.
+        /// Gets or sets the endpoint metadata for this action.
         /// </summary>
         public IList<object> EndpointMetadata { get; set; }
 
