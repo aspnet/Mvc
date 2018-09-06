@@ -1568,7 +1568,7 @@ namespace Microsoft.AspNetCore.Mvc.Description
         public void GetApiDescription_ParameterDescription_RedundantMetadata_NotMergedWithParent()
         {
             // Arrange
-            var action = CreateActionDescriptor(nameof(AcceptsRedundentMetadata));
+            var action = CreateActionDescriptor(nameof(AcceptsRedundantMetadata));
             var parameterDescriptor = action.Parameters.Single();
 
             // Act
