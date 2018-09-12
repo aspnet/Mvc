@@ -24,7 +24,6 @@ namespace RoutingWebSite
             _parameterTransformer = parameterTransformer;
         }
 
-
         public void Apply(ApplicationModel application)
         {
             foreach (var controller in application.Controllers.Where(c => c.ControllerType == _controllerType))
