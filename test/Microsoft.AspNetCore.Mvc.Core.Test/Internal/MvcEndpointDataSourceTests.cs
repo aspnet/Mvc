@@ -757,7 +757,10 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             var services = new ServiceCollection();
             services.AddSingleton(actionDescriptorCollectionProvider);
-            services.AddRouting(options => { });
+            services.AddRouting(options =>
+            {
+                options.ConstraintMap["upper-case"] = typeof(UpperCaseParameterTransform);
+            });
             var serviceProvider = services.BuildServiceProvider();
 
             var dataSource = new MvcEndpointDataSource(
