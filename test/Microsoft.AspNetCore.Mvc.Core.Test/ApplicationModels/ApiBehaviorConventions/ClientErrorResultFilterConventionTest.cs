@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Xunit;
 
@@ -14,14 +13,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public void Apply_AddsFilter()
         {
             // Arrange
-            var controller = GetControllerModel();
+            var action = GetActionModel();
             var convention = GetConvention();
 
             // Act
-            convention.Apply(controller);
+            convention.Apply(action);
 
             // Assert
-            var action = controller.Actions[0];
             Assert.Single(action.Filters.OfType<ClientErrorResultFilterFactory>());
         }
 
@@ -30,14 +28,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return new ClientErrorResultFilterConvention();
         }
 
-        private static ControllerModel GetControllerModel()
+        private static ActionModel GetActionModel()
         {
-            var controller = new ControllerModel(typeof(object).GetTypeInfo(), new object[0]);
-            var action = new ActionModel(typeof(object).GetMethods()[0], new object[0]) { Controller = controller };
+            var action = new ActionModel(typeof(object).GetMethods()[0], new object[0]);
 
-            controller.Actions.Add(action);
-
-            return controller;
+            return action;
         }
     }
 }

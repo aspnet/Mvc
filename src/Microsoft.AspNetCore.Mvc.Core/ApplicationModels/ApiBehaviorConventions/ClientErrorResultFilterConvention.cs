@@ -8,31 +8,29 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// An <see cref="IControllerModelConvention"/> that adds a <see cref="IFilterMetadata"/>
+    /// An <see cref="IActionModelConvention"/> that adds a <see cref="IFilterMetadata"/>
     /// to <see cref="ActionModel"/> that transforms <see cref="IClientErrorActionResult"/>.
     /// </summary>
-    public class ClientErrorResultFilterConvention : IControllerModelConvention
+    public class ClientErrorResultFilterConvention : IActionModelConvention
     {
         private readonly ClientErrorResultFilterFactory _filterFactory = new ClientErrorResultFilterFactory();
 
-        public void Apply(ControllerModel controller)
+        public void Apply(ActionModel action)
         {
-            if (controller == null)
+            if (action == null)
             {
-                throw new ArgumentNullException(nameof(controller));
+                throw new ArgumentNullException(nameof(action));
             }
 
-            if (!ShouldApply(controller))
+            if (!ShouldApply(action))
             {
                 return;
             }
 
-            foreach (var action in controller.Actions)
-            {
-                action.Filters.Add(_filterFactory);
-            }
+            
+            action.Filters.Add(_filterFactory);
         }
 
-        protected virtual bool ShouldApply(ControllerModel controller) => true;
+        protected virtual bool ShouldApply(ActionModel action) => true;
     }
 }

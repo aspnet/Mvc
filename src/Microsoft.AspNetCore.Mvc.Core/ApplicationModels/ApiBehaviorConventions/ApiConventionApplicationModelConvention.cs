@@ -9,13 +9,13 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// An <see cref="IControllerModelConvention"/> that discovers
+    /// An <see cref="IActionModelConvention"/> that discovers
     /// <list type="bullet">
     /// <item><see cref="ApiConventionResult"/> from applied <see cref="ApiConventionTypeAttribute"/> or <see cref="ApiConventionMethodAttribute"/>.</item>
     /// <item><see cref="ProducesErrorResponseTypeAttribute"/> that applies to the action.</item>
     /// </list>
     /// </summary>
-    public class ApiConventionApplicationModelConvention : IControllerModelConvention
+    public class ApiConventionApplicationModelConvention : IActionModelConvention
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ApiConventionApplicationModelConvention"/>.
@@ -34,26 +34,23 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         /// </summary>
         public ProducesErrorResponseTypeAttribute DefaultErrorResponseType { get; }
 
-        public void Apply(ControllerModel controller)
+        public void Apply(ActionModel action)
         {
-            if (controller == null)
+            if (action == null)
             {
-                throw new ArgumentNullException(nameof(controller));
+                throw new ArgumentNullException(nameof(action));
             }
 
-            if (!ShouldApply(controller))
+            if (!ShouldApply(action))
             {
                 return;
             }
 
-            foreach (var action in controller.Actions)
-            {
-                DiscoverApiConvention(action);
-                DiscoverErrorResponseType(action);
-            }
+            DiscoverApiConvention(action);
+            DiscoverErrorResponseType(action);
         }
 
-        protected virtual bool ShouldApply(ControllerModel controller) => true;
+        protected virtual bool ShouldApply(ActionModel action) => true;
 
         private static void DiscoverApiConvention(ActionModel action)
         {

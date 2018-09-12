@@ -4,15 +4,15 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Mvc.Internal
+namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     public class ApiBehaviorApplicationModelProviderTest
     {
@@ -75,21 +75,21 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
             // Assert
             // Verify some of the side-effects of executing API behavior conventions.
-            Assert.True(controllerModel.ApiExplorer.IsVisible);
+            Assert.True(actionModel.ApiExplorer.IsVisible);
             Assert.NotEmpty(actionModel.Filters.OfType<ModelStateInvalidFilterFactory>());
             Assert.NotEmpty(actionModel.Filters.OfType<ClientErrorResultFilterFactory>());
             Assert.Equal(BindingSource.Body, parameterModel.BindingInfo.BindingSource);
         }
 
         [Fact]
-        public void Constructor_SetsUpControllerModelConventions()
+        public void Constructor_SetsUpConventions()
         {
             // Arrange
             var provider = GetProvider();
 
             // Act & Assert
             Assert.Collection(
-                provider.Conventions,
+                provider.ActionModelConventions,
                 c => Assert.IsType<ApiVisibilityConvention>(c),
                 c => Assert.IsType<ClientErrorResultFilterConvention>(c),
                 c => Assert.IsType<InvalidModelStateFilterConvention>(c),
@@ -98,9 +98,15 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     var convention = Assert.IsType<ApiConventionApplicationModelConvention>(c);
                     Assert.Equal(typeof(ProblemDetails), convention.DefaultErrorResponseType.Type);
-                },
-                c => Assert.IsType<InferParameterBindingSourceConvention>(c),
-                c => Assert.IsType<InferModelPrefixConvention>(c));
+                });
+
+            Assert.Collection(
+                provider.ControllerModelConventions,
+                c =>
+                {
+                    var convention = Assert.IsType<InferParameterBindingInfoConvention>(c);
+                    Assert.False(convention.SuppressInferBindingSourcesForParameters);
+                });
         }
 
         [Fact]
@@ -110,7 +116,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(new ApiBehaviorOptions { SuppressMapClientErrors = true });
 
             // Act & Assert
-            Assert.Empty(provider.Conventions.OfType<ClientErrorResultFilterConvention>());
+            Assert.Empty(provider.ActionModelConventions.OfType<ClientErrorResultFilterConvention>());
         }
 
         [Fact]
@@ -120,7 +126,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(new ApiBehaviorOptions { SuppressModelStateInvalidFilter = true });
 
             // Act & Assert
-            Assert.Empty(provider.Conventions.OfType<InvalidModelStateFilterConvention>());
+            Assert.Empty(provider.ActionModelConventions.OfType<InvalidModelStateFilterConvention>());
         }
 
         [Fact]
@@ -130,17 +136,18 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(new ApiBehaviorOptions { SuppressConsumesConstraintForFormFileParameters = true });
 
             // Act & Assert
-            Assert.Empty(provider.Conventions.OfType<ConsumesConstraintForFormFileParameterConvention>());
+            Assert.Empty(provider.ActionModelConventions.OfType<ConsumesConstraintForFormFileParameterConvention>());
         }
 
         [Fact]
-        public void Constructor_DoesNotAddInferParameterBindingSourceConvention_IfSuppressInferBindingSourcesForParametersIsSet()
+        public void Constructor_SetsSuppressInferBindingSourcesForParametersIsSet()
         {
             // Arrange
             var provider = GetProvider(new ApiBehaviorOptions { SuppressInferBindingSourcesForParameters = true });
 
             // Act & Assert
-            Assert.Empty(provider.Conventions.OfType<InferParameterBindingSourceConvention>());
+            var convention = Assert.Single(provider.ControllerModelConventions.OfType<InferParameterBindingInfoConvention>());
+            Assert.True(convention.SuppressInferBindingSourcesForParameters);
         }
 
         [Fact]
@@ -150,7 +157,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var provider = GetProvider(new ApiBehaviorOptions { SuppressMapClientErrors = true });
 
             // Act & Assert
-            var convention = Assert.Single(provider.Conventions.OfType<ApiConventionApplicationModelConvention>());
+            var convention = Assert.Single(provider.ActionModelConventions.OfType<ApiConventionApplicationModelConvention>());
             Assert.Equal(typeof(void), convention.DefaultErrorResponseType.Type);
         }
 

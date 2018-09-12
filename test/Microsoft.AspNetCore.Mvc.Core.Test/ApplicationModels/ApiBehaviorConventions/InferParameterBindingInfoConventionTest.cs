@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
-    public class InferParameterBindingSourceConventionTest
+    public class InferParameterBindingInfoConventionTest
     {
         [Fact]
         public void Apply_DoesNotInferBindingSourceForParametersWithBindingInfo()
@@ -675,12 +675,57 @@ Environment.NewLine + "int b";
             Assert.Null(bindingInfo.BinderModelName);
         }
 
-        private static InferParameterBindingSourceConvention GetConvention(
+        [Fact]
+        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundProperty));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Equal(string.Empty, property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundCollectionProperty));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Null(property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
+        {
+            // Arrange
+            var action = GetActionModel(typeof(ControllerWithBoundProperty), nameof(ControllerWithBoundProperty.SomeAction));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferParameterModelPrefixes(action);
+
+            // Assert
+            var parameter = Assert.Single(action.Parameters);
+            Assert.Equal(string.Empty, parameter.BindingInfo.BinderModelName);
+        }
+
+        private static InferParameterBindingInfoConvention GetConvention(
             IModelMetadataProvider modelMetadataProvider = null)
         {
             var loggerFactory = NullLoggerFactory.Instance;
             modelMetadataProvider = modelMetadataProvider ?? new EmptyModelMetadataProvider();
-            return new InferParameterBindingSourceConvention(modelMetadataProvider);
+            return new InferParameterBindingInfoConvention(modelMetadataProvider);
         }
 
         private static ApplicationModelProviderContext GetContext(

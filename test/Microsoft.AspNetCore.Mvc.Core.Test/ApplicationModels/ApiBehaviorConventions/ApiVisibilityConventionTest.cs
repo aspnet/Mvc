@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Reflection;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
@@ -12,31 +11,34 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public void Apply_SetsApiExplorerVisibility()
         {
             // Arrange
-            var controller = new ControllerModel(typeof(object).GetTypeInfo(), new object[0]);
+            var action = GetActionModel();
             var convention = new ApiVisibilityConvention();
 
             // Act
-            convention.Apply(controller);
+            convention.Apply(action);
 
             // Assert
-            Assert.True(controller.ApiExplorer.IsVisible);
+            Assert.True(action.ApiExplorer.IsVisible);
         }
 
         [Fact]
         public void Apply_DoesNotSetApiExplorerVisibility_IfAlreadySpecified()
         {
             // Arrange
-            var controller = new ControllerModel(typeof(object).GetTypeInfo(), new object[0])
-            {
-                ApiExplorer = { IsVisible = false, },
-            };
+            var action = GetActionModel();
+            action.ApiExplorer.IsVisible = false;
             var convention = new ApiVisibilityConvention();
 
             // Act
-            convention.Apply(controller);
+            convention.Apply(action);
 
             // Assert
-            Assert.False(controller.ApiExplorer.IsVisible);
+            Assert.False(action.ApiExplorer.IsVisible);
+        }
+
+        private static ActionModel GetActionModel()
+        {
+            return new ActionModel(typeof(object).GetMethods()[0], new object[0]);
         }
     }
 }

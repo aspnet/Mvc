@@ -11,17 +11,26 @@ using Resources = Microsoft.AspNetCore.Mvc.Core.Resources;
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// A <see cref="IControllerModelConvention"/> that infers binding sources for parameters.
+    /// A <see cref="IControllerModelConvention"/> that 
+    /// <list type="bullet">
+    /// <item>infers binding sources for parameters</item>
+    /// <item><see cref="BindingInfo.BinderModelName"/> for bound properties and parameters.</item>
+    /// </list>
     /// </summary>
-    public class InferParameterBindingSourceConvention : IControllerModelConvention
+    public class InferParameterBindingInfoConvention : IControllerModelConvention
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
 
-        public InferParameterBindingSourceConvention(
+        public InferParameterBindingInfoConvention(
             IModelMetadataProvider modelMetadataProvider)
         {
             _modelMetadataProvider = modelMetadataProvider ?? throw new ArgumentNullException(nameof(modelMetadataProvider));
         }
+
+        /// <summary>
+        /// Gets or sets a value that determines if model binding sources are inferred for action parameters on controllers is suppressed.
+        /// </summary>
+        public bool SuppressInferBindingSourcesForParameters { get; set; }
 
         protected virtual bool ShouldApply(ControllerModel controller) => true;
 
@@ -37,9 +46,12 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                 return;
             }
 
+            InferBoundPropertyModelPrefixes(controller);
+
             foreach (var action in controller.Actions)
             {
                 InferParameterBindingSources(action);
+                InferParameterModelPrefixes(action);
             }
         }
 
@@ -88,6 +100,44 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                 BindingSource.Query;
 
             return bindingSource;
+        }
+
+        // For any complex types that are bound from value providers, set the prefix
+        // to the empty prefix by default. This makes binding much more predictable
+        // and describable via ApiExplorer
+        internal void InferBoundPropertyModelPrefixes(ControllerModel controllerModel)
+        {
+            foreach (var property in controllerModel.ControllerProperties)
+            {
+                if (property.BindingInfo != null &&
+                    property.BindingInfo.BinderModelName == null &&
+                    property.BindingInfo.BindingSource != null &&
+                    !property.BindingInfo.BindingSource.IsGreedy)
+                {
+                    var metadata = _modelMetadataProvider.GetMetadataForProperty(
+                        controllerModel.ControllerType,
+                        property.PropertyInfo.Name);
+                    if (metadata.IsComplexType && !metadata.IsCollectionType)
+                    {
+                        property.BindingInfo.BinderModelName = string.Empty;
+                    }
+                }
+            }
+        }
+
+        internal void InferParameterModelPrefixes(ActionModel action)
+        {
+            foreach (var parameter in action.Parameters)
+            {
+                var bindingInfo = parameter.BindingInfo;
+                if (bindingInfo?.BindingSource != null &&
+                    bindingInfo.BinderModelName == null &&
+                    !bindingInfo.BindingSource.IsGreedy &&
+                    IsComplexTypeParameter(parameter))
+                {
+                    parameter.BindingInfo.BinderModelName = string.Empty;
+                }
+            }
         }
 
         private bool ParameterExistsInAnyRoute(ActionModel action, string parameterName)

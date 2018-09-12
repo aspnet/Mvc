@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(actionModel.Controller);
+            convention.Apply(actionModel);
 
             // Assert
             Assert.DoesNotContain(typeof(ApiConventionResult), actionModel.Properties.Keys);
@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(actionModel.Controller);
+            convention.Apply(actionModel);
 
             // Assert
             Assert.DoesNotContain(typeof(ApiConventionResult), actionModel.Properties.Keys);
@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(actionModel.Controller);
+            convention.Apply(actionModel);
 
             // Assert
             Assert.DoesNotContain(typeof(ApiConventionResult), actionModel.Properties.Keys);
@@ -69,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(actionModel.Controller);
+            convention.Apply(actionModel);
 
             // Assert
             var value = actionModel.Properties[typeof(ApiConventionResult)];
@@ -85,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(actionModel.Controller);
+            convention.Apply(actionModel);
 
             // Assert
             var value = actionModel.Properties[typeof(ApiConventionResult)];
@@ -102,11 +102,10 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             {
                 Controller = controller,
             };
-            controller.Actions.Add(action);
             var convention = GetConvention(expected);
 
             // Act
-            convention.Apply(controller);
+            convention.Apply(action);
 
             // Assert
             var attribute = GetProperty<ProducesErrorResponseTypeAttribute>(action);
@@ -122,7 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action.Controller);
+            convention.Apply(action);
 
             // Assert
             var attribute = GetProperty<ProducesErrorResponseTypeAttribute>(action);
@@ -140,7 +139,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action.Controller);
+            convention.Apply(action);
 
             // Assert
             var attribute = GetProperty<ProducesErrorResponseTypeAttribute>(action);
@@ -159,7 +158,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action.Controller);
+            convention.Apply(action);
 
             // Assert
             var attribute = GetProperty<ProducesErrorResponseTypeAttribute>(action);
@@ -175,7 +174,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action.Controller);
+            convention.Apply(action);
 
             // Assert
             var attribute = GetProperty<ProducesErrorResponseTypeAttribute>(action);

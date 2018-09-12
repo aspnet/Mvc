@@ -4,24 +4,24 @@
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// A <see cref="IControllerModelConvention"/> that sets Api Explorer visibility.
+    /// A <see cref="IActionModelConvention"/> that sets Api Explorer visibility.
     /// </summary>
-    public class ApiVisibilityConvention : IControllerModelConvention
+    public class ApiVisibilityConvention : IActionModelConvention
     {
-        public void Apply(ControllerModel controller)
+        public void Apply(ActionModel action)
         {
-            if (!ShouldApply(controller))
+            if (!ShouldApply(action))
             {
                 return;
             }
 
-            if (controller.ApiExplorer.IsVisible == null)
+            if (action.ApiExplorer.IsVisible == null)
             {
                 // Enable ApiExplorer for the controller if it wasn't already explicitly configured.
-                controller.ApiExplorer.IsVisible = true;
+                action.ApiExplorer.IsVisible = true;
             }
         }
 
-        protected virtual bool ShouldApply(ControllerModel controller) => true;
+        protected virtual bool ShouldApply(ActionModel action) => true;
     }
 }
