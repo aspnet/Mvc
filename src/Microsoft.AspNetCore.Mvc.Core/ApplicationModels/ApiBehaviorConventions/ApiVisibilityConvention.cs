@@ -10,13 +10,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     {
         public void Apply(ControllerModel controller)
         {
-            if (ShouldApply(controller))
+            if (!ShouldApply(controller))
             {
-                if (controller.ApiExplorer.IsVisible == null)
-                {
-                    // Enable ApiExplorer for the controller if it wasn't already explicitly configured.
-                    controller.ApiExplorer.IsVisible = true;
-                }
+                return;
+            }
+
+            if (controller.ApiExplorer.IsVisible == null)
+            {
+                // Enable ApiExplorer for the controller if it wasn't already explicitly configured.
+                controller.ApiExplorer.IsVisible = true;
             }
         }
 

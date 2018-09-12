@@ -76,14 +76,86 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Assert
             // Verify some of the side-effects of executing API behavior conventions.
             Assert.True(controllerModel.ApiExplorer.IsVisible);
-            Assert.NotEmpty(actionModel.Filters.OfType<ModelStateInvalidFilter>());
-            Assert.NotEmpty(actionModel.Filters.OfType<ClientErrorResultFilter>());
+            Assert.NotEmpty(actionModel.Filters.OfType<ModelStateInvalidFilterFactory>());
+            Assert.NotEmpty(actionModel.Filters.OfType<ClientErrorResultFilterFactory>());
             Assert.Equal(BindingSource.Body, parameterModel.BindingInfo.BindingSource);
         }
 
+        [Fact]
+        public void Constructor_SetsUpControllerModelConventions()
+        {
+            // Arrange
+            var provider = GetProvider();
+
+            // Act & Assert
+            Assert.Collection(
+                provider.Conventions,
+                c => Assert.IsType<ApiVisibilityConvention>(c),
+                c => Assert.IsType<ClientErrorResultFilterConvention>(c),
+                c => Assert.IsType<InvalidModelStateFilterConvention>(c),
+                c => Assert.IsType<ConsumesConstraintForFormFileParameterConvention>(c),
+                c =>
+                {
+                    var convention = Assert.IsType<ApiConventionApplicationModelConvention>(c);
+                    Assert.Equal(typeof(ProblemDetails), convention.DefaultErrorResponseType.Type);
+                },
+                c => Assert.IsType<InferParameterBindingSourceConvention>(c),
+                c => Assert.IsType<InferModelPrefixConvention>(c));
+        }
+
+        [Fact]
+        public void Constructor_DoesNotAddClientErrorResultFilterConvention_IfSuppressMapClientErrorsIsSet()
+        {
+            // Arrange
+            var provider = GetProvider(new ApiBehaviorOptions { SuppressMapClientErrors = true });
+
+            // Act & Assert
+            Assert.Empty(provider.Conventions.OfType<ClientErrorResultFilterConvention>());
+        }
+
+        [Fact]
+        public void Constructor_DoesNotAddInvalidModelStateFilterConvention_IfSuppressModelStateInvalidFilterIsSet()
+        {
+            // Arrange
+            var provider = GetProvider(new ApiBehaviorOptions { SuppressModelStateInvalidFilter = true });
+
+            // Act & Assert
+            Assert.Empty(provider.Conventions.OfType<InvalidModelStateFilterConvention>());
+        }
+
+        [Fact]
+        public void Constructor_DoesNotAddConsumesConstraintForFormFileParameterConvention_IfSuppressConsumesConstraintForFormFileParametersIsSet()
+        {
+            // Arrange
+            var provider = GetProvider(new ApiBehaviorOptions { SuppressConsumesConstraintForFormFileParameters = true });
+
+            // Act & Assert
+            Assert.Empty(provider.Conventions.OfType<ConsumesConstraintForFormFileParameterConvention>());
+        }
+
+        [Fact]
+        public void Constructor_DoesNotAddInferParameterBindingSourceConvention_IfSuppressInferBindingSourcesForParametersIsSet()
+        {
+            // Arrange
+            var provider = GetProvider(new ApiBehaviorOptions { SuppressInferBindingSourcesForParameters = true });
+
+            // Act & Assert
+            Assert.Empty(provider.Conventions.OfType<InferParameterBindingSourceConvention>());
+        }
+
+        [Fact]
+        public void Constructor_DoesNotSpecifyDefaultErrorType_IfSuppressMapClientErrorsIsSet()
+        {
+            // Arrange
+            var provider = GetProvider(new ApiBehaviorOptions { SuppressMapClientErrors = true });
+
+            // Act & Assert
+            var convention = Assert.Single(provider.Conventions.OfType<ApiConventionApplicationModelConvention>());
+            Assert.Equal(typeof(void), convention.DefaultErrorResponseType.Type);
+        }
+
         private static ApiBehaviorApplicationModelProvider GetProvider(
-            ApiBehaviorOptions options = null,
-            IModelMetadataProvider modelMetadataProvider = null)
+            ApiBehaviorOptions options = null)
         {
             options = options ?? new ApiBehaviorOptions
             {
@@ -92,10 +164,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var optionsAccessor = Options.Create(options);
 
             var loggerFactory = NullLoggerFactory.Instance;
-            modelMetadataProvider = modelMetadataProvider ?? new EmptyModelMetadataProvider();
             return new ApiBehaviorApplicationModelProvider(
                 optionsAccessor,
-                modelMetadataProvider,
+                new EmptyModelMetadataProvider(),
                 Mock.Of<IClientErrorFactory>(),
                 loggerFactory);
         }

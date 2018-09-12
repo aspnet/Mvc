@@ -6,90 +6,50 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing.Template;
-using Microsoft.Extensions.Options;
 using Resources = Microsoft.AspNetCore.Mvc.Core.Resources;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// A <see cref="IActionModelConvention"/> that infers binding sources for parameters.
+    /// A <see cref="IControllerModelConvention"/> that infers binding sources for parameters.
     /// </summary>
-    public class InferParameterBindingSourceConvention : IActionModelConvention
+    public class InferParameterBindingSourceConvention : IControllerModelConvention
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        private readonly ApiBehaviorOptions _apiBehaviorOptions;
 
         public InferParameterBindingSourceConvention(
-            IOptions<ApiBehaviorOptions> apiBehaviorOptions,
             IModelMetadataProvider modelMetadataProvider)
         {
-            _apiBehaviorOptions = apiBehaviorOptions?.Value ?? throw new ArgumentNullException(nameof(apiBehaviorOptions));
             _modelMetadataProvider = modelMetadataProvider ?? throw new ArgumentNullException(nameof(modelMetadataProvider));
         }
 
-        protected virtual bool ShouldApply(ActionModel action) =>
-            !_apiBehaviorOptions.SuppressInferBindingSourcesForParameters;
+        protected virtual bool ShouldApply(ControllerModel controller) => true;
 
-        public void Apply(ActionModel action)
+        public void Apply(ControllerModel controller)
         {
-            if (action == null)
+            if (controller == null)
             {
-                throw new ArgumentNullException(nameof(action));
+                throw new ArgumentNullException(nameof(controller));
             }
 
-            if (ShouldApply(action))
+            if (!ShouldApply(controller))
+            {
+                return;
+            }
+
+            foreach (var action in controller.Actions)
             {
                 InferParameterBindingSources(action);
             }
         }
 
-        // For any complex types that are bound from value providers, set the prefix
-        // to the empty prefix by default. This makes binding much more predictable
-        // and describable via ApiExplorer
-
-        // internal for testing
-        internal void InferBoundPropertyModelPrefixes(ControllerModel controllerModel)
+        internal void InferParameterBindingSources(ActionModel action)
         {
-            foreach (var property in controllerModel.ControllerProperties)
-            {
-                if (property.BindingInfo != null &&
-                    property.BindingInfo.BinderModelName == null &&
-                    property.BindingInfo.BindingSource != null &&
-                    !property.BindingInfo.BindingSource.IsGreedy)
-                {
-                    var metadata = _modelMetadataProvider.GetMetadataForProperty(
-                        controllerModel.ControllerType,
-                        property.PropertyInfo.Name);
-                    if (metadata.IsComplexType && !metadata.IsCollectionType)
-                    {
-                        property.BindingInfo.BinderModelName = string.Empty;
-                    }
-                }
-            }
-        }
+            var inferredBindingSources = new BindingSource[action.Parameters.Count];
 
-        internal void InferParameterModelPrefixes(ActionModel action)
-        {
-            foreach (var parameter in action.Parameters)
+            for (var i = 0; i < action.Parameters.Count; i++)
             {
-                var bindingInfo = parameter.BindingInfo;
-                if (bindingInfo?.BindingSource != null &&
-                    bindingInfo.BinderModelName == null &&
-                    !bindingInfo.BindingSource.IsGreedy &&
-                    IsComplexTypeParameter(parameter))
-                {
-                    parameter.BindingInfo.BinderModelName = string.Empty;
-                }
-            }
-        }
-
-        internal void InferParameterBindingSources(ActionModel actionModel)
-        {
-            var inferredBindingSources = new BindingSource[actionModel.Parameters.Count];
-
-            for (var i = 0; i < actionModel.Parameters.Count; i++)
-            {
-                var parameter = actionModel.Parameters[i];
+                var parameter = action.Parameters[i];
                 var bindingSource = parameter.BindingInfo?.BindingSource;
                 if (bindingSource == null)
                 {
@@ -100,12 +60,12 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                 }
             }
 
-            var fromBodyParameters = actionModel.Parameters.Where(p => p.BindingInfo.BindingSource == BindingSource.Body).ToList();
+            var fromBodyParameters = action.Parameters.Where(p => p.BindingInfo.BindingSource == BindingSource.Body).ToList();
             if (fromBodyParameters.Count > 1)
             {
                 var parameters = string.Join(Environment.NewLine, fromBodyParameters.Select(p => p.DisplayName));
                 var message = Resources.FormatApiController_MultipleBodyParametersFound(
-                    actionModel.DisplayName,
+                    action.DisplayName,
                     nameof(FromQueryAttribute),
                     nameof(FromRouteAttribute),
                     nameof(FromBodyAttribute));
@@ -130,9 +90,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return bindingSource;
         }
 
-        private bool ParameterExistsInAnyRoute(ActionModel actionModel, string parameterName)
+        private bool ParameterExistsInAnyRoute(ActionModel action, string parameterName)
         {
-            foreach (var (route, _, _) in ActionAttributeRouteModel.GetAttributeRoutes(actionModel))
+            foreach (var (route, _, _) in ActionAttributeRouteModel.GetAttributeRoutes(action))
             {
                 if (route == null)
                 {

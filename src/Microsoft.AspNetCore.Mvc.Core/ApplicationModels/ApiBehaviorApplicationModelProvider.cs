@@ -4,41 +4,56 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Core;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Microsoft.AspNetCore.Mvc.Internal
+namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
-    public class ApiBehaviorApplicationModelProvider : IApplicationModelProvider
+    internal class ApiBehaviorApplicationModelProvider : IApplicationModelProvider
     {
-        private readonly IControllerModelConvention[] _controllerModelConventions;
-        private readonly IActionModelConvention[] _actionModelConventions;
-
         public ApiBehaviorApplicationModelProvider(
             IOptions<ApiBehaviorOptions> apiBehaviorOptions,
             IModelMetadataProvider modelMetadataProvider,
             IClientErrorFactory clientErrorFactory,
             ILoggerFactory loggerFactory)
         {
-            _controllerModelConventions = new IControllerModelConvention[]
+            var options = apiBehaviorOptions.Value;
+
+            Conventions = new List<IControllerModelConvention>()
             {
                 new ApiVisibilityConvention(),
-                new InferModelPrefixConvention(apiBehaviorOptions, modelMetadataProvider),
             };
 
-            _actionModelConventions = new IActionModelConvention[]
+            if (!options.SuppressMapClientErrors)
             {
-                new ClientErrorResultFilterConvention(apiBehaviorOptions, clientErrorFactory, loggerFactory),
-                new InvalidModelStateFilterConvention(apiBehaviorOptions, loggerFactory),
-                new ConsumesConstraintForFormFileParameterConvention(apiBehaviorOptions),
-                new DiscoverApiConventionResultConvention(),
-                new DiscoverProducesErrorResponseTypeConvention(apiBehaviorOptions),
-                new InferParameterBindingSourceConvention(apiBehaviorOptions, modelMetadataProvider),
-            };
+                Conventions.Add(new ClientErrorResultFilterConvention());
+            }
+
+            if (!options.SuppressModelStateInvalidFilter)
+            {
+                Conventions.Add(new InvalidModelStateFilterConvention());
+            }
+
+            if (!options.SuppressConsumesConstraintForFormFileParameters)
+            {
+                Conventions.Add(new ConsumesConstraintForFormFileParameterConvention());
+            }
+
+            var defaultErrorType = options.SuppressMapClientErrors ? typeof(void) : typeof(ProblemDetails);
+            var defaultErrorTypeAttribute = new ProducesErrorResponseTypeAttribute(defaultErrorType);
+            Conventions.Add(new ApiConventionApplicationModelConvention(defaultErrorTypeAttribute));
+            
+            if (!options.SuppressInferBindingSourcesForParameters)
+            {
+                Conventions.Add(new InferParameterBindingSourceConvention(modelMetadataProvider));
+            }
+
+            // InferModelPrefixConvention inspects BindingSource and needs to run after InferParameterBindingSourceConvention.
+            Conventions.Add(new InferModelPrefixConvention(modelMetadataProvider));
         }
 
         /// <remarks>
@@ -46,6 +61,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         /// <see cref="IApplicationModelProvider"/> that configure routing to execute.
         /// </remarks>
         public int Order => -1000 + 100;
+
+        public List<IControllerModelConvention> Conventions { get; }
 
         public void OnProvidersExecuted(ApplicationModelProviderContext context)
         {
@@ -64,14 +81,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 {
                     // Ensure ApiController is set up correctly
                     EnsureActionIsAttributeRouted(actionModel);
-
-                    foreach (var convention in _actionModelConventions)
-                    {
-                        convention.Apply(actionModel);
-                    }
                 }
 
-                foreach (var convention in _controllerModelConventions)
+                foreach (var convention in Conventions)
                 {
                     convention.Apply(controllerModel);
                 }

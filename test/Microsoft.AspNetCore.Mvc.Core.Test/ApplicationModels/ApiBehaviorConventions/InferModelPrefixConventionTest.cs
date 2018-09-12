@@ -60,18 +60,11 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         }
 
         private static InferModelPrefixConvention GetConvention(
-            ApiBehaviorOptions options = null,
             IModelMetadataProvider modelMetadataProvider = null)
         {
-            options = options ?? new ApiBehaviorOptions
-            {
-                InvalidModelStateResponseFactory = _ => null,
-            };
-            var optionsAccessor = Options.Create(options);
-
             var loggerFactory = NullLoggerFactory.Instance;
             modelMetadataProvider = modelMetadataProvider ?? new EmptyModelMetadataProvider();
-            return new InferModelPrefixConvention(Options.Create(options), modelMetadataProvider);
+            return new InferModelPrefixConvention(modelMetadataProvider);
         }
 
         private static ApplicationModelProviderContext GetContext(

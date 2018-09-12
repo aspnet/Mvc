@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
@@ -14,13 +13,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     public class InferModelPrefixConvention : IControllerModelConvention
     {
         private readonly IModelMetadataProvider _modelMetadataProvider;
-        private readonly ApiBehaviorOptions _apiBehaviorOptions;
 
-        public InferModelPrefixConvention(
-            IOptions<ApiBehaviorOptions> apiBehaviorOptions,
-            IModelMetadataProvider modelMetadataProvider)
+        public InferModelPrefixConvention(IModelMetadataProvider modelMetadataProvider)
         {
-            _apiBehaviorOptions = apiBehaviorOptions?.Value ?? throw new ArgumentNullException(nameof(apiBehaviorOptions));
             _modelMetadataProvider = modelMetadataProvider ?? throw new ArgumentNullException(nameof(modelMetadataProvider));
         }
 

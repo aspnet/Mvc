@@ -2,64 +2,37 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Resources = Microsoft.AspNetCore.Mvc.Core.Resources;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// A <see cref="IActionModelConvention"/> that adds a <see cref="ModelStateInvalidFilter"/>
-    /// to <see cref="ActionModel"/>.
+    /// An <see cref="IControllerModelConvention"/> that adds a <see cref="IFilterMetadata"/>
+    /// to <see cref="ActionModel"/> that responds to invalid <see cref="ActionContext.ModelState"/>
     /// </summary>
-    public class InvalidModelStateFilterConvention : IActionModelConvention
+    public class InvalidModelStateFilterConvention : IControllerModelConvention
     {
-        private readonly ApiBehaviorOptions _apiBehaviorOptions;
-        private readonly ModelStateInvalidFilter _modelStateInvalidFilter;
+        private readonly ModelStateInvalidFilterFactory _filterFactory = new ModelStateInvalidFilterFactory();
 
-        public InvalidModelStateFilterConvention(
-            IOptions<ApiBehaviorOptions> apiBehaviorOptions,
-            ILoggerFactory loggerFactory)
+        public void Apply(ControllerModel controller)
         {
-            if (apiBehaviorOptions == null)
+            if (controller == null)
             {
-                throw new ArgumentNullException(nameof(apiBehaviorOptions));
+                throw new ArgumentNullException(nameof(controller));
             }
 
-            if (loggerFactory == null)
+            if (!ShouldApply(controller))
             {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                return;
             }
 
-            _apiBehaviorOptions = apiBehaviorOptions.Value;
-
-            if (!_apiBehaviorOptions.SuppressModelStateInvalidFilter && _apiBehaviorOptions.InvalidModelStateResponseFactory == null)
+            foreach (var action in controller.Actions)
             {
-                throw new ArgumentException(Resources.FormatPropertyOfTypeCannotBeNull(
-                    typeof(ApiBehaviorOptions),
-                    nameof(ApiBehaviorOptions.InvalidModelStateResponseFactory)));
-            }
-
-            _modelStateInvalidFilter = new ModelStateInvalidFilter(
-                apiBehaviorOptions.Value,
-                loggerFactory.CreateLogger<ModelStateInvalidFilter>());
-        }
-
-        public void Apply(ActionModel action)
-        {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
-            if (ShouldApply(action))
-            {
-                action.Filters.Add(_modelStateInvalidFilter);
+                action.Filters.Add(_filterFactory);
             }
         }
 
-        protected virtual bool ShouldApply(ActionModel actionModel) => 
-            !_apiBehaviorOptions.SuppressModelStateInvalidFilter;
+        protected virtual bool ShouldApply(ControllerModel controller) => true;
     }
 }

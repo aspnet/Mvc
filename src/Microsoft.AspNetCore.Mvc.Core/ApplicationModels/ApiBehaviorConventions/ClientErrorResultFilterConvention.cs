@@ -4,61 +4,35 @@
 using System;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 {
     /// <summary>
-    /// An <see cref="IActionModelConvention"/> that adds a <see cref="IFilterMetadata"/>
+    /// An <see cref="IControllerModelConvention"/> that adds a <see cref="IFilterMetadata"/>
     /// to <see cref="ActionModel"/> that transforms <see cref="IClientErrorActionResult"/>.
     /// </summary>
-    public class ClientErrorResultFilterConvention : IActionModelConvention
+    public class ClientErrorResultFilterConvention : IControllerModelConvention
     {
-        private readonly ApiBehaviorOptions _apiBehaviorOptions;
-        private readonly ClientErrorResultFilter _clientErrorResultFilter;
+        private readonly ClientErrorResultFilterFactory _filterFactory = new ClientErrorResultFilterFactory();
 
-        public ClientErrorResultFilterConvention(
-            IOptions<ApiBehaviorOptions> apiBehaviorOptions,
-            IClientErrorFactory clientErrorFactory,
-            ILoggerFactory loggerFactory)
+        public void Apply(ControllerModel controller)
         {
-            if (apiBehaviorOptions == null)
+            if (controller == null)
             {
-                throw new ArgumentNullException(nameof(apiBehaviorOptions));
+                throw new ArgumentNullException(nameof(controller));
             }
 
-            if (clientErrorFactory == null)
+            if (!ShouldApply(controller))
             {
-                throw new ArgumentNullException(nameof(clientErrorFactory));
+                return;
             }
 
-            if (loggerFactory == null)
+            foreach (var action in controller.Actions)
             {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _apiBehaviorOptions = apiBehaviorOptions.Value;
-
-            _clientErrorResultFilter = new ClientErrorResultFilter(
-                clientErrorFactory,
-                loggerFactory.CreateLogger<ClientErrorResultFilter>());
-        }
-
-        public void Apply(ActionModel action)
-        {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
-            if (ShouldApply(action))
-            {
-                action.Filters.Add(_clientErrorResultFilter);
+                action.Filters.Add(_filterFactory);
             }
         }
 
-        protected virtual bool ShouldApply(ActionModel action) =>
-            !_apiBehaviorOptions.SuppressMapClientErrors;
+        protected virtual bool ShouldApply(ControllerModel controller) => true;
     }
 }

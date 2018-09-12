@@ -14,25 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     public class ConsumesConstraintForFormFileParameterConventionTest
     {
         [Fact]
-        public void AddMultipartFormDataConsumesAttribute_NoOpsIfBehaviorIsDisabled()
-        {
-            // Arrange
-            var actionName = nameof(TestController.FromFormParameter);
-            var action = GetActionModel(typeof(TestController), actionName);
-            var options = new ApiBehaviorOptions
-            {
-                SuppressConsumesConstraintForFormFileParameters = true,
-            };
-            var convention = GetConvention(options);
-
-            // Act
-            convention.AddMultipartFormDataConsumesAttribute(action);
-
-            // Assert
-            Assert.Empty(action.Filters);
-        }
-
-        [Fact]
         public void AddMultipartFormDataConsumesAttribute_NoOpsIfConsumesConstraintIsAlreadyPresent()
         {
             // Arrange
@@ -70,13 +51,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             Assert.Equal("multipart/form-data", Assert.Single(consumesAttribute.ContentTypes));
         }
 
-        private ConsumesConstraintForFormFileParameterConvention GetConvention(
-            ApiBehaviorOptions options = null)
+        private ConsumesConstraintForFormFileParameterConvention GetConvention()
         {
-            options = options ?? new ApiBehaviorOptions();
-
-            return new ConsumesConstraintForFormFileParameterConvention(
-                Options.Create(options));
+            return new ConsumesConstraintForFormFileParameterConvention();
         }
 
         private static ApplicationModelProviderContext GetContext(

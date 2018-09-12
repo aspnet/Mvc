@@ -28,7 +28,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             var action = GetActionModel(typeof(ParameterWithBindingInfo), actionName);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameterModel = Assert.Single(action.Parameters);
@@ -37,7 +37,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         }
 
         [Fact]
-        public void Apply_Throws_IfMultipleParametersAreInferredAsBodyBound()
+        public void InferParameterBindingSources_Throws_IfMultipleParametersAreInferredAsBodyBound()
         {
             // Arrange
             var actionName = nameof(MultipleFromBodyController.MultipleInferred);
@@ -51,12 +51,12 @@ Environment.NewLine + "Car b";
             var action = GetActionModel(typeof(MultipleFromBodyController), actionName);
 
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => convention.Apply(action));
+            var ex = Assert.Throws<InvalidOperationException>(() => convention.InferParameterBindingSources(action));
             Assert.Equal(expected, ex.Message);
         }
 
         [Fact]
-        public void Apply_Throws_IfMultipleParametersAreInferredOrSpecifiedAsBodyBound()
+        public void InferParameterBindingSources_Throws_IfMultipleParametersAreInferredOrSpecifiedAsBodyBound()
         {
             // Arrange
             var actionName = nameof(MultipleFromBodyController.InferredAndSpecified);
@@ -70,12 +70,12 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(MultipleFromBodyController), actionName);
 
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => convention.Apply(action));
+            var ex = Assert.Throws<InvalidOperationException>(() => convention.InferParameterBindingSources(action));
             Assert.Equal(expected, ex.Message);
         }
 
         [Fact]
-        public void Apply_Throws_IfMultipleParametersAreFromBody()
+        public void InferParameterBindingSources_Throws_IfMultipleParametersAreFromBody()
         {
             // Arrange
             var actionName = nameof(MultipleFromBodyController.MultipleSpecified);
@@ -89,7 +89,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(MultipleFromBodyController), actionName);
 
             // Act & Assert
-            var ex = Assert.Throws<InvalidOperationException>(() => convention.Apply(action));
+            var ex = Assert.Throws<InvalidOperationException>(() => convention.InferParameterBindingSources(action));
             Assert.Equal(expected, ex.Message);
         }
 
@@ -103,7 +103,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ModelBinderOnParameterController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -124,7 +124,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ModelBinderOnParameterController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -145,7 +145,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ModelBinderOnParameterController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -431,7 +431,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -452,7 +452,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -473,7 +473,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -493,7 +493,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -514,7 +514,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -535,7 +535,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -556,7 +556,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -577,7 +577,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -598,7 +598,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -619,7 +619,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -639,7 +639,7 @@ Environment.NewLine + "int b";
             var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -658,11 +658,11 @@ Environment.NewLine + "int b";
             var expectedPropertyFilter = CustomRequestPredicateAndPropertyFilterProviderAttribute.PropertyFilterStatic;
             var modelMetadataProvider = TestModelMetadataProvider.CreateDefaultProvider();
             var actionName = nameof(ParameterBindingController.ParameterWithRequestPredicateProvider);
-            var action = GetActionModel(typeof(ParameterBindingController), actionName);
+            var action = GetActionModel(typeof(ParameterBindingController), actionName, modelMetadataProvider);
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action);
+            convention.Apply(action.Controller);
 
             // Assert
             var parameter = Assert.Single(action.Parameters);
@@ -675,61 +675,12 @@ Environment.NewLine + "int b";
             Assert.Null(bindingInfo.BinderModelName);
         }
 
-        [Fact]
-        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
-        {
-            // Arrange
-            var controller = GetControllerModel(typeof(ControllerWithBoundProperty));
-            var convention = GetConvention();
-
-            // Act
-            convention.InferBoundPropertyModelPrefixes(controller);
-
-            // Assert
-            var property = Assert.Single(controller.ControllerProperties);
-            Assert.Equal(string.Empty, property.BindingInfo.BinderModelName);
-        }
-
-        [Fact]
-        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForCollectionTypeFromValueProvider()
-        {
-            // Arrange
-            var controller = GetControllerModel(typeof(ControllerWithBoundCollectionProperty));
-            var convention = GetConvention();
-
-            // Act
-            convention.InferBoundPropertyModelPrefixes(controller);
-
-            // Assert
-            var property = Assert.Single(controller.ControllerProperties);
-            Assert.Null(property.BindingInfo.BinderModelName);
-        }
-
-        [Fact]
-        public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
-        {
-            // Arrange
-            var action = GetActionModel(typeof(ControllerWithBoundProperty), nameof(ControllerWithBoundProperty.SomeAction));
-            var convention = GetConvention();
-
-            // Act
-            convention.InferParameterModelPrefixes(action);
-
-            // Assert
-            var parameter = Assert.Single(action.Parameters);
-            Assert.Equal(string.Empty, parameter.BindingInfo.BinderModelName);
-        }
-
         private static InferParameterBindingSourceConvention GetConvention(
-            ApiBehaviorOptions options = null,
             IModelMetadataProvider modelMetadataProvider = null)
         {
-            options = options ?? new ApiBehaviorOptions();
-            var optionsAccessor = Options.Create(options);
-
             var loggerFactory = NullLoggerFactory.Instance;
             modelMetadataProvider = modelMetadataProvider ?? new EmptyModelMetadataProvider();
-            return new InferParameterBindingSourceConvention(Options.Create(options), modelMetadataProvider);
+            return new InferParameterBindingSourceConvention(modelMetadataProvider);
         }
 
         private static ApplicationModelProviderContext GetContext(

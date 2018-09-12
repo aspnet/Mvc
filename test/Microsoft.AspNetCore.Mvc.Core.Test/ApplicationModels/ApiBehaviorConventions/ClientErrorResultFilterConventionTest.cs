@@ -2,10 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationModels
@@ -16,47 +14,30 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         public void Apply_AddsFilter()
         {
             // Arrange
-            var action = GetActionModel();
+            var controller = GetControllerModel();
             var convention = GetConvention();
 
             // Act
-            convention.Apply(action);
+            convention.Apply(controller);
 
             // Assert
-            Assert.Single(action.Filters.OfType<ClientErrorResultFilter>());
+            var action = controller.Actions[0];
+            Assert.Single(action.Filters.OfType<ClientErrorResultFilterFactory>());
         }
 
-        [Fact]
-        public void Apply_DoesNotAddFilter_IfFeatureIsDisabled()
+        private ClientErrorResultFilterConvention GetConvention()
         {
-            // Arrange
-            var action = GetActionModel();
-            var options = new ApiBehaviorOptions
-            {
-                SuppressMapClientErrors = true,
-            };
-            var convention = GetConvention(options);
-
-            // Act
-            convention.Apply(action);
-
-            // Assert
-            Assert.Empty(action.Filters.OfType<ClientErrorResultFilter>());
+            return new ClientErrorResultFilterConvention();
         }
 
-        private ClientErrorResultFilterConvention GetConvention(ApiBehaviorOptions options = null)
+        private static ControllerModel GetControllerModel()
         {
-            options = options ?? new ApiBehaviorOptions();
+            var controller = new ControllerModel(typeof(object).GetTypeInfo(), new object[0]);
+            var action = new ActionModel(typeof(object).GetMethods()[0], new object[0]) { Controller = controller };
 
-            return new ClientErrorResultFilterConvention(
-                Options.Create(options),
-                Mock.Of<IClientErrorFactory>(),
-                NullLoggerFactory.Instance);
-        }
+            controller.Actions.Add(action);
 
-        private static ActionModel GetActionModel()
-        {
-            return new ActionModel(typeof(object).GetMethods()[0], new object[0]);
+            return controller;
         }
     }
 }
