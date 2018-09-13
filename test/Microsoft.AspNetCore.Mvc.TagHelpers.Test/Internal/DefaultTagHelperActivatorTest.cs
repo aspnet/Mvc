@@ -22,6 +22,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
         private readonly TagHelperMemoryCacheProvider CacheProvider = new TagHelperMemoryCacheProvider();
         private readonly IMemoryCache MemoryCache = new MemoryCache(new MemoryCacheOptions());
         private readonly IHostingEnvironment HostingEnvironment = Mock.Of<IHostingEnvironment>();
+        private readonly IFileVersionProvider FileVersionProvider = Mock.Of<IFileVersionProvider>();
 
         [Fact]
         public void ScriptTagHelper_DoesNotUseMemoryCacheInstanceFromDI()
@@ -34,6 +35,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             Assert.Same(CacheProvider.Cache, scriptTagHelper.Cache);
             Assert.Same(HostingEnvironment, scriptTagHelper.HostingEnvironment);
+            Assert.Same(FileVersionProvider, scriptTagHelper.FileVersionProvider);
         }
 
         [Fact]
@@ -47,6 +49,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             Assert.Same(CacheProvider.Cache, linkTagHelper.Cache);
             Assert.Same(HostingEnvironment, linkTagHelper.HostingEnvironment);
+            Assert.Same(FileVersionProvider, linkTagHelper.FileVersionProvider);
         }
 
         [Fact]
@@ -60,6 +63,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
 
             Assert.Same(CacheProvider.Cache, imageTagHelper.Cache);
             Assert.Same(HostingEnvironment, imageTagHelper.HostingEnvironment);
+            Assert.Same(FileVersionProvider, imageTagHelper.FileVersionProvider);
         }
 
         private ViewContext CreateViewContext()
@@ -71,6 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Internal
                 .AddSingleton(HtmlEncoder.Default)
                 .AddSingleton(JavaScriptEncoder.Default)
                 .AddSingleton(Mock.Of<IUrlHelperFactory>())
+                .AddSingleton(FileVersionProvider)
                 .BuildServiceProvider();
 
             var viewContext = new ViewContext

@@ -228,9 +228,11 @@ namespace Microsoft.Extensions.DependencyInjection
             // TagHelperComponents manager
             services.TryAddScoped<ITagHelperComponentManager, TagHelperComponentManager>();
 
-            // Consumed by the Cache tag helper to cache results across the lifetime of the application.
+            // Infrastructure for MVC TagHelpers
             services.TryAddSingleton<IMemoryCache, MemoryCache>();
             services.TryAddSingleton<TagHelperMemoryCacheProvider>();
+
+            services.TryAddSingleton<IFileVersionProvider, DefaultFileVersionProvider>();
         }
     }
 }

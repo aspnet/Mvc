@@ -53,8 +53,6 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         private const string IntegrityAttributeName = "integrity";
         private static readonly Func<Mode, Mode, int> Compare = (a, b) => a - b;
 
-        private FileVersionProvider _fileVersionProvider;
-
         private static readonly ModeAttributes<Mode>[] ModeDetails = new[] {
             // Regular src with file version alone
             new ModeAttributes<Mode>(Mode.AppendVersion, new[] { AppendVersionAttributeName }),
@@ -123,6 +121,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         /// </summary>
         /// <param name="hostingEnvironment">The <see cref="IHostingEnvironment"/>.</param>
         /// <param name="cacheProvider"></param>
+        /// <param name="fileVersionProvider">The <see cref="IFileVersionProvider"/>.</param>
         /// <param name="htmlEncoder">The <see cref="HtmlEncoder"/>.</param>
         /// <param name="javaScriptEncoder">The <see cref="JavaScriptEncoder"/>.</param>
         /// <param name="urlHelperFactory">The <see cref="IUrlHelperFactory"/>.</param>
@@ -132,6 +131,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         public LinkTagHelper(
             IHostingEnvironment hostingEnvironment,
             TagHelperMemoryCacheProvider cacheProvider,
+            IFileVersionProvider fileVersionProvider,
             HtmlEncoder htmlEncoder,
             JavaScriptEncoder javaScriptEncoder,
             IUrlHelperFactory urlHelperFactory)
@@ -140,6 +140,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
             HostingEnvironment = hostingEnvironment;
             JavaScriptEncoder = javaScriptEncoder;
             Cache = cacheProvider.Cache;
+            FileVersionProvider = fileVersionProvider;
         }
 
         /// <inheritdoc />
@@ -242,6 +243,8 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         protected internal GlobbingUrlBuilder GlobbingUrlBuilder { get; set; }
 #pragma warning restore PUB0001
 
+        internal IFileVersionProvider FileVersionProvider { get; private set; }
+
         // Shared writer for determining the string content of a TagHelperAttribute's Value.
         private StringWriter StringWriter
         {
@@ -299,7 +302,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                     var existingAttribute = output.Attributes[index];
                     output.Attributes[index] = new TagHelperAttribute(
                         existingAttribute.Name,
-                        _fileVersionProvider.AddFileVersionToPath(Href),
+                        FileVersionProvider.AddFileVersionToPath(ViewContext.HttpContext.Request.PathBase, Href),
                         existingAttribute.ValueStyle);
                 }
             }
@@ -468,7 +471,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
                 var valueToWrite = fallbackHrefs[i];
                 if (AppendVersion == true)
                 {
-                    valueToWrite = _fileVersionProvider.AddFileVersionToPath(fallbackHrefs[i]);
+                    valueToWrite = FileVersionProvider.AddFileVersionToPath(ViewContext.HttpContext.Request.PathBase, fallbackHrefs[i]);
                 }
 
                 // Must HTML-encode the href attribute value to ensure the written <link/> element is valid. Must also
@@ -495,12 +498,9 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
 
         private void EnsureFileVersionProvider()
         {
-            if (_fileVersionProvider == null)
+            if (FileVersionProvider == null)
             {
-                _fileVersionProvider = new FileVersionProvider(
-                    HostingEnvironment.WebRootFileProvider,
-                    Cache,
-                    ViewContext.HttpContext.Request.PathBase);
+                FileVersionProvider = ViewContext.HttpContext.RequestServices.GetRequiredService<IFileVersionProvider>();
             }
         }
 
@@ -540,7 +540,7 @@ namespace Microsoft.AspNetCore.Mvc.TagHelpers
         {
             if (AppendVersion == true)
             {
-                hrefValue = _fileVersionProvider.AddFileVersionToPath(hrefValue);
+                hrefValue = FileVersionProvider.AddFileVersionToPath(ViewContext.HttpContext.Request.PathBase, hrefValue);
             }
 
             builder
