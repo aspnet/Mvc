@@ -174,7 +174,6 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         private static bool IsFormFile(Type parameterType)
         {
             return typeof(IFormFile).IsAssignableFrom(parameterType) ||
-                typeof(IFormFileCollection).IsAssignableFrom(parameterType) ||
                 typeof(IEnumerable<IFormFile>).IsAssignableFrom(parameterType);
         }
     }

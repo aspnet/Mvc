@@ -787,7 +787,7 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void InferParameterModelPrefixes_DoesNotSetModelPrefix_ForFormFileCollectionParametersAnnotatedWithFromForm()
+        public void InferBoundPropertyModelPrefixes_DoesNotSetModelPrefix_ForFormFileCollectionPropertiesAnnotatedWithFromForm()
         {
             // Arrange
             var controller = GetControllerModel(typeof(ControllerWithBoundProperty));
