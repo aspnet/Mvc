@@ -75,6 +75,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             options.ValueProviderFactories.Add(new RouteValueProviderFactory());
             options.ValueProviderFactories.Add(new QueryStringValueProviderFactory());
             options.ValueProviderFactories.Add(new JQueryFormValueProviderFactory());
+            options.ValueProviderFactories.Add(new FormFileValueProviderFactory());
 
             // Set up metadata providers
             ConfigureAdditionalModelMetadataDetailsProviders(options.ModelMetadataDetailsProviders);
