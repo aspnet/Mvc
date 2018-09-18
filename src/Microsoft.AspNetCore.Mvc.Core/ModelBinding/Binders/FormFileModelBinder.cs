@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             _logger = loggerFactory.CreateLogger<FormFileModelBinder>();
         }
-        
+
         /// <inheritdoc />
         public async Task BindModelAsync(ModelBindingContext bindingContext)
         {
@@ -84,6 +84,35 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
                 : bindingContext.ModelName;
 
             await GetFormFilesAsync(modelName, bindingContext, postedFiles);
+
+            // If ParameterBinder incorrectly overrode ModelName, fall back to OriginalModelName. Comparisons are
+            // tedious because e.g. top-level parameter or property is named Blah and it contains a BlahBlah property.
+            // OriginalModelName may be null in tests.
+            if (postedFiles.Count == 0 &&
+                bindingContext.OriginalModelName != null &&
+                !string.Equals(modelName, bindingContext.OriginalModelName) &&
+                !modelName.StartsWith(bindingContext.OriginalModelName + "[") &&
+                !modelName.StartsWith(bindingContext.OriginalModelName + "."))
+            {
+                if (string.IsNullOrEmpty(modelName))
+                {
+                    // Likely at the top level. Reaching here outside tests is nearly impossible because FieldName
+                    // should never be null or empty. But, handled here to avoid big test changes.
+                    modelName = bindingContext.OriginalModelName;
+                }
+                else if (modelName[0] == '[')
+                {
+                    // Top level model is a collection.
+                    modelName = bindingContext.OriginalModelName + modelName;
+                }
+                else
+                {
+                    // Top level model is POCO.
+                    modelName = bindingContext.OriginalModelName + "." + modelName;
+                }
+
+                await GetFormFilesAsync(modelName, bindingContext, postedFiles);
+            }
 
             object value;
             if (bindingContext.ModelType == typeof(IFormFile))
