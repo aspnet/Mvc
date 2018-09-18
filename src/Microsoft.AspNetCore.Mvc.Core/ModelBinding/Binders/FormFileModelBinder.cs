@@ -85,32 +85,16 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
 
             await GetFormFilesAsync(modelName, bindingContext, postedFiles);
 
-            // If ParameterBinder incorrectly overrode ModelName, fall back to OriginalModelName. Comparisons are
-            // tedious because e.g. top-level parameter or property is named Blah and it contains a BlahBlah property.
-            // OriginalModelName may be null in tests.
+            // If ParameterBinder incorrectly overrode ModelName, fall back to OriginalModelName prefix. Comparisons
+            // are tedious because e.g. top-level parameter or property is named Blah and it contains a BlahBlah
+            // property. OriginalModelName may be null in tests.
             if (postedFiles.Count == 0 &&
                 bindingContext.OriginalModelName != null &&
-                !string.Equals(modelName, bindingContext.OriginalModelName) &&
-                !modelName.StartsWith(bindingContext.OriginalModelName + "[") &&
-                !modelName.StartsWith(bindingContext.OriginalModelName + "."))
+                !string.Equals(modelName, bindingContext.OriginalModelName, StringComparison.Ordinal) &&
+                !modelName.StartsWith(bindingContext.OriginalModelName + "[", StringComparison.Ordinal) &&
+                !modelName.StartsWith(bindingContext.OriginalModelName + ".", StringComparison.Ordinal))
             {
-                if (string.IsNullOrEmpty(modelName))
-                {
-                    // Likely at the top level. Reaching here outside tests is nearly impossible because FieldName
-                    // should never be null or empty. But, handled here to avoid big test changes.
-                    modelName = bindingContext.OriginalModelName;
-                }
-                else if (modelName[0] == '[')
-                {
-                    // Top level model is a collection.
-                    modelName = bindingContext.OriginalModelName + modelName;
-                }
-                else
-                {
-                    // Top level model is POCO.
-                    modelName = bindingContext.OriginalModelName + "." + modelName;
-                }
-
+                modelName = ModelNames.CreatePropertyModelName(bindingContext.OriginalModelName, modelName);
                 await GetFormFilesAsync(modelName, bindingContext, postedFiles);
             }
 
