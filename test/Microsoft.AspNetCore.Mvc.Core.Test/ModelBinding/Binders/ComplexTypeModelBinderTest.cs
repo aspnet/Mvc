@@ -242,13 +242,14 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
         }
 
         [Theory]
-        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), false)]
-        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true)]
-        // [InlineData(typeof(TypeWithNoBinderMetadata), false)]
-        [InlineData(typeof(TypeWithNoBinderMetadata), true)]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), false, true)]
+        [InlineData(typeof(TypeWithUnmarkedAndBinderMetadataMarkedProperties), true, true)]
+        [InlineData(typeof(TypeWithNoBinderMetadata), false, false)]
+        [InlineData(typeof(TypeWithNoBinderMetadata), true, true)]
         public void CanCreateModel_UnmarkedProperties_UsesCurrentValueProvider(
             Type modelType,
-            bool valueProviderProvidesValue)
+            bool valueProviderProvidesValue,
+            bool expectedCanCreate)
         {
             var valueProvider = new Mock<IValueProvider>();
             valueProvider
@@ -271,7 +272,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var canCreate = binder.CanCreateModel(bindingContext);
 
             // Assert
-            Assert.True(canCreate);
+            Assert.Equal(expectedCanCreate, canCreate);
         }
 
         [Fact]
