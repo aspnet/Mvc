@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.ApiDescription.Client.Commands
 
         private CommandOption _configuration;
         private CommandOption _framework;
-        private CommandOption _msbuildprojectextensionspath;
+        private CommandOption _MSBuildProjectExtensionsPath;
         private CommandOption _output;
         private CommandOption _project;
         private CommandOption _runtime;
@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.ApiDescription.Client.Commands
             _framework = options.Framework;
             _configuration = options.Configuration;
             _runtime = options.Runtime;
-            _msbuildprojectextensionspath = options.MSBuildProjectExtensionsPath;
+            _MSBuildProjectExtensionsPath = options.MSBuildProjectExtensionsPath;
 
             _output = command.Option("--output <Path>", Resources.OutputDescription);
             command.VersionOption("--version", ProductInfo.GetVersion);
@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.ApiDescription.Client.Commands
 
             var project = Project.FromFile(
                 projectFile,
-                _msbuildprojectextensionspath.Value(),
+                _MSBuildProjectExtensionsPath.Value(),
                 _framework.Value(),
                 _configuration.Value(),
                 _runtime.Value());
@@ -89,14 +89,21 @@ namespace Microsoft.Extensions.ApiDescription.Client.Commands
                         break;
 
                     case ".NETCoreApp":
-                        executable = "dotnet";
-                        toolsDirectory = Path.Combine(thisPath, "netcoreapp2.0");
-
                         if (targetFramework.Version < new Version(2, 0))
                         {
                             throw new CommandException(
                                 Resources.FormatNETCoreApp1Project(project.Name, targetFramework.Version));
                         }
+
+                        var targetFrameworkPath = project.TargetFramework;
+                        if (targetFramework.Version > new Version(2, 2))
+                        {
+                            // No current support for more recent target frameworks than 2.2.
+                            targetFrameworkPath = "netcoreapp2.2";
+                        }
+
+                        executable = "dotnet";
+                        toolsDirectory = Path.Combine(thisPath, targetFrameworkPath);
 
                         args.Add("exec");
                         args.Add("--depsFile");

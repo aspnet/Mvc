@@ -56,6 +56,8 @@
       <_Temporary Include="../GetDocumentInsider/GetDocumentInsider.csproj" Properties="TargetFramework=net461" />
       <_Temporary Include="../GetDocumentInsider/GetDocumentInsider.csproj" Properties="TargetFramework=net461;Platform=x86" />
       <_Temporary Include="../GetDocumentInsider/GetDocumentInsider.csproj" Properties="TargetFramework=netcoreapp2.0" />
+      <_Temporary Include="../GetDocumentInsider/GetDocumentInsider.csproj" Properties="TargetFramework=netcoreapp2.1" />
+      <_Temporary Include="../GetDocumentInsider/GetDocumentInsider.csproj" Properties="TargetFramework=netcoreapp2.2" />
     </ItemGroup>
 
     <MSBuild Projects="../GetDocumentInsider/GetDocumentInsider.csproj" RemoveProperties="RuntimeIdentifier;TargetFramework" Targets="Restore" />
@@ -74,7 +76,9 @@
         id=$(PackageId);
         InsiderNet461Output=..\GetDocumentInsider\bin\$(Configuration)\net461\publish\*;
         InsiderNet461X86Output=..\GetDocumentInsider\bin\x86\$(Configuration)\net461\publish\*;
-        InsiderNetCoreOutput=..\GetDocumentInsider\bin\$(Configuration)\netcoreapp2.0\publish\*;
+        InsiderNetCore20Output=..\GetDocumentInsider\bin\$(Configuration)\netcoreapp2.0\publish\*;
+        InsiderNetCore21Output=..\GetDocumentInsider\bin\$(Configuration)\netcoreapp2.1\publish\*;
+        InsiderNetCore22Output=..\GetDocumentInsider\bin\$(Configuration)\netcoreapp2.2\publish\*;
         licenseUrl=$(PackageLicenseUrl);
         Output=$(PublishDir)**\*;
         OutputShims=$(IntermediateOutputPath)shims\**\*;

@@ -7,7 +7,7 @@
       is not otherwise referenced. They avoid unnecessary changes to the Universe build graph or to product
       dependencies. Do not use these properties elsewhere.
     -->
-  
+
     <AngleSharpPackageVersion>0.9.9</AngleSharpPackageVersion>
     <BenchmarkDotNetPackageVersion>0.10.13</BenchmarkDotNetPackageVersion>
     <BenchmarksOnlyMicrosoftEntityFrameworkCoreDesignPackageVersion>2.1.1</BenchmarksOnlyMicrosoftEntityFrameworkCoreDesignPackageVersion>
@@ -54,7 +54,8 @@
     <MicrosoftAspNetCoreServerKestrelPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreServerKestrelPackageVersion>
     <MicrosoftAspNetCoreSessionPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreSessionPackageVersion>
     <MicrosoftAspNetCoreStaticFilesPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreStaticFilesPackageVersion>
-    <MicrosoftAspNetCoreTestHost20PackageVersion>2.0.0</MicrosoftAspNetCoreTestHost20PackageVersion>
+    <MicrosoftAspNetCoreTestHost20PackageVersion>2.0.3</MicrosoftAspNetCoreTestHost20PackageVersion>
+    <MicrosoftAspNetCoreTestHost21PackageVersion>2.1.1</MicrosoftAspNetCoreTestHost21PackageVersion>
     <MicrosoftAspNetCoreTestHostPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreTestHostPackageVersion>
     <MicrosoftAspNetCoreTestingPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreTestingPackageVersion>
     <MicrosoftAspNetCoreWebUtilitiesPackageVersion>2.2.0-preview2-35143</MicrosoftAspNetCoreWebUtilitiesPackageVersion>
