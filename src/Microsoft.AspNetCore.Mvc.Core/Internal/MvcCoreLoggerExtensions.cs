@@ -288,7 +288,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _httpStatusCodeResultExecuting = LoggerMessage.Define<int>(
                 LogLevel.Information,
                 1,
-                "Executing HttpStatusCodeResult, setting HTTP status code {StatusCode}");
+                "Executing StatusCodeResult, setting HTTP status code {StatusCode}");
 
             _localRedirectResultExecuting = LoggerMessage.Define<string>(
                 LogLevel.Information,

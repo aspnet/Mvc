@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// executed will produce a Not Found (404) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class NotFoundResult : StatusCodeResult
+    public class NotFoundResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status404NotFound;
 
@@ -21,5 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
         public NotFoundResult() : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }
