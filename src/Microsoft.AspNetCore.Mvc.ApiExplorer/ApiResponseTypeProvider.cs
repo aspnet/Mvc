@@ -152,6 +152,8 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
 
                 foreach (var contentType in contentTypes)
                 {
+                    var isSupportedContentType = false;
+
                     foreach (var responseTypeMetadataProvider in responseTypeMetadataProviders)
                     {
                         var formatterSupportedContentTypes = responseTypeMetadataProvider.GetSupportedContentTypes(
@@ -163,6 +165,8 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                             continue;
                         }
 
+                        isSupportedContentType = true;
+
                         foreach (var formatterSupportedContentType in formatterSupportedContentTypes)
                         {
                             apiResponse.ApiResponseFormats.Add(new ApiResponseFormat
@@ -171,6 +175,15 @@ namespace Microsoft.AspNetCore.Mvc.ApiExplorer
                                 MediaType = formatterSupportedContentType,
                             });
                         }
+                    }
+
+                    if (!isSupportedContentType && contentType != null)
+                    {
+                        // No output formatter was found that supports this content type. Add the user specified content type as-is to the result.
+                        apiResponse.ApiResponseFormats.Add(new ApiResponseFormat
+                        {
+                            MediaType = contentType,
+                        });
                     }
                 }
             }
