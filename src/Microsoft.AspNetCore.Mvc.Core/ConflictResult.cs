@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// A <see cref="StatusCodeResult"/> that when executed will produce a Conflict (409) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class ConflictResult : StatusCodeResult
+    public class ConflictResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status409Conflict;
 
@@ -21,5 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
             : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }

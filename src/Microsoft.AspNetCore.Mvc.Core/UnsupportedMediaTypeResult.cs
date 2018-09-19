@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// executed will produce a UnsupportedMediaType (415) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class UnsupportedMediaTypeResult : StatusCodeResult
+    public class UnsupportedMediaTypeResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status415UnsupportedMediaType;
 
@@ -21,5 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
         public UnsupportedMediaTypeResult() : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }

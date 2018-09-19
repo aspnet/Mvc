@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// executed will produce a Unprocessable Entity (422) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class UnprocessableEntityResult : StatusCodeResult
+    public class UnprocessableEntityResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status422UnprocessableEntity;
 
@@ -22,5 +22,7 @@ namespace Microsoft.AspNetCore.Mvc
             : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// executed will produce a Bad Request (400) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class BadRequestResult : StatusCodeResult
+    public class BadRequestResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status400BadRequest;
 
@@ -22,5 +22,7 @@ namespace Microsoft.AspNetCore.Mvc
             : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }

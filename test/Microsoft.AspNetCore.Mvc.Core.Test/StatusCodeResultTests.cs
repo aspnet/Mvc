@@ -12,10 +12,10 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc
 {
-    public class HttpStatusCodeResultTests
+    public class StatusCodeResultTests
     {
         [Fact]
-        public void HttpStatusCodeResult_ExecuteResultSetsResponseStatusCode()
+        public void StatusCodeResult_ExecuteResultSetsResponseStatusCode()
         {
             // Arrange
             var result = new StatusCodeResult(StatusCodes.Status404NotFound);
@@ -34,16 +34,16 @@ namespace Microsoft.AspNetCore.Mvc
         }
 
         [Fact]
-        public void HttpStatusCodeResult_ReturnsCorrectStatusCodeAsIStatusCodeActionResult()
+        public void StatusCodeResult_ReturnsCorrectStatusCodeAsIStatusCodeActionResult()
         {
             // Arrange
             var result = new StatusCodeResult(StatusCodes.Status404NotFound);
 
             // Act
-            var statusResult = result as IStatusCodeActionResult;
+            var statusResult = Assert.IsAssignableFrom<IStatusCodeActionResult>(result);
 
             // Assert
-            Assert.Equal(StatusCodes.Status404NotFound, statusResult?.StatusCode);
+            Assert.Equal(StatusCodes.Status404NotFound, statusResult.StatusCode);
         }
 
         private static IServiceCollection CreateServices()

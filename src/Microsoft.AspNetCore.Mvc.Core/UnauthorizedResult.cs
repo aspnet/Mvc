@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc
     /// executed will produce an Unauthorized (401) response.
     /// </summary>
     [DefaultStatusCode(DefaultStatusCode)]
-    public class UnauthorizedResult : StatusCodeResult
+    public class UnauthorizedResult : StatusCodeResult, IClientErrorActionResult
     {
         private const int DefaultStatusCode = StatusCodes.Status401Unauthorized;
 
@@ -21,5 +21,7 @@ namespace Microsoft.AspNetCore.Mvc
         public UnauthorizedResult() : base(DefaultStatusCode)
         {
         }
+
+        int? IStatusCodeActionResult.StatusCode => StatusCode;
     }
 }
