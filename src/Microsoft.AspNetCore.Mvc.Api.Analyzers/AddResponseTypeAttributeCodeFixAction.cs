@@ -32,9 +32,10 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
         {
             var context = await CreateCodeActionContext(cancellationToken).ConfigureAwait(false);
             var declaredResponseMetadata = SymbolApiResponseMetadataProvider.GetDeclaredResponseMetadata(context.SymbolCache, context.Method);
+            var errorResponseType = SymbolApiResponseMetadataProvider.GetErrorResponseType(context.SymbolCache, context.Method);
 
-            var statusCodes = CalculateStatusCodesToApply(context, declaredResponseMetadata);
-            if (statusCodes.Count == 0)
+            var results = CalculateStatusCodesToApply(context, declaredResponseMetadata);
+            if (results.Count == 0)
             {
                 return _document;
             }
@@ -42,9 +43,22 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             var documentEditor = await DocumentEditor.CreateAsync(_document, cancellationToken).ConfigureAwait(false);
 
             var addUsingDirective = false;
-            foreach (var statusCode in statusCodes.OrderBy(s => s))
+            foreach (var (statusCode, returnType) in results.OrderBy(s => s.statusCode))
             {
-                documentEditor.AddAttribute(context.MethodSyntax, CreateProducesResponseTypeAttribute(context, statusCode, out var addUsing));
+                AttributeSyntax attributeSyntax;
+                bool addUsing;
+
+                if (statusCode >= 400 && returnType != null && returnType != errorResponseType)
+                {
+                    // If a returnType was discovered and is different from the errorResponseType, use it in the result.
+                    attributeSyntax = CreateProducesResponseTypeAttribute(context, statusCode, returnType, out addUsing);
+                }
+                else
+                {
+                    attributeSyntax = CreateProducesResponseTypeAttribute(context, statusCode, out addUsing);
+                }
+
+                documentEditor.AddAttribute(context.MethodSyntax, attributeSyntax);
                 addUsingDirective |= addUsing;
             }
 
@@ -103,7 +117,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             return codeActionContext;
         }
 
-        private static Dictionary<int, string> GetStatusCodeConstants(INamespaceOrTypeSymbol statusCodesType)
+        private static Dictionary<int, string> GetStatusCodeConstants(INamedTypeSymbol statusCodesType)
         {
             var statusCodeConstants = new Dictionary<int, string>();
 
@@ -125,15 +139,15 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             return statusCodeConstants;
         }
 
-        private ICollection<int> CalculateStatusCodesToApply(CodeActionContext context, IList<DeclaredApiResponseMetadata> declaredResponseMetadata)
+        private ICollection<(int statusCode, ITypeSymbol typeSymbol)> CalculateStatusCodesToApply(in CodeActionContext context, IList<DeclaredApiResponseMetadata> declaredResponseMetadata)
         {
-            if (!SymbolApiResponseMetadataProvider.TryGetActualResponseMetadata(context.SymbolCache, context.SemanticModel, context.MethodSyntax, context.CancellationToken, out var actualResponseMetadata))
+            if (!ActualApiResponseMetadataFactory.TryGetActualResponseMetadata(context.SymbolCache, context.SemanticModel, context.MethodSyntax, context.CancellationToken, out var actualResponseMetadata))
             {
                 // If we cannot parse metadata correctly, don't offer fixes.
-                return Array.Empty<int>();
+                return Array.Empty<(int, ITypeSymbol)>();
             }
 
-            var statusCodes = new HashSet<int>();
+            var statusCodes = new Dictionary<int, (int, ITypeSymbol)>();
             foreach (var metadata in actualResponseMetadata)
             {
                 if (DeclaredApiResponseMetadata.TryGetDeclaredMetadata(declaredResponseMetadata, metadata, result: out var declaredMetadata) &&
@@ -143,20 +157,39 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
                     continue;
                 }
 
-                statusCodes.Add(metadata.IsDefaultResponse ? 200 : metadata.StatusCode);
+                var statusCode = metadata.IsDefaultResponse ? 200 : metadata.StatusCode;
+                statusCodes.Add(statusCode, (statusCode, metadata.ReturnType));
             }
 
-            return statusCodes;
+            return statusCodes.Values;
         }
 
-        private static AttributeSyntax CreateProducesResponseTypeAttribute(CodeActionContext context, int statusCode, out bool addUsingDirective)
+        private static AttributeSyntax CreateProducesResponseTypeAttribute(in CodeActionContext context, int statusCode, out bool addUsingDirective)
         {
+            // [ProducesResponseType(StatusCodes.Status400NotFound)]
             var statusCodeSyntax = CreateStatusCodeSyntax(context, statusCode, out addUsingDirective);
 
             return SyntaxFactory.Attribute(
                 SyntaxFactory.ParseName(ApiSymbolNames.ProducesResponseTypeAttribute)
                     .WithAdditionalAnnotations(Simplifier.Annotation),
                 SyntaxFactory.AttributeArgumentList().AddArguments(
+                    
+                    SyntaxFactory.AttributeArgument(statusCodeSyntax)));
+        }
+
+        private static AttributeSyntax CreateProducesResponseTypeAttribute(in CodeActionContext context, int statusCode, ITypeSymbol typeSymbol, out bool addUsingDirective)
+        {
+            // [ProducesResponseType(typeof(ReturnType), StatusCodes.Status400NotFound)]
+            var statusCodeSyntax = CreateStatusCodeSyntax(context, statusCode, out addUsingDirective);
+            var responseTypeAttribute = SyntaxFactory.TypeOfExpression(
+                SyntaxFactory.ParseTypeName(typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))
+                    .WithAdditionalAnnotations(Simplifier.Annotation));
+
+            return SyntaxFactory.Attribute(
+                SyntaxFactory.ParseName(ApiSymbolNames.ProducesResponseTypeAttribute)
+                    .WithAdditionalAnnotations(Simplifier.Annotation),
+                SyntaxFactory.AttributeArgumentList().AddArguments(
+                    SyntaxFactory.AttributeArgument(responseTypeAttribute),
                     SyntaxFactory.AttributeArgument(statusCodeSyntax)));
         }
 
