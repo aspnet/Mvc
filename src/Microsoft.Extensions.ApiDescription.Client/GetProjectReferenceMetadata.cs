@@ -47,7 +47,10 @@ namespace Microsoft.Extensions.ApiDescription.Client
                 if (string.IsNullOrEmpty(documentGenerator))
                 {
                     // This case occurs when user overrides the default metadata.
-                    Log.LogError(Resources.FormatInvalidEmptyMetadataValue("DocumentGenerator"));
+                    Log.LogError(Resources.FormatInvalidEmptyMetadataValue(
+                        "DocumentGenerator",
+                        "ServiceProjectReference",
+                        item.ItemSpec));
                 }
 
                 var documentPath = item.GetMetadata("DocumentPath");
@@ -68,7 +71,7 @@ namespace Microsoft.Extensions.ApiDescription.Client
 
                 if (!destinations.Add(documentPath))
                 {
-                    // This case may occur when user is experimenting e.g. with multiple code generators or options.
+                    // This case may occur when user is experimenting e.g. with multiple generators or options.
                     // May also occur when user accidentally duplicates DocumentPath metadata.
                     Log.LogError(Resources.FormatDuplicateProjectDocumentPaths(documentPath));
                 }

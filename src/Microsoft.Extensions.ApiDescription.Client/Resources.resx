@@ -129,6 +129,6 @@
     <comment>Ignore corner case of ServiceProjectReference and ServiceUriReference items having the same DocumentPath.</comment>
   </data>
   <data name="InvalidEmptyMetadataValue" xml:space="preserve">
-    <value>Invalid {0} metadata value. {0} metadata must not be set to the empty string.</value>
+    <value>Invalid {0} metadata value for {1} item '{2}'. {0} metadata must not be set to the empty string.</value>
   </data>
 </root>

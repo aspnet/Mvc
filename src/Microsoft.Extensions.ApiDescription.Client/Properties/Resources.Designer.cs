@@ -53,7 +53,7 @@ namespace Microsoft.Extensions.ApiDescription.Client
             => string.Format(CultureInfo.CurrentCulture, GetString("DuplicateUriDocumentPaths"), p0);
 
         /// <summary>
-        /// Invalid {0} metadata value. {0} metadata must not be set to the empty string.
+        /// Invalid {0} metadata value for {1} item '{2}'. {0} metadata must not be set to the empty string.
         /// </summary>
         internal static string InvalidEmptyMetadataValue
         {
@@ -61,10 +61,10 @@ namespace Microsoft.Extensions.ApiDescription.Client
         }
 
         /// <summary>
-        /// Invalid {0} metadata value. {0} metadata must not be set to the empty string.
+        /// Invalid {0} metadata value for {1} item '{2}'. {0} metadata must not be set to the empty string.
         /// </summary>
-        internal static string FormatInvalidEmptyMetadataValue(object p0)
-            => string.Format(CultureInfo.CurrentCulture, GetString("InvalidEmptyMetadataValue"), p0);
+        internal static string FormatInvalidEmptyMetadataValue(object p0, object p1, object p2)
+            => string.Format(CultureInfo.CurrentCulture, GetString("InvalidEmptyMetadataValue"), p0, p1, p2);
 
         private static string GetString(string name, params string[] formatterNames)
         {

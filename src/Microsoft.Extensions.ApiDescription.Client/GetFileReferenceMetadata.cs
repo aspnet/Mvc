@@ -59,7 +59,21 @@ namespace Microsoft.Extensions.ApiDescription.Client
                 if (string.IsNullOrEmpty("CodeGenerator"))
                 {
                     // This case occurs when user forgets to specify the required metadata. We have no default here.
-                    Log.LogError(Resources.FormatInvalidEmptyMetadataValue("CodeGenerator"));
+                    string type;
+                    if (!string.IsNullOrEmpty(item.GetMetadata("SourceProject")))
+                    {
+                        type = "ServiceProjectReference";
+                    }
+                    else if (!string.IsNullOrEmpty(item.GetMetadata("SourceUri")))
+                    {
+                        type = "ServiceUriReference";
+                    }
+                    else
+                    {
+                        type = "ServiceFileReference";
+                    }
+
+                    Log.LogError(Resources.FormatInvalidEmptyMetadataValue("CodeGenerator", type, item.ItemSpec));
                 }
 
                 var className = item.GetMetadata("ClassName");
