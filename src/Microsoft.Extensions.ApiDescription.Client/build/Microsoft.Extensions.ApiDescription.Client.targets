@@ -15,7 +15,6 @@
       _ServiceUriReferenceGenerator_Core
     </ServiceUriReferenceGeneratorDependsOn>
     <ServiceFileReferenceGeneratorDependsOn>
-      _CheckServiceReferences;
       ServiceProjectReferenceGenerator;
       ServiceUriReferenceGenerator;
       _ServiceFileReferenceGenerator_GetMetadata;
@@ -23,15 +22,6 @@
       _ServiceFileReferenceGenerator_SetMetadata
     </ServiceFileReferenceGeneratorDependsOn>
   </PropertyGroup>
-
-  <Target Name="_CheckServiceReferences">
-    <Error Condition="'@(ServiceProjectReference)' != '' AND '%(CodeGenerator)' == ''"
-        Text="ServiceProjectReference items '@(ServiceProjectReference)' lack CodeGenerator metadata." />
-    <Error Condition="'@(ServiceUriReference)' != '' AND '%(CodeGenerator)' == ''"
-        Text="ServiceUriReference items '@(ServiceUriReference)' lack CodeGenerator metadata." />
-    <Error Condition="'@(ServiceFileReference)' != '' AND '%(CodeGenerator)' == ''"
-        Text="ServiceFileReference items '@(ServiceFileReference)' lack CodeGenerator metadata." />
-  </Target>
 
   <!-- ServiceProjectReference support -->
 
