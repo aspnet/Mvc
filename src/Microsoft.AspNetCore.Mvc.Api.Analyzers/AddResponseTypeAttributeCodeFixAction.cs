@@ -15,6 +15,17 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 {
+    /// <summary>
+    /// A <see cref="CodeAction"/> that adds one or more <c>ProducesResponseType</c> attributes on the action.
+    /// 1) It get status codes from ProducesResponseType, ProducesDefaultResponseType, and conventions applied to the action to get the declared metadata.
+    /// 2) It inspects return statements to get actual metadata.
+    /// Diffing the two gets us a list of undocumented status codes.
+    /// We'll attempt to generate a [ProducesResponseType(typeof(SomeModel), 4xx)] if
+    ///     a) the status code is 4xx or later.
+    ///     b) the return statement included a return type.
+    ///     c) the return type wasn't the error type (specified by ProducesErrorResponseType or implicit ProblemDetails)
+    /// In all other cases, we generate [ProducesResponseType(StatusCode)]
+    /// </summary>
     internal sealed class AddResponseTypeAttributeCodeFixAction : CodeAction
     {
         private readonly Document _document;

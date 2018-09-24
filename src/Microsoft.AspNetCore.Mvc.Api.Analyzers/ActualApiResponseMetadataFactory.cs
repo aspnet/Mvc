@@ -15,6 +15,13 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
     {
         private static readonly Func<SyntaxNode, bool> _shouldDescendIntoChildren = ShouldDescendIntoChildren;
 
+        /// <summary>
+        /// This method looks at individual return statments and attempts to parse the status code and the return type.
+        /// Given a <see cref="MethodDeclarationSyntax"/> for an action, this method inspects return statements in the body.
+        /// If the returned type is not assignable from IActionResult, it assumes that an "object" value is being returned. e.g. return new Person();
+        /// For return statements returning an action result, it attempts to infer the status code and return type. Helper methods in controller,
+        /// values set in initializer and new-ing up an IActionResult instance are supported.
+        /// </summary>
         internal static bool TryGetActualResponseMetadata(
             in ApiControllerSymbolCache symbolCache,
             SemanticModel semanticModel,
@@ -28,9 +35,10 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 
             foreach (var returnStatementSyntax in methodSyntax.DescendantNodes(_shouldDescendIntoChildren).OfType<ReturnStatementSyntax>())
             {
-                if (returnStatementSyntax.IsMissing || returnStatementSyntax.Expression.IsMissing)
+                if (returnStatementSyntax.IsMissing || returnStatementSyntax.Expression == null || returnStatementSyntax.Expression.IsMissing)
                 {
                     // Ignore malformed return statements.
+                    allReturnStatementsReadable = false;
                     continue;
                 }
 
@@ -61,7 +69,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
         {
             var returnExpression = returnStatementSyntax.Expression;
             var typeInfo = semanticModel.GetTypeInfo(returnExpression, cancellationToken);
-            if (typeInfo.Type.TypeKind == TypeKind.Error)
+            if (typeInfo.Type == null || typeInfo.Type.TypeKind == TypeKind.Error)
             {
                 return null;
             }
@@ -93,12 +101,12 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
 
                 case ObjectCreationExpressionSyntax creation:
                     {
-                        // Recover values from 'return new StatusCodeResult(200) case.
+                        // Read values from 'return new StatusCodeResult(200) case.
                         var result = InspectMethodArguments(symbolCache, semanticModel, creation, creation.ArgumentList, cancellationToken);
                         statusCode = result.statusCode ?? statusCode;
                         returnType = result.returnType;
 
-                        // Recover values from property assignments e.g. 'return new ObjectResult(...) { StatusCode = 200 }'.
+                        // Read values from property assignments e.g. 'return new ObjectResult(...) { StatusCode = 200 }'.
                         // Property assignments override constructor assigned values and defaults.
                         result = InspectInitializers(symbolCache, semanticModel, creation.Initializer, cancellationToken);
                         statusCode = result.statusCode ?? statusCode;
@@ -124,7 +132,7 @@ namespace Microsoft.AspNetCore.Mvc.Api.Analyzers
             int? statusCode = null;
             ITypeSymbol typeSymbol = null;
 
-            for (var i = 0; initializer != null && i < initializer?.Expressions.Count; i++)
+            for (var i = 0; initializer != null && i < initializer.Expressions.Count; i++)
             {
                 var expression = initializer.Expressions[i];
 
