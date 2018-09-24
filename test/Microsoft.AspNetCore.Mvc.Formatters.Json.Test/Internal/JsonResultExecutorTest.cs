@@ -5,6 +5,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -215,6 +217,57 @@ namespace Microsoft.AspNetCore.Mvc.Formatters.Json.Internal
 
             // Assert
             Assert.Equal(expected, logger.MostRecentMessage);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_WritesToTheResponseStream_WhenContentIsLargerThanBuffer()
+        {
+            // Arrange
+            var writeLength = 2 * TestHttpResponseStreamWriterFactory.DefaultBufferSize + 4;
+            var text = new string('a', writeLength);
+            var expectedWriteCallCount = Math.Ceiling((double)writeLength / TestHttpResponseStreamWriterFactory.DefaultBufferSize);
+
+            var stream = new Mock<Stream>();
+            stream.SetupGet(s => s.CanWrite).Returns(true);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Response.Body = stream.Object;
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+
+            var result = new JsonResult(text);
+            var executor = CreateExecutor();
+
+            // Act
+            await executor.ExecuteAsync(actionContext, result);
+
+            // Assert
+            stream.Verify(s => s.Write(It.IsAny<byte[]>(), It.IsAny<int>(), TestHttpResponseStreamWriterFactory.DefaultBufferSize), Times.Exactly(2));
+            stream.Verify(s => s.Flush(), Times.Never());
+            stream.Verify(s => s.WriteAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+        [Theory]
+        [InlineData(5)]
+        [InlineData(TestHttpResponseStreamWriterFactory.DefaultBufferSize - 30)]
+        public async Task ExecuteAsync_DoesNotWriteSynchronouslyToTheResponseBody_WhenContentIsSmallerThanBufferSize(int writeLength)
+        {
+            // Arrange
+            var text = new string('a', writeLength);
+
+            var stream = new Mock<Stream>();
+            stream.SetupGet(s => s.CanWrite).Returns(true);
+            var httpContext = new DefaultHttpContext();
+            httpContext.Response.Body = stream.Object;
+            var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
+
+            var result = new JsonResult(text);
+            var executor = CreateExecutor();
+
+            // Act
+            await executor.ExecuteAsync(actionContext, result);
+
+            // Assert
+            stream.Verify(s => s.Flush(), Times.Never());
+            stream.Verify(s => s.Write(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never());
         }
 
         private static JsonResultExecutor CreateExecutor(ILogger<JsonResultExecutor> logger = null)
