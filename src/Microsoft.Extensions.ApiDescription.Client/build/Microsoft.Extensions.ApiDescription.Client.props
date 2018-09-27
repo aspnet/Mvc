@@ -40,7 +40,10 @@
   -->
   <ItemDefinitionGroup>
     <ServiceProjectReference>
-      <!-- Name of the API description document generator. -->
+      <!--
+        Name of the API description document generator.  Builds will invoke a target named
+        "%(DocumentGenerator)DocumentGenerator" to do actual document retrieval / generation.
+      -->
       <DocumentGenerator>Default</DocumentGenerator>
 
       <!-- Server project metadata which is likely applicable to all document generators. -->
@@ -107,7 +110,10 @@
     <ServiceFileReference>
       <!-- Name of the class to generate. Defaults to %(Filename)Client but with an uppercase first letter. -->
       <ClassName />
-      <!-- Code generator to use. Required. -->
+      <!--
+        Code generator to use. Required and must end with "CSharp" or "TypeScript" (the currently-supported target
+        languages). Builds will invoke a target named "%(CodeGenerator)CodeGenerator" to do actual code generation.
+      -->
       <CodeGenerator />
       <!--
         Namespace to contain generated class. Default is either $(ServiceFileReferenceCSharpNamespace) or
@@ -120,6 +126,8 @@
         $(ServiceFileReferenceDirectory).
       -->
       <OutputPath />
+      <!-- Language of the generated file. Calculated based on %(CodeGenerator). -->
+      <TargetLanguage />
     </ServiceFileReference>
   </ItemDefinitionGroup>
 </Project>

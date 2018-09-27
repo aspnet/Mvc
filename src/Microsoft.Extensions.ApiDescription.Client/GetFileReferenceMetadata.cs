@@ -15,6 +15,9 @@ namespace Microsoft.Extensions.ApiDescription.Client
     /// </summary>
     public class GetFileReferenceMetadata : Task
     {
+        private const string CSharpLanguageName = "CSharp";
+        private const string TypeScriptLanguageName = "TypeScript";
+
         /// <summary>
         /// Default Namespace metadata value for C# output.
         /// </summary>
@@ -90,11 +93,18 @@ namespace Microsoft.Extensions.ApiDescription.Client
                     MetadataSerializer.SetMetadata(newItem, "ClassName", className);
                 }
 
-                var isTypeScript = codeGenerator.EndsWith("TypeScript", StringComparison.OrdinalIgnoreCase);
+                var isTypeScript = codeGenerator.EndsWith(TypeScriptLanguageName, StringComparison.OrdinalIgnoreCase);
+                var targetLanguage = item.GetMetadata("TargetLanguage");
+                if (string.IsNullOrEmpty(targetLanguage))
+                {
+                    targetLanguage = isTypeScript ? TypeScriptLanguageName : CSharpLanguageName;
+                    MetadataSerializer.SetMetadata(newItem, "TargetLanguage", targetLanguage);
+                }
+
                 var @namespace = item.GetMetadata("Namespace");
                 if (string.IsNullOrEmpty(@namespace))
                 {
-                    @namespace = isTypeScript ? CSharpNamespace : TypeScriptNamespace;
+                    @namespace = isTypeScript ? TypeScriptNamespace : CSharpNamespace;
                     MetadataSerializer.SetMetadata(newItem, "Namespace", @namespace);
                 }
 

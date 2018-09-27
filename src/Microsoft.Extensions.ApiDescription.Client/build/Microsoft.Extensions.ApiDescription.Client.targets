@@ -165,8 +165,9 @@
       <ServiceFileReference Remove="@(ServiceProjectReference -> '%(DocumentPath)')" />
       <!-- Condition here is temporary. Useful while DefaultDocumentGenerator fails. -->
       <ServiceFileReference Include="@(ServiceProjectReference -> '%(DocumentPath)')"
-          Condition="Exists('%(ServiceProjectReference.DocumentPath)')"
-          SourceProject="%(ServiceProjectReference.FullPath)" />
+          Condition="Exists('%(ServiceProjectReference.DocumentPath)')">
+        <SourceProject>%(ServiceProjectReference.FullPath)</SourceProject>
+      </ServiceFileReference>
     </ItemGroup>
   </Target>
 
@@ -233,8 +234,9 @@
     <!-- _ServiceUriReferenceGenerator_GetMetadata guarantees %(DocumentPath) values are unique. -->
     <ItemGroup>
       <ServiceFileReference Remove="@(ServiceUriReference -> '%(DocumentPath)')" />
-      <ServiceFileReference Include="@(ServiceUriReference -> '%(DocumentPath)')"
-          SourceUri="%(ServiceUriReference.Identity)" />
+      <ServiceFileReference Include="@(ServiceUriReference -> '%(DocumentPath)')">
+        <SourceUri>%(ServiceUriReference.Identity)</SourceUri>
+      </ServiceFileReference>
     </ItemGroup>
   </Target>
 
@@ -263,7 +265,9 @@
 
     <ItemGroup>
       <ServiceFileReference Remove="@(ServiceFileReference)" />
-      <ServiceFileReference Include="@(_Temporary)" />
+      <ServiceFileReference Include="@(_Temporary)">
+        <RelativeOutputPath>$([MSBuild]::MakeRelative($(MSBuildProjectDirectory), %(_Temporary.OutputPath)))</RelativeOutputPath>
+      </ServiceFileReference>
       <_Temporary Remove="@(_Temporary)" />
     </ItemGroup>
   </Target>
@@ -292,9 +296,17 @@
       unique.
     -->
     <ItemGroup>
-      <Compile Remove="@(ServiceFileReference -> '%(OutputPath)')" />
-      <Compile Include="@(ServiceFileReference -> '%(OutputPath)')"
-          SourceDocument="%(ServiceFileReference.FullPath)" />
+      <TypeScriptCompile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
+      <TypeScriptCompile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
+          Condition="'%(ServiceFileReference.TargetLanguage)' == 'TypeScript'">
+        <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
+      </TypeScriptCompile>
+
+      <Compile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
+      <Compile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
+          Condition="'%(ServiceFileReference.TargetLanguage)' != 'TypeScript'">
+        <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
+      </Compile>
     </ItemGroup>
   </Target>
 
