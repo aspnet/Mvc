@@ -154,8 +154,8 @@
   <Target Name="_ServiceProjectReferenceGenerator_Core" Inputs="@(ServiceProjectReference)" Outputs="%(DocumentPath)">
     <MSBuild BuildInParallel="$(BuildInParallel)"
         Projects="$(MSBuildProjectFullPath)"
-        Properties="GeneratorTargetPath=%(ServiceProjectReference.DocumentPath);GeneratorTarget=%(DocumentGenerator)DocumentGenerator;GeneratorMetadata=%(SerializedMetadata);TargetFramework=%(ProjectTargetFramework)"
-        RemoveProperties="TargetFrameworks;RuntimeIdentifier"
+        Properties="GeneratorTargetPath=%(ServiceProjectReference.DocumentPath);GeneratorTarget=%(DocumentGenerator)DocumentGenerator;GeneratorMetadata=%(SerializedMetadata)"
+        RemoveProperties="TargetFrameworks"
         Targets="_ServiceProjectReferenceGenerator_Inner" />
   </Target>
 
@@ -284,8 +284,8 @@
   <Target Name="_ServiceFileReferenceGenerator_Core" Inputs="@(ServiceFileReference)" Outputs="%(OutputPath)">
     <MSBuild BuildInParallel="$(BuildInParallel)"
         Projects="$(MSBuildProjectFullPath)"
-        Properties="GeneratorTargetPath=%(ServiceFileReference.OutputPath);GeneratorTarget=%(CodeGenerator)CodeGenerator;GeneratorMetadata=%(SerializedMetadata);TargetFramework=%(ProjectTargetFramework)"
-        RemoveProperties="TargetFrameworks;RuntimeIdentifier"
+        Properties="GeneratorTargetPath=%(ServiceFileReference.OutputPath);GeneratorTarget=%(CodeGenerator)CodeGenerator;GeneratorMetadata=%(SerializedMetadata)"
+        RemoveProperties="TargetFrameworks"
         Targets="_ServiceFileReferenceGenerator_Inner" />
   </Target>
 
