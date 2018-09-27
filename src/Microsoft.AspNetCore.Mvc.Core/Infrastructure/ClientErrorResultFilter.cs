@@ -43,6 +43,11 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
                 return;
             }
 
+            if (clientError.StatusCode < 400)
+            {
+                return;
+            }
+
             var result = _clientErrorFactory.GetClientError(context, clientError);
             if (result == null)
             {
