@@ -50,6 +50,7 @@ namespace Microsoft.Extensions.ApiDescription.Client
         {
             var outputs = new List<ITaskItem>(Inputs.Length);
             var destinations = new HashSet<string>();
+
             foreach (var item in Inputs)
             {
                 var newItem = new TaskItem(item);
@@ -114,6 +115,7 @@ namespace Microsoft.Extensions.ApiDescription.Client
                 }
 
                 // Add metadata which may be used as a property and passed to an inner build.
+                newItem.RemoveMetadata("SerializedMetadata");
                 newItem.SetMetadata("SerializedMetadata", MetadataSerializer.SerializeMetadata(newItem));
             }
 

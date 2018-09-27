@@ -243,6 +243,13 @@
   <!-- ServiceFileReference support -->
 
   <Target Name="_ServiceFileReferenceGenerator_GetMetadata" Condition="'@(ServiceFileReference)' != ''">
+    <!-- Repeat default namespace checks in case $(RootNamespace) is defined after .props file is imported. -->
+    <PropertyGroup>
+      <ServiceFileReferenceCSharpNamespace
+          Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceCSharpNamespace>
+      <ServiceFileReferenceTypeScriptNamespace
+          Condition="'$(ServiceFileReferenceTypeScriptNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceTypeScriptNamespace>
+    </PropertyGroup>
     <ItemGroup>
       <_Temporary Remove="@(_Temporary)" />
     </ItemGroup>
@@ -273,7 +280,7 @@
   <Target Name="_ServiceFileReferenceGenerator_Core" Inputs="@(ServiceFileReference)" Outputs="%(OutputPath)">
     <MSBuild BuildInParallel="$(BuildInParallel)"
         Projects="$(MSBuildProjectFullPath)"
-        Properties="GeneratorTargetPath=%(ServiceProjectReference.OutputPath);GeneratorTarget=%(CodeGenerator)CodeGenerator;GeneratorMetadata=%(SerializedMetadata);TargetFramework=%(ProjectTargetFramework)"
+        Properties="GeneratorTargetPath=%(ServiceFileReference.OutputPath);GeneratorTarget=%(CodeGenerator)CodeGenerator;GeneratorMetadata=%(SerializedMetadata);TargetFramework=%(ProjectTargetFramework)"
         RemoveProperties="TargetFrameworks;RuntimeIdentifier"
         Targets="_ServiceFileReferenceGenerator_Inner" />
   </Target>
