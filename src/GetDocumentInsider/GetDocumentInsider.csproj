@@ -5,14 +5,22 @@
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.Extensions.ApiDescription.Client</RootNamespace>
-    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;net461</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftAspNetCoreTestHost20PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftAspNetCoreTestHost21PackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.2'">
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftAspNetCoreTestHostPackageVersion)" />
   </ItemGroup>
 </Project>

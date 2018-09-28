@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-#if NETCOREAPP2_0
+#if NETCOREAPP2_0 || NETCOREAPP2_1 || NETCOREAPP2_2
 using System.Runtime.Loader;
 #endif
 using Microsoft.DotNet.Cli.CommandLine;
@@ -82,7 +82,7 @@ namespace Microsoft.Extensions.ApiDescription.Client.Commands
                 }
             }
 
-#if NETCOREAPP2_0
+#if NETCOREAPP2_0 || NETCOREAPP2_1 || NETCOREAPP2_2
             AssemblyLoadContext.Default.Resolving += (loadContext, assemblyName) =>
             {
                 var name = assemblyName.Name;
