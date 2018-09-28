@@ -263,13 +263,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             // Assert
             var page = Assert.IsType<TestPage>(instance);
             Assert.IsType<ViewDataDictionary<PocoModel>>(page.PageContext.ViewData);
-            Assert.Null(page.PageContext.ViewData.Model);
+            Assert.NotNull(page.PageContext.ViewData.Model);
+            Assert.IsType<PocoModel>(page.PageContext.ViewData.Model);
 
             var pageResult = Assert.IsType<PageResult>(result);
             Assert.Same(page, pageResult.Page);
-            Assert.Null(pageResult.Model);
+            Assert.NotNull(pageResult.Model);
+            Assert.IsType<PocoModel>(pageResult.Model);
             Assert.Same(page.ViewContext.ViewData, pageResult.ViewData);
-
         }
 
         [Fact]

@@ -72,8 +72,6 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
         // Internal for testing
         internal PageActionInvokerCacheEntry CacheEntry { get; }
 
-        private bool HasPageModel => _actionDescriptor.HandlerTypeInfo != _actionDescriptor.PageTypeInfo;
-
         // Internal for testing
         internal PageContext PageContext => _pageContext;
 
@@ -137,17 +135,21 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
 
         private object CreateInstance()
         {
-            if (HasPageModel)
+            if (_actionDescriptor.ModelTypeInfo != _actionDescriptor.PageTypeInfo)
             {
-                // Since this is a PageModel, we need to activate it, and then run a handler method on the model.
+                // The page has a model. Initialize it.
                 _pageModel = CacheEntry.ModelFactory(_pageContext);
                 _pageContext.ViewData.Model = _pageModel;
+            }
 
+            if (_actionDescriptor.HandlerTypeInfo == _actionDescriptor.ModelTypeInfo)
+            {
+                // The page model is the handler.
                 return _pageModel;
             }
             else
             {
-                // Since this is a Page without a PageModel, we need to create the Page before running a handler method.
+                // The page is the handler. We need to create the Page before running a handler method.
                 _viewContext = new ViewContext(
                     _pageContext,
                     NullView.Instance,
