@@ -94,13 +94,6 @@ namespace Microsoft.Extensions.ApiDescription.Client
                 }
 
                 var isTypeScript = codeGenerator.EndsWith(TypeScriptLanguageName, StringComparison.OrdinalIgnoreCase);
-                var targetLanguage = item.GetMetadata("TargetLanguage");
-                if (string.IsNullOrEmpty(targetLanguage))
-                {
-                    targetLanguage = isTypeScript ? TypeScriptLanguageName : CSharpLanguageName;
-                    MetadataSerializer.SetMetadata(newItem, "TargetLanguage", targetLanguage);
-                }
-
                 var @namespace = item.GetMetadata("Namespace");
                 if (string.IsNullOrEmpty(@namespace))
                 {

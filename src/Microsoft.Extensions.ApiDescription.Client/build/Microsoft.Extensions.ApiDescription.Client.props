@@ -126,8 +126,6 @@
         $(ServiceFileReferenceDirectory).
       -->
       <OutputPath />
-      <!-- Language of the generated file. Calculated based on %(CodeGenerator). -->
-      <TargetLanguage />
     </ServiceFileReference>
   </ItemDefinitionGroup>
 </Project>

@@ -297,13 +297,13 @@
     <ItemGroup>
       <TypeScriptCompile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
       <TypeScriptCompile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
-          Condition="'%(ServiceFileReference.TargetLanguage)' == 'TypeScript'">
+          Condition="'%(ServiceFileReference.Extension)' == '.ts'">
         <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
       </TypeScriptCompile>
 
       <Compile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
       <Compile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
-          Condition="'%(ServiceFileReference.TargetLanguage)' != 'TypeScript'">
+          Condition="'%(ServiceFileReference.Extension)' != '.ts'">
         <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
       </Compile>
     </ItemGroup>
