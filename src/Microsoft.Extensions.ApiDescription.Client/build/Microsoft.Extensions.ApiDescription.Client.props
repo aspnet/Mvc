@@ -28,10 +28,10 @@
         Condition="'$(ServiceFileReferenceCheckIfNewer)' == ''">true</ServiceFileReferenceCheckIfNewer>
     <ServiceFileReferenceDirectory
         Condition="'$(ServiceFileReferenceDirectory)' != ''">$([MSBuild]::EnsureTrailingSlash('$(ServiceFileReferenceDirectory)'))</ServiceFileReferenceDirectory>
-    <ServiceFileReferenceCSharpNamespace
-        Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceCSharpNamespace>
-    <ServiceFileReferenceTypeScriptNamespace
-        Condition="'$(ServiceFileReferenceTypeScriptNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceTypeScriptNamespace>
+    <ServiceFileReferenceCSharpNamespace Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''" />
+    <ServiceFileReferenceTypeScriptNamespace Condition="'$(ServiceFileReferenceTypeScriptNamespace)' == ''" />
+
+    <DefaultDocumentGeneratorDefaultOptions Condition="'$(DefaultDocumentGeneratorDefaultOptions)' == ''" />
   </PropertyGroup>
 
   <!--

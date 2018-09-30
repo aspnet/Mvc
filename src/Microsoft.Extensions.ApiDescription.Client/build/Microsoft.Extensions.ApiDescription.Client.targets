@@ -245,7 +245,6 @@
   <!-- ServiceFileReference support -->
 
   <Target Name="_ServiceFileReferenceGenerator_GetMetadata" Condition="'@(ServiceFileReference)' != ''">
-    <!-- Repeat default namespace checks in case $(RootNamespace) is defined after .props file is imported. -->
     <PropertyGroup>
       <ServiceFileReferenceCSharpNamespace
           Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceCSharpNamespace>
