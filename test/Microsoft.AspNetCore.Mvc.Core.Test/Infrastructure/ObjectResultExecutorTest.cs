@@ -148,8 +148,8 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
 
             var result = new ObjectResult(new ProblemDetails());
             result.Formatters.Add(new TestXmlOutputFormatter());
-            result.Formatters.Add(new TestJsonOutputFormatter());
-            result.Formatters.Add(new TestStringOutputFormatter()); // This will be chosen based on the content type
+            result.Formatters.Add(new TestJsonOutputFormatter());  // This will be chosen based on the response content type
+            result.Formatters.Add(new TestStringOutputFormatter());
 
             // Act
             await executor.ExecuteAsync(actionContext, result);
@@ -168,9 +168,9 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
             var actionContext = new ActionContext() { HttpContext = httpContext };
 
             var result = new ObjectResult(new ProblemDetails());
-            result.Formatters.Add(new TestXmlOutputFormatter());
+            result.Formatters.Add(new TestXmlOutputFormatter());  // This will be chosen based on the implicitly added content type
             result.Formatters.Add(new TestJsonOutputFormatter());
-            result.Formatters.Add(new TestStringOutputFormatter()); // This will be chosen based on the content type
+            result.Formatters.Add(new TestStringOutputFormatter());
 
             // Act
             await executor.ExecuteAsync(actionContext, result);
