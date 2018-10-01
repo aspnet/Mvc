@@ -171,6 +171,34 @@ Hello from page";
         }
 
         [Fact]
+        public async Task Specifying_InheritsInViewImports_WorksForRazorPagesWithModelAndViews()
+        {
+            // Arrange
+            var expected = "Title set via custom base in a page with model";
+
+            // Act
+            var document = await Client.GetHtmlDocumentAsync("/WithViewImportSpecifyingInherits/Page");
+
+            // Assert
+            var title = document.RequiredQuerySelector("title");
+            Assert.Equal(expected, title.TextContent);
+        }
+
+        [Fact]
+        public async Task Specifying_InheritsInViewImports_WorksForRazorPagesAndViews()
+        {
+            // Arrange
+            var expected = "Title set via custom base in a page without model";
+
+            // Act
+            var document = await Client.GetHtmlDocumentAsync("/WithViewImportSpecifyingInherits/Page/NoModel");
+
+            // Assert
+            var title = document.RequiredQuerySelector("title");
+            Assert.Equal(expected, title.TextContent);
+        }
+
+        [Fact]
         public async Task FormTagHelper_WithPage_GeneratesLinksToSelf()
         {
             //Arrange
