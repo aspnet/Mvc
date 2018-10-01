@@ -10,11 +10,11 @@ namespace RoutingWebSite
 {
     public class RemoveControllerActionDescriptorProvider : IActionDescriptorProvider
     {
-        private readonly Type _controllerType;
+        private readonly Type[] _controllerTypes;
 
-        public RemoveControllerActionDescriptorProvider(Type controllerType)
+        public RemoveControllerActionDescriptorProvider(params Type[] controllerTypes)
         {
-            _controllerType = controllerType;
+            _controllerTypes = controllerTypes;
         }
 
         public int Order => int.MaxValue;
@@ -29,7 +29,7 @@ namespace RoutingWebSite
             {
                 if (item is ControllerActionDescriptor controllerActionDescriptor)
                 {
-                    if (controllerActionDescriptor.ControllerTypeInfo == _controllerType)
+                    if (_controllerTypes.Contains(controllerActionDescriptor.ControllerTypeInfo))
                     {
                         context.Results.Remove(item);
                     }
