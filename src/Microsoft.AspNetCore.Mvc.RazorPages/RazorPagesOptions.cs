@@ -138,8 +138,8 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         }
 
         /// <summary>
-        /// Gets or sets a value that determines if OPTIONS requests without a corresponding handler are handled by default
-        /// by MVC.
+        /// Gets or sets a value that determines if HTTP requests with the OPTIONS method are handled by default, if
+        /// no handler is available.
         /// </summary>
         /// <value>
         /// The default value is <see langword="true"/> if the version is
@@ -147,10 +147,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages
         /// </value>
         /// <remarks>
         /// <para>
-        /// Razor Pages uses the current requests HTTP method to select a handler method. When no handler is available or selected,
+        /// Razor Pages uses the current request's HTTP method to select a handler method. When no handler is available or selected,
         /// the page is immediately executed. This may cause runtime errors if the page relies on the handler method to execute
-        /// and initialize some state. This setting attempts to avoid this class of error for HTTP <c>OPTIONS</c> request by
-        /// handling the request with a <c>200 OK</c> response.
+        /// and initialize some state. This setting attempts to avoid this class of error for HTTP <c>OPTIONS</c> requests by
+        /// returning a <c>200 OK</c> response.
         /// </para>
         /// <para>
         /// This property is associated with a compatibility switch and can provide a different behavior depending on

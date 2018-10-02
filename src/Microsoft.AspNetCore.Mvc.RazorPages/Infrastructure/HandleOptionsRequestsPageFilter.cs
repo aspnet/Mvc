@@ -25,9 +25,9 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
     internal sealed class HandleOptionsRequestsPageFilter : IPageFilter, IOrderedFilter
     {
         /// <summary>
-        /// Ordered to run early in the pipeline.
+        /// Ordered to run after filters with default order.
         /// </summary>
-        public int Order => -2000;
+        public int Order => 1000;
 
         public void OnPageHandlerExecuted(PageHandlerExecutedContext context)
         {
