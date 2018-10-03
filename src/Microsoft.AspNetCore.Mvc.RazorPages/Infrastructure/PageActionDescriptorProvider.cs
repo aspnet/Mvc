@@ -4,10 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
@@ -81,7 +85,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                     {
                         Name = selector.AttributeRouteModel.Name,
                         Order = selector.AttributeRouteModel.Order ?? 0,
-                        Template = selector.AttributeRouteModel.Template,
+                        Template = TransformPageRoute(model, selector.AttributeRouteModel.Template),
                         SuppressLinkGeneration = selector.AttributeRouteModel.SuppressLinkGeneration,
                         SuppressPathMatching = selector.AttributeRouteModel.SuppressPathMatching,
                     },
@@ -108,6 +112,43 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
 
                 actions.Add(descriptor);
             }
+        }
+
+        private static string TransformPageRoute(PageRouteModel model, string pageRoute)
+        {
+            model.Properties.TryGetValue(typeof(IOutboundParameterTransformer), out var transformer);
+            var pageRouteTransformer = transformer as IOutboundParameterTransformer;
+
+            if (pageRouteTransformer == null)
+            {
+                return pageRoute;
+            }
+
+            var routePattern = RoutePatternFactory.Parse(pageRoute);
+            var segments = new RoutePatternPathSegment[routePattern.PathSegments.Count];
+
+            // Read through the route's segments and transform literal segments
+            // e.g. using a slugify transformer...
+            // Before: /MyTestRoute/{ExtraArguments}
+            // After: /my-test-route/{ExtraArguments}
+            for (int i = 0; i < routePattern.PathSegments.Count; i++)
+            {
+                var segment = routePattern.PathSegments[i];
+                if (segment.IsSimple && segment.Parts[0] is RoutePatternLiteralPart literalPart)
+                {
+                    var transformedContent = pageRouteTransformer.TransformOutbound(literalPart.Content);
+                    segments[i] = RoutePatternFactory.Segment(RoutePatternFactory.LiteralPart(transformedContent));
+                }
+                else
+                {
+                    segments[i] = segment;
+                }
+            }
+
+            var sb = new StringBuilder();
+            RoutePatternWriter.WriteString(sb, segments);
+
+            return sb.ToString();
         }
     }
 }
