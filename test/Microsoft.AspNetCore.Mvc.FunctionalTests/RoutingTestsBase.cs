@@ -28,6 +28,25 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         public HttpClient Client { get; }
 
         [Fact]
+        public async Task ConventionalRoutedAction_RouteContainsPage_RouteNotMatched()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/PageRoute/ConventionalRoute/pagevalue");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("PageRoute", result.Controller);
+            Assert.Equal("ConventionalRoute", result.Action);
+
+            // pagevalue is not used in "page" route value because it is a required value
+            Assert.False(result.RouteValues.ContainsKey("page"));
+        }
+
+        [Fact]
         public abstract Task HasEndpointMatch();
 
         [Fact]

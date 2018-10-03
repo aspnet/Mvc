@@ -40,29 +40,6 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionalRoutedAction_RouteContainsPage_RouteNotMatched()
-        {
-            // Arrange & Act
-            var response = await Client.GetAsync("http://localhost/PageRoute/ConventionalRoute/pagevalue");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
-
-            Assert.Equal("PageRoute", result.Controller);
-            Assert.Equal("ConventionalRoute", result.Action);
-
-            // pagevalue is not used in "page" route value because it is a required value
-            Assert.Collection(
-                result.RouteValues,
-                kvp => Assert.Equal("action", kvp.Key),
-                kvp => Assert.Equal("controller", kvp.Key),
-                kvp => Assert.NotEqual("page", kvp.Key));
-        }
-
-        [Fact]
         public async Task ParameterTransformer_TokenReplacement_Found()
         {
             // Arrange & Act
