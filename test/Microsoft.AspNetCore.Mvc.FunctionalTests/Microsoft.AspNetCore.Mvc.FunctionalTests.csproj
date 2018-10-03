@@ -49,7 +49,7 @@
     <ProjectReference Include="..\WebSites\VersioningWebSite\VersioningWebSite.csproj" />
     <ProjectReference Include="..\WebSites\WebApiCompatShimWebSite\WebApiCompatShimWebSite.csproj" />
     <ProjectReference Include="..\WebSites\XmlFormattersWebSite\XmlFormattersWebSite.csproj" />
-    
+
     <PackageReference Include="AngleSharp" Version="$(AngleSharpPackageVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.ChunkingCookieManager.Sources" PrivateAssets="All" Version="$(MicrosoftAspNetCoreChunkingCookieManagerSourcesPackageVersion)" />
 

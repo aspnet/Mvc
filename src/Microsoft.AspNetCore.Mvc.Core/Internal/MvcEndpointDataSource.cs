@@ -271,10 +271,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         // Replace parameter with literal value
                         var parameterRouteValue = action.RouteValues[parameterPart.Name];
 
-                        // Route value could be null if it is a "known" route value
-                        // Do not use the null value to de-normalize the route pattern
-                        // e.g. RouteValues will contain a null "page" value if there are Razor pages
-                        // Do not use the null "page" value to replace a {page} parameter
+                        // Route value could be null if it is a "known" route value.
+                        // Do not use the null value to de-normalize the route pattern,
+                        // instead leave the parameter unchanged.
+                        // e.g.
+                        //     RouteValues will contain a null "page" value if there are Razor pages
+                        //     Skip replacing the {page} parameter
                         if (parameterRouteValue != null)
                         {
                             if (allParameterPolicies.TryGetValue(parameterPart.Name, out var parameterPolicies))
