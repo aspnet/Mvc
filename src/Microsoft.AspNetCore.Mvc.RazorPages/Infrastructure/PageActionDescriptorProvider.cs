@@ -134,7 +134,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             }
 
             var segments = pageRouteMetadata.PageRoute.Split('/');
-            for (int i = 0; i < segments.Length; i++)
+            for (var i = 0; i < segments.Length; i++)
             {
                 segments[i] = pageRouteTransformer.TransformOutbound(segments[i]);
             }
