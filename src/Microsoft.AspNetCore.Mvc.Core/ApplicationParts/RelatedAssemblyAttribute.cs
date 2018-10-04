@@ -117,6 +117,16 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         {
             if (Uri.TryCreate(assembly.CodeBase, UriKind.Absolute, out var result) && result.IsFile)
             {
+                if (!string.IsNullOrWhiteSpace(result.Fragment))
+                {
+                    var dirSeparator = result.LocalPath.FirstOrDefault(ch => ch == '\\' || ch == '/');
+                    dirSeparator = dirSeparator == default(char) 
+                                 ? Path.DirectorySeparatorChar 
+                                 : dirSeparator;
+
+                    return $"{result.LocalPath}{result.Fragment.Replace('/', dirSeparator)}";
+                }
+                
                 return result.LocalPath;
             }
 
