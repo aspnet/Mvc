@@ -9,6 +9,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     /// <summary>
     /// An <see cref="IPageRouteModelConvention"/> that sets page route resolution
     /// to use the specified <see cref="IOutboundParameterTransformer"/> on <see cref="PageRouteModel"/>.
+    /// This convention does not effect controller action routes.
     /// </summary>
     public class PageRouteTransformerConvention : IPageRouteModelConvention
     {
