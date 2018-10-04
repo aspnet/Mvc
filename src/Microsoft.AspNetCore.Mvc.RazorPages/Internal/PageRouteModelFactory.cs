@@ -160,6 +160,10 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
                 AttributeRouteModel = new AttributeRouteModel
                 {
                     Template = AttributeRouteModel.CombineTemplates(prefix, routeTemplate),
+                },
+                EndpointMetadata =
+                {
+                    new PageRouteMetadata(prefix, routeTemplate)
                 }
             };
         }

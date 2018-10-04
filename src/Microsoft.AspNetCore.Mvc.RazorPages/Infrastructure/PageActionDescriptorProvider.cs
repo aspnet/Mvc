@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.RazorPages.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
@@ -85,7 +86,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
                     {
                         Name = selector.AttributeRouteModel.Name,
                         Order = selector.AttributeRouteModel.Order ?? 0,
-                        Template = TransformPageRoute(model, selector.AttributeRouteModel.Template),
+                        Template = TransformPageRoute(model, selector),
                         SuppressLinkGeneration = selector.AttributeRouteModel.SuppressLinkGeneration,
                         SuppressPathMatching = selector.AttributeRouteModel.SuppressPathMatching,
                     },
@@ -114,41 +115,34 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
             }
         }
 
-        private static string TransformPageRoute(PageRouteModel model, string pageRoute)
+        private static string TransformPageRoute(PageRouteModel model, SelectorModel selectorModel)
         {
             model.Properties.TryGetValue(typeof(IOutboundParameterTransformer), out var transformer);
             var pageRouteTransformer = transformer as IOutboundParameterTransformer;
 
+            // Transformer not set on page route
             if (pageRouteTransformer == null)
             {
-                return pageRoute;
+                return selectorModel.AttributeRouteModel.Template;
             }
 
-            var routePattern = RoutePatternFactory.Parse(pageRoute);
-            var segments = new RoutePatternPathSegment[routePattern.PathSegments.Count];
-
-            // Read through the route's segments and transform literal segments
-            // e.g. using a slugify transformer...
-            // Before: /MyTestRoute/{ExtraArguments}
-            // After: /my-test-route/{ExtraArguments}
-            for (int i = 0; i < routePattern.PathSegments.Count; i++)
+            var pageRouteMetadata = selectorModel.EndpointMetadata.OfType<PageRouteMetadata>().SingleOrDefault();
+            if (pageRouteMetadata == null)
             {
-                var segment = routePattern.PathSegments[i];
-                if (segment.IsSimple && segment.Parts[0] is RoutePatternLiteralPart literalPart)
-                {
-                    var transformedContent = pageRouteTransformer.TransformOutbound(literalPart.Content);
-                    segments[i] = RoutePatternFactory.Segment(RoutePatternFactory.LiteralPart(transformedContent));
-                }
-                else
-                {
-                    segments[i] = segment;
-                }
+                // Selector does not have expected metadata. Should never reach here
+                throw new InvalidOperationException("Page selector did not have page route metadata.");
             }
 
-            var sb = new StringBuilder();
-            RoutePatternWriter.WriteString(sb, segments);
+            var segments = pageRouteMetadata.PageRoute.Split('/');
+            for (int i = 0; i < segments.Length; i++)
+            {
+                segments[i] = pageRouteTransformer.TransformOutbound(segments[i]);
+            }
 
-            return sb.ToString();
+            var transformedPageRoute = string.Join("/", segments);
+
+            // Combine transformed page route with template
+            return AttributeRouteModel.CombineTemplates(transformedPageRoute, pageRouteMetadata.RouteTemplate);
         }
     }
 }

@@ -107,10 +107,20 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task Page_PageRouteTransformer_WithoutIndex()
+        {
+            // Arrange & Act
+            var response = await Client.GetAsync("http://localhost/page-route-transformer");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
         public async Task Page_PageRouteTransformer_RouteParameter()
         {
             // Arrange & Act
-            var response = await Client.GetAsync("http://localhost/page-route-transformer/test-page/extra-path/World");
+            var response = await Client.GetAsync("http://localhost/page-route-transformer/test-page/ExtraPath/World");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
