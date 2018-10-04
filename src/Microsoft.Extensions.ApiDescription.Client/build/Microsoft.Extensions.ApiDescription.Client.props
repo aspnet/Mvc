@@ -28,8 +28,6 @@
         Condition="'$(ServiceFileReferenceCheckIfNewer)' == ''">true</ServiceFileReferenceCheckIfNewer>
     <ServiceFileReferenceDirectory
         Condition="'$(ServiceFileReferenceDirectory)' != ''">$([MSBuild]::EnsureTrailingSlash('$(ServiceFileReferenceDirectory)'))</ServiceFileReferenceDirectory>
-    <ServiceFileReferenceCSharpNamespace Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''" />
-    <ServiceFileReferenceTypeScriptNamespace Condition="'$(ServiceFileReferenceTypeScriptNamespace)' == ''" />
 
     <DefaultDocumentGeneratorDefaultOptions Condition="'$(DefaultDocumentGeneratorDefaultOptions)' == ''" />
   </PropertyGroup>
@@ -116,8 +114,7 @@
       -->
       <CodeGenerator />
       <!--
-        Namespace to contain generated class. Default is either $(ServiceFileReferenceCSharpNamespace) or
-        $(ServiceFileReferenceTypeScriptNamespace), depending on target language.
+        Namespace to contain generated class. Default is $(RootNamespace).
       -->
       <Namespace />
       <!--

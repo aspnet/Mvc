@@ -245,20 +245,13 @@
   <!-- ServiceFileReference support -->
 
   <Target Name="_ServiceFileReferenceGenerator_GetMetadata" Condition="'@(ServiceFileReference)' != ''">
-    <PropertyGroup>
-      <ServiceFileReferenceCSharpNamespace
-          Condition="'$(ServiceFileReferenceCSharpNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceCSharpNamespace>
-      <ServiceFileReferenceTypeScriptNamespace
-          Condition="'$(ServiceFileReferenceTypeScriptNamespace)' == ''">$(RootNamespace)</ServiceFileReferenceTypeScriptNamespace>
-    </PropertyGroup>
     <ItemGroup>
       <_Temporary Remove="@(_Temporary)" />
     </ItemGroup>
 
     <GetFileReferenceMetadata Inputs="@(ServiceFileReference)"
-        CSharpNamespace="$(ServiceFileReferenceCSharpNamespace)"
-        OutputDirectory="$(ServiceFileReferenceDirectory)"
-        TypeScriptNamespace="$(ServiceFileReferenceTypeScriptNamespace)">
+        Namespace="$(RootNamespace)"
+        OutputDirectory="$(ServiceFileReferenceDirectory)">
       <Output TaskParameter="Outputs" ItemName="_Temporary" />
     </GetFileReferenceMetadata>
 

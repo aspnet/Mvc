@@ -19,21 +19,15 @@ namespace Microsoft.Extensions.ApiDescription.Client
         private const string TypeScriptLanguageName = "TypeScript";
 
         /// <summary>
-        /// Default Namespace metadata value for C# output.
+        /// Default Namespace metadata value.
         /// </summary>
         [Required]
-        public string CSharpNamespace { get; set; }
+        public string Namespace { get; set; }
 
         /// <summary>
         /// Default directory for OutputPath values.
         /// </summary>
         public string OutputDirectory { get; set; }
-
-        /// <summary>
-        /// Default Namespace metadata value for TypeScript output.
-        /// </summary>
-        [Required]
-        public string TypeScriptNamespace { get; set; }
 
         /// <summary>
         /// The ServiceFileReference items to update.
@@ -42,8 +36,8 @@ namespace Microsoft.Extensions.ApiDescription.Client
         public ITaskItem[] Inputs { get; set; }
 
         /// <summary>
-        /// The updated ServiceFileReference items. Will include Namespace and OutputPath metadata. OutputPath metadata
-        /// will contain full paths.
+        /// The updated ServiceFileReference items. Will include ClassName, Namespace and OutputPath metadata.
+        /// OutputPath metadata will contain full paths.
         /// </summary>
         [Output]
         public ITaskItem[] Outputs{ get; set; }
@@ -93,17 +87,16 @@ namespace Microsoft.Extensions.ApiDescription.Client
                     MetadataSerializer.SetMetadata(newItem, "ClassName", className);
                 }
 
-                var isTypeScript = codeGenerator.EndsWith(TypeScriptLanguageName, StringComparison.OrdinalIgnoreCase);
                 var @namespace = item.GetMetadata("Namespace");
                 if (string.IsNullOrEmpty(@namespace))
                 {
-                    @namespace = isTypeScript ? TypeScriptNamespace : CSharpNamespace;
-                    MetadataSerializer.SetMetadata(newItem, "Namespace", @namespace);
+                    MetadataSerializer.SetMetadata(newItem, "Namespace", Namespace);
                 }
 
                 var outputPath = item.GetMetadata("OutputPath");
                 if (string.IsNullOrEmpty(outputPath))
                 {
+                    var isTypeScript = codeGenerator.EndsWith(TypeScriptLanguageName, StringComparison.OrdinalIgnoreCase);
                     outputPath = $"{className}{(isTypeScript ? ".ts" : ".cs")}";
                 }
 
