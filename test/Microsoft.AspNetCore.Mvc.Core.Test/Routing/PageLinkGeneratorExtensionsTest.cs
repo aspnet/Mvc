@@ -151,14 +151,18 @@ namespace Microsoft.AspNetCore.Routing
             var linkGenerator = CreateLinkGenerator(endpoint1, endpoint2);
 
             var httpContext = CreateHttpContext(new { page = "/Admin/ManageUsers", });
-            httpContext.Request.Scheme = "http";
-            httpContext.Request.Host = new HostString("example.com");
+            httpContext.Request.Scheme = "https";
+            httpContext.Request.Host = new HostString("www.example.com");
             httpContext.Request.PathBase = new PathString("/Foo/Bar?encodeme?");
 
             // Act
             var uri = linkGenerator.GetUriByPage(
                 httpContext,
+                page: null,
+                handler: null,
                 values: new RouteValueDictionary(new { query = "some?query" }),
+                scheme: "http",
+                host: new HostString("example.com"),
                 fragment: new FragmentString("#Fragment?"),
                 options: new LinkOptions() { AppendTrailingSlash = true, });
 

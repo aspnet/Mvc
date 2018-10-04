@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("http://localhost/LG1/LinkWithFullUri/17#hi", responseContent);
+            Assert.Equal("https://example.com/LG1/LinkWithFullUri/17#hi", responseContent);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("http://localhost/LGPage", responseContent);
+            Assert.Equal("https://example.com/LGPage", responseContent);
         }
 
         [Fact]

@@ -129,10 +129,10 @@ namespace Microsoft.AspNetCore.Routing
         /// </param>
         /// <param name="values">The route values. Optional. Used to resolve endpoints and expand parameters in the route template.</param>
         /// <param name="scheme">
-        /// The URI scheme, applied to the resulting URI. Optional. If not provided, the value of <see cref="HttpRequest.Scheme"/> will be used.
+        /// The URI scheme, applied to the resulting URI.
         /// </param>
         /// <param name="host">
-        /// The URI host/authority, applied to the resulting URI. Optional. If not provided, the value <see cref="HttpRequest.Host"/> will be used.
+        /// The URI host/authority, applied to the resulting URI.
         /// </param>
         /// <param name="pathBase">
         /// An optional URI path base. Prepended to the path in the resulting URI. If not provided, the value of <see cref="HttpRequest.PathBase"/> will be used.
@@ -146,11 +146,11 @@ namespace Microsoft.AspNetCore.Routing
         public static string GetUriByAction(
             this LinkGenerator generator,
             HttpContext httpContext,
-            string action = default,
-            string controller = default,
-            object values = default,
-            string scheme = default,
-            HostString? host = default,
+            string action,
+            string controller,
+            object values,
+            string scheme,
+            HostString host,
             PathString? pathBase = default,
             FragmentString fragment = default,
             LinkOptions options = default)
@@ -218,6 +218,16 @@ namespace Microsoft.AspNetCore.Routing
             if (controller == null)
             {
                 throw new ArgumentNullException(nameof(controller));
+            }
+
+            if (string.IsNullOrEmpty(scheme))
+            {
+                throw new ArgumentException("A scheme must be provided.", nameof(scheme));
+            }
+
+            if (!host.HasValue)
+            {
+                throw new ArgumentException("A host must be provided.", nameof(host));
             }
 
             var address = CreateAddress(httpContext: null, action, controller, values);
