@@ -85,6 +85,8 @@ namespace RoutingWebSite
                 controller: "LG1",
                 action: nameof(LinkWithFullUri),
                 values: QueryToRouteValues(HttpContext.Request.Query),
+                scheme: "https",
+                host: new HostString("example.com"),
                 fragment: new FragmentString("#hi"));
         }
 
@@ -93,7 +95,10 @@ namespace RoutingWebSite
             return _linkGenerator.GetUriByPage(
                 HttpContext,
                 page: "/LGPage",
-                values: QueryToRouteValues(HttpContext.Request.Query));
+                handler: null,
+                values: QueryToRouteValues(HttpContext.Request.Query),
+                scheme: "https",
+                host: new HostString("example.com"));
         }
 
         public string LinkWithFullUriWithoutHttpContext()
