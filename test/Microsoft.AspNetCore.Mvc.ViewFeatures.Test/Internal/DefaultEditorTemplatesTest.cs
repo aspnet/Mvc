@@ -1462,6 +1462,15 @@ Environment.NewLine;
                 throw new NotImplementedException();
             }
 
+            public Task<IHtmlContent> DisplayAsync(
+                string expression,
+                string templateName,
+                string htmlFieldName,
+                object additionalViewData)
+            {
+                throw new NotImplementedException();
+            }
+
             public string DisplayName(string expression)
             {
                 throw new NotImplementedException();
@@ -1488,6 +1497,15 @@ Environment.NewLine;
                 object additionalViewData)
             {
                 return _innerHelper.Editor(expression, templateName, htmlFieldName, additionalViewData);
+            }
+
+            public Task<IHtmlContent> EditorAsync(
+                string expression,
+                string templateName,
+                string htmlFieldName,
+                object additionalViewData)
+            {
+                return _innerHelper.EditorAsync(expression, templateName, htmlFieldName, additionalViewData);
             }
 
             public string Encode(string value)

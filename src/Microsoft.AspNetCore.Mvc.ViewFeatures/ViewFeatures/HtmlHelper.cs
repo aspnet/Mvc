@@ -327,6 +327,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
+        public Task<IHtmlContent> DisplayAsync(
+            string expression,
+            string templateName,
+            string htmlFieldName,
+            object additionalViewData)
+        {
+            var metadata = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
+
+            return GenerateDisplayAsync(
+                metadata,
+                htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                templateName,
+                additionalViewData);
+        }
+
+        /// <inheritdoc />
         public string DisplayName(string expression)
         {
             var modelExplorer = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
@@ -365,6 +381,22 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
             var modelExplorer = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
 
             return GenerateEditor(
+                modelExplorer,
+                htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
+                templateName,
+                additionalViewData);
+        }
+
+        /// <inheritdoc />
+        public Task<IHtmlContent> EditorAsync(
+            string expression,
+            string templateName,
+            string htmlFieldName,
+            object additionalViewData)
+        {
+            var modelExplorer = ExpressionMetadataProvider.FromStringExpression(expression, ViewData, MetadataProvider);
+
+            return GenerateEditorAsync(
                 modelExplorer,
                 htmlFieldName ?? ExpressionHelper.GetExpressionText(expression),
                 templateName,
@@ -501,6 +533,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 additionalViewData: additionalViewData);
 
             return templateBuilder.Build();
+        }
+
+        protected virtual Task<IHtmlContent> GenerateDisplayAsync(
+            ModelExplorer modelExplorer,
+            string htmlFieldName,
+            string templateName,
+            object additionalViewData)
+        {
+            var templateBuilder = new TemplateBuilder(
+                _viewEngine,
+                _bufferScope,
+                ViewContext,
+                ViewData,
+                modelExplorer,
+                htmlFieldName,
+                templateName,
+                readOnly: true,
+                additionalViewData: additionalViewData);
+
+            return templateBuilder.BuildAsync();
         }
 
         protected virtual async Task RenderPartialCoreAsync(
@@ -821,6 +873,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 additionalViewData: additionalViewData);
 
             return templateBuilder.Build();
+        }
+
+        protected virtual Task<IHtmlContent> GenerateEditorAsync(
+            ModelExplorer modelExplorer,
+            string htmlFieldName,
+            string templateName,
+            object additionalViewData)
+        {
+            var templateBuilder = new TemplateBuilder(
+                _viewEngine,
+                _bufferScope,
+                ViewContext,
+                ViewData,
+                modelExplorer,
+                htmlFieldName,
+                templateName,
+                readOnly: false,
+                additionalViewData: additionalViewData);
+
+            return templateBuilder.BuildAsync();
         }
 
         /// <summary>

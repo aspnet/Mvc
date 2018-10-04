@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -115,6 +116,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public IHtmlContent Render()
         {
+            return RenderAsync().GetAwaiter().GetResult();
+        }
+        public async Task<IHtmlContent> RenderAsync()
+        {
             var defaultActions = GetDefaultActions();
             var modeViewPath = _readOnly ? DisplayTemplateViewPath : EditorTemplateViewPath;
 
@@ -138,7 +143,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                         {
                             var viewContext = new ViewContext(_viewContext, viewEngineResult.View, _viewData, writer);
                             var renderTask = viewEngineResult.View.RenderAsync(viewContext);
-                            renderTask.GetAwaiter().GetResult();
+                            await renderTask;
                             return viewBuffer;
                         }
                     }
@@ -153,6 +158,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             throw new InvalidOperationException(
                 Resources.FormatTemplateHelpers_NoTemplate(_viewData.ModelExplorer.ModelType.FullName));
         }
+
 
         private Dictionary<string, Func<IHtmlHelper, IHtmlContent>> GetDefaultActions()
         {

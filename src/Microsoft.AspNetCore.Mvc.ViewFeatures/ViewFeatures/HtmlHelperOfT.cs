@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -152,6 +153,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         }
 
         /// <inheritdoc />
+        public Task<IHtmlContent> DisplayForAsync<TResult>(
+            Expression<Func<TModel, TResult>> expression,
+            string templateName,
+            string htmlFieldName,
+            object additionalViewData)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            var modelExplorer = GetModelExplorer(expression);
+            return GenerateDisplayAsync(
+                modelExplorer,
+                htmlFieldName ?? GetExpressionName(expression),
+                templateName,
+                additionalViewData);
+        }
+
+        /// <inheritdoc />
         public string DisplayNameFor<TResult>(Expression<Func<TModel, TResult>> expression)
         {
             if (expression == null)
@@ -211,6 +232,26 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 
             var modelExplorer = GetModelExplorer(expression);
             return GenerateEditor(
+                modelExplorer,
+                htmlFieldName ?? GetExpressionName(expression),
+                templateName,
+                additionalViewData);
+        }
+
+        /// <inheritdoc />
+        public Task<IHtmlContent> EditorForAsync<TResult>(
+            Expression<Func<TModel, TResult>> expression,
+            string templateName,
+            string htmlFieldName,
+            object additionalViewData)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            var modelExplorer = GetModelExplorer(expression);
+            return GenerateEditorAsync(
                 modelExplorer,
                 htmlFieldName ?? GetExpressionName(expression),
                 templateName,

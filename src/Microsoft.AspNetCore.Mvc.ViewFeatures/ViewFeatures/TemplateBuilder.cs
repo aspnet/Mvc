@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -77,6 +78,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
 
         public IHtmlContent Build()
         {
+            return BuildAsync().GetAwaiter().GetResult();
+        }
+        public async Task<IHtmlContent> BuildAsync()
+        {
             if (_metadata.ConvertEmptyStringToNull && string.Empty.Equals(_model))
             {
                 _model = null;
@@ -96,8 +101,8 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
             // though _model may have been reset to null. Otherwise we might lose track of the model type /property.
             viewData.ModelExplorer = _modelExplorer.GetExplorerForModel(_model);
 
-            var formatString = _readOnly ? 
-                viewData.ModelMetadata.DisplayFormatString : 
+            var formatString = _readOnly ?
+                viewData.ModelMetadata.DisplayFormatString :
                 viewData.ModelMetadata.EditFormatString;
 
             var formattedModelValue = _model;
@@ -157,7 +162,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures.Internal
                 _templateName,
                 _readOnly);
 
-            return templateRenderer.Render();
+            return await templateRenderer.RenderAsync();
         }
     }
 }
