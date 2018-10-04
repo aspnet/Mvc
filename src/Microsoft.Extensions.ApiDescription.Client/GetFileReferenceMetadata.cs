@@ -15,8 +15,13 @@ namespace Microsoft.Extensions.ApiDescription.Client
     /// </summary>
     public class GetFileReferenceMetadata : Task
     {
-        private const string CSharpLanguageName = "CSharp";
         private const string TypeScriptLanguageName = "TypeScript";
+
+        /// <summary>
+        /// Extension to use in default OutputPath metadata value. Ignored when generating TypeScript.
+        /// </summary>
+        [Required]
+        public string Extension { get; set; }
 
         /// <summary>
         /// Default Namespace metadata value.
@@ -37,7 +42,6 @@ namespace Microsoft.Extensions.ApiDescription.Client
 
         /// <summary>
         /// The updated ServiceFileReference items. Will include ClassName, Namespace and OutputPath metadata.
-        /// OutputPath metadata will contain full paths.
         /// </summary>
         [Output]
         public ITaskItem[] Outputs{ get; set; }
@@ -97,11 +101,14 @@ namespace Microsoft.Extensions.ApiDescription.Client
                 if (string.IsNullOrEmpty(outputPath))
                 {
                     var isTypeScript = codeGenerator.EndsWith(TypeScriptLanguageName, StringComparison.OrdinalIgnoreCase);
-                    outputPath = $"{className}{(isTypeScript ? ".ts" : ".cs")}";
+                    outputPath = $"{className}{(isTypeScript ? ".ts" : Extension)}";
                 }
 
-                outputPath = GetFullPath(outputPath);
-                MetadataSerializer.SetMetadata(newItem, "OutputPath", outputPath);
+                // Place output file in correct directory (relative to project directory).
+                if (!Path.IsPathRooted(outputPath) && !string.IsNullOrEmpty(OutputDirectory))
+                {
+                    outputPath = Path.Combine(OutputDirectory, outputPath);
+                }
 
                 if (!destinations.Add(outputPath))
                 {
@@ -109,6 +116,8 @@ namespace Microsoft.Extensions.ApiDescription.Client
                     // May also occur when user accidentally duplicates OutputPath metadata.
                     Log.LogError(Resources.FormatDuplicateFileOutputPaths(outputPath));
                 }
+
+                MetadataSerializer.SetMetadata(newItem, "OutputPath", outputPath);
 
                 // Add metadata which may be used as a property and passed to an inner build.
                 newItem.RemoveMetadata("SerializedMetadata");
@@ -118,21 +127,6 @@ namespace Microsoft.Extensions.ApiDescription.Client
             Outputs = outputs.ToArray();
 
             return !Log.HasLoggedErrors;
-        }
-
-        private string GetFullPath(string path)
-        {
-            if (!Path.IsPathRooted(path))
-            {
-                if (!string.IsNullOrEmpty(OutputDirectory))
-                {
-                    path = Path.Combine(OutputDirectory, path);
-                }
-
-                path = Path.GetFullPath(path);
-            }
-
-            return path;
         }
     }
 }

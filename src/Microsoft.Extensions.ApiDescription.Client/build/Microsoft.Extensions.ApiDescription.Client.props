@@ -12,7 +12,10 @@
   <UsingTask TaskName="GetUriReferenceMetadata" AssemblyFile="$(_ApiDescriptionTasksAssemblyPath)" />
   <UsingTask TaskName="Microsoft.Extensions.ApiDescription.Client.DownloadFile" AssemblyFile="$(_ApiDescriptionTasksAssemblyPath)" />
 
-  <!-- Settings users may update as they see fit. -->
+  <!--
+    Settings users may update as they see fit. All $(...Directory) values are interpreted relative to the client
+    project folder, unless already an absolute path.
+  -->
   <PropertyGroup>
     <ServiceProjectReferenceCheckIfNewer
         Condition="'$(ServiceProjectReferenceCheckIfNewer)' == ''">true</ServiceProjectReferenceCheckIfNewer>
@@ -120,7 +123,8 @@
       <!--
         Path to place generated code. Code generator may interpret path as a filename or directory. Default filename or
         folder name is %(ClassName).[cs|ts]. Filenames and relative paths (if explicitly set) are combined with
-        $(ServiceFileReferenceDirectory).
+        $(ServiceFileReferenceDirectory). Final value (depending on $(ServiceFileReferenceDirectory)) is likely to be
+        a path relative to the client project.
       -->
       <OutputPath />
     </ServiceFileReference>

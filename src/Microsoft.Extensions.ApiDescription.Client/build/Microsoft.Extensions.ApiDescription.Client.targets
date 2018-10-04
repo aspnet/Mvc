@@ -250,6 +250,7 @@
     </ItemGroup>
 
     <GetFileReferenceMetadata Inputs="@(ServiceFileReference)"
+        Extension="$(DefaultLanguageSourceExtension)"
         Namespace="$(RootNamespace)"
         OutputDirectory="$(ServiceFileReferenceDirectory)">
       <Output TaskParameter="Outputs" ItemName="_Temporary" />
@@ -257,9 +258,7 @@
 
     <ItemGroup>
       <ServiceFileReference Remove="@(ServiceFileReference)" />
-      <ServiceFileReference Include="@(_Temporary)">
-        <RelativeOutputPath>$([MSBuild]::MakeRelative($(MSBuildProjectDirectory), %(_Temporary.OutputPath)))</RelativeOutputPath>
-      </ServiceFileReference>
+      <ServiceFileReference Include="@(_Temporary)" />
       <_Temporary Remove="@(_Temporary)" />
     </ItemGroup>
   </Target>
@@ -288,17 +287,43 @@
       unique.
     -->
     <ItemGroup>
-      <TypeScriptCompile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
-      <TypeScriptCompile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
-          Condition="'%(ServiceFileReference.Extension)' == '.ts'">
-        <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
+      <_Files Remove="@(_Files)" />
+      <_Files Include="@(ServiceFileReference -> '%(OutputPath)')"
+          Condition="$([System.IO.File]::Exists('%(ServiceFileReference.OutputPath)'))">
+        <OutputPathExtension>$([System.IO.Path]::GetExtension('%(ServiceFileReference.OutputPath)'))</OutputPathExtension>
+      </_Files>
+      <_Directories Remove="@(_Directories)" />
+      <_Directories Include="@(ServiceFileReference -> '%(OutputPath)')"
+          Condition="Exists('%(ServiceFileReference.OutputPath)') AND ! $([System.IO.File]::Exists('%(ServiceFileReference.OutputPath)'))" />
+
+      <!-- If OutputPath is a file, add it directly to relevant items. -->
+      <TypeScriptCompile Remove="@(_Files)" Condition="'%(_Files.OutputPathExtension)' == '.ts'" />
+      <TypeScriptCompile Include="@(_Files)" Condition="'%(_Files.OutputPathExtension)' == '.ts'">
+        <SourceDocument>%(_Files.FullPath)</SourceDocument>
       </TypeScriptCompile>
 
-      <Compile Remove="@(ServiceFileReference -> '%(RelativeOutputPath)')" />
-      <Compile Include="@(ServiceFileReference -> '%(RelativeOutputPath)')"
-          Condition="'%(ServiceFileReference.Extension)' != '.ts'">
+      <Compile Remove="@(_Files)"
+          Condition="'$(DefaultLanguageSourceExtension)' != '.ts' AND '%(_Files.OutputPathExtension)' == '$(DefaultLanguageSourceExtension)'" />
+      <Compile Include="@(_Files)"
+          Condition="'$(DefaultLanguageSourceExtension)' != '.ts' AND '%(_Files.OutputPathExtension)' == '$(DefaultLanguageSourceExtension)'">
         <SourceDocument>%(ServiceFileReference.FullPath)</SourceDocument>
       </Compile>
+
+      <!-- Otherwise, add all descendent files with the expected extension. -->
+      <TypeScriptCompile Remove="@(_Directories -> '%(Identity)/**/*.ts')" />
+      <TypeScriptCompile Include="@(_Directories -> '%(Identity)/**/*.ts')">
+        <SourceDocument>%(_Directories.FullPath)</SourceDocument>
+      </TypeScriptCompile>
+
+      <Compile Remove="@(_Directories -> '%(Identity)/**/*.$(DefaultLanguageSourceExtension)')"
+          Condition="'$(DefaultLanguageSourceExtension)' != '.ts'" />
+      <Compile Include="@(_Directories -> '%(Identity)/**/*.$(DefaultLanguageSourceExtension)')"
+          Condition="'$(DefaultLanguageSourceExtension)' != '.ts'">
+        <SourceDocument>%(_Directories.FullPath)</SourceDocument>
+      </Compile>
+
+      <_Files Remove="@(_Files)" />
+      <_Directories Remove="@(_Directories)" />
     </ItemGroup>
   </Target>
 
