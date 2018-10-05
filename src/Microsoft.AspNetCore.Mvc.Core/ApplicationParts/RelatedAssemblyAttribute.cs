@@ -115,18 +115,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
 
         internal static string GetAssemblyLocation(Assembly assembly)
         {
-            if (Uri.TryCreate(assembly.CodeBase, UriKind.Absolute, out var result) && result.IsFile)
+            if (Uri.TryCreate(assembly.CodeBase, UriKind.Absolute, out var result) && 
+                result.IsFile && string.IsNullOrWhiteSpace(result.Fragment))
             {
-                if (!string.IsNullOrWhiteSpace(result.Fragment))
-                {
-                    var dirSeparator = result.LocalPath.FirstOrDefault(ch => ch == '\\' || ch == '/');
-                    dirSeparator = dirSeparator == default(char) 
-                                 ? Path.DirectorySeparatorChar 
-                                 : dirSeparator;
-
-                    return $"{result.LocalPath}{result.Fragment.Replace('/', dirSeparator)}";
-                }
-                
                 return result.LocalPath;
             }
 
