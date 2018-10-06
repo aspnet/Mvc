@@ -12,25 +12,6 @@ namespace Microsoft.AspNetCore.Mvc.Test.ApplicationModels
     public class RouteTokenTransformerConventionTest
     {
         [Fact]
-        public void Apply_NullAttributeRouteModel_NoOp()
-        {
-            // Arrange
-            var convention = new RouteTokenTransformerConvention(new TestParameterTransformer());
-
-            var model = new ActionModel(GetMethodInfo(), Array.Empty<object>());
-            model.Selectors.Add(new SelectorModel()
-            {
-                AttributeRouteModel = null
-            });
-
-            // Act
-            convention.Apply(model);
-
-            // Assert
-            Assert.Null(model.Selectors[0].AttributeRouteModel);
-        }
-
-        [Fact]
         public void Apply_HasAttributeRouteModel_SetRouteTokenTransformer()
         {
             // Arrange

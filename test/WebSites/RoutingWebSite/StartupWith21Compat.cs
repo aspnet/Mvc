@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,8 +20,17 @@ namespace RoutingWebSite
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
+            var pageRouteTransformerConvention = new PageRouteTransformerConvention(new SlugifyParameterTransformer());
+
             services
                 .AddMvc()
+                .AddRazorPagesOptions(options =>
+                {
+                    options.Conventions.AddFolderRouteModelConvention("/PageRouteTransformer", model =>
+                    {
+                        pageRouteTransformerConvention.Apply(model);
+                    });
+                })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddScoped<TestResponseGenerator>();
@@ -28,7 +38,17 @@ namespace RoutingWebSite
 
             // EndpointRoutingController is not compatible with old routing
             // Remove its action to avoid errors
-            var actionDescriptorProvider = new RemoveControllerActionDescriptorProvider(typeof(EndpointRoutingController));
+            var actionDescriptorProvider = new RemoveControllerActionDescriptorProvider(
+                new ControllerToRemove
+                {
+                    ControllerType = typeof(EndpointRoutingController),
+                    Actions = null, // remove all
+                },
+                new ControllerToRemove
+                {
+                    ControllerType = typeof(PageRouteController),
+                    Actions = new [] { nameof(PageRouteController.AttributeRoute) }
+                });
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IActionDescriptorProvider>(actionDescriptorProvider));
         }
 
