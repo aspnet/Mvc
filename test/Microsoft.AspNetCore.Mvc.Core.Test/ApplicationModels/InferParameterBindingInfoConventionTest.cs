@@ -382,6 +382,36 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void InferBindingSourceForParameter_ReturnsBodyForComplexCollections()
+        {
+            // Arrange
+            var actionName = nameof(ParameterBindingController.ComplexCollectionTypeModel);
+            var parameter = GetParameterModel(typeof(ParameterBindingController), actionName);
+            var convention = GetConvention();
+
+            // Act
+            var result = convention.InferBindingSourceForParameter(parameter);
+
+            // Assert
+            Assert.Same(BindingSource.Body, result);
+        }
+
+        [Fact]
+        public void InferBindingSourceForParameter_ReturnsBodyForSimpleCollections()
+        {
+            // Arrange
+            var actionName = nameof(ParameterBindingController.SimpleCollectionTypeModel);
+            var parameter = GetParameterModel(typeof(ParameterBindingController), actionName);
+            var convention = GetConvention();
+
+            // Act
+            var result = convention.InferBindingSourceForParameter(parameter);
+
+            // Assert
+            Assert.Same(BindingSource.Body, result);
+        }
+
+        [Fact]
         public void InferParameterBindingSources_SetsCorrectBindingSourceForComplexTypesWithCancellationToken()
         {
             // Arrange
@@ -407,7 +437,7 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
-        public void InferBindingSourceForParameter_ReturnsBodyForSimpleTypes()
+        public void InferBindingSourceForParameter_ReturnsQueryForSimpleTypes()
         {
             // Arrange
             var actionName = nameof(ParameterBindingController.SimpleTypeModel);
@@ -686,12 +716,44 @@ Environment.NewLine + "int b";
             convention.InferBoundPropertyModelPrefixes(controller);
 
             // Assert
-            var property = Assert.Single(controller.ControllerProperties, p => p.Name == nameof(ControllerWithBoundProperty.TestProperty));
+            var property = Assert.Single(
+                controller.ControllerProperties,
+                p => p.Name == nameof(ControllerWithBoundProperty.TestProperty));
             Assert.Equal(string.Empty, property.BindingInfo.BinderModelName);
         }
 
         [Fact]
-        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForCollectionTypeFromValueProvider()
+        public void InferBoundPropertyModelPrefixes_SetsModelPrefix_ForComplexCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundCollectionOfCopmlexTypeProperty));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Equal(string.Empty, property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferBoundPropertyModelPrefixes_DoesNotSetModelPrefix_ForSimpleTypeFromValueProvider()
+        {
+            // Arrange
+            var controller = GetControllerModel(typeof(ControllerWithBoundSimpleTypeProperty));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferBoundPropertyModelPrefixes(controller);
+
+            // Assert
+            var property = Assert.Single(controller.ControllerProperties);
+            Assert.Null(property.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferBoundPropertyModelPrefixes_DoesNotSetModelPrefix_ForSimpleCollectionTypeFromValueProvider()
         {
             // Arrange
             var controller = GetControllerModel(typeof(ControllerWithBoundCollectionProperty));
@@ -709,7 +771,9 @@ Environment.NewLine + "int b";
         public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexTypeFromValueProvider()
         {
             // Arrange
-            var action = GetActionModel(typeof(ControllerWithBoundProperty), nameof(ControllerWithBoundProperty.SomeAction));
+            var action = GetActionModel(
+                typeof(ControllerWithBoundProperty),
+                nameof(ControllerWithBoundProperty.SomeAction));
             var convention = GetConvention();
 
             // Act
@@ -721,11 +785,62 @@ Environment.NewLine + "int b";
         }
 
         [Fact]
+        public void InferParameterModelPrefixes_SetsModelPrefix_ForComplexCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var action = GetActionModel(
+                typeof(ControllerWithBoundCollectionOfCopmlexTypeProperty),
+                nameof(ControllerWithBoundCollectionOfCopmlexTypeProperty.SomeAction));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferParameterModelPrefixes(action);
+
+            // Assert
+            var parameter = Assert.Single(action.Parameters);
+            Assert.Equal(string.Empty, parameter.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferParameterModelPrefixes_DoesNotSetModelPrefix_ForSimpleTypeFromValueProvider()
+        {
+            // Arrange
+            var action = GetActionModel(
+                typeof(ControllerWithBoundSimpleTypeProperty),
+                nameof(ControllerWithBoundSimpleTypeProperty.SomeAction));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferParameterModelPrefixes(action);
+
+            // Assert
+            var parameter = Assert.Single(action.Parameters);
+            Assert.Null(parameter.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
+        public void InferParameterModelPrefixes_DoesNotSetModelPrefix_ForSimpleCollectionTypeFromValueProvider()
+        {
+            // Arrange
+            var action = GetActionModel(
+                typeof(ControllerWithBoundCollectionProperty),
+                nameof(ControllerWithBoundCollectionProperty.SomeAction));
+            var convention = GetConvention();
+
+            // Act
+            convention.InferParameterModelPrefixes(action);
+
+            // Assert
+            var parameter = Assert.Single(action.Parameters);
+            Assert.Null(parameter.BindingInfo.BinderModelName);
+        }
+
+        [Fact]
         public void InferParameterModelPrefixes_DoesNotSetModelPrefix_ForFormFileParametersAnnotatedWithFromForm()
         {
             // Arrange
             var action = GetActionModel(
-                typeof(ParameterBindingController), 
+                typeof(ParameterBindingController),
                 nameof(ParameterBindingController.FromFormFormFileParameters),
                 TestModelMetadataProvider.CreateDefaultProvider());
             var convention = GetConvention();
@@ -758,8 +873,8 @@ Environment.NewLine + "int b";
         {
             // Arrange
             var action = GetActionModel(
-                typeof(ParameterBindingController), 
-                nameof(ParameterBindingController.FormFileParameters), 
+                typeof(ParameterBindingController),
+                nameof(ParameterBindingController.FormFileParameters),
                 TestModelMetadataProvider.CreateDefaultProvider());
             var convention = GetConvention();
 
@@ -881,6 +996,12 @@ Environment.NewLine + "int b";
 
             [HttpPut("put-action/{id}")]
             public IActionResult ComplexTypeModel(TestModel model) => null;
+
+            [HttpPut("put-action/{id}")]
+            public IActionResult SimpleCollectionTypeModel(ConvertibleFromString[] model) => null;
+
+            [HttpPut("put-action/{id}")]
+            public IActionResult ComplexCollectionTypeModel(TestModel[] model) => null;
 
             [HttpPut("put-action/{id}")]
             public IActionResult SimpleTypeModel(ConvertibleFromString model) => null;
@@ -1044,6 +1165,22 @@ Environment.NewLine + "int b";
             public IList<IFormFile> Files { get; set; }
 
             public IActionResult SomeAction([FromQuery] TestModel test) => null;
+        }
+
+        private class ControllerWithBoundSimpleTypeProperty
+        {
+            [FromQuery]
+            public int TestProperty { get; set; }
+
+            public IActionResult SomeAction([FromQuery] int test) => null;
+        }
+
+        private class ControllerWithBoundCollectionOfCopmlexTypeProperty
+        {
+            [FromQuery]
+            public List<TestModel> TestProperty { get; set; }
+
+            public IActionResult SomeAction([FromQuery] List<TestModel> test) => null;
         }
 
         private class ControllerWithBoundCollectionProperty

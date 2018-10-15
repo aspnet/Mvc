@@ -97,33 +97,30 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                 return BindingSource.Path;
             }
 
-            var bindingSource = IsComplexTypeParameter(parameter) ?
+            var bindingSource = IsComplexType(parameter) ?
                 BindingSource.Body :
                 BindingSource.Query;
 
             return bindingSource;
         }
 
-        // For any complex types that are bound from value providers, set the prefix
-        // to the empty prefix by default. This makes binding much more predictable
+        // For any types other than simple types or collections of simple types that are bound from value providers,
+        // set the prefix to the empty prefix by default. This makes binding much more predictable.
         // and describable via ApiExplorer
         internal void InferBoundPropertyModelPrefixes(ControllerModel controllerModel)
         {
             foreach (var property in controllerModel.ControllerProperties)
             {
-                if (property.BindingInfo != null &&
-                    property.BindingInfo.BinderModelName == null &&
-                    property.BindingInfo.BindingSource != null &&
-                    !property.BindingInfo.BindingSource.IsGreedy &&
-                    !IsFormFile(property.ParameterType))
+                // IEnumerable<IFormFile> properties are collections of complex types and must be excluded for
+                // consistency with parameter handling and to avoid attempting to bind file fields with an empty name.
+                var bindingInfo = property.BindingInfo;
+                if (bindingInfo?.BindingSource != null &&
+                    bindingInfo.BinderModelName == null &&
+                    !bindingInfo.BindingSource.IsGreedy &&
+                    !IsFormFile(property.ParameterType) &&
+                    !IsSimpleTypeOrSimpleCollection(property))
                 {
-                    var metadata = _modelMetadataProvider.GetMetadataForProperty(
-                        controllerModel.ControllerType,
-                        property.PropertyInfo.Name);
-                    if (metadata.IsComplexType && !metadata.IsCollectionType)
-                    {
-                        property.BindingInfo.BinderModelName = string.Empty;
-                    }
+                    property.BindingInfo.BinderModelName = string.Empty;
                 }
             }
         }
@@ -132,12 +129,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         {
             foreach (var parameter in action.Parameters)
             {
+                // IEnumerable<IFormFile> parameters are collections of complex types and must be excluded. Otherwise
+                // FormFileModelBinder may attempt to bind file fields with an empty name (HTML disallows fields with
+                // an empty name). Users have historically applied [FromForm] to such parameters.
                 var bindingInfo = parameter.BindingInfo;
                 if (bindingInfo?.BindingSource != null &&
                     bindingInfo.BinderModelName == null &&
                     !bindingInfo.BindingSource.IsGreedy &&
                     !IsFormFile(parameter.ParameterType) &&
-                    IsComplexTypeParameter(parameter))
+                    !IsSimpleTypeOrSimpleCollection(parameter))
                 {
                     parameter.BindingInfo.BinderModelName = string.Empty;
                 }
@@ -163,12 +163,21 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             return false;
         }
 
-        private bool IsComplexTypeParameter(ParameterModel parameter)
+        private bool IsComplexType(ParameterModelBase parameter)
         {
-            // No need for information from attributes on the parameter. Just use its type.
-            var metadata = _modelMetadataProvider
-                .GetMetadataForType(parameter.ParameterInfo.ParameterType);
-            return metadata.IsComplexType && !metadata.IsCollectionType;
+            // No need for information from attributes on the parameter or property. Just use its type.
+            var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            return metadata.IsComplexType;
+        }
+
+        private bool IsSimpleTypeOrSimpleCollection(ParameterModelBase parameter)
+        {
+            // No need for information from attributes on the parameter or property. Just use its type.
+            //
+            // This check treats IDictionary<TKey, TValue> as complex (because KeyValuePair<,> has no string
+            // converter). Also treats nested collections e.g. int[][] as complex.
+            var metadata = _modelMetadataProvider.GetMetadataForType(parameter.ParameterType);
+            return !metadata.IsComplexType || metadata.ElementMetadata?.IsComplexType == false;
         }
 
         private static bool IsFormFile(Type parameterType)
