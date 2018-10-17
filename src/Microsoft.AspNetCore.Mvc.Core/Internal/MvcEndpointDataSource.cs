@@ -229,7 +229,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // Check if the pattern can be shortened because the remaining parameters are optional
                 //
                 // e.g. Matching pattern {controller=Home}/{action=Index} against HomeController.Index
-                // can resolve to the following endpoints: (ordered by precidence)
+                // can resolve to the following endpoints: (sorted by RouteEndpoint.Order)
                 // - /
                 // - /Home
                 // - /Home/Index
@@ -244,7 +244,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     // For link generation we need to include a higher priority endpoint with the full
                     // pattern and the optional parameter as non-optional so it is chosen when the parameter
                     // route value is used.
-                    // e.g. {controller=Home}/{action=Index}/{id?} will result in: (ordered by precidence)
+                    // e.g. {controller=Home}/{action=Index}/{id?} will result in: (sorted by RouteEndpoint.Order)
                     // - /Home/Index/{id}
                     // - /
                     // - /Home
