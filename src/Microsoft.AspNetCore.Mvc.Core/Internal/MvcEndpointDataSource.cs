@@ -223,6 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var newPathSegments = routePattern.PathSegments.ToList();
             int? requiredParameterEndpointRouteOrder = null;
+            int requiredParameterEndpointCount = 0;
 
             for (var i = 0; i < newPathSegments.Count; i++)
             {
@@ -238,7 +239,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     action,
                     allDefaults,
                     newPathSegments,
-                    out var hasOptionalOrCatchAllParameter))
+                    out var optionalParameterCount))
                 {
                     // The route pattern has matching default values AND an optional parameter
                     // For link generation we need to include a higher priority endpoint with the full
@@ -249,11 +250,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     // - /
                     // - /Home
                     // - /Home/Index
-                    if (hasOptionalOrCatchAllParameter && requiredParameterEndpointRouteOrder == null)
+                    if (optionalParameterCount > 0 && requiredParameterEndpointRouteOrder == null)
                     {
-                        // Keep track of the order. The route will be created later with it so it has a higher precidence
+                        // Keep track of the order. The endpoint (or endpoints if there are multiple optional parameters)
+                        // will be created later with it so it has a higher order
                         requiredParameterEndpointRouteOrder = routeOrder;
-                        routeOrder++;
+                        requiredParameterEndpointCount = optionalParameterCount;
+                        routeOrder += optionalParameterCount;
                     }
 
                     var subPathSegments = newPathSegments.Take(i);
@@ -271,60 +274,61 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     endpoints.Add(subEndpoint);
                 }
 
-                UpdatePathSegmentsWithLiterals(i, action, routePattern, newPathSegments, ref allParameterPolicies);
-            }
+                // Only change optional parameters to required when default values have introduced
+                // endpoints with shortened patterns
+                var updateOptionalParameters = requiredParameterEndpointCount > 0;
 
-            IEnumerable<RoutePatternPathSegment> finalPathSegments = newPathSegments;
+                UpdatePathSegments(i, updateOptionalParameters, action, routePattern, newPathSegments, ref allParameterPolicies);
+            }
 
             if (requiredParameterEndpointRouteOrder != null)
             {
-                // There are 3 cases where a parameter part can come into play:
-                // - /Home/{id?} - trailing single segment optional parameter
-                // - /Home.{id?} - trailing optional extension
-                // - /Home/{id?}/{catchAll*} - optional parameter then catch all
+                // There are multiple cases where optional parameter parts can come into play:
+                // - /Home/{id?} - single trailing segment optional parameter
+                // - /Home/{id?}/{more?} - multiple trailing segment optional parameter
+                // - /Home.{id?} - optional trailing extension
+                // - /Home/{id?}/{*catchAll} - optional parameter then catch all
 
                 var hasCatchAll = newPathSegments.Last().IsSimple &&
                     newPathSegments.Last().Parts.Last() is RoutePatternParameterPart parameterPart &&
                     parameterPart.IsCatchAll;
                 var segmentIndex = hasCatchAll ? newPathSegments.Count - 2 : newPathSegments.Count - 1;
-                var segmentParts = newPathSegments[segmentIndex].Parts.ToList();
 
-                var lastParameterPart = (RoutePatternParameterPart)segmentParts[segmentParts.Count - 1];
-
-                // Update parameter to not be optional
-                segmentParts[segmentParts.Count - 1] = RoutePatternFactory.ParameterPart(lastParameterPart.Name, lastParameterPart.Default, RoutePatternParameterKind.Standard, lastParameterPart.ParameterPolicies);
-                // Update with updated segment
-                newPathSegments[segmentIndex] = RoutePatternFactory.Segment(segmentParts);
-
-                var nonOptionalParameterEndpoint = CreateEndpoint(
-                    action,
-                    name,
-                    GetPattern(ref patternStringBuilder, newPathSegments),
-                    newPathSegments,
-                    nonInlineDefaults,
-                    requiredParameterEndpointRouteOrder.Value,
-                    dataTokens,
-                    suppressLinkGeneration,
-                    suppressPathMatching);
-                endpoints.Add(nonOptionalParameterEndpoint);
-
-                if (segmentParts.Count == 1)
+                for (int i = 0; i < requiredParameterEndpointCount; i++)
                 {
-                    // Don't include optional parameter in final endpoint
-                    finalPathSegments = newPathSegments.Take(segmentIndex);
-                }
-                else
-                {
-                    // Don't include optional extension and separator in final endpoint
-                    newPathSegments[segmentIndex] = RoutePatternFactory.Segment(segmentParts.Take(segmentParts.Count - 2));
+                    var currentSegmentIndex = segmentIndex - i;
+
+                    var nonOptionalParameterEndpoint = CreateEndpoint(
+                        action,
+                        name,
+                        GetPattern(ref patternStringBuilder, newPathSegments),
+                        newPathSegments,
+                        nonInlineDefaults,
+                        requiredParameterEndpointRouteOrder.Value + i,
+                        dataTokens,
+                        suppressLinkGeneration,
+                        suppressPathMatching);
+                    endpoints.Add(nonOptionalParameterEndpoint);
+
+                    var segmentParts = newPathSegments[currentSegmentIndex].Parts.ToList();
+                    if (segmentParts.Count == 1)
+                    {
+                        // Don't include optional parameter in final endpoint
+                        newPathSegments = newPathSegments.Take(currentSegmentIndex).ToList();
+                    }
+                    else
+                    {
+                        // Don't include optional extension and separator in final endpoint
+                        newPathSegments[currentSegmentIndex] = RoutePatternFactory.Segment(segmentParts.Take(segmentParts.Count - 2));
+                    }
                 }
             }
 
             var finalEndpoint = CreateEndpoint(
                 action,
                 name,
-                GetPattern(ref patternStringBuilder, finalPathSegments),
-                finalPathSegments,
+                GetPattern(ref patternStringBuilder, newPathSegments),
+                newPathSegments,
                 nonInlineDefaults,
                 routeOrder++,
                 dataTokens,
@@ -349,8 +353,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
-        private void UpdatePathSegmentsWithLiterals(
+        private void UpdatePathSegments(
             int i,
+            bool updateOptionalParameters,
             ActionDescriptor action,
             RoutePattern routePattern,
             List<RoutePatternPathSegment> newPathSegments,
@@ -362,45 +367,56 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 var part = segment.Parts[j];
 
-                if (part.IsParameter &&
-                    part is RoutePatternParameterPart parameterPart &&
-                    action.RouteValues.ContainsKey(parameterPart.Name))
+                if (part is RoutePatternParameterPart parameterPart)
                 {
-                    if (segmentParts == null)
+                    if (action.RouteValues.ContainsKey(parameterPart.Name))
                     {
-                        segmentParts = segment.Parts.ToList();
-                    }
-                    if (allParameterPolicies == null)
-                    {
-                        allParameterPolicies = MvcEndpointInfo.BuildParameterPolicies(routePattern.Parameters, _parameterPolicyFactory);
-                    }
-
-                    // Replace parameter with literal value
-                    var parameterRouteValue = action.RouteValues[parameterPart.Name];
-
-                    // Route value could be null if it is a "known" route value.
-                    // Do not use the null value to de-normalize the route pattern,
-                    // instead leave the parameter unchanged.
-                    // e.g.
-                    //     RouteValues will contain a null "page" value if there are Razor pages
-                    //     Skip replacing the {page} parameter
-                    if (parameterRouteValue != null)
-                    {
-                        if (allParameterPolicies.TryGetValue(parameterPart.Name, out var parameterPolicies))
+                        if (segmentParts == null)
                         {
-                            // Check if the parameter has a transformer policy
-                            // Use the first transformer policy
-                            for (var k = 0; k < parameterPolicies.Count; k++)
-                            {
-                                if (parameterPolicies[k] is IOutboundParameterTransformer parameterTransformer)
-                                {
-                                    parameterRouteValue = parameterTransformer.TransformOutbound(parameterRouteValue);
-                                    break;
-                                }
-                            }
+                            segmentParts = segment.Parts.ToList();
+                        }
+                        if (allParameterPolicies == null)
+                        {
+                            allParameterPolicies = MvcEndpointInfo.BuildParameterPolicies(routePattern.Parameters, _parameterPolicyFactory);
                         }
 
-                        segmentParts[j] = RoutePatternFactory.LiteralPart(parameterRouteValue);
+                        // Replace parameter with literal value
+                        var parameterRouteValue = action.RouteValues[parameterPart.Name];
+
+                        // Route value could be null if it is a "known" route value.
+                        // Do not use the null value to de-normalize the route pattern,
+                        // instead leave the parameter unchanged.
+                        // e.g.
+                        //     RouteValues will contain a null "page" value if there are Razor pages
+                        //     Skip replacing the {page} parameter
+                        if (parameterRouteValue != null)
+                        {
+                            if (allParameterPolicies.TryGetValue(parameterPart.Name, out var parameterPolicies))
+                            {
+                                // Check if the parameter has a transformer policy
+                                // Use the first transformer policy
+                                for (var k = 0; k < parameterPolicies.Count; k++)
+                                {
+                                    if (parameterPolicies[k] is IOutboundParameterTransformer parameterTransformer)
+                                    {
+                                        parameterRouteValue = parameterTransformer.TransformOutbound(parameterRouteValue);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            segmentParts[j] = RoutePatternFactory.LiteralPart(parameterRouteValue);
+                        }
+                    }
+                    else if (parameterPart.IsOptional && updateOptionalParameters)
+                    {
+                        if (segmentParts == null)
+                        {
+                            segmentParts = segment.Parts.ToList();
+                        }
+
+                        // Replace optional parameter with required parameter
+                        segmentParts[j] = RoutePatternFactory.ParameterPart(parameterPart.Name, parameterPart.Default, RoutePatternParameterKind.Standard, parameterPart.ParameterPolicies);
                     }
                 }
             }
@@ -417,9 +433,9 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             ActionDescriptor action,
             IReadOnlyDictionary<string, object> allDefaults,
             List<RoutePatternPathSegment> pathSegments,
-            out bool hasOptionalParameter)
+            out int optionalParameterCount)
         {
-            hasOptionalParameter = false;
+            optionalParameterCount = 0;
 
             // Check whether the remaining segments are all optional and one or more of them is
             // for area/controller/action and has a default value
@@ -435,7 +451,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         if (parameterPart.IsOptional)
                         {
-                            hasOptionalParameter = true;
+                            optionalParameterCount++;
                             continue;
                         }
 
