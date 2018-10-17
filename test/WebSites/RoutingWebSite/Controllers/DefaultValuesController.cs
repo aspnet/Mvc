@@ -19,7 +19,7 @@ namespace RoutingWebSite
 
         public IActionResult Index(string id)
         {
-            return _generator.Generate(id == null ? "/" : "/DefaultValues/DefaultValues/Index/" + id);
+            return _generator.Generate(id == null ? "/DefaultValues" : "/DefaultValues/DefaultValues/Index/" + id);
         }
     }
 }

@@ -228,11 +228,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             {
                 // Check if the pattern can be shortened because the remaining parameters are optional
                 //
-                // e.g. Matching pattern {controller=Home}/{action=Index}/{id?} against HomeController.Index
-                // can resolve to the following endpoints:
-                // - /Home/Index/{id?}
-                // - /Home
+                // e.g. Matching pattern {controller=Home}/{action=Index} against HomeController.Index
+                // can resolve to the following endpoints: (ordered by precidence)
                 // - /
+                // - /Home
+                // - /Home/Index
                 if (UseDefaultValuePlusRemainingSegmentsOptional(
                     i,
                     action,
@@ -244,11 +244,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     // For link generation we need to include a higher priority endpoint with the full
                     // pattern and the optional parameter as non-optional so it is chosen when the parameter
                     // route value is used.
-                    //
-                    // e.g. {controller=Home}/{action=Index}/{id?} will result in Home/Index/{id}
+                    // e.g. {controller=Home}/{action=Index}/{id?} will result in: (ordered by precidence)
+                    // - /Home/Index/{id}
+                    // - /
+                    // - /Home
+                    // - /Home/Index
                     if (hasOptionalOrCatchAllParameter && requiredParameterEndpointRouteOrder == null)
                     {
-                        // Keep track of the order, the route will be created last
+                        // Keep track of the order. The route will be created later with it so it has a higher precidence
                         requiredParameterEndpointRouteOrder = routeOrder;
                         routeOrder++;
                     }
