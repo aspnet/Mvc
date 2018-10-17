@@ -1042,6 +1042,48 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_LinkToDefaultValuePath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute")
+                .To(new { });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("Index", result.Action);
+
+            Assert.Equal("/DefaultValuesRoute-", result.Link);
+        }
+
+        [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_OptionalParameter_LinkToFullPath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute")
+                .To(new { id = "123" });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("Index", result.Action);
+
+            Assert.Equal("/DefaultValuesRoute/DefaultValues/Index/123-", result.Link);
+        }
+
+        [Fact]
         public virtual async Task ConventionalRoutedAction_LinkToArea()
         {
             // Arrange

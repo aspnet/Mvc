@@ -62,6 +62,12 @@ namespace RoutingWebSite
                     defaults: null,
                     constraints: new { controller = "ConventionalTransformer" });
 
+                routes.MapRoute(
+                    "DefaultValuesRoute",
+                    "DefaultValuesRoute/{controller=DefaultValues}/{action=Index}/{id?}",
+                    defaults: null,
+                    constraints: new { controller = "DefaultValues" });
+
                 routes.MapAreaRoute(
                     "flightRoute",
                     "adminRoute",

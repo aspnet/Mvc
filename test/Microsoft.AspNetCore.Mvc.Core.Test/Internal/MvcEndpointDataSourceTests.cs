@@ -154,14 +154,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {"{Controller}/{Action}/{id?}", new[] { "TestController/TestAction/{id?}" }},
                     {"{CONTROLLER}/{ACTION}/{id?}", new[] { "TestController/TestAction/{id?}" }},
                     {"{controller}/{action=TestAction}", new[] { "TestController", "TestController/TestAction" }},
-                    {"{controller}/{action=TestAction}/{id?}", new[] { "TestController", "TestController/TestAction/{id?}" }},
-                    {"{controller=TestController}/{action=TestAction}/{id?}", new[] { "", "TestController", "TestController/TestAction/{id?}" }},
+                    {"{controller}/{action=TestAction}/{id?}", new[] { "TestController/TestAction/{id}", "TestController", "TestController/TestAction" }},
+                    {"{controller=TestController}/{action=TestAction}/{id?}", new[] { "TestController/TestAction/{id}", "", "TestController", "TestController/TestAction" }},
                     {"{controller}/{action}/{*catchAll}", new[] { "TestController/TestAction/{*catchAll}" }},
                     {"{controller}/{action=TestAction}/{*catchAll}", new[] { "TestController", "TestController/TestAction/{*catchAll}" }},
-                    {"{controller}/{action=TestAction}/{id?}/{*catchAll}", new[] { "TestController", "TestController/TestAction/{id?}/{*catchAll}" }},
+                    {"{controller}/{action=TestAction}/{id?}/{*catchAll}", new[] { "TestController/TestAction/{id}/{*catchAll}", "TestController", "TestController/TestAction" }},
                     {"{controller}/{action}.{ext?}", new[] { "TestController/TestAction.{ext?}" }},
-                    {"{controller}/{action=TestAction}.{ext?}", new[] { "TestController", "TestController/TestAction.{ext?}" }},
-					{"{controller:upper-case}/{action=TestAction}.{ext?}", new[] { "TESTCONTROLLER", "TESTCONTROLLER/TestAction.{ext?}" }},
+                    {"{controller}/{action=TestAction}.{ext?}", new[] { "TestController/TestAction.{ext}", "TestController", "TestController/TestAction" }},
+                    {"{controller:upper-case}/{action=TestAction}.{ext?}", new[] { "TESTCONTROLLER/TestAction.{ext}", "TESTCONTROLLER", "TESTCONTROLLER/TestAction" }},
                 };
 
             return data;
@@ -181,6 +181,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var endpoints = dataSource.Endpoints;
 
             // Assert
+
+            // Ensure there are no endpoints with duplicate Order values
+            Assert.DoesNotContain(endpoints.GroupBy(e => Assert.IsType<RouteEndpoint>(e).Order), g => g.Count() > 1);
+
+            endpoints = endpoints.OrderBy(e => Assert.IsType<RouteEndpoint>(e).Order).ToList();
+
             var inspectors = finalEndpointPatterns
                 .Select(t => new Action<Endpoint>(e => Assert.Equal(t, Assert.IsType<RouteEndpoint>(e).RoutePattern.RawText)))
                 .ToArray();
@@ -215,8 +221,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         [InlineData("{area}/{controller}/{action}/{id?}", new[] { "TestArea/TestController/TestAction/{id?}" })]
         [InlineData("{controller}/{action}/{id?}", new string[] { })]
         [InlineData("{area=TestArea}/{controller}/{action}/{id?}", new[] { "TestArea/TestController/TestAction/{id?}" })]
-        [InlineData("{area=TestArea}/{controller}/{action=TestAction}/{id?}", new[] { "TestArea/TestController", "TestArea/TestController/TestAction/{id?}" })]
-        [InlineData("{area=TestArea}/{controller=TestController}/{action=TestAction}/{id?}", new[] { "", "TestArea", "TestArea/TestController", "TestArea/TestController/TestAction/{id?}" })]
+        [InlineData("{area=TestArea}/{controller}/{action=TestAction}/{id?}", new[] { "TestArea/TestController/TestAction/{id}", "TestArea/TestController", "TestArea/TestController/TestAction" })]
+        [InlineData("{area=TestArea}/{controller=TestController}/{action=TestAction}/{id?}", new[] { "TestArea/TestController/TestAction/{id}", "", "TestArea", "TestArea/TestController", "TestArea/TestController/TestAction" })]
         [InlineData("{area:exists}/{controller}/{action}/{id?}", new[] { "TestArea/TestController/TestAction/{id?}" })]
         [InlineData("{area:exists:upper-case}/{controller}/{action}/{id?}", new[] { "TESTAREA/TestController/TestAction/{id?}" })]
         public void Endpoints_AreaSingleAction(string endpointInfoRoute, string[] finalEndpointTemplates)
@@ -243,6 +249,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var endpoints = dataSource.Endpoints;
 
             // Assert
+
+            // Ensure there are no endpoints with duplicate Order values
+            Assert.DoesNotContain(endpoints.GroupBy(e => Assert.IsType<RouteEndpoint>(e).Order), g => g.Count() > 1);
+
+            endpoints = endpoints.OrderBy(e => Assert.IsType<RouteEndpoint>(e).Order).ToList();
+
             var inspectors = finalEndpointTemplates
                 .Select(t => new Action<Endpoint>(e => Assert.Equal(t, Assert.IsType<RouteEndpoint>(e).RoutePattern.RawText)))
                 .ToArray();
@@ -778,6 +790,123 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             var matcherEndpoint = Assert.IsType<RouteEndpoint>(endpoint);
             Assert.Equal("Blog/{*slug}", matcherEndpoint.RoutePattern.RawText);
             AssertIsSubset(expectedDefaults, matcherEndpoint.RoutePattern.Defaults);
+        }
+
+        [Fact]
+        public void Endpoints_ConventionalRoutes_NonDefaultAndDefaultValuesEndingWithOptional_IncludeFullRouteAsHighPriority()
+        {
+            // Arrange
+            var actionDescriptorCollection = GetActionDescriptorCollection(
+                new { controller = "Home", action = "Index" });
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
+            dataSource.ConventionalEndpointInfos.Add(CreateEndpointInfo(
+                name: string.Empty,
+                template: "{controller}/{action=Index}/{id?}"));
+
+            // Act
+            var endpoints = dataSource.Endpoints;
+
+            // Assert
+            Assert.Collection(
+                endpoints,
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(2, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home/Index/{id}", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(1, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home/Index", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(3, matcherEndpoint.Order);
+                });
+        }
+
+        [Fact]
+        public void Endpoints_ConventionalRoutes_DefaultValuesEndingWithOptional_IncludeFullRouteAsHighPriority()
+        {
+            // Arrange
+            var actionDescriptorCollection = GetActionDescriptorCollection(
+                new { controller = "Home", action = "Index" });
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
+            dataSource.ConventionalEndpointInfos.Add(CreateEndpointInfo(
+                name: string.Empty,
+                template: "{controller=Home}/{action=Index}/{id?}"));
+
+            // Act
+            var endpoints = dataSource.Endpoints;
+
+            // Assert
+            Assert.Collection(
+                endpoints,
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(2, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(3, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home/Index/{id}", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(1, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("Home/Index", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(4, matcherEndpoint.Order);
+                });
+        }
+
+        [Fact]
+        public void Endpoints_ConventionalRoutes_SDFSDF_IncludeFullRouteAsHighPriority()
+        {
+            // Arrange
+            var actionDescriptorCollection = GetActionDescriptorCollection(
+                new { controller = "TestController", action = "TestAction" });
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
+            dataSource.ConventionalEndpointInfos.Add(CreateEndpointInfo(
+                name: string.Empty,
+                template: "{controller}/{action=TestAction}.{ext?}"));
+
+            // Act
+            var endpoints = dataSource.Endpoints;
+
+            // Assert
+            Assert.Collection(
+                endpoints,
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(2, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController/TestAction.{ext}", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(1, matcherEndpoint.Order);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController/TestAction", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal(3, matcherEndpoint.Order);
+                });
         }
 
         private MvcEndpointDataSource CreateMvcEndpointDataSource(

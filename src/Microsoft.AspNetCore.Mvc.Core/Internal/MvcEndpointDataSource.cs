@@ -222,6 +222,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             bool suppressPathMatching)
         {
             var newPathSegments = routePattern.PathSegments.ToList();
+            int? requiredParameterEndpointRouteOrder = null;
 
             for (var i = 0; i < newPathSegments.Count; i++)
             {
@@ -232,8 +233,26 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // - /Home/Index/{id?}
                 // - /Home
                 // - /
-                if (UseDefaultValuePlusRemainingSegmentsOptional(i, action, allDefaults, newPathSegments))
+                if (UseDefaultValuePlusRemainingSegmentsOptional(
+                    i,
+                    action,
+                    allDefaults,
+                    newPathSegments,
+                    out var hasOptionalOrCatchAllParameter))
                 {
+                    // The route pattern has matching default values AND an optional parameter
+                    // For link generation we need to include a higher priority endpoint with the full
+                    // pattern and the optional parameter as non-optional so it is chosen when the parameter
+                    // route value is used.
+                    //
+                    // e.g. {controller=Home}/{action=Index}/{id?} will result in Home/Index/{id}
+                    if (hasOptionalOrCatchAllParameter && requiredParameterEndpointRouteOrder == null)
+                    {
+                        // Keep track of the order, the route will be created last
+                        requiredParameterEndpointRouteOrder = routeOrder;
+                        routeOrder++;
+                    }
+
                     var subPathSegments = newPathSegments.Take(i);
 
                     var subEndpoint = CreateEndpoint(
@@ -249,73 +268,66 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     endpoints.Add(subEndpoint);
                 }
 
-                List<RoutePatternPart> segmentParts = null; // Initialize only as needed
-                var segment = newPathSegments[i];
-                for (var j = 0; j < segment.Parts.Count; j++)
+                UpdatePathSegmentsWithLiterals(i, action, routePattern, newPathSegments, ref allParameterPolicies);
+            }
+
+            IEnumerable<RoutePatternPathSegment> finalPathSegments = newPathSegments;
+
+            if (requiredParameterEndpointRouteOrder != null)
+            {
+                // There are 3 cases where a parameter part can come into play:
+                // - /Home/{id?} - trailing single segment optional parameter
+                // - /Home.{id?} - trailing optional extension
+                // - /Home/{id?}/{catchAll*} - optional parameter then catch all
+
+                var hasCatchAll = newPathSegments.Last().IsSimple &&
+                    newPathSegments.Last().Parts.Last() is RoutePatternParameterPart parameterPart &&
+                    parameterPart.IsCatchAll;
+                var segmentIndex = hasCatchAll ? newPathSegments.Count - 2 : newPathSegments.Count - 1;
+                var segmentParts = newPathSegments[segmentIndex].Parts.ToList();
+
+                var lastParameterPart = (RoutePatternParameterPart)segmentParts[segmentParts.Count - 1];
+
+                // Update parameter to not be optional
+                segmentParts[segmentParts.Count - 1] = RoutePatternFactory.ParameterPart(lastParameterPart.Name, lastParameterPart.Default, RoutePatternParameterKind.Standard, lastParameterPart.ParameterPolicies);
+                // Update with updated segment
+                newPathSegments[segmentIndex] = RoutePatternFactory.Segment(segmentParts);
+
+                var nonOptionalParameterEndpoint = CreateEndpoint(
+                    action,
+                    name,
+                    GetPattern(ref patternStringBuilder, newPathSegments),
+                    newPathSegments,
+                    nonInlineDefaults,
+                    requiredParameterEndpointRouteOrder.Value,
+                    dataTokens,
+                    suppressLinkGeneration,
+                    suppressPathMatching);
+                endpoints.Add(nonOptionalParameterEndpoint);
+
+                if (segmentParts.Count == 1)
                 {
-                    var part = segment.Parts[j];
-
-                    if (part.IsParameter &&
-                        part is RoutePatternParameterPart parameterPart &&
-                        action.RouteValues.ContainsKey(parameterPart.Name))
-                    {
-                        if (segmentParts == null)
-                        {
-                            segmentParts = segment.Parts.ToList();
-                        }
-                        if (allParameterPolicies == null)
-                        {
-                            allParameterPolicies = MvcEndpointInfo.BuildParameterPolicies(routePattern.Parameters, _parameterPolicyFactory);
-                        }
-
-                        // Replace parameter with literal value
-                        var parameterRouteValue = action.RouteValues[parameterPart.Name];
-
-                        // Route value could be null if it is a "known" route value.
-                        // Do not use the null value to de-normalize the route pattern,
-                        // instead leave the parameter unchanged.
-                        // e.g.
-                        //     RouteValues will contain a null "page" value if there are Razor pages
-                        //     Skip replacing the {page} parameter
-                        if (parameterRouteValue != null)
-                        {
-                            if (allParameterPolicies.TryGetValue(parameterPart.Name, out var parameterPolicies))
-                            {
-                                // Check if the parameter has a transformer policy
-                                // Use the first transformer policy
-                                for (var k = 0; k < parameterPolicies.Count; k++)
-                                {
-                                    if (parameterPolicies[k] is IOutboundParameterTransformer parameterTransformer)
-                                    {
-                                        parameterRouteValue = parameterTransformer.TransformOutbound(parameterRouteValue);
-                                        break;
-                                    }
-                                }
-                            }
-
-                            segmentParts[j] = RoutePatternFactory.LiteralPart(parameterRouteValue);
-                        }
-                    }
+                    // Don't include optional parameter in final endpoint
+                    finalPathSegments = newPathSegments.Take(segmentIndex);
                 }
-
-                // A parameter part was replaced so replace segment with updated parts
-                if (segmentParts != null)
+                else
                 {
-                    newPathSegments[i] = RoutePatternFactory.Segment(segmentParts);
+                    // Don't include optional extension and separator in final endpoint
+                    newPathSegments[segmentIndex] = RoutePatternFactory.Segment(segmentParts.Take(segmentParts.Count - 2));
                 }
             }
 
-            var endpoint = CreateEndpoint(
+            var finalEndpoint = CreateEndpoint(
                 action,
                 name,
-                GetPattern(ref patternStringBuilder, newPathSegments),
-                newPathSegments,
+                GetPattern(ref patternStringBuilder, finalPathSegments),
+                finalPathSegments,
                 nonInlineDefaults,
                 routeOrder++,
                 dataTokens,
                 suppressLinkGeneration,
                 suppressPathMatching);
-            endpoints.Add(endpoint);
+            endpoints.Add(finalEndpoint);
 
             return routeOrder;
 
@@ -334,12 +346,78 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
+        private void UpdatePathSegmentsWithLiterals(
+            int i,
+            ActionDescriptor action,
+            RoutePattern routePattern,
+            List<RoutePatternPathSegment> newPathSegments,
+            ref IDictionary<string, IList<IParameterPolicy>> allParameterPolicies)
+        {
+            List<RoutePatternPart> segmentParts = null; // Initialize only as needed
+            var segment = newPathSegments[i];
+            for (var j = 0; j < segment.Parts.Count; j++)
+            {
+                var part = segment.Parts[j];
+
+                if (part.IsParameter &&
+                    part is RoutePatternParameterPart parameterPart &&
+                    action.RouteValues.ContainsKey(parameterPart.Name))
+                {
+                    if (segmentParts == null)
+                    {
+                        segmentParts = segment.Parts.ToList();
+                    }
+                    if (allParameterPolicies == null)
+                    {
+                        allParameterPolicies = MvcEndpointInfo.BuildParameterPolicies(routePattern.Parameters, _parameterPolicyFactory);
+                    }
+
+                    // Replace parameter with literal value
+                    var parameterRouteValue = action.RouteValues[parameterPart.Name];
+
+                    // Route value could be null if it is a "known" route value.
+                    // Do not use the null value to de-normalize the route pattern,
+                    // instead leave the parameter unchanged.
+                    // e.g.
+                    //     RouteValues will contain a null "page" value if there are Razor pages
+                    //     Skip replacing the {page} parameter
+                    if (parameterRouteValue != null)
+                    {
+                        if (allParameterPolicies.TryGetValue(parameterPart.Name, out var parameterPolicies))
+                        {
+                            // Check if the parameter has a transformer policy
+                            // Use the first transformer policy
+                            for (var k = 0; k < parameterPolicies.Count; k++)
+                            {
+                                if (parameterPolicies[k] is IOutboundParameterTransformer parameterTransformer)
+                                {
+                                    parameterRouteValue = parameterTransformer.TransformOutbound(parameterRouteValue);
+                                    break;
+                                }
+                            }
+                        }
+
+                        segmentParts[j] = RoutePatternFactory.LiteralPart(parameterRouteValue);
+                    }
+                }
+            }
+
+            // A parameter part was replaced so replace segment with updated parts
+            if (segmentParts != null)
+            {
+                newPathSegments[i] = RoutePatternFactory.Segment(segmentParts);
+            }
+        }
+
         private bool UseDefaultValuePlusRemainingSegmentsOptional(
             int segmentIndex,
             ActionDescriptor action,
             IReadOnlyDictionary<string, object> allDefaults,
-            List<RoutePatternPathSegment> pathSegments)
+            List<RoutePatternPathSegment> pathSegments,
+            out bool hasOptionalParameter)
         {
+            hasOptionalParameter = false;
+
             // Check whether the remaining segments are all optional and one or more of them is
             // for area/controller/action and has a default value
             var usedDefaultValue = false;
@@ -352,7 +430,13 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     var part = segment.Parts[j];
                     if (part.IsParameter && part is RoutePatternParameterPart parameterPart)
                     {
-                        if (parameterPart.IsOptional || parameterPart.IsCatchAll)
+                        if (parameterPart.IsOptional)
+                        {
+                            hasOptionalParameter = true;
+                            continue;
+                        }
+
+                        if (parameterPart.IsCatchAll)
                         {
                             continue;
                         }
