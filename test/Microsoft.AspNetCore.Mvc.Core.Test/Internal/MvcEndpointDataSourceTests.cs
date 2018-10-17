@@ -208,6 +208,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             // Act
             var endpoints = dataSource.Endpoints;
 
+            // Ensure there are no endpoints with duplicate Order values
+            Assert.DoesNotContain(endpoints.GroupBy(e => Assert.IsType<RouteEndpoint>(e).Order), g => g.Count() > 1);
+
+            endpoints = endpoints.OrderBy(e => Assert.IsType<RouteEndpoint>(e).Order).ToList();
+
             // Assert
             var inspectors = finalEndpointPatterns
                 .Select(t => new Action<Endpoint>(e => Assert.Equal(t, Assert.IsType<RouteEndpoint>(e).RoutePattern.RawText)))

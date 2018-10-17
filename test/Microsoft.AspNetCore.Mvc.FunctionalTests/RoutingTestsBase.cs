@@ -1059,7 +1059,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("DefaultValues", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/DefaultValuesRoute-", result.Link);
+            Assert.Equal("/DefaultValuesRoute", result.Link);
         }
 
         [Fact]
@@ -1080,7 +1080,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("DefaultValues", result.Controller);
             Assert.Equal("Index", result.Action);
 
-            Assert.Equal("/DefaultValuesRoute/DefaultValues/Index/123-", result.Link);
+            Assert.Equal("/DefaultValuesRoute/DefaultValues/Index/123", result.Link);
         }
 
         [Fact]
