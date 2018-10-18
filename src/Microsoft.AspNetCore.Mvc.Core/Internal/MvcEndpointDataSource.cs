@@ -223,7 +223,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var newPathSegments = routePattern.PathSegments.ToList();
             int? requiredParameterEndpointRouteOrder = null;
-            int requiredParameterEndpointCount = 0;
+            var requiredParameterEndpointCount = 0;
 
             for (var i = 0; i < newPathSegments.Count; i++)
             {
