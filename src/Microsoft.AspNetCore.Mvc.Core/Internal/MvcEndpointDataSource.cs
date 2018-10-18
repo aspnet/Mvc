@@ -58,6 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             _parameterPolicyFactory = parameterPolicyFactory;
 
             ConventionalEndpointInfos = new List<MvcEndpointInfo>();
+            AttributeRoutingConventionResolvers = new List<Func<ActionDescriptor, DefaultEndpointConventionBuilder>>();
 
             // IMPORTANT: this needs to be the last thing we do in the constructor. Change notifications can happen immediately!
             //
@@ -72,6 +73,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         public List<MvcEndpointInfo> ConventionalEndpointInfos { get; }
+
+        public List<Func<ActionDescriptor, DefaultEndpointConventionBuilder>> AttributeRoutingConventionResolvers { get; }
 
         public override IReadOnlyList<Endpoint> Endpoints
         {
@@ -181,6 +184,14 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     }
                     else
                     {
+                        var conventionBuilder = ResolveActionConventionBuilder(action);
+                        if (conventionBuilder == null)
+                        {
+                            // No convention builder for this action
+                            // Do not create an endpoint for it
+                            continue;
+                        }
+
                         var attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template);
 
                         CreateEndpoints(
@@ -196,7 +207,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             allParameterPolicies: null,
                             action.AttributeRouteInfo.SuppressLinkGeneration,
                             action.AttributeRouteInfo.SuppressPathMatching,
-                            null);
+                            conventionBuilder.Conventions);
                     }
                 }
 
@@ -216,6 +227,20 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 // Step 4 - trigger old token
                 oldCancellationTokenSource?.Cancel();
             }
+        }
+
+        private DefaultEndpointConventionBuilder ResolveActionConventionBuilder(ActionDescriptor action)
+        {
+            foreach (var filter in AttributeRoutingConventionResolvers)
+            {
+                var conventionBuilder = filter(action);
+                if (conventionBuilder != null)
+                {
+                    return conventionBuilder;
+                }
+            }
+
+            return null;
         }
 
         private static bool ValidateControllerConstraint(ActionDescriptor action, MvcEndpointInfo endpointInfo)

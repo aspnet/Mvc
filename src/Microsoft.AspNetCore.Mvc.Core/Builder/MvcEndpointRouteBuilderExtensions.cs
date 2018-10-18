@@ -7,14 +7,48 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Builder
 {
-    public static class MvcEndpointDataSourceBuilderExtensions
+    public static class MvcEndpointRouteBuilderExtensions
     {
+        public static IEndpointConventionBuilder MapMvcControllers(
+            this IEndpointRouteBuilder routeBuilder)
+        {
+            return MapMvcControllers<ControllerBase>(routeBuilder);
+        }
+
+        public static IEndpointConventionBuilder MapMvcControllers<TController>(
+            this IEndpointRouteBuilder routeBuilder) where TController : ControllerBase
+        {
+            var mvcEndpointDataSource = routeBuilder.DataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
+
+            if (mvcEndpointDataSource == null)
+            {
+                mvcEndpointDataSource = routeBuilder.ServiceProvider.GetRequiredService<MvcEndpointDataSource>();
+                routeBuilder.DataSources.Add(mvcEndpointDataSource);
+            }
+
+            var conventionBuilder = new DefaultEndpointConventionBuilder();
+
+            mvcEndpointDataSource.AttributeRoutingConventionResolvers.Add(actionDescriptor =>
+            {
+                if (actionDescriptor is ControllerActionDescriptor controllerActionDescriptor &&
+                    typeof(TController).IsAssignableFrom(controllerActionDescriptor.ControllerTypeInfo))
+                {
+                    return conventionBuilder;
+                }
+
+                return null;
+            });
+
+            return conventionBuilder;
+        }
+
         public static IEndpointConventionBuilder MapMvcRoute(
             this IEndpointRouteBuilder routeBuilder,
             string name,
@@ -88,12 +122,12 @@ namespace Microsoft.AspNetCore.Builder
             object constraints,
             object dataTokens) where TController : ControllerBase
         {
-            var mvcEndpointDataSource = routeBuilder.EndpointDataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
+            var mvcEndpointDataSource = routeBuilder.DataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
 
             if (mvcEndpointDataSource == null)
             {
                 mvcEndpointDataSource = routeBuilder.ServiceProvider.GetRequiredService<MvcEndpointDataSource>();
-                routeBuilder.EndpointDataSources.Add(mvcEndpointDataSource);
+                routeBuilder.DataSources.Add(mvcEndpointDataSource);
             }
 
             var endpointInfo = new MvcEndpointInfo(

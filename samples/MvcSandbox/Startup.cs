@@ -38,6 +38,9 @@ namespace MvcSandbox
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
 
+                builder.MapMvcControllers();
+                builder.MapRazorPages();
+
                 builder.MapHealthChecks("/healthz");
             });
 
