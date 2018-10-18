@@ -294,7 +294,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     parameterPart.IsCatchAll;
                 var segmentIndex = hasCatchAll ? newPathSegments.Count - 2 : newPathSegments.Count - 1;
 
-                for (int i = 0; i < requiredParameterEndpointCount; i++)
+                for (var i = 0; i < requiredParameterEndpointCount; i++)
                 {
                     var currentSegmentIndex = segmentIndex - i;
 
