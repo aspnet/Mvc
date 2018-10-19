@@ -110,20 +110,13 @@ namespace Microsoft.AspNetCore.Mvc.Infrastructure
         }
 
         protected virtual Stream GetFileStream(string path)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            return new FileStream(
-                    path,
-                    FileMode.Open,
-                    FileAccess.Read,
-                    FileShare.ReadWrite,
-                    BufferSize,
-                    FileOptions.Asynchronous | FileOptions.SequentialScan);
-        }
+            => new FileStream(
+                path,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite,
+                BufferSize,
+                FileOptions.Asynchronous | FileOptions.SequentialScan);
 
         protected virtual FileMetadata GetFileInfo(string path)
         {
