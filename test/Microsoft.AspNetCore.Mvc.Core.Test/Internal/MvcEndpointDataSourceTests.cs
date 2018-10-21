@@ -988,6 +988,27 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
+        public void Endpoints_ConventionalRoutes_DefaultValuesAndCatchAll_EndpointInfoDefaultsNotModified()
+        {
+            // Arrange
+            var actionDescriptorCollection = GetActionDescriptorCollection(
+                new { controller = "TestController", action = "TestAction" });
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
+
+            var endpointInfo = CreateEndpointInfo(
+                name: string.Empty,
+                defaults: new RouteValueDictionary(),
+                template: "{controller=TestController}/{action=TestAction}/{id=17}/{**catchAll}");
+            dataSource.ConventionalEndpointInfos.Add(endpointInfo);
+
+            // Act
+            var endpoints = dataSource.Endpoints;
+
+            // Assert
+            Assert.Empty(endpointInfo.Defaults);
+        }
+
+        [Fact]
         public void Endpoints_ConventionalRoutes_DefaultValuesAndCatchAll_Shortened()
         {
             // Arrange

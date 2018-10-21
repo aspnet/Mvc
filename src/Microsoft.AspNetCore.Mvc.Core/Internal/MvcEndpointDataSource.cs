@@ -214,7 +214,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             int routeOrder,
             RoutePattern routePattern,
             IReadOnlyDictionary<string, object> allDefaults,
-            RouteValueDictionary nonInlineDefaults,
+            IReadOnlyDictionary<string, object> nonInlineDefaults,
             string name,
             RouteValueDictionary dataTokens,
             IDictionary<string, IList<IParameterPolicy>> allParameterPolicies,
@@ -223,6 +223,11 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         {
             var newPathSegments = routePattern.PathSegments.ToList();
             var hasLinkGenerationEndpoint = false;
+
+            // Create a mutable copy
+            var nonInlineDefaultsCopy = nonInlineDefaults != null
+                ? new RouteValueDictionary(nonInlineDefaults)
+                : null;
 
             for (var i = 0; i < newPathSegments.Count; i++)
             {
@@ -237,7 +242,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     i,
                     action,
                     allDefaults,
-                    ref nonInlineDefaults,
+                    ref nonInlineDefaultsCopy,
                     newPathSegments))
                 {
                     // The route pattern has matching default values AND an optional parameter
@@ -251,7 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                             name,
                             GetPattern(ref patternStringBuilder, newPathSegments),
                             newPathSegments,
-                            nonInlineDefaults,
+                            nonInlineDefaultsCopy,
                             routeOrder++,
                             dataTokens,
                             suppressLinkGeneration,
@@ -268,7 +273,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         name,
                         GetPattern(ref patternStringBuilder, subPathSegments),
                         subPathSegments,
-                        nonInlineDefaults,
+                        nonInlineDefaultsCopy,
                         routeOrder++,
                         dataTokens,
                         suppressLinkGeneration,
@@ -284,7 +289,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 name,
                 GetPattern(ref patternStringBuilder, newPathSegments),
                 newPathSegments,
-                nonInlineDefaults,
+                nonInlineDefaultsCopy,
                 routeOrder++,
                 dataTokens,
                 suppressLinkGeneration,
