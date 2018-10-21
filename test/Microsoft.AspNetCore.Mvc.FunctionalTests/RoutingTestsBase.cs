@@ -1042,10 +1042,10 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
         }
 
         [Fact]
-        public async Task ConventionalRoutedAction_DefaultValues_LinkToDefaultValuePath()
+        public async Task ConventionalRoutedAction_DefaultValues_OptionalParameter_LinkToDefaultValuePath()
         {
             // Arrange
-            var url = LinkFrom("http://localhost/DefaultValuesRoute")
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Optional")
                 .To(new { });
 
             // Act
@@ -1057,16 +1057,16 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             Assert.Equal("DefaultValues", result.Controller);
-            Assert.Equal("Index", result.Action);
+            Assert.Equal("OptionalParameter", result.Action);
 
-            Assert.Equal("/DefaultValuesRoute", result.Link);
+            Assert.Equal("/DefaultValuesRoute/Optional", result.Link);
         }
 
         [Fact]
         public async Task ConventionalRoutedAction_DefaultValues_OptionalParameter_LinkToFullPath()
         {
             // Arrange
-            var url = LinkFrom("http://localhost/DefaultValuesRoute")
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Optional")
                 .To(new { id = "123" });
 
             // Act
@@ -1078,9 +1078,97 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             var result = JsonConvert.DeserializeObject<RoutingResult>(body);
 
             Assert.Equal("DefaultValues", result.Controller);
-            Assert.Equal("Index", result.Action);
+            Assert.Equal("OptionalParameter", result.Action);
 
-            Assert.Equal("/DefaultValuesRoute/DefaultValues/Index/123", result.Link);
+            Assert.Equal("/DefaultValuesRoute/Optional/DefaultValues/OptionalParameter/123", result.Link);
+        }
+
+        [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_DefaultParameter_LinkToDefaultValuePath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Default")
+                .To(new { });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("DefaultParameter", result.Action);
+            Assert.Equal("17", result.RouteValues["id"]);
+
+            Assert.Equal("/DefaultValuesRoute/Default", result.Link);
+        }
+
+        [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_DefaultParameterWithCatchAll_LinkToDefaultValuePath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Default")
+                .To(new { catchAll = "CatchAll" });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("DefaultParameter", result.Action);
+            Assert.Equal("17", result.RouteValues["id"]);
+
+            Assert.Equal("/DefaultValuesRoute/Default/DefaultValues/DefaultParameter/17/CatchAll", result.Link);
+        }
+
+        [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_DefaultParameter_LinkToFullPath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Default")
+                .To(new { id = "123" });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("DefaultParameter", result.Action);
+            Assert.Equal("17", result.RouteValues["id"]);
+
+            Assert.Equal("/DefaultValuesRoute/Default/DefaultValues/DefaultParameter/123", result.Link);
+        }
+
+        [Fact]
+        public async Task ConventionalRoutedAction_DefaultValues_DefaultParameterMatches_LinkToShortenedPath()
+        {
+            // Arrange
+            var url = LinkFrom("http://localhost/DefaultValuesRoute/Default/DefaultValues/DefaultParameter/123")
+                .To(new { id = "17" });
+
+            // Act
+            var response = await Client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<RoutingResult>(body);
+
+            Assert.Equal("DefaultValues", result.Controller);
+            Assert.Equal("DefaultParameter", result.Action);
+            Assert.Equal("123", result.RouteValues["id"]);
+
+            Assert.Equal("/DefaultValuesRoute/Default", result.Link);
         }
 
         [Fact]

@@ -17,9 +17,18 @@ namespace RoutingWebSite
             _generator = generator;
         }
 
-        public IActionResult Index(string id)
+        public IActionResult DefaultParameter(string id)
         {
-            return _generator.Generate(id == null ? "/DefaultValues" : "/DefaultValues/DefaultValues/Index/" + id);
+            return _generator.Generate(id == null
+                ? "/DefaultValuesRoute/DefaultValues"
+                : "/DefaultValuesRoute/DefaultValues/DefaultParameter/Index/" + id);
+        }
+
+        public IActionResult OptionalParameter(string id)
+        {
+            return _generator.Generate(id == "17"
+                ? "/DefaultValuesRoute/DefaultValues"
+                : "/DefaultValuesRoute/DefaultValues/OptionalParameter/Index/" + id);
         }
     }
 }

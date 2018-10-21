@@ -62,10 +62,16 @@ namespace RoutingWebSite
                     dataTokens: new { hasDataTokens = true });
 
                 routes.MapRoute(
-                    "DefaultValuesRoute",
-                    "DefaultValuesRoute/{controller=DefaultValues}/{action=Index}/{id?}",
+                    "DefaultValuesRoute_OptionalParameter",
+                    "DefaultValuesRoute/Optional/{controller=DefaultValues}/{action=OptionalParameter}/{id?}/{**catchAll}",
                     defaults: null,
-                    constraints: new { controller = "DefaultValues" });
+                    constraints: new { controller = "DefaultValues", action = "OptionalParameter" });
+
+                routes.MapRoute(
+                    "DefaultValuesRoute_DefaultParameter",
+                    "DefaultValuesRoute/Default/{controller=DefaultValues}/{action=DefaultParameter}/{id=17}/{**catchAll}",
+                    defaults: null,
+                    constraints: new { controller = "DefaultValues", action = "DefaultParameter" });
 
                 routes.MapAreaRoute(
                     "flightRoute",
