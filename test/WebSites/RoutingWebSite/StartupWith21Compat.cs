@@ -63,13 +63,13 @@ namespace RoutingWebSite
 
                 routes.MapRoute(
                     "DefaultValuesRoute_OptionalParameter",
-                    "DefaultValuesRoute/Optional/{controller=DefaultValues}/{action=OptionalParameter}/{id?}/{**catchAll}",
+                    "DefaultValuesRoute/Optional/{controller=DEFAULTVALUES}/{action=OPTIONALPARAMETER}/{id?}/{**catchAll}",
                     defaults: null,
                     constraints: new { controller = "DefaultValues", action = "OptionalParameter" });
 
                 routes.MapRoute(
                     "DefaultValuesRoute_DefaultParameter",
-                    "DefaultValuesRoute/Default/{controller=DefaultValues}/{action=DefaultParameter}/{id=17}/{**catchAll}",
+                    "DefaultValuesRoute/Default/{controller=DEFAULTVALUES}/{action=DEFAULTPARAMETER}/{id=17}/{**catchAll}",
                     defaults: null,
                     constraints: new { controller = "DefaultValues", action = "DefaultParameter" });
 

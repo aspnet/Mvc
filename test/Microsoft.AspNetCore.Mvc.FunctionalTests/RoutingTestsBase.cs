@@ -1080,7 +1080,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("DefaultValues", result.Controller);
             Assert.Equal("OptionalParameter", result.Action);
 
-            Assert.Equal("/DefaultValuesRoute/Optional/DefaultValues/OptionalParameter/123", result.Link);
+            Assert.Equal("/DefaultValuesRoute/Optional/DEFAULTVALUES/OPTIONALPARAMETER/123", result.Link);
         }
 
         [Fact]
@@ -1124,7 +1124,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("DefaultParameter", result.Action);
             Assert.Equal("17", result.RouteValues["id"]);
 
-            Assert.Equal("/DefaultValuesRoute/Default/DefaultValues/DefaultParameter/17/CatchAll", result.Link);
+            Assert.Equal("/DefaultValuesRoute/Default/DEFAULTVALUES/DEFAULTPARAMETER/17/CatchAll", result.Link);
         }
 
         [Fact]
@@ -1146,7 +1146,7 @@ namespace Microsoft.AspNetCore.Mvc.FunctionalTests
             Assert.Equal("DefaultParameter", result.Action);
             Assert.Equal("17", result.RouteValues["id"]);
 
-            Assert.Equal("/DefaultValuesRoute/Default/DefaultValues/DefaultParameter/123", result.Link);
+            Assert.Equal("/DefaultValuesRoute/Default/DEFAULTVALUES/DEFAULTPARAMETER/123", result.Link);
         }
 
         [Fact]

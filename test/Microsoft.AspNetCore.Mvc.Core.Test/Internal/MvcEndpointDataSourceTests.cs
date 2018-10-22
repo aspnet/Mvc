@@ -156,6 +156,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {"{CONTROLLER}/{ACTION}/{id?}", null, new[] { "TestController/TestAction/{id?}" }},
                     {"{controller}/{action=TestAction}", "TestController/{action=TestAction}", new[] { "TestController", "TestController/TestAction" }},
                     {"{controller}/{action=TestAction}/{id?}", "TestController/{action=TestAction}/{id?}", new[] { "TestController", "TestController/TestAction/{id?}" }},
+                    {"{controller}/{action=TESTACTION}/{id?}", "TestController/{action=TESTACTION}/{id?}", new[] { "TestController", "TestController/TESTACTION/{id?}" }},
                     {"{controller}/{action=TestAction}/{id?}/{more}", null, new[] { "TestController/TestAction/{id?}/{more}" }},
                     {"{controller=TestController}/{action=TestAction}/{id?}", "{controller=TestController}/{action=TestAction}/{id?}", new[] { "", "TestController", "TestController/TestAction/{id?}" }},
                     {"{controller=TestController}/{action=TestAction}/{id?}/{more?}", "{controller=TestController}/{action=TestAction}/{id?}/{more?}", new[] { "", "TestController", "TestController/TestAction/{id?}/{more?}" }},
@@ -1214,7 +1215,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         }
 
         [Fact]
-        public void Endpoints_ConventionalRoutes_CatchAllWithDefault_IncludeFullRouteAsHighPriority()
+        public void Endpoints_AttributeRoutes_CatchAllWithDefault_IncludeFullRouteAsHighPriority()
         {
             // Arrange
             var actionDescriptorCollection = GetActionDescriptorCollection(
@@ -1250,6 +1251,57 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     Assert.Equal("DefaultName", matcherEndpoint.RoutePattern.Defaults["Name"]);
                     Assert.Equal(2, matcherEndpoint.Order);
                     AssertMatchingSuppressed(matcherEndpoint, false);
+                });
+        }
+
+        [Fact]
+        public void Endpoints_AttributeRoutes_DefaultDifferentCaseFromRouteValue_UseDefaultCase()
+        {
+            // Arrange
+            var actionDescriptorCollection = GetActionDescriptorCollection(
+                "{controller}/{action=TESTACTION}/{id?}",
+                new { controller = "TestController", action = "TestAction" });
+            var dataSource = CreateMvcEndpointDataSource(actionDescriptorCollection);
+
+            // Act
+            var endpoints = dataSource.Endpoints;
+
+            // Assert
+            Assert.Collection(
+                endpoints,
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController/{action=TESTACTION}/{id?}", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal("TESTACTION", matcherEndpoint.RoutePattern.Defaults["action"]);
+                    Assert.Equal(0, matcherEndpoint.Order);
+                    AssertMatchingSuppressed(matcherEndpoint, true);
+
+                    var routeValuesAddress = matcherEndpoint.Metadata.GetMetadata<IRouteValuesAddressMetadata>();
+                    Assert.Equal("TESTACTION", routeValuesAddress.RequiredValues["action"]);
+                    
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal("TESTACTION", matcherEndpoint.RoutePattern.Defaults["action"]);
+                    Assert.Equal(1, matcherEndpoint.Order);
+                    AssertMatchingSuppressed(matcherEndpoint, false);
+
+                    var routeValuesAddress = matcherEndpoint.Metadata.GetMetadata<IRouteValuesAddressMetadata>();
+                    Assert.Equal("TESTACTION", routeValuesAddress.RequiredValues["action"]);
+                },
+                (ep) =>
+                {
+                    var matcherEndpoint = Assert.IsType<RouteEndpoint>(ep);
+                    Assert.Equal("TestController/TESTACTION/{id?}", matcherEndpoint.RoutePattern.RawText);
+                    Assert.Equal("TESTACTION", matcherEndpoint.RoutePattern.Defaults["action"]);
+                    Assert.Equal(2, matcherEndpoint.Order);
+                    AssertMatchingSuppressed(matcherEndpoint, false);
+
+                    var routeValuesAddress = matcherEndpoint.Metadata.GetMetadata<IRouteValuesAddressMetadata>();
+                    Assert.Equal("TESTACTION", routeValuesAddress.RequiredValues["action"]);
                 });
         }
 

@@ -229,6 +229,8 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 ? new RouteValueDictionary(nonInlineDefaults)
                 : null;
 
+            var resolvedRouteValues = ResolveActionRouteValues(action, allDefaults);
+
             for (var i = 0; i < newPathSegments.Count; i++)
             {
                 // Check if the pattern can be shortened because the remaining parameters are optional
@@ -241,6 +243,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                 if (UseDefaultValuePlusRemainingSegmentsOptional(
                     i,
                     action,
+                    resolvedRouteValues,
                     allDefaults,
                     ref nonInlineDefaultsCopy,
                     newPathSegments))
@@ -253,6 +256,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         var ep = CreateEndpoint(
                             action,
+                            resolvedRouteValues,
                             name,
                             GetPattern(ref patternStringBuilder, newPathSegments),
                             newPathSegments,
@@ -270,6 +274,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                     var subEndpoint = CreateEndpoint(
                         action,
+                        resolvedRouteValues,
                         name,
                         GetPattern(ref patternStringBuilder, subPathSegments),
                         subPathSegments,
@@ -281,11 +286,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     endpoints.Add(subEndpoint);
                 }
 
-                UpdatePathSegments(i, action, routePattern, newPathSegments, ref allParameterPolicies);
+                UpdatePathSegments(i, action, resolvedRouteValues, routePattern, newPathSegments, ref allParameterPolicies);
             }
 
             var finalEndpoint = CreateEndpoint(
                 action,
+                resolvedRouteValues,
                 name,
                 GetPattern(ref patternStringBuilder, newPathSegments),
                 newPathSegments,
@@ -313,9 +319,37 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             }
         }
 
+        private static IDictionary<string, string> ResolveActionRouteValues(ActionDescriptor action, IReadOnlyDictionary<string, object> allDefaults)
+        {
+            Dictionary<string, string> resolvedRequiredValues = null;
+
+            foreach (var kvp in action.RouteValues)
+            {
+                // Check whether there is a matching default value with a different case
+                // e.g. {controller=HOME}/{action} with HomeController.Index will have route values:
+                // - controller = HOME
+                // - action = Index
+                if (allDefaults.TryGetValue(kvp.Key, out var value) &&
+                    value is string defaultValue &&
+                    !string.Equals(kvp.Value, defaultValue, StringComparison.Ordinal) &&
+                    string.Equals(kvp.Value, defaultValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (resolvedRequiredValues == null)
+                    {
+                        resolvedRequiredValues = new Dictionary<string, string>(action.RouteValues, StringComparer.OrdinalIgnoreCase);
+                    }
+
+                    resolvedRequiredValues[kvp.Key] = defaultValue;
+                }
+            }
+
+            return resolvedRequiredValues ?? action.RouteValues;
+        }
+
         private void UpdatePathSegments(
             int i,
             ActionDescriptor action,
+            IDictionary<string, string> resolvedRequiredValues,
             RoutePattern routePattern,
             List<RoutePatternPathSegment> newPathSegments,
             ref IDictionary<string, IList<IParameterPolicy>> allParameterPolicies)
@@ -328,7 +362,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
                 if (part is RoutePatternParameterPart parameterPart)
                 {
-                    if (action.RouteValues.ContainsKey(parameterPart.Name))
+                    if (resolvedRequiredValues.TryGetValue(parameterPart.Name, out var parameterRouteValue))
                     {
                         if (segmentParts == null)
                         {
@@ -338,9 +372,6 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                         {
                             allParameterPolicies = MvcEndpointInfo.BuildParameterPolicies(routePattern.Parameters, _parameterPolicyFactory);
                         }
-
-                        // Replace parameter with literal value
-                        var parameterRouteValue = action.RouteValues[parameterPart.Name];
 
                         // Route value could be null if it is a "known" route value.
                         // Do not use the null value to de-normalize the route pattern,
@@ -380,6 +411,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         private bool UseDefaultValuePlusRemainingSegmentsOptional(
             int segmentIndex,
             ActionDescriptor action,
+            IDictionary<string, string> resolvedRequiredValues,
             IReadOnlyDictionary<string, object> allDefaults,
             ref RouteValueDictionary nonInlineDefaults,
             List<RoutePatternPathSegment> pathSegments)
@@ -398,7 +430,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
                     {
                         if (allDefaults.TryGetValue(parameterPart.Name, out var v))
                         {
-                            if (action.RouteValues.TryGetValue(parameterPart.Name, out var routeValue))
+                            if (resolvedRequiredValues.TryGetValue(parameterPart.Name, out var routeValue))
                             {
                                 if (string.Equals(v as string, routeValue, StringComparison.OrdinalIgnoreCase))
                                 {
@@ -496,6 +528,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
 
         private RouteEndpoint CreateEndpoint(
             ActionDescriptor action,
+            IDictionary<string, string> actionRouteValues,
             string routeName,
             string patternRawText,
             IEnumerable<RoutePatternPathSegment> segments,
@@ -516,12 +549,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             };
 
             var defaults = new RouteValueDictionary(nonInlineDefaults);
-            EnsureRequiredValuesInDefaults(action.RouteValues, defaults);
+            EnsureRequiredValuesInDefaults(actionRouteValues, defaults, segments);
 
             var metadataCollection = BuildEndpointMetadata(
                 action,
                 routeName,
-                new RouteValueDictionary(action.RouteValues),
+                new RouteValueDictionary(actionRouteValues),
                 dataTokens,
                 suppressLinkGeneration,
                 suppressPathMatching);
@@ -609,7 +642,7 @@ namespace Microsoft.AspNetCore.Mvc.Internal
             return metadataCollection;
         }
 
-        // Ensure required values are a subset of defaults
+        // Ensure route values are a subset of defaults
         // Examples:
         //
         // Template: {controller}/{action}/{category}/{id?}
@@ -623,9 +656,12 @@ namespace Microsoft.AspNetCore.Mvc.Internal
         // Required values: controller=foo, action=bar
         // Final constructed pattern: foo/bar/{category}/{id?}
         // Final defaults: controller=foo, action=bar, category=products
-        private void EnsureRequiredValuesInDefaults(IDictionary<string, string> requiredValues, RouteValueDictionary defaults)
+        private void EnsureRequiredValuesInDefaults(
+            IDictionary<string, string> routeValues,
+            RouteValueDictionary defaults,
+            IEnumerable<RoutePatternPathSegment> segments)
         {
-            foreach (var kvp in requiredValues)
+            foreach (var kvp in routeValues)
             {
                 if (kvp.Value != null)
                 {
