@@ -26,6 +26,7 @@
     <MicrosoftAspNetCoreAuthenticationPackageVersion>2.2.0-preview3-35359</MicrosoftAspNetCoreAuthenticationPackageVersion>
     <MicrosoftAspNetCoreAuthorizationPolicyPackageVersion>2.2.0-preview3-35359</MicrosoftAspNetCoreAuthorizationPolicyPackageVersion>
     <MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>2.2.0-preview3-35359</MicrosoftAspNetCoreBenchmarkRunnerSourcesPackageVersion>
+    <MicrosoftAspNetCoreBlazorPackageVersion>0.7.0-preview1-20181017.2</MicrosoftAspNetCoreBlazorPackageVersion>
     <MicrosoftAspNetCoreChunkingCookieManagerSourcesPackageVersion>2.2.0-preview3-35359</MicrosoftAspNetCoreChunkingCookieManagerSourcesPackageVersion>
     <MicrosoftAspNetCoreCookiePolicyPackageVersion>2.2.0-preview3-35359</MicrosoftAspNetCoreCookiePolicyPackageVersion>
     <MicrosoftAspNetCoreCorsPackageVersion>2.2.0-a-preview3-22cors-16556</MicrosoftAspNetCoreCorsPackageVersion>

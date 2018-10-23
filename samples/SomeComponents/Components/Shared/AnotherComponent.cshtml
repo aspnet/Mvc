@@ -1,0 +1,11 @@
+﻿
+<h3>This is another component.</h3>
+
+<h4>Your message is @Message</h4>
+
+<h5>@ChildContent</h5>
+
+@functions {
+    [Parameter] string Message { get; set; }
+    [Parameter] RenderFragment ChildContent { get; set; }
+}
