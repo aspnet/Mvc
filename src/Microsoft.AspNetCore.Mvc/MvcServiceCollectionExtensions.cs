@@ -7,10 +7,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Components;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -47,6 +51,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddRazorPages();
             builder.AddCacheTagHelper();
 
+            AddComponents(builder);
+
             // +1 order
             builder.AddDataAnnotations(); // +1 order
 
@@ -71,6 +77,13 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 partManager.ApplicationParts.Add(new FrameworkAssemblyPart(mvcRazorAssembly));
             }
+        }
+
+        private static void AddComponents(IMvcCoreBuilder builder)
+        {
+            builder.PartManager.FeatureProviders.Add(new ComponentFeatureProvider());
+            builder.Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IActionDescriptorProvider, ComponentActionDescriptorProvider>());
         }
 
         /// <summary>

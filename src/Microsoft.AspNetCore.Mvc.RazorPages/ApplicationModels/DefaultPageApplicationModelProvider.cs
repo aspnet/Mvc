@@ -90,7 +90,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
 
             // Pages always have a model type. If it's not set explicitly by the developer using
             // @model, it will be the same as the page type.
-            var modelProperty = pageTypeInfo.GetProperty(ModelPropertyName, BindingFlags.Public | BindingFlags.Instance);
+            var modelProperty = pageTypeInfo.GetProperty(ModelPropertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (modelProperty == null)
             {
                 throw new InvalidOperationException(Resources.FormatInvalidPageType_NoModelProperty(

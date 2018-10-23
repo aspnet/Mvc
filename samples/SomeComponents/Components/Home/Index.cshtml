@@ -1,5 +1,11 @@
-﻿<div class="my-component">
+﻿@page "/"
+@{ 
+    Page.Layout = "_Layout";
+}
+
+<div class="my-component">
     This Blazor component is defined in the <strong>@(this.GetType().Assembly.FullName)</strong> package.
+    <h2>The PageModel says @Model?.Message</h2>
 </div>
 <div>
     And hey, by the way, here's another component.
@@ -7,3 +13,8 @@
         Golly, components are DOPE!
     </AnotherComponent>
 </div>
+
+@functions {
+    [CascadingParameter] IndexModel Model { get; set; }
+    [CascadingParameter] PageBase Page { get; set; }
+}

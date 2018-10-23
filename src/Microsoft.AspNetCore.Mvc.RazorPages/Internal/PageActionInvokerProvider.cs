@@ -104,7 +104,14 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Internal
             IFilterMetadata[] filters;
             if (!cache.Entries.TryGetValue(actionDescriptor, out var cacheEntry))
             {
-                actionContext.ActionDescriptor = _loader.Load(actionDescriptor);
+                if (actionContext.ActionDescriptor is CompiledPageActionDescriptor compiled)
+                {
+                    actionContext.ActionDescriptor = compiled;
+                }
+                else
+                {
+                    actionContext.ActionDescriptor = _loader.Load(actionDescriptor);
+                }
 
                 var filterFactoryResult = FilterFactory.GetAllFilters(_filterProviders, actionContext);
                 filters = filterFactoryResult.Filters;
