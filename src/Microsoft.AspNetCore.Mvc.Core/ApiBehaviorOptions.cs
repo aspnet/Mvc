@@ -156,7 +156,11 @@ namespace Microsoft.AspNetCore.Mvc
 
         /// <summary>
         /// Gets or sets a value that determines if <see cref="BindingInfo.BindingSource"/> for collection types
-        /// (<see cref="ModelMetadata.IsCollectionType"/>) is inferred as <see cref="BindingSource.Query"/>.
+        /// (<see cref="ModelMetadata.IsCollectionType"/>).
+        /// <para>
+        /// When <see langword="true" />, the binding source for collection types is inferred as <see cref="BindingSource.Query"/>.
+        /// Otherwise <see cref="BindingSource.Body"/> is inferred.
+        /// </para>
         /// </summary>
         /// <value>
         /// The default value is <see langword="false"/> if the version is
@@ -169,7 +173,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// guidance and examples of setting the application's compatibility version.
         /// </para>
         /// <para>
-        /// Configuring the desired value of the compatibility switch by calling this property's setter will take
+        /// Configuring the desired value of the compatibility switch by calling this property's setter takes
         /// precedence over the value implied by the application's <see cref="CompatibilityVersion"/>.
         /// </para>
         /// <para>

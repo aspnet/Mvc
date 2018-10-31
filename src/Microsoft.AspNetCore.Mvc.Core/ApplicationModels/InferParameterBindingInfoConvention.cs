@@ -17,9 +17,9 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
     /// The goal of this covention is to make intuitive and easy to document <see cref="BindingSource"/> inferences. The rules are:
     /// <list type="number">
     /// <item>A previously specified <see cref="BindingInfo.BindingSource" /> is never overwritten.</item>
-    /// <item>A complex type parameter (<see cref="ModelMetadata.IsComplexType"/>) <see cref="BindingSource.Body"/> is assigned.</item>
-    /// <item>If the parameter name appears in ANY route template, <see cref="BindingSource.Path"/> is assigned.</item>
-    /// <item>All other parameters, <see cref="BindingSource.Query"/> is assigned.</item>
+    /// <item>A complex type parameter (<see cref="ModelMetadata.IsComplexType"/>) is assigned <see cref="BindingSource.Body"/>.</item>
+    /// <item>Parameter with a name that appears as a route value in ANY route template is assigned <see cref="BindingSource.Path"/>.</item>
+    /// <item>All other parameters are <see cref="BindingSource.Query"/>.</item>
     /// </list>
     /// </remarks>
     public class InferParameterBindingInfoConvention : IActionModelConvention
