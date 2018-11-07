@@ -21,4 +21,22 @@ namespace Microsoft.AspNetCore.Builder
             Conventions.Add(convention);
         }
     }
+
+    internal class DefaultControllerEndpointConventionBuilder : DefaultEndpointConventionBuilder, IControllerEndpointConventionBuilder
+    {
+        public Type ControllerType { get; private set; }
+        public Type AssemblyType { get; private set; }
+
+        public IControllerEndpointConventionBuilder ForAssemblyType(Type type)
+        {
+            AssemblyType = type;
+            return this;
+        }
+
+        public IControllerEndpointConventionBuilder ForControllerType(Type type)
+        {
+            ControllerType = type;
+            return this;
+        }
+    }
 }

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,14 +11,20 @@ namespace Microsoft.AspNetCore.Builder
 {
     public static class MvcEndpointRouteBuilderExtensions
     {
-        public static IEndpointConventionBuilder MapMvcControllers(
+        public static IEndpointConventionBuilder MapApplication(
             this IEndpointRouteBuilder routeBuilder)
         {
-            return MapMvcControllers<ControllerBase>(routeBuilder);
+            return MapController(routeBuilder);
         }
 
-        public static IEndpointConventionBuilder MapMvcControllers<TController>(
-            this IEndpointRouteBuilder routeBuilder) where TController : ControllerBase
+        public static IEndpointConventionBuilder MapApplication<TAssembly>(
+            this IEndpointRouteBuilder routeBuilder)
+        {
+            return MapController(routeBuilder).ForAssemblyType(typeof(TAssembly));
+        }
+
+        public static IControllerEndpointConventionBuilder MapController(
+            this IEndpointRouteBuilder routeBuilder)
         {
             var mvcEndpointDataSource = routeBuilder.DataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
 
@@ -29,94 +34,81 @@ namespace Microsoft.AspNetCore.Builder
                 routeBuilder.DataSources.Add(mvcEndpointDataSource);
             }
 
-            var conventionBuilder = new DefaultEndpointConventionBuilder();
+            var conventionBuilder = new DefaultControllerEndpointConventionBuilder();
 
             mvcEndpointDataSource.AttributeRoutingConventionResolvers.Add(actionDescriptor =>
             {
-                if (actionDescriptor is ControllerActionDescriptor controllerActionDescriptor &&
-                    typeof(TController).IsAssignableFrom(controllerActionDescriptor.ControllerTypeInfo))
-                {
-                    return conventionBuilder;
-                }
-
-                return null;
+                // TODO: Filtering for controllers by TController
+                // TODO: Filtering for Razor pages by path
+                // - NOTE: Razor types are in another assembly
+                // TODO: Filtering for other types of action descriptors
+                return conventionBuilder;
             });
 
             return conventionBuilder;
         }
 
-        public static IEndpointConventionBuilder MapMvcRoute(
+        public static IControllerEndpointConventionBuilder MapController(
+            this IEndpointRouteBuilder routeBuilder,
+            Type assemblyType,
+            Type controllerType)
+        {
+            var mvcEndpointDataSource = routeBuilder.DataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
+
+            if (mvcEndpointDataSource == null)
+            {
+                mvcEndpointDataSource = routeBuilder.ServiceProvider.GetRequiredService<MvcEndpointDataSource>();
+                routeBuilder.DataSources.Add(mvcEndpointDataSource);
+            }
+
+            var conventionBuilder = new DefaultControllerEndpointConventionBuilder();
+
+            mvcEndpointDataSource.AttributeRoutingConventionResolvers.Add(actionDescriptor =>
+            {
+                // TODO: Filtering for controllers by TController
+                // TODO: Filtering for Razor pages by path
+                // - NOTE: Razor types are in another assembly
+                // TODO: Filtering for other types of action descriptors
+                return conventionBuilder;
+            });
+
+            return conventionBuilder;
+        }
+
+        public static IControllerEndpointConventionBuilder MapControllerRoute(
             this IEndpointRouteBuilder routeBuilder,
             string name,
             string template)
         {
-            return MapMvcRoute<ControllerBase>(routeBuilder, name, template, defaults: null);
+            return MapControllerRoute(routeBuilder, name, template, defaults: null);
         }
 
-        public static IEndpointConventionBuilder MapMvcRoute(
+        public static IControllerEndpointConventionBuilder MapControllerRoute(
             this IEndpointRouteBuilder routeBuilder,
             string name,
             string template,
             object defaults)
         {
-            return MapMvcRoute<ControllerBase>(routeBuilder, name, template, defaults, constraints: null);
+            return MapControllerRoute(routeBuilder, name, template, defaults, constraints: null);
         }
 
-        public static IEndpointConventionBuilder MapMvcRoute(
+        public static IControllerEndpointConventionBuilder MapControllerRoute(
             this IEndpointRouteBuilder routeBuilder,
             string name,
             string template,
             object defaults,
             object constraints)
         {
-            return MapMvcRoute<ControllerBase>(routeBuilder, name, template, defaults, constraints, dataTokens: null);
+            return MapControllerRoute(routeBuilder, name, template, defaults, constraints, dataTokens: null);
         }
 
-        public static IEndpointConventionBuilder MapMvcRoute(
+        public static IControllerEndpointConventionBuilder MapControllerRoute(
             this IEndpointRouteBuilder routeBuilder,
             string name,
             string template,
             object defaults,
             object constraints,
             object dataTokens)
-        {
-            return MapMvcRoute<ControllerBase>(routeBuilder, name, template, defaults, constraints, dataTokens);
-        }
-
-        public static IEndpointConventionBuilder MapMvcRoute<TController>(
-            this IEndpointRouteBuilder routeBuilder,
-            string name,
-            string template) where TController : ControllerBase
-        {
-            return MapMvcRoute<TController>(routeBuilder, name, template, defaults: null);
-        }
-
-        public static IEndpointConventionBuilder MapMvcRoute<TController>(
-            this IEndpointRouteBuilder routeBuilder,
-            string name,
-            string template,
-            object defaults) where TController : ControllerBase
-        {
-            return MapMvcRoute<TController>(routeBuilder, name, template, defaults, constraints: null);
-        }
-
-        public static IEndpointConventionBuilder MapMvcRoute<TController>(
-            this IEndpointRouteBuilder routeBuilder,
-            string name,
-            string template,
-            object defaults,
-            object constraints) where TController : ControllerBase
-        {
-            return MapMvcRoute<TController>(routeBuilder, name, template, defaults, constraints, dataTokens: null);
-        }
-
-        public static IEndpointConventionBuilder MapMvcRoute<TController>(
-            this IEndpointRouteBuilder routeBuilder,
-            string name,
-            string template,
-            object defaults,
-            object constraints,
-            object dataTokens) where TController : ControllerBase
         {
             var mvcEndpointDataSource = routeBuilder.DataSources.OfType<MvcEndpointDataSource>().FirstOrDefault();
 
@@ -133,8 +125,6 @@ namespace Microsoft.AspNetCore.Builder
                 new RouteValueDictionary(constraints),
                 new RouteValueDictionary(dataTokens),
                 routeBuilder.ServiceProvider.GetRequiredService<ParameterPolicyFactory>());
-
-            endpointInfo.ControllerType = typeof(TController);
 
             mvcEndpointDataSource.ConventionalEndpointInfos.Add(endpointInfo);
 
