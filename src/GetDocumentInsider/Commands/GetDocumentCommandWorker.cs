@@ -109,7 +109,7 @@ namespace Microsoft.Extensions.ApiDescription.Tool.Commands
                         return false;
                     }
 
-                    var finished = Task.WhenAny(resultTask, Task.Delay(TimeSpan.FromMinutes(1)));
+                    var finished = Task.WhenAny(resultTask, Task.Delay(TimeSpan.FromMinutes(1))).Result;
                     if (!ReferenceEquals(resultTask, finished))
                     {
                         Reporter.WriteWarning(Resources.FormatMethodTimedOut(methodName, serviceName, 1));
@@ -121,6 +121,8 @@ namespace Microsoft.Extensions.ApiDescription.Tool.Commands
                     using (var outStream = File.Create(context.OutputPath))
                     {
                         stream.CopyTo(outStream);
+
+                        outStream.Flush();
                     }
                 }
 
