@@ -325,7 +325,7 @@ namespace Microsoft.AspNetCore.Mvc.Formatters
                         }
                     }
 
-                    if (!(exception is JsonException || exception is OverflowException))
+                    if (!(exception is JsonException || exception is OverflowException || exception is DecoderFallbackException))
                     {
                         var exceptionDispatchInfo = ExceptionDispatchInfo.Capture(exception);
                         exceptionDispatchInfo.Throw();

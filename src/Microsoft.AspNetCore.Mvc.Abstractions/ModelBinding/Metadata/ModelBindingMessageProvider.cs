@@ -34,6 +34,12 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         public virtual Func<string> MissingRequestBodyRequiredValueAccessor { get; }
 
         /// <summary>
+        /// Error message the model binding system adds when invalid encoding is provided for the request body
+        /// </summary>
+        /// <value>Default <see cref="string"/> is "Invalid body encoding provided. Try to encode it using UTF-8 or provide proper HTTP header.".</value>
+        public virtual Func<string> InvalidBodyEncodingAccessor { get; }
+
+        /// <summary>
         /// Error message the model binding system adds when a <c>null</c> value is bound to a
         /// non-<see cref="Nullable"/> property.
         /// </summary>

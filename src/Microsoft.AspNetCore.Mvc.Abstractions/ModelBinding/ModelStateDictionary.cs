@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Primitives;
@@ -315,6 +316,11 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding
             {
                 // InputFormatterException is a signal that the message is safe to expose to clients
                 return TryAddModelError(key, exception.Message);
+            }
+            else if (exception is DecoderFallbackException)
+            {
+                var messageProvider = metadata.ModelBindingMessageProvider;
+                return TryAddModelError(key, messageProvider.InvalidBodyEncodingAccessor());
             }
 
             ErrorCount++;

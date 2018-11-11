@@ -490,4 +490,7 @@
   <data name="ApiConventions_Title_422" xml:space="preserve">
     <value>Unprocessable Entity</value>
   </data>
+  <data name="ModelBinding_InvalidBodyEncoding" xml:space="preserve">
+    <value>Invalid body encoding provided. Try to encode it using UTF-8 or provide proper HTTP header.</value>
+  </data>
 </root>

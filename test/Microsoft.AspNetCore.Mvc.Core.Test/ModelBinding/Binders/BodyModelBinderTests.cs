@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -319,6 +320,41 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Binders
             var entry = Assert.Single(bindingContext.ModelState);
             Assert.Equal(string.Empty, entry.Key);
             Assert.NotEmpty(entry.Value.Errors[0].ErrorMessage);
+        }
+
+        [Fact]
+        public async Task BindModel_BuiltInJsonInputFormatter_WhenBodyIsNotUtf8Encoding_AddsErrorToModelState()
+        {
+            // Arrange
+            var httpContext = new DefaultHttpContext();
+            var assembly = Assembly.GetExecutingAssembly();
+            string resourceName = assembly.GetManifestResourceNames()
+                .Single(str => str.EndsWith("NonUtf8EncodedRequest.json"));
+
+            httpContext.Request.Body = assembly.GetManifestResourceStream(resourceName);
+
+            httpContext.Request.ContentType = "application/json";
+
+            var metadataProvider = new TestModelMetadataProvider();
+            metadataProvider.ForType<Person>().BindingDetails(d => d.BindingSource = BindingSource.Body);
+
+            var bindingContext = GetBindingContext(typeof(Person), httpContext, metadataProvider);
+            var binder = CreateBinder(
+                new[] { new TestableJsonInputFormatter(throwNonInputFormatterException: false) },
+                new MvcOptions());
+
+            // Act
+            await binder.BindModelAsync(bindingContext);
+
+            // Assert
+            Assert.False(bindingContext.Result.IsModelSet);
+            Assert.Null(bindingContext.Result.Model);
+
+            // Key is the empty string because this was a top-level binding.
+            var entry = Assert.Single(bindingContext.ModelState);
+            Assert.Equal(string.Empty, entry.Key);
+            Assert.NotEmpty(entry.Value.Errors[0].ErrorMessage);
+            Assert.Equal("Invalid body encoding provided. Try to encode it using UTF-8 or provide proper HTTP header.", entry.Value.Errors[0].ErrorMessage);
         }
 
         public static TheoryData<IInputFormatter, InputFormatterExceptionPolicy> DerivedFormattersThrowingInputFormatterException

@@ -14,6 +14,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
         private Func<string, string> _missingBindRequiredValueAccessor;
         private Func<string> _missingKeyOrValueAccessor;
         private Func<string> _missingRequestBodyRequiredValueAccessor;
+        private Func<string> _invalidBodyEncodingAccessor;
         private Func<string, string> _valueMustNotBeNullAccessor;
         private Func<string, string, string> _attemptedValueIsInvalidAccessor;
         private Func<string, string> _nonPropertyAttemptedValueIsInvalidAccessor;
@@ -31,6 +32,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             SetMissingBindRequiredValueAccessor(Resources.FormatModelBinding_MissingBindRequiredMember);
             SetMissingKeyOrValueAccessor(Resources.FormatKeyValuePair_BothKeyAndValueMustBePresent);
             SetMissingRequestBodyRequiredValueAccessor(Resources.FormatModelBinding_MissingRequestBodyRequiredMember);
+            SetInvalidBodyEncodingAccessor(Resources.FormatModelBinding_InvalidBodyEncoding);
             SetValueMustNotBeNullAccessor(Resources.FormatModelBinding_NullValueNotValid);
             SetAttemptedValueIsInvalidAccessor(Resources.FormatModelState_AttemptedValueIsInvalid);
             SetNonPropertyAttemptedValueIsInvalidAccessor(Resources.FormatModelState_NonPropertyAttemptedValueIsInvalid);
@@ -56,6 +58,7 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             SetMissingBindRequiredValueAccessor(originalProvider.MissingBindRequiredValueAccessor);
             SetMissingKeyOrValueAccessor(originalProvider.MissingKeyOrValueAccessor);
             SetMissingRequestBodyRequiredValueAccessor(originalProvider.MissingRequestBodyRequiredValueAccessor);
+            SetInvalidBodyEncodingAccessor(originalProvider.InvalidBodyEncodingAccessor);
             SetValueMustNotBeNullAccessor(originalProvider.ValueMustNotBeNullAccessor);
             SetAttemptedValueIsInvalidAccessor(originalProvider.AttemptedValueIsInvalidAccessor);
             SetNonPropertyAttemptedValueIsInvalidAccessor(originalProvider.NonPropertyAttemptedValueIsInvalidAccessor);
@@ -115,6 +118,23 @@ namespace Microsoft.AspNetCore.Mvc.ModelBinding.Metadata
             }
 
             _missingRequestBodyRequiredValueAccessor = missingRequestBodyRequiredValueAccessor;
+        }
+
+        /// <inheritdoc/>
+        public override Func<string> InvalidBodyEncodingAccessor => _invalidBodyEncodingAccessor;
+
+        /// <summary>
+        /// Sets the <see cref="InvalidBodyEncodingAccessor"/> property.
+        /// </summary>
+        /// <param name="invalidBodyEncodingAccessor">The value to set.</param>
+        public void SetInvalidBodyEncodingAccessor(Func<string> invalidBodyEncodingAccessor)
+        {
+            if (invalidBodyEncodingAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(invalidBodyEncodingAccessor));
+            }
+
+            _invalidBodyEncodingAccessor = invalidBodyEncodingAccessor;
         }
 
         /// <inheritdoc/>

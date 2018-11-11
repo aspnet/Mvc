@@ -816,6 +816,9 @@ namespace Microsoft.AspNetCore.Mvc.Core
             get => GetString("ModelBinding_MissingRequestBodyRequiredMember");
         }
 
+        internal static string FormatModelBinding_InvalidBodyEncoding() 
+            => GetString("ModelBinding_InvalidBodyEncoding");
+
         /// <summary>
         /// A non-empty request body is required.
         /// </summary>
