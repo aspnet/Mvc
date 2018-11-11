@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Builder
 {
-    public static class RazorPagesEndpointRouteBuilderExtensions
+    public static class PageEndpointRouteBuilderExtensions
     {
         public static IEndpointConventionBuilder MapRazorPages(
             this IEndpointRouteBuilder routeBuilder,

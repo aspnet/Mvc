@@ -14,8 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
     /// </summary>
     public class ControllerFeatureProvider : IApplicationFeatureProvider<ControllerFeature>
     {
-        private const string ControllerTypeNameSuffix = "Controller";
-
         /// <inheritdoc />
         public void PopulateFeature(
             IEnumerable<ApplicationPart> parts,
@@ -40,40 +38,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers
         /// <returns><code>true</code> if the type is a controller; otherwise <code>false</code>.</returns>
         protected virtual bool IsController(TypeInfo typeInfo)
         {
-            if (!typeInfo.IsClass)
-            {
-                return false;
-            }
-
-            if (typeInfo.IsAbstract)
-            {
-                return false;
-            }
-
-            // We only consider public top-level classes as controllers. IsPublic returns false for nested
-            // classes, regardless of visibility modifiers
-            if (!typeInfo.IsPublic)
-            {
-                return false;
-            }
-
-            if (typeInfo.ContainsGenericParameters)
-            {
-                return false;
-            }
-
-            if (typeInfo.IsDefined(typeof(NonControllerAttribute)))
-            {
-                return false;
-            }
-
-            if (!typeInfo.Name.EndsWith(ControllerTypeNameSuffix, StringComparison.OrdinalIgnoreCase) &&
-                !typeInfo.IsDefined(typeof(ControllerAttribute)))
-            {
-                return false;
-            }
-
-            return true;
+            return ControllerDiscovery.IsControllerType(typeInfo.AsType());
         }
     }
 }

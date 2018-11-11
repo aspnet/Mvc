@@ -46,7 +46,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
                 .OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
 
             // Act
-            var referenceAssemblies = ApplicationAssembliesProvider
+            var referenceAssemblies = ApplicationAssemblyProvider
                 .ReferenceAssemblies
                 .OrderBy(p => p, StringComparer.OrdinalIgnoreCase);
 

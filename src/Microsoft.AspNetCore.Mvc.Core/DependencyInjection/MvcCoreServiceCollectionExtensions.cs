@@ -155,6 +155,22 @@ namespace Microsoft.Extensions.DependencyInjection
                 ServiceDescriptor.Transient<IConfigureOptions<RouteOptions>, MvcCoreRouteOptionsSetup>());
 
             //
+            // Endpoint Discovery
+            //
+
+            // We replace the default ApplicationAssemblyProvider (if any). This allows .MapApplication to support
+            // customizations via the ApplicationPartManager.
+            var original = services.Where(sd => sd.ServiceType == typeof(AspNetCore.Routing.ApplicationAssemblyProvider) && sd.ImplementationType == typeof(DefaultApplicationAssemblyProvider)).FirstOrDefault();
+            if (original != null)
+            {
+                services.Remove(original);
+            }
+            services.TryAddSingleton<AspNetCore.Routing.ApplicationAssemblyProvider, ApplicationPartApplicationAssemblyProvider>();
+
+            // Creates an EndpointDataSource per-assembly for controllers
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IApplicationAssemblyDataSourceFactory, ControllerApplicationAssemblyDataSourceFactory>());
+
+            //
             // Action Discovery
             //
             // These are consumed only when creating action descriptors, then they can be deallocated

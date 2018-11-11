@@ -53,7 +53,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         internal void PopulateDefaultParts(string entryAssemblyName)
         {
             var entryAssembly = Assembly.Load(new AssemblyName(entryAssemblyName));
-            var assembliesProvider = new ApplicationAssembliesProvider();
+            var assembliesProvider = new ApplicationAssemblyProvider();
             var applicationAssemblies = assembliesProvider.ResolveAssemblies(entryAssembly);
 
             foreach (var assembly in applicationAssemblies)

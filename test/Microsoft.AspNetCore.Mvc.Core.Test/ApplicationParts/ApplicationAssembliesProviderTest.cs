@@ -57,7 +57,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         public void ResolveAssemblies_ReturnsRelatedAssembliesOrderedByName()
         {
             // Arrange
-            var assembly1 = typeof(ApplicationAssembliesProvider).Assembly;
+            var assembly1 = typeof(ApplicationAssemblyProvider).Assembly;
             var assembly2 = typeof(IActionResult).Assembly;
             var assembly3 = typeof(FactAttribute).Assembly;
 
@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
         {
             // Arrange
             var expected = $"Assembly 'TestRelatedAssembly' declared as a related assembly by assembly '{ThisAssembly}' cannot define additional related assemblies.";
-            var assembly1 = typeof(ApplicationAssembliesProvider).Assembly;
+            var assembly1 = typeof(ApplicationAssemblyProvider).Assembly;
             var assembly2 = new TestAssembly();
 
             var relatedAssemblies = new[] { assembly1, assembly2 };
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(libraries);
 
             // Act
-            var exception = Assert.Throws<InvalidOperationException>(() => ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext).ToArray());
+            var exception = Assert.Throws<InvalidOperationException>(() => ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext).ToArray());
 
             // Assert
             Assert.Equal($"A duplicate entry for library reference {mixedCaseLibrary} was found. Please check that all package references in all projects use the same casing for the same package references.", exception.Message);
@@ -247,7 +247,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(compileLibraries, runtimeLibraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(new[] { expected }, candidates);
@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(compileLibraries, runtimeLibraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(new[] { expected }, candidates);
@@ -307,7 +307,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(compileLibraries, runtimeLibraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext).ToList();
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext).ToList();
 
             // Assert
             Assert.Equal(new[] { expected }, candidates);
@@ -336,7 +336,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(compileLibraries, runtimeLibraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext).ToList();
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext).ToList();
 
             // Assert
             Assert.Equal(new[] { expected }, candidates);
@@ -361,7 +361,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(libraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(new[] { "Bar", "Baz", "Foo", }, candidates.Select(a => a.Name));
@@ -388,7 +388,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(libraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(new[] { "Bar", "Baz", "Foo", "LibraryA", "LibraryB" }, candidates.Select(a => a.Name));
@@ -423,7 +423,7 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(libraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(expectedLibraries, candidates.Select(a => a.Name));
@@ -448,13 +448,13 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationParts
             var dependencyContext = GetDependencyContext(libraries);
 
             // Act
-            var candidates = ApplicationAssembliesProvider.GetCandidateLibraries(dependencyContext);
+            var candidates = ApplicationAssemblyProvider.GetCandidateLibraries(dependencyContext);
 
             // Assert
             Assert.Equal(new[] { "ControllersAssembly", "MvcSandbox" }, candidates.Select(a => a.Name));
         }
 
-        private class TestApplicationAssembliesProvider : ApplicationAssembliesProvider
+        private class TestApplicationAssembliesProvider : ApplicationAssemblyProvider
         {
             public DependencyContext DependencyContext { get; set; }
 

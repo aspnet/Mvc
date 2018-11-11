@@ -17,30 +17,29 @@ namespace MvcSandbox
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Latest);
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        
         public void Configure(IApplicationBuilder app)
         {
-            app.UseEndpointRouting(builder =>
+            app.UseEndpointRouting(routes =>
             {
-                builder.MapGet(
+                routes.MapApplication();
+
+                routes.MapGet(
                     requestDelegate: WriteEndpoints,
                     pattern: "/endpoints",
                     displayName: "Home");
 
-                builder.MapMvcRoute(
+                routes.MapControllerRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
 
-                builder.MapMvcControllers();
-                builder.MapRazorPages();
+                routes.MapRazorPages();
 
-                builder.MapHealthChecks("/healthz");
+                routes.MapHealthChecks("/healthz");
             });
 
             app.UseDeveloperExceptionPage();

@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace Microsoft.AspNetCore.Mvc.ApplicationParts
 {
-    internal class ApplicationAssembliesProvider
+    internal class ApplicationAssemblyProvider
     {
         internal static HashSet<string> ReferenceAssemblies { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
