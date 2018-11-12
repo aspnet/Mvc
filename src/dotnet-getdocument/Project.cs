@@ -104,6 +104,7 @@ namespace Microsoft.Extensions.ApiDescription.Tool
                     "/target:WriteServiceProjectReferenceMetadata",
                     "/verbosity:quiet",
                     "/nologo",
+                    "/nodeReuse:false",
                     $"/property:ServiceProjectReferenceMetadataPath={metadataPath}",
                     projectFile,
                 };
