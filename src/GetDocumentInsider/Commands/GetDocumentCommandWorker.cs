@@ -109,8 +109,8 @@ namespace Microsoft.Extensions.ApiDescription.Tool.Commands
                         return false;
                     }
 
-                    var finished = Task.WhenAny(resultTask, Task.Delay(TimeSpan.FromMinutes(1))).Result;
-                    if (!ReferenceEquals(resultTask, finished))
+                    var finishedIndex = Task.WaitAny(resultTask, Task.Delay(TimeSpan.FromMinutes(1)));
+                    if (finishedIndex != 0)
                     {
                         Reporter.WriteWarning(Resources.FormatMethodTimedOut(methodName, serviceName, 1));
                         return false;
