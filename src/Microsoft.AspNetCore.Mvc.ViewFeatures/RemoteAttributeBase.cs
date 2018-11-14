@@ -131,6 +131,15 @@ namespace Microsoft.AspNetCore.Mvc
             return true;
         }
 
+        /// <summary>
+        /// Adds Unobtrusive validation HTML attributes to <see cref="ClientModelValidationContext"/>.
+        /// </summary>
+        /// <param name="context">
+        /// <see cref="ClientModelValidationContext"/> to add Unobtrusive validation HTML attributes to.
+        /// </param>
+        /// <remarks>
+        /// Calls derived <see cref="ValidationAttribute"/> implementation of <see cref="GetUrl(ClientModelValidationContext)"/>.
+        /// </remarks>
         public virtual void AddValidation(ClientModelValidationContext context)
         {
             if (context == null)
