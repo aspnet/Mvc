@@ -447,6 +447,36 @@ namespace Microsoft.AspNetCore.Mvc
                 kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
         }
         
+        [Fact]
+        public void AddValidation_WillSetAttributes_ToExpectedValues()
+        {
+            // Arrange
+            var url = "/Controller/Action";
+            var attribute = new TestableRemoteAttributeBase(dummyGetUrlReturnValue: url)
+            {
+                HttpMethod = "POST",
+                AdditionalFields = "Password,ConfirmPassword",
+                ErrorMessage = "Error"
+            };
+            var context = GetValidationContext();
+
+            // Act
+            attribute.AddValidation(context);
+
+            // Assert
+            Assert.Collection(
+                context.Attributes,
+                kvp => { Assert.Equal("data-val", kvp.Key); Assert.Equal("true", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote", kvp.Key); Assert.Equal("Error", kvp.Value); },
+                kvp =>
+                {
+                    Assert.Equal("data-val-remote-additionalfields", kvp.Key);
+                    Assert.Equal("*.Length,*.Password,*.ConfirmPassword", kvp.Value);
+                },
+                kvp => { Assert.Equal("data-val-remote-type", kvp.Key); Assert.Equal("POST", kvp.Value); },
+                kvp => { Assert.Equal("data-val-remote-url", kvp.Key); Assert.Equal(url, kvp.Value); });
+        }
+
         private static ClientModelValidationContext GetValidationContext(
             IStringLocalizerFactory localizerFactory = null,
             IModelMetadataProvider metadataProvider = null)
