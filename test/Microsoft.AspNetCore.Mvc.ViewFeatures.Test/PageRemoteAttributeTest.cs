@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Mvc
 
             var ambientValues = new RouteValueDictionary
             {
-                { "page", "/Page" }
+                ["page"] = "/Page"
             };
 
             var routeData = new RouteData(ambientValues)
@@ -92,6 +92,70 @@ namespace Microsoft.AspNetCore.Mvc
             ExceptionAssert.Throws<InvalidOperationException>(
                 () => testableAttribute.InvokeGetUrl(validationContext),
                 Resources.RemoteAttribute_NoUrlFound);
+        }
+
+        [Fact]
+        public void GetUrl_WhenPageNameIsNotSet_WillUsePageNameFromAmbientValues()
+        {
+            // Arrange
+            var testableAttribute = new TestablePageRemoteAttribute()
+            {
+                PageHandler = "Handler"
+            };
+
+            var ambientValues = new RouteValueDictionary
+            {
+                ["page"] = "/Page"
+            };
+
+            var routeData = new RouteData(ambientValues)
+            {
+                Routers = { Mock.Of<IRouter>() }
+            };
+
+            var urlHelper = new MockUrlHelper(url: "/Page?handler=Handler")
+            {
+                ActionContext = GetActionContext(new ServiceCollection().BuildServiceProvider(), routeData)
+            };
+
+            var validationContext = GetValidationContext(urlHelper);
+
+            // Act
+            var actualUrl = testableAttribute.InvokeGetUrl(validationContext);
+
+            // Assert
+            Assert.Equal("/Page?handler=Handler", actualUrl);
+        }
+
+        [Fact]
+        public void GetUrl_WhenPageNameAndPageHandlerIsNotSet_WillUseAmbientValues()
+        {
+            // Arrange
+            var testableAttribute = new TestablePageRemoteAttribute();
+
+            var ambientValues = new RouteValueDictionary
+            {
+                ["page"] = "/Page",
+                ["handler"] = "Handler"
+            };
+
+            var routeData = new RouteData(ambientValues)
+            {
+                Routers = { Mock.Of<IRouter>() }
+            };
+
+            var urlHelper = new MockUrlHelper(url: "/Page?handler=Handler")
+            {
+                ActionContext = GetActionContext(new ServiceCollection().BuildServiceProvider(), routeData)
+            };
+
+            var validationContext = GetValidationContext(urlHelper);
+
+            // Act
+            var actualUrl = testableAttribute.InvokeGetUrl(validationContext);
+
+            // Assert
+            Assert.Equal("/Page?handler=Handler", actualUrl);
         }
         
         private static ClientModelValidationContext GetValidationContext(IUrlHelper urlHelper, RouteData routeData = null)
@@ -130,7 +194,7 @@ namespace Microsoft.AspNetCore.Mvc
             serviceCollection.AddRouting();
 
             serviceCollection.AddSingleton<IInlineConstraintResolver>(
-                provider => new DefaultInlineConstraintResolver(provider.GetRequiredService<IOptions<RouteOptions>>()));
+                provider => new DefaultInlineConstraintResolver(provider.GetRequiredService<IOptions<RouteOptions>>(), provider));
 
             return serviceCollection;
         }

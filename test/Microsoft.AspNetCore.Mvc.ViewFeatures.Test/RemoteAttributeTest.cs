@@ -630,11 +630,6 @@ namespace Microsoft.AspNetCore.Mvc
             serviceCollection.AddSingleton<IInlineConstraintResolver>(
                 provider => new DefaultInlineConstraintResolver(provider.GetRequiredService<IOptions<RouteOptions>>(), provider));
 
-            if (localizerFactory != null)
-            {
-                serviceCollection.AddSingleton<IStringLocalizerFactory>(localizerFactory);
-            }
-
             return serviceCollection;
         }
 
