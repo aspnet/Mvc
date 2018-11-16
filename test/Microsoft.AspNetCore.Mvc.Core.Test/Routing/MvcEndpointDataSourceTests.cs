@@ -1354,7 +1354,8 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             var dataSource = new MvcEndpointDataSource(
                 actionDescriptorCollectionProvider,
                 mvcEndpointInvokerFactory ?? new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
-                serviceProvider.GetRequiredService<ParameterPolicyFactory>());
+                serviceProvider.GetRequiredService<ParameterPolicyFactory>(),
+                null);
 
             var defaultEndpointConventionBuilder = new DefaultEndpointConventionBuilder();
             dataSource.AttributeRoutingConventionResolvers.Add((actionDescriptor) =>

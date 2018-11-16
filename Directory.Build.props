@@ -16,6 +16,7 @@
     <SignAssembly>true</SignAssembly>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseRoutingFromFeatureBranch>true</UseRoutingFromFeatureBranch>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
   </PropertyGroup>
 
 </Project>
