@@ -116,6 +116,14 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             return dataSource;
         }
 
+        private class MockRoutePatternTransformer : RoutePatternTransformer
+        {
+            public override RoutePattern SubstituteRequiredValues(RoutePattern original, object requiredValues)
+            {
+                return original;
+            }
+        }
+
         private class MockActionDescriptorCollectionProvider : IActionDescriptorCollectionProvider
         {
             public MockActionDescriptorCollectionProvider(List<ActionDescriptor> actionDescriptors)

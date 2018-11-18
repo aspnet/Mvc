@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using Moq;
@@ -1355,7 +1356,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 actionDescriptorCollectionProvider,
                 mvcEndpointInvokerFactory ?? new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
                 serviceProvider.GetRequiredService<ParameterPolicyFactory>(),
-                null);
+                serviceProvider.GetRequiredService<RoutePatternTransformer>());
 
             var defaultEndpointConventionBuilder = new DefaultEndpointConventionBuilder();
             dataSource.AttributeRoutingConventionResolvers.Add((actionDescriptor) =>

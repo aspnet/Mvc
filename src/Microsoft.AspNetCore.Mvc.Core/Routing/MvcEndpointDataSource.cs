@@ -156,8 +156,19 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                             continue;
                         }
 
-                        var attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template);
+                        // Set route values as the route defaults so that route pattern transformer
+                        // succeeds when the template has no parameters
+                        var attributeRoutePattern = RoutePatternFactory.Parse(
+                            action.AttributeRouteInfo.Template,
+                            defaults: action.RouteValues,
+                            parameterPolicies: null);
+
                         var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(attributeRoutePattern, action.RouteValues);
+
+                        if (updatedRoutePattern == null)
+                        {
+                            throw new InvalidOperationException("Failed to update route pattern with required values.");
+                        }
 
                         var endpoint = CreateEndpoint(
                             action,
@@ -273,7 +284,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 metadata.Add(new DataTokensMetadata(dataTokens));
             }
 
-            metadata.Add(new RouteValuesAddressMetadata(routeName, null));
+            metadata.Add(new RouteValuesAddressMetadata(routeName));
 
             // Add filter descriptors to endpoint metadata
             if (action.FilterDescriptors != null && action.FilterDescriptors.Count > 0)
