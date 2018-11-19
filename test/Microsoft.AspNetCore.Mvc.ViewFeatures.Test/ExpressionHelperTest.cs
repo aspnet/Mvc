@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,7 +12,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
 {
     public class ExpressionHelperTest
     {
-        private readonly ExpressionTextCache _expressionTextCache = new ExpressionTextCache();
+        private readonly ConcurrentDictionary<LambdaExpression, string> ExpressionTextCache = new ConcurrentDictionary<LambdaExpression, string>(LambdaExpressionComparer.Instance);
 
         public static TheoryData<Expression, string> ExpressionAndTexts
         {
@@ -370,7 +371,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public void GetExpressionText_ReturnsExpectedExpressionText(LambdaExpression expression, string expressionText)
         {
             // Act
-            var text = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
+            var text = ExpressionHelper.GetExpressionText(expression, ExpressionTextCache);
 
             // Assert
             Assert.Equal(expressionText, text);
@@ -381,10 +382,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public void GetExpressionText_CachesExpression(LambdaExpression expression)
         {
             // Act - 1
-            var text1 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
+            var text1 = ExpressionHelper.GetExpressionText(expression, ExpressionTextCache);
 
             // Act - 2
-            var text2 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
+            var text2 = ExpressionHelper.GetExpressionText(expression, ExpressionTextCache);
 
             // Assert
             Assert.Same(text1, text2); // cached
@@ -396,10 +397,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public void GetExpressionText_DoesNotCacheIndexerOrUnsupportedExpression(LambdaExpression expression)
         {
             // Act - 1
-            var text1 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
+            var text1 = ExpressionHelper.GetExpressionText(expression, ExpressionTextCache);
 
             // Act - 2
-            var text2 = ExpressionHelper.GetExpressionText(expression, _expressionTextCache);
+            var text2 = ExpressionHelper.GetExpressionText(expression, ExpressionTextCache);
 
             // Assert
             Assert.Equal(text1, text2, StringComparer.Ordinal);
@@ -411,10 +412,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public void GetExpressionText_CacheEquivalentExpressions(LambdaExpression expression1, LambdaExpression expression2)
         {
             // Act - 1
-            var text1 = ExpressionHelper.GetExpressionText(expression1, _expressionTextCache);
+            var text1 = ExpressionHelper.GetExpressionText(expression1, ExpressionTextCache);
 
             // Act - 2
-            var text2 = ExpressionHelper.GetExpressionText(expression2, _expressionTextCache);
+            var text2 = ExpressionHelper.GetExpressionText(expression2, ExpressionTextCache);
 
             // Assert
             Assert.Same(text1, text2); // cached
@@ -425,10 +426,10 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
         public void GetExpressionText_CheckNonEquivalentExpressions(LambdaExpression expression1, LambdaExpression expression2)
         {
             // Act - 1
-            var text1 = ExpressionHelper.GetExpressionText(expression1, _expressionTextCache);
+            var text1 = ExpressionHelper.GetExpressionText(expression1, ExpressionTextCache);
 
             // Act - 2
-            var text2 = ExpressionHelper.GetExpressionText(expression2, _expressionTextCache);
+            var text2 = ExpressionHelper.GetExpressionText(expression2, ExpressionTextCache);
 
             // Assert
             Assert.NotEqual(text1, text2, StringComparer.Ordinal);
@@ -449,7 +450,7 @@ namespace Microsoft.AspNetCore.Mvc.ViewFeatures
                 // Act i
                 var result = ExpressionHelper.GetExpressionText(
                     (Expression<Func<List<TestModel>, int>>)(m => collection[i].SelectedCategory.CategoryId),
-                    _expressionTextCache);
+                    ExpressionTextCache);
 
                 // Assert i
                 Assert.Equal(expectedText, result);
