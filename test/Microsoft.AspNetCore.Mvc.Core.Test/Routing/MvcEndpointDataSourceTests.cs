@@ -67,12 +67,13 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             var routeValuesAddressMetadata = matcherEndpoint.Metadata.GetMetadata<RouteValuesAddressMetadata>();
             Assert.NotNull(routeValuesAddressMetadata);
-            var endpointValue = routeValuesAddressMetadata.RequiredValues["Name"];
+
+            var endpointValue = matcherEndpoint.RoutePattern.RequiredValues["Name"];
             Assert.Equal(routeValue, endpointValue);
 
             Assert.Equal(displayName, matcherEndpoint.DisplayName);
             Assert.Equal(order, matcherEndpoint.Order);
-            Assert.Equal("Template!", matcherEndpoint.RoutePattern.RawText);
+            Assert.Equal("/Template!", matcherEndpoint.RoutePattern.RawText);
         }
 
         [Fact]
@@ -1346,10 +1347,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
             var services = new ServiceCollection();
             services.AddSingleton(actionDescriptorCollectionProvider);
+
+            var routeOptionsSetup = new MvcCoreRouteOptionsSetup();
+            services.Configure<RouteOptions>(routeOptionsSetup.Configure);
             services.AddRouting(options =>
             {
                 options.ConstraintMap["upper-case"] = typeof(UpperCaseParameterTransform);
             });
+
             var serviceProvider = services.BuildServiceProvider();
 
             var dataSource = new MvcEndpointDataSource(

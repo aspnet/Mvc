@@ -158,10 +158,9 @@ namespace Microsoft.AspNetCore.Mvc.Routing
 
                         // Set route values as the route defaults so that route pattern transformer
                         // succeeds when the template has no parameters
-                        var attributeRoutePattern = RoutePatternFactory.Parse(
-                            action.AttributeRouteInfo.Template,
-                            defaults: action.RouteValues,
-                            parameterPolicies: null);
+                        var attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template);
+
+                        attributeRoutePattern = UpdateDefaultsWithRequiredValues(action, attributeRoutePattern);
 
                         var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(attributeRoutePattern, action.RouteValues);
 
@@ -199,6 +198,39 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 // Step 4 - trigger old token
                 oldCancellationTokenSource?.Cancel();
             }
+        }
+
+        private static RoutePattern UpdateDefaultsWithRequiredValues(ActionDescriptor action, RoutePattern attributeRoutePattern)
+        {
+            // The attribute route could have required values with no matching parameters
+            // Add the required values without a parameter as a default
+            // e.g.
+            //   Template: "Login/{action}"
+            //   Required values: { controller = "Login", action = "Index" }
+            //   Updated defaults: { controller = "Login" }
+
+            RouteValueDictionary updatedDefaults = null;
+            foreach (var routeValue in action.RouteValues)
+            {
+                if (!RouteValueEqualityComparer.Default.Equals(routeValue, string.Empty))
+                {
+                    if (attributeRoutePattern.GetParameter(routeValue.Key) == null)
+                    {
+                        if (updatedDefaults == null)
+                        {
+                            updatedDefaults = new RouteValueDictionary(attributeRoutePattern.Defaults);
+                        }
+
+                        updatedDefaults[routeValue.Key] = routeValue.Value;
+                    }
+                }
+            }
+            if (updatedDefaults != null)
+            {
+                attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template, updatedDefaults, parameterPolicies: null);
+            }
+
+            return attributeRoutePattern;
         }
 
         private DefaultEndpointConventionBuilder ResolveActionConventionBuilder(ActionDescriptor action)
