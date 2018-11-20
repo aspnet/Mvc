@@ -126,60 +126,6 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         }
 
         [Fact]
-        public void OnProvidersExecuting_ValidatesChecksum_RejectsPageWhenContentDoesntMatch()
-        {
-            // Arrange
-            var descriptors = new[]
-            {
-                CreateVersion_2_1_Descriptor("/Pages/About.cshtml", metadata: new object[]
-                {
-                    new RazorSourceChecksumAttribute("SHA1", GetChecksum("some content"), "/Pages/About.cshtml"),
-                }),
-            };
-
-            var fileSystem = new VirtualRazorProjectFileSystem();
-            fileSystem.Add(new TestRazorProjectItem("/Pages/About.cshtml", "some other content"));
-
-            var provider = CreateProvider(descriptors: descriptors, fileSystem: fileSystem);
-            var context = new PageRouteModelProviderContext();
-
-            // Act
-            provider.OnProvidersExecuting(context);
-
-            // Assert
-            Assert.Empty(context.RouteModels);
-        }
-
-        [Fact]
-        public void OnProvidersExecuting_ValidatesChecksum_AcceptsPageWhenContentMatches()
-        {
-            // Arrange
-            var descriptors = new[]
-            {
-                CreateVersion_2_1_Descriptor("/Pages/About.cshtml", metadata: new object[]
-                {
-                    new RazorSourceChecksumAttribute("SHA1", GetChecksum("some content"), "/Pages/About.cshtml"),
-                    new RazorSourceChecksumAttribute("SHA1", GetChecksum("some import"), "/Pages/_ViewImports.cshtml"),
-                }),
-            };
-
-            var fileSystem = new VirtualRazorProjectFileSystem();
-            fileSystem.Add(new TestRazorProjectItem("/Pages/About.cshtml", "some content"));
-            fileSystem.Add(new TestRazorProjectItem("/Pages/_ViewImports.cshtml", "some import"));
-
-            var provider = CreateProvider(descriptors: descriptors, fileSystem: fileSystem);
-            var context = new PageRouteModelProviderContext();
-
-            // Act
-            provider.OnProvidersExecuting(context);
-
-            // Assert
-            Assert.Collection(
-                context.RouteModels,
-                result => Assert.Equal("/Pages/About.cshtml", result.RelativePath));
-        }
-
-        [Fact]
         public void OnProvidersExecuting_ValidatesChecksum_SkipsValidationWhenMainSourceMissing()
         {
             // Arrange
@@ -677,12 +623,10 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         {
             options = options ?? new RazorPagesOptions();
             fileSystem = fileSystem ?? new VirtualRazorProjectFileSystem();
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem);
 
             var provider = new TestCompiledPageRouteModelProvider(
                 new ApplicationPartManager(),
                 Options.Create(options),
-                projectEngine,
                 NullLogger<CompiledPageRouteModelProvider>.Instance);
 
             provider.Descriptors.AddRange(descriptors ?? Array.Empty<CompiledViewDescriptor>());
@@ -717,9 +661,8 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
             public TestCompiledPageRouteModelProvider(
                 ApplicationPartManager partManager,
                 IOptions<RazorPagesOptions> options,
-                RazorProjectEngine projectEngine,
                 ILogger<CompiledPageRouteModelProvider> logger)
-                : base(partManager, options, projectEngine, logger)
+                : base(partManager, options, logger)
             {
             }
 

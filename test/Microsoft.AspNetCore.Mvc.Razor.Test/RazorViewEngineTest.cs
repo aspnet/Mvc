@@ -904,62 +904,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             pageFactory.Verify();
         }
 
-        [Fact]
-        public void FindView_InvokesPageFactoryIfViewStartExpirationTokensHaveExpired()
-        {
-            // Arrange
-            var page1 = Mock.Of<IRazorPage>();
-            var page2 = Mock.Of<IRazorPage>();
-            var viewStart = Mock.Of<IRazorPage>();
-            var sequence = new MockSequence();
-            var cancellationTokenSource = new CancellationTokenSource();
-            var changeToken = new CancellationChangeToken(cancellationTokenSource.Token);
-
-            var pageFactory = new Mock<IRazorPageFactoryProvider>();
-            pageFactory
-                .InSequence(sequence)
-                .Setup(p => p.CreateFactory("/Views/bar/baz.cshtml"))
-                .Returns(GetPageFactoryResult(() => page1));
-            pageFactory
-                .InSequence(sequence)
-               .Setup(p => p.CreateFactory("/Views/_ViewStart.cshtml"))
-               .Returns(GetPageFactoryResult(factory: null, changeTokens: new[] { changeToken }))
-               .Verifiable();
-            pageFactory
-                .InSequence(sequence)
-                .Setup(p => p.CreateFactory("/Views/bar/baz.cshtml"))
-                .Returns(GetPageFactoryResult(() => page2));
-            pageFactory
-                .InSequence(sequence)
-               .Setup(p => p.CreateFactory("/Views/_ViewStart.cshtml"))
-               .Returns(GetPageFactoryResult(() => viewStart));
-
-            var fileSystem = new VirtualRazorProjectFileSystem();
-            var viewEngine = CreateViewEngine(pageFactory.Object, fileSystem: fileSystem);
-            var context = GetActionContext(_controllerTestContext);
-
-            // Act 1
-            var result1 = viewEngine.FindView(context, "baz", isMainPage: true);
-
-            // Assert 1
-            Assert.True(result1.Success);
-            var view1 = Assert.IsType<RazorView>(result1.View);
-            Assert.Same(page1, view1.RazorPage);
-            Assert.Empty(view1.ViewStartPages);
-
-            // Act 2
-            cancellationTokenSource.Cancel();
-            var result2 = viewEngine.FindView(context, "baz", isMainPage: true);
-
-            // Assert 2
-            Assert.True(result2.Success);
-            var view2 = Assert.IsType<RazorView>(result2.View);
-            Assert.Same(page2, view2.RazorPage);
-            var actualViewStart = Assert.Single(view2.ViewStartPages);
-            Assert.Equal(viewStart, actualViewStart);
-            pageFactory.Verify();
-        }
-
         // This test validates an important perf scenario of RazorViewEngine not constructing
         // multiple strings for views that do not exist in the file system on a per-request basis.
         [Fact]
@@ -1384,7 +1328,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 Mock.Of<IRazorPageActivator>(),
                 new HtmlTestEncoder(),
                 GetOptionsAccessor(expanders: null),
-                new VirtualRazorProjectFileSystem(),
                 loggerFactory,
                 new DiagnosticListener("Microsoft.AspNetCore.Mvc.Razor"));
 
@@ -1989,12 +1932,10 @@ namespace Microsoft.AspNetCore.Mvc.Razor
 
         private TestableRazorViewEngine CreateViewEngine(
             IRazorPageFactoryProvider pageFactory = null,
-            IEnumerable<IViewLocationExpander> expanders = null,
-            RazorProjectFileSystem fileSystem = null)
+            IEnumerable<IViewLocationExpander> expanders = null)
         {
             pageFactory = pageFactory ?? Mock.Of<IRazorPageFactoryProvider>();
-            fileSystem = fileSystem ?? new VirtualRazorProjectFileSystem();
-            return new TestableRazorViewEngine(pageFactory, GetOptionsAccessor(expanders), fileSystem);
+            return new TestableRazorViewEngine(pageFactory, GetOptionsAccessor(expanders));
         }
 
         private static IOptions<RazorViewEngineOptions> GetOptionsAccessor(
@@ -2003,10 +1944,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             IEnumerable<string> areaViewLocationFormats = null,
             IEnumerable<string> pageViewLocationFormats = null)
         {
-            var optionsSetup = new RazorViewEngineOptionsSetup(
-                Mock.Of<IHostingEnvironment>(),
-                NullLoggerFactory.Instance,
-                Options.Create(new MvcCompatibilityOptions()));
+            var optionsSetup = new RazorViewEngineOptionsSetup(Mock.Of<IHostingEnvironment>());
 
             var options = new RazorViewEngineOptions();
             optionsSetup.Configure(options);
@@ -2097,20 +2035,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             public TestableRazorViewEngine(
                 IRazorPageFactoryProvider pageFactory,
                 IOptions<RazorViewEngineOptions> optionsAccessor)
-                : this(
-                      pageFactory,
-                      optionsAccessor,
-                      new FileProviderRazorProjectFileSystem(
-                          Mock.Of<IRazorViewEngineFileProviderAccessor>(a => a.FileProvider == new TestFileProvider()),
-                          Mock.Of<IHostingEnvironment>()))
-            {
-            }
-
-            public TestableRazorViewEngine(
-                IRazorPageFactoryProvider pageFactory,
-                IOptions<RazorViewEngineOptions> optionsAccessor,
-                RazorProjectFileSystem fileSystem)
-                : base(pageFactory, Mock.Of<IRazorPageActivator>(), new HtmlTestEncoder(), optionsAccessor, fileSystem, NullLoggerFactory.Instance, new DiagnosticListener("Microsoft.AspNetCore.Mvc.Razor"))
+                : base(pageFactory, Mock.Of<IRazorPageActivator>(), new HtmlTestEncoder(), optionsAccessor, NullLoggerFactory.Instance, new DiagnosticListener("Microsoft.AspNetCore.Mvc.Razor"))
             {
             }
 
