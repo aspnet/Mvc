@@ -160,9 +160,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                         // succeeds when the template has no parameters
                         var attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template);
 
-                        attributeRoutePattern = UpdateDefaultsWithRequiredValues(action, attributeRoutePattern);
+                        // Modify the route and required values to ensure required values can be successfully subsituted
+                        var (resolvedRoutePattern, resolvedRouteValues) = ResolveDefaultsAndRequiredValues(action, attributeRoutePattern);
 
-                        var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(attributeRoutePattern, action.RouteValues);
+                        var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(resolvedRoutePattern, resolvedRouteValues);
 
                         if (updatedRoutePattern == null)
                         {
@@ -200,22 +201,26 @@ namespace Microsoft.AspNetCore.Mvc.Routing
             }
         }
 
-        private static RoutePattern UpdateDefaultsWithRequiredValues(ActionDescriptor action, RoutePattern attributeRoutePattern)
+        private static (RoutePattern resolvedRoutePattern, IDictionary<string, string> resolvedRequiredValues) ResolveDefaultsAndRequiredValues(ActionDescriptor action, RoutePattern attributeRoutePattern)
         {
-            // The attribute route could have required values with no matching parameters
-            // Add the required values without a parameter as a default
-            // e.g.
-            //   Template: "Login/{action}"
-            //   Required values: { controller = "Login", action = "Index" }
-            //   Updated defaults: { controller = "Login" }
-
             RouteValueDictionary updatedDefaults = null;
+            IDictionary<string, string> resolvedRequiredValues = null;
+
             foreach (var routeValue in action.RouteValues)
             {
-                if (!RouteValueEqualityComparer.Default.Equals(routeValue, string.Empty))
+                var parameter = attributeRoutePattern.GetParameter(routeValue.Key);
+
+                if (!RouteValueEqualityComparer.Default.Equals(routeValue.Value, string.Empty))
                 {
-                    if (attributeRoutePattern.GetParameter(routeValue.Key) == null)
+                    if (parameter == null)
                     {
+                        // The attribute route has a required value with no matching parameter
+                        // Add the required values without a parameter as a default
+                        // e.g.
+                        //   Template: "Login/{action}"
+                        //   Required values: { controller = "Login", action = "Index" }
+                        //   Updated defaults: { controller = "Login" }
+
                         if (updatedDefaults == null)
                         {
                             updatedDefaults = new RouteValueDictionary(attributeRoutePattern.Defaults);
@@ -224,13 +229,28 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                         updatedDefaults[routeValue.Key] = routeValue.Value;
                     }
                 }
+                else
+                {
+                    if (parameter != null)
+                    {
+                        // The attribute route has a null or empty required value with a matching parameter
+                        // Remove the required value from the route
+
+                        if (resolvedRequiredValues == null)
+                        {
+                            resolvedRequiredValues = new Dictionary<string, string>(action.RouteValues);
+                        }
+
+                        resolvedRequiredValues.Remove(parameter.Name);
+                    }
+                }
             }
             if (updatedDefaults != null)
             {
                 attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template, updatedDefaults, parameterPolicies: null);
             }
 
-            return attributeRoutePattern;
+            return (attributeRoutePattern, resolvedRequiredValues ?? action.RouteValues);
         }
 
         private DefaultEndpointConventionBuilder ResolveActionConventionBuilder(ActionDescriptor action)
