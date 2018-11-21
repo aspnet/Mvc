@@ -114,19 +114,14 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                         // This is for scenarios dealing with migrating existing Router based code to Endpoint Routing world.
                         var conventionalRouteOrder = 1;
 
-                        // Check each of the conventional patterns to see if the action would be reachable
-                        // If the action and pattern are compatible then create an endpoint with the
-                        // area/controller/action parameter parts replaced with literals
-                        //
-                        // e.g. {controller}/{action} with HomeController.Index and HomeController.Login
-                        // would result in endpoints:
-                        // - Home/Index
-                        // - Home/Login
+                        // Check each of the conventional patterns to see if the action would be reachable.
+                        // If the action and pattern are compatible then create an endpoint with action
+                        // route values on the pattern.
                         foreach (var endpointInfo in ConventionalEndpointInfos)
                         {
                             // An 'endpointInfo' is applicable if:
-                            // 1. it has a parameter (or default value) for 'required' non-null route value
-                            // 2. it does not have a parameter (or default value) for 'required' null route value
+                            // 1. It has a parameter (or default value) for 'required' non-null route value
+                            // 2. It does not have a parameter (or default value) for 'required' null route value
                             var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(endpointInfo.ParsedPattern, action.RouteValues);
 
                             if (updatedRoutePattern == null)
@@ -156,11 +151,10 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                             continue;
                         }
 
-                        // Set route values as the route defaults so that route pattern transformer
-                        // succeeds when the template has no parameters
                         var attributeRoutePattern = RoutePatternFactory.Parse(action.AttributeRouteInfo.Template);
 
-                        // Modify the route and required values to ensure required values can be successfully subsituted
+                        // Modify the route and required values to ensure required values can be successfully subsituted.
+                        // Subsitituting required values into an attribute route pattern should always succeed.
                         var (resolvedRoutePattern, resolvedRouteValues) = ResolveDefaultsAndRequiredValues(action, attributeRoutePattern);
 
                         var updatedRoutePattern = _routePatternTransformer.SubstituteRequiredValues(resolvedRoutePattern, resolvedRouteValues);
@@ -336,7 +330,7 @@ namespace Microsoft.AspNetCore.Mvc.Routing
                 metadata.Add(new DataTokensMetadata(dataTokens));
             }
 
-            metadata.Add(new RouteValuesAddressMetadata(routeName));
+            metadata.Add(new RouteNameMetadata(routeName));
 
             // Add filter descriptors to endpoint metadata
             if (action.FilterDescriptors != null && action.FilterDescriptors.Count > 0)
