@@ -13,22 +13,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace RoutingWebSite
 {
-    //public class CustomSelector : EndpointSelector
-    //{
-    //    public override Task SelectAsync(HttpContext httpContext, EndpointSelectorContext context, CandidateSet candidates)
-    //    {
-    //        throw new System.NotImplementedException();
-    //    }
-    //}
-
     public class Startup
     {
         // Set up application services
         public void ConfigureServices(IServiceCollection services)
         {
             var pageRouteTransformerConvention = new PageRouteTransformerConvention(new SlugifyParameterTransformer());
-
-            //services.AddSingleton<EndpointSelector, CustomSelector>();
 
             services
                 .AddMvc(options =>
