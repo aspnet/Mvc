@@ -48,5 +48,10 @@
     "TypeId": "public class Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions",
     "MemberId": "public System.Void set_CompilationCallback(System.Action<Microsoft.AspNetCore.Mvc.Razor.Compilation.RoslynCompilationContext> value)",
     "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions",
+    "MemberId": "public System.Collections.Generic.IList<Microsoft.Extensions.FileProviders.IFileProvider> get_FileProviders()",
+    "Kind": "Removal"
   }
 ]

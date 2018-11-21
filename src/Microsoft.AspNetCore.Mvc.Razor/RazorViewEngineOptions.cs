@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
 {
@@ -16,16 +14,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         /// Gets a <see cref="IList{IViewLocationExpander}"/> used by the <see cref="RazorViewEngine"/>.
         /// </summary>
         public IList<IViewLocationExpander> ViewLocationExpanders { get; } = new List<IViewLocationExpander>();
-
-        /// <summary>
-        /// Gets the sequence of <see cref="IFileProvider" /> instances used by <see cref="RazorViewEngine"/> to
-        /// locate Razor files.
-        /// </summary>
-        /// <remarks>
-        /// At startup, this is initialized to include an instance of
-        /// <see cref="IHostingEnvironment.ContentRootFileProvider"/> that is rooted at the application root.
-        /// </remarks>
-        public IList<IFileProvider> FileProviders { get; } = new List<IFileProvider>();
 
         /// <summary>
         /// Gets the locations where <see cref="RazorViewEngine"/> will search for views.

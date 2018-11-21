@@ -23,11 +23,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (_hostingEnvironment.ContentRootFileProvider != null)
-            {
-                options.FileProviders.Add(_hostingEnvironment.ContentRootFileProvider);
-            }
-
             options.ViewLocationFormats.Add("/Views/{1}/{0}" + RazorViewEngine.ViewExtension);
             options.ViewLocationFormats.Add("/Views/Shared/{0}" + RazorViewEngine.ViewExtension);
 
