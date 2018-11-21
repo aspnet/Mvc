@@ -58,6 +58,8 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         {
             var endpointDataSource = CreateMvcEndpointDataSource(_attributeActionProvider);
             var endpoints = endpointDataSource.Endpoints;
+
+            AssertHasEndpoints(endpoints);
         }
 
         [Benchmark]
@@ -66,6 +68,8 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             var endpointDataSource = CreateMvcEndpointDataSource(_conventionalActionProvider);
             endpointDataSource.ConventionalEndpointInfos.AddRange(_conventionalEndpointInfos);
             var endpoints = endpointDataSource.Endpoints;
+
+            AssertHasEndpoints(endpoints);
         }
 
         private ActionDescriptor CreateAttributeRoutedAction(int id)
@@ -111,7 +115,7 @@ namespace Microsoft.AspNetCore.Mvc.Performance
                 actionDescriptorCollectionProvider,
                 new MvcEndpointInvokerFactory(new ActionInvokerFactory(Array.Empty<IActionInvokerProvider>())),
                 new MockParameterPolicyFactory(),
-                null);
+                new MockRoutePatternTransformer());
 
             return dataSource;
         }
@@ -144,6 +148,14 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             public override IParameterPolicy Create(RoutePatternParameterPart parameter, IParameterPolicy parameterPolicy)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private static void AssertHasEndpoints(IReadOnlyList<Http.Endpoint> endpoints)
+        {
+            if (endpoints.Count == 0)
+            {
+                throw new InvalidOperationException("Expected endpoints from data source.");
             }
         }
     }
