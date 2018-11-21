@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure
         {
             var viewStartFactories = new List<Func<IRazorPage>>();
             // Always pick up all _ViewStarts, including the ones outside the Pages root.
-            foreach (var filePath in RazorFileHierarchy.FindViewImports(descriptor.RelativePath))
+            foreach (var filePath in RazorFileHierarchy.GetViewStartPaths(descriptor.RelativePath))
             {
                 var factoryResult = _razorPageFactoryProvider.CreateFactory(filePath);
                 if (factoryResult.Success)

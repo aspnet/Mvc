@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.AspNetCore.Mvc.Razor
@@ -12,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
     {
         private const string ViewStartFileName = "_ViewStart.cshtml";
 
-        public static IEnumerable<string> FindViewImports(string path)
+        public static IEnumerable<string> GetViewStartPaths(string path)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -24,37 +23,15 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 throw new ArgumentException(Resources.RazorProject_PathMustStartWithForwardSlash, nameof(path));
             }
 
-            var basePath = "/";
-            Debug.Assert(!string.IsNullOrEmpty(path));
             if (path.Length == 1)
             {
                 yield break;
             }
 
-            if (!path.StartsWith(basePath, StringComparison.OrdinalIgnoreCase))
-            {
-                yield break;
-            }
-
-            StringBuilder builder;
-            var fileNameIndex = path.LastIndexOf('/');
-            var length = path.Length;
-            Debug.Assert(fileNameIndex != -1);
-            if (string.Compare(path, fileNameIndex + 1, ViewStartFileName, 0, ViewStartFileName.Length) == 0)
-            {
-                // If the specified path is for the file hierarchy being constructed, then the first file that applies
-                // to it is in a parent directory.
-                builder = new StringBuilder(path, 0, fileNameIndex, fileNameIndex + ViewStartFileName.Length);
-                length = fileNameIndex;
-            }
-            else
-            {
-                builder = new StringBuilder(path);
-            }
-
-            var maxDepth = 255;
-            var index = length;
-            while (maxDepth-- > 0 && index > basePath.Length && (index = path.LastIndexOf('/', index - 1)) != -1)
+            var builder = new StringBuilder(path);
+            var maxIterations = 255;
+            var index = path.Length;
+            while (maxIterations-- > 0 && index > 1 && (index = path.LastIndexOf('/', index - 1)) != -1)
             {
                 builder.Length = index + 1;
                 builder.Append(ViewStartFileName);

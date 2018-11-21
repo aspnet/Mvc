@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         private readonly DiagnosticListener _diagnosticListener;
 
         /// <summary>
-        /// Initializes a new instance of the RazorViewEngine
+        /// Initializes a new instance of the <see cref="RazorViewEngine" />.
         /// </summary>
         public RazorViewEngine(
             IRazorPageFactoryProvider pageFactory,
@@ -435,7 +435,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor
         {
             var viewStartPages = new List<ViewLocationCacheItem>();
 
-            foreach (var filePath in RazorFileHierarchy.FindViewImports(path))
+            foreach (var filePath in RazorFileHierarchy.GetViewStartPaths(path))
             {
                 var result = _pageFactory.CreateFactory(filePath);
                 var viewDescriptor = result.ViewDescriptor;
