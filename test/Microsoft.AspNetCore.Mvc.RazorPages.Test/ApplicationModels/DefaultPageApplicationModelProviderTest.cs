@@ -480,15 +480,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         private class EmptyPage : Page
         {
             // Copied from generated code
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<EmptyPage> Html { get; private set; }
             public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<EmptyPage> ViewData => null;
             public EmptyPage Model => ViewData.Model;
@@ -502,15 +502,15 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
         private class EmptyPageWithPageModel : Page
         {
             // Copied from generated code
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; }
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+            [global::Microsoft.AspNetCore.Mvc.Razor.Infrastructure.RazorInjectAttribute]
             public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<EmptyPageModel> Html { get; private set; }
             public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<EmptyPageModel> ViewData => null;
             public EmptyPageModel Model => ViewData.Model;

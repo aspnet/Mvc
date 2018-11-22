@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;

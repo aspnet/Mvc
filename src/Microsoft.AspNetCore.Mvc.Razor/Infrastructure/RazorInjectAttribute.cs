@@ -3,10 +3,10 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Mvc.Razor.Internal
+namespace Microsoft.AspNetCore.Mvc.Razor.Infrastructure
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class RazorInjectAttribute : Attribute
+    public sealed class RazorInjectAttribute : Attribute
     {
     }
 }

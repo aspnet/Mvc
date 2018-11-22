@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;

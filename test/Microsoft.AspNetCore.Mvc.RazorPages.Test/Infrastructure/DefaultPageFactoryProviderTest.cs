@@ -8,7 +8,7 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
+using Microsoft.AspNetCore.Mvc.Razor.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
