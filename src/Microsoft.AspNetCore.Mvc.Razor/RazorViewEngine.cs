@@ -416,10 +416,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
                 var viewStartPages = isMainPage ?
                     GetViewStartPages(viewDescriptor.RelativePath, expirationTokens) :
                     Array.Empty<ViewLocationCacheItem>();
-                if (viewDescriptor.IsPrecompiled)
-                {
-                    _logger.PrecompiledViewFound(relativePath);
-                }
 
                 return new ViewLocationCacheResult(
                     new ViewLocationCacheItem(factoryResult.RazorPageFactory, relativePath),

@@ -51,7 +51,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Compilation
 
                 if (!_compiledViews.ContainsKey(compiledView.RelativePath))
                 {
-                    // View ordering has precedence semantics, a view with a higher precedence was
+                    // View ordering has precedence semantics, a view with a higher precedence was not
                     // already added to the list.
                     _compiledViews.Add(compiledView.RelativePath, Task.FromResult(compiledView));
                 }

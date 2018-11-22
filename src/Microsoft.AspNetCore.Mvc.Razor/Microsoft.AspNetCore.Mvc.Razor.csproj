@@ -41,7 +41,6 @@
         repositoryUrl=$(RepositoryUrl);
         repositoryCommit=$(RepositoryCommit);
         targetframework=$(TargetFramework);
-        MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion=$(MicrosoftAspNetCoreMvcRazorExtensionsPackageVersion);
         MicrosoftAspNetCoreRazorRuntimePackageVersion=$(MicrosoftAspNetCoreRazorRuntimePackageVersion);
         MicrosoftCodeAnalysisRazorPackageVersion=$(MicrosoftCodeAnalysisRazorPackageVersion);
         MicrosoftCodeAnalysisCSharpPackageVersion=$(MicrosoftCodeAnalysisCSharpPackageVersion);

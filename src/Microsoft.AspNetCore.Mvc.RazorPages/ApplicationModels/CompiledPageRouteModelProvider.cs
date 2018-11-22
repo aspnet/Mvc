@@ -70,11 +70,6 @@ namespace Microsoft.AspNetCore.Mvc.ApplicationModels
                     continue;
                 }
 
-                if (!viewDescriptor.IsPrecompiled)
-                {
-                    continue;
-                }
-
                 if (IsRazorPage(viewDescriptor))
                 {
                     yield return viewDescriptor;

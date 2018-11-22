@@ -8,17 +8,13 @@ using System.Threading;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Testing;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.WebEncoders.Testing;
@@ -1305,38 +1301,6 @@ namespace Microsoft.AspNetCore.Mvc.Razor
             Assert.Equal("bar", result.Name);
             Assert.Null(result.Page);
             Assert.Equal(expected, result.SearchedLocations);
-        }
-
-        [Fact]
-        public void CreateCacheResult_LogsPrecompiledViewFound()
-        {
-            // Arrange
-            var sink = new TestSink();
-            var loggerFactory = new TestLoggerFactory(sink, enabled: true);
-
-            var relativePath = "/Views/Foo/details.cshtml";
-            var factoryResult = GetPageFactoryResult(() => Mock.Of<IRazorPage>());
-            factoryResult.ViewDescriptor.IsPrecompiled = true;
-            var pageFactory = new Mock<IRazorPageFactoryProvider>();
-            pageFactory
-                .Setup(p => p.CreateFactory(relativePath))
-                .Returns(factoryResult)
-                .Verifiable();
-
-            var viewEngine = new RazorViewEngine(
-                pageFactory.Object,
-                Mock.Of<IRazorPageActivator>(),
-                new HtmlTestEncoder(),
-                GetOptionsAccessor(expanders: null),
-                loggerFactory,
-                new DiagnosticListener("Microsoft.AspNetCore.Mvc.Razor"));
-
-            // Act
-            var result = viewEngine.CreateCacheResult(null, relativePath, false);
-
-            // Assert
-            var logMessage = Assert.Single(sink.Writes);
-            Assert.Equal($"Using precompiled view for '{relativePath}'.", logMessage.State.ToString());
         }
 
         [Theory]

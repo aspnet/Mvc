@@ -53,5 +53,15 @@
     "TypeId": "public class Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions",
     "MemberId": "public System.Collections.Generic.IList<Microsoft.Extensions.FileProviders.IFileProvider> get_FileProviders()",
     "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.Razor.Compilation.CompiledViewDescriptor",
+    "MemberId": "public System.Boolean get_IsPrecompiled()",
+    "Kind": "Removal"
+  },
+  {
+    "TypeId": "public class Microsoft.AspNetCore.Mvc.Razor.Compilation.CompiledViewDescriptor",
+    "MemberId": "public System.Void set_IsPrecompiled(System.Boolean value)",
+    "Kind": "Removal"
   }
 ]
