@@ -33,8 +33,11 @@ namespace Microsoft.AspNetCore.Mvc.Performance
 {
     public class HelperPerformanceBenchmark : RuntimePerformanceBenchmarkBase
     {
+        private Random _rand = new Random();
         public HelperPerformanceBenchmark() : base("~/Views/HelperTyped.cshtml", "~/Views/HelperDynamic.cshtml")
         {
         }
+
+        protected override object Model => _rand.Next().ToString();
     }
 }

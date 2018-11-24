@@ -17,7 +17,10 @@ using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.Hosting;
@@ -28,6 +31,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Performance
 {
@@ -41,6 +45,39 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             IDisposable ILogger.BeginScope<TState>(TState state) => null;
             bool ILogger.IsEnabled(LogLevel logLevel) => false;
             void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {}
+        }
+
+        private class BenchmarkViewExecutor : ViewExecutor
+        {
+            public BenchmarkViewExecutor(IOptions<MvcViewOptions> viewOptions, IHttpResponseStreamWriterFactory writerFactory, ICompositeViewEngine viewEngine, ITempDataDictionaryFactory tempDataFactory, DiagnosticListener diagnosticListener, IModelMetadataProvider modelMetadataProvider)
+                : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticListener, modelMetadataProvider)
+            {
+            }
+
+            public StringBuilder StringBuilder { get; } = new StringBuilder();
+
+            public override async Task ExecuteAsync(
+                ActionContext actionContext,
+                IView view,
+                ViewDataDictionary viewData,
+                ITempDataDictionary tempData,
+                string contentType,
+                int? statusCode)
+            {
+                using (var stringWriter = new StringWriter(StringBuilder))
+                {
+                    var viewContext = new ViewContext(
+                        actionContext,
+                        view,
+                        viewData,
+                        tempData,
+                        stringWriter,
+                        ViewOptions.HtmlHelperOptions);
+                    await ExecuteAsync(viewContext, contentType, statusCode);
+                    await stringWriter.FlushAsync();
+                }
+
+            }
         }
 
 
@@ -78,13 +115,20 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         private ServiceProvider _serviceProvider;
         private RouteData _routeData;
         private ActionDescriptor _actionDescriptor;
+        private IServiceScope _requestScope;
+        private ICompositeViewEngine _viewEngine;
+        private BenchmarkViewExecutor _executor;
+        private ViewEngineResult _viewEngineResult;
+        private ActionContext _actionContext;
+        private ViewDataDictionary _viewDataDictionary;
+        private ITempDataDictionaryFactory _tempDataDictionaryFactory;
+        private ITempDataDictionary _tempData;
 
         // runs once for every Document value
         [GlobalSetup]
         public void GlobalSetup()
         {
             var loader = new RazorCompiledItemLoader();
-            Console.WriteLine("Base Directory: " + AppContext.BaseDirectory);
             var viewsDll = Path.ChangeExtension(typeof(ViewAssemblyMarker).Assembly.Location, "Views.dll");
             var viewsAssembly = Assembly.Load(File.ReadAllBytes(viewsDll));
             var services = new ServiceCollection();
@@ -98,11 +142,14 @@ namespace Microsoft.AspNetCore.Mvc.Performance
                 .AddSingleton(listener)
                 .AddSingleton<IHostingEnvironment, BenchmarkHostingEnvironment>()
                 .AddSingleton<ApplicationPartManager>(partManager)
+                .AddScoped<BenchmarkViewExecutor>()
                 .AddMvc();
 
             _serviceProvider = services.BuildServiceProvider();
             _routeData = new RouteData();
             _actionDescriptor = new ActionDescriptor();
+            _tempDataDictionaryFactory = _serviceProvider.GetRequiredService<ITempDataDictionaryFactory>();
+            _viewEngine = _serviceProvider.GetRequiredService<ICompositeViewEngine>();
         }
 
         [GlobalCleanup]
@@ -111,24 +158,55 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             _serviceProvider.Dispose();
         }
 
-        [Benchmark(Description = "Perf-testing running a razor view result")]
-        public Task RunTest()
+        [IterationSetup]
+        public virtual void IterationSetup()
         {
-            using (var requestScope = _serviceProvider.CreateScope())
-            {
-                var viewResult = new ViewResult
+            _requestScope = _serviceProvider.CreateScope();
+
+            _viewEngineResult = _viewEngine.GetView(null, ViewPath, true);
+            _viewEngineResult.EnsureSuccessful(null);
+
+            _actionContext = new ActionContext(
+                new DefaultHttpContext()
                 {
-                    ViewName = ViewPath,
-                };
-                var actionContext = new ActionContext(
-                    new DefaultHttpContext()
-                    {
-                        RequestServices = requestScope.ServiceProvider
-                    },
-                    _routeData,
-                    _actionDescriptor);
-                return viewResult.ExecuteResultAsync(actionContext);
+                    RequestServices = _requestScope.ServiceProvider
+                },
+                _routeData,
+                _actionDescriptor);
+
+            _tempData = _tempDataDictionaryFactory.GetTempData(_actionContext.HttpContext);
+
+            _viewDataDictionary = new ViewDataDictionary(
+                _requestScope.ServiceProvider.GetRequiredService<IModelMetadataProvider>(),
+                _actionContext.ModelState);
+            _viewDataDictionary.Model = Model;
+
+            _executor = _requestScope.ServiceProvider.GetRequiredService<BenchmarkViewExecutor>();
+        }
+
+        [IterationCleanup]
+        public virtual void IterationCleanup()
+        {
+            if (_viewEngineResult.View is IDisposable d)
+            {
+                d.Dispose();
             }
+            _requestScope.Dispose();
+        }
+
+        protected virtual object Model { get; } = null;
+
+        [Benchmark]
+        public async Task<string> RenderView()
+        {
+            await _executor.ExecuteAsync(
+                _actionContext,
+                _viewEngineResult.View,
+                _viewDataDictionary,
+                _tempData,
+                "text/html",
+                200);
+            return _executor.StringBuilder.ToString();
         }
     }
 }
