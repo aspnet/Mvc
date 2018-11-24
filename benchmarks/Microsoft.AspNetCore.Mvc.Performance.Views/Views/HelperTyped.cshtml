@@ -1,0 +1,6 @@
+@using System;
+@using Microsoft.AspNetCore.Html
+@{Func<string, IHtmlContent> SomeHelper = @<text>@{
+@item
+}</text>;}
+@SomeHelper("hello world")

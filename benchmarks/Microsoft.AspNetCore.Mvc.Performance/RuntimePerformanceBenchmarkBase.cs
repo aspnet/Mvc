@@ -31,9 +31,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Mvc.Performance
 {
-
-
-    public class RuntimePerformanceBenchmark
+    public class RuntimePerformanceBenchmarkBase
     {
         private class NullLoggerFactory : ILoggerFactory, ILogger
         {
@@ -65,10 +63,12 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             public IFileProvider ContentRootFileProvider { get; set; }
         }
 
-        public string[] ViewPaths { get; } = new string[]
+        protected RuntimePerformanceBenchmarkBase(params string[] viewPaths)
         {
-            "~/Views/HelloWorld.cshtml"
-        };
+            ViewPaths = viewPaths;
+        }
+
+        public virtual string[] ViewPaths { get; private set; }
 
         [ParamsSource(nameof(ViewPaths))]
         public string ViewPath;
