@@ -3,5 +3,5 @@
 @model System.String
 @for (var i = 0; i < 100; i++)
 {
-    await Html.RenderPartialAsync("HelperPartial_Partial.cshtml", Model + i.ToString());
+    await Html.RenderPartialAsync("~/Views/HelperPartial_Partial.cshtml", Model + i.ToString());
 }
