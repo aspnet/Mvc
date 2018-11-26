@@ -39,7 +39,8 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             "~/Views/HelperDynamic.cshtml",
             "~/Views/HelperPartialSync.cshtml",
             "~/Views/HelperPartialAsync.cshtml",
-            "~/Views/HelperExtensions.cshtml")
+            "~/Views/HelperExtensions.cshtml",
+            "~/Views/HelperPartialTagHelper.cshtml")
         {
         }
 
