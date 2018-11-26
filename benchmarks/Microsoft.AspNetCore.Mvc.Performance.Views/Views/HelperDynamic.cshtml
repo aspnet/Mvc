@@ -4,4 +4,7 @@
 @{Func<dynamic, IHtmlContent> SomeHelper = @<text>@{
 @item
 }</text>;}
-@SomeHelper(Model)
+@for (var i = 0; i < 100; i++)
+{
+    @SomeHelper(Model + i.ToString())
+}

@@ -34,7 +34,7 @@ namespace Microsoft.AspNetCore.Mvc.Performance
     public class HelperPerformanceBenchmark : RuntimePerformanceBenchmarkBase
     {
         private Random _rand = new Random();
-        public HelperPerformanceBenchmark() : base("~/Views/HelperTyped.cshtml", "~/Views/HelperDynamic.cshtml")
+        public HelperPerformanceBenchmark() : base("~/Views/HelperTyped.cshtml", "~/Views/HelperDynamic.cshtml", "~/Views/HelperPartialSync.cshtml", "~/Views/HelperPartialAsync.cshtml")
         {
         }
 
