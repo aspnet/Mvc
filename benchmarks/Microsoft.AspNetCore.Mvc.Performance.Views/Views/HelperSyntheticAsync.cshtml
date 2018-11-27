@@ -1,0 +1,15 @@
+@using System
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Html
+@model System.String
+@for (var i = 0; i < 100; i++){ await SomeHelperAsync(Model + i.ToString()); }
+
+@functions {
+
+    // Similar to the code that helper would generate if it were async
+    Task SomeHelperAsync(string text)
+    {
+        Write(text);
+        return Task.CompletedTask;
+    }
+}

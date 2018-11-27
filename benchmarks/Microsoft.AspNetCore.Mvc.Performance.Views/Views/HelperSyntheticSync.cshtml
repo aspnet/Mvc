@@ -1,0 +1,13 @@
+@using System;
+@using Microsoft.AspNetCore.Html
+@model System.String
+@for (var i = 0; i < 100; i++){ SomeHelper(Model + i.ToString()); }
+
+@functions {
+
+    // Similar to the code that helper would generate
+    void SomeHelper(string text)
+    {
+        Write(text);
+    }
+}

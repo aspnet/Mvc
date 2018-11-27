@@ -2,116 +2,35 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.Hosting;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.AspNetCore.Mvc.Performance
 {
-    public class RuntimePerformanceBenchmarkBase
+    public class ViewEngineBenchmarkBase
     {
-        private class NullLoggerFactory : ILoggerFactory, ILogger
-        {
-            void ILoggerFactory.AddProvider(ILoggerProvider provider) {}
-            ILogger ILoggerFactory.CreateLogger(string categoryName) => this;
-            void IDisposable.Dispose() {}
-            IDisposable ILogger.BeginScope<TState>(TState state) => null;
-            bool ILogger.IsEnabled(LogLevel logLevel) => false;
-            void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) {}
-        }
-
-        private class BenchmarkViewExecutor : ViewExecutor
-        {
-            public BenchmarkViewExecutor(IOptions<MvcViewOptions> viewOptions, IHttpResponseStreamWriterFactory writerFactory, ICompositeViewEngine viewEngine, ITempDataDictionaryFactory tempDataFactory, DiagnosticListener diagnosticListener, IModelMetadataProvider modelMetadataProvider)
-                : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticListener, modelMetadataProvider)
-            {
-            }
-
-            public StringBuilder StringBuilder { get; } = new StringBuilder();
-
-            public override async Task ExecuteAsync(
-                ActionContext actionContext,
-                IView view,
-                ViewDataDictionary viewData,
-                ITempDataDictionary tempData,
-                string contentType,
-                int? statusCode)
-            {
-                using (var stringWriter = new StringWriter(StringBuilder))
-                {
-                    var viewContext = new ViewContext(
-                        actionContext,
-                        view,
-                        viewData,
-                        tempData,
-                        stringWriter,
-                        ViewOptions.HtmlHelperOptions);
-                    await ExecuteAsync(viewContext, contentType, statusCode);
-                    await stringWriter.FlushAsync();
-                }
-
-            }
-        }
-
-
-        private class BenchmarkHostingEnvironment : IHostingEnvironment
-        {
-            public BenchmarkHostingEnvironment()
-            {
-                ApplicationName = typeof(ViewAssemblyMarker).Assembly.FullName;
-                WebRootFileProvider = new NullFileProvider();
-                ContentRootFileProvider = new NullFileProvider();
-                ContentRootPath = AppContext.BaseDirectory;
-                WebRootPath = AppContext.BaseDirectory;
-            }
-
-            public string EnvironmentName { get; set; }
-            public string ApplicationName { get; set; }
-            public string WebRootPath { get; set; }
-            public IFileProvider WebRootFileProvider { get; set; }
-            public string ContentRootPath { get; set; }
-            public IFileProvider ContentRootFileProvider { get; set; }
-        }
-
-        protected RuntimePerformanceBenchmarkBase(params string[] viewPaths)
-        {
-            ViewPaths = viewPaths;
-        }
-
-        public virtual string[] ViewPaths { get; private set; }
-
-        [ParamsSource(nameof(ViewPaths))]
-        public string ViewPath;
-
-        protected IView View;
-
         private ServiceProvider _serviceProvider;
         private RouteData _routeData;
         private ActionDescriptor _actionDescriptor;
@@ -123,6 +42,13 @@ namespace Microsoft.AspNetCore.Mvc.Performance
         private ViewDataDictionary _viewDataDictionary;
         private ITempDataDictionaryFactory _tempDataDictionaryFactory;
         private ITempDataDictionary _tempData;
+
+        protected ViewEngineBenchmarkBase(params string[] viewPaths)
+        {
+            ViewPaths = viewPaths;
+        }
+
+        public virtual string[] ViewPaths { get; private set; }
 
         // runs once for every Document value
         [GlobalSetup]
@@ -136,7 +62,7 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             var partManager = new ApplicationPartManager();
             partManager.ApplicationParts.Add(CompiledRazorAssemblyApplicationPartFactory.GetDefaultApplicationParts(viewsAssembly).Single());
             var builder = services
-                .AddSingleton<ILoggerFactory, NullLoggerFactory>()
+                .AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance)
                 .AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>()
                 .AddSingleton<DiagnosticSource>(listener)
                 .AddSingleton(listener)
@@ -194,6 +120,9 @@ namespace Microsoft.AspNetCore.Mvc.Performance
             _requestScope.Dispose();
         }
 
+        [ParamsSource(nameof(ViewPaths))]
+        public string ViewPath;
+
         protected virtual object Model { get; } = null;
 
         [Benchmark]
@@ -207,6 +136,59 @@ namespace Microsoft.AspNetCore.Mvc.Performance
                 "text/html",
                 200);
             return _executor.StringBuilder.ToString();
+        }
+
+        private class BenchmarkViewExecutor : ViewExecutor
+        {
+            public BenchmarkViewExecutor(IOptions<MvcViewOptions> viewOptions, IHttpResponseStreamWriterFactory writerFactory, ICompositeViewEngine viewEngine, ITempDataDictionaryFactory tempDataFactory, DiagnosticListener diagnosticListener, IModelMetadataProvider modelMetadataProvider)
+                : base(viewOptions, writerFactory, viewEngine, tempDataFactory, diagnosticListener, modelMetadataProvider)
+            {
+            }
+
+            public StringBuilder StringBuilder { get; } = new StringBuilder();
+
+            public override async Task ExecuteAsync(
+                ActionContext actionContext,
+                IView view,
+                ViewDataDictionary viewData,
+                ITempDataDictionary tempData,
+                string contentType,
+                int? statusCode)
+            {
+                using (var stringWriter = new StringWriter(StringBuilder))
+                {
+                    var viewContext = new ViewContext(
+                        actionContext,
+                        view,
+                        viewData,
+                        tempData,
+                        stringWriter,
+                        ViewOptions.HtmlHelperOptions);
+                    await ExecuteAsync(viewContext, contentType, statusCode);
+                    await stringWriter.FlushAsync();
+                }
+
+            }
+        }
+
+
+        private class BenchmarkHostingEnvironment : IHostingEnvironment
+        {
+            public BenchmarkHostingEnvironment()
+            {
+                ApplicationName = typeof(ViewAssemblyMarker).Assembly.FullName;
+                WebRootFileProvider = new NullFileProvider();
+                ContentRootFileProvider = new NullFileProvider();
+                ContentRootPath = AppContext.BaseDirectory;
+                WebRootPath = AppContext.BaseDirectory;
+            }
+
+            public string EnvironmentName { get; set; }
+            public string ApplicationName { get; set; }
+            public string WebRootPath { get; set; }
+            public IFileProvider WebRootFileProvider { get; set; }
+            public string ContentRootPath { get; set; }
+            public IFileProvider ContentRootFileProvider { get; set; }
         }
     }
 }
