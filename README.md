@@ -1,9 +1,9 @@
-ASP.NET Core MVC
-===
+ASP.NET Core MVC [Archived]
+===========================
+
+**This GitHub project has been archived.** Ongoing development on this project can be found in <https://github.com/aspnet/AspNetCore>.
 
 **Note: For ASP.NET MVC 5.x, Web API 2.x, and Web Pages 3.x (not ASP.NET Core), see https://github.com/aspnet/AspNetWebStack**
-
-Travis:   [![Travis](https://travis-ci.org/aspnet/Mvc.svg?branch=master)](https://travis-ci.org/aspnet/Mvc)
 
 ASP.NET Core MVC gives you a powerful, patterns-based way to build dynamic websites that enables a clean separation of concerns and gives you full control over markup for enjoyable, agile development. ASP.NET Core MVC includes many features that enable fast, TDD-friendly development for creating sophisticated applications that use the latest web standards.
 
@@ -19,8 +19,8 @@ Related community projects:
 * [XmlResult](https://github.com/Wallsmedia/XmlResult): XML formatter extensions to allow defining the XML serializer type.
 * [AspNetCoreImageTagHelper](https://github.com/ignatandrei/AspNetCoreImageTagHelper): Tag helper for rendering images as inline base64 data.
 
-This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [Home](https://github.com/aspnet/home) repo.
+This project is part of ASP.NET Core. You can find samples, documentation and getting started instructions for ASP.NET Core at the [AspNetCore](https://github.com/aspnet/AspNetCore) repo.
 
 ## Building from source
 
-To run a complete build on command line only, execute `build.cmd` or `build.sh` without arguments. See [developer documentation](https://github.com/aspnet/Home/wiki) for more details.
+To run a complete build on command line only, execute `build.cmd` or `build.sh` without arguments. See [developer documentation](https://github.com/aspnet/AspNetCore/wiki) for more details.
